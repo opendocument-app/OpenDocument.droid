@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+	xmlns:android="http://schemas.android.com/apk/res/android">
+	<item
+		android:title="Zoom++"
+		android:icon="@android:drawable/ic_menu_zoom"
+		android:id="@+id/menu_zoom_in" />
+
+	<item
+		android:title="Zoom--"
+		android:icon="@android:drawable/ic_menu_search"
+		android:id="@+id/menu_zoom_out" />
+
+	<item
+		android:title="Copy"
+		android:icon="@android:drawable/ic_menu_edit"
+		android:id="@+id/menu_copy" />
+
+	<item
+		android:title="Share"
+		android:icon="@android:drawable/ic_menu_share"
+		android:id="@+id/menu_share" />
+
+	<item
+		android:title="Rate"
+		android:icon="@drawable/chart"
+		android:id="@+id/menu_rate" />
+
+	<item
+		android:title="Donate"
+		android:icon="@drawable/love"
+		android:id="@+id/menu_donate" />
+</menu>
