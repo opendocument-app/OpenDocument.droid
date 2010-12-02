@@ -2,8 +2,8 @@
 <manifest
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	package="at.tomtasche.reader"
-	android:versionCode="9"
-	android:versionName="1.1.7"
+	android:versionCode="11"
+	android:versionName="1.1.9"
 	android:installLocation="auto">
 
 	<application
@@ -11,7 +11,8 @@
 		android:label="@string/app_name">
 		<activity
 			android:name=".activity.OpenActivity"
-			android:label="@string/app_name">
+			android:label="@string/app_name"
+			android:configChanges="orientation|keyboardHidden">
 			<intent-filter>
 				<action
 					android:name="android.intent.action.VIEW" />
@@ -19,6 +20,15 @@
 					android:name="android.intent.category.DEFAULT" />
 				<data
 					android:mimeType="application/vnd.oasis.opendocument.text" />
+			</intent-filter>
+
+			<intent-filter>
+				<action
+					android:name="android.intent.action.VIEW" />
+				<category
+					android:name="android.intent.category.DEFAULT" />
+				<data
+					android:mimeType="application/vnd.oasis.opendocument.text-template" />
 			</intent-filter>
 
 			<intent-filter>
@@ -40,6 +50,9 @@
 		android:resizeable="true"
 		android:largeScreens="true"
 		android:anyDensity="true" />
+
+	<uses-permission
+		android:name="android.permission.INTERNET" />
 
 	<uses-feature
 		android:name="android.hardware.touchscreen"

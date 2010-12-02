@@ -25,7 +25,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.WebSettings;
-import android.webkit.WebSettings.ZoomDensity;
 import android.webkit.WebView;
 import android.widget.Toast;
 import at.tomtasche.reader.R;
@@ -68,7 +67,6 @@ public class OpenActivity extends Activity {
         settings.setSupportZoom(true);
         settings.setPluginsEnabled(false);
         settings.setDefaultTextEncodingName(ENCODING);
-        settings.setDefaultZoom(ZoomDensity.FAR);
 
         thread = new Thread() {
             @Override
@@ -120,7 +118,7 @@ public class OpenActivity extends Activity {
                                         formparams, "UTF-8");
 
                                 final HttpPost request = new HttpPost(
-                                        "http://analydroid.appspot.com/analydroid/exception");
+                                        "https://analydroid.appspot.com/analydroid/exception");
                                 request.setEntity(entity);
 
                                 final HttpClient client = new DefaultHttpClient();
@@ -174,7 +172,12 @@ public class OpenActivity extends Activity {
     public boolean onMenuItemSelected(final int featureId, final MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_copy: {
-                documentView.emulateShiftHeld();
+                try {
+                    documentView.emulateShiftHeld();
+                } catch (final Exception e) {
+                    Toast.makeText(this, "Not possible on Android versions older than 2.0",
+                            Toast.LENGTH_LONG).show();
+                }
                 break;
             }
 
