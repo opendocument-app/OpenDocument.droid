@@ -219,8 +219,4 @@ public class OpenActivity extends Activity {
 
         return super.onMenuItemSelected(featureId, item);
     }
-
-    private void fail() {
-        Toast.makeText(this, "Couldn't load .odt-file. Sorry!", Toast.LENGTH_LONG).show();
-    }
 }
