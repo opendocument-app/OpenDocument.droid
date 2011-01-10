@@ -2,8 +2,8 @@
 <manifest
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	package="at.tomtasche.reader"
-	android:versionCode="12"
-	android:versionName="1.2"
+	android:versionCode="13"
+	android:versionName="1.2.1"
 	android:installLocation="auto">
 
 	<application
@@ -49,9 +49,23 @@
 					android:mimeType="application/vnd.oasis.opendocument.spreadsheet" />
 			</intent-filter>
 
-			<!-- <intent-filter> <action android:name="android.intent.action.VIEW" 
-				/> <category android:name="android.intent.category.DEFAULT" /> <data android:mimeType="application/vnd.oasis.opendocument.text-template" 
-				/> </intent-filter> -->
+			<intent-filter>
+				<action
+					android:name="android.intent.action.VIEW" />
+				<category
+					android:name="android.intent.category.DEFAULT" />
+				<data
+					android:mimeType="application/vnd.oasis.opendocument.text-template" />
+			</intent-filter>
+
+			<intent-filter>
+				<action
+					android:name="android.intent.action.VIEW" />
+				<category
+					android:name="android.intent.category.BROWSABLE" />
+				<data
+					android:mimeType="application/vnd.oasis.opendocument.text-template" />
+			</intent-filter>
 
 			<intent-filter>
 				<action

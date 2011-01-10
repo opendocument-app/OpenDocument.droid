@@ -17,6 +17,16 @@
 		android:id="@+id/menu_copy" />
 
 	<item
+		android:title="Open"
+		android:icon="@android:drawable/ic_menu_view"
+		android:id="@+id/menu_open" />
+
+	<item
+		android:title="Donate"
+		android:icon="@drawable/love"
+		android:id="@+id/menu_donate" />
+
+	<item
 		android:title="Share"
 		android:icon="@android:drawable/ic_menu_share"
 		android:id="@+id/menu_share" />
@@ -25,9 +35,4 @@
 		android:title="Rate"
 		android:icon="@drawable/chart"
 		android:id="@+id/menu_rate" />
-
-	<item
-		android:title="Donate"
-		android:icon="@drawable/love"
-		android:id="@+id/menu_donate" />
 </menu>
