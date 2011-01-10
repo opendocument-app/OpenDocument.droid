@@ -1,3 +1,4 @@
+
 package at.tomtasche.reader.activity;
 
 import java.io.ByteArrayOutputStream;
@@ -115,15 +116,15 @@ public class OpenActivity extends Activity {
                                         Build.VERSION.SDK));
                                 formparams.add(new BasicNameValuePair(INFORMATION, "I"));
                                 formparams
-                                .add(new BasicNameValuePair(VERSION_NAME,
-                                        getPackageManager().getPackageInfo(
-                                                getPackageName(), 0).versionName));
+                                        .add(new BasicNameValuePair(VERSION_NAME,
+                                                getPackageManager().getPackageInfo(
+                                                        getPackageName(), 0).versionName));
 
                                 final UrlEncodedFormEntity entity = new UrlEncodedFormEntity(
                                         formparams, "UTF-8");
 
                                 final HttpPost request = new HttpPost(
-                                "https://analydroid.appspot.com/analydroid/exception");
+                                        "https://analydroid.appspot.com/analydroid/exception");
                                 request.setEntity(entity);
 
                                 final HttpClient client = new DefaultHttpClient();
@@ -132,7 +133,15 @@ public class OpenActivity extends Activity {
                             } catch (final Exception e1) {
                                 e.printStackTrace();
 
-                                Toast.makeText(OpenActivity.this, "That's not what I'm looking for, sorry!", Toast.LENGTH_SHORT).show();
+                                runOnUiThread(new Runnable() {
+
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(OpenActivity.this,
+                                                "That's not what I'm looking for, sorry!",
+                                                Toast.LENGTH_SHORT).show();
+                                    }
+                                });
                             }
                         };
                     }.start();
@@ -167,10 +176,15 @@ public class OpenActivity extends Activity {
             }
 
             case R.id.menu_open: {
-                final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("application/vnd.oasis.opendocument.*");
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                startActivityForResult(intent, 42);
+                try {
+                    final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.setType("application/vnd.oasis.opendocument.*");
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    startActivityForResult(intent, 42);
+                } catch (final Exception e) {
+                    Toast.makeText(this, "No supported app installed. Try EStrongs File Explorer",
+                            Toast.LENGTH_LONG).show();
+                }
 
                 break;
             }
