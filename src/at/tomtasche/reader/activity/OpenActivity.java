@@ -67,7 +67,7 @@ public class OpenActivity extends Activity {
 
         setContentView(documentView);
 
-        loadDocument(null);
+        loadDocument(getIntent().getData());
     }
 
     private void loadDocument(final Uri data) {
@@ -145,7 +145,6 @@ public class OpenActivity extends Activity {
                             }
                         };
                     }.start();
-                    return;
                 } finally {
                     dialog.dismiss();
                 }
