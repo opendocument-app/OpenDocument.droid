@@ -17,7 +17,11 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -31,6 +35,7 @@ import at.tomtasche.reader.R;
 import at.tomtasche.reader.odt.JOpenDocument;
 
 public class OpenActivity extends Activity {
+
     private static final String PACKAGE = "PACKAGE";
 
     private static final String ANDROID_VERSION = "ANDROID_VERSION";
@@ -47,17 +52,20 @@ public class OpenActivity extends Activity {
 
     private static final String ENCODING = "utf-8";
 
+
     private WebView documentView;
 
     private ProgressDialog dialog;
 
     private Thread thread;
 
+
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         documentView = new WebView(this);
+
         final WebSettings settings = documentView.getSettings();
         settings.setBuiltInZoomControls(true);
         settings.setLightTouchEnabled(true);
@@ -65,9 +73,32 @@ public class OpenActivity extends Activity {
         settings.setPluginsEnabled(false);
         settings.setDefaultTextEncodingName(ENCODING);
 
+        documentView.loadData("Get started using your phone's menu button!", "text/plain", "utf-8");
         setContentView(documentView);
 
-        loadDocument(getIntent().getData());
+        AlertDialog.Builder builder = new Builder(this);
+        builder.setTitle("Welcome to an Open World!");
+        builder.setMessage("I suspect you came here to open your beloved OpenOffice / LibreOffice documents, so let's just skip the boring part and start reading!\n\nIf you want to read more about this project visit http://reader.tomtasche.at/ or click \"About\" in the menu.\n\nSincerely,\nYour developers,\nAndi, David and Tom");
+        builder.setNeutralButton("Cool!", new OnClickListener() {
+            
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                openDocument();
+            }
+        });
+        builder.create().show();
+    }
+    
+    private void openDocument() {
+        try {
+            final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("application/vnd.oasis.opendocument.*");
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            startActivityForResult(intent, 42);
+        } catch (final Exception e) {
+            Toast.makeText(this, "No supported app installed. Try EStrongs File Explorer",
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     private void loadDocument(final Uri data) {
@@ -116,15 +147,15 @@ public class OpenActivity extends Activity {
                                         Build.VERSION.SDK));
                                 formparams.add(new BasicNameValuePair(INFORMATION, "I"));
                                 formparams
-                                        .add(new BasicNameValuePair(VERSION_NAME,
-                                                getPackageManager().getPackageInfo(
-                                                        getPackageName(), 0).versionName));
+                                .add(new BasicNameValuePair(VERSION_NAME,
+                                        getPackageManager().getPackageInfo(
+                                                getPackageName(), 0).versionName));
 
                                 final UrlEncodedFormEntity entity = new UrlEncodedFormEntity(
                                         formparams, "UTF-8");
 
                                 final HttpPost request = new HttpPost(
-                                        "https://analydroid.appspot.com/analydroid/exception");
+                                "https://analydroid.appspot.com/analydroid/exception");
                                 request.setEntity(entity);
 
                                 final HttpClient client = new DefaultHttpClient();
@@ -175,15 +206,7 @@ public class OpenActivity extends Activity {
             }
 
             case R.id.menu_open: {
-                try {
-                    final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                    intent.setType("application/vnd.oasis.opendocument.*");
-                    intent.addCategory(Intent.CATEGORY_OPENABLE);
-                    startActivityForResult(intent, 42);
-                } catch (final Exception e) {
-                    Toast.makeText(this, "No supported app installed. Try EStrongs File Explorer",
-                            Toast.LENGTH_LONG).show();
-                }
+                openDocument();
 
                 break;
             }
@@ -222,6 +245,12 @@ public class OpenActivity extends Activity {
                 startActivity(new Intent(
                         Intent.ACTION_VIEW,
                         Uri.parse("http://www.appbrain.com/app/openoffice-document-reader/at.tomtasche.reader?install")));
+
+                break;
+            }
+
+            case R.id.menu_about: {
+                loadDocument(null);
 
                 break;
             }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu
 	xmlns:android="http://schemas.android.com/apk/res/android">
+
 	<item
 		android:title="Zoom++"
 		android:icon="@android:drawable/ic_menu_zoom"
@@ -35,4 +36,9 @@
 		android:title="Rate"
 		android:icon="@drawable/chart"
 		android:id="@+id/menu_rate" />
+
+	<item
+		android:title="About"
+		android:icon="@android:drawable/ic_menu_info_details"
+		android:id="@+id/menu_about" />
 </menu>
