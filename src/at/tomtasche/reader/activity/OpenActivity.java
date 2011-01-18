@@ -1,20 +1,9 @@
 
 package at.tomtasche.reader.activity;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -24,7 +13,6 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,23 +20,10 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.error.ErrorReport;
 import at.tomtasche.reader.odt.JOpenDocument;
 
 public class OpenActivity extends Activity {
-
-    private static final String PACKAGE = "PACKAGE";
-
-    private static final String ANDROID_VERSION = "ANDROID_VERSION";
-
-    private static final String VERSION_CODE = "VERSION_CODE";
-
-    private static final String VERSION_NAME = "VERSION_NAME";
-
-    private static final String STACKTRACE = "STACKTRACE";
-
-    private static final String MODEL = "MODEL";
-
-    private static final String INFORMATION = "INFORMATION";
 
     private static final String ENCODING = "utf-8";
 
@@ -80,7 +55,7 @@ public class OpenActivity extends Activity {
         builder.setTitle("Welcome to an Open World!");
         builder.setMessage("I suspect you came here to open your beloved OpenOffice / LibreOffice documents, so let's just skip the boring part and start reading!\n\nIf you want to read more about this project visit http://reader.tomtasche.at/ or click \"About\" in the menu.\n\nSincerely,\nYour developers,\nAndi, David and Tom");
         builder.setNeutralButton("Cool!", new OnClickListener() {
-            
+
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 openDocument();
@@ -88,7 +63,7 @@ public class OpenActivity extends Activity {
         });
         builder.create().show();
     }
-    
+
     private void openDocument() {
         try {
             final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -96,6 +71,8 @@ public class OpenActivity extends Activity {
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             startActivityForResult(intent, 42);
         } catch (final Exception e) {
+            e.printStackTrace();
+            
             Toast.makeText(this, "No supported app installed. Try EStrongs File Explorer",
                     Toast.LENGTH_LONG).show();
         }
@@ -105,89 +82,15 @@ public class OpenActivity extends Activity {
         dialog = ProgressDialog.show(this, "", "Gathering all the sheets of paper together...",
                 true);
 
-        thread = new Thread() {
-            @Override
-            public void run() {
-                try {
-                    InputStream stream;
-                    if (data == null) {
-                        stream = getAssets().open("intro.odt");
-                    } else {
-                        stream = getContentResolver().openInputStream(data);
-                    }
-
-                    final JOpenDocument document = new JOpenDocument(stream, getCacheDir());
-
-                    documentView.loadData(document.getDocument().toString(), "text/html", ENCODING);
-                } catch (final Exception e) {
-                    e.printStackTrace();
-
-                    new Thread() {
-                        @Override
-                        public void run() {
-                            try {
-                                final List<NameValuePair> formparams = new ArrayList<NameValuePair>();
-
-                                final ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
-                                final PrintStream stream = new PrintStream(byteOutput);
-                                e.printStackTrace(stream);
-                                stream.flush();
-                                stream.close();
-                                byteOutput.flush();
-                                final String stackTrace = byteOutput.toString("UTF-8");
-                                byteOutput.close();
-
-                                formparams.add(new BasicNameValuePair(PACKAGE, getPackageName()));
-                                formparams.add(new BasicNameValuePair(STACKTRACE, stackTrace));
-                                formparams.add(new BasicNameValuePair(MODEL, Build.MODEL));
-                                formparams.add(new BasicNameValuePair(VERSION_CODE, Integer
-                                        .toString(getPackageManager().getPackageInfo(
-                                                getPackageName(), 0).versionCode)));
-                                formparams.add(new BasicNameValuePair(ANDROID_VERSION,
-                                        Build.VERSION.SDK));
-                                formparams.add(new BasicNameValuePair(INFORMATION, "I"));
-                                formparams
-                                .add(new BasicNameValuePair(VERSION_NAME,
-                                        getPackageManager().getPackageInfo(
-                                                getPackageName(), 0).versionName));
-
-                                final UrlEncodedFormEntity entity = new UrlEncodedFormEntity(
-                                        formparams, "UTF-8");
-
-                                final HttpPost request = new HttpPost(
-                                "https://analydroid.appspot.com/analydroid/exception");
-                                request.setEntity(entity);
-
-                                final HttpClient client = new DefaultHttpClient();
-                                System.out.println(client.execute(request,
-                                        new BasicResponseHandler()));
-                            } catch (final Exception e1) {
-                                e.printStackTrace();
-
-                                runOnUiThread(new Runnable() {
-
-                                    @Override
-                                    public void run() {
-                                        Toast.makeText(OpenActivity.this,
-                                                "That's not what I'm looking for, sorry!",
-                                                Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-                            }
-                        };
-                    }.start();
-                } finally {
-                    dialog.dismiss();
-                }
-            };
-        };
-        thread.start();
+        new DocumentLoader(data);
     }
 
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
         super.onCreateOptionsMenu(menu);
+
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
         return true;
     }
 
@@ -288,5 +191,80 @@ public class OpenActivity extends Activity {
         }
 
         super.onDestroy();
+    }
+
+
+    class DocumentLoader extends Thread {
+        private Uri data;
+
+        public DocumentLoader(Uri data) {
+            this.data = data;
+
+            start();
+        }
+
+        @Override
+        public void run() {
+            try {
+                InputStream stream;
+
+                if (data == null) {
+                    stream = getAssets().open("intro.odt");
+                } else {
+                    if ("/./".equals(data.toString().substring(0, 2))) {
+                        data = Uri.parse(data.toString().substring(2, data.toString().length()));
+                    }
+
+                    stream = getContentResolver().openInputStream(data);
+
+                    if (stream == null) {
+                        runOnUiThread(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                Toast.makeText(OpenActivity.this, "Couldn't access file", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        
+                        return;
+                    }
+                }
+
+                final JOpenDocument document = new JOpenDocument(stream, getCacheDir());
+
+                documentView.loadData(document.getDocument().toString(), "text/html", ENCODING);
+            } catch (FileNotFoundException e) {
+                runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        Toast.makeText(OpenActivity.this, "Couldn't find file", Toast.LENGTH_LONG).show();
+                    }
+                });
+            } catch (IllegalArgumentException e) {
+                runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        Toast.makeText(OpenActivity.this, "This doesn't seem to be a supported OpenOffice Document", Toast.LENGTH_LONG).show();
+                    }
+                });
+            } catch (final Exception e) {
+                e.printStackTrace();
+
+                new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            ErrorReport.report(OpenActivity.this, e);
+                        } catch (final Exception e1) {
+                            e.printStackTrace();
+                        }
+                    };
+                }.start();
+            } finally {
+                dialog.dismiss();
+            }
+        }
     }
 }

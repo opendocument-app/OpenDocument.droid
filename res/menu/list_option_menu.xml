@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+	xmlns:android="http://schemas.android.com/apk/res/android">
+	<item
+		android:id="@+id/menu_back"
+		android:title="@string/back"
+		android:drawable="@drawable/ic_menu_back" />
+
+	<item
+		android:id="@+id/menu_cancel"
+		android:title="@string/cancel"
+		android:drawable="@android:drawable/ic_menu_revert" />
+</menu>

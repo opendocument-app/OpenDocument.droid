@@ -2,4 +2,22 @@
 <resources>
 	<string
 		name="app_name">OpenOffice Document Reader</string>
+
+	<string
+		name="back">Back</string>
+
+	<string
+		name="cancel">Cancel</string>
+
+	<string
+		name="canceled">Canceled</string>
+
+	<string
+		name="ontop">Can\'t go back</string>
+
+	<string
+		name="denied">Access denied</string>
+
+	<string
+		name="nofiles">No files</string>
 </resources>

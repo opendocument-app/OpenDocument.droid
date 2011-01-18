@@ -9,6 +9,24 @@
 	<application
 		android:icon="@drawable/icon"
 		android:label="@string/app_name">
+
+		<activity
+			android:name="at.enajat.david.android.filechooser.FileChooser"
+			android:label="@string/app_name"
+			android:configChanges="orientation|keyboardHidden">
+
+			<intent-filter>
+				<action
+					android:name="android.intent.action.GET_CONTENT" />
+				<category
+					android:name="android.intent.category.OPENABLE" />
+				<category
+					android:name="android.intent.category.DEFAULT" />
+				<data
+					android:mimeType="application/vnd.oasis.opendocument.*" />
+			</intent-filter>
+		</activity>
+
 		<activity
 			android:name=".activity.OpenActivity"
 			android:label="@string/app_name"
@@ -90,6 +108,8 @@
 
 	<uses-permission
 		android:name="android.permission.INTERNET" />
+	<uses-permission
+		android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
 	<uses-feature
 		android:name="android.hardware.touchscreen"
@@ -97,5 +117,5 @@
 
 	<uses-sdk
 		android:minSdkVersion="3"
-		android:targetSdkVersion="7" />
+		android:targetSdkVersion="9" />
 </manifest>
