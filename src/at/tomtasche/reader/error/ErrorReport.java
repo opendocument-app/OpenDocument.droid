@@ -1,3 +1,4 @@
+
 package at.tomtasche.reader.error;
 
 import java.io.ByteArrayOutputStream;
@@ -17,7 +18,7 @@ import android.content.Context;
 import android.os.Build;
 
 public class ErrorReport {
-    
+
     private static final String PACKAGE = "PACKAGE";
 
     private static final String ANDROID_VERSION = "ANDROID_VERSION";
@@ -31,9 +32,8 @@ public class ErrorReport {
     private static final String MODEL = "MODEL";
 
     private static final String INFORMATION = "INFORMATION";
-    
-    
-    public static void report(Context context, Exception e) throws Exception {
+
+    public static void report(final Context context, final Exception e) throws Exception {
         final List<NameValuePair> formparams = new ArrayList<NameValuePair>();
 
         final ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
@@ -48,26 +48,19 @@ public class ErrorReport {
         formparams.add(new BasicNameValuePair(PACKAGE, context.getPackageName()));
         formparams.add(new BasicNameValuePair(STACKTRACE, stackTrace));
         formparams.add(new BasicNameValuePair(MODEL, Build.MODEL));
-        formparams.add(new BasicNameValuePair(VERSION_CODE, Integer
-                .toString(context.getPackageManager().getPackageInfo(
-                        context.getPackageName(), 0).versionCode)));
-        formparams.add(new BasicNameValuePair(ANDROID_VERSION,
-                Build.VERSION.SDK));
+        formparams.add(new BasicNameValuePair(VERSION_CODE, Integer.toString(context
+                .getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode)));
+        formparams.add(new BasicNameValuePair(ANDROID_VERSION, Build.VERSION.SDK));
         formparams.add(new BasicNameValuePair(INFORMATION, "I"));
-        formparams
-        .add(new BasicNameValuePair(VERSION_NAME,
-                context.getPackageManager().getPackageInfo(
-                        context.getPackageName(), 0).versionName));
+        formparams.add(new BasicNameValuePair(VERSION_NAME, context.getPackageManager()
+                .getPackageInfo(context.getPackageName(), 0).versionName));
 
-        final UrlEncodedFormEntity entity = new UrlEncodedFormEntity(
-                formparams, "UTF-8");
+        final UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, "UTF-8");
 
-        final HttpPost request = new HttpPost(
-        "https://analydroid.appspot.com/analydroid/exception");
+        final HttpPost request = new HttpPost("https://analydroid.appspot.com/analydroid/exception");
         request.setEntity(entity);
 
         final HttpClient client = new DefaultHttpClient();
-        System.out.println(client.execute(request,
-                new BasicResponseHandler()));
+        System.out.println(client.execute(request, new BasicResponseHandler()));
     }
 }

@@ -3,42 +3,42 @@
 	xmlns:android="http://schemas.android.com/apk/res/android">
 
 	<item
-		android:title="Zoom++"
+		android:title="@string/menu_zoom_in"
 		android:icon="@android:drawable/ic_menu_zoom"
 		android:id="@+id/menu_zoom_in" />
 
 	<item
-		android:title="Zoom--"
+		android:title="@string/menu_zoom_out"
 		android:icon="@android:drawable/ic_menu_search"
 		android:id="@+id/menu_zoom_out" />
 
 	<item
-		android:title="Copy"
+		android:title="@string/menu_copy"
 		android:icon="@android:drawable/ic_menu_edit"
 		android:id="@+id/menu_copy" />
 
 	<item
-		android:title="Open"
+		android:title="@string/menu_open"
 		android:icon="@android:drawable/ic_menu_view"
 		android:id="@+id/menu_open" />
 
 	<item
-		android:title="Donate"
+		android:title="@string/menu_donate"
 		android:icon="@drawable/love"
 		android:id="@+id/menu_donate" />
 
 	<item
-		android:title="Share"
+		android:title="@string/menu_share"
 		android:icon="@android:drawable/ic_menu_share"
 		android:id="@+id/menu_share" />
 
 	<item
-		android:title="Rate"
+		android:title="@string/menu_rate"
 		android:icon="@drawable/chart"
 		android:id="@+id/menu_rate" />
 
 	<item
-		android:title="About"
+		android:title="@string/menu_about"
 		android:icon="@android:drawable/ic_menu_info_details"
 		android:id="@+id/menu_about" />
 </menu>

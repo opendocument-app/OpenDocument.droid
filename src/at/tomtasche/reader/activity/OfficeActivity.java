@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
+import openoffice.IllegalMimeTypeException;
+import openoffice.MimeTypeNotFoundException;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -13,6 +15,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,19 +24,17 @@ import android.webkit.WebView;
 import android.widget.Toast;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.error.ErrorReport;
-import at.tomtasche.reader.odt.JOpenDocument;
+import at.tomtasche.reader.odt.JOpenDocumentWrapper;
 
-public class OpenActivity extends Activity {
+public class OfficeActivity extends Activity {
 
     private static final String ENCODING = "utf-8";
-
 
     private WebView documentView;
 
     private ProgressDialog dialog;
 
     private Thread thread;
-
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -48,39 +49,35 @@ public class OpenActivity extends Activity {
         settings.setPluginsEnabled(false);
         settings.setDefaultTextEncodingName(ENCODING);
 
-        documentView.loadData("Get started using your phone's menu button!", "text/plain", "utf-8");
+        documentView.loadData(getString(R.string.message_get_started), "text/plain", ENCODING);
         setContentView(documentView);
 
-        AlertDialog.Builder builder = new Builder(this);
-        builder.setTitle("Welcome to an Open World!");
-        builder.setMessage("I suspect you came here to open your beloved OpenOffice / LibreOffice documents, so let's just skip the boring part and start reading!\n\nIf you want to read more about this project visit http://reader.tomtasche.at/ or click \"About\" in the menu.\n\nSincerely,\nYour developers,\nAndi, David and Tom");
-        builder.setNeutralButton("Cool!", new OnClickListener() {
+        if (getIntent().getData() == null) {
+            final AlertDialog.Builder builder = new Builder(this);
+            builder.setTitle(getString(R.string.start_dialog_title));
+            builder.setMessage(getString(R.string.start_dialog_message));
+            builder.setNeutralButton(getString(R.string.start_dialog_button), new OnClickListener() {
 
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                openDocument();
-            }
-        });
-        builder.create().show();
-    }
-
-    private void openDocument() {
-        try {
-            final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("application/vnd.oasis.opendocument.*");
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            startActivityForResult(intent, 42);
-        } catch (final Exception e) {
-            e.printStackTrace();
-            
-            Toast.makeText(this, "No supported app installed. Try EStrongs File Explorer",
-                    Toast.LENGTH_LONG).show();
+                @Override
+                public void onClick(final DialogInterface dialog, final int which) {
+                    openDocument();
+                }
+            });
+            builder.create().show();
+        } else {
+            loadDocument(getIntent().getData());
         }
     }
 
+    private void openDocument() {
+        final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("application/vnd.oasis.opendocument.*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(intent, 42);
+    }
+
     private void loadDocument(final Uri data) {
-        dialog = ProgressDialog.show(this, "", "Gathering all the sheets of paper together...",
-                true);
+        dialog = ProgressDialog.show(this, "", getString(R.string.progress_dialog_message), true);
 
         new DocumentLoader(data);
     }
@@ -98,11 +95,11 @@ public class OpenActivity extends Activity {
     public boolean onMenuItemSelected(final int featureId, final MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_copy: {
-                try {
+                if (Integer.parseInt(Build.VERSION.SDK) > 7) {
                     documentView.emulateShiftHeld();
-                } catch (final Exception e) {
-                    Toast.makeText(this, "Not possible on Android versions older than 2.0",
-                            Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this, getString(R.string.toast_error_copy), Toast.LENGTH_LONG)
+                    .show();
                 }
 
                 break;
@@ -115,9 +112,30 @@ public class OpenActivity extends Activity {
             }
 
             case R.id.menu_donate: {
-                startActivity(new Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse("http://www.appbrain.com/app/saymyname-donate/org.mailboxer.saymyname.donate?install")));
+                final CharSequence[] items = {
+                        getString(R.string.donate_paypal), getString(R.string.donate_market),
+                        getString(R.string.donate_flattr)
+                };
+
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(getString(R.string.donate_choose));
+                builder.setItems(items, new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(final DialogInterface dialog, final int item) {
+                        if (items[0].equals(items[item])) {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri
+                                    .parse("http://goo.gl/1e8K9")));
+                        } else if (items[1].equals(items[item])) {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri
+                                    .parse("http://goo.gl/p4jH2")));
+                        } else {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri
+                                    .parse("http://goo.gl/fhecu")));
+                        }
+                    }
+                });
+                builder.create().show();
 
                 break;
             }
@@ -145,9 +163,7 @@ public class OpenActivity extends Activity {
             }
 
             case R.id.menu_rate: {
-                startActivity(new Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse("http://www.appbrain.com/app/openoffice-document-reader/at.tomtasche.reader?install")));
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://goo.gl/pXKgv")));
 
                 break;
             }
@@ -193,11 +209,10 @@ public class OpenActivity extends Activity {
         super.onDestroy();
     }
 
-
     class DocumentLoader extends Thread {
         private Uri data;
 
-        public DocumentLoader(Uri data) {
+        public DocumentLoader(final Uri data) {
             this.data = data;
 
             start();
@@ -222,41 +237,86 @@ public class OpenActivity extends Activity {
 
                             @Override
                             public void run() {
-                                Toast.makeText(OpenActivity.this, "Couldn't access file", Toast.LENGTH_LONG).show();
+                                Toast.makeText(OfficeActivity.this,
+                                        getString(R.string.toast_error_access_file),
+                                        Toast.LENGTH_LONG).show();
                             }
                         });
-                        
+
                         return;
                     }
                 }
 
-                final JOpenDocument document = new JOpenDocument(stream, getCacheDir());
+                final JOpenDocumentWrapper document = new JOpenDocumentWrapper(stream,
+                        getCacheDir());
 
-                documentView.loadData(document.getDocument().toString(), "text/html", ENCODING);
-            } catch (FileNotFoundException e) {
+                documentView.loadData(document.getHtml(), "text/html", ENCODING);
+            } catch (final MimeTypeNotFoundException e) {
+                e.printStackTrace();
+
                 runOnUiThread(new Runnable() {
 
                     @Override
                     public void run() {
-                        Toast.makeText(OpenActivity.this, "Couldn't find file", Toast.LENGTH_LONG).show();
+                        Toast.makeText(OfficeActivity.this,
+                                getString(R.string.toast_error_open_file), Toast.LENGTH_LONG)
+                                .show();
                     }
                 });
-            } catch (IllegalArgumentException e) {
+            } catch (final IllegalMimeTypeException e) {
+                e.printStackTrace();
+
                 runOnUiThread(new Runnable() {
 
                     @Override
                     public void run() {
-                        Toast.makeText(OpenActivity.this, "This doesn't seem to be a supported OpenOffice Document", Toast.LENGTH_LONG).show();
+                        Toast.makeText(OfficeActivity.this,
+                                getString(R.string.toast_error_open_file), Toast.LENGTH_LONG)
+                                .show();
+                    }
+                });
+            } catch (final FileNotFoundException e) {
+                e.printStackTrace();
+
+                runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        Toast.makeText(OfficeActivity.this,
+                                getString(R.string.toast_error_find_file), Toast.LENGTH_LONG)
+                                .show();
+                    }
+                });
+            } catch (final IllegalArgumentException e) {
+                e.printStackTrace();
+
+                runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        Toast.makeText(OfficeActivity.this,
+                                getString(R.string.toast_error_illegal_file), Toast.LENGTH_LONG)
+                                .show();
                     }
                 });
             } catch (final Exception e) {
                 e.printStackTrace();
 
+                runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        Toast.makeText(OfficeActivity.this,
+                                getString(R.string.toast_error_open_file), Toast.LENGTH_LONG)
+                                .show();
+                    }
+                });
+
                 new Thread() {
                     @Override
                     public void run() {
                         try {
-                            ErrorReport.report(OpenActivity.this, e);
+                            ErrorReport.report(OfficeActivity.this, e);
                         } catch (final Exception e1) {
                             e.printStackTrace();
                         }

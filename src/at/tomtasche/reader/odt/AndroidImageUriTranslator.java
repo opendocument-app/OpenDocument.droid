@@ -5,7 +5,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import openOffice.html.URITranslator;
+import openoffice.html.URITranslator;
 
 public class AndroidImageUriTranslator implements URITranslator {
 

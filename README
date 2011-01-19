@@ -1,4 +1,6 @@
 It's Android's first OpenOffice Document Reader!
 
-- For Developers -
-Be sure to fetch JOpenDocument (https://github.com/andiwand/JOpenDocument) too to get it working in your Building Environment.
+This is an Android frontend for the OpenDocument Java library called JOpenDocument, made by Andi (https://github.com/andiwand/JOpenDocument).
+Feel free to use it in your own projects too, but please don't forget to tell us about your projects! :)
+
+By the way, you can flattr us at http://goo.gl/fhecu

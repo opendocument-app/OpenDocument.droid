@@ -1,3 +1,4 @@
+
 package at.enajat.david.android.filechooser;
 
 import java.io.File;
@@ -18,16 +19,26 @@ import at.tomtasche.reader.R;
 
 public class FileAdapter extends BaseAdapter {
     private final Context context;
+
     private final File root;
+
     private final boolean breakout;
+
     private final FileFilter filter;
+
     private final Comparator<File> comparator;
+
     private File dir;
+
     private File[] files;
-    public FileAdapter(Context context, String root, boolean breakout, FileFilter filter, Comparator<File> comparator) {
+
+    public FileAdapter(final Context context, final String root, final boolean breakout,
+            final FileFilter filter, final Comparator<File> comparator) {
         this(context, new File(root), breakout, filter, comparator);
     }
-    public FileAdapter(Context context, File root, boolean breakout, FileFilter filter, Comparator<File> comparator) {
+
+    public FileAdapter(final Context context, final File root, final boolean breakout,
+            final FileFilter filter, final Comparator<File> comparator) {
         this.context = context;
         this.root = root;
         this.breakout = breakout;
@@ -38,15 +49,18 @@ public class FileAdapter extends BaseAdapter {
         }
         updateDir(root);
     }
-    public static boolean checkDir(File f) {
+
+    public static boolean checkDir(final File f) {
         return f.exists() && f.isDirectory() && f.canRead();
     }
-    private void updateDir(File f) {
+
+    private void updateDir(final File f) {
         dir = f;
         files = f.listFiles(filter);
         Arrays.sort(files, comparator);
     }
-    private boolean changeDir(File newDir) {
+
+    private boolean changeDir(final File newDir) {
         if (!checkDir(newDir)) {
             return false;
         }
@@ -54,27 +68,31 @@ public class FileAdapter extends BaseAdapter {
         notifyDataSetChanged();
         return true;
     }
-    public boolean changeDir(long id)  {
-        return changeDir(files[(int) id]);
+
+    public boolean changeDir(final long id) {
+        return changeDir(files[(int)id]);
     }
+
     public boolean changeUp() {
         try {
-            File f = dir.getParentFile();
-            if (f == null || (!breakout && !f.getCanonicalPath().startsWith(root.getCanonicalPath()))) {
+            final File f = dir.getParentFile();
+            if (f == null || !breakout && !f.getCanonicalPath().startsWith(root.getCanonicalPath())) {
                 return false;
             }
             return changeDir(f);
-        }
-        catch (IOException e) {
+        } catch (final IOException e) {
             return false;
         }
     }
-    public Uri getUri(long id) {
-        return Uri.fromFile(files[(int) id]);
+
+    public Uri getUri(final long id) {
+        return Uri.fromFile(files[(int)id]);
     }
-    public boolean isDirectory(long id) {
-        return files[(int) id].isDirectory();
+
+    public boolean isDirectory(final long id) {
+        return files[(int)id].isDirectory();
     }
+
     public String getCurrentPath() {
         try {
             String p = dir.getCanonicalPath();
@@ -83,40 +101,44 @@ public class FileAdapter extends BaseAdapter {
             }
             if (breakout) {
                 return p;
-            }
-            else {
+            } else {
                 return p.substring(root.getAbsolutePath().length());
             }
-        }
-        catch (IOException e) {
+        } catch (final IOException e) {
             return null;
         }
     }
+
+    @Override
     public int getCount() {
         return files.length;
     }
-    public Object getItem(int position) {
+
+    @Override
+    public Object getItem(final int position) {
         return files[position];
     }
-    public long getItemId(int position) {
+
+    @Override
+    public long getItemId(final int position) {
         return position;
     }
-    public View getView(int position, View convertView, ViewGroup parent) {
-        View v = LayoutInflater.from(context).inflate(R.layout.list_item, parent, false);	
-        File f = files[position];
+
+    @Override
+    public View getView(final int position, final View convertView, final ViewGroup parent) {
+        final View v = LayoutInflater.from(context).inflate(R.layout.list_item, parent, false);
+        final File f = files[position];
         if (f.isDirectory()) {
-            File[] fs = f.listFiles();
-            if (fs != null && fs.length > 0) {			
-                ((ImageView) v.findViewById(R.id.list_image)).setImageResource(R.drawable.dir_full);
+            final File[] fs = f.listFiles();
+            if (fs != null && fs.length > 0) {
+                ((ImageView)v.findViewById(R.id.list_image)).setImageResource(R.drawable.dir_full);
+            } else {
+                ((ImageView)v.findViewById(R.id.list_image)).setImageResource(R.drawable.dir_empty);
             }
-            else {
-                ((ImageView) v.findViewById(R.id.list_image)).setImageResource(R.drawable.dir_empty);
-            }
+        } else {
+            ((ImageView)v.findViewById(R.id.list_image)).setImageResource(R.drawable.file);
         }
-        else {
-            ((ImageView) v.findViewById(R.id.list_image)).setImageResource(R.drawable.file);
-        }
-        ((TextView) v.findViewById(R.id.list_text)).setText(f.getName());
+        ((TextView)v.findViewById(R.id.list_text)).setText(f.getName());
         return v;
     }
 }
