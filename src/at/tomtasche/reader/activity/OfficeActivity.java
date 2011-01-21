@@ -56,13 +56,14 @@ public class OfficeActivity extends Activity {
             final AlertDialog.Builder builder = new Builder(this);
             builder.setTitle(getString(R.string.start_dialog_title));
             builder.setMessage(getString(R.string.start_dialog_message));
-            builder.setNeutralButton(getString(R.string.start_dialog_button), new OnClickListener() {
+            builder.setNeutralButton(getString(R.string.start_dialog_button),
+                    new OnClickListener() {
 
-                @Override
-                public void onClick(final DialogInterface dialog, final int which) {
-                    openDocument();
-                }
-            });
+                        @Override
+                        public void onClick(final DialogInterface dialog, final int which) {
+                            openDocument();
+                        }
+                    });
             builder.create().show();
         } else {
             loadDocument(getIntent().getData());
@@ -99,7 +100,7 @@ public class OfficeActivity extends Activity {
                     documentView.emulateShiftHeld();
                 } else {
                     Toast.makeText(this, getString(R.string.toast_error_copy), Toast.LENGTH_LONG)
-                    .show();
+                            .show();
                 }
 
                 break;
@@ -296,6 +297,18 @@ public class OfficeActivity extends Activity {
                     public void run() {
                         Toast.makeText(OfficeActivity.this,
                                 getString(R.string.toast_error_illegal_file), Toast.LENGTH_LONG)
+                                .show();
+                    }
+                });
+            } catch (final OutOfMemoryError e) {
+                e.printStackTrace();
+
+                runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        Toast.makeText(OfficeActivity.this,
+                                getString(R.string.toast_error_out_of_memory), Toast.LENGTH_LONG)
                                 .show();
                     }
                 });

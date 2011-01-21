@@ -32,7 +32,7 @@ public class JOpenDocumentWrapper {
             imageTranslator.setUriTranslator(new AndroidImageUriTranslator());
             translatorOdt.addNodeTranslator("image", imageTranslator);
 
-            html = translatorOdt.translate(0).getHtmlDocument().toString();
+            html = translatorOdt.translate().getHtmlDocument().toString();
         } else if (OpenDocumentSpreadsheet.MIMETYPE.equals(documentFile.getMimeType())
                 || OpenDocumentSpreadsheetTemplate.MIMETYPE.equals(documentFile.getMimeType())) {
             final OpenDocumentSpreadsheet spreadsheet = new OpenDocumentSpreadsheet(documentFile);

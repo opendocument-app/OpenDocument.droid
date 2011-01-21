@@ -41,6 +41,9 @@
 		
 	<string
 		name="toast_error_open_file">Datei konnte nicht geöffnet werden</string>
+		
+	<string
+		name="toast_error_out_of_memory">Speicher voll! Zu viele Bilder, oder zu großes Dokument</string>
 
 
 	<string

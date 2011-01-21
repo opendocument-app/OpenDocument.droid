@@ -2,8 +2,8 @@
 <manifest
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	package="at.tomtasche.reader"
-	android:versionCode="17"
-	android:versionName="1.2.5"
+	android:versionCode="18"
+	android:versionName="1.2.6"
 	android:installLocation="auto">
 
 	<application
@@ -12,7 +12,7 @@
 
 		<activity
 			android:name="at.enajat.david.android.filechooser.FileChooser"
-			android:label="@string/app_name"
+			android:label="@string/chooser_name"
 			android:configChanges="orientation|keyboardHidden">
 
 			<intent-filter>
@@ -32,6 +32,7 @@
 			android:label="@string/app_name"
 			android:configChanges="orientation|keyboardHidden"
 			android:theme="@android:style/Theme.Black.NoTitleBar">
+
 			<intent-filter>
 				<action
 					android:name="android.intent.action.VIEW" />

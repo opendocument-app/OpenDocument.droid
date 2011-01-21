@@ -3,6 +3,8 @@
 	<string
 		name="app_name">OpenOffice Document Reader</string>
 
+	<string
+		name="chooser_name">OpenOffice Document Chooser</string>
 
 	<string
 		name="message_get_started">Get started using your phone\'s menu button!</string>
@@ -45,6 +47,9 @@
 		
 	<string
 		name="toast_error_open_file">Couldn\'t open file</string>
+		
+	<string
+		name="toast_error_out_of_memory">Phone out of memory! Too much pictures, or too big file</string>
 
 
 	<string

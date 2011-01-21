@@ -35,7 +35,7 @@ public class FileChooser extends ListActivity {
         public boolean accept(final File f) {
             if (f.toString().endsWith(".odt") || f.toString().endsWith(".ods")
                     || f.toString().endsWith(".ott") || f.toString().endsWith(".ots")
-                    || f.isDirectory()) {
+                    || f.isDirectory() && !f.getName().startsWith(".")) {
                 return true;
             } else {
                 return false;
@@ -67,7 +67,13 @@ public class FileChooser extends ListActivity {
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        adapter = new FileAdapter(this, ROOT, BREAKOUT, FILTER, COMPARATOR);
+        try {
+            adapter = new FileAdapter(this, ROOT, BREAKOUT, FILTER, COMPARATOR);
+        } catch (final IllegalArgumentException e) {
+            Toast.makeText(this, getString(R.string.toast_error_find_file), Toast.LENGTH_LONG)
+                    .show();
+            finish();
+        }
         setListAdapter(adapter);
         final ListView list = getListView();
         list.setTextFilterEnabled(true);
