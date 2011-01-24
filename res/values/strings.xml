@@ -25,7 +25,7 @@
 		
 		
 	<string
-		name="toast_error_copy">Not possible on Android versions older than 2.0</string>
+		name="toast_error_copy">Not possible on Android versions older than 2.2</string>
 		
 	<string
 		name="toast_error_access_file">Couldn\'t access file</string>
@@ -63,6 +63,12 @@
 		
 	<string
 		name="menu_zoom_out">Zoom--</string>
+		
+	<string
+		name="menu_page_next">Next</string>
+		
+	<string
+		name="menu_page_previous">Previous</string>
 		
 	<string
 		name="menu_copy">Copy</string>

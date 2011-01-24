@@ -13,14 +13,19 @@
 		android:id="@+id/menu_zoom_out" />
 
 	<item
-		android:title="@string/menu_copy"
-		android:icon="@android:drawable/ic_menu_edit"
-		android:id="@+id/menu_copy" />
-
-	<item
 		android:title="@string/menu_open"
 		android:icon="@android:drawable/ic_menu_view"
 		android:id="@+id/menu_open" />
+
+	<item
+		android:title="@string/menu_page_next"
+		android:icon="@drawable/ic_menu_forward"
+		android:id="@+id/menu_page_next" />
+
+	<item
+		android:title="@string/menu_page_previous"
+		android:icon="@drawable/ic_menu_back"
+		android:id="@+id/menu_page_previous" />
 
 	<item
 		android:title="@string/menu_donate"
@@ -28,14 +33,19 @@
 		android:id="@+id/menu_donate" />
 
 	<item
-		android:title="@string/menu_share"
-		android:icon="@android:drawable/ic_menu_share"
-		android:id="@+id/menu_share" />
-
-	<item
 		android:title="@string/menu_rate"
 		android:icon="@drawable/chart"
 		android:id="@+id/menu_rate" />
+
+	<item
+		android:title="@string/menu_copy"
+		android:icon="@android:drawable/ic_menu_edit"
+		android:id="@+id/menu_copy" />
+
+	<item
+		android:title="@string/menu_share"
+		android:icon="@android:drawable/ic_menu_share"
+		android:id="@+id/menu_share" />
 
 	<item
 		android:title="@string/menu_about"
