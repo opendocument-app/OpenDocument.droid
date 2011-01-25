@@ -44,6 +44,12 @@
 		
 	<string
 		name="toast_error_out_of_memory">Speicher voll! Zu viele Bilder, oder zu großes Dokument</string>
+		
+	<string
+		name="toast_error_no_previous">Keine vorherhige Seite vorhanden</string>
+		
+	<string
+		name="toast_error_no_next">Keine nächste Seite vorhanden</string>
 
 
 	<string

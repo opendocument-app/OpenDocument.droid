@@ -38,7 +38,7 @@ public class OfficeActivity extends Activity implements OfficeInterface {
     private DocumentLoader loader;
 
     private DocumentView view;
-    
+
     private Menu menu;
 
     //    private ArrayList<DocumentView> views;
@@ -93,8 +93,11 @@ public class OfficeActivity extends Activity implements OfficeInterface {
     @Override
     public void showDocument(final String html) {
         //        views.get(loader.getPageIndex()).loadData(html);
+        
+        if (loader.getPageCount() > 1) {
+            Toast.makeText(this, "SWIPE LEFT / RIGHT FOR NEXT PAGE", Toast.LENGTH_LONG).show();
+        }
 
-        Log.e("smn", html);
         view = new DocumentView(this);
         setContentView(view);
         view.loadData(html);
@@ -171,35 +174,12 @@ public class OfficeActivity extends Activity implements OfficeInterface {
             showToast(R.string.toast_error_find_file);
         }
     }
-    
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_MENU && menu != null) {
-            if (loader.hasNext()) {
-                menu.removeItem(R.id.menu_page_next);
-            }
-
-            if (loader.hasPrevious()) {
-                menu.removeItem(R.id.menu_page_previous);
-            }
-        }
-        
-        return super.onKeyDown(keyCode, event);
-    }
 
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
         super.onCreateOptionsMenu(menu);
 
         getMenuInflater().inflate(R.menu.menu_main, menu);
-
-        if (!loader.hasNext()) {
-            menu.removeItem(R.id.menu_page_next);
-        }
-
-        if (!loader.hasPrevious()) {
-            menu.removeItem(R.id.menu_page_previous);
-        }
 
         return true;
     }
@@ -270,14 +250,22 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 
             case R.id.menu_page_next: {
                 //                flipper.showNext();
-                loader.getNext();
+                if (loader.hasNext()) {
+                    loader.getNext();
+                } else {
+                    showToast(R.string.toast_error_no_next);
+                }
 
                 break;
             }
 
             case R.id.menu_page_previous: {
                 //                flipper.showNext();
-                loader.getPrevious();
+                if (loader.hasPrevious()) {
+                    loader.getPrevious();
+                } else {
+                    showToast(R.string.toast_error_no_previous);
+                }
 
                 break;
             }

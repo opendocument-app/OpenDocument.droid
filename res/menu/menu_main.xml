@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu
 	xmlns:android="http://schemas.android.com/apk/res/android">
-	
+
+	<item
+		android:title="@string/menu_page_previous"
+		android:icon="@drawable/ic_menu_back"
+		android:id="@+id/menu_page_previous" />
+
 	<item
 		android:title="@string/menu_page_next"
 		android:icon="@drawable/ic_menu_forward"
 		android:id="@+id/menu_page_next" />
 
 	<item
-		android:title="@string/menu_page_previous"
-		android:icon="@drawable/ic_menu_back"
-		android:id="@+id/menu_page_previous" />
+		android:title="@string/menu_open"
+		android:icon="@android:drawable/ic_menu_view"
+		android:id="@+id/menu_open" />
 
 	<item
 		android:title="@string/menu_zoom_in"
@@ -21,16 +26,6 @@
 		android:title="@string/menu_zoom_out"
 		android:icon="@android:drawable/ic_menu_search"
 		android:id="@+id/menu_zoom_out" />
-
-	<item
-		android:title="@string/menu_open"
-		android:icon="@android:drawable/ic_menu_view"
-		android:id="@+id/menu_open" />
-
-	<item
-		android:title="@string/menu_donate"
-		android:icon="@drawable/love"
-		android:id="@+id/menu_donate" />
 
 	<item
 		android:title="@string/menu_rate"
@@ -46,6 +41,11 @@
 		android:title="@string/menu_share"
 		android:icon="@android:drawable/ic_menu_share"
 		android:id="@+id/menu_share" />
+
+	<item
+		android:title="@string/menu_donate"
+		android:icon="@drawable/love"
+		android:id="@+id/menu_donate" />
 
 	<item
 		android:title="@string/menu_about"

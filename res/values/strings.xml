@@ -50,6 +50,12 @@
 		
 	<string
 		name="toast_error_out_of_memory">Phone out of memory! Too much pictures, or too big file</string>
+		
+	<string
+		name="toast_error_no_previous">No previous page available</string>
+		
+	<string
+		name="toast_error_no_next">No next page available</string>
 
 
 	<string
