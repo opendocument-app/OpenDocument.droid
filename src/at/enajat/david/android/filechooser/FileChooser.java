@@ -1,4 +1,3 @@
-
 package at.enajat.david.android.filechooser;
 
 import java.io.File;
@@ -22,33 +21,28 @@ import at.tomtasche.reader.R;
 
 public class FileChooser extends ListActivity {
 
-    static {
-        ROOT = Environment.getExternalStorageDirectory().toString();
-    }
-
-    private static final String ROOT;
+    private static final File ROOT = Environment.getExternalStorageDirectory();
 
     private static final boolean BREAKOUT = false;
 
     private static final FileFilter FILTER = new FileFilter() {
         @Override
         public boolean accept(final File f) {
-            if (f.toString().endsWith(".odt") || f.toString().endsWith(".ods")
-                    || f.toString().endsWith(".ott") || f.toString().endsWith(".ots")
-                    || f.isDirectory() && !f.getName().startsWith(".")) {
-                return true;
-            } else {
-                return false;
-            }
+            String name = f.getName();
+            return !f.getName().startsWith(".") && (f.isDirectory() ||
+            		name.endsWith(".odt") || name.endsWith(".ods") ||
+            		name.endsWith(".ott") || name.endsWith(".ots"));
         }
     };
 
     private static final Comparator<File> COMPARATOR = new Comparator<File>() {
         @Override
         public int compare(final File f1, final File f2) {
+        	String name1 = f1.getName().toUpperCase();
+        	String name2 = f2.getName().toUpperCase();
             if (f1.isDirectory()) {
                 if (f2.isDirectory()) {
-                    return f1.getName().compareTo(f2.getName());
+                    return name1.compareTo(name2);
                 } else {
                     return -1;
                 }
@@ -56,7 +50,7 @@ public class FileChooser extends ListActivity {
                 if (f2.isDirectory()) {
                     return 1;
                 } else {
-                    return f1.getName().compareTo(f2.getName());
+                    return name1.compareTo(name2);
                 }
             }
         }
@@ -72,7 +66,7 @@ public class FileChooser extends ListActivity {
         } catch (final IllegalArgumentException e) {
             Toast.makeText(this, getString(R.string.toast_error_find_file), Toast.LENGTH_LONG)
                     .show();
-            finish();
+            cancel();
         }
         setListAdapter(adapter);
         final ListView list = getListView();

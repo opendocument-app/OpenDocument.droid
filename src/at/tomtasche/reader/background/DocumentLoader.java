@@ -64,18 +64,6 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
     }
 
     @Override
-    public boolean getNext() {
-        if (tschopen == null) return false;
-        return tschopen.getNext();
-    }
-
-    @Override
-    public boolean getPrevious() {
-        if (tschopen == null) return false;
-        return tschopen.getPrevious();
-    }
-
-    @Override
     public int getPageCount() {
         if (tschopen == null) return 0;
         return tschopen.getPageCount();
@@ -136,5 +124,45 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
     @Override
     public void runOnUiThread(Runnable runnable) {
         office.runOnUiThread(runnable);
+    }
+
+    @Override
+    public boolean hasNext() {
+        if (tschopen == null) return false;
+        
+        return tschopen.hasNext();
+    }
+    
+    @Override
+    public void getNext() {
+        if (tschopen == null) return;
+        
+        post(new Runnable() {
+            
+            @Override
+            public void run() {
+                tschopen.getNext();
+            }
+        });
+    }
+    
+    @Override
+    public boolean hasPrevious() {
+        if (tschopen == null) return false;
+        
+        return tschopen.hasPrevious();
+    }
+
+    @Override
+    public void getPrevious() {
+        if (tschopen == null) return;
+        
+        post(new Runnable() {
+            
+            @Override
+            public void run() {
+                tschopen.getPrevious();
+            }
+        });
     }    
 }

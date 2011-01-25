@@ -17,6 +17,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -37,6 +38,8 @@ public class OfficeActivity extends Activity implements OfficeInterface {
     private DocumentLoader loader;
 
     private DocumentView view;
+    
+    private Menu menu;
 
     //    private ArrayList<DocumentView> views;
 
@@ -88,9 +91,12 @@ public class OfficeActivity extends Activity implements OfficeInterface {
     }
 
     @Override
-    public void showDocument(String html) {
+    public void showDocument(final String html) {
         //        views.get(loader.getPageIndex()).loadData(html);
-        Log.e("smn", "view");
+
+        Log.e("smn", html);
+        view = new DocumentView(this);
+        setContentView(view);
         view.loadData(html);
 
         hideProgress();
@@ -165,6 +171,21 @@ public class OfficeActivity extends Activity implements OfficeInterface {
             showToast(R.string.toast_error_find_file);
         }
     }
+    
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_MENU && menu != null) {
+            if (loader.hasNext()) {
+                menu.removeItem(R.id.menu_page_next);
+            }
+
+            if (loader.hasPrevious()) {
+                menu.removeItem(R.id.menu_page_previous);
+            }
+        }
+        
+        return super.onKeyDown(keyCode, event);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
@@ -172,8 +193,11 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
-        if (loader.getPageCount() < 2) {
+        if (!loader.hasNext()) {
             menu.removeItem(R.id.menu_page_next);
+        }
+
+        if (!loader.hasPrevious()) {
             menu.removeItem(R.id.menu_page_previous);
         }
 

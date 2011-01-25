@@ -29,13 +29,13 @@ public final class R {
         public static final int menu_cancel=0x7f060004;
         public static final int menu_copy=0x7f06000c;
         public static final int menu_donate=0x7f06000a;
-        public static final int menu_open=0x7f060007;
-        public static final int menu_page_next=0x7f060008;
-        public static final int menu_page_previous=0x7f060009;
+        public static final int menu_open=0x7f060009;
+        public static final int menu_page_next=0x7f060005;
+        public static final int menu_page_previous=0x7f060006;
         public static final int menu_rate=0x7f06000b;
         public static final int menu_share=0x7f06000d;
-        public static final int menu_zoom_in=0x7f060005;
-        public static final int menu_zoom_out=0x7f060006;
+        public static final int menu_zoom_in=0x7f060007;
+        public static final int menu_zoom_out=0x7f060008;
     }
     public static final class layout {
         public static final int activity_document=0x7f030000;

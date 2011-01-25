@@ -22,15 +22,15 @@ import at.tomtasche.reader.background.DocumentLoader;
 public class JOpenDocumentWrapper implements DocumentInterface {
 
     private OpenDocumentWrapper wrapper;
-    
+
     private DocumentLoader loader;
-    
+
     private int index;
-    
+
 
     public JOpenDocumentWrapper(final DocumentLoader loader, final InputStream stream, final File cache) throws Exception {
         this.loader = loader;
-        
+
         final ImageCache imageCache = new ImageCache(cache, false);
 
         final CachedOpenDocumentFile documentFile = new CachedOpenDocumentFile(stream);
@@ -42,19 +42,19 @@ public class JOpenDocumentWrapper implements DocumentInterface {
             final ImageTranslator imageTranslator = new ImageTranslator(text, imageCache);
             imageTranslator.setUriTranslator(new AndroidImageUriTranslator());
             translatorOdt.addNodeTranslator("image", imageTranslator);
-            
+
             wrapper = new OpenDocumentWrapper(text);
             wrapper.setOdt(translatorOdt);
         } else if (isSpreadsheet(documentFile)) {
             final OpenDocumentSpreadsheet spreadsheet = new OpenDocumentSpreadsheet(documentFile);
             final TranslatorOds translatorOds = new TranslatorOds(spreadsheet);
-            
+
             wrapper = new OpenDocumentWrapper(spreadsheet);
             wrapper.setOds(translatorOds);
         } else {
             assert true : new MimeTypeNotFoundException();
         }
-        
+
         loader.showDocument(wrapper.translate(getPageIndex()));
     }
 
@@ -74,27 +74,39 @@ public class JOpenDocumentWrapper implements DocumentInterface {
     }
 
     @Override
-    public boolean getNext() {
-        if (getPageIndex() + 1 >= getPageCount()) {
-            return false;
-        } else {
-            loader.showProgress();
-            
-            loader.showDocument(wrapper.translate(++index));
-         
+    public boolean hasNext() {
+        if (getPageIndex() + 1 < getPageCount() && getPageIndex() >= 0) {
+            Log.e("smn", "next");
             return true;
+        } else {
+            Log.e("smn", "nonext");
+            return false;
         }
     }
 
     @Override
-    public boolean getPrevious() {
-        if (getPageIndex() - 1 < 0) {
-            return false;
-        } else {
-            loader.showDocument(wrapper.translate(--index));
-         
+    public void getNext() {
+        loader.showProgress();
+
+        loader.showDocument(wrapper.translate(++index));
+    }
+
+    @Override
+    public boolean hasPrevious() {
+        if (getPageIndex() - 1 >= 0) {
+            Log.e("smn", "previous");
             return true;
+        } else {
+            Log.e("smn", "noprevious");
+            return false;
         }
+    }
+
+    @Override
+    public void getPrevious() {
+        loader.showProgress();
+
+        loader.showDocument(wrapper.translate(--index));
     }
 
     @Override

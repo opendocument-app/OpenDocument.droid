@@ -29,7 +29,6 @@ public class OpenDocumentWrapper {
     }
 
     public String translate(int i) {
-        Log.e("smn", "" + i);
         if (odt != null) {
             return odt.translate().getHtmlDocument().toString();
         } else if (ods != null) {
