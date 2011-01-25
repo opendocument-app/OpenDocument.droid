@@ -45,6 +45,13 @@ public class DocumentView extends WebView {
         // detector = new GestureDetector(context, listener);
     }
 
+    // @Override
+    // protected void onOverScrolled(int scrollX, int scrollY, boolean clampedX,
+    // boolean clampedY) {
+    // // TODO setOnOverScrolledListener -> flipper.showNext()
+    // super.onOverScrolled(scrollX, scrollY, clampedX, clampedY);
+    // }
+
     public void loadData(final String html) {
         loadData(html, "text/html", ENCODING);
     }

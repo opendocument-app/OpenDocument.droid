@@ -62,13 +62,12 @@ public class FileChooser extends ListActivity {
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            adapter = new FileAdapter(this, ROOT, BREAKOUT, FILTER, COMPARATOR);
-        } catch (final IllegalArgumentException e) {
+        if (!FileAdapter.checkDir(ROOT)) {
             Toast.makeText(this, getString(R.string.toast_error_find_file), Toast.LENGTH_LONG)
                     .show();
             cancel();
         }
+        adapter = new FileAdapter(this, ROOT, BREAKOUT, FILTER, COMPARATOR);
         setListAdapter(adapter);
         final ListView list = getListView();
         list.setTextFilterEnabled(true);
@@ -83,7 +82,6 @@ public class FileChooser extends ListActivity {
 
     public void cancel() {
         setResult(RESULT_CANCELED);
-        // Toast.makeText(this, R.string.canceled, Toast.LENGTH_SHORT).show();
         finish();
     }
 
@@ -91,7 +89,6 @@ public class FileChooser extends ListActivity {
         final Intent data = new Intent();
         data.setData(uri);
         setResult(RESULT_OK, data);
-        // Toast.makeText(this, uri.toString(), Toast.LENGTH_SHORT).show();
         finish();
     }
 
@@ -124,19 +121,21 @@ public class FileChooser extends ListActivity {
 
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
-        if (item.getItemId() == R.id.menu_back) {
-            if (!adapter.changeUp()) {
-                Toast.makeText(this, getString(R.string.toast_error_ontop), Toast.LENGTH_SHORT)
-                        .show();
+        switch (item.getItemId()) {
+            case R.id.menu_back:
+                if (!adapter.changeUp()) {
+                    Toast.makeText(this, getString(R.string.toast_error_ontop), Toast.LENGTH_SHORT)
+                            .show();
+                    return true;
+                }
+                updateTitle();
                 return true;
-            }
-            updateTitle();
-            return true;
-        } else if (item.getItemId() == R.id.menu_cancel) {
-            cancel();
-            return true;
+            case R.id.menu_cancel:
+                cancel();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override

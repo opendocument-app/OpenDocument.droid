@@ -38,6 +38,11 @@
 		android:id="@+id/menu_copy" />
 
 	<item
+		android:title="@string/menu_search"
+		android:icon="@android:drawable/ic_menu_search"
+		android:id="@+id/menu_search" />
+
+	<item
 		android:title="@string/menu_share"
 		android:icon="@android:drawable/ic_menu_share"
 		android:id="@+id/menu_share" />

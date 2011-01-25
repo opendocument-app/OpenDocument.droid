@@ -72,6 +72,9 @@
 
 	<string
 		name="menu_copy">Kopieren</string>
+		
+	<string
+		name="menu_search">Suche</string>
 
 	<string
 		name="menu_open">Öffnen</string>

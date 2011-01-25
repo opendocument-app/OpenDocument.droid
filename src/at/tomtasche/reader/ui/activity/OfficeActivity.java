@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.net.Uri;
@@ -17,6 +18,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.Toast;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.DocumentLoader;
@@ -191,6 +193,28 @@ public class OfficeActivity extends Activity implements OfficeInterface {
                     Toast.makeText(this, getString(R.string.toast_error_copy), Toast.LENGTH_LONG)
                             .show();
                 }
+
+                break;
+            }
+
+            case R.id.menu_search: {
+                // http://www.androidsnippets.org/snippets/20/
+                final AlertDialog.Builder alert = new AlertDialog.Builder(this);
+                alert.setTitle(getString(R.string.menu_search));
+
+                final EditText input = new EditText(this);
+                alert.setView(input);
+
+                alert.setPositiveButton(getString(android.R.string.ok),
+                        new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(final DialogInterface dialog, final int whichButton) {
+                                view.findAll(input.getText().toString());
+                            }
+                        });
+                alert.setNegativeButton(getString(android.R.string.cancel), null);
+                alert.show();
 
                 break;
             }

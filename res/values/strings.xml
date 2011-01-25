@@ -80,6 +80,9 @@
 		name="menu_copy">Copy</string>
 		
 	<string
+		name="menu_search">Search</string>
+		
+	<string
 		name="menu_open">Open</string>
 		
 	<string

@@ -32,21 +32,16 @@ public class FileAdapter extends BaseAdapter {
 
     private File[] files;
 
-    public FileAdapter(final Context context, final String root, final boolean breakout,
-            final FileFilter filter, final Comparator<File> comparator) {
-        this(context, new File(root), breakout, filter, comparator);
-    }
-
     public FileAdapter(final Context context, final File root, final boolean breakout,
             final FileFilter filter, final Comparator<File> comparator) {
+        if (!checkDir(root)) {
+            throw new IllegalArgumentException("illegal root directory");
+        }
         this.context = context;
         this.root = root;
         this.breakout = breakout;
         this.filter = filter;
         this.comparator = comparator;
-        if (!checkDir(root)) {
-            throw new IllegalArgumentException("illegal root directory");
-        }
         updateDir(root);
     }
 
