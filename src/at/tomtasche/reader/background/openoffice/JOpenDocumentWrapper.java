@@ -15,7 +15,6 @@ import openoffice.html.ImageCache;
 import openoffice.html.ImageTranslator;
 import openoffice.html.ods.TranslatorOds;
 import openoffice.html.odt.TranslatorOdt;
-import android.util.Log;
 import at.tomtasche.reader.background.DocumentInterface;
 import at.tomtasche.reader.background.DocumentLoader;
 
@@ -23,12 +22,12 @@ public class JOpenDocumentWrapper implements DocumentInterface {
 
     private OpenDocumentWrapper wrapper;
 
-    private DocumentLoader loader;
+    private final DocumentLoader loader;
 
     private int index;
 
-
-    public JOpenDocumentWrapper(final DocumentLoader loader, final InputStream stream, final File cache) throws Exception {
+    public JOpenDocumentWrapper(final DocumentLoader loader, final InputStream stream,
+            final File cache) throws Exception {
         this.loader = loader;
 
         final ImageCache imageCache = new ImageCache(cache, false);
@@ -52,34 +51,31 @@ public class JOpenDocumentWrapper implements DocumentInterface {
             wrapper = new OpenDocumentWrapper(spreadsheet);
             wrapper.setOds(translatorOds);
         } else {
-            assert true : new MimeTypeNotFoundException();
+            assert false : new MimeTypeNotFoundException();
         }
 
         loader.showDocument(wrapper.translate(getPageIndex()));
     }
 
-
-    private boolean isSpreadsheet(CachedOpenDocumentFile file) throws IOException {
+    private boolean isSpreadsheet(final CachedOpenDocumentFile file) throws IOException {
 
         return file.getMimeType().startsWith(OpenDocumentSpreadsheet.MIMETYPE)
-        || file.getMimeType().startsWith(OpenDocumentSpreadsheetTemplate.MIMETYPE);
+                || file.getMimeType().startsWith(OpenDocumentSpreadsheetTemplate.MIMETYPE);
 
     }
 
-    private boolean isDocument(CachedOpenDocumentFile file) throws IOException {
+    private boolean isDocument(final CachedOpenDocumentFile file) throws IOException {
 
         return file.getMimeType().startsWith(OpenDocumentText.MIMETYPE)
-        || file.getMimeType().startsWith(OpenDocumentTextTemplate.MIMETYPE);
+                || file.getMimeType().startsWith(OpenDocumentTextTemplate.MIMETYPE);
 
     }
 
     @Override
     public boolean hasNext() {
         if (getPageIndex() + 1 < getPageCount() && getPageIndex() >= 0) {
-            Log.e("smn", "next");
             return true;
         } else {
-            Log.e("smn", "nonext");
             return false;
         }
     }
@@ -94,10 +90,8 @@ public class JOpenDocumentWrapper implements DocumentInterface {
     @Override
     public boolean hasPrevious() {
         if (getPageIndex() - 1 >= 0) {
-            Log.e("smn", "previous");
             return true;
         } else {
-            Log.e("smn", "noprevious");
             return false;
         }
     }

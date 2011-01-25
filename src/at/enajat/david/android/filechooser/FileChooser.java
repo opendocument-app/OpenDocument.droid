@@ -1,3 +1,4 @@
+
 package at.enajat.david.android.filechooser;
 
 import java.io.File;
@@ -28,18 +29,18 @@ public class FileChooser extends ListActivity {
     private static final FileFilter FILTER = new FileFilter() {
         @Override
         public boolean accept(final File f) {
-            String name = f.getName();
-            return !f.getName().startsWith(".") && (f.isDirectory() ||
-            		name.endsWith(".odt") || name.endsWith(".ods") ||
-            		name.endsWith(".ott") || name.endsWith(".ots"));
+            final String name = f.getName();
+            return !f.getName().startsWith(".")
+                    && (f.isDirectory() || name.endsWith(".odt") || name.endsWith(".ods")
+                            || name.endsWith(".ott") || name.endsWith(".ots"));
         }
     };
 
     private static final Comparator<File> COMPARATOR = new Comparator<File>() {
         @Override
         public int compare(final File f1, final File f2) {
-        	String name1 = f1.getName().toUpperCase();
-        	String name2 = f2.getName().toUpperCase();
+            final String name1 = f1.getName().toUpperCase();
+            final String name2 = f2.getName().toUpperCase();
             if (f1.isDirectory()) {
                 if (f2.isDirectory()) {
                     return name1.compareTo(name2);

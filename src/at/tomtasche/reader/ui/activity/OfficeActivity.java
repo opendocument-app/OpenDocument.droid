@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -16,12 +15,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
-import android.widget.ViewFlipper;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.error.ErrorReport;
@@ -31,7 +27,7 @@ import at.tomtasche.reader.ui.widget.DocumentView;
 public class OfficeActivity extends Activity implements OfficeInterface {
 
     // TODO: switch to ViewFlipper for pages
-    //    private ViewFlipper flipper;
+    // private ViewFlipper flipper;
 
     private ProgressDialog dialog;
 
@@ -39,21 +35,18 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 
     private DocumentView view;
 
-    private Menu menu;
-
-    //    private ArrayList<DocumentView> views;
-
+    // private ArrayList<DocumentView> views;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //        setContentView(R.layout.activity_document);
+        // setContentView(R.layout.activity_document);
 
-        //        flipper = (ViewFlipper)findViewById(R.id.flipper);
+        // flipper = (ViewFlipper)findViewById(R.id.flipper);
 
-        //        views = new ArrayList<DocumentView>();
-        //        views.add(new DocumentView(this));
-        //        flipper.addView(views.get(0));
+        // views = new ArrayList<DocumentView>();
+        // views.add(new DocumentView(this));
+        // flipper.addView(views.get(0));
 
         view = new DocumentView(this);
         setContentView(view);
@@ -67,11 +60,12 @@ public class OfficeActivity extends Activity implements OfficeInterface {
             builder.setNeutralButton(getString(R.string.start_dialog_button),
                     new OnClickListener() {
 
-                @Override
-                public void onClick(final android.content.DialogInterface dialog, final int which) {
-                    findDocument();
-                }
-            });
+                        @Override
+                        public void onClick(final android.content.DialogInterface dialog,
+                                final int which) {
+                            findDocument();
+                        }
+                    });
             builder.create().show();
         } else {
             loadDocument(getIntent().getData());
@@ -80,7 +74,8 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 
     @Override
     public void showProgress() {
-        dialog = ProgressDialog.show(OfficeActivity.this, "", getString(R.string.progress_dialog_message), true);
+        dialog = ProgressDialog.show(OfficeActivity.this, "",
+                getString(R.string.progress_dialog_message), true);
     }
 
     @Override
@@ -92,11 +87,12 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 
     @Override
     public void showDocument(final String html) {
-        //        views.get(loader.getPageIndex()).loadData(html);
-        
-        if (loader.getPageCount() > 1) {
-            Toast.makeText(this, "SWIPE LEFT / RIGHT FOR NEXT PAGE", Toast.LENGTH_LONG).show();
-        }
+        // views.get(loader.getPageIndex()).loadData(html);
+
+        // if (loader.getPageCount() > 1) {
+        // Toast.makeText(this, "SWIPE LEFT / RIGHT FOR NEXT PAGE",
+        // Toast.LENGTH_LONG).show();
+        // }
 
         view = new DocumentView(this);
         setContentView(view);
@@ -106,7 +102,7 @@ public class OfficeActivity extends Activity implements OfficeInterface {
     }
 
     @Override
-    public void showToast(int resId) {
+    public void showToast(final int resId) {
         Toast.makeText(this, getString(resId), Toast.LENGTH_LONG).show();
     }
 
@@ -127,8 +123,8 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 
         showProgress();
 
-        //        views = new ArrayList<DocumentView>();
-        //        views.add(new DocumentView(this));
+        // views = new ArrayList<DocumentView>();
+        // views.add(new DocumentView(this));
 
         cleanCache();
 
@@ -138,7 +134,7 @@ public class OfficeActivity extends Activity implements OfficeInterface {
             public void run() {
                 try {
                     loader.loadDocument(stream, getCacheDir());
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
 
                     runOnUiThread(new Runnable() {
@@ -153,7 +149,7 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 
                     try {
                         ErrorReport.report(OfficeActivity.this, e);
-                    } catch (Exception e1) {
+                    } catch (final Exception e1) {
                         e1.printStackTrace();
                     }
                 }
@@ -168,7 +164,7 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 
         try {
             loadDocument(getContentResolver().openInputStream(uri));
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             e.printStackTrace();
 
             showToast(R.string.toast_error_find_file);
@@ -189,11 +185,11 @@ public class OfficeActivity extends Activity implements OfficeInterface {
         switch (item.getItemId()) {
             case R.id.menu_copy: {
                 if (Integer.parseInt(Build.VERSION.SDK) > 7) {
-                    //                    views.get(loader.getPageIndex()).emulateShiftHeld();
+                    // views.get(loader.getPageIndex()).emulateShiftHeld();
                     view.emulateShiftHeld();
                 } else {
                     Toast.makeText(this, getString(R.string.toast_error_copy), Toast.LENGTH_LONG)
-                    .show();
+                            .show();
                 }
 
                 break;
@@ -235,21 +231,21 @@ public class OfficeActivity extends Activity implements OfficeInterface {
             }
 
             case R.id.menu_zoom_in: {
-                //                views.get(loader.getPageIndex()).zoomIn();
+                // views.get(loader.getPageIndex()).zoomIn();
                 view.zoomIn();
 
                 break;
             }
 
             case R.id.menu_zoom_out: {
-                //                views.get(loader.getPageIndex()).zoomOut();
+                // views.get(loader.getPageIndex()).zoomOut();
                 view.zoomOut();
 
                 break;
             }
 
             case R.id.menu_page_next: {
-                //                flipper.showNext();
+                // flipper.showNext();
                 if (loader.hasNext()) {
                     loader.getNext();
                 } else {
@@ -260,7 +256,7 @@ public class OfficeActivity extends Activity implements OfficeInterface {
             }
 
             case R.id.menu_page_previous: {
-                //                flipper.showNext();
+                // flipper.showNext();
                 if (loader.hasPrevious()) {
                     loader.getPrevious();
                 } else {

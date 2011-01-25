@@ -1,38 +1,35 @@
+
 package at.tomtasche.reader.background.openoffice;
 
 import openoffice.OpenDocument;
 import openoffice.OpenDocumentSpreadsheet;
 import openoffice.html.ods.TranslatorOds;
 import openoffice.html.odt.TranslatorOdt;
-import android.util.Log;
 
 public class OpenDocumentWrapper {
 
-    private OpenDocument document;
+    private final OpenDocument document;
 
     private TranslatorOds ods;
 
     private TranslatorOdt odt;
 
-
-    public OpenDocumentWrapper(OpenDocument document) {
+    public OpenDocumentWrapper(final OpenDocument document) {
         this.document = document;
     }
 
-
-    public void setOds(TranslatorOds ods) {
+    public void setOds(final TranslatorOds ods) {
         this.ods = ods;
     }
 
-    public void setOdt(TranslatorOdt odt) {
+    public void setOdt(final TranslatorOdt odt) {
         this.odt = odt;
     }
 
-    public String translate(int i) {
+    public String translate(final int i) {
         if (odt != null) {
             return odt.translate().getHtmlDocument().toString();
         } else if (ods != null) {
-            Log.e("smn", ods.translate(i).getHtmlDocument().toString());
             return ods.translate(i).getHtmlDocument().toString();
         } else {
             return "Error.";
@@ -43,7 +40,7 @@ public class OpenDocumentWrapper {
         if (odt != null) {
             return 1;
         } else if (ods != null) {
-            return ((OpenDocumentSpreadsheet) document).getTableCount();
+            return ((OpenDocumentSpreadsheet)document).getTableCount();
         } else {
             return 0;
         }

@@ -33,7 +33,6 @@ public class ErrorReport {
 
     private static final String INFORMATION = "INFORMATION";
 
-    
     public static void report(final Context context, final Exception e) throws Exception {
         final List<NameValuePair> formparams = new ArrayList<NameValuePair>();
 

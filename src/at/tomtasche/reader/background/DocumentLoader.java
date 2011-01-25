@@ -1,3 +1,4 @@
+
 package at.tomtasche.reader.background;
 
 import java.io.File;
@@ -6,38 +7,33 @@ import java.io.InputStream;
 
 import openoffice.IllegalMimeTypeException;
 import openoffice.MimeTypeNotFoundException;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
-import android.util.Log;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.openoffice.JOpenDocumentWrapper;
 import at.tomtasche.reader.ui.OfficeInterface;
 
 public class DocumentLoader extends Handler implements DocumentInterface, OfficeInterface {
 
-    public static DocumentLoader getThreadedLoader(OfficeInterface office) {
-        HandlerThread thread = new HandlerThread("DocumentLoader");
+    public static DocumentLoader getThreadedLoader(final OfficeInterface office) {
+        final HandlerThread thread = new HandlerThread("DocumentLoader");
         thread.start();
-        
+
         return new DocumentLoader(thread.getLooper(), office);
     }
 
-
     private JOpenDocumentWrapper tschopen;
 
-    private OfficeInterface office;
+    private final OfficeInterface office;
 
-
-    private DocumentLoader(Looper looper, OfficeInterface office) {
+    private DocumentLoader(final Looper looper, final OfficeInterface office) {
         super(looper);
 
         this.office = office;
     }
 
-    
-    public void loadDocument(InputStream stream, File cache) throws Exception {
+    public void loadDocument(final InputStream stream, final File cache) throws Exception {
         try {
             tschopen = new JOpenDocumentWrapper(this, stream, cache);
         } catch (final MimeTypeNotFoundException e) {
@@ -65,13 +61,17 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
 
     @Override
     public int getPageCount() {
-        if (tschopen == null) return 0;
+        if (tschopen == null) {
+            return 0;
+        }
         return tschopen.getPageCount();
     }
 
     @Override
     public int getPageIndex() {
-        if (tschopen == null) return 0;
+        if (tschopen == null) {
+            return 0;
+        }
         return tschopen.getPageIndex();
     }
 
@@ -99,12 +99,10 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
 
     @Override
     public void showDocument(final String html) {
-        Log.e("smn", "run");
         office.runOnUiThread(new Runnable() {
 
             @Override
             public void run() {
-                Log.e("smn", "show");
                 office.showDocument(html);
             }
         });
@@ -122,47 +120,55 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
     }
 
     @Override
-    public void runOnUiThread(Runnable runnable) {
+    public void runOnUiThread(final Runnable runnable) {
         office.runOnUiThread(runnable);
     }
 
     @Override
     public boolean hasNext() {
-        if (tschopen == null) return false;
-        
+        if (tschopen == null) {
+            return false;
+        }
+
         return tschopen.hasNext();
     }
-    
+
     @Override
     public void getNext() {
-        if (tschopen == null) return;
-        
+        if (tschopen == null) {
+            return;
+        }
+
         post(new Runnable() {
-            
+
             @Override
             public void run() {
                 tschopen.getNext();
             }
         });
     }
-    
+
     @Override
     public boolean hasPrevious() {
-        if (tschopen == null) return false;
-        
+        if (tschopen == null) {
+            return false;
+        }
+
         return tschopen.hasPrevious();
     }
 
     @Override
     public void getPrevious() {
-        if (tschopen == null) return;
-        
+        if (tschopen == null) {
+            return;
+        }
+
         post(new Runnable() {
-            
+
             @Override
             public void run() {
                 tschopen.getPrevious();
             }
         });
-    }    
+    }
 }
