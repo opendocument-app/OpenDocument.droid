@@ -10,9 +10,13 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -56,22 +60,36 @@ public class OfficeActivity extends Activity implements OfficeInterface {
         loader = DocumentLoader.getThreadedLoader(this);
 
         if (getIntent().getData() == null) {
-            final AlertDialog.Builder builder = new Builder(this);
-            builder.setTitle(getString(R.string.start_dialog_title));
-            builder.setMessage(getString(R.string.start_dialog_message));
-            builder.setNeutralButton(getString(R.string.start_dialog_button),
-                    new OnClickListener() {
+            final SharedPreferences preferences = getSharedPreferences("tomtasche.at",
+                    Context.MODE_PRIVATE);
+            try {
+                final int i = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+                if (!preferences.contains(String.valueOf(i))) {
+                    showDialog();
 
-                        @Override
-                        public void onClick(final android.content.DialogInterface dialog,
-                                final int which) {
-                            findDocument();
-                        }
-                    });
-            builder.create().show();
+                    final Editor editor = preferences.edit();
+                    editor.putInt(String.valueOf(i), i);
+                    editor.commit();
+                }
+            } catch (final NameNotFoundException e) {
+            }
         } else {
             loadDocument(getIntent().getData());
         }
+    }
+
+    private void showDialog() {
+        final AlertDialog.Builder builder = new Builder(this);
+        builder.setTitle(getString(R.string.start_dialog_title));
+        builder.setMessage(getString(R.string.start_dialog_message));
+        builder.setNeutralButton(getString(R.string.start_dialog_button), new OnClickListener() {
+
+            @Override
+            public void onClick(final android.content.DialogInterface dialog, final int which) {
+                findDocument();
+            }
+        });
+        builder.create().show();
     }
 
     @Override
@@ -316,6 +334,8 @@ public class OfficeActivity extends Activity implements OfficeInterface {
             }
 
             case R.id.menu_about: {
+                showDialog();
+
                 try {
                     loadDocument(getAssets().open("intro.odt"));
                 } catch (final IOException e) {
