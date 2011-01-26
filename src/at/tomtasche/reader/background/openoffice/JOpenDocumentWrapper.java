@@ -48,6 +48,10 @@ public class JOpenDocumentWrapper implements DocumentInterface {
             final OpenDocumentSpreadsheet spreadsheet = new OpenDocumentSpreadsheet(documentFile);
             final TranslatorOds translatorOds = new TranslatorOds(spreadsheet);
 
+            final ImageTranslator imageTranslator = new ImageTranslator(spreadsheet, imageCache);
+            imageTranslator.setUriTranslator(new AndroidImageUriTranslator());
+            translatorOds.addNodeTranslator("image", imageTranslator);
+
             wrapper = new OpenDocumentWrapper(spreadsheet);
             wrapper.setOds(translatorOds);
         } else {

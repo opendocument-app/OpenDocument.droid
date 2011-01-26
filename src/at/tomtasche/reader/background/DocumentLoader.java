@@ -23,12 +23,12 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
     }
 
     private JOpenDocumentWrapper tschopen;
-    
-    private HandlerThread thread;
+
+    private final HandlerThread thread;
 
     private final OfficeInterface office;
 
-    private DocumentLoader(HandlerThread thread, final OfficeInterface office) {
+    private DocumentLoader(final HandlerThread thread, final OfficeInterface office) {
         super(thread.getLooper());
 
         this.thread = thread;
@@ -38,7 +38,7 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
     public void loadDocument(final InputStream stream, final File cache) throws Exception {
         try {
             cleanCache(cache);
-            
+
             tschopen = new JOpenDocumentWrapper(this, stream, cache);
         } catch (final MimeTypeNotFoundException e) {
             e.printStackTrace();
@@ -114,6 +114,8 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
 
     @Override
     public void showToast(final int resId) {
+        hideProgress();
+
         office.runOnUiThread(new Runnable() {
 
             @Override
@@ -175,8 +177,8 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
             }
         });
     }
-    
-    private void cleanCache(File cache) {
+
+    private void cleanCache(final File cache) {
         // TODO: sort pictures in folders and delete old pictures asynchronous
 
         for (final String s : cache.list()) {
@@ -187,7 +189,7 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
             }
         }
     }
-    
+
     public void quit() {
         thread.getLooper().quit();
     }

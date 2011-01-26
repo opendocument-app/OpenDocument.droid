@@ -62,12 +62,12 @@ public class OfficeActivity extends Activity implements OfficeInterface {
             builder.setNeutralButton(getString(R.string.start_dialog_button),
                     new OnClickListener() {
 
-                @Override
-                public void onClick(final android.content.DialogInterface dialog,
-                        final int which) {
-                    findDocument();
-                }
-            });
+                        @Override
+                        public void onClick(final android.content.DialogInterface dialog,
+                                final int which) {
+                            findDocument();
+                        }
+                    });
             builder.create().show();
         } else {
             loadDocument(getIntent().getData());
@@ -95,6 +95,16 @@ public class OfficeActivity extends Activity implements OfficeInterface {
         // Toast.makeText(this, "SWIPE LEFT / RIGHT FOR NEXT PAGE",
         // Toast.LENGTH_LONG).show();
         // }
+
+        // final Intent sendIntent = new Intent(Intent.ACTION_SEND);
+        // sendIntent.putExtra(Intent.EXTRA_SUBJECT,
+        // "OhReader");
+        // sendIntent.putExtra(Intent.EXTRA_TEXT, html);
+        // sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[] {
+        // "stefl.andreas@gmail.com"
+        // });
+        // sendIntent.setType("message/rfc822");
+        // startActivity(sendIntent);
 
         view = new DocumentView(this);
         setContentView(view);
@@ -189,7 +199,7 @@ public class OfficeActivity extends Activity implements OfficeInterface {
                     view.emulateShiftHeld();
                 } else {
                     Toast.makeText(this, getString(R.string.toast_error_copy), Toast.LENGTH_LONG)
-                    .show();
+                            .show();
                 }
 
                 break;
@@ -206,11 +216,11 @@ public class OfficeActivity extends Activity implements OfficeInterface {
                 alert.setPositiveButton(getString(android.R.string.ok),
                         new DialogInterface.OnClickListener() {
 
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int whichButton) {
-                        view.findAll(input.getText().toString());
-                    }
-                });
+                            @Override
+                            public void onClick(final DialogInterface dialog, final int whichButton) {
+                                view.findAll(input.getText().toString());
+                            }
+                        });
                 alert.setNegativeButton(getString(android.R.string.cancel), null);
                 alert.show();
 

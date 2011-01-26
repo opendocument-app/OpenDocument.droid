@@ -15,8 +15,7 @@ public class ImageProvider extends ContentProvider {
     @Override
     public ParcelFileDescriptor openFile(final Uri uri, final String mode)
             throws FileNotFoundException {
-        final File file = new File(getContext().getCacheDir() + "/"
-                + uri.getLastPathSegment());
+        final File file = new File(getContext().getCacheDir() + "/" + uri.getLastPathSegment());
 
         final ParcelFileDescriptor parcel = ParcelFileDescriptor.open(file,
                 ParcelFileDescriptor.MODE_READ_ONLY);

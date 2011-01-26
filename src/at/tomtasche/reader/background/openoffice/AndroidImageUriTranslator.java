@@ -6,6 +6,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import openoffice.html.URITranslator;
+import android.net.Uri;
 
 public class AndroidImageUriTranslator implements URITranslator {
 
@@ -17,7 +18,7 @@ public class AndroidImageUriTranslator implements URITranslator {
         URI result = null;
 
         try {
-            result = new URI("content://at.tomtasche.reader/" + imageFileName);
+            result = new URI("content://at.tomtasche.reader/" + Uri.encode(imageFileName));
         } catch (final URISyntaxException e) {
             e.printStackTrace();
         }
