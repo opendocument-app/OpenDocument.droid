@@ -15,7 +15,7 @@ public class ImageProvider extends ContentProvider {
     @Override
     public ParcelFileDescriptor openFile(final Uri uri, final String mode)
             throws FileNotFoundException {
-        final File file = new File("/data/data/at.tomtasche.reader/cache/"
+        final File file = new File(getContext().getCacheDir() + "/"
                 + uri.getLastPathSegment());
 
         final ParcelFileDescriptor parcel = ParcelFileDescriptor.open(file,

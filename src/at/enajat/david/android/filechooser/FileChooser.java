@@ -31,8 +31,8 @@ public class FileChooser extends ListActivity {
         public boolean accept(final File f) {
             final String name = f.getName();
             return !f.getName().startsWith(".")
-                    && (f.isDirectory() || name.endsWith(".odt") || name.endsWith(".ods")
-                            || name.endsWith(".ott") || name.endsWith(".ots"));
+            && (f.isDirectory() || name.endsWith(".odt") || name.endsWith(".ods")
+                    || name.endsWith(".ott") || name.endsWith(".ots"));
         }
     };
 
@@ -64,8 +64,9 @@ public class FileChooser extends ListActivity {
         super.onCreate(savedInstanceState);
         if (!FileAdapter.checkDir(ROOT)) {
             Toast.makeText(this, getString(R.string.toast_error_find_file), Toast.LENGTH_LONG)
-                    .show();
+            .show();
             cancel();
+            return;
         }
         adapter = new FileAdapter(this, ROOT, BREAKOUT, FILTER, COMPARATOR);
         setListAdapter(adapter);
@@ -125,7 +126,7 @@ public class FileChooser extends ListActivity {
             case R.id.menu_back:
                 if (!adapter.changeUp()) {
                     Toast.makeText(this, getString(R.string.toast_error_ontop), Toast.LENGTH_SHORT)
-                            .show();
+                    .show();
                     return true;
                 }
                 updateTitle();

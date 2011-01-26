@@ -2,6 +2,8 @@
 package at.tomtasche.reader.ui.widget;
 
 import android.content.Context;
+import android.net.Uri;
+import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import at.tomtasche.reader.R;
@@ -39,6 +41,11 @@ public class DocumentView extends WebView {
         settings.setSupportZoom(true);
         settings.setPluginsEnabled(false);
         settings.setDefaultTextEncodingName(ENCODING);
+        settings.setUseWideViewPort(true);
+        settings.setSavePassword(false);
+        settings.setSaveFormData(false);
+        settings.setBlockNetworkLoads(true);
+        settings.setJavaScriptEnabled(false);
 
         loadData(context.getString(R.string.message_get_started), "text/plain", ENCODING);
 

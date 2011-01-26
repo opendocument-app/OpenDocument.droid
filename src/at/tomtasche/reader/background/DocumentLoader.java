@@ -9,7 +9,6 @@ import openoffice.IllegalMimeTypeException;
 import openoffice.MimeTypeNotFoundException;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Looper;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.openoffice.JOpenDocumentWrapper;
 import at.tomtasche.reader.ui.OfficeInterface;
@@ -20,21 +19,26 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
         final HandlerThread thread = new HandlerThread("DocumentLoader");
         thread.start();
 
-        return new DocumentLoader(thread.getLooper(), office);
+        return new DocumentLoader(thread, office);
     }
 
     private JOpenDocumentWrapper tschopen;
+    
+    private HandlerThread thread;
 
     private final OfficeInterface office;
 
-    private DocumentLoader(final Looper looper, final OfficeInterface office) {
-        super(looper);
+    private DocumentLoader(HandlerThread thread, final OfficeInterface office) {
+        super(thread.getLooper());
 
+        this.thread = thread;
         this.office = office;
     }
 
     public void loadDocument(final InputStream stream, final File cache) throws Exception {
         try {
+            cleanCache(cache);
+            
             tschopen = new JOpenDocumentWrapper(this, stream, cache);
         } catch (final MimeTypeNotFoundException e) {
             e.printStackTrace();
@@ -170,5 +174,21 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
                 tschopen.getPrevious();
             }
         });
+    }
+    
+    private void cleanCache(File cache) {
+        // TODO: sort pictures in folders and delete old pictures asynchronous
+
+        for (final String s : cache.list()) {
+            try {
+                new File(cache + "/" + s).delete();
+            } catch (final Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    public void quit() {
+        thread.getLooper().quit();
     }
 }

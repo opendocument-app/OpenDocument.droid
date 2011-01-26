@@ -62,12 +62,12 @@ public class OfficeActivity extends Activity implements OfficeInterface {
             builder.setNeutralButton(getString(R.string.start_dialog_button),
                     new OnClickListener() {
 
-                        @Override
-                        public void onClick(final android.content.DialogInterface dialog,
-                                final int which) {
-                            findDocument();
-                        }
-                    });
+                @Override
+                public void onClick(final android.content.DialogInterface dialog,
+                        final int which) {
+                    findDocument();
+                }
+            });
             builder.create().show();
         } else {
             loadDocument(getIntent().getData());
@@ -127,8 +127,6 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 
         // views = new ArrayList<DocumentView>();
         // views.add(new DocumentView(this));
-
-        cleanCache();
 
         loader.post(new Runnable() {
 
@@ -191,7 +189,7 @@ public class OfficeActivity extends Activity implements OfficeInterface {
                     view.emulateShiftHeld();
                 } else {
                     Toast.makeText(this, getString(R.string.toast_error_copy), Toast.LENGTH_LONG)
-                            .show();
+                    .show();
                 }
 
                 break;
@@ -208,11 +206,11 @@ public class OfficeActivity extends Activity implements OfficeInterface {
                 alert.setPositiveButton(getString(android.R.string.ok),
                         new DialogInterface.OnClickListener() {
 
-                            @Override
-                            public void onClick(final DialogInterface dialog, final int whichButton) {
-                                view.findAll(input.getText().toString());
-                            }
-                        });
+                    @Override
+                    public void onClick(final DialogInterface dialog, final int whichButton) {
+                        view.findAll(input.getText().toString());
+                    }
+                });
                 alert.setNegativeButton(getString(android.R.string.cancel), null);
                 alert.show();
 
