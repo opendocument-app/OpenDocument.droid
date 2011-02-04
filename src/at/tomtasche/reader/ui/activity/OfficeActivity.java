@@ -65,7 +65,7 @@ public class OfficeActivity extends Activity implements OfficeInterface {
             try {
                 final int i = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
                 if (!preferences.contains(String.valueOf(i))) {
-                    showDialog();
+                    showDialog(true);
 
                     final Editor editor = preferences.edit();
                     editor.putInt(String.valueOf(i), i);
@@ -78,7 +78,7 @@ public class OfficeActivity extends Activity implements OfficeInterface {
         }
     }
 
-    private void showDialog() {
+    private void showDialog(final boolean choose) {
         final AlertDialog.Builder builder = new Builder(this);
         builder.setTitle(getString(R.string.start_dialog_title));
         builder.setMessage(getString(R.string.start_dialog_message));
@@ -86,7 +86,7 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 
             @Override
             public void onClick(final android.content.DialogInterface dialog, final int which) {
-                findDocument();
+                if (choose) findDocument();
             }
         });
         builder.create().show();
@@ -334,7 +334,7 @@ public class OfficeActivity extends Activity implements OfficeInterface {
             }
 
             case R.id.menu_about: {
-                showDialog();
+                showDialog(false);
 
                 try {
                     loadDocument(getAssets().open("intro.odt"));
