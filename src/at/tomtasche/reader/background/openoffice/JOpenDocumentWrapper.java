@@ -4,6 +4,7 @@ package at.tomtasche.reader.background.openoffice;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import openoffice.CachedOpenDocumentFile;
 import openoffice.MimeTypeNotFoundException;
@@ -115,5 +116,16 @@ public class JOpenDocumentWrapper implements DocumentInterface {
     @Override
     public int getPageIndex() {
         return index;
+    }
+
+    @Override
+    public List<String> getPageNames() {
+        return wrapper.getTableNames();
+    }
+
+    @Override
+    public void loadPage(int i) {
+        index = i;
+        loader.showDocument(wrapper.translate(i));
     }
 }

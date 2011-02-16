@@ -18,6 +18,10 @@
 
 	<string
 		name="start_dialog_button">Cool!</string>
+	
+		
+	<string
+		name="page_dialog_title">Pick a page</string>
 
 
 	<string
@@ -69,6 +73,9 @@
 		
 	<string
 		name="menu_zoom_out">Zoom--</string>
+		
+	<string
+		name="menu_page_list">List</string>
 		
 	<string
 		name="menu_page_next">Next</string>

@@ -4,6 +4,7 @@ package at.tomtasche.reader.background;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.List;
 
 import openoffice.IllegalMimeTypeException;
 import openoffice.MimeTypeNotFoundException;
@@ -192,5 +193,15 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
 
     public void quit() {
         thread.getLooper().quit();
+    }
+
+    @Override
+    public List<String> getPageNames() {
+        return tschopen.getPageNames();
+    }
+
+    @Override
+    public void loadPage(int i) {
+        tschopen.loadPage(i);
     }
 }

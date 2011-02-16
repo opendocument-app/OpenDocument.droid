@@ -1,6 +1,9 @@
 
 package at.tomtasche.reader.background.openoffice;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import openoffice.OpenDocument;
 import openoffice.OpenDocumentSpreadsheet;
 import openoffice.html.ods.TranslatorOds;
@@ -44,5 +47,19 @@ public class OpenDocumentWrapper {
         } else {
             return 0;
         }
+    }
+    
+    public List<String> getTableNames() {
+        if (odt != null) {
+            return new LinkedList<String>();
+        } else if (ods != null) {
+            try {
+                return ((OpenDocumentSpreadsheet)document).getTableNames();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        
+        return new LinkedList<String>();
     }
 }

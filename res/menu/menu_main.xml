@@ -11,6 +11,11 @@
 		android:title="@string/menu_page_next"
 		android:icon="@drawable/ic_menu_forward"
 		android:id="@+id/menu_page_next" />
+		
+	<item
+		android:title="@string/menu_page_list"
+		android:icon="@android:drawable/ic_menu_sort_by_size"
+		android:id="@+id/menu_page_list" />
 
 	<item
 		android:title="@string/menu_open"

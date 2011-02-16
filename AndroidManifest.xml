@@ -2,27 +2,13 @@
 <manifest
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	package="at.tomtasche.reader"
-	android:versionCode="21"
-	android:versionName="1.2.9"
+	android:versionCode="22"
+	android:versionName="1.3.0"
 	android:installLocation="auto">
 
 	<application
 		android:icon="@drawable/icon"
 		android:label="@string/app_name">
-
-		<activity
-			android:name="at.tomtasche.writer.Test"
-			android:label="@string/app_name"
-			android:configChanges="orientation|keyboardHidden"
-			android:theme="@android:style/Theme.Black.NoTitleBar">
-			<intent-filter>
-				<action
-					android:name="android.intent.action.MAIN" />
-				<category
-					android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity>
-
 		<activity
 			android:name="at.enajat.david.android.filechooser.FileChooser"
 			android:label="@string/chooser_name"

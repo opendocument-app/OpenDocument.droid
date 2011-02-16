@@ -211,13 +211,29 @@ public class OfficeActivity extends Activity implements OfficeInterface {
     @Override
     public boolean onMenuItemSelected(final int featureId, final MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.menu_page_list: {
+                if (loader.getPageCount() > 1) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle(getString(R.string.page_dialog_title));
+                    builder.setItems(loader.getPageNames().toArray(new CharSequence[loader.getPageCount()]), new DialogInterface.OnClickListener() {
+
+                        public void onClick(DialogInterface dialog, int item) {
+                            loader.loadPage(item);
+                        }
+                    });
+                    builder.create().show();
+                }
+                
+                break;
+            }
+
             case R.id.menu_copy: {
                 if (Integer.parseInt(Build.VERSION.SDK) > 7) {
                     // views.get(loader.getPageIndex()).emulateShiftHeld();
                     view.emulateShiftHeld();
                 } else {
                     Toast.makeText(this, getString(R.string.toast_error_copy), Toast.LENGTH_LONG)
-                            .show();
+                    .show();
                 }
 
                 break;
@@ -234,11 +250,11 @@ public class OfficeActivity extends Activity implements OfficeInterface {
                 alert.setPositiveButton(getString(android.R.string.ok),
                         new DialogInterface.OnClickListener() {
 
-                            @Override
-                            public void onClick(final DialogInterface dialog, final int whichButton) {
-                                view.findAll(input.getText().toString());
-                            }
-                        });
+                    @Override
+                    public void onClick(final DialogInterface dialog, final int whichButton) {
+                        view.findAll(input.getText().toString());
+                    }
+                });
                 alert.setNegativeButton(getString(android.R.string.cancel), null);
                 alert.show();
 

@@ -1,6 +1,8 @@
 
 package at.tomtasche.reader.background;
 
+import java.util.List;
+
 public interface DocumentInterface {
 
     /**
@@ -13,6 +15,8 @@ public interface DocumentInterface {
      * ready.
      */
     public void getNext();
+    
+    public void loadPage(int i);
 
     /**
      * @return True if there's a previous page.
@@ -34,5 +38,10 @@ public interface DocumentInterface {
      * @return The index of the currently displayed page.
      */
     public int getPageIndex();
+    
+    /**
+     * @return The names of available pages in this document..
+     */
+    public List<String> getPageNames();
 
 }
