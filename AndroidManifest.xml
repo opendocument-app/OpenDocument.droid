@@ -73,7 +73,7 @@
 			</intent-filter>
 		</activity>
 
-		<provider android:name="at.tomtasche.rereader.background.openoffice.ImageProvider"
+		<provider android:name=".background.openoffice.ImageProvider"
 			android:authorities="at.tomtasche.reader" />
 	</application>
 
