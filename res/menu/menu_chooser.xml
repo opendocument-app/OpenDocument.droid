@@ -4,10 +4,10 @@
 	<item
 		android:id="@+id/menu_back"
 		android:title="@string/menu_back"
-		android:icon="@drawable/ic_menu_back" />
+		android:icon="@drawable/ic_menu_back" android:showAsAction="always|withText"/>
 
 	<item
 		android:id="@+id/menu_cancel"
 		android:title="@string/menu_cancel"
-		android:icon="@android:drawable/ic_menu_revert" />
+		android:icon="@android:drawable/ic_menu_revert" android:showAsAction="always|withText"/>
 </menu>

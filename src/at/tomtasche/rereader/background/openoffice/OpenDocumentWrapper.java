@@ -1,5 +1,5 @@
 
-package at.tomtasche.reader.background.openoffice;
+package at.tomtasche.rereader.background.openoffice;
 
 import java.util.LinkedList;
 import java.util.List;

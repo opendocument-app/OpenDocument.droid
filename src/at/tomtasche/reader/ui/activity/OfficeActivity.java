@@ -1,4 +1,3 @@
-
 package at.tomtasche.reader.ui.activity;
 
 import java.io.File;
@@ -22,6 +21,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.Toast;
 import at.tomtasche.reader.R;
@@ -32,378 +32,343 @@ import at.tomtasche.reader.ui.widget.DocumentView;
 
 public class OfficeActivity extends Activity implements OfficeInterface {
 
-    // TODO: switch to ViewFlipper for pages
-    // private ViewFlipper flipper;
-
     private ProgressDialog dialog;
 
     private DocumentLoader loader;
 
     private DocumentView view;
 
-    // private ArrayList<DocumentView> views;
-
     @Override
     public void onCreate(final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        // setContentView(R.layout.activity_document);
+	super.onCreate(savedInstanceState);
 
-        // flipper = (ViewFlipper)findViewById(R.id.flipper);
+	if (Build.VERSION.SDK_INT < 11) requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        // views = new ArrayList<DocumentView>();
-        // views.add(new DocumentView(this));
-        // flipper.addView(views.get(0));
+	view = new DocumentView(this);
+	setContentView(view);
 
-        view = new DocumentView(this);
-        setContentView(view);
+	loader = DocumentLoader.getThreadedLoader(this);
 
-        loader = DocumentLoader.getThreadedLoader(this);
+	if (getIntent().getData() == null) {
+	    final SharedPreferences preferences = getSharedPreferences("tomtasche.at",
+		    Context.MODE_PRIVATE);
+	    try {
+		final int i = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+		if (!preferences.contains(String.valueOf(i))) {
+		    showDialog(true);
 
-        if (getIntent().getData() == null) {
-            final SharedPreferences preferences = getSharedPreferences("tomtasche.at",
-                    Context.MODE_PRIVATE);
-            try {
-                final int i = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
-                if (!preferences.contains(String.valueOf(i))) {
-                    showDialog(true);
-
-                    final Editor editor = preferences.edit();
-                    editor.putInt(String.valueOf(i), i);
-                    editor.commit();
-                }
-            } catch (final NameNotFoundException e) {
-            }
-        } else {
-            loadDocument(getIntent().getData());
-        }
+		    final Editor editor = preferences.edit();
+		    editor.putInt(String.valueOf(i), i);
+		    editor.commit();
+		}
+	    } catch (final NameNotFoundException e) {
+	    }
+	} else {
+	    loadDocument(getIntent().getData());
+	}
     }
 
     private void showDialog(final boolean choose) {
-        final AlertDialog.Builder builder = new Builder(this);
-        builder.setTitle(getString(R.string.start_dialog_title));
-        builder.setMessage(getString(R.string.start_dialog_message));
-        builder.setNeutralButton(getString(R.string.start_dialog_button), new OnClickListener() {
+	final AlertDialog.Builder builder = new Builder(this);
+	builder.setTitle(getString(R.string.start_dialog_title));
+	builder.setMessage(getString(R.string.start_dialog_message));
+	builder.setNeutralButton(getString(R.string.start_dialog_button), new OnClickListener() {
 
-            @Override
-            public void onClick(final android.content.DialogInterface dialog, final int which) {
-                if (choose) findDocument();
-            }
-        });
-        builder.create().show();
+	    @Override
+	    public void onClick(final android.content.DialogInterface dialog, final int which) {
+		if (choose) findDocument();
+	    }
+	});
+	builder.create().show();
     }
 
     @Override
     public void showProgress() {
-        dialog = ProgressDialog.show(OfficeActivity.this, "",
-                getString(R.string.progress_dialog_message), true);
+	dialog = ProgressDialog.show(OfficeActivity.this, "",
+		getString(R.string.progress_dialog_message), true);
     }
 
     @Override
     public void hideProgress() {
-        if (dialog != null) {
-            dialog.dismiss();
-        }
+	if (dialog != null) {
+	    dialog.dismiss();
+	}
     }
 
     @Override
     public void showDocument(final String html) {
-        // views.get(loader.getPageIndex()).loadData(html);
+	view = new DocumentView(this);
+	setContentView(view);
+	view.loadData(html);
 
-        // if (loader.getPageCount() > 1) {
-        // Toast.makeText(this, "SWIPE LEFT / RIGHT FOR NEXT PAGE",
-        // Toast.LENGTH_LONG).show();
-        // }
-
-        // final Intent sendIntent = new Intent(Intent.ACTION_SEND);
-        // sendIntent.putExtra(Intent.EXTRA_SUBJECT,
-        // "OhReader");
-        // sendIntent.putExtra(Intent.EXTRA_TEXT, html);
-        // sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[] {
-        // "stefl.andreas@gmail.com"
-        // });
-        // sendIntent.setType("message/rfc822");
-        // startActivity(sendIntent);
-
-        view = new DocumentView(this);
-        setContentView(view);
-        view.loadData(html);
-
-        hideProgress();
+	hideProgress();
     }
 
     @Override
     public void showToast(final int resId) {
-        Toast.makeText(this, getString(resId), Toast.LENGTH_LONG).show();
+	Toast.makeText(this, getString(resId), Toast.LENGTH_LONG).show();
     }
 
     private void findDocument() {
-        final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("application/vnd.oasis.opendocument.*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
+	final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+	intent.setType("application/vnd.oasis.opendocument.*");
+	intent.addCategory(Intent.CATEGORY_OPENABLE);
 
-        startActivityForResult(intent, 42);
+	startActivityForResult(intent, 42);
     }
 
     private void loadDocument(final InputStream stream) {
-        if (stream == null) {
-            showToast(R.string.toast_error_access_file);
+	if (stream == null) {
+	    showToast(R.string.toast_error_access_file);
 
-            return;
-        }
+	    return;
+	}
 
-        showProgress();
+	showProgress();
 
-        // views = new ArrayList<DocumentView>();
-        // views.add(new DocumentView(this));
+	loader.post(new Runnable() {
 
-        loader.post(new Runnable() {
+	    @Override
+	    public void run() {
+		try {
+		    loader.loadDocument(stream, getCacheDir());
+		} catch (final Exception e) {
+		    e.printStackTrace();
 
-            @Override
-            public void run() {
-                try {
-                    loader.loadDocument(stream, getCacheDir());
-                } catch (final Exception e) {
-                    e.printStackTrace();
+		    runOnUiThread(new Runnable() {
 
-                    runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+			    hideProgress();
 
-                        @Override
-                        public void run() {
-                            hideProgress();
+			    showToast(R.string.toast_error_open_file);
+			}
+		    });
 
-                            showToast(R.string.toast_error_open_file);
-                        }
-                    });
-
-                    try {
-                        ErrorReport.report(OfficeActivity.this, e);
-                    } catch (final Exception e1) {
-                        e1.printStackTrace();
-                    }
-                }
-            }
-        });
+		    try {
+			ErrorReport.report(OfficeActivity.this, e);
+		    } catch (final Exception e1) {
+			e1.printStackTrace();
+		    }
+		}
+	    }
+	});
     }
 
     private void loadDocument(Uri uri) {
-        if ("/./".equals(uri.toString().substring(0, 2))) {
-            uri = Uri.parse(uri.toString().substring(2, uri.toString().length()));
-        }
+	if ("/./".equals(uri.toString().substring(0, 2))) {
+	    uri = Uri.parse(uri.toString().substring(2, uri.toString().length()));
+	}
 
-        try {
-            loadDocument(getContentResolver().openInputStream(uri));
-        } catch (final FileNotFoundException e) {
-            e.printStackTrace();
+	try {
+	    loadDocument(getContentResolver().openInputStream(uri));
+	} catch (final FileNotFoundException e) {
+	    e.printStackTrace();
 
-            showToast(R.string.toast_error_find_file);
-        }
+	    showToast(R.string.toast_error_find_file);
+	}
     }
 
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
-        super.onCreateOptionsMenu(menu);
+	super.onCreateOptionsMenu(menu);
 
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+	getMenuInflater().inflate(R.menu.menu_main, menu);
 
-        return true;
+	return true;
     }
 
     @Override
     public boolean onMenuItemSelected(final int featureId, final MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_page_list: {
-                if (loader.getPageCount() > 1) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle(getString(R.string.page_dialog_title));
-                    builder.setItems(loader.getPageNames().toArray(new CharSequence[loader.getPageCount()]), new DialogInterface.OnClickListener() {
+	switch (item.getItemId()) {
+	case R.id.menu_page_list: {
+	    if (loader.getPageCount() > 1) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(getString(R.string.page_dialog_title));
+		builder.setItems(loader.getPageNames().toArray(new CharSequence[loader.getPageCount()]), new DialogInterface.OnClickListener() {
 
-                        public void onClick(DialogInterface dialog, int item) {
-                            loader.loadPage(item);
-                        }
-                    });
-                    builder.create().show();
-                }
-                
-                break;
-            }
+		    public void onClick(DialogInterface dialog, int item) {
+			loader.loadPage(item);
+		    }
+		});
+		builder.create().show();
+	    }
 
-            case R.id.menu_copy: {
-                if (Integer.parseInt(Build.VERSION.SDK) > 7) {
-                    // views.get(loader.getPageIndex()).emulateShiftHeld();
-                    view.emulateShiftHeld();
-                } else {
-                    Toast.makeText(this, getString(R.string.toast_error_copy), Toast.LENGTH_LONG)
-                    .show();
-                }
+	    break;
+	}
 
-                break;
-            }
+	case R.id.menu_copy: {
+	    if (Integer.parseInt(Build.VERSION.SDK) > 7) {
+		view.emulateShiftHeld();
+	    } else {
+		Toast.makeText(this, getString(R.string.toast_error_copy), Toast.LENGTH_LONG)
+		.show();
+	    }
 
-            case R.id.menu_search: {
-                // http://www.androidsnippets.org/snippets/20/
-                final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-                alert.setTitle(getString(R.string.menu_search));
+	    break;
+	}
 
-                final EditText input = new EditText(this);
-                alert.setView(input);
+	case R.id.menu_search: {
+	    // http://www.androidsnippets.org/snippets/20/
+	    final AlertDialog.Builder alert = new AlertDialog.Builder(this);
+	    alert.setTitle(getString(R.string.menu_search));
 
-                alert.setPositiveButton(getString(android.R.string.ok),
-                        new DialogInterface.OnClickListener() {
+	    final EditText input = new EditText(this);
+	    alert.setView(input);
 
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int whichButton) {
-                        view.findAll(input.getText().toString());
-                    }
-                });
-                alert.setNegativeButton(getString(android.R.string.cancel), null);
-                alert.show();
+	    alert.setPositiveButton(getString(android.R.string.ok),
+		    new DialogInterface.OnClickListener() {
 
-                break;
-            }
+		@Override
+		public void onClick(final DialogInterface dialog, final int whichButton) {
+		    view.findAll(input.getText().toString());
+		}
+	    });
+	    alert.setNegativeButton(getString(android.R.string.cancel), null);
+	    alert.show();
 
-            case R.id.menu_open: {
-                findDocument();
+	    break;
+	}
 
-                break;
-            }
+	case R.id.menu_open: {
+	    findDocument();
 
-            case R.id.menu_donate: {
-                final CharSequence[] items = {
-                        getString(R.string.donate_paypal), getString(R.string.donate_market),
-                        getString(R.string.donate_flattr)
-                };
+	    break;
+	}
 
-                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(getString(R.string.donate_choose));
-                builder.setItems(items, new OnClickListener() {
+	case R.id.menu_donate: {
+	    final CharSequence[] items = {
+		    getString(R.string.donate_paypal), getString(R.string.donate_market),
+		    getString(R.string.donate_flattr)
+	    };
 
-                    @Override
-                    public void onClick(final android.content.DialogInterface dialog, final int item) {
-                        if (items[0].equals(items[item])) {
-                            startActivity(new Intent(Intent.ACTION_VIEW, Uri
-                                    .parse("http://goo.gl/1e8K9")));
-                        } else if (items[1].equals(items[item])) {
-                            startActivity(new Intent(Intent.ACTION_VIEW, Uri
-                                    .parse("http://goo.gl/p4jH2")));
-                        } else {
-                            startActivity(new Intent(Intent.ACTION_VIEW, Uri
-                                    .parse("http://goo.gl/fhecu")));
-                        }
-                    }
-                });
-                builder.create().show();
+	    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	    builder.setTitle(getString(R.string.donate_choose));
+	    builder.setItems(items, new OnClickListener() {
 
-                break;
-            }
+		@Override
+		public void onClick(final android.content.DialogInterface dialog, final int item) {
+		    if (items[0].equals(items[item])) {
+			startActivity(new Intent(Intent.ACTION_VIEW, Uri
+				.parse("http://goo.gl/1e8K9")));
+		    } else if (items[1].equals(items[item])) {
+			startActivity(new Intent(Intent.ACTION_VIEW, Uri
+				.parse("http://goo.gl/p4jH2")));
+		    } else {
+			startActivity(new Intent(Intent.ACTION_VIEW, Uri
+				.parse("http://goo.gl/fhecu")));
+		    }
+		}
+	    });
+	    builder.create().show();
 
-            case R.id.menu_zoom_in: {
-                // views.get(loader.getPageIndex()).zoomIn();
-                view.zoomIn();
+	    break;
+	}
 
-                break;
-            }
+	case R.id.menu_zoom_in: {
+	    view.zoomIn();
 
-            case R.id.menu_zoom_out: {
-                // views.get(loader.getPageIndex()).zoomOut();
-                view.zoomOut();
+	    break;
+	}
 
-                break;
-            }
+	case R.id.menu_zoom_out: {
+	    view.zoomOut();
 
-            case R.id.menu_page_next: {
-                // flipper.showNext();
-                if (loader.hasNext()) {
-                    loader.getNext();
-                } else {
-                    showToast(R.string.toast_error_no_next);
-                }
+	    break;
+	}
 
-                break;
-            }
+	case R.id.menu_page_next: {
+	    if (loader.hasNext()) {
+		loader.getNext();
+	    } else {
+		showToast(R.string.toast_error_no_next);
+	    }
 
-            case R.id.menu_page_previous: {
-                // flipper.showNext();
-                if (loader.hasPrevious()) {
-                    loader.getPrevious();
-                } else {
-                    showToast(R.string.toast_error_no_previous);
-                }
+	    break;
+	}
 
-                break;
-            }
+	case R.id.menu_page_previous: {
+	    if (loader.hasPrevious()) {
+		loader.getPrevious();
+	    } else {
+		showToast(R.string.toast_error_no_previous);
+	    }
 
-            case R.id.menu_share: {
-                final Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                shareIntent.putExtra(Intent.EXTRA_TEXT, "http://goo.gl/ZqiqW");
-                shareIntent.setType("text/plain");
-                shareIntent.addCategory(Intent.CATEGORY_DEFAULT);
+	    break;
+	}
 
-                startActivity(shareIntent);
+	case R.id.menu_share: {
+	    final Intent shareIntent = new Intent(Intent.ACTION_SEND);
+	    shareIntent.putExtra(Intent.EXTRA_TEXT, "http://goo.gl/ZqiqW");
+	    shareIntent.setType("text/plain");
+	    shareIntent.addCategory(Intent.CATEGORY_DEFAULT);
 
-                break;
-            }
+	    startActivity(shareIntent);
 
-            case R.id.menu_rate: {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://goo.gl/pXKgv")));
+	    break;
+	}
 
-                break;
-            }
+	case R.id.menu_rate: {
+	    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://goo.gl/pXKgv")));
 
-            case R.id.menu_about: {
-                showDialog(false);
+	    break;
+	}
 
-                try {
-                    loadDocument(getAssets().open("intro.odt"));
-                } catch (final IOException e) {
-                    e.printStackTrace();
+	case R.id.menu_about: {
+	    showDialog(false);
 
-                    showToast(R.string.toast_error_open_file);
+	    try {
+		loadDocument(getAssets().open("intro.odt"));
+	    } catch (final IOException e) {
+		e.printStackTrace();
 
-                    new Thread() {
+		showToast(R.string.toast_error_open_file);
 
-                        @Override
-                        public void run() {
-                            try {
-                                ErrorReport.report(OfficeActivity.this, e);
-                            } catch (final Exception e1) {
-                                e1.printStackTrace();
-                            }
-                        };
-                    }.start();
-                }
+		new Thread() {
 
-                break;
-            }
-        }
+		    @Override
+		    public void run() {
+			try {
+			    ErrorReport.report(OfficeActivity.this, e);
+			} catch (final Exception e1) {
+			    e1.printStackTrace();
+			}
+		    };
+		}.start();
+	    }
 
-        return super.onMenuItemSelected(featureId, item);
+	    break;
+	}
+	}
+
+	return super.onMenuItemSelected(featureId, item);
     }
 
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+	super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == 42 && resultCode == RESULT_OK) {
-            loadDocument(data.getData());
-        }
+	if (requestCode == 42 && resultCode == RESULT_OK) {
+	    loadDocument(data.getData());
+	}
     }
 
     private void cleanCache() {
-        // TODO: sort pictures in folders and delete old pictures asynchronous
+	// TODO: sort pictures in folders and delete old pictures asynchronous
 
-        for (final String s : getCacheDir().list()) {
-            try {
-                new File(getCacheDir() + "/" + s).delete();
-            } catch (final Exception e) {
-                e.printStackTrace();
-            }
-        }
+	for (final String s : getCacheDir().list()) {
+	    try {
+		new File(getCacheDir() + "/" + s).delete();
+	    } catch (final Exception e) {
+		e.printStackTrace();
+	    }
+	}
     }
 
     @Override
     protected void onDestroy() {
-        cleanCache();
+	cleanCache();
 
-        super.onDestroy();
+	super.onDestroy();
     }
 }

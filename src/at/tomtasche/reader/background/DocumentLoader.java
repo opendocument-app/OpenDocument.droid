@@ -11,8 +11,8 @@ import openoffice.MimeTypeNotFoundException;
 import android.os.Handler;
 import android.os.HandlerThread;
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.openoffice.JOpenDocumentWrapper;
 import at.tomtasche.reader.ui.OfficeInterface;
+import at.tomtasche.rereader.background.openoffice.JOpenDocumentWrapper;
 
 public class DocumentLoader extends Handler implements DocumentInterface, OfficeInterface {
 
@@ -203,5 +203,10 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
     @Override
     public void loadPage(int i) {
         tschopen.loadPage(i);
+    }
+
+    @Override
+    public List<String> getAll() {
+	return tschopen.getAll();
     }
 }

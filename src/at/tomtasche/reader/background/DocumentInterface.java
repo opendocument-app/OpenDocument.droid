@@ -43,5 +43,7 @@ public interface DocumentInterface {
      * @return The names of available pages in this document..
      */
     public List<String> getPageNames();
+    
+    public List<String> getAll();
 
 }

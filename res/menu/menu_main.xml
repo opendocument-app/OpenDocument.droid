@@ -5,47 +5,47 @@
 	<item
 		android:title="@string/menu_page_previous"
 		android:icon="@drawable/ic_menu_back"
-		android:id="@+id/menu_page_previous" />
+		android:id="@+id/menu_page_previous" android:showAsAction="ifRoom|withText"/>
 
 	<item
 		android:title="@string/menu_page_next"
 		android:icon="@drawable/ic_menu_forward"
-		android:id="@+id/menu_page_next" />
+		android:id="@+id/menu_page_next" android:showAsAction="ifRoom|withText"/>
 		
 	<item
 		android:title="@string/menu_page_list"
 		android:icon="@android:drawable/ic_menu_sort_by_size"
-		android:id="@+id/menu_page_list" />
+		android:id="@+id/menu_page_list" android:showAsAction="ifRoom|withText"/>
 
 	<item
 		android:title="@string/menu_open"
 		android:icon="@android:drawable/ic_menu_view"
-		android:id="@+id/menu_open" />
+		android:id="@+id/menu_open" android:showAsAction="always|withText"/>
 
 	<item
 		android:title="@string/menu_zoom_in"
 		android:icon="@android:drawable/ic_menu_zoom"
-		android:id="@+id/menu_zoom_in" />
+		android:id="@+id/menu_zoom_in" android:showAsAction="always|withText"/>
 
 	<item
 		android:title="@string/menu_zoom_out"
 		android:icon="@android:drawable/ic_menu_search"
-		android:id="@+id/menu_zoom_out" />
+		android:id="@+id/menu_zoom_out" android:showAsAction="always|withText"/>
 
 	<item
 		android:title="@string/menu_rate"
 		android:icon="@drawable/chart"
-		android:id="@+id/menu_rate" />
+		android:id="@+id/menu_rate" android:showAsAction="ifRoom|withText"/>
 
 	<item
 		android:title="@string/menu_copy"
 		android:icon="@android:drawable/ic_menu_edit"
-		android:id="@+id/menu_copy" />
+		android:id="@+id/menu_copy" android:showAsAction="ifRoom|withText"/>
 
 	<item
 		android:title="@string/menu_search"
 		android:icon="@android:drawable/ic_menu_search"
-		android:id="@+id/menu_search" />
+		android:id="@+id/menu_search" android:showAsAction="ifRoom|withText"/>
 
 	<item
 		android:title="@string/menu_share"

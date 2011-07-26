@@ -1,5 +1,5 @@
 
-package at.tomtasche.reader.background.openoffice;
+package at.tomtasche.rereader.background.openoffice;
 
 import java.io.File;
 import java.net.URI;

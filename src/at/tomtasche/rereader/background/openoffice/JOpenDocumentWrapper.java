@@ -1,9 +1,10 @@
 
-package at.tomtasche.reader.background.openoffice;
+package at.tomtasche.rereader.background.openoffice;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import openoffice.CachedOpenDocumentFile;
@@ -127,5 +128,15 @@ public class JOpenDocumentWrapper implements DocumentInterface {
     public void loadPage(int i) {
         index = i;
         loader.showDocument(wrapper.translate(i));
+    }
+
+    @Override
+    public List<String> getAll() {
+	List<String> pages = new ArrayList<String>(getPageCount());
+	for (int i = 0; i < getPageCount(); i++) {
+	    pages.add(wrapper.translate(i));
+	}
+	
+	return pages;
     }
 }

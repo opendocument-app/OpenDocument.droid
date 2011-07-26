@@ -1,0 +1,3 @@
+- viewpager: http://code.google.com/p/viewpagerexample/source/browse/trunk/AwesomePager/src/com/geekyouup/paug/awesomepager/AwesomePagerActivity.java
+- fragments: sheetlist left, document right / filechooser left, document right
+- complete rewrite
