@@ -121,7 +121,7 @@ public class FileAdapter extends BaseAdapter {
 
     @Override
     public View getView(final int position, final View convertView, final ViewGroup parent) {
-        final View v = LayoutInflater.from(context).inflate(R.layout.list_item, parent, false);
+        final View v = LayoutInflater.from(context).inflate(R.layout.list_item_chooser, parent, false);
         final File f = files[position];
         if (f.isDirectory()) {
             final File[] fs = f.listFiles();

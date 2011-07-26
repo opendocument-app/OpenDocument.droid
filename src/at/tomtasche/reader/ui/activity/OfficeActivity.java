@@ -1,112 +1,61 @@
 package at.tomtasche.reader.ui.activity;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
-import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
-import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
 import android.widget.EditText;
 import android.widget.Toast;
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.DocumentLoader;
-import at.tomtasche.reader.background.error.ErrorReport;
-import at.tomtasche.reader.ui.OfficeInterface;
-import at.tomtasche.reader.ui.widget.DocumentView;
+import at.tomtasche.reader.background.service.DocumentService;
+import at.tomtasche.reader.background.service.DocumentService.DocumentBinder;
 
-public class OfficeActivity extends Activity implements OfficeInterface {
+public class OfficeActivity extends FragmentActivity implements ServiceConnection {
 
-    private ProgressDialog dialog;
+    Intent serviceIntent;
 
-    private DocumentLoader loader;
+    DocumentService service;
 
-    private DocumentView view;
 
     @Override
-    public void onCreate(final Bundle savedInstanceState) {
-	super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle arg0) {
+	super.onCreate(arg0);
 
-	if (Build.VERSION.SDK_INT < 11) requestWindowFeature(Window.FEATURE_NO_TITLE);
+	serviceIntent = new Intent(this, DocumentService.class);
+	bindService(serviceIntent, this, Context.BIND_AUTO_CREATE);
 
-	view = new DocumentView(this);
-	setContentView(view);
-
-	loader = DocumentLoader.getThreadedLoader(this);
-
-	if (getIntent().getData() == null) {
-	    final SharedPreferences preferences = getSharedPreferences("tomtasche.at",
-		    Context.MODE_PRIVATE);
-	    try {
-		final int i = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
-		if (!preferences.contains(String.valueOf(i))) {
-		    showDialog(true);
-
-		    final Editor editor = preferences.edit();
-		    editor.putInt(String.valueOf(i), i);
-		    editor.commit();
-		}
-	    } catch (final NameNotFoundException e) {
-	    }
-	} else {
-	    loadDocument(getIntent().getData());
-	}
-    }
-
-    private void showDialog(final boolean choose) {
-	final AlertDialog.Builder builder = new Builder(this);
-	builder.setTitle(getString(R.string.start_dialog_title));
-	builder.setMessage(getString(R.string.start_dialog_message));
-	builder.setNeutralButton(getString(R.string.start_dialog_button), new OnClickListener() {
-
-	    @Override
-	    public void onClick(final android.content.DialogInterface dialog, final int which) {
-		if (choose) findDocument();
-	    }
-	});
-	builder.create().show();
+	setContentView(R.layout.fragment_layout);
     }
 
     @Override
-    public void showProgress() {
-	dialog = ProgressDialog.show(OfficeActivity.this, "",
-		getString(R.string.progress_dialog_message), true);
+    protected void onStop() {
+	super.onStop();
+
+	stopService(serviceIntent);
     }
 
     @Override
-    public void hideProgress() {
-	if (dialog != null) {
-	    dialog.dismiss();
-	}
+    public void onServiceConnected(ComponentName name, IBinder service) {
+	this.service = ((DocumentBinder) service).getService();
     }
 
     @Override
-    public void showDocument(final String html) {
-	view = new DocumentView(this);
-	setContentView(view);
-	view.loadData(html);
+    public void onServiceDisconnected(ComponentName name) {
+	service = null;
 
-	hideProgress();
-    }
-
-    @Override
-    public void showToast(final int resId) {
-	Toast.makeText(this, getString(resId), Toast.LENGTH_LONG).show();
+	// TODO? bindService(serviceIntent, this, 0);
     }
 
     private void findDocument() {
@@ -115,58 +64,6 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 	intent.addCategory(Intent.CATEGORY_OPENABLE);
 
 	startActivityForResult(intent, 42);
-    }
-
-    private void loadDocument(final InputStream stream) {
-	if (stream == null) {
-	    showToast(R.string.toast_error_access_file);
-
-	    return;
-	}
-
-	showProgress();
-
-	loader.post(new Runnable() {
-
-	    @Override
-	    public void run() {
-		try {
-		    loader.loadDocument(stream, getCacheDir());
-		} catch (final Exception e) {
-		    e.printStackTrace();
-
-		    runOnUiThread(new Runnable() {
-
-			@Override
-			public void run() {
-			    hideProgress();
-
-			    showToast(R.string.toast_error_open_file);
-			}
-		    });
-
-		    try {
-			ErrorReport.report(OfficeActivity.this, e);
-		    } catch (final Exception e1) {
-			e1.printStackTrace();
-		    }
-		}
-	    }
-	});
-    }
-
-    private void loadDocument(Uri uri) {
-	if ("/./".equals(uri.toString().substring(0, 2))) {
-	    uri = Uri.parse(uri.toString().substring(2, uri.toString().length()));
-	}
-
-	try {
-	    loadDocument(getContentResolver().openInputStream(uri));
-	} catch (final FileNotFoundException e) {
-	    e.printStackTrace();
-
-	    showToast(R.string.toast_error_find_file);
-	}
     }
 
     @Override
@@ -182,24 +79,14 @@ public class OfficeActivity extends Activity implements OfficeInterface {
     public boolean onMenuItemSelected(final int featureId, final MenuItem item) {
 	switch (item.getItemId()) {
 	case R.id.menu_page_list: {
-	    if (loader.getPageCount() > 1) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(getString(R.string.page_dialog_title));
-		builder.setItems(loader.getPageNames().toArray(new CharSequence[loader.getPageCount()]), new DialogInterface.OnClickListener() {
-
-		    public void onClick(DialogInterface dialog, int item) {
-			loader.loadPage(item);
-		    }
-		});
-		builder.create().show();
-	    }
+	    // TODO: show pagesfragment
 
 	    break;
 	}
 
 	case R.id.menu_copy: {
 	    if (Integer.parseInt(Build.VERSION.SDK) > 7) {
-		view.emulateShiftHeld();
+		// TODO: view.emulateShiftHeld();
 	    } else {
 		Toast.makeText(this, getString(R.string.toast_error_copy), Toast.LENGTH_LONG)
 		.show();
@@ -221,7 +108,7 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 
 		@Override
 		public void onClick(final DialogInterface dialog, final int whichButton) {
-		    view.findAll(input.getText().toString());
+		    // TODO: view.findAll(input.getText().toString());
 		}
 	    });
 	    alert.setNegativeButton(getString(android.R.string.cancel), null);
@@ -266,33 +153,35 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 	}
 
 	case R.id.menu_zoom_in: {
-	    view.zoomIn();
+	    // TODO: view.zoomIn();
 
 	    break;
 	}
 
 	case R.id.menu_zoom_out: {
-	    view.zoomOut();
+	    // TODO: view.zoomOut();
 
 	    break;
 	}
 
 	case R.id.menu_page_next: {
-	    if (loader.hasNext()) {
-		loader.getNext();
-	    } else {
-		showToast(R.string.toast_error_no_next);
-	    }
+	    // TODO: 
+	    //	    if (loader.hasNext()) {
+	    //		loader.getNext();
+	    //	    } else {
+	    //		showToast(R.string.toast_error_no_next);
+	    //	    }
 
 	    break;
 	}
 
 	case R.id.menu_page_previous: {
-	    if (loader.hasPrevious()) {
-		loader.getPrevious();
-	    } else {
-		showToast(R.string.toast_error_no_previous);
-	    }
+	    // TODO: 
+	    //	    if (loader.hasPrevious()) {
+	    //		loader.getPrevious();
+	    //	    } else {
+	    //		showToast(R.string.toast_error_no_previous);
+	    //	    }
 
 	    break;
 	}
@@ -315,27 +204,28 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 	}
 
 	case R.id.menu_about: {
-	    showDialog(false);
-
-	    try {
-		loadDocument(getAssets().open("intro.odt"));
-	    } catch (final IOException e) {
-		e.printStackTrace();
-
-		showToast(R.string.toast_error_open_file);
-
-		new Thread() {
-
-		    @Override
-		    public void run() {
-			try {
-			    ErrorReport.report(OfficeActivity.this, e);
-			} catch (final Exception e1) {
-			    e1.printStackTrace();
-			}
-		    };
-		}.start();
-	    }
+	    // TODO: 
+	    //	    showDialog(false);
+	    //
+	    //	    try {
+	    //		loadDocument(getAssets().open("intro.odt"));
+	    //	    } catch (final IOException e) {
+	    //		e.printStackTrace();
+	    //
+	    //		showToast(R.string.toast_error_open_file);
+	    //
+	    //		new Thread() {
+	    //
+	    //		    @Override
+	    //		    public void run() {
+	    //			try {
+	    //			    ErrorReport.report(OfficeActivity.this, e);
+	    //			} catch (final Exception e1) {
+	    //			    e1.printStackTrace();
+	    //			}
+	    //		    };
+	    //		}.start();
+	    //	    }
 
 	    break;
 	}
@@ -349,7 +239,10 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 	super.onActivityResult(requestCode, resultCode, data);
 
 	if (requestCode == 42 && resultCode == RESULT_OK) {
-	    loadDocument(data.getData());
+	    Intent documentIntent = new Intent(serviceIntent);
+	    documentIntent.setData(data.getData());
+
+	    startService(documentIntent);
 	}
     }
 
@@ -363,6 +256,10 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 		e.printStackTrace();
 	    }
 	}
+    }
+    
+    public DocumentService getService() {
+	return service;
     }
 
     @Override

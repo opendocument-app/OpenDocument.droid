@@ -45,5 +45,7 @@ public interface DocumentInterface {
     public List<String> getPageNames();
     
     public List<String> getAll();
+    
+    public String getPage(int page);
 
 }

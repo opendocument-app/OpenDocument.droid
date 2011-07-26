@@ -72,9 +72,14 @@
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 		</activity>
+		
+		<activity android:name=".ui.activity.DocumentActivity"
+			android:label="@string/app_name" android:configChanges="orientation|keyboardHidden" />
 
 		<provider android:name=".background.openoffice.ImageProvider"
 			android:authorities="at.tomtasche.reader" />
+			
+		<service android:name="at.tomtasche.reader.background.service.DocumentService" />
 	</application>
 
 	<supports-screens android:resizeable="true"

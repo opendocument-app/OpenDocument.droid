@@ -139,4 +139,9 @@ public class JOpenDocumentWrapper implements DocumentInterface {
 	
 	return pages;
     }
+
+    @Override
+    public String getPage(int page) {
+	return wrapper.translate(page);
+    }
 }
