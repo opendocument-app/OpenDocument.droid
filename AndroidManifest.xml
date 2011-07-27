@@ -16,8 +16,8 @@
 			</intent-filter>
 		</activity>
 
-		<activity android:name=".ui.activity.OfficeActivity"
-			android:label="@string/app_name" android:configChanges="orientation|keyboardHidden">
+		<activity android:name=".ui.activity.OpenOfficeActivity"
+			android:label="@string/app_name">
 
 			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />
@@ -72,26 +72,27 @@
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 		</activity>
-		
+
 		<activity android:name=".ui.activity.DocumentActivity"
 			android:label="@string/app_name" android:configChanges="orientation|keyboardHidden" />
 
 		<provider android:name=".background.openoffice.ImageProvider"
 			android:authorities="at.tomtasche.reader" />
-			
+
 		<service android:name="at.tomtasche.reader.background.service.DocumentService" />
 	</application>
+
+	<permission android:name="at.tomtasche.reader.DOCUMENT_CHANGED"
+		android:protectionLevel="signature" />
+
+	<uses-permission android:name="at.tomtasche.reader.DOCUMENT_CHANGED" />
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+	<uses-sdk android:minSdkVersion="4" android:targetSdkVersion="13" />
 
 	<supports-screens android:resizeable="true"
 		android:smallScreens="true" android:normalScreens="true"
 		android:largeScreens="true" android:xlargeScreens="true"
 		android:anyDensity="true" />
-
-	<uses-permission android:name="android.permission.INTERNET" />
-	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
-	<uses-feature android:name="android.hardware.touchscreen"
-		android:required="false" />
-
-	<uses-sdk android:minSdkVersion="4" android:targetSdkVersion="13" />
 </manifest>

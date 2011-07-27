@@ -15,7 +15,7 @@ public interface DocumentInterface {
      * ready.
      */
     public void getNext();
-    
+
     public void loadPage(int i);
 
     /**
@@ -38,14 +38,14 @@ public interface DocumentInterface {
      * @return The index of the currently displayed page.
      */
     public int getPageIndex();
-    
+
     /**
      * @return The names of available pages in this document..
      */
     public List<String> getPageNames();
-    
+
     public List<String> getAll();
-    
+
     public String getPage(int page);
 
 }

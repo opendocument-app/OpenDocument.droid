@@ -6,6 +6,7 @@ import java.util.List;
 import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
@@ -16,7 +17,10 @@ import at.tomtasche.reader.ui.OfficeInterface;
 
 public class DocumentService extends Service implements OfficeInterface {
 
-    private final DocumentBinder binder = new DocumentBinder();
+    public static final String DOCUMENT_CHANGED_INTENT = "at.tomtasche.reader.DOCUMENT_CHANGED";
+
+
+    DocumentBinder binder = new DocumentBinder();
 
     ProgressDialog dialog;
 
@@ -31,46 +35,50 @@ public class DocumentService extends Service implements OfficeInterface {
     @Override
     public void onCreate() {
 	super.onCreate();
-
+	
 	loader = DocumentLoader.getThreadedLoader(this, this);
+	
+	loadAsset("intro.odt");
+    }
+    
+    
+    private void loadAsset(String name) {
 	try {
-	    loader.loadDocument(getAssets().open("intro.odt"));
+	    loader.loadDocument(getAssets().open(name));
 	} catch (IOException e) {
 	    e.printStackTrace();
 	}
     }
+    
 
     @Override
     public void onStart(Intent intent, int startId) {
 	super.onStart(intent, startId);
-
-	loader.loadDocument(intent.getData());
-    }
-
-    @Override
-    public void showProgress() {
-	dialog = ProgressDialog.show(this, "", getString(R.string.progress_dialog_message), true);
-    }
-
-    @Override
-    public void hideProgress() {
-	if (dialog != null) {
-	    dialog.dismiss();
+	
+	Uri uri = intent.getData();
+	
+	if (uri == null || uri.toString().equals("")) return;
+	
+	if (uri.toString().equals("reader://intro.odt")) {
+	    loadAsset("intro.odt");
+	    
+	    return;
 	}
+
+	loader.loadDocument(uri);
     }
 
     @Override
-    public void showDocument(String html) {}
-
-    @Override
-    public void runOnUiThread(Runnable runnable) {}
+    public void onFinished() {
+	sendBroadcast(new Intent(DOCUMENT_CHANGED_INTENT));
+    }
 
     @Override
     public void showToast(int resId) {
 	Toast.makeText(this, getString(resId), Toast.LENGTH_LONG).show();
     }
 
-    
+
     public String getData(int page) {
 	return loader.getPage(page);
     }

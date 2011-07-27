@@ -60,7 +60,7 @@ public class JOpenDocumentWrapper implements DocumentInterface {
             assert false : new MimeTypeNotFoundException();
         }
 
-        loader.showDocument(wrapper.translate(getPageIndex()));
+        loader.onFinished();
     }
 
     private boolean isSpreadsheet(final CachedOpenDocumentFile file) throws IOException {
@@ -88,9 +88,7 @@ public class JOpenDocumentWrapper implements DocumentInterface {
 
     @Override
     public void getNext() {
-        loader.showProgress();
-
-        loader.showDocument(wrapper.translate(++index));
+        loader.onFinished();
     }
 
     @Override
@@ -104,9 +102,7 @@ public class JOpenDocumentWrapper implements DocumentInterface {
 
     @Override
     public void getPrevious() {
-        loader.showProgress();
-
-        loader.showDocument(wrapper.translate(--index));
+        loader.onFinished();
     }
 
     @Override
@@ -127,7 +123,7 @@ public class JOpenDocumentWrapper implements DocumentInterface {
     @Override
     public void loadPage(int i) {
         index = i;
-        loader.showDocument(wrapper.translate(i));
+        loader.onFinished();
     }
 
     @Override

@@ -112,56 +112,15 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
 	}
 	return tschopen.getPageIndex();
     }
-
+    
     @Override
-    public void showProgress() {
-	office.runOnUiThread(new Runnable() {
-
-	    @Override
-	    public void run() {
-		office.showProgress();
-	    }
-	});
-    }
-
-    @Override
-    public void hideProgress() {
-	office.runOnUiThread(new Runnable() {
-
-	    @Override
-	    public void run() {
-		office.hideProgress();
-	    }
-	});
-    }
-
-    @Override
-    public void showDocument(final String html) {
-	office.runOnUiThread(new Runnable() {
-
-	    @Override
-	    public void run() {
-		office.showDocument(html);
-	    }
-	});
+    public void onFinished() {
+	office.onFinished();
     }
 
     @Override
     public void showToast(final int resId) {
-	hideProgress();
-
-	office.runOnUiThread(new Runnable() {
-
-	    @Override
-	    public void run() {
-		office.showToast(resId);
-	    }
-	});
-    }
-
-    @Override
-    public void runOnUiThread(final Runnable runnable) {
-	office.runOnUiThread(runnable);
+	office.showToast(resId);
     }
 
     @Override

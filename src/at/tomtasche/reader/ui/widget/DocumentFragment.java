@@ -14,15 +14,15 @@ public class DocumentFragment extends Fragment {
 	Bundle args = new Bundle();
 	args.putInt("page", page);
 	args.putString("data", data);
+
 	document.setArguments(args);
 
 	return document;
     }
 
 
-    public int getShownIndex() {
-	return getArguments().getInt("page", 0);
-    }
+    DocumentView view;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -30,8 +30,17 @@ public class DocumentFragment extends Fragment {
 	    return null;
 	}
 
-	DocumentView view = new DocumentView(getActivity());
+	view = new DocumentView(getActivity());
 	view.loadData(getArguments().getString("data"));
+	return view;
+    }
+
+
+    public int getShownIndex() {
+	return getArguments().getInt("page", 0);
+    }
+    
+    public DocumentView getDocumentView() {
 	return view;
     }
 }

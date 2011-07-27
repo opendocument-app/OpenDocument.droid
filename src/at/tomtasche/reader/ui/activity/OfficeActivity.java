@@ -1,18 +1,12 @@
 package at.tomtasche.reader.ui.activity;
 
-import java.io.File;
-
 import android.app.AlertDialog;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,13 +14,13 @@ import android.widget.EditText;
 import android.widget.Toast;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.service.DocumentService;
-import at.tomtasche.reader.background.service.DocumentService.DocumentBinder;
+import at.tomtasche.reader.ui.widget.DocumentFragment;
+import at.tomtasche.reader.ui.widget.DocumentView;
+import at.tomtasche.reader.ui.widget.PagesFragment;
 
-public class OfficeActivity extends FragmentActivity implements ServiceConnection {
+public abstract class OfficeActivity extends FragmentActivity {
 
     Intent serviceIntent;
-
-    DocumentService service;
 
 
     @Override
@@ -34,29 +28,8 @@ public class OfficeActivity extends FragmentActivity implements ServiceConnectio
 	super.onCreate(arg0);
 
 	serviceIntent = new Intent(this, DocumentService.class);
-	bindService(serviceIntent, this, Context.BIND_AUTO_CREATE);
-
-	setContentView(R.layout.fragment_layout);
     }
 
-    @Override
-    protected void onStop() {
-	super.onStop();
-
-	stopService(serviceIntent);
-    }
-
-    @Override
-    public void onServiceConnected(ComponentName name, IBinder service) {
-	this.service = ((DocumentBinder) service).getService();
-    }
-
-    @Override
-    public void onServiceDisconnected(ComponentName name) {
-	service = null;
-
-	// TODO? bindService(serviceIntent, this, 0);
-    }
 
     private void findDocument() {
 	final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -65,6 +38,15 @@ public class OfficeActivity extends FragmentActivity implements ServiceConnectio
 
 	startActivityForResult(intent, 42);
     }
+
+    private DocumentView getDocumentView() {
+	DocumentFragment fragment = (DocumentFragment) getSupportFragmentManager().findFragmentById(R.id.document);
+
+	if (fragment == null || !fragment.isVisible()) return null;
+
+	return fragment.getDocumentView();
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
@@ -79,14 +61,20 @@ public class OfficeActivity extends FragmentActivity implements ServiceConnectio
     public boolean onMenuItemSelected(final int featureId, final MenuItem item) {
 	switch (item.getItemId()) {
 	case R.id.menu_page_list: {
-	    // TODO: show pagesfragment
+	    PagesFragment pages = (PagesFragment) getSupportFragmentManager().findFragmentById(R.id.pages);
+
+	    if (!pages.isVisible()) setVisible(false);
 
 	    break;
 	}
 
 	case R.id.menu_copy: {
 	    if (Integer.parseInt(Build.VERSION.SDK) > 7) {
-		// TODO: view.emulateShiftHeld();
+		DocumentView view = getDocumentView();
+
+		if (view == null) break;
+
+		view.emulateShiftHeld();
 	    } else {
 		Toast.makeText(this, getString(R.string.toast_error_copy), Toast.LENGTH_LONG)
 		.show();
@@ -108,7 +96,11 @@ public class OfficeActivity extends FragmentActivity implements ServiceConnectio
 
 		@Override
 		public void onClick(final DialogInterface dialog, final int whichButton) {
-		    // TODO: view.findAll(input.getText().toString());
+		    DocumentView view = getDocumentView();
+
+		    if (view == null) return;
+
+		    view.findAll(input.getText().toString());
 		}
 	    });
 	    alert.setNegativeButton(getString(android.R.string.cancel), null);
@@ -153,13 +145,21 @@ public class OfficeActivity extends FragmentActivity implements ServiceConnectio
 	}
 
 	case R.id.menu_zoom_in: {
-	    // TODO: view.zoomIn();
+	    DocumentView view = getDocumentView();
+
+	    if (view == null) break;
+
+	    view.zoomIn();
 
 	    break;
 	}
 
 	case R.id.menu_zoom_out: {
-	    // TODO: view.zoomOut();
+	    DocumentView view = getDocumentView();
+
+	    if (view == null) break;
+
+	    view.zoomOut();
 
 	    break;
 	}
@@ -204,28 +204,10 @@ public class OfficeActivity extends FragmentActivity implements ServiceConnectio
 	}
 
 	case R.id.menu_about: {
-	    // TODO: 
-	    //	    showDialog(false);
-	    //
-	    //	    try {
-	    //		loadDocument(getAssets().open("intro.odt"));
-	    //	    } catch (final IOException e) {
-	    //		e.printStackTrace();
-	    //
-	    //		showToast(R.string.toast_error_open_file);
-	    //
-	    //		new Thread() {
-	    //
-	    //		    @Override
-	    //		    public void run() {
-	    //			try {
-	    //			    ErrorReport.report(OfficeActivity.this, e);
-	    //			} catch (final Exception e1) {
-	    //			    e1.printStackTrace();
-	    //			}
-	    //		    };
-	    //		}.start();
-	    //	    }
+	    Intent documentIntent = new Intent(serviceIntent);
+	    documentIntent.setData(Uri.parse("reader://intro.odt"));
+
+	    startService(documentIntent);
 
 	    break;
 	}
@@ -244,28 +226,5 @@ public class OfficeActivity extends FragmentActivity implements ServiceConnectio
 
 	    startService(documentIntent);
 	}
-    }
-
-    private void cleanCache() {
-	// TODO: sort pictures in folders and delete old pictures asynchronous
-
-	for (final String s : getCacheDir().list()) {
-	    try {
-		new File(getCacheDir() + "/" + s).delete();
-	    } catch (final Exception e) {
-		e.printStackTrace();
-	    }
-	}
-    }
-    
-    public DocumentService getService() {
-	return service;
-    }
-
-    @Override
-    protected void onDestroy() {
-	cleanCache();
-
-	super.onDestroy();
     }
 }
