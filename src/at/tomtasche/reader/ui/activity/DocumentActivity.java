@@ -2,6 +2,7 @@ package at.tomtasche.reader.ui.activity;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
+import at.tomtasche.reader.R;
 import at.tomtasche.reader.ui.widget.DocumentFragment;
 
 public class DocumentActivity extends OfficeActivity {
@@ -18,7 +19,7 @@ public class DocumentActivity extends OfficeActivity {
 	if (arg0 == null) {
 	    DocumentFragment document = new DocumentFragment();
 
-	    getSupportFragmentManager().beginTransaction().add(android.R.id.content, document).commit();
+	    getSupportFragmentManager().beginTransaction().add(R.id.document, document).commit();
 	}
     }
     

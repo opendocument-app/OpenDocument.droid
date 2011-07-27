@@ -12,23 +12,26 @@ import at.tomtasche.reader.ui.widget.DocumentFragment;
 public class OpenOfficeActivity extends OfficeActivity {
 
     boolean fragmented;
-    
-    
+
+
     @Override
     protected void onCreate(Bundle arg0) {
 	super.onCreate(arg0);
-	
-	startService(serviceIntent);
+
+	Intent documentIntent = new Intent(serviceIntent);
+	documentIntent.setData(getIntent().getData());
+
+	startService(documentIntent);
 
 	setContentView(R.layout.fragment_layout);
-	
+
 	View documentFrame = findViewById(R.id.document);
 	fragmented = (documentFrame != null && documentFrame.getVisibility() == View.VISIBLE);
-	
+
 	showDocument();
     }
 
-    
+
     private void showDocument() {
 	if (fragmented) {
 	    DocumentFragment document = (DocumentFragment) getSupportFragmentManager().findFragmentById(R.id.document);
