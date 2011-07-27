@@ -88,6 +88,8 @@ public class JOpenDocumentWrapper implements DocumentInterface {
 
     @Override
     public void getNext() {
+	index++;
+	
         loader.onFinished();
     }
 
@@ -102,6 +104,8 @@ public class JOpenDocumentWrapper implements DocumentInterface {
 
     @Override
     public void getPrevious() {
+	index--;
+	
         loader.onFinished();
     }
 

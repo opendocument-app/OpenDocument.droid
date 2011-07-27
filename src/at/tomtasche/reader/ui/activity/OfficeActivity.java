@@ -16,7 +16,6 @@ import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.service.DocumentService;
 import at.tomtasche.reader.ui.widget.DocumentFragment;
 import at.tomtasche.reader.ui.widget.DocumentView;
-import at.tomtasche.reader.ui.widget.PagesFragment;
 
 public abstract class OfficeActivity extends FragmentActivity {
 
@@ -47,6 +46,10 @@ public abstract class OfficeActivity extends FragmentActivity {
 	return fragment.getDocumentView();
     }
 
+    private DocumentFragment getDocumentFragment() {
+	return (DocumentFragment) getSupportFragmentManager().findFragmentById(R.id.document);
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
@@ -61,9 +64,17 @@ public abstract class OfficeActivity extends FragmentActivity {
     public boolean onMenuItemSelected(final int featureId, final MenuItem item) {
 	switch (item.getItemId()) {
 	case R.id.menu_page_list: {
-	    PagesFragment pages = (PagesFragment) getSupportFragmentManager().findFragmentById(R.id.pages);
+	    if (getDocumentFragment().getPageCount() > 1) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(getString(R.string.page_dialog_title));
+		builder.setItems(getDocumentFragment().getPageNames().toArray(new CharSequence[getDocumentFragment().getPageCount()]), new DialogInterface.OnClickListener() {
 
-	    if (!pages.isVisible()) setVisible(false);
+		    public void onClick(DialogInterface dialog, int item) {
+			getDocumentFragment().jumpToPage(item);
+		    }
+		});
+		builder.create().show();
+	    }
 
 	    break;
 	}
@@ -132,7 +143,7 @@ public abstract class OfficeActivity extends FragmentActivity {
 				.parse("http://goo.gl/1e8K9")));
 		    } else if (items[1].equals(items[item])) {
 			startActivity(new Intent(Intent.ACTION_VIEW, Uri
-				.parse("http://goo.gl/p4jH2")));
+				.parse("http://goo.gl/DTGgP")));
 		    } else {
 			startActivity(new Intent(Intent.ACTION_VIEW, Uri
 				.parse("http://goo.gl/fhecu")));
@@ -165,30 +176,20 @@ public abstract class OfficeActivity extends FragmentActivity {
 	}
 
 	case R.id.menu_page_next: {
-	    // TODO: 
-	    //	    if (loader.hasNext()) {
-	    //		loader.getNext();
-	    //	    } else {
-	    //		showToast(R.string.toast_error_no_next);
-	    //	    }
+	    getDocumentFragment().nextPage();
 
 	    break;
 	}
 
 	case R.id.menu_page_previous: {
-	    // TODO: 
-	    //	    if (loader.hasPrevious()) {
-	    //		loader.getPrevious();
-	    //	    } else {
-	    //		showToast(R.string.toast_error_no_previous);
-	    //	    }
+	    getDocumentFragment().previousPage();
 
 	    break;
 	}
 
 	case R.id.menu_share: {
 	    final Intent shareIntent = new Intent(Intent.ACTION_SEND);
-	    shareIntent.putExtra(Intent.EXTRA_TEXT, "http://goo.gl/ZqiqW");
+	    shareIntent.putExtra(Intent.EXTRA_TEXT, "http://goo.gl/aPP9e");
 	    shareIntent.setType("text/plain");
 	    shareIntent.addCategory(Intent.CATEGORY_DEFAULT);
 
@@ -198,7 +199,7 @@ public abstract class OfficeActivity extends FragmentActivity {
 	}
 
 	case R.id.menu_rate: {
-	    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://goo.gl/pXKgv")));
+	    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://goo.gl/X8L5n")));
 
 	    break;
 	}

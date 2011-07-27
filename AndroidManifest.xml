@@ -5,6 +5,7 @@
 
 	<application android:icon="@drawable/icon" android:label="@string/app_name"
 		android:hardwareAccelerated="true" android:allowBackup="true">
+		
 		<activity android:name="at.enajat.david.android.filechooser.FileChooser"
 			android:label="@string/chooser_name" android:configChanges="orientation|keyboardHidden">
 

@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
-import android.util.Log;
 import at.tomtasche.reader.background.service.DocumentService.DocumentBinder;
 
 public class DocumentServiceConnection implements ServiceConnection {
