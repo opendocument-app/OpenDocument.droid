@@ -102,11 +102,5 @@
 		name="donate_choose">Donate via...</string>
 		
 	<string
-		name="donate_market">Market</string>
-		
-	<string
 		name="donate_paypal">PayPal</string>
-		
-	<string
-		name="donate_flattr">Flattr</string>
 </resources>

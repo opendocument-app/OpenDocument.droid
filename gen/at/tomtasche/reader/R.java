@@ -50,9 +50,7 @@ public final class R {
         public static final int app_name=0x7f040000;
         public static final int chooser_name=0x7f040001;
         public static final int donate_choose=0x7f04001f;
-        public static final int donate_flattr=0x7f040022;
-        public static final int donate_market=0x7f040020;
-        public static final int donate_paypal=0x7f040021;
+        public static final int donate_paypal=0x7f040020;
         public static final int menu_about=0x7f04001e;
         public static final int menu_back=0x7f040012;
         public static final int menu_cancel=0x7f040013;

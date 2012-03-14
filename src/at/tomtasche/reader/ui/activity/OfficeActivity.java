@@ -253,8 +253,7 @@ public class OfficeActivity extends Activity implements OfficeInterface {
 
             case R.id.menu_donate: {
                 final CharSequence[] items = {
-                        getString(R.string.donate_paypal), getString(R.string.donate_market),
-                        getString(R.string.donate_flattr)
+                        getString(R.string.donate_paypal)
                 };
 
                 final AlertDialog.Builder builder = new AlertDialog.Builder(this);
