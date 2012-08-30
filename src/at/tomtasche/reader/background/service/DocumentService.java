@@ -5,16 +5,12 @@ import java.util.List;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
-import android.widget.Toast;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.ui.OfficeInterface;
 
-public class DocumentService implements OfficeInterface {
-
-    public static final String DOCUMENT_CHANGED_INTENT = "at.tomtasche.reader.DOCUMENT_CHANGED";
+public class DocumentService {
 
     ProgressDialog dialog;
 
@@ -22,9 +18,12 @@ public class DocumentService implements OfficeInterface {
 
     private final Context context;
 
-    public DocumentService(Context context) {
+    private final OfficeInterface office;
+
+    public DocumentService(Context context, OfficeInterface office) {
 	this.context = context;
-	loader = DocumentLoader.getThreadedLoader(context, this);
+	this.office = office;
+	loader = DocumentLoader.getThreadedLoader(context, office);
 
 	loadAsset("intro.odt");
     }
@@ -43,17 +42,6 @@ public class DocumentService implements OfficeInterface {
 	} catch (IOException e) {
 	    e.printStackTrace();
 	}
-    }
-
-    @Override
-    public void onFinished() {
-	System.out.println("fin!");
-	context.sendBroadcast(new Intent(DOCUMENT_CHANGED_INTENT));
-    }
-
-    @Override
-    public void showToast(int resId) {
-	Toast.makeText(context, context.getString(resId), Toast.LENGTH_LONG).show();
     }
 
     public String getData(int page) {
@@ -76,7 +64,7 @@ public class DocumentService implements OfficeInterface {
 	if (loader.hasNext()) {
 	    loader.getNext();
 	} else {
-	    showToast(R.string.toast_error_no_next);
+	    office.showToast(R.string.toast_error_no_next);
 	}
     }
 
@@ -84,13 +72,13 @@ public class DocumentService implements OfficeInterface {
 	if (loader.hasPrevious()) {
 	    loader.getPrevious();
 	} else {
-	    showToast(R.string.toast_error_no_previous);
+	    office.showToast(R.string.toast_error_no_previous);
 	}
     }
 
     public void jumpToPage(int page) {
 	if (loader.getPageCount() <= page) {
-	    showToast(R.string.toast_error_no_next);
+	    office.showToast(R.string.toast_error_no_next);
 	} else {
 	    loader.getPage(page);
 	}

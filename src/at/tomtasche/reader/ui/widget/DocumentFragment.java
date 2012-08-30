@@ -11,9 +11,11 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 import at.tomtasche.reader.background.service.DocumentService;
+import at.tomtasche.reader.ui.OfficeInterface;
 
-public class DocumentFragment extends Fragment {
+public class DocumentFragment extends Fragment implements OfficeInterface {
 
     DocumentService service;
 
@@ -27,11 +29,7 @@ public class DocumentFragment extends Fragment {
 	    return null;
 	}
 
-	receiver = new DocumentChangedReceiver();
-	IntentFilter filter = new IntentFilter(DocumentService.DOCUMENT_CHANGED_INTENT);
-	getActivity().registerReceiver(receiver, filter);
-
-	service = new DocumentService(getActivity());
+	service = new DocumentService(getActivity(), this);
 
 	view = new DocumentView(getActivity());
 
@@ -68,13 +66,8 @@ public class DocumentFragment extends Fragment {
     public void onDestroyView() {
 	super.onDestroyView();
 
-//	if (service != null)
-//	    service.stop();
-
-	if (receiver != null) {
-	    getActivity().unregisterReceiver(receiver);
-	    receiver = null;
-	}
+	if (service != null)
+	    service.stop();
     }
 
     public int getShownIndex() {
@@ -85,14 +78,13 @@ public class DocumentFragment extends Fragment {
 	return view;
     }
 
-    class DocumentChangedReceiver extends BroadcastReceiver {
+    @Override
+    public void onFinished() {
+	reload();
+    }
 
-	@Override
-	public void onReceive(Context context, Intent intent) {
-	    if (service == null)
-		return;
-
-	    reload();
-	}
+    @Override
+    public void showToast(int resId) {
+	Toast.makeText(getActivity(), getString(resId), Toast.LENGTH_LONG).show();
     }
 }
