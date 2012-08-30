@@ -1,4 +1,3 @@
-
 package at.enajat.david.android.filechooser;
 
 import java.io.File;
@@ -13,7 +12,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 import at.tomtasche.reader.R;
 
@@ -74,7 +72,7 @@ public class FragmentFileAdapter extends BaseAdapter {
     }
 
     public boolean changeDir(final long id) {
-	return changeDir(files[(int)id]);
+	return changeDir(files[(int) id]);
     }
 
     public boolean changeUp() {
@@ -90,11 +88,11 @@ public class FragmentFileAdapter extends BaseAdapter {
     }
 
     public Uri getUri(final long id) {
-	return Uri.fromFile(files[(int)id]);
+	return Uri.fromFile(files[(int) id]);
     }
 
     public boolean isDirectory(final long id) {
-	return files[(int)id].isDirectory();
+	return files[(int) id].isDirectory();
     }
 
     public String getCurrentPath() {
@@ -130,21 +128,23 @@ public class FragmentFileAdapter extends BaseAdapter {
 
     @Override
     public View getView(final int position, final View convertView, final ViewGroup parent) {
-	final View v = LayoutInflater.from(context).inflate(R.layout.list_item_chooser, parent, false);
+	final View v = LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1,
+		parent, false);
 	final File f = files[position];
+	TextView textView = (TextView) v.findViewById(android.R.id.text1);
 	if (f.isDirectory()) {
 	    final File[] fs = f.listFiles();
 	    if (fs != null && fs.length > 0) {
-		((ImageView)v.findViewById(R.id.list_image)).setImageResource(R.drawable.dir_full);
+		textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.dir_full, 0, 0, 0);
 	    } else {
-		((ImageView)v.findViewById(R.id.list_image)).setImageResource(R.drawable.dir_empty);
+		textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.dir_empty, 0, 0, 0);
 	    }
 	} else if (position == 0) {
-		((ImageView)v.findViewById(R.id.list_image)).setImageResource(R.drawable.ic_menu_back);
+	    textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_menu_back, 0, 0, 0);
 	} else {
-	    ((ImageView)v.findViewById(R.id.list_image)).setImageResource(R.drawable.file);
+	    textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.file, 0, 0, 0);
 	}
-	((TextView)v.findViewById(R.id.list_text)).setText(f.getName());
+	textView.setText(f.getName());
 	return v;
     }
 }

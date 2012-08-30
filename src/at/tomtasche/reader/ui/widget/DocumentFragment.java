@@ -12,17 +12,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import at.tomtasche.reader.background.service.DocumentService;
-import at.tomtasche.reader.background.service.DocumentServiceConnection;
-import at.tomtasche.reader.background.service.DocumentServiceConnection.DocumentServiceConnectionListener;
 
-public class DocumentFragment extends Fragment implements DocumentServiceConnectionListener {
+public class DocumentFragment extends Fragment {
 
-    DocumentServiceConnection connection;
+    DocumentService service;
 
     BroadcastReceiver receiver;
 
     DocumentView view;
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -30,63 +27,55 @@ public class DocumentFragment extends Fragment implements DocumentServiceConnect
 	    return null;
 	}
 
-	connection = new DocumentServiceConnection(getActivity());
-	connection.setListener(this);
-
 	receiver = new DocumentChangedReceiver();
 	IntentFilter filter = new IntentFilter(DocumentService.DOCUMENT_CHANGED_INTENT);
 	getActivity().registerReceiver(receiver, filter);
+
+	service = new DocumentService(getActivity());
 
 	view = new DocumentView(getActivity());
 
 	return view;
     }
 
-
     private void reload() {
-	String data = connection.getDocumentService().getData();
+	String data = service.getData();
 
 	view.loadData(data);
     }
-    
+
     public void nextPage() {
-	connection.getDocumentService().nextPage();
+	service.nextPage();
     }
-    
+
     public void previousPage() {
-	connection.getDocumentService().previousPage();
+	service.previousPage();
     }
-    
+
     public void jumpToPage(int page) {
-	connection.getDocumentService().jumpToPage(page);
+	service.jumpToPage(page);
     }
-    
+
     public int getPageCount() {
-	return connection.getDocumentService().getPageCount();
+	return service.getPageCount();
     }
-    
+
     public List<String> getPageNames() {
-	return connection.getDocumentService().getPageNames();
-    }
-
-
-    @Override
-    public void onConnected() {
-	reload();
+	return service.getPageNames();
     }
 
     @Override
     public void onDestroyView() {
 	super.onDestroyView();
 
-	if (connection != null && connection.isConnected()) connection.unbind();
+//	if (service != null)
+//	    service.stop();
 
 	if (receiver != null) {
 	    getActivity().unregisterReceiver(receiver);
 	    receiver = null;
 	}
     }
-
 
     public int getShownIndex() {
 	return getArguments().getInt("page", 0);
@@ -96,12 +85,12 @@ public class DocumentFragment extends Fragment implements DocumentServiceConnect
 	return view;
     }
 
-
     class DocumentChangedReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-	    if (!connection.isConnected()) return;
+	    if (service == null)
+		return;
 
 	    reload();
 	}

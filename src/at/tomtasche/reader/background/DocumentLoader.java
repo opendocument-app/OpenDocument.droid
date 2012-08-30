@@ -1,4 +1,3 @@
-
 package at.tomtasche.reader.background;
 
 import java.io.File;
@@ -44,7 +43,8 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
     }
 
     public Adapter getPageAdapter() {
-	return new ArrayAdapter<String>(context, R.id.list_text, getPageNames());
+	return new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1,
+		android.R.id.text1, getPageNames());
     }
 
     public void loadDocument(Uri uri) {
@@ -112,7 +112,7 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
 	}
 	return tschopen.getPageIndex();
     }
-    
+
     @Override
     public void onFinished() {
 	office.onFinished();

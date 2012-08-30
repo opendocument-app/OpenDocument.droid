@@ -1,5 +1,7 @@
 package at.tomtasche.reader.ui.activity;
 
+import java.io.File;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -8,8 +10,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 import at.tomtasche.reader.R;
@@ -19,16 +23,24 @@ import at.tomtasche.reader.ui.widget.DocumentView;
 
 public abstract class OfficeActivity extends FragmentActivity {
 
-    Intent serviceIntent;
-
+    boolean fragmented;
 
     @Override
     protected void onCreate(Bundle arg0) {
 	super.onCreate(arg0);
 
-	serviceIntent = new Intent(this, DocumentService.class);
-    }
+	Intent documentIntent = new Intent(serviceIntent);
+	documentIntent.setData(getIntent().getData());
 
+	startService(documentIntent);
+
+	setContentView(R.layout.fragment_layout);
+
+	View documentFrame = findViewById(R.id.document);
+	fragmented = (documentFrame != null && documentFrame.getVisibility() == View.VISIBLE);
+
+	showDocument();
+    }
 
     private void findDocument() {
 	final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -39,9 +51,11 @@ public abstract class OfficeActivity extends FragmentActivity {
     }
 
     private DocumentView getDocumentView() {
-	DocumentFragment fragment = (DocumentFragment) getSupportFragmentManager().findFragmentById(R.id.document);
+	DocumentFragment fragment = (DocumentFragment) getSupportFragmentManager()
+		.findFragmentById(R.id.document);
 
-	if (fragment == null || !fragment.isVisible()) return null;
+	if (fragment == null || !fragment.isVisible())
+	    return null;
 
 	return fragment.getDocumentView();
     }
@@ -50,6 +64,24 @@ public abstract class OfficeActivity extends FragmentActivity {
 	return (DocumentFragment) getSupportFragmentManager().findFragmentById(R.id.document);
     }
 
+    private void showDocument() {
+	if (fragmented) {
+	    DocumentFragment document = (DocumentFragment) getSupportFragmentManager()
+		    .findFragmentById(R.id.document);
+	    if (document == null) {
+		document = new DocumentFragment();
+
+		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		transaction.replace(R.id.document, document);
+		transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+		transaction.commit();
+	    }
+	} else {
+	    Intent intent = new Intent();
+	    intent.setClass(this, DocumentActivity.class);
+	    startActivity(intent);
+	}
+    }
 
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
@@ -67,28 +99,16 @@ public abstract class OfficeActivity extends FragmentActivity {
 	    if (getDocumentFragment().getPageCount() > 1) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(getString(R.string.page_dialog_title));
-		builder.setItems(getDocumentFragment().getPageNames().toArray(new CharSequence[getDocumentFragment().getPageCount()]), new DialogInterface.OnClickListener() {
+		builder.setItems(
+			getDocumentFragment().getPageNames().toArray(
+				new CharSequence[getDocumentFragment().getPageCount()]),
+			new DialogInterface.OnClickListener() {
 
-		    public void onClick(DialogInterface dialog, int item) {
-			getDocumentFragment().jumpToPage(item);
-		    }
-		});
+			    public void onClick(DialogInterface dialog, int item) {
+				getDocumentFragment().jumpToPage(item);
+			    }
+			});
 		builder.create().show();
-	    }
-
-	    break;
-	}
-
-	case R.id.menu_copy: {
-	    if (Integer.parseInt(Build.VERSION.SDK) > 7) {
-		DocumentView view = getDocumentView();
-
-		if (view == null) break;
-
-		view.emulateShiftHeld();
-	    } else {
-		Toast.makeText(this, getString(R.string.toast_error_copy), Toast.LENGTH_LONG)
-		.show();
 	    }
 
 	    break;
@@ -105,15 +125,16 @@ public abstract class OfficeActivity extends FragmentActivity {
 	    alert.setPositiveButton(getString(android.R.string.ok),
 		    new DialogInterface.OnClickListener() {
 
-		@Override
-		public void onClick(final DialogInterface dialog, final int whichButton) {
-		    DocumentView view = getDocumentView();
+			@Override
+			public void onClick(final DialogInterface dialog, final int whichButton) {
+			    DocumentView view = getDocumentView();
 
-		    if (view == null) return;
+			    if (view == null)
+				return;
 
-		    view.findAll(input.getText().toString());
-		}
-	    });
+			    view.findAll(input.getText().toString());
+			}
+		    });
 	    alert.setNegativeButton(getString(android.R.string.cancel), null);
 	    alert.show();
 
@@ -126,55 +147,6 @@ public abstract class OfficeActivity extends FragmentActivity {
 	    break;
 	}
 
-	case R.id.menu_donate: {
-	    final CharSequence[] items = {
-		    getString(R.string.donate_paypal), getString(R.string.donate_market),
-		    getString(R.string.donate_flattr)
-	    };
-
-	    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-	    builder.setTitle(getString(R.string.donate_choose));
-	    builder.setItems(items, new OnClickListener() {
-
-		@Override
-		public void onClick(final android.content.DialogInterface dialog, final int item) {
-		    if (items[0].equals(items[item])) {
-			startActivity(new Intent(Intent.ACTION_VIEW, Uri
-				.parse("http://goo.gl/1e8K9")));
-		    } else if (items[1].equals(items[item])) {
-			startActivity(new Intent(Intent.ACTION_VIEW, Uri
-				.parse("http://goo.gl/DTGgP")));
-		    } else {
-			startActivity(new Intent(Intent.ACTION_VIEW, Uri
-				.parse("http://goo.gl/fhecu")));
-		    }
-		}
-	    });
-	    builder.create().show();
-
-	    break;
-	}
-
-	case R.id.menu_zoom_in: {
-	    DocumentView view = getDocumentView();
-
-	    if (view == null) break;
-
-	    view.zoomIn();
-
-	    break;
-	}
-
-	case R.id.menu_zoom_out: {
-	    DocumentView view = getDocumentView();
-
-	    if (view == null) break;
-
-	    view.zoomOut();
-
-	    break;
-	}
-
 	case R.id.menu_page_next: {
 	    getDocumentFragment().nextPage();
 
@@ -183,23 +155,6 @@ public abstract class OfficeActivity extends FragmentActivity {
 
 	case R.id.menu_page_previous: {
 	    getDocumentFragment().previousPage();
-
-	    break;
-	}
-
-	case R.id.menu_share: {
-	    final Intent shareIntent = new Intent(Intent.ACTION_SEND);
-	    shareIntent.putExtra(Intent.EXTRA_TEXT, "http://goo.gl/aPP9e");
-	    shareIntent.setType("text/plain");
-	    shareIntent.addCategory(Intent.CATEGORY_DEFAULT);
-
-	    startActivity(shareIntent);
-
-	    break;
-	}
-
-	case R.id.menu_rate: {
-	    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://goo.gl/X8L5n")));
 
 	    break;
 	}
@@ -226,6 +181,32 @@ public abstract class OfficeActivity extends FragmentActivity {
 	    documentIntent.setData(data.getData());
 
 	    startService(documentIntent);
+	}
+    }
+
+    @Override
+    protected void onStop() {
+	super.onStop();
+
+	stopService(serviceIntent);
+    }
+
+    @Override
+    protected void onDestroy() {
+	super.onDestroy();
+
+	cleanCache();
+    }
+
+    private void cleanCache() {
+	// TODO: sort pictures in folders and delete old pictures asynchronous
+
+	for (final String s : getCacheDir().list()) {
+	    try {
+		new File(getCacheDir() + "/" + s).delete();
+	    } catch (final Exception e) {
+		e.printStackTrace();
+	    }
 	}
     }
 }
