@@ -59,8 +59,6 @@ public class JOpenDocumentWrapper implements DocumentInterface {
         } else {
             assert false : new MimeTypeNotFoundException();
         }
-
-        loader.onFinished();
     }
 
     private boolean isSpreadsheet(final CachedOpenDocumentFile file) throws IOException {

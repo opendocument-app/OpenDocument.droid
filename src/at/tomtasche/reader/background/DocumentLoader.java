@@ -74,6 +74,8 @@ public class DocumentLoader extends Handler implements DocumentInterface, Office
 	    cleanCache(cache);
 
 	    tschopen = new JOpenDocumentWrapper(this, stream, cache);
+
+	    onFinished();
 	} catch (final MimeTypeNotFoundException e) {
 	    e.printStackTrace();
 

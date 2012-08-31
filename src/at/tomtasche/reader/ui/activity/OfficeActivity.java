@@ -4,10 +4,8 @@ import java.io.File;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
@@ -15,13 +13,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.service.DocumentService;
 import at.tomtasche.reader.ui.widget.DocumentFragment;
 import at.tomtasche.reader.ui.widget.DocumentView;
 
-public abstract class OfficeActivity extends FragmentActivity {
+public class OfficeActivity extends FragmentActivity {
 
     boolean fragmented;
 
@@ -29,17 +25,18 @@ public abstract class OfficeActivity extends FragmentActivity {
     protected void onCreate(Bundle arg0) {
 	super.onCreate(arg0);
 
-	Intent documentIntent = new Intent(serviceIntent);
-	documentIntent.setData(getIntent().getData());
-
-	startService(documentIntent);
-
 	setContentView(R.layout.fragment_layout);
 
 	View documentFrame = findViewById(R.id.document);
 	fragmented = (documentFrame != null && documentFrame.getVisibility() == View.VISIBLE);
+    }
 
-	showDocument();
+    @Override
+    protected void onResume() {
+	super.onResume();
+
+	showDocument(getIntent().getData() != null ? getIntent().getData() : Uri
+		.parse("reader://intro.odt"));
     }
 
     private void findDocument() {
@@ -64,12 +61,12 @@ public abstract class OfficeActivity extends FragmentActivity {
 	return (DocumentFragment) getSupportFragmentManager().findFragmentById(R.id.document);
     }
 
-    private void showDocument() {
+    private void showDocument(Uri uri) {
 	if (fragmented) {
 	    DocumentFragment document = (DocumentFragment) getSupportFragmentManager()
 		    .findFragmentById(R.id.document);
 	    if (document == null) {
-		document = new DocumentFragment();
+		document = new DocumentFragment(uri);
 
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 		transaction.replace(R.id.document, document);
@@ -79,6 +76,7 @@ public abstract class OfficeActivity extends FragmentActivity {
 	} else {
 	    Intent intent = new Intent();
 	    intent.setClass(this, DocumentActivity.class);
+	    intent.setData(uri);
 	    startActivity(intent);
 	}
     }
@@ -160,10 +158,7 @@ public abstract class OfficeActivity extends FragmentActivity {
 	}
 
 	case R.id.menu_about: {
-	    Intent documentIntent = new Intent(serviceIntent);
-	    documentIntent.setData(Uri.parse("reader://intro.odt"));
-
-	    startService(documentIntent);
+	    showDocument(Uri.parse("reader://intro.odt"));
 
 	    break;
 	}
@@ -177,18 +172,8 @@ public abstract class OfficeActivity extends FragmentActivity {
 	super.onActivityResult(requestCode, resultCode, data);
 
 	if (requestCode == 42 && resultCode == RESULT_OK) {
-	    Intent documentIntent = new Intent(serviceIntent);
-	    documentIntent.setData(data.getData());
-
-	    startService(documentIntent);
+	    showDocument(data.getData());
 	}
-    }
-
-    @Override
-    protected void onStop() {
-	super.onStop();
-
-	stopService(serviceIntent);
     }
 
     @Override

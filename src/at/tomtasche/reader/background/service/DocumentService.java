@@ -24,8 +24,6 @@ public class DocumentService {
 	this.context = context;
 	this.office = office;
 	loader = DocumentLoader.getThreadedLoader(context, office);
-
-	loadAsset("intro.odt");
     }
 
     public void loadUri(Uri uri) {
@@ -82,5 +80,9 @@ public class DocumentService {
 	} else {
 	    loader.getPage(page);
 	}
+    }
+
+    public void quit() {
+	loader.quit();
     }
 }

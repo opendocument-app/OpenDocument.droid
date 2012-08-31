@@ -12,7 +12,6 @@
         android:label="@string/app_name" >
         <activity
             android:name="at.enajat.david.android.filechooser.FileChooser"
-            android:configChanges="orientation|keyboardHidden"
             android:label="@string/chooser_name" >
             <intent-filter>
                 <action android:name="android.intent.action.GET_CONTENT" />
@@ -24,7 +23,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.activity.OpenOfficeActivity"
+            android:name=".ui.activity.OfficeActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

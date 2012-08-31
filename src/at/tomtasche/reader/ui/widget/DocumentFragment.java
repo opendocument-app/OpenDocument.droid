@@ -2,10 +2,7 @@ package at.tomtasche.reader.ui.widget;
 
 import java.util.List;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -19,9 +16,13 @@ public class DocumentFragment extends Fragment implements OfficeInterface {
 
     DocumentService service;
 
-    BroadcastReceiver receiver;
-
     DocumentView view;
+
+    private final Uri uri;
+
+    public DocumentFragment(Uri uri) {
+	this.uri = uri;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -33,7 +34,13 @@ public class DocumentFragment extends Fragment implements OfficeInterface {
 
 	view = new DocumentView(getActivity());
 
+	loadUri(uri);
+
 	return view;
+    }
+
+    public void loadUri(Uri uri) {
+	service.loadUri(uri);
     }
 
     private void reload() {
@@ -67,7 +74,7 @@ public class DocumentFragment extends Fragment implements OfficeInterface {
 	super.onDestroyView();
 
 	if (service != null)
-	    service.stop();
+	    service.quit();
     }
 
     public int getShownIndex() {

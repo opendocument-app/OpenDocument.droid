@@ -17,17 +17,17 @@ public class DocumentActivity extends OfficeActivity {
 	}
 
 	if (arg0 == null) {
-	    DocumentFragment document = new DocumentFragment();
+	    DocumentFragment document = new DocumentFragment(getIntent().getData());
 
 	    getSupportFragmentManager().beginTransaction().add(R.id.document, document).commit();
 	}
     }
-    
+
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+	super.onConfigurationChanged(newConfig);
+
+	if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
 	    finish();
 	    return;
 	}
