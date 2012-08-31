@@ -15,7 +15,6 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.Toast;
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.service.DocumentService;
 
 public class FragmentFileChooser extends ListFragment {
 
@@ -90,10 +89,10 @@ public class FragmentFileChooser extends ListFragment {
 			    Toast.LENGTH_SHORT).show();
 		}
 	    } else {
-		Intent documentIntent = new Intent(getActivity(), DocumentService.class);
-		documentIntent.setData(adapter.getUri(id));
-
-		getActivity().startService(documentIntent);
+//		Intent documentIntent = new Intent(getActivity(), DocumentService.class);
+//		documentIntent.setData(adapter.getUri(id));
+//		
+//		getActivity().startService(documentIntent);
 	    }
 	}
     };

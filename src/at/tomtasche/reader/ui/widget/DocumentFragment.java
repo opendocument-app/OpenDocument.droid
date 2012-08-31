@@ -1,97 +1,30 @@
 package at.tomtasche.reader.ui.widget;
 
-import java.util.List;
-
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
-import at.tomtasche.reader.background.service.DocumentService;
-import at.tomtasche.reader.ui.OfficeInterface;
+import at.tomtasche.reader.Document;
+import at.tomtasche.reader.Document.Page;
 
-public class DocumentFragment extends Fragment implements OfficeInterface {
+public class DocumentFragment extends Fragment {
 
-    DocumentService service;
-
-    DocumentView view;
-
-    private final Uri uri;
-
-    public DocumentFragment(Uri uri) {
-	this.uri = uri;
-    }
+    private DocumentView documentView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-	if (container == null) {
-	    return null;
-	}
+	documentView = new DocumentView(getActivity());
 
-	service = new DocumentService(getActivity(), this);
-
-	view = new DocumentView(getActivity());
-
-	loadUri(uri);
-
-	return view;
+	return documentView;
     }
 
-    public void loadUri(Uri uri) {
-	service.loadUri(uri);
+    private void loadData(String html) {
+	documentView.loadData(html);
     }
 
-    private void reload() {
-	String data = service.getData();
-
-	view.loadData(data);
-    }
-
-    public void nextPage() {
-	service.nextPage();
-    }
-
-    public void previousPage() {
-	service.previousPage();
-    }
-
-    public void jumpToPage(int page) {
-	service.jumpToPage(page);
-    }
-
-    public int getPageCount() {
-	return service.getPageCount();
-    }
-
-    public List<String> getPageNames() {
-	return service.getPageNames();
-    }
-
-    @Override
-    public void onDestroyView() {
-	super.onDestroyView();
-
-	if (service != null)
-	    service.quit();
-    }
-
-    public int getShownIndex() {
-	return getArguments().getInt("page", 0);
-    }
-
-    public DocumentView getDocumentView() {
-	return view;
-    }
-
-    @Override
-    public void onFinished() {
-	reload();
-    }
-
-    @Override
-    public void showToast(int resId) {
-	Toast.makeText(getActivity(), getString(resId), Toast.LENGTH_LONG).show();
+    public void loadDocument(Document document) {
+	Page firstPage = document.getPageAt(0);
+	loadData(firstPage.getHtml());
     }
 }

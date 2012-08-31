@@ -1,4 +1,3 @@
-
 package at.tomtasche.reader.background.openoffice;
 
 import java.io.File;
@@ -6,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.parsers.ParserConfigurationException;
 
 import openoffice.CachedOpenDocumentFile;
 import openoffice.MimeTypeNotFoundException;
@@ -17,129 +18,58 @@ import openoffice.html.ImageCache;
 import openoffice.html.ImageTranslator;
 import openoffice.html.ods.TranslatorOds;
 import openoffice.html.odt.TranslatorOdt;
-import at.tomtasche.reader.background.DocumentInterface;
-import at.tomtasche.reader.background.DocumentLoader;
 
-public class JOpenDocumentWrapper implements DocumentInterface {
+import org.xml.sax.SAXException;
 
-    private OpenDocumentWrapper wrapper;
+import at.tomtasche.reader.Document;
+import at.tomtasche.reader.Document.Page;
 
-    private final DocumentLoader loader;
+public class JOpenDocumentWrapper {
 
-    private int index;
+    public static Document parseStream(InputStream stream, File cache) throws IOException,
+	    ParserConfigurationException, SAXException, Exception {
+	final ImageCache imageCache = new ImageCache(cache, false);
 
-    public JOpenDocumentWrapper(final DocumentLoader loader, final InputStream stream,
-            final File cache) throws Exception {
-        this.loader = loader;
+	final CachedOpenDocumentFile documentFile = new CachedOpenDocumentFile(stream);
 
-        final ImageCache imageCache = new ImageCache(cache, false);
+	List<Page> pages = new ArrayList<Page>();
+	if (isDocument(documentFile)) {
+	    final OpenDocumentText text = new OpenDocumentText(documentFile);
+	    final TranslatorOdt translatorOdt = new TranslatorOdt(text);
 
-        final CachedOpenDocumentFile documentFile = new CachedOpenDocumentFile(stream);
+	    final ImageTranslator imageTranslator = new ImageTranslator(text, imageCache);
+	    imageTranslator.setUriTranslator(new AndroidImageUriTranslator());
+	    translatorOdt.addNodeTranslator("image", imageTranslator);
 
-        if (isDocument(documentFile)) {
-            final OpenDocumentText text = new OpenDocumentText(documentFile);
-            final TranslatorOdt translatorOdt = new TranslatorOdt(text);
+	    String html = translatorOdt.translate().getHtmlDocument().toString();
+	    pages.add(new Page("Document", html, 0));
+	} else if (isSpreadsheet(documentFile)) {
+	    final OpenDocumentSpreadsheet spreadsheet = new OpenDocumentSpreadsheet(documentFile);
+	    final TranslatorOds translatorOds = new TranslatorOds(spreadsheet);
 
-            final ImageTranslator imageTranslator = new ImageTranslator(text, imageCache);
-            imageTranslator.setUriTranslator(new AndroidImageUriTranslator());
-            translatorOdt.addNodeTranslator("image", imageTranslator);
+	    final ImageTranslator imageTranslator = new ImageTranslator(spreadsheet, imageCache);
+	    imageTranslator.setUriTranslator(new AndroidImageUriTranslator());
+	    translatorOds.addNodeTranslator("image", imageTranslator);
 
-            wrapper = new OpenDocumentWrapper(text);
-            wrapper.setOdt(translatorOdt);
-        } else if (isSpreadsheet(documentFile)) {
-            final OpenDocumentSpreadsheet spreadsheet = new OpenDocumentSpreadsheet(documentFile);
-            final TranslatorOds translatorOds = new TranslatorOds(spreadsheet);
-
-            final ImageTranslator imageTranslator = new ImageTranslator(spreadsheet, imageCache);
-            imageTranslator.setUriTranslator(new AndroidImageUriTranslator());
-            translatorOds.addNodeTranslator("image", imageTranslator);
-
-            wrapper = new OpenDocumentWrapper(spreadsheet);
-            wrapper.setOds(translatorOds);
-        } else {
-            assert false : new MimeTypeNotFoundException();
-        }
-    }
-
-    private boolean isSpreadsheet(final CachedOpenDocumentFile file) throws IOException {
-
-        return file.getMimeType().startsWith(OpenDocumentSpreadsheet.MIMETYPE)
-                || file.getMimeType().startsWith(OpenDocumentSpreadsheetTemplate.MIMETYPE);
-
-    }
-
-    private boolean isDocument(final CachedOpenDocumentFile file) throws IOException {
-
-        return file.getMimeType().startsWith(OpenDocumentText.MIMETYPE)
-                || file.getMimeType().startsWith(OpenDocumentTextTemplate.MIMETYPE);
-
-    }
-
-    @Override
-    public boolean hasNext() {
-        if (getPageIndex() + 1 < getPageCount() && getPageIndex() >= 0) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public void getNext() {
-	index++;
-	
-        loader.onFinished();
-    }
-
-    @Override
-    public boolean hasPrevious() {
-        if (getPageIndex() - 1 >= 0) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public void getPrevious() {
-	index--;
-	
-        loader.onFinished();
-    }
-
-    @Override
-    public int getPageCount() {
-        return wrapper.getPageCount();
-    }
-
-    @Override
-    public int getPageIndex() {
-        return index;
-    }
-
-    @Override
-    public List<String> getPageNames() {
-        return wrapper.getTableNames();
-    }
-
-    @Override
-    public void loadPage(int i) {
-        index = i;
-        loader.onFinished();
-    }
-
-    @Override
-    public List<String> getAll() {
-	List<String> pages = new ArrayList<String>(getPageCount());
-	for (int i = 0; i < getPageCount(); i++) {
-	    pages.add(wrapper.translate(i));
+	    List<String> tableNames = spreadsheet.getTableNames();
+	    for (int i = 0; i < spreadsheet.getTableCount(); i++) {
+		String html = translatorOds.translate(i).getHtmlDocument().toString();
+		pages.add(new Page(tableNames.get(i), html, i));
+	    }
+	} else {
+	    throw new MimeTypeNotFoundException();
 	}
-	
-	return pages;
+
+	return new Document(pages);
     }
 
-    @Override
-    public String getPage(int page) {
-	return wrapper.translate(page);
+    private static boolean isSpreadsheet(final CachedOpenDocumentFile file) throws IOException {
+	return file.getMimeType().startsWith(OpenDocumentSpreadsheet.MIMETYPE)
+		|| file.getMimeType().startsWith(OpenDocumentSpreadsheetTemplate.MIMETYPE);
+    }
+
+    private static boolean isDocument(final CachedOpenDocumentFile file) throws IOException {
+	return file.getMimeType().startsWith(OpenDocumentText.MIMETYPE)
+		|| file.getMimeType().startsWith(OpenDocumentTextTemplate.MIMETYPE);
     }
 }

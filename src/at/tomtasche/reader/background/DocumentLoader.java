@@ -1,211 +1,98 @@
 package at.tomtasche.reader.background;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.List;
 
-import openoffice.IllegalMimeTypeException;
-import openoffice.MimeTypeNotFoundException;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.widget.Adapter;
-import android.widget.ArrayAdapter;
-import at.tomtasche.reader.R;
+import android.os.AsyncTask;
+import at.tomtasche.reader.Document;
 import at.tomtasche.reader.background.openoffice.JOpenDocumentWrapper;
-import at.tomtasche.reader.ui.OfficeInterface;
 
-public class DocumentLoader extends Handler implements DocumentInterface, OfficeInterface {
+public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 
-    public static DocumentLoader getThreadedLoader(Context context, final OfficeInterface office) {
-	final HandlerThread thread = new HandlerThread("DocumentLoader");
-	thread.start();
+    public static final Uri URI_INTRO = Uri.parse("reader://intro.odt");
 
-	return new DocumentLoader(context, thread, office);
-    }
+    private final Context context;
+    private final File cacheDirectory;
+    private final ProgressDialog progressDialog;
 
-    private JOpenDocumentWrapper tschopen;
+    private OnSuccessCallback successCallback;
+    private OnErrorCallback errorCallback;
+    private Exception lastException;
 
-    private final HandlerThread thread;
-
-    private final OfficeInterface office;
-
-    Context context;
-
-    private DocumentLoader(Context context, final HandlerThread thread, final OfficeInterface office) {
-	super(thread.getLooper());
-
+    public DocumentLoader(Context context) {
 	this.context = context;
-	this.thread = thread;
-	this.office = office;
+
+	progressDialog = new ProgressDialog(context);
+	cacheDirectory = context.getCacheDir();
     }
 
-    public Adapter getPageAdapter() {
-	return new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1,
-		android.R.id.text1, getPageNames());
+    public void setOnSuccessCallback(OnSuccessCallback successCallback) {
+	this.successCallback = successCallback;
     }
 
-    public void loadDocument(Uri uri) {
+    public void setOnErrorCallback(OnErrorCallback errorCallback) {
+	this.errorCallback = errorCallback;
+    }
+
+    @Override
+    protected void onPreExecute() {
+	super.onPreExecute();
+
+	progressDialog.show();
+    }
+
+    @Override
+    protected Document doInBackground(Uri... params) {
+	Uri uri = params[0];
+
+	// cleanup uri
 	if ("/./".equals(uri.toString().substring(0, 2))) {
 	    uri = Uri.parse(uri.toString().substring(2, uri.toString().length()));
 	}
 
 	try {
-	    loadDocument(context.getContentResolver().openInputStream(uri));
-	} catch (FileNotFoundException e) {
-	    e.printStackTrace();
-	}
-    }
+	    InputStream stream;
+	    if (URI_INTRO.equals(uri)) {
+		stream = context.getAssets().open("intro.odt");
+	    } else {
+		stream = context.getContentResolver().openInputStream(uri);
+	    }
 
-    public void loadDocument(InputStream stream) {
-	try {
-	    loadDocument(stream, context.getCacheDir());
+	    return JOpenDocumentWrapper.parseStream(stream, cacheDirectory);
 	} catch (Exception e) {
 	    e.printStackTrace();
 
-	    showToast(R.string.toast_error_find_file);
-	}
-    }
+	    lastException = e;
 
-    public void loadDocument(final InputStream stream, final File cache) throws Exception {
-	try {
-	    cleanCache(cache);
-
-	    tschopen = new JOpenDocumentWrapper(this, stream, cache);
-
-	    onFinished();
-	} catch (final MimeTypeNotFoundException e) {
-	    e.printStackTrace();
-
-	    showToast(R.string.toast_error_open_file);
-	} catch (final IllegalMimeTypeException e) {
-	    e.printStackTrace();
-
-	    showToast(R.string.toast_error_open_file);
-	} catch (final FileNotFoundException e) {
-	    e.printStackTrace();
-
-	    showToast(R.string.toast_error_find_file);
-	} catch (final IllegalArgumentException e) {
-	    e.printStackTrace();
-
-	    showToast(R.string.toast_error_illegal_file);
-	} catch (final OutOfMemoryError e) {
-	    e.printStackTrace();
-
-	    showToast(R.string.toast_error_out_of_memory);
+	    return null;
 	}
     }
 
     @Override
-    public int getPageCount() {
-	if (tschopen == null) {
-	    return 0;
-	}
-	return tschopen.getPageCount();
-    }
+    protected void onPostExecute(Document document) {
+	super.onPostExecute(document);
 
-    @Override
-    public int getPageIndex() {
-	if (tschopen == null) {
-	    return 0;
-	}
-	return tschopen.getPageIndex();
-    }
-
-    @Override
-    public void onFinished() {
-	office.onFinished();
-    }
-
-    @Override
-    public void showToast(final int resId) {
-	office.showToast(resId);
-    }
-
-    @Override
-    public boolean hasNext() {
-	if (tschopen == null) {
-	    return false;
+	if (document == null) {
+	    if (errorCallback != null)
+		errorCallback.onError(lastException);
+	} else {
+	    if (successCallback != null)
+		successCallback.onSuccess(document);
 	}
 
-	return tschopen.hasNext();
+	progressDialog.dismiss();
     }
 
-    @Override
-    public void getNext() {
-	if (tschopen == null) {
-	    return;
-	}
+    public static interface OnSuccessCallback {
 
-	post(new Runnable() {
-
-	    @Override
-	    public void run() {
-		tschopen.getNext();
-	    }
-	});
+	public void onSuccess(Document document);
     }
 
-    @Override
-    public boolean hasPrevious() {
-	if (tschopen == null) {
-	    return false;
-	}
+    public static interface OnErrorCallback {
 
-	return tschopen.hasPrevious();
-    }
-
-    @Override
-    public void getPrevious() {
-	if (tschopen == null) {
-	    return;
-	}
-
-	post(new Runnable() {
-
-	    @Override
-	    public void run() {
-		tschopen.getPrevious();
-	    }
-	});
-    }
-
-    private void cleanCache(final File cache) {
-	// TODO: sort pictures in folders and delete old pictures asynchronous
-
-	for (final String s : cache.list()) {
-	    try {
-		new File(cache + "/" + s).delete();
-	    } catch (final Exception e) {
-		e.printStackTrace();
-	    }
-	}
-    }
-
-    public void quit() {
-	thread.getLooper().quit();
-    }
-
-    @Override
-    public List<String> getPageNames() {
-	return tschopen.getPageNames();
-    }
-
-    @Override
-    public void loadPage(int i) {
-	tschopen.loadPage(i);
-    }
-
-    @Override
-    public List<String> getAll() {
-	return tschopen.getAll();
-    }
-
-    @Override
-    public String getPage(int page) {
-	return tschopen.getPage(page);
+	public void onError(Exception exception);
     }
 }

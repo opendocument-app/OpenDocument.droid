@@ -29,6 +29,9 @@
 		
 		
 	<string
+		name="toast_error_generic">An error occurred</string>
+	
+	<string
 		name="toast_error_copy">Not possible on Android versions older than 2.2</string>
 		
 	<string
