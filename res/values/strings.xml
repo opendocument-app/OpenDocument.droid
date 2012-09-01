@@ -1,122 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string
-		name="app_name">OpenOffice Document Reader</string>
 
-	<string
-		name="chooser_name">OpenOffice Document Chooser</string>
+    <string name="app_name">OpenOffice Document Reader</string>
+    <string name="message_get_started">Get started using your phone\'s menu button and selecting "Open"!</string>
+    <string name="page_dialog_title">Pick a page</string>
+    <string name="toast_error_generic">An error occurred</string>
+    <string name="toast_error_copy">Not possible on Android versions older than 2.2</string>
+    <string name="toast_error_access_file">Couldn\'t access file</string>
+    <string name="toast_error_find_file">Couldn\'t find file</string>
+    <string name="toast_error_illegal_file">This doesn\'t seem to be a supported OpenOffice Document</string>
+    <string name="toast_error_ontop">Can\'t go back</string>
+    <string name="toast_error_access_denied">Access denied</string>
+    <string name="toast_error_no_files">No files</string>
+    <string name="toast_error_open_file">Couldn\'t open file</string>
+    <string name="toast_error_out_of_memory">Phone out of memory! Too much pictures, or too big file</string>
+    <string name="toast_error_no_previous">No previous page available</string>
+    <string name="toast_error_no_next">No next page available</string>
+    <string name="menu_back">Back</string>
+    <string name="menu_cancel">Cancel</string>
+    <string name="menu_page_list">List</string>
+    <string name="menu_page_next">Next</string>
+    <string name="menu_page_previous">Previous</string>
+    <string name="menu_search">Search</string>
+    <string name="menu_open">Open</string>
+    <string name="menu_remove_ads_for_1y">Remove ads for 1 year</string>
+    <string name="menu_remove_ads_forever">Remove ads forever!</string>
+    <string name="menu_remove_ads">Remove ads temporarily</string>
+    <string name="menu_about">About</string>
 
-	<string
-		name="message_get_started">Get started using your phone\'s menu button!</string>
-
-
-	<string
-		name="start_dialog_title">Welcome to an Open World!</string>
-
-	<string
-		name="start_dialog_message">I suspect you came here to open your beloved OpenOffice and LibreOffice documents, so let\'s just skip the boring part and start reading!\n\nIf you want to read more about this project visit http://reader.tomtasche.at/ or click \"About\" in the menu.\n\nSincerely,\nYour developers,\nAndi, David and Tom</string>
-
-	<string
-		name="start_dialog_button">Cool!</string>
-	
-		
-	<string
-		name="page_dialog_title">Pick a page</string>
-
-
-	<string
-		name="progress_dialog_message">Gathering all the sheets of paper together...</string>
-		
-		
-	<string
-		name="toast_error_generic">An error occurred</string>
-	
-	<string
-		name="toast_error_copy">Not possible on Android versions older than 2.2</string>
-		
-	<string
-		name="toast_error_access_file">Couldn\'t access file</string>
-		
-	<string
-		name="toast_error_find_file">Couldn\'t find file</string>
-		
-	<string
-		name="toast_error_illegal_file">This doesn\'t seem to be a supported OpenOffice Document</string>
-		
-	<string
-		name="toast_error_ontop">Can\'t go back</string>
-
-	<string
-		name="toast_error_access_denied">Access denied</string>
-
-	<string
-		name="toast_error_no_files">No files</string>
-		
-	<string
-		name="toast_error_open_file">Couldn\'t open file</string>
-		
-	<string
-		name="toast_error_out_of_memory">Phone out of memory! Too much pictures, or too big file</string>
-		
-	<string
-		name="toast_error_no_previous">No previous page available</string>
-		
-	<string
-		name="toast_error_no_next">No next page available</string>
-
-
-	<string
-		name="menu_back">Back</string>
-
-	<string
-		name="menu_cancel">Cancel</string>
-		
-	<string
-		name="menu_zoom_in">Zoom++</string>
-		
-	<string
-		name="menu_zoom_out">Zoom--</string>
-		
-	<string
-		name="menu_page_list">List</string>
-		
-	<string
-		name="menu_page_next">Next</string>
-		
-	<string
-		name="menu_page_previous">Previous</string>
-		
-	<string
-		name="menu_copy">Copy</string>
-		
-	<string
-		name="menu_search">Search</string>
-		
-	<string
-		name="menu_open">Open</string>
-		
-	<string
-		name="menu_donate">Donate</string>
-		
-	<string
-		name="menu_share">Share</string>
-		
-	<string
-		name="menu_rate">Rate</string>
-		
-	<string
-		name="menu_about">About</string>
-		
-	
-	<string
-		name="donate_choose">Donate via...</string>
-		
-	<string
-		name="donate_market">Market</string>
-		
-	<string
-		name="donate_paypal">PayPal</string>
-		
-	<string
-		name="donate_flattr">Flattr</string>
 </resources>

@@ -21,8 +21,9 @@ import openoffice.html.odt.TranslatorOdt;
 
 import org.xml.sax.SAXException;
 
-import at.tomtasche.reader.Document;
-import at.tomtasche.reader.Document.Page;
+import at.tomtasche.reader.background.AndroidImageUriTranslator;
+import at.tomtasche.reader.background.Document;
+import at.tomtasche.reader.background.Document.Page;
 
 public class JOpenDocumentWrapper {
 

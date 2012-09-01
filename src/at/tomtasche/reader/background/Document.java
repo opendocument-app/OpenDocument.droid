@@ -1,4 +1,4 @@
-package at.tomtasche.reader;
+package at.tomtasche.reader.background;
 
 import java.util.ArrayList;
 import java.util.List;

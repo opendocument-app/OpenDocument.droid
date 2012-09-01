@@ -7,7 +7,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
-import at.tomtasche.reader.Document;
 import at.tomtasche.reader.background.openoffice.JOpenDocumentWrapper;
 
 public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
@@ -20,12 +19,16 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 
     private OnSuccessCallback successCallback;
     private OnErrorCallback errorCallback;
-    private Exception lastException;
+    private Throwable lastError;
 
     public DocumentLoader(Context context) {
 	this.context = context;
 
 	progressDialog = new ProgressDialog(context);
+	progressDialog.setTitle("Loading...");
+	progressDialog.setIndeterminate(true);
+	progressDialog.setCancelable(false);
+
 	cacheDirectory = context.getCacheDir();
     }
 
@@ -62,13 +65,20 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 	    }
 
 	    return JOpenDocumentWrapper.parseStream(stream, cacheDirectory);
-	} catch (Exception e) {
+	} catch (Throwable e) {
 	    e.printStackTrace();
 
-	    lastException = e;
+	    lastError = e;
 
 	    return null;
 	}
+    }
+
+    @Override
+    protected void onCancelled() {
+	super.onCancelled();
+
+	progressDialog.dismiss();
     }
 
     @Override
@@ -77,7 +87,7 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 
 	if (document == null) {
 	    if (errorCallback != null)
-		errorCallback.onError(lastException);
+		errorCallback.onError(lastError);
 	} else {
 	    if (successCallback != null)
 		successCallback.onSuccess(document);
@@ -93,6 +103,6 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 
     public static interface OnErrorCallback {
 
-	public void onError(Exception exception);
+	public void onError(Throwable error);
     }
 }
