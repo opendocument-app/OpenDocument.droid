@@ -8,7 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import at.tomtasche.reader.background.Document;
-import at.tomtasche.reader.background.Document.Page;
+import at.tomtasche.reader.background.Document.Part;
 
 public class DocumentFragment extends Fragment {
 
@@ -30,7 +30,7 @@ public class DocumentFragment extends Fragment {
     public void loadDocument(Document document) {
 	index = 0;
 
-	Page firstPage = document.getPageAt(index);
+	Part firstPage = document.getPageAt(index);
 	loadData(firstPage.getHtml());
     }
 
@@ -67,7 +67,7 @@ public class DocumentFragment extends Fragment {
 	return true;
     }
 
-    public List<Page> getPages() {
+    public List<Part> getPages() {
 	return document.getPages();
     }
 }

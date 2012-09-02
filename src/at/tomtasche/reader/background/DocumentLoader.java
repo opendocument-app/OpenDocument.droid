@@ -1,25 +1,42 @@
 package at.tomtasche.reader.background;
 
-import java.io.File;
+import java.io.CharArrayWriter;
 import java.io.InputStream;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
-import at.tomtasche.reader.background.openoffice.JOpenDocumentWrapper;
+import android.widget.EditText;
+import at.andiwand.common.lwxml.writer.LWXMLStreamWriter;
+import at.andiwand.common.lwxml.writer.LWXMLWriter;
+import at.andiwand.odf2html.odf.IllegalMimeTypeException;
+import at.andiwand.odf2html.odf.OpenDocument;
+import at.andiwand.odf2html.odf.OpenDocumentFile;
+import at.andiwand.odf2html.odf.OpenDocumentSpreadsheet;
+import at.andiwand.odf2html.odf.OpenDocumentText;
+import at.andiwand.odf2html.odf.TemporaryOpenDocumentFile;
+import at.andiwand.odf2html.translator.FileCache;
+import at.andiwand.odf2html.translator.document.SpreadsheetTranslator;
+import at.andiwand.odf2html.translator.document.TextTranslator;
+import at.tomtasche.reader.background.Document.Part;
 
 public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 
     public static final Uri URI_INTRO = Uri.parse("reader://intro.odt");
 
     private final Context context;
-    private final File cacheDirectory;
     private final ProgressDialog progressDialog;
 
     private OnSuccessCallback successCallback;
     private OnErrorCallback errorCallback;
     private Throwable lastError;
+
+    private Uri uri;
+
+    private String password;
 
     public DocumentLoader(Context context) {
 	this.context = context;
@@ -28,8 +45,10 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 	progressDialog.setTitle("Loading...");
 	progressDialog.setIndeterminate(true);
 	progressDialog.setCancelable(false);
+    }
 
-	cacheDirectory = context.getCacheDir();
+    public void setPassword(String password) {
+	this.password = password;
     }
 
     public void setOnSuccessCallback(OnSuccessCallback successCallback) {
@@ -49,7 +68,7 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 
     @Override
     protected Document doInBackground(Uri... params) {
-	Uri uri = params[0];
+	uri = params[0];
 
 	// cleanup uri
 	if ("/./".equals(uri.toString().substring(0, 2))) {
@@ -64,7 +83,44 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 		stream = context.getContentResolver().openInputStream(uri);
 	    }
 
-	    return JOpenDocumentWrapper.parseStream(stream, cacheDirectory);
+	    OpenDocumentFile documentFile = new TemporaryOpenDocumentFile(stream);
+	    String mimeType = documentFile.getMimetype();
+	    if (!OpenDocument.checkMimetype(mimeType))
+		throw new IllegalMimeTypeException();
+
+	    if (documentFile.isEncrypted() && password == null) {
+		throw new EncryptedDocumentException();
+	    } else if (password != null) {
+		documentFile.setPassword(password);
+	    }
+
+	    FileCache fileCache = new AndroidFileCache(context);
+	    OpenDocument document = documentFile.getAsOpenDocument();
+	    CharArrayWriter writer = new CharArrayWriter();
+	    LWXMLWriter out = new LWXMLStreamWriter(writer);
+	    if (document instanceof OpenDocumentText) {
+		try {
+		    TextTranslator translator = new TextTranslator(fileCache);
+		    translator.translate(document, out);
+		} finally {
+		    out.close();
+		}
+	    } else if (document instanceof OpenDocumentSpreadsheet) {
+		try {
+		    SpreadsheetTranslator translator = new SpreadsheetTranslator(fileCache);
+		    translator.translate(document, out);
+		} finally {
+		    out.close();
+		}
+	    } else {
+		throw new IllegalMimeTypeException(
+			"I don't know what it is, but I can't stop parsing it");
+	    }
+
+	    Document result = new Document();
+	    result.addPage(new Part("Document", writer.toString(), 0));
+
+	    return result;
 	} catch (Throwable e) {
 	    e.printStackTrace();
 
@@ -86,6 +142,31 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 	super.onPostExecute(document);
 
 	if (document == null) {
+	    if (lastError instanceof EncryptedDocumentException) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		builder.setTitle("Document is password-protected");
+
+		final EditText input = new EditText(context);
+		builder.setView(input);
+
+		builder.setPositiveButton(context.getString(android.R.string.ok),
+			new DialogInterface.OnClickListener() {
+
+			    @Override
+			    public void onClick(DialogInterface dialog, int whichButton) {
+				DocumentLoader documentLoader = new DocumentLoader(context);
+				documentLoader.setOnSuccessCallback(successCallback);
+				documentLoader.setOnErrorCallback(errorCallback);
+				documentLoader.setPassword(input.getText().toString());
+				documentLoader.execute(uri);
+
+				dialog.dismiss();
+			    }
+			});
+		builder.setNegativeButton(context.getString(android.R.string.cancel), null);
+		builder.show();
+	    }
+
 	    if (errorCallback != null)
 		errorCallback.onError(lastError);
 	} else {
@@ -104,5 +185,9 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
     public static interface OnErrorCallback {
 
 	public void onError(Throwable error);
+    }
+
+    @SuppressWarnings("serial")
+    private class EncryptedDocumentException extends Exception {
     }
 }

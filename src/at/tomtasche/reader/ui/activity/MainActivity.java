@@ -11,7 +11,6 @@ import net.robotmedia.billing.helper.AbstractBillingActivity;
 import net.robotmedia.billing.helper.AbstractBillingObserver;
 import net.robotmedia.billing.model.Transaction;
 import net.robotmedia.billing.model.Transaction.PurchaseState;
-import openoffice.MimeTypeNotFoundException;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -30,7 +29,7 @@ import android.widget.Toast;
 import at.andiwand.odf2html.odf.IllegalMimeTypeException;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.Document;
-import at.tomtasche.reader.background.Document.Page;
+import at.tomtasche.reader.background.Document.Part;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.OnErrorCallback;
 import at.tomtasche.reader.background.DocumentLoader.OnSuccessCallback;
@@ -140,7 +139,7 @@ public class MainActivity extends FragmentActivity implements OnSuccessCallback,
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(getString(R.string.page_dialog_title));
 
-		List<Page> pages = documentFragment.getPages();
+		List<Part> pages = documentFragment.getPages();
 		String[] items = new String[pages.size()];
 		for (int i = 0; i < pages.size(); i++) {
 		    items[i] = pages.get(i).getName();
@@ -282,9 +281,7 @@ public class MainActivity extends FragmentActivity implements OnSuccessCallback,
 
     @Override
     public void onError(Throwable error) {
-	if (error instanceof MimeTypeNotFoundException) {
-	    showToast(R.string.toast_error_open_file);
-	} else if (error instanceof IllegalMimeTypeException) {
+	if (error instanceof IllegalMimeTypeException) {
 	    showToast(R.string.toast_error_open_file);
 	} else if (error instanceof FileNotFoundException) {
 	    showToast(R.string.toast_error_find_file);
