@@ -41,25 +41,15 @@ public class DocumentFragment extends Fragment {
     }
 
     public boolean nextPage() {
-	if (document.getPages().size() >= index + 1)
-	    return false;
-
-	loadData(document.getPageAt(++index).getUrl());
-
-	return true;
+	return goToPage(index + 1);
     }
 
     public boolean previousPage() {
-	if (index - 1 < 0)
-	    return false;
-
-	loadData(document.getPageAt(++index).getUrl());
-
-	return true;
+	return goToPage(index - 1);
     }
 
     public boolean goToPage(int page) {
-	if (page < 0 && page >= document.getPages().size())
+	if (page < 0 || page >= document.getPages().size())
 	    return false;
 
 	index = page;

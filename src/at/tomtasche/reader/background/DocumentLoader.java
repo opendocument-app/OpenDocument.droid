@@ -4,6 +4,8 @@ import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -23,6 +25,7 @@ import at.andiwand.odf2html.odf.TemporaryOpenDocumentFile;
 import at.andiwand.odf2html.translator.FileCache;
 import at.andiwand.odf2html.translator.document.SpreadsheetTranslator;
 import at.andiwand.odf2html.translator.document.TextTranslator;
+import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.Document.Part;
 
 public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
@@ -87,51 +90,70 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 
 	    OpenDocumentFile documentFile = new TemporaryOpenDocumentFile(stream);
 	    String mimeType = documentFile.getMimetype();
-	    if (!OpenDocument.checkMimetype(mimeType))
-		throw new IllegalMimeTypeException();
+	    if (!OpenDocument.checkMimetype(mimeType)) {
+		lastError = new IllegalMimeTypeException();
+
+		return null;
+	    }
 
 	    if (documentFile.isEncrypted() && password == null) {
-		throw new EncryptedDocumentException();
+		lastError = new EncryptedDocumentException();
+
+		return null;
 	    } else if (password != null) {
 		documentFile.setPassword(password);
 	    }
 
+	    Document result = new Document();
 	    FileCache fileCache = new AndroidFileCache(context);
 	    OpenDocument document = documentFile.getAsOpenDocument();
-	    CharArrayWriter writer = new CharArrayWriter();
-	    LWXMLWriter out = new LWXMLStreamWriter(writer);
 	    if (document instanceof OpenDocumentText) {
+		CharArrayWriter writer = new CharArrayWriter();
+		LWXMLWriter out = new LWXMLStreamWriter(writer);
 		try {
 		    TextTranslator translator = new TextTranslator(fileCache);
 		    translator.translate(document, out);
 		} finally {
 		    out.close();
+		    writer.close();
 		}
 
 		File htmlFile = new File(context.getCacheDir(), "temp.html");
 		FileWriter fileWriter = new FileWriter(htmlFile);
 		writer.writeTo(fileWriter);
 		fileWriter.close();
+
+		result.addPage(new Part("Document", htmlFile.toURI(), 0));
 	    } else if (document instanceof OpenDocumentSpreadsheet) {
-		try {
-		    SpreadsheetTranslator translator = new SpreadsheetTranslator(fileCache);
-		    translator.translate(document, out);
-		} finally {
-		    out.close();
+		List<String> tableNames = new ArrayList<String>(
+			((OpenDocumentSpreadsheet) document).getTableMap().keySet());
+		SpreadsheetTranslator translator = new SpreadsheetTranslator(fileCache);
+		for (int i = 0; i < ((OpenDocumentSpreadsheet) document).getTableCount(); i++) {
+		    CharArrayWriter writer = new CharArrayWriter();
+		    LWXMLWriter out = new LWXMLStreamWriter(writer);
+		    try {
+			translator.translate(document, out, i);
+
+			File htmlFile = new File(context.getCacheDir(), "temp" + i + ".html");
+			FileWriter fileWriter = new FileWriter(htmlFile);
+			try {
+			    writer.writeTo(fileWriter);
+			} finally {
+			    fileWriter.close();
+			}
+
+			result.addPage(new Part(tableNames.get(i), htmlFile.toURI(), i));
+		    } finally {
+			out.close();
+			writer.close();
+		    }
 		}
-
-		File htmlFile = new File(context.getCacheDir(), "temp.html");
-		FileWriter fileWriter = new FileWriter(htmlFile);
-		writer.writeTo(fileWriter);
-		fileWriter.close();
 	    } else {
-		throw new IllegalMimeTypeException(
+		lastError = new IllegalMimeTypeException(
 			"I don't know what it is, but I can't stop parsing it");
-	    }
 
-	    Document result = new Document();
-	    result.addPage(new Part("Document", new File(context.getCacheDir(), "temp.html")
-		    .toURI(), 0));
+		return null;
+	    }
 
 	    return result;
 	} catch (Throwable e) {
@@ -155,9 +177,12 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 	super.onPostExecute(document);
 
 	if (document == null) {
+	    if (lastError == null)
+		throw new IllegalStateException("document and lastError null");
+
 	    if (lastError instanceof EncryptedDocumentException) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(context);
-		builder.setTitle("Document is password-protected");
+		builder.setTitle(R.string.toast_error_password_protected);
 
 		final EditText input = new EditText(context);
 		builder.setView(input);
@@ -178,10 +203,9 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 			});
 		builder.setNegativeButton(context.getString(android.R.string.cancel), null);
 		builder.show();
-	    }
-
-	    if (errorCallback != null)
+	    } else if (errorCallback != null) {
 		errorCallback.onError(lastError);
+	    }
 	} else {
 	    if (successCallback != null)
 		successCallback.onSuccess(document);

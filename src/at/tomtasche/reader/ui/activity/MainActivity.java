@@ -82,7 +82,6 @@ public class MainActivity extends FragmentActivity implements OnSuccessCallback,
 	};
 	BillingController.registerObserver(mBillingObserver);
 	BillingController.setConfiguration(this);
-	// This activity will provide the public key and salt
 	this.checkBillingSupported();
 	if (!mBillingObserver.isTransactionsRestored()) {
 	    BillingController.restoreTransactions(this);
@@ -153,7 +152,7 @@ public class MainActivity extends FragmentActivity implements OnSuccessCallback,
 		});
 		builder.create().show();
 	    } else {
-		Toast.makeText(this, "There's only one page", Toast.LENGTH_LONG).show();
+		Toast.makeText(this, R.string.toast_error_only_one_page, Toast.LENGTH_LONG).show();
 	    }
 
 	    break;
@@ -188,13 +187,15 @@ public class MainActivity extends FragmentActivity implements OnSuccessCallback,
 	}
 
 	case R.id.menu_page_next: {
-	    documentFragment.nextPage();
+	    if (!documentFragment.nextPage())
+		showToast(R.string.toast_error_no_next);
 
 	    break;
 	}
 
 	case R.id.menu_page_previous: {
-	    documentFragment.previousPage();
+	    if (!documentFragment.previousPage())
+		showToast(R.string.toast_error_no_previous);
 
 	    break;
 	}
@@ -241,7 +242,7 @@ public class MainActivity extends FragmentActivity implements OnSuccessCallback,
 		    "https://play.google.com/store/apps/details?id=com.speedsoftware.explorer" };
 
 	    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-	    builder.setTitle("No file explorer found. We recommend one of these:");
+	    builder.setTitle(R.string.dialog_no_filemanager);
 	    builder.setItems(explorerNames, new OnClickListener() {
 
 		@Override
@@ -314,7 +315,6 @@ public class MainActivity extends FragmentActivity implements OnSuccessCallback,
 	    adView.destroy();
 
 	BillingController.unregisterObserver(mBillingObserver);
-	// Avoid receiving notifications after destroy
 	BillingController.setConfiguration(null);
 
 	// TODO: ugly threading
@@ -325,7 +325,7 @@ public class MainActivity extends FragmentActivity implements OnSuccessCallback,
 		// clean cache
 		for (final String s : getCacheDir().list()) {
 		    try {
-			new File(getCacheDir() + "/" + s).delete();
+			new File(getCacheDir(), s).delete();
 		    } catch (final Exception e) {
 			e.printStackTrace();
 		    }
@@ -335,7 +335,6 @@ public class MainActivity extends FragmentActivity implements OnSuccessCallback,
     }
 
     // taken from net.robotmedia.billing.helper.AbstractBillingActivity
-
     protected AbstractBillingObserver mBillingObserver;
 
     /**

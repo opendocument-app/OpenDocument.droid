@@ -12,6 +12,9 @@
     <string name="toast_error_out_of_memory">Restlicher Speicher geht zur Neige! Zu viele Bilder oder eine zu große Datei</string>
     <string name="toast_error_no_previous">Keine vorhergehende Seite vorhanden</string>
     <string name="toast_error_no_next">Keine weitere Seite vorhanden</string>
+    <string name="toast_error_only_one_page">Es gibt nur eine Seite in diesem Dokument</string>
+    <string name="toast_error_password_protected">Dokument ist passwort-geschützt</string>
+    <string name="dialog_no_filemanager">Kein Dateimanager vorhanden. Wir empfehlen einen der folgenden:</string>
     <string name="menu_page_list">Zeige Seiten</string>
     <string name="menu_page_next">Weiter</string>
     <string name="menu_page_previous">Zurück</string>
