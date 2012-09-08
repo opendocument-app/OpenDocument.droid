@@ -23,15 +23,17 @@ public class DocumentFragment extends Fragment {
 	return documentView;
     }
 
-    private void loadData(String html) {
-	documentView.loadData(html);
+    private void loadData(String url) {
+	documentView.loadUrl(url);
     }
 
     public void loadDocument(Document document) {
+	this.document = document;
+
 	index = 0;
 
 	Part firstPage = document.getPageAt(index);
-	loadData(firstPage.getHtml());
+	loadData(firstPage.getUrl());
     }
 
     public void searchDocument(String query) {
@@ -42,7 +44,7 @@ public class DocumentFragment extends Fragment {
 	if (document.getPages().size() >= index + 1)
 	    return false;
 
-	loadData(document.getPageAt(++index).getHtml());
+	loadData(document.getPageAt(++index).getUrl());
 
 	return true;
     }
@@ -51,7 +53,7 @@ public class DocumentFragment extends Fragment {
 	if (index - 1 < 0)
 	    return false;
 
-	loadData(document.getPageAt(++index).getHtml());
+	loadData(document.getPageAt(++index).getUrl());
 
 	return true;
     }
@@ -62,7 +64,7 @@ public class DocumentFragment extends Fragment {
 
 	index = page;
 
-	loadData(document.getPageAt(index).getHtml());
+	loadData(document.getPageAt(index).getUrl());
 
 	return true;
     }

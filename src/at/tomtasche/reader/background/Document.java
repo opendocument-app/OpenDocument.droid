@@ -1,5 +1,6 @@
 package at.tomtasche.reader.background;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,18 +70,18 @@ public class Document implements Parcelable {
 	};
 
 	private final String name;
-	private final String html;
+	private final String url;
 	private final int index;
 
-	public Part(String name, String html, int index) {
+	public Part(String name, URI url, int index) {
 	    this.name = name;
-	    this.html = html;
+	    this.url = url.toString();
 	    this.index = index;
 	}
 
 	private Part(Parcel in) {
 	    name = in.readString();
-	    html = in.readString();
+	    url = in.readString();
 	    index = in.readInt();
 	}
 
@@ -88,8 +89,8 @@ public class Document implements Parcelable {
 	    return name;
 	}
 
-	public String getHtml() {
-	    return html;
+	public String getUrl() {
+	    return url;
 	}
 
 	public int getIndex() {
@@ -104,7 +105,7 @@ public class Document implements Parcelable {
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 	    dest.writeString(name);
-	    dest.writeString(html);
+	    dest.writeString(url);
 	    dest.writeInt(index);
 	}
     }

@@ -1,13 +1,8 @@
 It's Android's first OpenOffice Document Reader!
 
-This is an Android frontend for the OpenDocument Java library called JOpenDocument, made by Andi (https://github.com/andiwand/JOpenDocument).
+This is an Android frontend for the excellent ODF Java library called odf2html (formerly JOpenDocument), made by Andi (https://github.com/andiwand/odf2html).
 Feel free to use it in your own projects too, but please don't forget to tell us about your projects! :)
 
-Don't forget to fetch JOpenDocument too, in order to set up OpenOffice Document Reader in your IDE.
+Get the app from Google Play store (http://www.appbrain.com/app/openoffice-document-reader/at.tomtasche.reader?install)
 
-
-Download at Android Market (http://www.appbrain.com/app/openoffice-document-reader/at.tomtasche.reader?install) or download the .apk directly which can be found in this repository.
-
-By the way, you can flattr us (JOpenDocument and OpenOffice Document Reader) at http://goo.gl/fhecu
-
-More information at http://reader.tomtasche.at/ and under "More" -> "About" in the app.
+More information at http://reader.tomtasche.at/ and in the app.

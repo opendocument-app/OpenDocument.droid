@@ -1,6 +1,8 @@
 package at.tomtasche.reader.background;
 
 import java.io.CharArrayWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.InputStream;
 
 import android.app.AlertDialog;
@@ -10,8 +12,8 @@ import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.widget.EditText;
-import at.andiwand.common.lwxml.writer.LWXMLStreamWriter;
-import at.andiwand.common.lwxml.writer.LWXMLWriter;
+import at.andiwand.commons.lwxml.writer.LWXMLStreamWriter;
+import at.andiwand.commons.lwxml.writer.LWXMLWriter;
 import at.andiwand.odf2html.odf.IllegalMimeTypeException;
 import at.andiwand.odf2html.odf.OpenDocument;
 import at.andiwand.odf2html.odf.OpenDocumentFile;
@@ -105,6 +107,11 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 		} finally {
 		    out.close();
 		}
+
+		File htmlFile = new File(context.getCacheDir(), "temp.html");
+		FileWriter fileWriter = new FileWriter(htmlFile);
+		writer.writeTo(fileWriter);
+		fileWriter.close();
 	    } else if (document instanceof OpenDocumentSpreadsheet) {
 		try {
 		    SpreadsheetTranslator translator = new SpreadsheetTranslator(fileCache);
@@ -112,13 +119,19 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 		} finally {
 		    out.close();
 		}
+
+		File htmlFile = new File(context.getCacheDir(), "temp.html");
+		FileWriter fileWriter = new FileWriter(htmlFile);
+		writer.writeTo(fileWriter);
+		fileWriter.close();
 	    } else {
 		throw new IllegalMimeTypeException(
 			"I don't know what it is, but I can't stop parsing it");
 	    }
 
 	    Document result = new Document();
-	    result.addPage(new Part("Document", writer.toString(), 0));
+	    result.addPage(new Part("Document", new File(context.getCacheDir(), "temp.html")
+		    .toURI(), 0));
 
 	    return result;
 	} catch (Throwable e) {

@@ -21,8 +21,4 @@ public class DocumentView extends WebView {
 
 	loadData(context.getString(R.string.message_get_started), "text/plain", ENCODING);
     }
-
-    public void loadData(final String html) {
-	loadData(html, "text/html", ENCODING);
-    }
 }

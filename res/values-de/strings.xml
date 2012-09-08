@@ -1,106 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string
-		name="message_get_started">Leg los mit dem Menü-Knopf deines Handys!</string>
 
+    <string name="app_name">OpenOffice Document Reader</string>
+    <string name="message_get_started">Verwende den Menü-Button und "Öffnen" um loszulegen!</string>
+    <string name="page_dialog_title">Wähle eine Seite aus</string>
+    <string name="toast_error_generic">Etwas schlimmes ist passiert. Datei konnte nicht geöffnet werden</string>
+    <string name="toast_error_access_file">Auf Datei konnte nicht zugegriffen werden</string>
+    <string name="toast_error_find_file">Datei konnte nicht gefunden werden</string>
+    <string name="toast_error_illegal_file">Diese Datei scheint nicht keines der unterstützten Formate zu haben</string>
+    <string name="toast_error_open_file">Datei konnte nicht geöffnet werden</string>
+    <string name="toast_error_out_of_memory">Restlicher Speicher geht zur Neige! Zu viele Bilder oder eine zu große Datei</string>
+    <string name="toast_error_no_previous">Keine vorhergehende Seite vorhanden</string>
+    <string name="toast_error_no_next">Keine weitere Seite vorhanden</string>
+    <string name="menu_page_list">Zeige Seiten</string>
+    <string name="menu_page_next">Weiter</string>
+    <string name="menu_page_previous">Zurück</string>
+    <string name="menu_search">Suche</string>
+    <string name="menu_open">Öffnen</string>
+    <string name="menu_remove_ads_for_1y">Entferne Werbung für ein Jahr</string>
+    <string name="menu_remove_ads_forever">Entferne Werbung für immer</string>
+    <string name="menu_remove_ads">Entferne Werbung temporär</string>
+    <string name="menu_about">Über</string>
 
-	<string
-		name="start_dialog_title">Willkommen in einer offenen Welt!</string>
-
-	<string
-		name="start_dialog_message">Ich schätze du bist hier, weil du deine geliebten OpenOffice und LibreOffice Dokumente öffnen willst, also lass uns den langweiligen Teil überspringen und Dokumente öffnen!\n\nFalls du mehr über dieses Projekt herausfinden willst, besuche http://reader.tomtasche.at/ oder klicke \"Über\" im Menü.\n\nMit freundlichen Grüßen,\nDeine Entwickler,\nAndi, David und Tom</string>
-
-	<string
-		name="start_dialog_button">Cool!</string>
-
-
-	<string
-		name="progress_dialog_message">Einsammeln der Seiten...</string>
-
-
-	<string
-		name="toast_error_copy">Nicht möglich bei Android Versionen älter als 2.2</string>
-
-	<string
-		name="toast_error_access_file">Datei konnte nicht geöffnet werden</string>
-
-	<string
-		name="toast_error_find_file">Datei konnte nicht gefunden werden</string>
-
-	<string
-		name="toast_error_illegal_file">Scheint als wäre dieses Dokument kein OpenOffice Dokument</string>
-
-	<string
-		name="toast_error_ontop">Konnte nicht weiter zurück</string>
-
-	<string
-		name="toast_error_access_denied">Zugriff verwährt</string>
-
-	<string
-		name="toast_error_no_files">Keine Dateien</string>
-		
-	<string
-		name="toast_error_open_file">Datei konnte nicht geöffnet werden</string>
-		
-	<string
-		name="toast_error_out_of_memory">Speicher voll! Zu viele Bilder, oder zu großes Dokument</string>
-		
-	<string
-		name="toast_error_no_previous">Keine vorherhige Seite vorhanden</string>
-		
-	<string
-		name="toast_error_no_next">Keine nächste Seite vorhanden</string>
-
-
-	<string
-		name="menu_back">Zurück</string>
-
-	<string
-		name="menu_cancel">Abbrechen</string>
-
-	<string
-		name="menu_zoom_in">Zoom++</string>
-
-	<string
-		name="menu_zoom_out">Zoom--</string>
-		
-	<string
-		name="menu_page_next">Nächste</string>
-		
-	<string
-		name="menu_page_previous">Vorherige</string>
-
-	<string
-		name="menu_copy">Kopieren</string>
-		
-	<string
-		name="menu_search">Suche</string>
-
-	<string
-		name="menu_open">Öffnen</string>
-
-	<string
-		name="menu_donate">Spenden</string>
-
-	<string
-		name="menu_share">Teilen</string>
-
-	<string
-		name="menu_rate">Bewerten</string>
-
-	<string
-		name="menu_about">Über</string>
-
-
-	<string
-		name="donate_choose">Spenden via...</string>
-
-	<string
-		name="donate_market">Market</string>
-
-	<string
-		name="donate_paypal">PayPal</string>
-
-	<string
-		name="donate_flattr">Flattr</string>
 </resources>

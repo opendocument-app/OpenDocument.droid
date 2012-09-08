@@ -2,29 +2,23 @@
 <resources>
 
     <string name="app_name">OpenOffice Document Reader</string>
-    <string name="message_get_started">Get started using your phone\'s menu button and selecting "Open"!</string>
+    <string name="message_get_started">Get started by pressing your phone\'s menu button and selecting "Open"!</string>
     <string name="page_dialog_title">Pick a page</string>
-    <string name="toast_error_generic">An error occurred</string>
-    <string name="toast_error_copy">Not possible on Android versions older than 2.2</string>
+    <string name="toast_error_generic">Something bad happened. Couldn\'t open file</string>
     <string name="toast_error_access_file">Couldn\'t access file</string>
     <string name="toast_error_find_file">Couldn\'t find file</string>
-    <string name="toast_error_illegal_file">This doesn\'t seem to be a supported OpenOffice Document</string>
-    <string name="toast_error_ontop">Can\'t go back</string>
-    <string name="toast_error_access_denied">Access denied</string>
-    <string name="toast_error_no_files">No files</string>
+    <string name="toast_error_illegal_file">This doesn\'t seem to be a supported file format</string>
     <string name="toast_error_open_file">Couldn\'t open file</string>
-    <string name="toast_error_out_of_memory">Phone out of memory! Too much pictures, or too big file</string>
+    <string name="toast_error_out_of_memory">Phone out of memory! Too many pictures, or too big file</string>
     <string name="toast_error_no_previous">No previous page available</string>
     <string name="toast_error_no_next">No next page available</string>
-    <string name="menu_back">Back</string>
-    <string name="menu_cancel">Cancel</string>
-    <string name="menu_page_list">List</string>
+    <string name="menu_page_list">List pages</string>
     <string name="menu_page_next">Next</string>
     <string name="menu_page_previous">Previous</string>
     <string name="menu_search">Search</string>
     <string name="menu_open">Open</string>
-    <string name="menu_remove_ads_for_1y">Remove ads for 1 year</string>
-    <string name="menu_remove_ads_forever">Remove ads forever!</string>
+    <string name="menu_remove_ads_for_1y">Remove ads for one year</string>
+    <string name="menu_remove_ads_forever">Remove ads forever</string>
     <string name="menu_remove_ads">Remove ads temporarily</string>
     <string name="menu_about">About</string>
 
