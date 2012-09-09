@@ -281,7 +281,7 @@ public class MainActivity extends FragmentActivity implements OnSuccessCallback,
     }
 
     @Override
-    public void onError(Throwable error) {
+    public void onError(Throwable error, Uri uri) {
 	if (error instanceof IllegalMimeTypeException) {
 	    showToast(R.string.toast_error_open_file);
 	} else if (error instanceof FileNotFoundException) {
@@ -290,9 +290,47 @@ public class MainActivity extends FragmentActivity implements OnSuccessCallback,
 	    showToast(R.string.toast_error_illegal_file);
 	} else if (error instanceof OutOfMemoryError) {
 	    showToast(R.string.toast_error_out_of_memory);
+
+	    submitFile(uri);
 	} else {
 	    showToast(R.string.toast_error_generic);
+	    
+	    submitFile(uri);
 	}
+    }
+
+    private void submitFile(final Uri uri) {
+	if (true) return;
+	
+	// TODO: doesn't work with gmail: "file:// attachment paths must point to file:///mnt/sdcard"
+	// FIX: http://stephendnicholas.com/archives/974
+	
+	AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	builder.setTitle(R.string.toast_error_generic);
+	builder.setMessage(R.string.dialog_submit_file);
+	builder.setNegativeButton(android.R.string.no, null);
+	builder.setPositiveButton(android.R.string.yes, new OnClickListener() {
+
+	    @Override
+	    public void onClick(DialogInterface dialog, int which) {
+		Bundle bundle = new Bundle();
+		bundle.putStringArray(Intent.EXTRA_EMAIL,
+			new String[] { "tomtasche+reader@gmail.com" });
+		bundle.putParcelable(Intent.EXTRA_STREAM, uri);
+		bundle.putString(Intent.EXTRA_SUBJECT,
+			"OpenOffice Document Reader: Couldn't open file");
+
+		Intent intent = new Intent(Intent.ACTION_SEND);
+		intent.putExtras(bundle);
+
+		startActivity(Intent.createChooser(intent,
+			getString(R.string.dialog_submit_file_title)));
+
+		dialog.dismiss();
+	    }
+	});
+
+	builder.show();
     }
 
     @Override

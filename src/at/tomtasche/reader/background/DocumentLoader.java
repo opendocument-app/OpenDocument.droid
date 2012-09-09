@@ -204,7 +204,7 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 		builder.setNegativeButton(context.getString(android.R.string.cancel), null);
 		builder.show();
 	    } else if (errorCallback != null) {
-		errorCallback.onError(lastError);
+		errorCallback.onError(lastError, uri);
 	    }
 	} else {
 	    if (successCallback != null)
@@ -221,7 +221,7 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 
     public static interface OnErrorCallback {
 
-	public void onError(Throwable error);
+	public void onError(Throwable error, Uri uri);
     }
 
     @SuppressWarnings("serial")
