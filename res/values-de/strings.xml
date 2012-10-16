@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">OpenOffice Document Reader</string>
+    <string name="app_name">OpenDocument Reader</string>
     <string name="message_get_started">Verwende den Menü-Button und "Öffnen" um loszulegen!</string>
     <string name="page_dialog_title">Wähle eine Seite aus</string>
     <string name="toast_error_generic">Etwas schlimmes ist passiert. Datei konnte nicht geöffnet werden</string>
@@ -14,6 +14,8 @@
     <string name="toast_error_no_next">Keine weitere Seite vorhanden</string>
     <string name="toast_error_only_one_page">Es gibt nur eine Seite in diesem Dokument</string>
     <string name="toast_error_password_protected">Dokument ist passwort-geschützt</string>
+    <string name="dialog_submit_file_title">Wähle eine App zum Senden der Datei aus</string>
+    <string name="dialog_submit_file">Willst du uns die Datei schicken, damit wir das Problem beheben können?</string>
     <string name="dialog_no_filemanager">Kein Dateimanager vorhanden. Wir empfehlen einen der folgenden:</string>
     <string name="menu_page_list">Zeige Seiten</string>
     <string name="menu_page_next">Weiter</string>

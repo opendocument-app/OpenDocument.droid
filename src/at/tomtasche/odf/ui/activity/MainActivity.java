@@ -1,4 +1,4 @@
-package at.tomtasche.reader.ui.activity;
+package at.tomtasche.odf.ui.activity;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,13 +27,13 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import at.andiwand.odf2html.odf.IllegalMimeTypeException;
-import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.Document;
-import at.tomtasche.reader.background.Document.Part;
-import at.tomtasche.reader.background.DocumentLoader;
-import at.tomtasche.reader.background.DocumentLoader.OnErrorCallback;
-import at.tomtasche.reader.background.DocumentLoader.OnSuccessCallback;
-import at.tomtasche.reader.ui.widget.DocumentFragment;
+import at.tomtasche.odf.background.Document;
+import at.tomtasche.odf.background.DocumentLoader;
+import at.tomtasche.odf.background.Document.Part;
+import at.tomtasche.odf.background.DocumentLoader.OnErrorCallback;
+import at.tomtasche.odf.background.DocumentLoader.OnSuccessCallback;
+import at.tomtasche.odf.ui.widget.DocumentFragment;
+import at.tomtasche.odf.R;
 
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;

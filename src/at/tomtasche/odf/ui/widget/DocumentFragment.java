@@ -1,4 +1,4 @@
-package at.tomtasche.reader.ui.widget;
+package at.tomtasche.odf.ui.widget;
 
 import java.util.List;
 
@@ -7,8 +7,9 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import at.tomtasche.reader.background.Document;
-import at.tomtasche.reader.background.Document.Part;
+import at.tomtasche.odf.R;
+import at.tomtasche.odf.background.Document;
+import at.tomtasche.odf.background.Document.Part;
 
 public class DocumentFragment extends Fragment {
 
@@ -19,6 +20,9 @@ public class DocumentFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 	documentView = new DocumentView(getActivity());
+	documentView.loadData(getActivity().getString(R.string.message_get_started), "text/plain", DocumentView.ENCODING);
+	
+	document = new Document();
 
 	return documentView;
     }

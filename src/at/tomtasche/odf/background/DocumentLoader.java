@@ -1,4 +1,4 @@
-package at.tomtasche.reader.background;
+package at.tomtasche.odf.background;
 
 import java.io.CharArrayWriter;
 import java.io.File;
@@ -25,12 +25,12 @@ import at.andiwand.odf2html.odf.TemporaryOpenDocumentFile;
 import at.andiwand.odf2html.translator.FileCache;
 import at.andiwand.odf2html.translator.document.SpreadsheetTranslator;
 import at.andiwand.odf2html.translator.document.TextTranslator;
-import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.Document.Part;
+import at.tomtasche.odf.background.Document.Part;
+import at.tomtasche.odf.R;
 
 public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 
-    public static final Uri URI_INTRO = Uri.parse("reader://intro.odt");
+    public static final Uri URI_INTRO = Uri.parse("odf://intro.odt");
 
     private final Context context;
     private final ProgressDialog progressDialog;

@@ -1,24 +1,29 @@
-package at.tomtasche.reader.ui.widget;
+package at.tomtasche.odf.ui.widget;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import at.tomtasche.reader.R;
 
 public class DocumentView extends WebView {
 
-    private static final String ENCODING = "UTF-8";
+    protected static final String ENCODING = "UTF-8";
 
-    public DocumentView(final Context context) {
+    @SuppressLint("NewApi")
+	public DocumentView(final Context context) {
 	super(context);
 
 	final WebSettings settings = getSettings();
 	settings.setBuiltInZoomControls(true);
 	settings.setLightTouchEnabled(true);
 	settings.setSupportZoom(true);
-	settings.setPluginsEnabled(false);
 	settings.setDefaultTextEncodingName(ENCODING);
+	try {
+		settings.setDisplayZoomControls(true);
+	} catch (Exception e) {}
+	
+	setKeepScreenOn(true);
 	
 	setWebViewClient(new WebViewClient() {
 	   
@@ -28,7 +33,5 @@ public class DocumentView extends WebView {
 		// TODO: hide progressbar
 	    }
 	});
-
-	loadData(context.getString(R.string.message_get_started), "text/plain", ENCODING);
     }
 }

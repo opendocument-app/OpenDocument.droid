@@ -1,4 +1,4 @@
-package at.tomtasche.reader.background;
+package at.tomtasche.odf.background;
 
 import java.io.File;
 import java.net.URI;
@@ -22,7 +22,7 @@ public class AndroidFileCache extends FileCache {
 	    URI result = null;
 
 	    try {
-		result = new URI("content://at.tomtasche.reader/" + Uri.encode(imageFileName));
+		result = new URI("content://at.tomtasche.odf/" + Uri.encode(imageFileName));
 	    } catch (URISyntaxException e) {
 		e.printStackTrace();
 	    }

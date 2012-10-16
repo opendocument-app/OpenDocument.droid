@@ -1,4 +1,4 @@
-package at.tomtasche.reader.background;
+package at.tomtasche.odf.background;
 
 import java.net.URI;
 import java.util.ArrayList;

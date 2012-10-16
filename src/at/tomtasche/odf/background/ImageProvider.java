@@ -1,5 +1,5 @@
 
-package at.tomtasche.reader.background;
+package at.tomtasche.odf.background;
 
 import java.io.File;
 import java.io.FileNotFoundException;
