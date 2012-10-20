@@ -22,9 +22,9 @@ import at.andiwand.odf2html.odf.OpenDocumentFile;
 import at.andiwand.odf2html.odf.OpenDocumentSpreadsheet;
 import at.andiwand.odf2html.odf.OpenDocumentText;
 import at.andiwand.odf2html.odf.TemporaryOpenDocumentFile;
-import at.andiwand.odf2html.translator.FileCache;
 import at.andiwand.odf2html.translator.document.SpreadsheetTranslator;
 import at.andiwand.odf2html.translator.document.TextTranslator;
+import at.andiwand.odf2html.util.FileCache;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.Document.Part;
 
@@ -89,8 +89,9 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 				stream = context.getContentResolver().openInputStream(uri);
 			}
 
+			FileCache fileCache = new AndroidFileCache(context);
 			OpenDocumentFile documentFile = new TemporaryOpenDocumentFile(
-					stream);
+					stream, fileCache);
 			String mimeType = documentFile.getMimetype();
 			if (!OpenDocument.checkMimetype(mimeType)) {
 				lastError = new IllegalMimeTypeException();
@@ -107,7 +108,6 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 			}
 
 			Document result = new Document();
-			FileCache fileCache = new AndroidFileCache(context);
 			OpenDocument document = documentFile.getAsOpenDocument();
 			if (document instanceof OpenDocumentText) {
 				CharArrayWriter writer = new CharArrayWriter();

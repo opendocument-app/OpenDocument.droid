@@ -7,11 +7,11 @@ import java.net.URISyntaxException;
 import android.content.Context;
 import android.net.Uri;
 import at.andiwand.odf2html.translator.File2URITranslator;
-import at.andiwand.odf2html.translator.FileCache;
+import at.andiwand.odf2html.util.DefaultFileCache;
 
-public class AndroidFileCache extends FileCache {
+public class AndroidFileCache extends DefaultFileCache {
 
-	private static File2URITranslator DEFAULT_INSTANCE = new File2URITranslator() {
+	private static final File2URITranslator URI_TRANSLATOR = new File2URITranslator() {
 		@Override
 		public URI translate(File file) {
 			URI uri = file.toURI();
@@ -20,7 +20,6 @@ public class AndroidFileCache extends FileCache {
 			String imageFileName = imageFile.getName();
 
 			URI result = null;
-
 			try {
 				result = new URI("content://at.tomtasche.reader/"
 						+ Uri.encode(imageFileName));
@@ -33,6 +32,20 @@ public class AndroidFileCache extends FileCache {
 	};
 
 	public AndroidFileCache(Context context) {
-		super(context.getCacheDir(), DEFAULT_INSTANCE, false);
+		super(context.getCacheDir(), URI_TRANSLATOR);
+	}
+
+	public static void cleanup(Context context) {
+		File cache = context.getCacheDir();
+		if (cache.list() == null)
+			return;
+
+		for (String s : cache.list()) {
+			try {
+				new File(cache, s).delete();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

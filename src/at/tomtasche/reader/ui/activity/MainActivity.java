@@ -1,6 +1,5 @@
 package at.tomtasche.reader.ui.activity;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
@@ -28,6 +27,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 import at.andiwand.odf2html.odf.IllegalMimeTypeException;
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.Document.Part;
 import at.tomtasche.reader.background.DocumentLoader;
@@ -373,14 +373,7 @@ public class MainActivity extends FragmentActivity implements
 
 			@Override
 			public void run() {
-				// clean cache
-				for (final String s : getCacheDir().list()) {
-					try {
-						new File(getCacheDir(), s).delete();
-					} catch (final Exception e) {
-						e.printStackTrace();
-					}
-				}
+				AndroidFileCache.cleanup(MainActivity.this);
 			}
 		}.start();
 	}
