@@ -10,6 +10,7 @@ import net.robotmedia.billing.helper.AbstractBillingActivity;
 import net.robotmedia.billing.helper.AbstractBillingObserver;
 import net.robotmedia.billing.model.Transaction;
 import net.robotmedia.billing.model.Transaction.PurchaseState;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -17,6 +18,7 @@ import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
@@ -33,6 +35,7 @@ import at.tomtasche.reader.background.Document.Part;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.OnErrorCallback;
 import at.tomtasche.reader.background.DocumentLoader.OnSuccessCallback;
+import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.ui.widget.DocumentFragment;
 
 import com.google.ads.AdRequest;
@@ -54,6 +57,7 @@ public class MainActivity extends FragmentActivity implements
 	private DocumentFragment documentFragment;
 	private AdView adView;
 
+	@SuppressLint("NewApi")
 	@Override
 	protected void onCreate(Bundle arg0) {
 		super.onCreate(arg0);
@@ -308,6 +312,9 @@ public class MainActivity extends FragmentActivity implements
 
 			submitFile(uri);
 		}
+
+		if (Build.VERSION.SDK_INT >= 14)
+			startActivity(ReportUtil.createFeedbackIntent(this, error));
 	}
 
 	private void submitFile(final Uri uri) {
