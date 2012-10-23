@@ -1,7 +1,11 @@
 package at.tomtasche.reader.ui.activity;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
+import java.util.zip.ZipException;
 
 import net.robotmedia.billing.BillingController;
 import net.robotmedia.billing.BillingController.BillingStatus;
@@ -10,7 +14,6 @@ import net.robotmedia.billing.helper.AbstractBillingActivity;
 import net.robotmedia.billing.helper.AbstractBillingObserver;
 import net.robotmedia.billing.model.Transaction;
 import net.robotmedia.billing.model.Transaction.PurchaseState;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -18,7 +21,6 @@ import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
@@ -35,7 +37,6 @@ import at.tomtasche.reader.background.Document.Part;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.OnErrorCallback;
 import at.tomtasche.reader.background.DocumentLoader.OnSuccessCallback;
-import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.ui.widget.DocumentFragment;
 
 import com.google.ads.AdRequest;
@@ -57,7 +58,6 @@ public class MainActivity extends FragmentActivity implements
 	private DocumentFragment documentFragment;
 	private AdView adView;
 
-	@SuppressLint("NewApi")
 	@Override
 	protected void onCreate(Bundle arg0) {
 		super.onCreate(arg0);
@@ -292,39 +292,37 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	private void showToast(int resId) {
-		Toast.makeText(this, resId, Toast.LENGTH_LONG).show();
+		showToast(getString(resId));
+	}
+
+	private void showToast(String message) {
+		Toast.makeText(this, message, Toast.LENGTH_LONG).show();
 	}
 
 	@Override
 	public void onError(Throwable error, Uri uri) {
-		if (error instanceof IllegalMimeTypeException) {
+		if (error instanceof IllegalMimeTypeException || error instanceof ZipException) {
 			showToast(R.string.toast_error_open_file);
+
+			return;
 		} else if (error instanceof FileNotFoundException) {
 			showToast(R.string.toast_error_find_file);
 		} else if (error instanceof IllegalArgumentException) {
 			showToast(R.string.toast_error_illegal_file);
 		} else if (error instanceof OutOfMemoryError) {
 			showToast(R.string.toast_error_out_of_memory);
-
-			submitFile(uri);
 		} else {
-			showToast(R.string.toast_error_generic);
-
-			submitFile(uri);
+			showToast(getString(R.string.toast_error_generic) + ": "
+					+ error.getClass().getSimpleName());
 		}
 
-		if (Build.VERSION.SDK_INT >= 14)
-			startActivity(ReportUtil.createFeedbackIntent(this, error));
+		submitFile(error, uri);
+
+		// if (Build.VERSION.SDK_INT >= 14)
+		// startActivity(ReportUtil.createFeedbackIntent(this, error));
 	}
 
-	private void submitFile(final Uri uri) {
-		if (true)
-			return;
-
-		// TODO: doesn't work with gmail:
-		// "file:// attachment paths must point to file:///mnt/sdcard"
-		// FIX: http://stephendnicholas.com/archives/974
-
+	private void submitFile(final Throwable error, final Uri uri) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.toast_error_generic);
 		builder.setMessage(R.string.dialog_submit_file);
@@ -338,9 +336,25 @@ public class MainActivity extends FragmentActivity implements
 						new String[] { "tomtasche+reader@gmail.com" });
 				bundle.putParcelable(Intent.EXTRA_STREAM, uri);
 				bundle.putString(Intent.EXTRA_SUBJECT,
-						"OpenOffice Document Reader: Couldn't open file");
+						"OpenDocument Reader: Couldn't open file");
+
+				StringWriter writer = new StringWriter();
+				PrintWriter printer = new PrintWriter(writer);
+				printer.println("Important information for the developer: ");
+				error.printStackTrace(printer);
+				printer.println();
+				printer.println("Feel free to append further information here.");
+
+				try {
+					printer.close();
+					writer.close();
+				} catch (IOException e) {
+				}
+
+				bundle.putString(Intent.EXTRA_TEXT, writer.toString());
 
 				Intent intent = new Intent(Intent.ACTION_SEND);
+				intent.setType("plain/text");
 				intent.putExtras(bundle);
 
 				startActivity(Intent.createChooser(intent,

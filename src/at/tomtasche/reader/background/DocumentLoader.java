@@ -18,7 +18,6 @@ import at.andiwand.commons.lwxml.writer.LWXMLStreamWriter;
 import at.andiwand.commons.lwxml.writer.LWXMLWriter;
 import at.andiwand.odf2html.odf.IllegalMimeTypeException;
 import at.andiwand.odf2html.odf.OpenDocument;
-import at.andiwand.odf2html.odf.OpenDocumentFile;
 import at.andiwand.odf2html.odf.OpenDocumentSpreadsheet;
 import at.andiwand.odf2html.odf.OpenDocumentText;
 import at.andiwand.odf2html.odf.TemporaryOpenDocumentFile;
@@ -90,19 +89,19 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 			}
 
 			FileCache fileCache = new AndroidFileCache(context);
-			OpenDocumentFile documentFile = new TemporaryOpenDocumentFile(
+			TemporaryOpenDocumentFile documentFile = new TemporaryOpenDocumentFile(
 					stream, fileCache);
+
+			uri = Uri.parse(fileCache.getFileURI(
+					documentFile.getFile().getName()).toString());
+
 			String mimeType = documentFile.getMimetype();
 			if (!OpenDocument.checkMimetype(mimeType)) {
-				lastError = new IllegalMimeTypeException();
-
-				return null;
+				throw new IllegalMimeTypeException();
 			}
 
 			if (documentFile.isEncrypted() && password == null) {
-				lastError = new EncryptedDocumentException();
-
-				return null;
+				throw new EncryptedDocumentException();
 			} else if (password != null) {
 				documentFile.setPassword(password);
 			}
@@ -156,10 +155,8 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 					}
 				}
 			} else {
-				lastError = new IllegalMimeTypeException(
+				throw new IllegalMimeTypeException(
 						"I don't know what it is, but I can't stop parsing it");
-
-				return null;
 			}
 
 			return result;
@@ -167,9 +164,9 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 			e.printStackTrace();
 
 			lastError = e;
-
-			return null;
 		}
+
+		return null;
 	}
 
 	@Override
@@ -183,10 +180,7 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 	protected void onPostExecute(Document document) {
 		super.onPostExecute(document);
 
-		if (document == null) {
-			if (lastError == null)
-				throw new IllegalStateException("document and lastError null");
-
+		if (lastError != null) {
 			if (lastError instanceof EncryptedDocumentException) {
 				AlertDialog.Builder builder = new AlertDialog.Builder(context);
 				builder.setTitle(R.string.toast_error_password_protected);
@@ -220,9 +214,13 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 			} else if (errorCallback != null) {
 				errorCallback.onError(lastError, uri);
 			}
-		} else {
+		} else if (document != null) {
 			if (successCallback != null)
 				successCallback.onSuccess(document);
+		} else {
+			if (errorCallback != null)
+				errorCallback.onError(new IllegalStateException(
+						"document and lastError null"), uri);
 		}
 
 		progressDialog.dismiss();

@@ -43,6 +43,7 @@ public class DocumentFragment extends Fragment {
 		loadData(firstPage.getUrl());
 	}
 
+	@SuppressWarnings("deprecation")
 	public void searchDocument(String query) {
 		documentView.findAll(query);
 	}
