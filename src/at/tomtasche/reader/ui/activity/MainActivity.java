@@ -8,9 +8,7 @@ import java.util.List;
 import java.util.zip.ZipException;
 
 import net.robotmedia.billing.BillingController;
-import net.robotmedia.billing.BillingController.BillingStatus;
 import net.robotmedia.billing.BillingRequest.ResponseCode;
-import net.robotmedia.billing.helper.AbstractBillingActivity;
 import net.robotmedia.billing.helper.AbstractBillingObserver;
 import net.robotmedia.billing.model.Transaction;
 import net.robotmedia.billing.model.Transaction.PurchaseState;
@@ -18,6 +16,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
@@ -30,6 +29,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import at.andiwand.odf2html.odf.IllegalMimeTypeException;
+import at.andiwand.odf2html.odf.ZipEntryNotFoundException;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.Document;
@@ -69,7 +69,7 @@ public class MainActivity extends FragmentActivity implements
 		getSupportFragmentManager().beginTransaction()
 				.add(R.id.document_container, documentFragment).commit();
 
-		mBillingObserver = new AbstractBillingObserver(this) {
+		billingObserver = new AbstractBillingObserver(this) {
 
 			public void onBillingChecked(boolean supported) {
 			}
@@ -79,17 +79,27 @@ public class MainActivity extends FragmentActivity implements
 
 			public void onPurchaseStateChanged(String itemId,
 					PurchaseState state) {
-				MainActivity.this.onPurchaseStateChanged(itemId, state);
+				List<Transaction> transactions = BillingController
+						.getTransactions(MainActivity.this);
+				for (Transaction t : transactions) {
+					if (t.purchaseState == PurchaseState.PURCHASED) {
+						if (adView != null)
+							adView.setVisibility(View.GONE);
+					}
+				}
 			}
 
 			public void onRequestPurchaseResponse(String itemId,
 					ResponseCode response) {
+				if (response == ResponseCode.RESULT_OK) {
+					if (adView != null)
+						adView.setVisibility(View.GONE);
+				}
 			}
 		};
-		BillingController.registerObserver(mBillingObserver);
+		BillingController.registerObserver(billingObserver);
 		BillingController.setConfiguration(this);
-		this.checkBillingSupported();
-		if (!mBillingObserver.isTransactionsRestored()) {
+		if (!billingObserver.isTransactionsRestored()) {
 			BillingController.restoreTransactions(this);
 		}
 
@@ -105,6 +115,17 @@ public class MainActivity extends FragmentActivity implements
 			loadUri(getIntent().getData());
 		} else {
 			loadUri(DocumentLoader.URI_INTRO);
+		}
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+
+		if (BillingController.isPurchased(this, "remove_ads_1y")
+				|| BillingController.isPurchased(this, "remove_ads_4eva")) {
+			if (adView != null)
+				adView.setVisibility(View.GONE);
 		}
 	}
 
@@ -282,12 +303,6 @@ public class MainActivity extends FragmentActivity implements
 		if (requestCode == 42 && resultCode == RESULT_OK && data != null
 				&& data.getData() != null) {
 			loadUri(data.getData());
-		} else if (requestCode == 1993) {
-			if (BillingController.isPurchased(this, "remove_ads_1y")
-					|| BillingController.isPurchased(this, "remove_ads_4eva")) {
-				if (adView != null)
-					adView.setVisibility(View.GONE);
-			}
 		}
 	}
 
@@ -301,7 +316,9 @@ public class MainActivity extends FragmentActivity implements
 
 	@Override
 	public void onError(Throwable error, Uri uri) {
-		if (error instanceof IllegalMimeTypeException || error instanceof ZipException) {
+		if (error instanceof IllegalMimeTypeException
+				|| error instanceof ZipException
+				|| error instanceof ZipEntryNotFoundException) {
 			showToast(R.string.toast_error_open_file);
 
 			return;
@@ -335,14 +352,23 @@ public class MainActivity extends FragmentActivity implements
 				bundle.putStringArray(Intent.EXTRA_EMAIL,
 						new String[] { "tomtasche+reader@gmail.com" });
 				bundle.putParcelable(Intent.EXTRA_STREAM, uri);
-				bundle.putString(Intent.EXTRA_SUBJECT,
-						"OpenDocument Reader: Couldn't open file");
+
+				String version;
+				try {
+					version = getPackageManager().getPackageInfo(
+							getPackageName(), 0).versionName;
+				} catch (NameNotFoundException e1) {
+					version = "unknown";
+				}
+				bundle.putString(Intent.EXTRA_SUBJECT, "OpenDocument Reader ("
+						+ version + "): Couldn't open file");
 
 				StringWriter writer = new StringWriter();
 				PrintWriter printer = new PrintWriter(writer);
 				printer.println("Important information for the developer: ");
 				error.printStackTrace(printer);
 				printer.println();
+				printer.println("-----------------");
 				printer.println("Feel free to append further information here.");
 
 				try {
@@ -386,7 +412,7 @@ public class MainActivity extends FragmentActivity implements
 		if (adView != null)
 			adView.destroy();
 
-		BillingController.unregisterObserver(mBillingObserver);
+		BillingController.unregisterObserver(billingObserver);
 		BillingController.setConfiguration(null);
 
 		// TODO: ugly threading
@@ -400,101 +426,7 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	// taken from net.robotmedia.billing.helper.AbstractBillingActivity
-	protected AbstractBillingObserver mBillingObserver;
-
-	/**
-	 * <p>
-	 * Returns the in-app product billing support status, and checks it
-	 * asynchronously if it is currently unknown.
-	 * {@link AbstractBillingActivity#onBillingChecked(boolean)} will be called
-	 * eventually with the result.
-	 * </p>
-	 * <p>
-	 * In-app product support does not imply subscription support. To check if
-	 * subscriptions are supported, use
-	 * {@link AbstractBillingActivity#checkSubscriptionSupported()}.
-	 * </p>
-	 * 
-	 * @return the current in-app product billing support status (unknown,
-	 *         supported or unsupported). If it is unsupported, subscriptions
-	 *         are also unsupported.
-	 * @see AbstractBillingActivity#onBillingChecked(boolean)
-	 * @see AbstractBillingActivity#checkSubscriptionSupported()
-	 */
-	public BillingStatus checkBillingSupported() {
-		return BillingController.checkBillingSupported(this);
-	}
-
-	/**
-	 * <p>
-	 * Returns the subscription billing support status, and checks it
-	 * asynchronously if it is currently unknown.
-	 * {@link AbstractBillingActivity#onSubscriptionChecked(boolean)} will be
-	 * called eventually with the result.
-	 * </p>
-	 * <p>
-	 * No support for subscriptions does not imply that in-app products are also
-	 * unsupported. To check if subscriptions are supported, use
-	 * {@link AbstractBillingActivity#checkSubscriptionSupported()}.
-	 * </p>
-	 * 
-	 * @return the current in-app product billing support status (unknown,
-	 *         supported or unsupported). If it is unsupported, subscriptions
-	 *         are also unsupported.
-	 * @see AbstractBillingActivity#onBillingChecked(boolean)
-	 * @see AbstractBillingActivity#checkSubscriptionSupported()
-	 */
-	public BillingStatus checkSubscriptionSupported() {
-		return BillingController.checkSubscriptionSupported(this);
-	}
-
-	public void onPurchaseStateChanged(String itemId, PurchaseState state) {
-		List<Transaction> transactions = BillingController
-				.getTransactions(this);
-		for (Transaction t : transactions) {
-			if (t.purchaseState == PurchaseState.PURCHASED) {
-				if (adView != null)
-					adView.setVisibility(View.GONE);
-			}
-		}
-	}
-
-	/**
-	 * Requests the purchase of the specified item. The transaction will not be
-	 * confirmed automatically; such confirmation could be handled in
-	 * {@link AbstractBillingActivity#onPurchaseExecuted(String)}. If automatic
-	 * confirmation is preferred use
-	 * {@link BillingController#requestPurchase(android.content.Context, String, boolean)}
-	 * instead.
-	 * 
-	 * @param itemId
-	 *            id of the item to be purchased.
-	 */
-	public void requestPurchase(String itemId) {
-		BillingController.requestPurchase(this, itemId);
-	}
-
-	/**
-	 * Requests the purchase of the specified subscription item. The transaction
-	 * will not be confirmed automatically; such confirmation could be handled
-	 * in {@link AbstractBillingActivity#onPurchaseExecuted(String)}. If
-	 * automatic confirmation is preferred use
-	 * {@link BillingController#requestPurchase(android.content.Context, String, boolean)}
-	 * instead.
-	 * 
-	 * @param itemId
-	 *            id of the item to be purchased.
-	 */
-	public void requestSubscription(String itemId) {
-		BillingController.requestSubscription(this, itemId);
-	}
-
-	/**
-	 * Requests to restore all transactions.
-	 */
-	public void restoreTransactions() {
-		BillingController.restoreTransactions(this);
-	}
+	protected AbstractBillingObserver billingObserver;
 
 	@Override
 	public byte[] getObfuscationSalt() {
