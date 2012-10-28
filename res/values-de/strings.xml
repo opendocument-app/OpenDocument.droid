@@ -17,6 +17,7 @@
     <string name="dialog_submit_file_title">Wähle eine App zum Senden der Datei aus</string>
     <string name="dialog_submit_file">Willst du uns die Datei schicken, damit wir das Problem beheben können?</string>
     <string name="dialog_no_filemanager">Kein Dateimanager vorhanden. Wir empfehlen einen der folgenden:</string>
+    <string name="dialog_choose_filemanager">Öffne Dokument mittels:</string>
     <string name="menu_page_list">Zeige Seiten</string>
     <string name="menu_page_next">Weiter</string>
     <string name="menu_page_previous">Zurück</string>

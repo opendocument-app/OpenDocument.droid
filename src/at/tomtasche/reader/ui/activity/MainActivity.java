@@ -13,6 +13,7 @@ import net.robotmedia.billing.helper.AbstractBillingObserver;
 import net.robotmedia.billing.model.Transaction;
 import net.robotmedia.billing.model.Transaction.PurchaseState;
 import android.app.AlertDialog;
+import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
@@ -20,6 +21,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
@@ -46,6 +48,8 @@ import com.google.ads.AdView;
 public class MainActivity extends FragmentActivity implements
 		OnSuccessCallback, OnErrorCallback, BillingController.IConfiguration {
 
+	private static final String BILLING_PRODUCT_YEAR = "remove_ads_for_1y";
+	private static final String BILLING_PRODUCT_FOREVER = "remove_ads_for_eva";
 	private static final AdRequest AD_REQUEST;
 
 	static {
@@ -103,8 +107,9 @@ public class MainActivity extends FragmentActivity implements
 			BillingController.restoreTransactions(this);
 		}
 
-		if (!BillingController.isPurchased(this, "remove_ads_1y")
-				|| !BillingController.isPurchased(this, "remove_ads_for_eva")) {
+		if (!BillingController.isPurchased(this, BILLING_PRODUCT_YEAR)
+				|| !BillingController
+						.isPurchased(this, BILLING_PRODUCT_FOREVER)) {
 			adView = new AdView(this, AdSize.SMART_BANNER, "a15042277f73506");
 			adView.loadAd(AD_REQUEST);
 
@@ -122,8 +127,8 @@ public class MainActivity extends FragmentActivity implements
 	protected void onStart() {
 		super.onStart();
 
-		if (BillingController.isPurchased(this, "remove_ads_1y")
-				|| BillingController.isPurchased(this, "remove_ads_4eva")) {
+		if (BillingController.isPurchased(this, BILLING_PRODUCT_YEAR)
+				|| BillingController.isPurchased(this, BILLING_PRODUCT_FOREVER)) {
 			if (adView != null)
 				adView.setVisibility(View.GONE);
 		}
@@ -135,8 +140,6 @@ public class MainActivity extends FragmentActivity implements
 
 		if (intent.getData() != null) {
 			loadUri(intent.getData());
-		} else {
-			loadUri(DocumentLoader.URI_INTRO);
 		}
 	}
 
@@ -231,15 +234,15 @@ public class MainActivity extends FragmentActivity implements
 		}
 
 		case R.id.menu_remove_ads_for_1y: {
-			BillingController.requestPurchase(this, "remove_ads_for_1y", true,
+			BillingController.requestPurchase(this, BILLING_PRODUCT_YEAR, true,
 					null);
 
 			break;
 		}
 
 		case R.id.menu_remove_ads_forever: {
-			BillingController.requestPurchase(this, "remove_ads_for_eva", true,
-					null);
+			BillingController.requestPurchase(this, BILLING_PRODUCT_FOREVER,
+					true, null);
 
 			break;
 		}
@@ -262,12 +265,12 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	private void findDocument() {
-		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+		final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 		intent.setType("application/vnd.oasis.opendocument.*");
 		intent.addCategory(Intent.CATEGORY_OPENABLE);
 
-		List<ResolveInfo> targets = getPackageManager().queryIntentActivities(
-				intent, 0);
+		final List<ResolveInfo> targets = getPackageManager()
+				.queryIntentActivities(intent, 0);
 		if (targets.size() == 0) {
 			String[] explorerNames = new String[] { "OI File Manager",
 					"Explorer" };
@@ -281,17 +284,38 @@ public class MainActivity extends FragmentActivity implements
 
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-					Intent intent = new Intent(Intent.ACTION_VIEW);
-					intent.setData(Uri.parse(explorerUrls[which]));
+					Intent explorerIntent = new Intent(Intent.ACTION_VIEW);
+					explorerIntent.setData(Uri.parse(explorerUrls[which]));
 
-					startActivity(intent);
+					startActivity(explorerIntent);
 
 					dialog.dismiss();
 				}
 			});
 			builder.create().show();
 		} else {
-			startActivityForResult(intent, 42);
+			String[] targetNames = new String[targets.size()];
+			for (int i = 0; i < targetNames.length; i++) {
+				targetNames[i] = targets.get(i).loadLabel(getPackageManager())
+						.toString();
+			}
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle(R.string.dialog_choose_filemanager);
+			builder.setItems(targetNames, new OnClickListener() {
+
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					intent.setComponent(new ComponentName(
+							targets.get(which).activityInfo.packageName,
+							targets.get(which).activityInfo.name));
+
+					startActivityForResult(intent, 42);
+
+					dialog.dismiss();
+				}
+			});
+			builder.create().show();
 		}
 	}
 
@@ -365,7 +389,10 @@ public class MainActivity extends FragmentActivity implements
 
 				StringWriter writer = new StringWriter();
 				PrintWriter printer = new PrintWriter(writer);
-				printer.println("Important information for the developer: ");
+				printer.println("Important information for the developer:");
+				printer.println(Build.MODEL + " running Android "
+						+ Build.VERSION.SDK_INT);
+				printer.println();
 				error.printStackTrace(printer);
 				printer.println();
 				printer.println("-----------------");

@@ -17,6 +17,7 @@
     <string name="dialog_submit_file_title">Choose an app to send us your file</string>
     <string name="dialog_submit_file">Do you want to send us the file so we can make it work with the next update?</string>
     <string name="dialog_no_filemanager">No file explorer found. We recommend one of these:</string>
+    <string name="dialog_choose_filemanager">Open document via:</string>
     <string name="menu_page_list">List pages</string>
     <string name="menu_page_next">Next</string>
     <string name="menu_page_previous">Previous</string>
