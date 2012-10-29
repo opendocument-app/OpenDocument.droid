@@ -39,6 +39,7 @@ import at.tomtasche.reader.background.Document.Part;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.OnErrorCallback;
 import at.tomtasche.reader.background.DocumentLoader.OnSuccessCallback;
+import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.ui.widget.DocumentFragment;
 
 import com.google.ads.AdRequest;
@@ -271,12 +272,11 @@ public class MainActivity extends FragmentActivity implements
 
 		final List<ResolveInfo> targets = getPackageManager()
 				.queryIntentActivities(intent, 0);
+		final String[] explorerUrls = new String[] {
+				"https://play.google.com/store/apps/details?id=org.openintents.filemanager",
+				"https://play.google.com/store/apps/details?id=com.speedsoftware.explorer" };
+		String[] explorerNames = new String[] { "OI File Manager", "Explorer" };
 		if (targets.size() == 0) {
-			String[] explorerNames = new String[] { "OI File Manager",
-					"Explorer" };
-			final String[] explorerUrls = new String[] {
-					"https://play.google.com/store/apps/details?id=org.openintents.filemanager",
-					"https://play.google.com/store/apps/details?id=com.speedsoftware.explorer" };
 
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setTitle(R.string.dialog_no_filemanager);
@@ -294,10 +294,15 @@ public class MainActivity extends FragmentActivity implements
 			});
 			builder.create().show();
 		} else {
-			String[] targetNames = new String[targets.size()];
-			for (int i = 0; i < targetNames.length; i++) {
+			final String[] targetNames = new String[targets.size() + 2];
+			for (int i = 0; i < targets.size(); i++) {
 				targetNames[i] = targets.get(i).loadLabel(getPackageManager())
 						.toString();
+			}
+
+			for (int i = 0; i < explorerNames.length; i++) {
+				targetNames[targetNames.length - 1 - i] = "Install "
+						+ explorerNames[i];
 			}
 
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -306,11 +311,19 @@ public class MainActivity extends FragmentActivity implements
 
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-					intent.setComponent(new ComponentName(
-							targets.get(which).activityInfo.packageName,
-							targets.get(which).activityInfo.name));
+					if (which < targets.size()) {
+						ResolveInfo target = targets.get(which);
+						intent.setComponent(new ComponentName(
+								target.activityInfo.packageName,
+								target.activityInfo.name));
 
-					startActivityForResult(intent, 42);
+						startActivityForResult(intent, 42);
+					} else {
+						String url = explorerUrls[targetNames.length - which - 1];
+
+						startActivity(new Intent(Intent.ACTION_VIEW, Uri
+								.parse(url)));
+					}
 
 					dialog.dismiss();
 				}
@@ -345,9 +358,17 @@ public class MainActivity extends FragmentActivity implements
 				|| error instanceof ZipEntryNotFoundException) {
 			showToast(R.string.toast_error_open_file);
 
+			if (Build.VERSION.SDK_INT >= 14)
+				startActivity(ReportUtil.createFeedbackIntent(this, error));
+
 			return;
 		} else if (error instanceof FileNotFoundException) {
 			showToast(R.string.toast_error_find_file);
+
+			if (Build.VERSION.SDK_INT >= 14)
+				startActivity(ReportUtil.createFeedbackIntent(this, error));
+
+			return;
 		} else if (error instanceof IllegalArgumentException) {
 			showToast(R.string.toast_error_illegal_file);
 		} else if (error instanceof OutOfMemoryError) {
@@ -358,9 +379,6 @@ public class MainActivity extends FragmentActivity implements
 		}
 
 		submitFile(error, uri);
-
-		// if (Build.VERSION.SDK_INT >= 14)
-		// startActivity(ReportUtil.createFeedbackIntent(this, error));
 	}
 
 	private void submitFile(final Throwable error, final Uri uri) {
