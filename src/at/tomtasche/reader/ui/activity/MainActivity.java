@@ -23,6 +23,7 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -319,7 +320,8 @@ public class MainActivity extends FragmentActivity implements
 
 						startActivityForResult(intent, 42);
 					} else {
-						String url = explorerUrls[targetNames.length - which - 1];
+						String url = explorerUrls[targetNames.length - which
+								- 1];
 
 						startActivity(new Intent(Intent.ACTION_VIEW, Uri
 								.parse(url)));
@@ -363,10 +365,17 @@ public class MainActivity extends FragmentActivity implements
 
 			return;
 		} else if (error instanceof FileNotFoundException) {
-			showToast(R.string.toast_error_find_file);
+			if (Environment.getExternalStorageState().equals(
+					Environment.MEDIA_MOUNTED_READ_ONLY)
+					|| Environment.getExternalStorageState().equals(
+							Environment.MEDIA_MOUNTED)) {
+				showToast(R.string.toast_error_find_file);
 
-			if (Build.VERSION.SDK_INT >= 14)
-				startActivity(ReportUtil.createFeedbackIntent(this, error));
+				if (Build.VERSION.SDK_INT >= 14)
+					startActivity(ReportUtil.createFeedbackIntent(this, error));
+			} else {
+				showToast(R.string.toast_error_storage);
+			}
 
 			return;
 		} else if (error instanceof IllegalArgumentException) {

@@ -6,7 +6,7 @@
     <string name="page_dialog_title">Pick a page</string>
     <string name="toast_error_generic">Something bad happened. Couldn\'t open file</string>
     <string name="toast_error_access_file">Couldn\'t access file</string>
-    <string name="toast_error_find_file">Couldn\'t find file</string>
+    <string name="toast_error_find_file">Couldn\'t find file. Maybe it doesn\'t exist any longer?</string>
     <string name="toast_error_illegal_file">This doesn\'t seem to be a supported file format</string>
     <string name="toast_error_open_file">Couldn\'t open file. Only .odt and .ods documents are supported!</string>
     <string name="toast_error_out_of_memory">Phone out of memory! Too many pictures, or too big file</string>
@@ -14,6 +14,7 @@
     <string name="toast_error_no_next">No next page available</string>
     <string name="toast_error_only_one_page">There\'s only one page</string>
     <string name="toast_error_password_protected">Document is password-protected</string>
+    <string name="toast_error_storage">External storage not available. Couldn\'t read file</string>
     <string name="dialog_submit_file_title">Choose an app to send us your file</string>
     <string name="dialog_submit_file">Do you want to send us the file so we can make it work with the next update?</string>
     <string name="dialog_no_filemanager">No file explorer found. We recommend one of these:</string>
