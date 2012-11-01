@@ -25,6 +25,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
+import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,6 +39,7 @@ import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.Document.Part;
 import at.tomtasche.reader.background.DocumentLoader;
+import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.DocumentLoader.OnErrorCallback;
 import at.tomtasche.reader.background.DocumentLoader.OnSuccessCallback;
 import at.tomtasche.reader.background.ReportUtil;
@@ -72,8 +74,10 @@ public class MainActivity extends FragmentActivity implements
 		setContentView(R.layout.main);
 
 		documentFragment = new DocumentFragment();
-		getSupportFragmentManager().beginTransaction()
-				.add(R.id.document_container, documentFragment).commit();
+		getSupportFragmentManager()
+				.beginTransaction()
+				.add(R.id.document_container, documentFragment,
+						DocumentFragment.FRAGMENT_TAG).commit();
 
 		billingObserver = new AbstractBillingObserver(this) {
 
@@ -354,8 +358,29 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	@Override
-	public void onError(Throwable error, Uri uri) {
-		if (error instanceof IllegalMimeTypeException
+	public void onError(Throwable error, final Uri uri) {
+		if (error instanceof EncryptedDocumentException) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle(R.string.toast_error_password_protected);
+
+			final EditText input = new EditText(this);
+			input.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+			builder.setView(input);
+
+			builder.setPositiveButton(getString(android.R.string.ok),
+					new DialogInterface.OnClickListener() {
+
+						@Override
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							loadUri(uri, input.getText().toString());
+
+							dialog.dismiss();
+						}
+					});
+			builder.setNegativeButton(getString(android.R.string.cancel), null);
+			builder.show();
+		} else if (error instanceof IllegalMimeTypeException
 				|| error instanceof ZipException
 				|| error instanceof ZipEntryNotFoundException) {
 			showToast(R.string.toast_error_open_file);
@@ -452,11 +477,18 @@ public class MainActivity extends FragmentActivity implements
 		documentFragment.loadDocument(document);
 	}
 
-	protected void loadUri(Uri uri) {
+	public DocumentLoader loadUri(Uri uri) {
+		return loadUri(uri, null);
+	}
+
+	public DocumentLoader loadUri(Uri uri, String password) {
 		DocumentLoader documentLoader = new DocumentLoader(this);
 		documentLoader.setOnSuccessCallback(this);
 		documentLoader.setOnErrorCallback(this);
+		documentLoader.setPassword(password);
 		documentLoader.execute(uri);
+
+		return documentLoader;
 	}
 
 	@Override

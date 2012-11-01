@@ -13,6 +13,8 @@ import at.tomtasche.reader.background.Document.Part;
 
 public class DocumentFragment extends Fragment {
 
+	public static final String FRAGMENT_TAG = "document_fragment";
+
 	private DocumentView documentView;
 	private Document document;
 	private int index;
@@ -69,5 +71,9 @@ public class DocumentFragment extends Fragment {
 
 	public List<Part> getPages() {
 		return document.getPages();
+	}
+
+	public DocumentView getDocumentView() {
+		return documentView;
 	}
 }

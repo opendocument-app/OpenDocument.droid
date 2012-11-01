@@ -63,6 +63,10 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 		this.errorCallback = errorCallback;
 	}
 
+	public Throwable getLastError() {
+		return lastError;
+	}
+
 	@Override
 	protected void onPreExecute() {
 		super.onPreExecute();
@@ -180,40 +184,8 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 	protected void onPostExecute(Document document) {
 		super.onPostExecute(document);
 
-		if (lastError != null) {
-			if (lastError instanceof EncryptedDocumentException) {
-				AlertDialog.Builder builder = new AlertDialog.Builder(context);
-				builder.setTitle(R.string.toast_error_password_protected);
-
-				final EditText input = new EditText(context);
-				builder.setView(input);
-
-				builder.setPositiveButton(
-						context.getString(android.R.string.ok),
-						new DialogInterface.OnClickListener() {
-
-							@Override
-							public void onClick(DialogInterface dialog,
-									int whichButton) {
-								DocumentLoader documentLoader = new DocumentLoader(
-										context);
-								documentLoader
-										.setOnSuccessCallback(successCallback);
-								documentLoader
-										.setOnErrorCallback(errorCallback);
-								documentLoader.setPassword(input.getText()
-										.toString());
-								documentLoader.execute(uri);
-
-								dialog.dismiss();
-							}
-						});
-				builder.setNegativeButton(
-						context.getString(android.R.string.cancel), null);
-				builder.show();
-			} else if (errorCallback != null) {
-				errorCallback.onError(lastError, uri);
-			}
+		if (lastError != null && errorCallback != null) {
+			errorCallback.onError(lastError, uri);
 		} else if (document != null) {
 			if (successCallback != null)
 				successCallback.onSuccess(document);
@@ -237,6 +209,6 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 	}
 
 	@SuppressWarnings("serial")
-	private class EncryptedDocumentException extends Exception {
+	public static class EncryptedDocumentException extends Exception {
 	}
 }
