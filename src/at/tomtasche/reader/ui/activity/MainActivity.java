@@ -55,17 +55,10 @@ public class MainActivity extends FragmentActivity implements
 
 	private static final String BILLING_PRODUCT_YEAR = "remove_ads_for_1y";
 	private static final String BILLING_PRODUCT_FOREVER = "remove_ads_for_eva";
-	private static final AdRequest AD_REQUEST;
-
-	static {
-		AD_REQUEST = new AdRequest();
-		AD_REQUEST.addKeyword("office");
-		AD_REQUEST.addKeyword("productivity");
-		AD_REQUEST.addKeyword("document");
-	}
 
 	private DocumentFragment documentFragment;
 	private ProgressDialog progressDialog;
+	private AdRequest adRequest;
 	private AdView adView;
 
 	@Override
@@ -115,11 +108,15 @@ public class MainActivity extends FragmentActivity implements
 			BillingController.restoreTransactions(this);
 		}
 
+		adRequest = new AdRequest();
+		adRequest.addKeyword("office");
+		adRequest.addKeyword("productivity");
+		adRequest.addKeyword("document");
 		if (!BillingController.isPurchased(this, BILLING_PRODUCT_YEAR)
 				|| !BillingController
 						.isPurchased(this, BILLING_PRODUCT_FOREVER)) {
 			adView = new AdView(this, AdSize.SMART_BANNER, "a15042277f73506");
-			adView.loadAd(AD_REQUEST);
+			adView.loadAd(adRequest);
 
 			((LinearLayout) findViewById(R.id.ad_container)).addView(adView);
 		}
@@ -149,14 +146,6 @@ public class MainActivity extends FragmentActivity implements
 		if (intent.getData() != null) {
 			loadUri(intent.getData());
 		}
-	}
-
-	@Override
-	public void onConfigurationChanged(Configuration newConfig) {
-		super.onConfigurationChanged(newConfig);
-
-		if (adView != null)
-			adView.loadAd(AD_REQUEST);
 	}
 
 	@Override
@@ -423,14 +412,15 @@ public class MainActivity extends FragmentActivity implements
 				+ System.getProperty("line.separator")
 				+ getString(R.string.dialog_submit_file));
 		builder.setNegativeButton(android.R.string.no, null);
-		builder.setNeutralButton(R.string.dialog_error_send_error_only, new OnClickListener() {
+		builder.setNeutralButton(R.string.dialog_error_send_error_only,
+				new OnClickListener() {
 
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				startActivity(ReportUtil.createFeedbackIntent(
-						MainActivity.this, error));
-			}
-		});
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						startActivity(ReportUtil.createFeedbackIntent(
+								MainActivity.this, error));
+					}
+				});
 		builder.setPositiveButton(android.R.string.yes, new OnClickListener() {
 
 			@Override
@@ -483,8 +473,7 @@ public class MainActivity extends FragmentActivity implements
 			}
 		});
 
-		if (!isFinishing())
-			builder.show();
+		builder.show();
 	}
 
 	@Override
