@@ -7,13 +7,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.widget.EditText;
 import at.andiwand.commons.lwxml.writer.LWXMLStreamWriter;
 import at.andiwand.commons.lwxml.writer.LWXMLWriter;
 import at.andiwand.odf2html.odf.IllegalMimeTypeException;
@@ -24,7 +20,6 @@ import at.andiwand.odf2html.odf.TemporaryOpenDocumentFile;
 import at.andiwand.odf2html.translator.document.SpreadsheetTranslator;
 import at.andiwand.odf2html.translator.document.TextTranslator;
 import at.andiwand.odf2html.util.FileCache;
-import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.Document.Part;
 
 public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
@@ -32,8 +27,6 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 	public static final Uri URI_INTRO = Uri.parse("reader://intro.odt");
 
 	private final Context context;
-	private final ProgressDialog progressDialog;
-
 	private OnSuccessCallback successCallback;
 	private OnErrorCallback errorCallback;
 	private Throwable lastError;
@@ -44,11 +37,6 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 
 	public DocumentLoader(Context context) {
 		this.context = context;
-
-		progressDialog = new ProgressDialog(context);
-		progressDialog.setTitle("Loading...");
-		progressDialog.setIndeterminate(true);
-		progressDialog.setCancelable(false);
 	}
 
 	public void setPassword(String password) {
@@ -65,13 +53,6 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 
 	public Throwable getLastError() {
 		return lastError;
-	}
-
-	@Override
-	protected void onPreExecute() {
-		super.onPreExecute();
-
-		progressDialog.show();
 	}
 
 	@Override
@@ -177,7 +158,7 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 	protected void onCancelled() {
 		super.onCancelled();
 
-		progressDialog.dismiss();
+		errorCallback.onError(null, uri);
 	}
 
 	@Override
@@ -194,8 +175,6 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 				errorCallback.onError(new IllegalStateException(
 						"document and lastError null"), uri);
 		}
-
-		progressDialog.dismiss();
 	}
 
 	public static interface OnSuccessCallback {

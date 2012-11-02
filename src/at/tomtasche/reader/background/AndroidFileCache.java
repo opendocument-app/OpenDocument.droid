@@ -6,10 +6,32 @@ import java.net.URISyntaxException;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Environment;
 import at.andiwand.odf2html.translator.File2URITranslator;
 import at.andiwand.odf2html.util.DefaultFileCache;
 
 public class AndroidFileCache extends DefaultFileCache {
+
+	public static final File getCacheDirectory(Context context) {
+		File directory = context.getCacheDir();
+		if (!testDirectory(directory)) {
+			directory = context.getFilesDir();
+			if (!testDirectory(directory)) {
+				directory = new File(Environment.getExternalStorageDirectory(),
+						".odf-reader");
+				if (!testDirectory(directory)) {
+					throw new IllegalStateException(
+							"No writable cache available");
+				}
+			}
+		}
+
+		return directory;
+	}
+
+	private static final boolean testDirectory(File directory) {
+		return directory != null && directory.canWrite();
+	}
 
 	private static final File2URITranslator URI_TRANSLATOR = new File2URITranslator() {
 		@Override
@@ -32,11 +54,11 @@ public class AndroidFileCache extends DefaultFileCache {
 	};
 
 	public AndroidFileCache(Context context) {
-		super(context.getCacheDir(), URI_TRANSLATOR);
+		super(getCacheDirectory(context), URI_TRANSLATOR);
 	}
 
 	public static void cleanup(Context context) {
-		File cache = context.getCacheDir();
+		File cache = getCacheDirectory(context);
 		if (cache.list() == null)
 			return;
 

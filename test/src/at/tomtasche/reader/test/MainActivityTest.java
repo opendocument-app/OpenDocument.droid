@@ -1,9 +1,16 @@
 package at.tomtasche.reader.test;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 
 import junit.framework.Assert;
+import android.net.Uri;
+import android.os.Environment;
 import android.test.ActivityInstrumentationTestCase2;
 import android.view.View;
 import at.tomtasche.reader.background.DocumentLoader;
@@ -13,8 +20,8 @@ import at.tomtasche.reader.ui.widget.DocumentFragment;
 public class MainActivityTest extends
 		ActivityInstrumentationTestCase2<MainActivity> {
 
-	private DocumentFragment documentFragment;
 	private MainActivity activity;
+	private DocumentFragment documentFragment;
 
 	@SuppressWarnings("deprecation")
 	public MainActivityTest() {
@@ -33,23 +40,66 @@ public class MainActivityTest extends
 						DocumentFragment.FRAGMENT_TAG);
 	}
 
-	public void testStartupCondition() throws Exception {
+	private void loadUri(final Uri uri) throws Throwable {
+		runTestOnUiThread(new Runnable() {
+
+			public void run() {
+				try {
+					DocumentLoader loader = activity.loadUri(uri);
+					loader.get();
+
+					if (loader.getLastError() != null) {
+						StringWriter writer = new StringWriter();
+						PrintWriter printer = new PrintWriter(writer);
+						loader.getLastError().printStackTrace(printer);
+						printer.close();
+						writer.close();
+
+						Assert.fail(writer.toString());
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	public void testStartup() {
 		Assert.assertNotNull(documentFragment);
 		Assert.assertNotNull(documentFragment.getDocumentView());
 		Assert.assertEquals(View.VISIBLE, documentFragment.getDocumentView()
 				.getVisibility());
+	}
 
-		DocumentLoader loader = activity.loadUri(DocumentLoader.URI_INTRO);
-		loader.get();
+	public void testIntro() throws Throwable {
+		loadUri(DocumentLoader.URI_INTRO);
+	}
 
-		if (loader.getLastError() != null) {
-			StringWriter writer = new StringWriter();
-			PrintWriter printer = new PrintWriter(writer);
-			loader.getLastError().printStackTrace(printer);
-			printer.close();
-			writer.close();
+	public void testExternalStorage() throws Throwable {
+		assertTrue(Environment.getExternalStorageState().equals(
+				Environment.MEDIA_MOUNTED)
+				|| Environment.getExternalStorageState().equals(
+						Environment.MEDIA_MOUNTED_READ_ONLY));
 
-			Assert.fail(writer.toString());
+		File destinationFile = new File(
+				Environment.getExternalStorageDirectory(), "test.odt");
+
+		ReadableByteChannel sourceChannel = null;
+		FileChannel destination = null;
+		try {
+			long size = activity.getAssets().openFd("intro.odt").getLength();
+
+			sourceChannel = Channels.newChannel(activity.getAssets().open(
+					"intro.odt"));
+			destination = new FileOutputStream(destinationFile).getChannel();
+			destination.transferFrom(sourceChannel, 0, size);
+		} finally {
+			if (sourceChannel != null)
+				sourceChannel.close();
+			if (destination != null)
+				destination.close();
 		}
+
+		loadUri(Uri.fromFile(destinationFile));
 	}
 }

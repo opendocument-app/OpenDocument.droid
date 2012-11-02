@@ -13,6 +13,7 @@ import net.robotmedia.billing.helper.AbstractBillingObserver;
 import net.robotmedia.billing.model.Transaction;
 import net.robotmedia.billing.model.Transaction.PurchaseState;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -42,7 +43,6 @@ import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.DocumentLoader.OnErrorCallback;
 import at.tomtasche.reader.background.DocumentLoader.OnSuccessCallback;
-import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.ui.widget.DocumentFragment;
 
 import com.google.ads.AdRequest;
@@ -64,6 +64,7 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	private DocumentFragment documentFragment;
+	private ProgressDialog progressDialog;
 	private AdView adView;
 
 	@Override
@@ -270,6 +271,29 @@ public class MainActivity extends FragmentActivity implements
 		return super.onMenuItemSelected(featureId, item);
 	}
 
+	private void installExplorer() {
+		final String[] explorerUrls = new String[] {
+				"https://play.google.com/store/apps/details?id=org.openintents.filemanager",
+				"https://play.google.com/store/apps/details?id=com.speedsoftware.explorer" };
+		String[] explorerNames = new String[] { "OI File Manager", "Explorer" };
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.dialog_no_filemanager);
+		builder.setItems(explorerNames, new OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				Intent explorerIntent = new Intent(Intent.ACTION_VIEW);
+				explorerIntent.setData(Uri.parse(explorerUrls[which]));
+
+				startActivity(explorerIntent);
+
+				dialog.dismiss();
+			}
+		});
+		builder.create().show();
+	}
+
 	private void findDocument() {
 		final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 		intent.setType("application/vnd.oasis.opendocument.*");
@@ -277,38 +301,16 @@ public class MainActivity extends FragmentActivity implements
 
 		final List<ResolveInfo> targets = getPackageManager()
 				.queryIntentActivities(intent, 0);
-		final String[] explorerUrls = new String[] {
-				"https://play.google.com/store/apps/details?id=org.openintents.filemanager",
-				"https://play.google.com/store/apps/details?id=com.speedsoftware.explorer" };
-		String[] explorerNames = new String[] { "OI File Manager", "Explorer" };
 		if (targets.size() == 0) {
-
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle(R.string.dialog_no_filemanager);
-			builder.setItems(explorerNames, new OnClickListener() {
-
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					Intent explorerIntent = new Intent(Intent.ACTION_VIEW);
-					explorerIntent.setData(Uri.parse(explorerUrls[which]));
-
-					startActivity(explorerIntent);
-
-					dialog.dismiss();
-				}
-			});
-			builder.create().show();
+			installExplorer();
 		} else {
-			final String[] targetNames = new String[targets.size() + 2];
+			final String[] targetNames = new String[targets.size() + 1];
 			for (int i = 0; i < targets.size(); i++) {
 				targetNames[i] = targets.get(i).loadLabel(getPackageManager())
 						.toString();
 			}
 
-			for (int i = 0; i < explorerNames.length; i++) {
-				targetNames[targetNames.length - 1 - i] = "Install "
-						+ explorerNames[i];
-			}
+			targetNames[targetNames.length - 1] = getString(R.string.dialog_find_explorer);
 
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setTitle(R.string.dialog_choose_filemanager);
@@ -324,11 +326,7 @@ public class MainActivity extends FragmentActivity implements
 
 						startActivityForResult(intent, 42);
 					} else {
-						String url = explorerUrls[targetNames.length - which
-								- 1];
-
-						startActivity(new Intent(Intent.ACTION_VIEW, Uri
-								.parse(url)));
+						installExplorer();
 					}
 
 					dialog.dismiss();
@@ -357,9 +355,19 @@ public class MainActivity extends FragmentActivity implements
 		Toast.makeText(this, message, Toast.LENGTH_LONG).show();
 	}
 
+	private void dismissProgress() {
+		if (progressDialog.isShowing())
+			progressDialog.dismiss();
+	}
+
 	@Override
 	public void onError(Throwable error, final Uri uri) {
-		if (error instanceof EncryptedDocumentException) {
+		dismissProgress();
+
+		int errorDescription;
+		if (error == null) {
+			return;
+		} else if (error instanceof EncryptedDocumentException) {
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setTitle(R.string.toast_error_password_protected);
 
@@ -380,45 +388,40 @@ public class MainActivity extends FragmentActivity implements
 					});
 			builder.setNegativeButton(getString(android.R.string.cancel), null);
 			builder.show();
+
+			return;
 		} else if (error instanceof IllegalMimeTypeException
 				|| error instanceof ZipException
 				|| error instanceof ZipEntryNotFoundException) {
-			showToast(R.string.toast_error_open_file);
+			errorDescription = R.string.toast_error_open_file;
 
-			if (Build.VERSION.SDK_INT >= 14)
-				startActivity(ReportUtil.createFeedbackIntent(this, error));
-
-			return;
 		} else if (error instanceof FileNotFoundException) {
 			if (Environment.getExternalStorageState().equals(
 					Environment.MEDIA_MOUNTED_READ_ONLY)
 					|| Environment.getExternalStorageState().equals(
 							Environment.MEDIA_MOUNTED)) {
-				showToast(R.string.toast_error_find_file);
-
-				if (Build.VERSION.SDK_INT >= 14)
-					startActivity(ReportUtil.createFeedbackIntent(this, error));
+				errorDescription = R.string.toast_error_find_file;
 			} else {
-				showToast(R.string.toast_error_storage);
+				errorDescription = R.string.toast_error_storage;
 			}
-
-			return;
 		} else if (error instanceof IllegalArgumentException) {
-			showToast(R.string.toast_error_illegal_file);
+			errorDescription = R.string.toast_error_illegal_file;
 		} else if (error instanceof OutOfMemoryError) {
-			showToast(R.string.toast_error_out_of_memory);
+			errorDescription = R.string.toast_error_out_of_memory;
 		} else {
-			showToast(getString(R.string.toast_error_generic) + ": "
-					+ error.getClass().getSimpleName());
+			errorDescription = R.string.toast_error_generic;
 		}
 
-		submitFile(error, uri);
+		submitFile(error, uri, errorDescription);
 	}
 
-	private void submitFile(final Throwable error, final Uri uri) {
+	private void submitFile(final Throwable error, final Uri uri,
+			final int errorDescription) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.toast_error_generic);
-		builder.setMessage(R.string.dialog_submit_file);
+		builder.setMessage(getString(errorDescription)
+				+ System.getProperty("line.separator")
+				+ getString(R.string.dialog_submit_file));
 		builder.setNegativeButton(android.R.string.no, null);
 		builder.setPositiveButton(android.R.string.yes, new OnClickListener() {
 
@@ -442,8 +445,11 @@ public class MainActivity extends FragmentActivity implements
 				StringWriter writer = new StringWriter();
 				PrintWriter printer = new PrintWriter(writer);
 				printer.println("Important information for the developer:");
-				printer.println(Build.MODEL + " running Android "
+				printer.println("- " + Build.MODEL + " running Android "
 						+ Build.VERSION.SDK_INT);
+				printer.println("- The following error occured while opening the file located at: "
+						+ uri.toString());
+				printer.println(getString(errorDescription));
 				printer.println();
 				error.printStackTrace(printer);
 				printer.println();
@@ -475,6 +481,8 @@ public class MainActivity extends FragmentActivity implements
 	@Override
 	public void onSuccess(Document document) {
 		documentFragment.loadDocument(document);
+
+		dismissProgress();
 	}
 
 	public DocumentLoader loadUri(Uri uri) {
@@ -482,6 +490,16 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	public DocumentLoader loadUri(Uri uri, String password) {
+		if (progressDialog == null || !progressDialog.isShowing()) {
+			progressDialog = new ProgressDialog(this);
+			progressDialog.setTitle(getString(R.string.dialog_loading_title));
+			progressDialog
+					.setMessage(getString(R.string.dialog_loading_message));
+			progressDialog.setIndeterminate(true);
+			progressDialog.setCancelable(false);
+			progressDialog.show();
+		}
+
 		DocumentLoader documentLoader = new DocumentLoader(this);
 		documentLoader.setOnSuccessCallback(this);
 		documentLoader.setOnErrorCallback(this);
