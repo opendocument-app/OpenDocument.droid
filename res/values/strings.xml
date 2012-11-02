@@ -22,6 +22,7 @@
     <string name="dialog_find_explorer">Find another file explorer</string>
     <string name="dialog_loading_title">Loading...</string>
     <string name="dialog_loading_message">This could take a few minutes, depending on the structure of your document and the processing power of your phone.</string>
+    <string name="dialog_error_send_error_only">Send only the error</string>
     <string name="menu_page_list">List pages</string>
     <string name="menu_page_next">Next</string>
     <string name="menu_page_previous">Previous</string>

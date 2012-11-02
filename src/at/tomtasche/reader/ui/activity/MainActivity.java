@@ -38,6 +38,7 @@ import at.andiwand.odf2html.odf.ZipEntryNotFoundException;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.Document;
+import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.background.Document.Part;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
@@ -394,7 +395,6 @@ public class MainActivity extends FragmentActivity implements
 				|| error instanceof ZipException
 				|| error instanceof ZipEntryNotFoundException) {
 			errorDescription = R.string.toast_error_open_file;
-
 		} else if (error instanceof FileNotFoundException) {
 			if (Environment.getExternalStorageState().equals(
 					Environment.MEDIA_MOUNTED_READ_ONLY)
@@ -423,6 +423,14 @@ public class MainActivity extends FragmentActivity implements
 				+ System.getProperty("line.separator")
 				+ getString(R.string.dialog_submit_file));
 		builder.setNegativeButton(android.R.string.no, null);
+		builder.setNeutralButton(R.string.dialog_error_send_error_only, new OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				startActivity(ReportUtil.createFeedbackIntent(
+						MainActivity.this, error));
+			}
+		});
 		builder.setPositiveButton(android.R.string.yes, new OnClickListener() {
 
 			@Override
@@ -475,7 +483,8 @@ public class MainActivity extends FragmentActivity implements
 			}
 		});
 
-		builder.show();
+		if (!isFinishing())
+			builder.show();
 	}
 
 	@Override
