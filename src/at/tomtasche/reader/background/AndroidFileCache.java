@@ -12,6 +12,8 @@ import at.andiwand.odf2html.util.DefaultFileCache;
 
 public class AndroidFileCache extends DefaultFileCache {
 
+	private static File cache;
+
 	public static final File getCacheDirectory(Context context) {
 		File directory = context.getCacheDir();
 		if (!testDirectory(directory)) {
@@ -26,7 +28,7 @@ public class AndroidFileCache extends DefaultFileCache {
 			}
 		}
 
-		return directory;
+		return cache = directory;
 	}
 
 	private static final boolean testDirectory(File directory) {
@@ -57,8 +59,7 @@ public class AndroidFileCache extends DefaultFileCache {
 		super(getCacheDirectory(context), URI_TRANSLATOR);
 	}
 
-	public static void cleanup(Context context) {
-		File cache = getCacheDirectory(context);
+	public static void cleanup() {
 		if (cache.list() == null)
 			return;
 

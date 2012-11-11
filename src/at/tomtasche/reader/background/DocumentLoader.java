@@ -19,24 +19,23 @@ import at.andiwand.odf2html.odf.OpenDocumentText;
 import at.andiwand.odf2html.odf.TemporaryOpenDocumentFile;
 import at.andiwand.odf2html.translator.document.SpreadsheetTranslator;
 import at.andiwand.odf2html.translator.document.TextTranslator;
-import at.andiwand.odf2html.util.FileCache;
 import at.tomtasche.reader.background.Document.Part;
 
 public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 
 	public static final Uri URI_INTRO = Uri.parse("reader://intro.odt");
 
-	private final Context context;
 	private OnSuccessCallback successCallback;
 	private OnErrorCallback errorCallback;
 	private Throwable lastError;
 
+	private Context context;
 	private Uri uri;
 
 	private String password;
 
 	public DocumentLoader(Context context) {
-		this.context = context;
+		this.context = context.getApplicationContext();
 	}
 
 	public void setPassword(String password) {
@@ -57,15 +56,15 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 
 	@Override
 	protected Document doInBackground(Uri... params) {
-		uri = params[0];
-
-		// cleanup uri
-		if ("/./".equals(uri.toString().substring(0, 2))) {
-			uri = Uri.parse(uri.toString()
-					.substring(2, uri.toString().length()));
-		}
-
 		try {
+			AndroidFileCache.cleanup();
+
+			// cleanup uri
+			if ("/./".equals(uri.toString().substring(0, 2))) {
+				uri = Uri.parse(uri.toString().substring(2,
+						uri.toString().length()));
+			}
+
 			InputStream stream;
 			if (URI_INTRO.equals(uri)) {
 				stream = context.getAssets().open("intro.odt");
@@ -73,12 +72,12 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 				stream = context.getContentResolver().openInputStream(uri);
 			}
 
-			FileCache fileCache = new AndroidFileCache(context);
+			AndroidFileCache cache = new AndroidFileCache(context);
 			TemporaryOpenDocumentFile documentFile = new TemporaryOpenDocumentFile(
-					stream, fileCache);
+					stream, cache);
 
-			uri = Uri.parse(fileCache.getFileURI(
-					documentFile.getFile().getName()).toString());
+			uri = Uri.parse(cache.getFileURI(documentFile.getFile().getName())
+					.toString());
 
 			String mimeType = documentFile.getMimetype();
 			if (!OpenDocument.checkMimetype(mimeType)) {
@@ -97,14 +96,14 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 				CharArrayWriter writer = new CharArrayWriter();
 				LWXMLWriter out = new LWXMLStreamWriter(writer);
 				try {
-					TextTranslator translator = new TextTranslator(fileCache);
+					TextTranslator translator = new TextTranslator(cache);
 					translator.translate(document, out);
 				} finally {
 					out.close();
 					writer.close();
 				}
 
-				File htmlFile = new File(context.getCacheDir(), "temp.html");
+				File htmlFile = cache.getFile("temp.html");
 				FileWriter fileWriter = new FileWriter(htmlFile);
 				writer.writeTo(fileWriter);
 				fileWriter.close();
@@ -115,7 +114,7 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 						((OpenDocumentSpreadsheet) document).getTableMap()
 								.keySet());
 				SpreadsheetTranslator translator = new SpreadsheetTranslator(
-						fileCache);
+						cache);
 				for (int i = 0; i < ((OpenDocumentSpreadsheet) document)
 						.getTableCount(); i++) {
 					CharArrayWriter writer = new CharArrayWriter();
@@ -123,8 +122,7 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 					try {
 						translator.translate(document, out, i);
 
-						File htmlFile = new File(context.getCacheDir(), "temp"
-								+ i + ".html");
+						File htmlFile = cache.getFile("temp" + i + ".html");
 						FileWriter fileWriter = new FileWriter(htmlFile);
 						try {
 							writer.writeTo(fileWriter);

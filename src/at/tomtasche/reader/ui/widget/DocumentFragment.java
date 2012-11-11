@@ -20,14 +20,25 @@ public class DocumentFragment extends Fragment {
 	private int index;
 
 	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+		
+		setRetainInstance(true);
+	}
+	
+	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		documentView = new DocumentView(getActivity());
-		documentView.loadData(
-				getActivity().getString(R.string.message_get_started),
-				"text/plain", DocumentView.ENCODING);
+		if (document == null) {
+			document = new Document();
 
-		document = new Document();
+			documentView.loadData(
+					getActivity().getString(R.string.message_get_started),
+					"text/plain", DocumentView.ENCODING);
+		} else {
+			loadDocument(document);
+		}
 
 		return documentView;
 	}

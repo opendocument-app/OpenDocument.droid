@@ -20,7 +20,6 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
-import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,14 +35,13 @@ import android.widget.Toast;
 import at.andiwand.odf2html.odf.IllegalMimeTypeException;
 import at.andiwand.odf2html.odf.ZipEntryNotFoundException;
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.Document;
-import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.background.Document.Part;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.DocumentLoader.OnErrorCallback;
 import at.tomtasche.reader.background.DocumentLoader.OnSuccessCallback;
+import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.ui.widget.DocumentFragment;
 
 import com.google.ads.AdRequest;
@@ -57,6 +55,7 @@ public class MainActivity extends FragmentActivity implements
 	private static final String BILLING_PRODUCT_FOREVER = "remove_ads_for_eva";
 
 	private DocumentFragment documentFragment;
+	private DocumentLoader documentLoader;
 	private ProgressDialog progressDialog;
 	private AdRequest adRequest;
 	private AdView adView;
@@ -68,11 +67,22 @@ public class MainActivity extends FragmentActivity implements
 		setTitle("");
 		setContentView(R.layout.main);
 
-		documentFragment = new DocumentFragment();
-		getSupportFragmentManager()
-				.beginTransaction()
-				.add(R.id.document_container, documentFragment,
-						DocumentFragment.FRAGMENT_TAG).commit();
+		if (documentFragment == null) {
+			documentFragment = new DocumentFragment();
+			getSupportFragmentManager()
+					.beginTransaction()
+					.add(R.id.document_container, documentFragment,
+							DocumentFragment.FRAGMENT_TAG).commit();
+		}
+
+		documentLoader = (DocumentLoader) getLastCustomNonConfigurationInstance();
+		if (documentLoader == null) {
+			if (getIntent().getData() != null) {
+				loadUri(getIntent().getData());
+			} else {
+				loadUri(DocumentLoader.URI_INTRO);
+			}
+		}
 
 		billingObserver = new AbstractBillingObserver(this) {
 
@@ -120,12 +130,6 @@ public class MainActivity extends FragmentActivity implements
 
 			((LinearLayout) findViewById(R.id.ad_container)).addView(adView);
 		}
-
-		if (getIntent().getData() != null) {
-			loadUri(getIntent().getData());
-		} else {
-			loadUri(DocumentLoader.URI_INTRO);
-		}
 	}
 
 	@Override
@@ -140,10 +144,16 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	@Override
+	public Object onRetainCustomNonConfigurationInstance() {
+		return documentLoader;
+	}
+
+	@Override
 	protected void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
 
 		if (intent.getData() != null) {
+			System.err.println("onnewintent!");
 			loadUri(intent.getData());
 		}
 	}
@@ -354,6 +364,8 @@ public class MainActivity extends FragmentActivity implements
 	public void onError(Throwable error, final Uri uri) {
 		dismissProgress();
 
+		documentLoader = null;
+
 		int errorDescription;
 		if (error == null) {
 			return;
@@ -480,6 +492,8 @@ public class MainActivity extends FragmentActivity implements
 	public void onSuccess(Document document) {
 		documentFragment.loadDocument(document);
 
+		documentLoader = null;
+
 		dismissProgress();
 	}
 
@@ -498,11 +512,16 @@ public class MainActivity extends FragmentActivity implements
 			progressDialog.show();
 		}
 
-		DocumentLoader documentLoader = new DocumentLoader(this);
-		documentLoader.setOnSuccessCallback(this);
-		documentLoader.setOnErrorCallback(this);
-		documentLoader.setPassword(password);
-		documentLoader.execute(uri);
+		DocumentLoader documentLoader = null;
+		try {
+			documentLoader = new DocumentLoader(this);
+			documentLoader.setOnSuccessCallback(this);
+			documentLoader.setOnErrorCallback(this);
+			documentLoader.setPassword(password);
+			documentLoader.execute(uri);
+		} catch (Exception e) {
+			onError(e, uri);
+		}
 
 		return documentLoader;
 	}
@@ -516,15 +535,6 @@ public class MainActivity extends FragmentActivity implements
 
 		BillingController.unregisterObserver(billingObserver);
 		BillingController.setConfiguration(null);
-
-		// TODO: ugly threading
-		new Thread() {
-
-			@Override
-			public void run() {
-				AndroidFileCache.cleanup(MainActivity.this);
-			}
-		}.start();
 	}
 
 	// taken from net.robotmedia.billing.helper.AbstractBillingActivity
