@@ -53,7 +53,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> {
 		super.onStartLoading();
 
 		if (document != null && lastError == null) {
-//			deliverResult(document);
+			// deliverResult(document);
 		} else {
 			forceLoad();
 		}

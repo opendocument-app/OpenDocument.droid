@@ -58,6 +58,7 @@ public class MainActivity extends FragmentActivity implements
 	private static final String EXTRA_PASSWORD = "password";
 
 	private DocumentFragment documentFragment;
+	private DocumentLoader documentLoader;
 	private ProgressDialog progressDialog;
 	private AdRequest adRequest;
 	private AdView adView;
@@ -147,10 +148,16 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	@Override
+	public Object onRetainCustomNonConfigurationInstance() {
+		return documentLoader;
+	}
+
+	@Override
 	protected void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
 
 		if (intent.getData() != null) {
+			System.err.println("onnewintent!");
 			loadUri(intent.getData());
 		}
 	}
