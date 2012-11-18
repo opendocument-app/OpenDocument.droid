@@ -15,21 +15,42 @@ public class DocumentFragment extends Fragment {
 
 	public static final String FRAGMENT_TAG = "document_fragment";
 
+	private static final String EXTRA_SCROLL_POSITION = "scroll_position";
+
 	private DocumentView documentView;
 	private Document document;
 	private int index;
 
 	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+
+		setRetainInstance(true);
+	}
+
+	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		documentView = new DocumentView(getActivity());
-		documentView.loadData(
-				getActivity().getString(R.string.message_get_started),
-				"text/plain", DocumentView.ENCODING);
+		if (document == null) {
+			document = new Document();
 
-		document = new Document();
+			documentView.loadData(
+					getActivity().getString(R.string.message_get_started),
+					"text/plain", DocumentView.ENCODING);
+		} else {
+			loadDocument(document);
+		}
 
 		return documentView;
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		// TODO:
+		outState.putInt(EXTRA_SCROLL_POSITION, documentView.getScrollY());
 	}
 
 	private void loadData(String url) {

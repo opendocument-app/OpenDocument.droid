@@ -9,7 +9,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.AsyncTask;
+import android.support.v4.content.AsyncTaskLoader;
 import at.andiwand.commons.lwxml.writer.LWXMLStreamWriter;
 import at.andiwand.commons.lwxml.writer.LWXMLWriter;
 import at.andiwand.odf2html.odf.IllegalMimeTypeException;
@@ -19,66 +19,67 @@ import at.andiwand.odf2html.odf.OpenDocumentText;
 import at.andiwand.odf2html.odf.TemporaryOpenDocumentFile;
 import at.andiwand.odf2html.translator.document.SpreadsheetTranslator;
 import at.andiwand.odf2html.translator.document.TextTranslator;
-import at.andiwand.odf2html.util.FileCache;
 import at.tomtasche.reader.background.Document.Part;
 
-public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
+public class DocumentLoader extends AsyncTaskLoader<Document> {
 
 	public static final Uri URI_INTRO = Uri.parse("reader://intro.odt");
 
-	private final Context context;
-	private OnSuccessCallback successCallback;
-	private OnErrorCallback errorCallback;
 	private Throwable lastError;
-
 	private Uri uri;
-
 	private String password;
+	private Document document;
 
-	public DocumentLoader(Context context) {
-		this.context = context;
+	public DocumentLoader(Context context, Uri uri) {
+		super(context);
+
+		this.uri = uri;
 	}
 
 	public void setPassword(String password) {
 		this.password = password;
 	}
 
-	public void setOnSuccessCallback(OnSuccessCallback successCallback) {
-		this.successCallback = successCallback;
-	}
-
-	public void setOnErrorCallback(OnErrorCallback errorCallback) {
-		this.errorCallback = errorCallback;
-	}
-
 	public Throwable getLastError() {
 		return lastError;
 	}
 
+	public Uri getLastUri() {
+		return uri;
+	}
+
 	@Override
-	protected Document doInBackground(Uri... params) {
-		uri = params[0];
+	protected void onStartLoading() {
+		super.onStartLoading();
 
-		// cleanup uri
-		if ("/./".equals(uri.toString().substring(0, 2))) {
-			uri = Uri.parse(uri.toString()
-					.substring(2, uri.toString().length()));
+		if (document != null && lastError == null) {
+//			deliverResult(document);
+		} else {
+			forceLoad();
 		}
+	}
 
+	@Override
+	public Document loadInBackground() {
 		try {
-			InputStream stream;
-			if (URI_INTRO.equals(uri)) {
-				stream = context.getAssets().open("intro.odt");
-			} else {
-				stream = context.getContentResolver().openInputStream(uri);
+			AndroidFileCache.cleanup(getContext());
+
+			// cleanup uri
+			if ("/./".equals(uri.toString().substring(0, 2))) {
+				uri = Uri.parse(uri.toString().substring(2,
+						uri.toString().length()));
 			}
 
-			FileCache fileCache = new AndroidFileCache(context);
-			TemporaryOpenDocumentFile documentFile = new TemporaryOpenDocumentFile(
-					stream, fileCache);
+			InputStream stream;
+			if (URI_INTRO.equals(uri)) {
+				stream = getContext().getAssets().open("intro.odt");
+			} else {
+				stream = getContext().getContentResolver().openInputStream(uri);
+			}
 
-			uri = Uri.parse(fileCache.getFileURI(
-					documentFile.getFile().getName()).toString());
+			AndroidFileCache cache = new AndroidFileCache(getContext());
+			TemporaryOpenDocumentFile documentFile = new TemporaryOpenDocumentFile(
+					stream, cache);
 
 			String mimeType = documentFile.getMimetype();
 			if (!OpenDocument.checkMimetype(mimeType)) {
@@ -91,40 +92,39 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 				documentFile.setPassword(password);
 			}
 
-			Document result = new Document();
-			OpenDocument document = documentFile.getAsOpenDocument();
-			if (document instanceof OpenDocumentText) {
+			document = new Document();
+			OpenDocument openDocument = documentFile.getAsOpenDocument();
+			if (openDocument instanceof OpenDocumentText) {
 				CharArrayWriter writer = new CharArrayWriter();
 				LWXMLWriter out = new LWXMLStreamWriter(writer);
 				try {
-					TextTranslator translator = new TextTranslator(fileCache);
-					translator.translate(document, out);
+					TextTranslator translator = new TextTranslator(cache);
+					translator.translate(openDocument, out);
 				} finally {
 					out.close();
 					writer.close();
 				}
 
-				File htmlFile = new File(context.getCacheDir(), "temp.html");
+				File htmlFile = cache.getFile("temp.html");
 				FileWriter fileWriter = new FileWriter(htmlFile);
 				writer.writeTo(fileWriter);
 				fileWriter.close();
 
-				result.addPage(new Part("Document", htmlFile.toURI(), 0));
-			} else if (document instanceof OpenDocumentSpreadsheet) {
+				document.addPage(new Part("Document", htmlFile.toURI(), 0));
+			} else if (openDocument instanceof OpenDocumentSpreadsheet) {
 				List<String> tableNames = new ArrayList<String>(
-						((OpenDocumentSpreadsheet) document).getTableMap()
+						((OpenDocumentSpreadsheet) openDocument).getTableMap()
 								.keySet());
 				SpreadsheetTranslator translator = new SpreadsheetTranslator(
-						fileCache);
-				for (int i = 0; i < ((OpenDocumentSpreadsheet) document)
+						cache);
+				for (int i = 0; i < ((OpenDocumentSpreadsheet) openDocument)
 						.getTableCount(); i++) {
 					CharArrayWriter writer = new CharArrayWriter();
 					LWXMLWriter out = new LWXMLStreamWriter(writer);
 					try {
-						translator.translate(document, out, i);
+						translator.translate(openDocument, out, i);
 
-						File htmlFile = new File(context.getCacheDir(), "temp"
-								+ i + ".html");
+						File htmlFile = cache.getFile("temp" + i + ".html");
 						FileWriter fileWriter = new FileWriter(htmlFile);
 						try {
 							writer.writeTo(fileWriter);
@@ -132,7 +132,7 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 							fileWriter.close();
 						}
 
-						result.addPage(new Part(tableNames.get(i), htmlFile
+						document.addPage(new Part(tableNames.get(i), htmlFile
 								.toURI(), i));
 					} finally {
 						out.close();
@@ -144,7 +144,7 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 						"I don't know what it is, but I can't stop parsing it");
 			}
 
-			return result;
+			return document;
 		} catch (Throwable e) {
 			e.printStackTrace();
 
@@ -152,39 +152,7 @@ public class DocumentLoader extends AsyncTask<Uri, Void, Document> {
 		}
 
 		return null;
-	}
 
-	@Override
-	protected void onCancelled() {
-		super.onCancelled();
-
-		errorCallback.onError(null, uri);
-	}
-
-	@Override
-	protected void onPostExecute(Document document) {
-		super.onPostExecute(document);
-
-		if (lastError != null && errorCallback != null) {
-			errorCallback.onError(lastError, uri);
-		} else if (document != null) {
-			if (successCallback != null)
-				successCallback.onSuccess(document);
-		} else {
-			if (errorCallback != null)
-				errorCallback.onError(new IllegalStateException(
-						"document and lastError null"), uri);
-		}
-	}
-
-	public static interface OnSuccessCallback {
-
-		public void onSuccess(Document document);
-	}
-
-	public static interface OnErrorCallback {
-
-		public void onError(Throwable error, Uri uri);
 	}
 
 	@SuppressWarnings("serial")

@@ -20,12 +20,13 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
-import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.Loader;
 import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,14 +37,11 @@ import android.widget.Toast;
 import at.andiwand.odf2html.odf.IllegalMimeTypeException;
 import at.andiwand.odf2html.odf.ZipEntryNotFoundException;
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.Document;
-import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.background.Document.Part;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
-import at.tomtasche.reader.background.DocumentLoader.OnErrorCallback;
-import at.tomtasche.reader.background.DocumentLoader.OnSuccessCallback;
+import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.ui.widget.DocumentFragment;
 
 import com.google.ads.AdRequest;
@@ -51,10 +49,13 @@ import com.google.ads.AdSize;
 import com.google.ads.AdView;
 
 public class MainActivity extends FragmentActivity implements
-		OnSuccessCallback, OnErrorCallback, BillingController.IConfiguration {
+		BillingController.IConfiguration, LoaderCallbacks<Document> {
 
 	private static final String BILLING_PRODUCT_YEAR = "remove_ads_for_1y";
 	private static final String BILLING_PRODUCT_FOREVER = "remove_ads_for_eva";
+
+	private static final String EXTRA_URI = "uri";
+	private static final String EXTRA_PASSWORD = "password";
 
 	private DocumentFragment documentFragment;
 	private ProgressDialog progressDialog;
@@ -68,11 +69,21 @@ public class MainActivity extends FragmentActivity implements
 		setTitle("");
 		setContentView(R.layout.main);
 
-		documentFragment = new DocumentFragment();
-		getSupportFragmentManager()
-				.beginTransaction()
-				.add(R.id.document_container, documentFragment,
-						DocumentFragment.FRAGMENT_TAG).commit();
+		documentFragment = (DocumentFragment) getSupportFragmentManager()
+				.findFragmentByTag(DocumentFragment.FRAGMENT_TAG);
+		if (documentFragment == null) {
+			documentFragment = new DocumentFragment();
+			getSupportFragmentManager()
+					.beginTransaction()
+					.add(R.id.document_container, documentFragment,
+							DocumentFragment.FRAGMENT_TAG).commit();
+
+			if (getIntent().getData() != null) {
+				loadUri(getIntent().getData());
+			} else {
+				loadUri(DocumentLoader.URI_INTRO);
+			}
+		}
 
 		billingObserver = new AbstractBillingObserver(this) {
 
@@ -121,11 +132,7 @@ public class MainActivity extends FragmentActivity implements
 			((LinearLayout) findViewById(R.id.ad_container)).addView(adView);
 		}
 
-		if (getIntent().getData() != null) {
-			loadUri(getIntent().getData());
-		} else {
-			loadUri(DocumentLoader.URI_INTRO);
-		}
+		getSupportLoaderManager().initLoader(0, null, this);
 	}
 
 	@Override
@@ -146,6 +153,11 @@ public class MainActivity extends FragmentActivity implements
 		if (intent.getData() != null) {
 			loadUri(intent.getData());
 		}
+	}
+
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
 	}
 
 	@Override
@@ -261,6 +273,59 @@ public class MainActivity extends FragmentActivity implements
 		return super.onMenuItemSelected(featureId, item);
 	}
 
+	private void loadUri(Uri uri) {
+		loadUri(uri, null);
+	}
+
+	private void loadUri(Uri uri, String password) {
+		Bundle bundle = new Bundle();
+		bundle.putString(EXTRA_PASSWORD, password);
+		bundle.putParcelable(EXTRA_URI, uri);
+
+		getSupportLoaderManager().restartLoader(0, bundle, this);
+	}
+
+	@Override
+	public Loader<Document> onCreateLoader(int id, Bundle bundle) {
+		if (progressDialog == null || !progressDialog.isShowing()) {
+			progressDialog = new ProgressDialog(this);
+			progressDialog.setTitle(getString(R.string.dialog_loading_title));
+			progressDialog
+					.setMessage(getString(R.string.dialog_loading_message));
+			progressDialog.setIndeterminate(true);
+			progressDialog.setCancelable(false);
+			progressDialog.show();
+		}
+
+		Uri uri = bundle.getParcelable(EXTRA_URI);
+		String password = bundle.getParcelable(EXTRA_PASSWORD);
+
+		DocumentLoader documentLoader = new DocumentLoader(this, uri);
+		documentLoader.setPassword(password);
+
+		return documentLoader;
+	}
+
+	@Override
+	public void onLoadFinished(Loader<Document> loader, Document document) {
+		dismissProgress();
+
+		Throwable lastError = ((DocumentLoader) loader).getLastError();
+		Uri uri = ((DocumentLoader) loader).getLastUri();
+		if (lastError != null) {
+			onError(lastError, uri);
+		} else if (document != null) {
+			documentFragment.loadDocument(document);
+		} else {
+			onError(new IllegalStateException("document and lastError null"),
+					uri);
+		}
+	}
+
+	@Override
+	public void onLoaderReset(Loader<Document> loader) {
+	}
+
 	private void installExplorer() {
 		final String[] explorerUrls = new String[] {
 				"https://play.google.com/store/apps/details?id=org.openintents.filemanager",
@@ -346,14 +411,11 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	private void dismissProgress() {
-		if (progressDialog.isShowing())
+		if (progressDialog != null && progressDialog.isShowing())
 			progressDialog.dismiss();
 	}
 
-	@Override
 	public void onError(Throwable error, final Uri uri) {
-		dismissProgress();
-
 		int errorDescription;
 		if (error == null) {
 			return;
@@ -477,37 +539,6 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	@Override
-	public void onSuccess(Document document) {
-		documentFragment.loadDocument(document);
-
-		dismissProgress();
-	}
-
-	public DocumentLoader loadUri(Uri uri) {
-		return loadUri(uri, null);
-	}
-
-	public DocumentLoader loadUri(Uri uri, String password) {
-		if (progressDialog == null || !progressDialog.isShowing()) {
-			progressDialog = new ProgressDialog(this);
-			progressDialog.setTitle(getString(R.string.dialog_loading_title));
-			progressDialog
-					.setMessage(getString(R.string.dialog_loading_message));
-			progressDialog.setIndeterminate(true);
-			progressDialog.setCancelable(false);
-			progressDialog.show();
-		}
-
-		DocumentLoader documentLoader = new DocumentLoader(this);
-		documentLoader.setOnSuccessCallback(this);
-		documentLoader.setOnErrorCallback(this);
-		documentLoader.setPassword(password);
-		documentLoader.execute(uri);
-
-		return documentLoader;
-	}
-
-	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 
@@ -516,15 +547,6 @@ public class MainActivity extends FragmentActivity implements
 
 		BillingController.unregisterObserver(billingObserver);
 		BillingController.setConfiguration(null);
-
-		// TODO: ugly threading
-		new Thread() {
-
-			@Override
-			public void run() {
-				AndroidFileCache.cleanup(MainActivity.this);
-			}
-		}.start();
 	}
 
 	// taken from net.robotmedia.billing.helper.AbstractBillingActivity

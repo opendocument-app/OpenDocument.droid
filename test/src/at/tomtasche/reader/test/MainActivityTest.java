@@ -102,4 +102,8 @@ public class MainActivityTest extends
 
 		loadUri(Uri.fromFile(destinationFile));
 	}
+	
+	public void testConfigurationChange() {
+		// TODO
+	}
 }
