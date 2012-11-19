@@ -1,9 +1,6 @@
 package at.tomtasche.reader.ui.activity;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.List;
 import java.util.zip.ZipException;
 
@@ -12,16 +9,17 @@ import net.robotmedia.billing.BillingRequest.ResponseCode;
 import net.robotmedia.billing.helper.AbstractBillingObserver;
 import net.robotmedia.billing.model.Transaction;
 import net.robotmedia.billing.model.Transaction.PurchaseState;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
-import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
@@ -58,7 +56,6 @@ public class MainActivity extends FragmentActivity implements
 	private static final String EXTRA_PASSWORD = "password";
 
 	private DocumentFragment documentFragment;
-	private DocumentLoader documentLoader;
 	private ProgressDialog progressDialog;
 	private AdRequest adRequest;
 	private AdView adView;
@@ -79,8 +76,10 @@ public class MainActivity extends FragmentActivity implements
 					.add(R.id.document_container, documentFragment,
 							DocumentFragment.FRAGMENT_TAG).commit();
 
-			if (getIntent().getData() != null) {
-				loadUri(getIntent().getData());
+			Uri uri = getIntent().getData();
+			if (Intent.ACTION_VIEW.equals(getIntent().getAction())
+					&& uri != null) {
+				loadUri(uri);
 			} else {
 				loadUri(DocumentLoader.URI_INTRO);
 			}
@@ -116,9 +115,8 @@ public class MainActivity extends FragmentActivity implements
 		};
 		BillingController.registerObserver(billingObserver);
 		BillingController.setConfiguration(this);
-		if (!billingObserver.isTransactionsRestored()) {
+		if (!billingObserver.isTransactionsRestored())
 			BillingController.restoreTransactions(this);
-		}
 
 		adRequest = new AdRequest();
 		adRequest.addKeyword("office");
@@ -148,23 +146,12 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	@Override
-	public Object onRetainCustomNonConfigurationInstance() {
-		return documentLoader;
-	}
-
-	@Override
 	protected void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
 
 		if (intent.getData() != null) {
-			System.err.println("onnewintent!");
 			loadUri(intent.getData());
 		}
-	}
-
-	@Override
-	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		super.onRestoreInstanceState(savedInstanceState);
 	}
 
 	@Override
@@ -181,16 +168,16 @@ public class MainActivity extends FragmentActivity implements
 		switch (item.getItemId()) {
 		case R.id.menu_page_list: {
 			if (documentFragment.getPages().size() > 1) {
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle(getString(R.string.page_dialog_title));
-
 				List<Part> pages = documentFragment.getPages();
-				String[] items = new String[pages.size()];
-				for (int i = 0; i < pages.size(); i++) {
-					items[i] = pages.get(i).getName();
+				int size = pages.size();
+				String[] names = new String[size];
+				for (int i = 0; i < size; i++) {
+					names[i] = pages.get(i).getName();
 				}
 
-				builder.setItems(items, new DialogInterface.OnClickListener() {
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setTitle(getString(R.string.page_dialog_title));
+				builder.setItems(names, new DialogInterface.OnClickListener() {
 
 					public void onClick(DialogInterface dialog, int item) {
 						documentFragment.goToPage(item);
@@ -217,8 +204,8 @@ public class MainActivity extends FragmentActivity implements
 					new DialogInterface.OnClickListener() {
 
 						@Override
-						public void onClick(final DialogInterface dialog,
-								final int whichButton) {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
 							documentFragment.searchDocument(input.getText()
 									.toString());
 						}
@@ -230,21 +217,21 @@ public class MainActivity extends FragmentActivity implements
 		}
 
 		case R.id.menu_open: {
-			findDocument();
+			findDocument(this);
 
 			break;
 		}
 
 		case R.id.menu_page_next: {
 			if (!documentFragment.nextPage())
-				showToast(R.string.toast_error_no_next);
+				showToast(this, R.string.toast_error_no_next);
 
 			break;
 		}
 
 		case R.id.menu_page_previous: {
 			if (!documentFragment.previousPage())
-				showToast(R.string.toast_error_no_previous);
+				showToast(this, R.string.toast_error_no_previous);
 
 			break;
 		}
@@ -275,21 +262,41 @@ public class MainActivity extends FragmentActivity implements
 
 			break;
 		}
+
+		case R.id.menu_feedback: {
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle(R.string.dialog_feedback_title);
+			builder.setMessage(R.string.dialog_feedback_message);
+			builder.setPositiveButton(android.R.string.ok,
+					new OnClickListener() {
+
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							startActivity(new Intent(Intent.ACTION_VIEW, Uri
+									.parse("http://WIAJDNWAD")));
+						}
+					});
+			builder.setNegativeButton(android.R.string.cancel, null);
+			builder.show();
+
+			break;
+		}
 		}
 
 		return super.onMenuItemSelected(featureId, item);
 	}
 
-	private void loadUri(Uri uri) {
-		loadUri(uri, null);
+	public DocumentLoader loadUri(Uri uri) {
+		return loadUri(uri, null);
 	}
 
-	private void loadUri(Uri uri, String password) {
+	public DocumentLoader loadUri(Uri uri, String password) {
 		Bundle bundle = new Bundle();
 		bundle.putString(EXTRA_PASSWORD, password);
 		bundle.putParcelable(EXTRA_URI, uri);
 
-		getSupportLoaderManager().restartLoader(0, bundle, this);
+		return (DocumentLoader) getSupportLoaderManager().restartLoader(0,
+				bundle, this);
 	}
 
 	@Override
@@ -333,88 +340,16 @@ public class MainActivity extends FragmentActivity implements
 	public void onLoaderReset(Loader<Document> loader) {
 	}
 
-	private void installExplorer() {
-		final String[] explorerUrls = new String[] {
-				"https://play.google.com/store/apps/details?id=org.openintents.filemanager",
-				"https://play.google.com/store/apps/details?id=com.speedsoftware.explorer" };
-		String[] explorerNames = new String[] { "OI File Manager", "Explorer" };
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(R.string.dialog_no_filemanager);
-		builder.setItems(explorerNames, new OnClickListener() {
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				Intent explorerIntent = new Intent(Intent.ACTION_VIEW);
-				explorerIntent.setData(Uri.parse(explorerUrls[which]));
-
-				startActivity(explorerIntent);
-
-				dialog.dismiss();
-			}
-		});
-		builder.create().show();
-	}
-
-	private void findDocument() {
-		final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-		intent.setType("application/vnd.oasis.opendocument.*");
-		intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-		final List<ResolveInfo> targets = getPackageManager()
-				.queryIntentActivities(intent, 0);
-		if (targets.size() == 0) {
-			installExplorer();
-		} else {
-			final String[] targetNames = new String[targets.size() + 1];
-			for (int i = 0; i < targets.size(); i++) {
-				targetNames[i] = targets.get(i).loadLabel(getPackageManager())
-						.toString();
-			}
-
-			targetNames[targetNames.length - 1] = getString(R.string.dialog_find_explorer);
-
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle(R.string.dialog_choose_filemanager);
-			builder.setItems(targetNames, new OnClickListener() {
-
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					if (which < targets.size()) {
-						ResolveInfo target = targets.get(which);
-						intent.setComponent(new ComponentName(
-								target.activityInfo.packageName,
-								target.activityInfo.name));
-
-						startActivityForResult(intent, 42);
-					} else {
-						installExplorer();
-					}
-
-					dialog.dismiss();
-				}
-			});
-			builder.create().show();
-		}
-	}
-
 	@Override
 	protected void onActivityResult(final int requestCode,
-			final int resultCode, final Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
+			final int resultCode, final Intent intent) {
+		super.onActivityResult(requestCode, resultCode, intent);
 
-		if (requestCode == 42 && resultCode == RESULT_OK && data != null
-				&& data.getData() != null) {
-			loadUri(data.getData());
+		Uri uri = intent.getData();
+		if (requestCode == 42 && resultCode == RESULT_OK && intent != null
+				&& uri != null) {
+			loadUri(uri);
 		}
-	}
-
-	private void showToast(int resId) {
-		showToast(getString(resId));
-	}
-
-	private void showToast(String message) {
-		Toast.makeText(this, message, Toast.LENGTH_LONG).show();
 	}
 
 	private void dismissProgress() {
@@ -470,79 +405,7 @@ public class MainActivity extends FragmentActivity implements
 			errorDescription = R.string.toast_error_generic;
 		}
 
-		submitFile(error, uri, errorDescription);
-	}
-
-	private void submitFile(final Throwable error, final Uri uri,
-			final int errorDescription) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(R.string.toast_error_generic);
-		builder.setMessage(getString(errorDescription)
-				+ System.getProperty("line.separator")
-				+ getString(R.string.dialog_submit_file));
-		builder.setNegativeButton(android.R.string.no, null);
-		builder.setNeutralButton(R.string.dialog_error_send_error_only,
-				new OnClickListener() {
-
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						startActivity(ReportUtil.createFeedbackIntent(
-								MainActivity.this, error));
-					}
-				});
-		builder.setPositiveButton(android.R.string.yes, new OnClickListener() {
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				Bundle bundle = new Bundle();
-				bundle.putStringArray(Intent.EXTRA_EMAIL,
-						new String[] { "tomtasche+reader@gmail.com" });
-				bundle.putParcelable(Intent.EXTRA_STREAM, uri);
-
-				String version;
-				try {
-					version = getPackageManager().getPackageInfo(
-							getPackageName(), 0).versionName;
-				} catch (NameNotFoundException e1) {
-					version = "unknown";
-				}
-				bundle.putString(Intent.EXTRA_SUBJECT, "OpenDocument Reader ("
-						+ version + "): Couldn't open file");
-
-				StringWriter writer = new StringWriter();
-				PrintWriter printer = new PrintWriter(writer);
-				printer.println("Important information for the developer:");
-				printer.println("- " + Build.MODEL + " running Android "
-						+ Build.VERSION.SDK_INT);
-				printer.println("- The following error occured while opening the file located at: "
-						+ uri.toString());
-				printer.println(getString(errorDescription));
-				printer.println();
-				error.printStackTrace(printer);
-				printer.println();
-				printer.println("-----------------");
-				printer.println("Feel free to append further information here.");
-
-				try {
-					printer.close();
-					writer.close();
-				} catch (IOException e) {
-				}
-
-				bundle.putString(Intent.EXTRA_TEXT, writer.toString());
-
-				Intent intent = new Intent(Intent.ACTION_SEND);
-				intent.setType("plain/text");
-				intent.putExtras(bundle);
-
-				startActivity(Intent.createChooser(intent,
-						getString(R.string.dialog_submit_file_title)));
-
-				dialog.dismiss();
-			}
-		});
-
-		builder.show();
+		ReportUtil.submitFile(this, error, uri, errorDescription);
 	}
 
 	@Override
@@ -554,6 +417,80 @@ public class MainActivity extends FragmentActivity implements
 
 		BillingController.unregisterObserver(billingObserver);
 		BillingController.setConfiguration(null);
+	}
+
+	private static void findDocument(final Activity activity) {
+		final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+		intent.setType("application/vnd.oasis.opendocument.*");
+		intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+		PackageManager pm = activity.getPackageManager();
+		final List<ResolveInfo> targets = pm.queryIntentActivities(intent, 0);
+		if (targets.size() == 0) {
+			installExplorer(activity);
+		} else {
+			int size = targets.size();
+			final String[] targetNames = new String[size + 1];
+			for (int i = 0; i < size; i++) {
+				targetNames[i] = targets.get(i).loadLabel(pm).toString();
+			}
+
+			targetNames[targetNames.length - 1] = activity
+					.getString(R.string.dialog_find_explorer);
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+			builder.setTitle(R.string.dialog_choose_filemanager);
+			builder.setItems(targetNames, new OnClickListener() {
+
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					if (which < targets.size()) {
+						ResolveInfo target = targets.get(which);
+						intent.setComponent(new ComponentName(
+								target.activityInfo.packageName,
+								target.activityInfo.name));
+
+						activity.startActivityForResult(intent, 42);
+					} else {
+						installExplorer(activity);
+					}
+
+					dialog.dismiss();
+				}
+			});
+			builder.show();
+		}
+	}
+
+	private static void installExplorer(final Context context) {
+		final String[] explorerUrls = new String[] {
+				"https://play.google.com/store/apps/details?id=org.openintents.filemanager",
+				"https://play.google.com/store/apps/details?id=com.speedsoftware.explorer" };
+		String[] explorerNames = new String[] { "OI File Manager", "Explorer" };
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		builder.setTitle(R.string.dialog_no_filemanager);
+		builder.setItems(explorerNames, new OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				Intent explorerIntent = new Intent(Intent.ACTION_VIEW);
+				explorerIntent.setData(Uri.parse(explorerUrls[which]));
+
+				context.startActivity(explorerIntent);
+
+				dialog.dismiss();
+			}
+		});
+		builder.create().show();
+	}
+
+	private static void showToast(Context context, int resId) {
+		showToast(context, context.getString(resId));
+	}
+
+	private static void showToast(Context context, String message) {
+		Toast.makeText(context, message, Toast.LENGTH_LONG).show();
 	}
 
 	// taken from net.robotmedia.billing.helper.AbstractBillingActivity

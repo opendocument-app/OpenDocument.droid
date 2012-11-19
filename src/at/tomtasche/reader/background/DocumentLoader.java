@@ -117,8 +117,9 @@ public class DocumentLoader extends AsyncTaskLoader<Document> {
 								.keySet());
 				SpreadsheetTranslator translator = new SpreadsheetTranslator(
 						cache);
-				for (int i = 0; i < ((OpenDocumentSpreadsheet) openDocument)
-						.getTableCount(); i++) {
+				int count = ((OpenDocumentSpreadsheet) openDocument)
+						.getTableCount();
+				for (int i = 0; i < count; i++) {
 					CharArrayWriter writer = new CharArrayWriter();
 					LWXMLWriter out = new LWXMLStreamWriter(writer);
 					try {

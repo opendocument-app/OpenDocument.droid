@@ -15,24 +15,29 @@ public class AndroidFileCache extends DefaultFileCache {
 	private static File cache;
 
 	public static final File getCacheDirectory(Context context) {
-		File directory = context.getCacheDir();
-		if (!testDirectory(directory)) {
-			directory = context.getFilesDir();
+		if (cache != null && testDirectory(cache)) {
+			return cache;
+		} else {
+			File directory = context.getCacheDir();
 			if (!testDirectory(directory)) {
-				directory = new File(Environment.getExternalStorageDirectory(),
-						".odf-reader");
+				directory = context.getFilesDir();
 				if (!testDirectory(directory)) {
-					throw new IllegalStateException(
-							"No writable cache available");
+					directory = new File(
+							Environment.getExternalStorageDirectory(),
+							".odf-reader");
+					if (!testDirectory(directory)) {
+						throw new IllegalStateException(
+								"No writable cache available");
+					}
 				}
 			}
-		}
 
-		return cache = directory;
+			return cache = directory;
+		}
 	}
 
 	private static final boolean testDirectory(File directory) {
-		return directory != null && directory.canWrite();
+		return directory != null && directory.canWrite() && directory.canRead();
 	}
 
 	private static final File2URITranslator URI_TRANSLATOR = new File2URITranslator() {
@@ -60,12 +65,12 @@ public class AndroidFileCache extends DefaultFileCache {
 	}
 
 	public static void cleanup(Context context) {
-		File cache = AndroidFileCache.cache != null ? AndroidFileCache.cache
-				: getCacheDirectory(context);
-		if (cache.list() == null)
+		File cache = getCacheDirectory(context);
+		String[] files = cache.list();
+		if (files == null)
 			return;
 
-		for (String s : cache.list()) {
+		for (String s : files) {
 			try {
 				new File(cache, s).delete();
 			} catch (Exception e) {

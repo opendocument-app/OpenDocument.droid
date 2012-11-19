@@ -46,7 +46,7 @@ public class MainActivityTest extends
 			public void run() {
 				try {
 					DocumentLoader loader = activity.loadUri(uri);
-					loader.get();
+					loader.waitForLoader();
 
 					if (loader.getLastError() != null) {
 						StringWriter writer = new StringWriter();

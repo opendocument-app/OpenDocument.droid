@@ -27,6 +27,11 @@
         android:showAsAction="ifRoom|withText"
         android:title="@string/menu_search"/>
     <item
+        android:id="@+id/menu_feedback"
+        android:icon="@drawable/love"
+        android:showAsAction="never"
+        android:title="@string/menu_feedback"/>
+    <item
         android:id="@+id/menu_remove_ads_for_1y"
         android:icon="@drawable/love"
         android:showAsAction="never"

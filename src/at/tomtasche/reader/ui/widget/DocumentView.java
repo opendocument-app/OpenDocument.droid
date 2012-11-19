@@ -8,7 +8,7 @@ public class DocumentView extends WebView {
 
 	protected static final String ENCODING = "UTF-8";
 
-	public DocumentView(final Context context) {
+	public DocumentView(Context context) {
 		super(context);
 
 		final WebSettings settings = getSettings();

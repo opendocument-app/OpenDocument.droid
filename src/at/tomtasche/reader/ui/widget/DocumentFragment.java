@@ -15,11 +15,9 @@ public class DocumentFragment extends Fragment {
 
 	public static final String FRAGMENT_TAG = "document_fragment";
 
-	private static final String EXTRA_SCROLL_POSITION = "scroll_position";
-
 	private DocumentView documentView;
 	private Document document;
-	private int index;
+	private int currentIndex;
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -31,26 +29,19 @@ public class DocumentFragment extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		documentView = new DocumentView(getActivity());
-		if (document == null) {
+		if (documentView != null) {
+			return documentView;
+		} else {
+			documentView = new DocumentView(getActivity());
+
 			document = new Document();
 
 			documentView.loadData(
 					getActivity().getString(R.string.message_get_started),
 					"text/plain", DocumentView.ENCODING);
-		} else {
-			loadDocument(document);
+
+			return documentView;
 		}
-
-		return documentView;
-	}
-
-	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-
-		// TODO:
-		outState.putInt(EXTRA_SCROLL_POSITION, documentView.getScrollY());
 	}
 
 	private void loadData(String url) {
@@ -60,9 +51,9 @@ public class DocumentFragment extends Fragment {
 	public void loadDocument(Document document) {
 		this.document = document;
 
-		index = 0;
+		currentIndex = 0;
 
-		Part firstPage = document.getPageAt(index);
+		Part firstPage = document.getPageAt(currentIndex);
 		loadData(firstPage.getUrl());
 	}
 
@@ -72,20 +63,20 @@ public class DocumentFragment extends Fragment {
 	}
 
 	public boolean nextPage() {
-		return goToPage(index + 1);
+		return goToPage(currentIndex + 1);
 	}
 
 	public boolean previousPage() {
-		return goToPage(index - 1);
+		return goToPage(currentIndex - 1);
 	}
 
 	public boolean goToPage(int page) {
 		if (page < 0 || page >= document.getPages().size())
 			return false;
 
-		index = page;
+		currentIndex = page;
 
-		loadData(document.getPageAt(index).getUrl());
+		loadData(document.getPageAt(currentIndex).getUrl());
 
 		return true;
 	}
