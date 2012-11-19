@@ -15,33 +15,45 @@ public class DocumentFragment extends Fragment {
 
 	public static final String FRAGMENT_TAG = "document_fragment";
 
+	private static final String EXTRA_SCROLL_POSITION = "scroll_position";
+	private static final String EXTRA_CURRENT_PAGE = "current_page";
+	private static final String EXTRA_DOCUMENT = "document";
+
 	private DocumentView documentView;
 	private Document document;
 	private int currentIndex;
 
 	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
-
-		setRetainInstance(true);
-	}
-
-	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		if (documentView != null) {
-			return documentView;
-		} else {
-			documentView = new DocumentView(getActivity());
+		documentView = new DocumentView(getActivity());
 
+		if (savedInstanceState != null) {
+			document = savedInstanceState.getParcelable(EXTRA_DOCUMENT);
+			currentIndex = savedInstanceState.getInt(EXTRA_CURRENT_PAGE);
+
+			documentView.loadUrl(document.getPageAt(currentIndex).getUrl());
+
+			documentView.scrollTo(0,
+					savedInstanceState.getInt(EXTRA_SCROLL_POSITION));
+		} else {
 			document = new Document();
 
 			documentView.loadData(
 					getActivity().getString(R.string.message_get_started),
 					"text/plain", DocumentView.ENCODING);
-
-			return documentView;
 		}
+
+		return documentView;
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		outState.putInt(EXTRA_SCROLL_POSITION, documentView.getScrollY());
+		outState.putInt(EXTRA_CURRENT_PAGE, currentIndex);
+		outState.putParcelable(EXTRA_DOCUMENT, document);
 	}
 
 	private void loadData(String url) {

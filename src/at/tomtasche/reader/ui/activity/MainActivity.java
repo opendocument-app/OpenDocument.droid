@@ -130,8 +130,6 @@ public class MainActivity extends FragmentActivity implements
 
 			((LinearLayout) findViewById(R.id.ad_container)).addView(adView);
 		}
-
-		getSupportLoaderManager().initLoader(0, null, this);
 	}
 
 	@Override
@@ -344,6 +342,9 @@ public class MainActivity extends FragmentActivity implements
 	protected void onActivityResult(final int requestCode,
 			final int resultCode, final Intent intent) {
 		super.onActivityResult(requestCode, resultCode, intent);
+
+		if (intent == null)
+			return;
 
 		Uri uri = intent.getData();
 		if (requestCode == 42 && resultCode == RESULT_OK && intent != null

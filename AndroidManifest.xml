@@ -114,6 +114,20 @@
                 <action android:name="com.android.vending.billing.PURCHASE_STATE_CHANGED" />
             </intent-filter>
         </receiver>
+
+        <activity
+            android:name="com.ipaulpro.afilechooser.FileChooserActivity"
+            android:exported="false"
+            android:icon="@drawable/ic_chooser"
+            android:label="@string/choose_file" >
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT" />
+
+                <category android:name="android.intent.category.OPENABLE" />
+
+                <data android:mimeType="application/vnd.oasis.opendocument.*" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
