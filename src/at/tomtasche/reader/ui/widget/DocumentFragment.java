@@ -26,19 +26,17 @@ public class DocumentFragment extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		documentView = new DocumentView(getActivity());
-
 		if (savedInstanceState != null) {
 			document = savedInstanceState.getParcelable(EXTRA_DOCUMENT);
 			currentIndex = savedInstanceState.getInt(EXTRA_CURRENT_PAGE);
 
-			documentView.loadUrl(document.getPageAt(currentIndex).getUrl());
-
-			documentView.scrollTo(0,
+			documentView = new DocumentView(getActivity(),
 					savedInstanceState.getInt(EXTRA_SCROLL_POSITION));
+			documentView.loadUrl(document.getPageAt(currentIndex).getUrl());
 		} else {
 			document = new Document();
 
+			documentView = new DocumentView(getActivity());
 			documentView.loadData(
 					getActivity().getString(R.string.message_get_started),
 					"text/plain", DocumentView.ENCODING);

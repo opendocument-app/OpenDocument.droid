@@ -4,7 +4,7 @@
     <item
         android:id="@+id/menu_page_previous"
         android:icon="@drawable/ic_menu_back"
-        android:showAsAction="ifRoom|withText"
+        android:showAsAction="always|withText"
         android:title="@string/menu_page_previous"/>
     <item
         android:id="@+id/menu_page_list"
@@ -14,12 +14,12 @@
     <item
         android:id="@+id/menu_page_next"
         android:icon="@drawable/ic_menu_forward"
-        android:showAsAction="ifRoom|withText"
+        android:showAsAction="always|withText"
         android:title="@string/menu_page_next"/>
     <item
         android:id="@+id/menu_open"
         android:icon="@android:drawable/ic_menu_view"
-        android:showAsAction="never"
+        android:showAsAction="ifRoom|withText"
         android:title="@string/menu_open"/>
     <item
         android:id="@+id/menu_search"

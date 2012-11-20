@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">OpenDocument Reader</string>
-    <string name="message_get_started">Get started by pressing your phone\'s menu button and selecting "Open"!</string>
+    <string name="message_get_started">Getting started...</string>
     <string name="page_dialog_title">Pick a page</string>
     <string name="toast_error_generic">Something bad happened. Couldn\'t open file.</string>
     <string name="toast_error_access_file">Couldn\'t access file.</string>
