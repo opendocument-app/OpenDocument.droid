@@ -1,5 +1,9 @@
 package at.tomtasche.reader.ui.activity;
 
+import io.filepicker.FPService;
+import io.filepicker.FilePicker;
+import io.filepicker.FilePickerAPI;
+
 import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.zip.ZipException;
@@ -270,8 +274,9 @@ public class MainActivity extends FragmentActivity implements
 
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							startActivity(new Intent(Intent.ACTION_VIEW, Uri
-									.parse("https://opendocument.uservoice.com/")));
+							startActivity(new Intent(
+									Intent.ACTION_VIEW,
+									Uri.parse("https://opendocument.uservoice.com/")));
 						}
 					});
 			builder.setNegativeButton(android.R.string.cancel, null);
@@ -421,6 +426,8 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	private static void findDocument(final Activity activity) {
+		FilePickerAPI.setKey("Ao7lHjOFkSnuR9mgQ5Jhtz");
+
 		final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 		intent.setType("application/vnd.oasis.opendocument.*");
 		intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -450,6 +457,15 @@ public class MainActivity extends FragmentActivity implements
 						intent.setComponent(new ComponentName(
 								target.activityInfo.packageName,
 								target.activityInfo.name));
+
+						if (FilePicker.class.getCanonicalName().equals(
+								target.activityInfo.name)) {
+							intent.putExtra("services", new String[] {
+									FPService.DROPBOX, FPService.BOX,
+									FPService.GDRIVE, FPService.GMAIL });
+
+							intent.setType(null);
+						}
 
 						activity.startActivityForResult(intent, 42);
 					} else {

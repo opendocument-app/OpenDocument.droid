@@ -35,5 +35,7 @@
     <string name="menu_remove_ads">Remove ads temporarily</string>
     <string name="menu_feedback">Feedback</string>
     <string name="menu_about">About</string>
+    <string name="title_choose_file_cloud">Choose file from cloud</string>
+    <string name="title_choose_file_local">Choose file from device</string>
 
 </resources>

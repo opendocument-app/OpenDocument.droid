@@ -120,7 +120,7 @@
             android:name="com.ipaulpro.afilechooser.FileChooserActivity"
             android:exported="false"
             android:icon="@drawable/ic_chooser"
-            android:label="@string/choose_file" >
+            android:label="@string/title_choose_file_local" >
             <intent-filter>
                 <action android:name="android.intent.action.GET_CONTENT" />
 
@@ -128,6 +128,22 @@
 
                 <data android:mimeType="application/vnd.oasis.opendocument.*" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="io.filepicker.FilePicker"
+            android:exported="false"
+            android:label="@string/title_choose_file_cloud" >
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT" />
+
+                <category android:name="android.intent.category.OPENABLE" />
+
+                <data android:mimeType="application/vnd.oasis.opendocument.*" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="io.filepicker.AuthActivity"
+            android:label="@string/title_choose_file_cloud" >
         </activity>
     </application>
 
