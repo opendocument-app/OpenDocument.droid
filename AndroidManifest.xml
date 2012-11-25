@@ -104,7 +104,8 @@
 
         <activity
             android:name="com.google.ads.AdActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" />
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:excludeFromRecents="true" />
 
         <service android:name="net.robotmedia.billing.BillingService" />
 
@@ -118,9 +119,11 @@
 
         <activity
             android:name="com.ipaulpro.afilechooser.FileChooserActivity"
+            android:excludeFromRecents="true"
             android:exported="false"
             android:icon="@drawable/ic_chooser"
-            android:label="@string/title_choose_file_local" >
+            android:label="@string/title_choose_file_local"
+            android:theme="@android:style/Theme.Dialog" >
             <intent-filter>
                 <action android:name="android.intent.action.GET_CONTENT" />
 
@@ -131,8 +134,10 @@
         </activity>
         <activity
             android:name="io.filepicker.FilePicker"
+            android:excludeFromRecents="true"
             android:exported="false"
-            android:label="@string/title_choose_file_cloud" >
+            android:label="@string/title_choose_file_cloud"
+            android:theme="@android:style/Theme.Dialog" >
             <intent-filter>
                 <action android:name="android.intent.action.GET_CONTENT" />
 
@@ -143,7 +148,8 @@
         </activity>
         <activity
             android:name="io.filepicker.AuthActivity"
-            android:label="@string/title_choose_file_cloud" >
+            android:label="@string/title_choose_file_cloud"
+            android:theme="@android:style/Theme.Dialog" >
         </activity>
     </application>
 
