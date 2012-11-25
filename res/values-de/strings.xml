@@ -23,6 +23,8 @@
     <string name="dialog_loading_title">Lädt...</string>
     <string name="dialog_loading_message">Das könnte einige Minuten dauern, je nachdem wie komplex das Dokument aufgebaut ist und wie schnell dein Handy ist.</string>
     <string name="dialog_error_send_error_only">Nur den Fehler senden</string>
+    <string name="dialog_feedback_title">Sag uns deine Meinung!</string>
+    <string name="dialog_feedback_message">Dir gefällt nicht wie wir versuchen mit dieser App Geld zu verdienen? Oder hasst du das Aussehen und Verhalten der App? Du suchst vergeblich nach einem bestimmten Feature? Bitte sag uns Bescheid!</string>
     <string name="menu_page_list">Zeige Seiten</string>
     <string name="menu_page_next">Weiter</string>
     <string name="menu_page_previous">Zurück</string>
@@ -32,5 +34,6 @@
     <string name="menu_remove_ads_forever">Entferne Werbung für immer</string>
     <string name="menu_remove_ads">Entferne Werbung temporär</string>
     <string name="menu_about">Über</string>
+    <string name="menu_feedback">Feedback</string>
 
 </resources>
