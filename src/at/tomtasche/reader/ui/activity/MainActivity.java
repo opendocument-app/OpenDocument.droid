@@ -271,7 +271,7 @@ public class MainActivity extends FragmentActivity implements
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							startActivity(new Intent(Intent.ACTION_VIEW, Uri
-									.parse("http://WIAJDNWAD")));
+									.parse("https://opendocument.uservoice.com/")));
 						}
 					});
 			builder.setNegativeButton(android.R.string.cancel, null);
