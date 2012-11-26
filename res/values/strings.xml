@@ -3,7 +3,6 @@
 
     <string name="app_name">OpenDocument Reader</string>
     <string name="message_get_started">Getting started...</string>
-    <string name="page_dialog_title">Pick a page</string>
     <string name="toast_error_generic">Something bad happened. Couldn\'t open file.</string>
     <string name="toast_error_access_file">Couldn\'t access file.</string>
     <string name="toast_error_find_file">Couldn\'t find file. Maybe it doesn\'t exist any longer?</string>
@@ -15,6 +14,8 @@
     <string name="toast_error_only_one_page">There\'s only one page</string>
     <string name="toast_error_password_protected">Document is password-protected</string>
     <string name="toast_error_storage">External storage not available. Couldn\'t read file.</string>
+    <string name="dialog_page_title">Pick a page</string>
+    <string name="dialog_recent_title">Recent documents</string>
     <string name="dialog_submit_file_title">Choose an app to send us your file</string>
     <string name="dialog_submit_file">Do you want to send us the file so we can take a look and probably make it work with the next update?</string>
     <string name="dialog_no_filemanager">No file explorer found. We recommend one of these:</string>

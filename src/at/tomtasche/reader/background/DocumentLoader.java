@@ -3,6 +3,7 @@ package at.tomtasche.reader.background;
 import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,7 @@ import at.andiwand.odf2html.odf.TemporaryOpenDocumentFile;
 import at.andiwand.odf2html.translator.document.SpreadsheetTranslator;
 import at.andiwand.odf2html.translator.document.TextTranslator;
 import at.tomtasche.reader.background.Document.Part;
+import at.tomtasche.reader.ui.widget.RecentlyDialog;
 
 public class DocumentLoader extends AsyncTaskLoader<Document> {
 
@@ -75,6 +77,14 @@ public class DocumentLoader extends AsyncTaskLoader<Document> {
 				stream = getContext().getAssets().open("intro.odt");
 			} else {
 				stream = getContext().getContentResolver().openInputStream(uri);
+			}
+
+			try {
+				RecentlyDialog.addRecentDocument(getContext(),
+						uri.getLastPathSegment(), uri);
+			} catch (IOException e) {
+				// not a showstopper, so just continue
+				e.printStackTrace();
 			}
 
 			AndroidFileCache cache = new AndroidFileCache(getContext());

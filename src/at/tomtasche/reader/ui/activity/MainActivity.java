@@ -45,6 +45,7 @@ import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.ui.widget.DocumentFragment;
+import at.tomtasche.reader.ui.widget.RecentlyDialog;
 
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
@@ -86,6 +87,8 @@ public class MainActivity extends FragmentActivity implements
 				loadUri(uri);
 			} else {
 				loadUri(DocumentLoader.URI_INTRO);
+
+				RecentlyDialog.showDialog(this);
 			}
 		}
 
@@ -178,14 +181,14 @@ public class MainActivity extends FragmentActivity implements
 				}
 
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle(getString(R.string.page_dialog_title));
+				builder.setTitle(R.string.dialog_page_title);
 				builder.setItems(names, new DialogInterface.OnClickListener() {
 
 					public void onClick(DialogInterface dialog, int item) {
 						documentFragment.goToPage(item);
 					}
 				});
-				builder.create().show();
+				builder.show();
 			} else {
 				Toast.makeText(this, R.string.toast_error_only_one_page,
 						Toast.LENGTH_LONG).show();

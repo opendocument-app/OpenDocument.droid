@@ -3,7 +3,6 @@
 
     <string name="app_name">OpenDocument Reader</string>
     <string name="message_get_started">Wird vorbereitet...</string>
-    <string name="page_dialog_title">Wähle eine Seite aus</string>
     <string name="toast_error_generic">Etwas schlimmes ist passiert. Datei konnte nicht geöffnet werden.</string>
     <string name="toast_error_access_file">Auf die Datei konnte nicht zugegriffen werden. Vielleicht ist die Datei nicht mehr vorhanden?</string>
     <string name="toast_error_find_file">Datei konnte nicht gefunden werden.</string>
@@ -15,6 +14,8 @@
     <string name="toast_error_only_one_page">Es gibt nur eine Seite in diesem Dokument</string>
     <string name="toast_error_password_protected">Dokument ist passwort-geschützt</string>
     <string name="toast_error_storage">Externer Speicher nicht verfügbar. Datei konnte nicht gelesen werden.</string>
+    <string name="dialog_page_title">Wähle eine Seite aus</string>
+    <string name="dialog_recent_title">Kürzlich geöffnete Dokumente</string>
     <string name="dialog_submit_file_title">Wähle eine App zum Senden der Datei aus</string>
     <string name="dialog_submit_file">Willst du uns die Datei schicken, damit wir einen Blick darauf werfen können und das Problem möglicherweise beheben können?</string>
     <string name="dialog_no_filemanager">Kein Dateimanager vorhanden. Wir empfehlen einen der folgenden:</string>
@@ -27,7 +28,7 @@
     <string name="dialog_feedback_message">Dir gefällt nicht wie wir versuchen mit dieser App Geld zu verdienen? Oder hasst du das Aussehen und Verhalten der App? Du suchst vergeblich nach einem bestimmten Feature? Bitte sag uns Bescheid!</string>
     <string name="dialog_remove_ads_title">Entferne Werbung für:</string>
     <string name="title_choose_file_cloud">Wähle eine Datei aus dem Internet</string>
-    <string name="title_choose_file_local">Wähle eine Datei von diesem Gerät</string>
+    <string name="title_hoose_file_local">Wähle eine Datei von diesem Gerät</string>
     <string name="menu_page_list">Zeige Seiten</string>
     <string name="menu_page_next">Weiter</string>
     <string name="menu_page_previous">Zurück</string>
