@@ -69,6 +69,10 @@ public class MainActivity extends FragmentActivity implements
 	protected void onCreate(Bundle arg0) {
 		super.onCreate(arg0);
 
+		// if (ActivityManager.isUserAMonkey())
+		// getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+		// WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
 		setTitle("");
 		setContentView(R.layout.main);
 
