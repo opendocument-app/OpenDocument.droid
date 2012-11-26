@@ -426,80 +426,46 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	private static void findDocument(final Activity activity) {
-		FilePickerAPI.setKey("Ao7lHjOFkSnuR9mgQ5Jhtz");
-
 		final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 		intent.setType("application/vnd.oasis.opendocument.*");
 		intent.addCategory(Intent.CATEGORY_OPENABLE);
 
 		PackageManager pm = activity.getPackageManager();
 		final List<ResolveInfo> targets = pm.queryIntentActivities(intent, 0);
-		if (targets.size() == 0) {
-			installExplorer(activity);
-		} else {
-			int size = targets.size();
-			final String[] targetNames = new String[size + 1];
-			for (int i = 0; i < size; i++) {
-				targetNames[i] = targets.get(i).loadLabel(pm).toString();
-			}
-
-			targetNames[targetNames.length - 1] = activity
-					.getString(R.string.dialog_find_explorer);
-
-			AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-			builder.setTitle(R.string.dialog_choose_filemanager);
-			builder.setItems(targetNames, new OnClickListener() {
-
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					if (which < targets.size()) {
-						ResolveInfo target = targets.get(which);
-						intent.setComponent(new ComponentName(
-								target.activityInfo.packageName,
-								target.activityInfo.name));
-
-						if (FilePicker.class.getCanonicalName().equals(
-								target.activityInfo.name)) {
-							intent.putExtra("services", new String[] {
-									FPService.DROPBOX, FPService.BOX,
-									FPService.GDRIVE, FPService.GMAIL });
-
-							intent.setType(null);
-						}
-
-						activity.startActivityForResult(intent, 42);
-					} else {
-						installExplorer(activity);
-					}
-
-					dialog.dismiss();
-				}
-			});
-			builder.show();
+		int size = targets.size();
+		String[] targetNames = new String[size];
+		for (int i = 0; i < size; i++) {
+			targetNames[i] = targets.get(i).loadLabel(pm).toString();
 		}
-	}
 
-	private static void installExplorer(final Context context) {
-		final String[] explorerUrls = new String[] {
-				"https://play.google.com/store/apps/details?id=org.openintents.filemanager",
-				"https://play.google.com/store/apps/details?id=com.speedsoftware.explorer" };
-		String[] explorerNames = new String[] { "OI File Manager", "Explorer" };
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(context);
-		builder.setTitle(R.string.dialog_no_filemanager);
-		builder.setItems(explorerNames, new OnClickListener() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+		builder.setTitle(R.string.dialog_choose_filemanager);
+		builder.setItems(targetNames, new OnClickListener() {
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				Intent explorerIntent = new Intent(Intent.ACTION_VIEW);
-				explorerIntent.setData(Uri.parse(explorerUrls[which]));
+				ResolveInfo target = targets.get(which);
+				intent.setComponent(new ComponentName(
+						target.activityInfo.packageName,
+						target.activityInfo.name));
 
-				context.startActivity(explorerIntent);
+				if (FilePicker.class.getCanonicalName().equals(
+						target.activityInfo.name)) {
+					FilePickerAPI.setKey("Ao7lHjOFkSnuR9mgQ5Jhtz");
+
+					intent.putExtra("services", new String[] {
+							FPService.DROPBOX, FPService.BOX, FPService.GDRIVE,
+							FPService.GMAIL });
+
+					intent.setType(null);
+				}
+
+				activity.startActivityForResult(intent, 42);
 
 				dialog.dismiss();
 			}
 		});
-		builder.create().show();
+		builder.show();
 	}
 
 	private static void showToast(Context context, int resId) {
