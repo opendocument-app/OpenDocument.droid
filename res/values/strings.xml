@@ -25,17 +25,22 @@
     <string name="dialog_error_send_error_only">Send only the error</string>
     <string name="dialog_feedback_title">Shape the future of this app!</string>
     <string name="dialog_feedback_message">Don\'t like our approach to monetize this app? Hate the look and feel? Desperately looking for a specific feature? Please tell us about it on our feedback platform!</string>
+    <string name="dialog_remove_ads_title">Remove ads for:</string>
+    <string name="title_choose_file_cloud">Choose file from cloud</string>
+    <string name="title_choose_file_local">Choose file from device</string>
     <string name="menu_page_list">List pages</string>
     <string name="menu_page_next">Next</string>
     <string name="menu_page_previous">Previous</string>
     <string name="menu_search">Search</string>
     <string name="menu_open">Open</string>
-    <string name="menu_remove_ads_for_1y">Remove ads for one year</string>
-    <string name="menu_remove_ads_forever">Remove ads forever</string>
-    <string name="menu_remove_ads">Remove ads temporarily</string>
     <string name="menu_feedback">Feedback</string>
     <string name="menu_about">About</string>
-    <string name="title_choose_file_cloud">Choose file from cloud</string>
-    <string name="title_choose_file_local">Choose file from device</string>
+    <string name="menu_remove_ads">Remove ads</string>
+
+    <string-array name="remove_ads_options">
+        <item>for one year</item>
+        <item>forever</item>
+        <item>temporarily</item>
+    </string-array>
 
 </resources>

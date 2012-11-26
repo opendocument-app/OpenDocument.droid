@@ -32,16 +32,6 @@
         android:showAsAction="never"
         android:title="@string/menu_feedback"/>
     <item
-        android:id="@+id/menu_remove_ads_for_1y"
-        android:icon="@drawable/love"
-        android:showAsAction="never"
-        android:title="@string/menu_remove_ads_for_1y"/>
-    <item
-        android:id="@+id/menu_remove_ads_forever"
-        android:icon="@drawable/love"
-        android:showAsAction="never"
-        android:title="@string/menu_remove_ads_forever"/>
-    <item
         android:id="@+id/menu_remove_ads"
         android:icon="@drawable/love"
         android:showAsAction="never"

@@ -238,23 +238,37 @@ public class MainActivity extends FragmentActivity implements
 			break;
 		}
 
-		case R.id.menu_remove_ads_for_1y: {
-			BillingController.requestPurchase(this, BILLING_PRODUCT_YEAR, true,
-					null);
-
-			break;
-		}
-
-		case R.id.menu_remove_ads_forever: {
-			BillingController.requestPurchase(this, BILLING_PRODUCT_FOREVER,
-					true, null);
-
-			break;
-		}
-
 		case R.id.menu_remove_ads: {
-			if (adView != null)
-				adView.setVisibility(View.GONE);
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle(R.string.dialog_remove_ads_title);
+			builder.setItems(R.array.remove_ads_options, new OnClickListener() {
+
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					switch (which) {
+					case 0:
+						BillingController.requestPurchase(MainActivity.this,
+								BILLING_PRODUCT_YEAR, true, null);
+
+						break;
+
+					case 1:
+						BillingController.requestPurchase(MainActivity.this,
+								BILLING_PRODUCT_FOREVER, true, null);
+
+						break;
+
+					default:
+						if (adView != null)
+							adView.setVisibility(View.GONE);
+
+						break;
+					}
+
+					dialog.dismiss();
+				}
+			});
+			builder.show();
 
 			break;
 		}
