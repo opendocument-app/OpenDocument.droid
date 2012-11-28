@@ -13,6 +13,7 @@ import net.robotmedia.billing.BillingRequest.ResponseCode;
 import net.robotmedia.billing.helper.AbstractBillingObserver;
 import net.robotmedia.billing.model.Transaction;
 import net.robotmedia.billing.model.Transaction.PurchaseState;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
@@ -47,6 +48,7 @@ import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.ui.widget.DocumentFragment;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
+import at.tomtasche.reader.ui.widget.RecentlyDialog;
 
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
@@ -66,6 +68,8 @@ public class MainActivity extends FragmentActivity implements
 	private AdRequest adRequest;
 	private AdView adView;
 
+	// TODO: remove
+	// @SuppressLint("NewApi")
 	@Override
 	protected void onCreate(Bundle arg0) {
 		super.onCreate(arg0);
@@ -73,6 +77,11 @@ public class MainActivity extends FragmentActivity implements
 		// if (ActivityManager.isUserAMonkey())
 		// getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 		// WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+		// StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+		// .detectAll().penaltyDeath().build());
+		// StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll()
+		// .penaltyDeath().build());
 
 		setTitle("");
 		setContentView(R.layout.main);
@@ -95,7 +104,7 @@ public class MainActivity extends FragmentActivity implements
 			} else {
 				loadUri(DocumentLoader.URI_INTRO);
 
-				// RecentlyDialog.showDialog(this);
+				RecentlyDialog.showDialog(this);
 			}
 		}
 
@@ -334,7 +343,7 @@ public class MainActivity extends FragmentActivity implements
 		String password = null;
 		if (bundle != null) {
 			uri = bundle.getParcelable(EXTRA_URI);
-			password = bundle.getParcelable(EXTRA_PASSWORD);
+			password = bundle.getString(EXTRA_PASSWORD);
 		} else {
 			uri = DocumentLoader.URI_INTRO;
 		}
