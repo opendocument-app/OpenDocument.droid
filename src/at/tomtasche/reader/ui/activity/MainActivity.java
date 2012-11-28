@@ -15,7 +15,6 @@ import net.robotmedia.billing.model.Transaction;
 import net.robotmedia.billing.model.Transaction.PurchaseState;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -26,10 +25,13 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.text.InputType;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -45,7 +47,7 @@ import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.ui.widget.DocumentFragment;
-import at.tomtasche.reader.ui.widget.RecentlyDialog;
+import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
@@ -60,8 +62,8 @@ public class MainActivity extends FragmentActivity implements
 	private static final String EXTRA_URI = "uri";
 	private static final String EXTRA_PASSWORD = "password";
 
+	private ProgressDialogFragment progressDialog;
 	private DocumentFragment documentFragment;
-	private ProgressDialog progressDialog;
 	private AdRequest adRequest;
 	private AdView adView;
 
@@ -75,6 +77,8 @@ public class MainActivity extends FragmentActivity implements
 
 		setTitle("");
 		setContentView(R.layout.main);
+
+		getSupportLoaderManager().initLoader(0, null, this);
 
 		documentFragment = (DocumentFragment) getSupportFragmentManager()
 				.findFragmentByTag(DocumentFragment.FRAGMENT_TAG);
@@ -92,7 +96,7 @@ public class MainActivity extends FragmentActivity implements
 			} else {
 				loadUri(DocumentLoader.URI_INTRO);
 
-				RecentlyDialog.showDialog(this);
+				// RecentlyDialog.showDialog(this);
 			}
 		}
 
@@ -325,18 +329,16 @@ public class MainActivity extends FragmentActivity implements
 
 	@Override
 	public Loader<Document> onCreateLoader(int id, Bundle bundle) {
-		if (progressDialog == null || !progressDialog.isShowing()) {
-			progressDialog = new ProgressDialog(this);
-			progressDialog.setTitle(getString(R.string.dialog_loading_title));
-			progressDialog
-					.setMessage(getString(R.string.dialog_loading_message));
-			progressDialog.setIndeterminate(true);
-			progressDialog.setCancelable(false);
-			progressDialog.show();
-		}
+		showProgress();
 
-		Uri uri = bundle.getParcelable(EXTRA_URI);
-		String password = bundle.getParcelable(EXTRA_PASSWORD);
+		Uri uri;
+		String password = null;
+		if (bundle != null) {
+			uri = bundle.getParcelable(EXTRA_URI);
+			password = bundle.getParcelable(EXTRA_PASSWORD);
+		} else {
+			uri = DocumentLoader.URI_INTRO;
+		}
 
 		DocumentLoader documentLoader = new DocumentLoader(this, uri);
 		documentLoader.setPassword(password);
@@ -379,9 +381,27 @@ public class MainActivity extends FragmentActivity implements
 		}
 	}
 
+	private void showProgress() {
+		if (progressDialog != null)
+			return;
+
+		FragmentTransaction transaction = getSupportFragmentManager()
+				.beginTransaction();
+
+		progressDialog = new ProgressDialogFragment();
+		progressDialog.show(transaction, ProgressDialogFragment.FRAGMENT_TAG);
+	}
+
 	private void dismissProgress() {
-		if (progressDialog != null && progressDialog.isShowing())
-			progressDialog.dismiss();
+		// dirty hack because committing isn't allowed in onLoadFinished
+		new Handler(getMainLooper()).post(new Runnable() {
+
+			@Override
+			public void run() {
+				if (progressDialog != null)
+					progressDialog.dismiss();
+			}
+		});
 	}
 
 	public void onError(Throwable error, final Uri uri) {

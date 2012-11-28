@@ -32,7 +32,11 @@ public class DocumentFragment extends Fragment {
 
 			documentView = new DocumentView(getActivity(),
 					savedInstanceState.getInt(EXTRA_SCROLL_POSITION));
-			documentView.loadUrl(document.getPageAt(currentIndex).getUrl());
+			if (currentIndex < document.getPages().size()) {
+				documentView.loadUrl(document.getPageAt(currentIndex).getUrl());
+			} else {
+				document.getPageAt(0);
+			}
 		} else {
 			document = new Document();
 

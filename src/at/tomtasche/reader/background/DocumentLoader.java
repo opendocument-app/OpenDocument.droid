@@ -55,22 +55,41 @@ public class DocumentLoader extends AsyncTaskLoader<Document> {
 		super.onStartLoading();
 
 		if (document != null && lastError == null) {
-			// deliverResult(document);
+			deliverResult(document);
 		} else {
 			forceLoad();
 		}
 	}
 
 	@Override
+	protected void onReset() {
+		super.onReset();
+
+		onStopLoading();
+
+		document = null;
+		lastError = null;
+	}
+
+	@Override
+	protected void onStopLoading() {
+		super.onStopLoading();
+
+		cancelLoad();
+	}
+
+	@Override
 	public Document loadInBackground() {
 		try {
-			AndroidFileCache.cleanup(getContext());
-
 			// cleanup uri
 			if ("/./".equals(uri.toString().substring(0, 2))) {
 				uri = Uri.parse(uri.toString().substring(2,
 						uri.toString().length()));
 			}
+
+			// TODO: don't delete file being displayed at the moment, but keep
+			// it until the new document has finished loading
+			AndroidFileCache.cleanup(getContext());
 
 			InputStream stream;
 			if (URI_INTRO.equals(uri)) {
@@ -163,7 +182,6 @@ public class DocumentLoader extends AsyncTaskLoader<Document> {
 		}
 
 		return null;
-
 	}
 
 	@SuppressWarnings("serial")

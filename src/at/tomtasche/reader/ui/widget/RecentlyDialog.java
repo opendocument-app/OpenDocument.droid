@@ -25,10 +25,6 @@ public class RecentlyDialog {
 		new Thread() {
 			@Override
 			public void run() {
-				final AlertDialog.Builder builder = new AlertDialog.Builder(
-						activity);
-				builder.setTitle(R.string.dialog_recent_title);
-
 				final Map<String, String> recentDocuments;
 				try {
 					recentDocuments = getRecentDocuments(activity
@@ -45,16 +41,18 @@ public class RecentlyDialog {
 						i++;
 					}
 
-					builder.setItems(items,
-							new DialogInterface.OnClickListener() {
+					activity.runOnUiThread(new Runnable() {
 
-								public void onClick(
-										final DialogInterface dialog,
-										final int item) {
-									activity.runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							AlertDialog.Builder builder = new AlertDialog.Builder(
+									activity);
+							builder.setTitle(R.string.dialog_recent_title);
+							builder.setItems(items,
+									new DialogInterface.OnClickListener() {
 
-										@Override
-										public void run() {
+										public void onClick(
+												DialogInterface dialog, int item) {
 											activity.loadUri(Uri
 													.parse(recentDocuments
 															.get(items[item])));
@@ -62,13 +60,6 @@ public class RecentlyDialog {
 											dialog.dismiss();
 										}
 									});
-								}
-							});
-
-					activity.runOnUiThread(new Runnable() {
-
-						@Override
-						public void run() {
 							builder.show();
 						}
 					});
