@@ -31,7 +31,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.text.InputType;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -398,8 +397,11 @@ public class MainActivity extends FragmentActivity implements
 
 			@Override
 			public void run() {
-				if (progressDialog != null)
+				if (progressDialog != null) {
 					progressDialog.dismiss();
+
+					progressDialog = null;
+				}
 			}
 		});
 	}
