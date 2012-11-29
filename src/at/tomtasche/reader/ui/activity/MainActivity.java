@@ -13,7 +13,6 @@ import net.robotmedia.billing.BillingRequest.ResponseCode;
 import net.robotmedia.billing.helper.AbstractBillingObserver;
 import net.robotmedia.billing.model.Transaction;
 import net.robotmedia.billing.model.Transaction.PurchaseState;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
@@ -108,6 +107,11 @@ public class MainActivity extends FragmentActivity implements
 			}
 		}
 
+		adRequest = new AdRequest();
+		adRequest.addKeyword("office");
+		adRequest.addKeyword("productivity");
+		adRequest.addKeyword("document");
+
 		billingObserver = new AbstractBillingObserver(this) {
 
 			public void onBillingChecked(boolean supported) {
@@ -138,32 +142,58 @@ public class MainActivity extends FragmentActivity implements
 		};
 		BillingController.registerObserver(billingObserver);
 		BillingController.setConfiguration(this);
-		if (!billingObserver.isTransactionsRestored())
-			BillingController.restoreTransactions(this);
+		// TODO: ugly.
+		new Thread() {
+			public void run() {
+				if (!billingObserver.isTransactionsRestored())
+					BillingController
+							.restoreTransactions(getApplicationContext());
 
-		adRequest = new AdRequest();
-		adRequest.addKeyword("office");
-		adRequest.addKeyword("productivity");
-		adRequest.addKeyword("document");
-		if (!BillingController.isPurchased(this, BILLING_PRODUCT_YEAR)
-				|| !BillingController
-						.isPurchased(this, BILLING_PRODUCT_FOREVER)) {
-			adView = new AdView(this, AdSize.SMART_BANNER, "a15042277f73506");
-			adView.loadAd(adRequest);
+				if (!BillingController.isPurchased(getApplicationContext(),
+						BILLING_PRODUCT_YEAR)
+						|| !BillingController.isPurchased(
+								getApplicationContext(),
+								BILLING_PRODUCT_FOREVER)) {
+					runOnUiThread(new Runnable() {
 
-			((LinearLayout) findViewById(R.id.ad_container)).addView(adView);
-		}
+						@Override
+						public void run() {
+							adView = new AdView(MainActivity.this,
+									AdSize.SMART_BANNER, "a15042277f73506");
+							adView.loadAd(adRequest);
+
+							((LinearLayout) findViewById(R.id.ad_container))
+									.addView(adView);
+						}
+					});
+				}
+			}
+		}.start();
 	}
 
 	@Override
 	protected void onStart() {
 		super.onStart();
 
-		if (BillingController.isPurchased(this, BILLING_PRODUCT_YEAR)
-				|| BillingController.isPurchased(this, BILLING_PRODUCT_FOREVER)) {
-			if (adView != null)
-				adView.setVisibility(View.GONE);
-		}
+		// TODO: ugly.
+		new Thread() {
+			public void run() {
+				if (!BillingController.isPurchased(getApplicationContext(),
+						BILLING_PRODUCT_YEAR)
+						|| !BillingController.isPurchased(
+								getApplicationContext(),
+								BILLING_PRODUCT_FOREVER)) {
+					runOnUiThread(new Runnable() {
+
+						@Override
+						public void run() {
+							if (adView != null)
+								adView.setVisibility(View.GONE);
+						}
+					});
+				}
+			}
+		}.start();
 	}
 
 	@Override
