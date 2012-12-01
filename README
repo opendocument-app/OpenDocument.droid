@@ -3,8 +3,12 @@ It's Android's first OpenOffice Document Reader!
 This is an Android frontend for the excellent ODF Java library called odf2html (formerly JOpenDocument), made by Andi (https://github.com/andiwand/odf2html).
 Feel free to use it in your own project too, but please don't forget to tell us about it!
 
-In order to compile the project you need Filepicker.io (https://github.com/Filepicker/filepicker-android) and aFileChooser (https://github.com/TomTasche/aFileChooser).
+In order to compile the project you need the following Android Library Projects:
+- Filepicker.io (https://github.com/Filepicker/filepicker-android)
+- aFileChooser (https://github.com/TomTasche/aFileChooser)
+- Android-AppMsg (https://github.com/johnkil/Android-AppMsg)
+- SlidingMenu (https://github.com/jfeinstein10/SlidingMenu)
 
-Get the app from Google Play store (http://www.appbrain.com/app/openoffice-document-reader/at.tomtasche.reader?install)
+Get the app from Google Play store (https://play.google.com/store/apps/details?id=at.tomtasche.reader)
 
-More information at http://reader.tomtasche.at/ and in the app.
+More information at http://reader.tomtasche.at/ and in the app itself.
