@@ -46,7 +46,7 @@ import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.ui.widget.DocumentFragment;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
-import at.tomtasche.reader.ui.widget.RecentlyDialog;
+import at.tomtasche.reader.ui.widget.RecentlyDialogFragment;
 
 import com.devspark.appmsg.AppMsg;
 import com.google.ads.AdRequest;
@@ -105,7 +105,7 @@ public class MainActivity extends SlidingFragmentActivity implements
 			} else {
 				loadUri(DocumentLoader.URI_INTRO);
 
-				RecentlyDialog.showDialog(this);
+				RecentlyDialogFragment.showDialog(this);
 			}
 		}
 
@@ -138,7 +138,8 @@ public class MainActivity extends SlidingFragmentActivity implements
 						@Override
 						public void run() {
 							showCrouton(MainActivity.this,
-									getString(R.string.crouton_error_billing));
+									getString(R.string.crouton_error_billing),
+									null);
 						}
 					});
 			}
@@ -169,7 +170,8 @@ public class MainActivity extends SlidingFragmentActivity implements
 						@Override
 						public void run() {
 							showCrouton(MainActivity.this,
-									getString(R.string.crouton_error_billing));
+									getString(R.string.crouton_error_billing),
+									null);
 						}
 					});
 				}
@@ -210,17 +212,23 @@ public class MainActivity extends SlidingFragmentActivity implements
 							}
 						});
 					}
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					runOnUiThread(new Runnable() {
 
 						@Override
 						public void run() {
 							showCrouton(MainActivity.this,
-									getString(R.string.crouton_error_billing));
+									getString(R.string.crouton_error_billing),
+									new Runnable() {
+
+										@Override
+										public void run() {
+											ReportUtil.createFeedbackIntent(
+													MainActivity.this, e);
+										}
+									});
 						}
 					});
-
-					// ReportUtil.createFeedbackIntent(MainActivity.this, e);
 				}
 			}
 		}.start();
@@ -248,17 +256,23 @@ public class MainActivity extends SlidingFragmentActivity implements
 							}
 						});
 					}
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					runOnUiThread(new Runnable() {
 
 						@Override
 						public void run() {
 							showCrouton(MainActivity.this,
-									getString(R.string.crouton_error_billing));
+									getString(R.string.crouton_error_billing),
+									new Runnable() {
+
+										@Override
+										public void run() {
+											ReportUtil.createFeedbackIntent(
+													MainActivity.this, e);
+										}
+									});
 						}
 					});
-
-					// ReportUtil.createFeedbackIntent(MainActivity.this, e);
 				}
 			}
 		}.start();
@@ -626,8 +640,18 @@ public class MainActivity extends SlidingFragmentActivity implements
 		Toast.makeText(context, message, Toast.LENGTH_LONG).show();
 	}
 
-	private static void showCrouton(Activity context, String message) {
-		AppMsg.makeText(context, message, AppMsg.STYLE_ALERT).show();
+	private static void showCrouton(final Activity activity, String message,
+			final Runnable callback) {
+		AppMsg crouton = AppMsg.makeText(activity, message, AppMsg.STYLE_ALERT);
+		crouton.getView().setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				if (callback != null)
+					activity.runOnUiThread(callback);
+			}
+		});
+		crouton.show();
 	}
 
 	// taken from net.robotmedia.billing.helper.AbstractBillingActivity
