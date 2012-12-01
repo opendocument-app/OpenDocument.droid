@@ -1,0 +1,5 @@
+<resources>
+
+    <dimen name="slidingmenu_offset">500dp</dimen>
+
+</resources>

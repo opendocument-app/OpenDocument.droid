@@ -26,7 +26,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
@@ -49,11 +48,14 @@ import at.tomtasche.reader.ui.widget.DocumentFragment;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 import at.tomtasche.reader.ui.widget.RecentlyDialog;
 
+import com.devspark.appmsg.AppMsg;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
+import com.slidingmenu.lib.SlidingMenu;
+import com.slidingmenu.lib.app.SlidingFragmentActivity;
 
-public class MainActivity extends FragmentActivity implements
+public class MainActivity extends SlidingFragmentActivity implements
 		BillingController.IConfiguration, LoaderCallbacks<Document> {
 
 	private static final String BILLING_PRODUCT_YEAR = "remove_ads_for_1y";
@@ -70,7 +72,7 @@ public class MainActivity extends FragmentActivity implements
 	// TODO: remove
 	// @SuppressLint("NewApi")
 	@Override
-	protected void onCreate(Bundle arg0) {
+	public void onCreate(Bundle arg0) {
 		super.onCreate(arg0);
 
 		// if (ActivityManager.isUserAMonkey())
@@ -107,14 +109,38 @@ public class MainActivity extends FragmentActivity implements
 			}
 		}
 
-		adRequest = new AdRequest();
-		adRequest.addKeyword("office");
-		adRequest.addKeyword("productivity");
-		adRequest.addKeyword("document");
+		if (findViewById(R.id.sliding_menu) == null) {
+			setBehindContentView(R.layout.chooser);
+			getSlidingMenu().setSlidingEnabled(true);
+			getSlidingMenu()
+					.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
+			// getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		} else {
+			View v = new View(this);
+			setBehindContentView(v);
+			getSlidingMenu().setSlidingEnabled(false);
+			getSlidingMenu().setTouchModeAbove(SlidingMenu.TOUCHMODE_NONE);
+		}
+
+		SlidingMenu menu = getSlidingMenu();
+		menu.setBehindOffsetRes(R.dimen.slidingmenu_offset);
+		menu.setShadowWidthRes(R.dimen.shadow_width);
+		menu.setShadowDrawable(R.drawable.shadow);
+		menu.setBehindScrollScale(0.25f);
+		menu.setFadeDegree(0.25f);
 
 		billingObserver = new AbstractBillingObserver(this) {
 
 			public void onBillingChecked(boolean supported) {
+				if (!supported)
+					runOnUiThread(new Runnable() {
+
+						@Override
+						public void run() {
+							showCrouton(MainActivity.this,
+									getString(R.string.crouton_error_billing));
+						}
+					});
 			}
 
 			public void onSubscriptionChecked(boolean supported) {
@@ -137,6 +163,15 @@ public class MainActivity extends FragmentActivity implements
 				if (response == ResponseCode.RESULT_OK) {
 					if (adView != null)
 						adView.setVisibility(View.GONE);
+				} else {
+					runOnUiThread(new Runnable() {
+
+						@Override
+						public void run() {
+							showCrouton(MainActivity.this,
+									getString(R.string.crouton_error_billing));
+						}
+					});
 				}
 			}
 		};
@@ -145,27 +180,47 @@ public class MainActivity extends FragmentActivity implements
 		// TODO: ugly.
 		new Thread() {
 			public void run() {
-				if (!billingObserver.isTransactionsRestored())
-					BillingController
-							.restoreTransactions(getApplicationContext());
+				try {
+					if (!billingObserver.isTransactionsRestored())
+						BillingController
+								.restoreTransactions(getApplicationContext());
 
-				if (!BillingController.isPurchased(getApplicationContext(),
-						BILLING_PRODUCT_YEAR)
-						|| !BillingController.isPurchased(
-								getApplicationContext(),
-								BILLING_PRODUCT_FOREVER)) {
+					if (!BillingController.isPurchased(getApplicationContext(),
+							BILLING_PRODUCT_YEAR)
+							|| !BillingController.isPurchased(
+									getApplicationContext(),
+									BILLING_PRODUCT_FOREVER)) {
+						adRequest = new AdRequest();
+						adRequest.addKeyword("office");
+						adRequest.addKeyword("productivity");
+						adRequest.addKeyword("document");
+						adRequest.addKeyword("spreadsheet");
+						adRequest.addKeyword("presentation");
+
+						runOnUiThread(new Runnable() {
+
+							@Override
+							public void run() {
+								adView = new AdView(MainActivity.this,
+										AdSize.SMART_BANNER, "a15042277f73506");
+								adView.loadAd(adRequest);
+
+								((LinearLayout) findViewById(R.id.ad_container))
+										.addView(adView);
+							}
+						});
+					}
+				} catch (Exception e) {
 					runOnUiThread(new Runnable() {
 
 						@Override
 						public void run() {
-							adView = new AdView(MainActivity.this,
-									AdSize.SMART_BANNER, "a15042277f73506");
-							adView.loadAd(adRequest);
-
-							((LinearLayout) findViewById(R.id.ad_container))
-									.addView(adView);
+							showCrouton(MainActivity.this,
+									getString(R.string.crouton_error_billing));
 						}
 					});
+
+					// ReportUtil.createFeedbackIntent(MainActivity.this, e);
 				}
 			}
 		}.start();
@@ -178,19 +233,32 @@ public class MainActivity extends FragmentActivity implements
 		// TODO: ugly.
 		new Thread() {
 			public void run() {
-				if (!BillingController.isPurchased(getApplicationContext(),
-						BILLING_PRODUCT_YEAR)
-						|| !BillingController.isPurchased(
-								getApplicationContext(),
-								BILLING_PRODUCT_FOREVER)) {
+				try {
+					if (!BillingController.isPurchased(getApplicationContext(),
+							BILLING_PRODUCT_YEAR)
+							|| !BillingController.isPurchased(
+									getApplicationContext(),
+									BILLING_PRODUCT_FOREVER)) {
+						runOnUiThread(new Runnable() {
+
+							@Override
+							public void run() {
+								if (adView != null)
+									adView.setVisibility(View.GONE);
+							}
+						});
+					}
+				} catch (Exception e) {
 					runOnUiThread(new Runnable() {
 
 						@Override
 						public void run() {
-							if (adView != null)
-								adView.setVisibility(View.GONE);
+							showCrouton(MainActivity.this,
+									getString(R.string.crouton_error_billing));
 						}
 					});
+
+					// ReportUtil.createFeedbackIntent(MainActivity.this, e);
 				}
 			}
 		}.start();
@@ -556,6 +624,10 @@ public class MainActivity extends FragmentActivity implements
 
 	private static void showToast(Context context, String message) {
 		Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+	}
+
+	private static void showCrouton(Activity context, String message) {
+		AppMsg.makeText(context, message, AppMsg.STYLE_ALERT).show();
 	}
 
 	// taken from net.robotmedia.billing.helper.AbstractBillingActivity

@@ -37,6 +37,7 @@
     <string name="menu_about">Über</string>
     <string name="menu_feedback">Feedback</string>
     <string name="menu_remove_ads">Entferne Werbung</string>
+    <string name="crouton_error_billing">Fehler beim Starten von Google Play In-App Billing</string>
 
     <string-array name="remove_ads_options">
         <item>für ein Jahr</item>
