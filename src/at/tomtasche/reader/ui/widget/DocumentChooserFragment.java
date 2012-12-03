@@ -2,6 +2,7 @@ package at.tomtasche.reader.ui.widget;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import android.app.Activity;
@@ -64,6 +65,8 @@ public class DocumentChooserFragment extends ListFragment implements
 			return;
 
 		String uri = items.get(key);
+		if (uri == null)
+			return;
 
 		MainActivity activity = ((MainActivity) getActivity());
 		activity.loadUri(Uri.parse(uri));
@@ -80,10 +83,16 @@ public class DocumentChooserFragment extends ListFragment implements
 	public void onLoadFinished(Loader<Map<String, String>> arg0,
 			Map<String, String> arg1) {
 		items = Collections.unmodifiableMap(arg1);
+		if (items.size() == 0) {
+			items = new HashMap<String, String>();
+			items.put(
+					getActivity().getString(R.string.list_no_documents_found),
+					null);
+		}
 
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
 				android.R.layout.simple_list_item_1, new ArrayList<String>(
-						arg1.keySet()));
+						items.keySet()));
 
 		setListAdapter(adapter);
 	}

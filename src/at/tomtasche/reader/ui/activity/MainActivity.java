@@ -75,8 +75,6 @@ public class MainActivity extends SlidingFragmentActivity implements
 	private Uri resultData;
 	private boolean freshStart;
 
-	// TODO: remove
-	// @SuppressLint("NewApi")
 	@Override
 	public void onCreate(Bundle arg0) {
 		super.onCreate(arg0);

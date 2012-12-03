@@ -28,7 +28,7 @@
     <string name="dialog_feedback_message">Dir gefällt nicht wie wir versuchen mit dieser App Geld zu verdienen? Oder hasst du das Aussehen und Verhalten der App? Du suchst vergeblich nach einem bestimmten Feature? Bitte sag uns Bescheid!</string>
     <string name="dialog_remove_ads_title">Entferne Werbung für:</string>
     <string name="title_choose_file_cloud">Wähle eine Datei aus dem Internet</string>
-    <string name="title_hoose_file_local">Wähle eine Datei von diesem Gerät</string>
+    <string name="title_choose_file_local">Wähle eine Datei von diesem Gerät</string>
     <string name="menu_page_list">Zeige Seiten</string>
     <string name="menu_page_next">Weiter</string>
     <string name="menu_page_previous">Zurück</string>
@@ -38,6 +38,9 @@
     <string name="menu_feedback">Feedback</string>
     <string name="menu_remove_ads">Entferne Werbung</string>
     <string name="crouton_error_billing">Fehler beim Starten von Google Play In-App Billing</string>
+    <string name="crouton_dismiss_chooser">Klicke hier um zum Dokument zurückzukehren</string>
+    <string name="list_searching_documents">Suche nach Dokumenten auf dem Gerät... Das könnte eine Weile dauern.</string>
+    <string name="list_no_documents_found">Keine Dokumente gefunden</string>
 
     <string-array name="remove_ads_options">
         <item>für ein Jahr</item>
