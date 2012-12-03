@@ -57,6 +57,7 @@ public class ReportUtil {
 		builder.setTitle(R.string.toast_error_generic);
 		builder.setMessage(context.getString(errorDescription)
 				+ System.getProperty("line.separator")
+				+ System.getProperty("line.separator")
 				+ context.getString(R.string.dialog_submit_file));
 		builder.setNegativeButton(android.R.string.no, null);
 		builder.setNeutralButton(R.string.dialog_error_send_error_only,

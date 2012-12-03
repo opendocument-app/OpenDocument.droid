@@ -96,16 +96,9 @@ public class MainActivity extends SlidingFragmentActivity implements
 		getSupportLoaderManager().initLoader(0, null, this);
 
 		SlidingMenu menu = getSlidingMenu();
-		if (findViewById(R.id.sliding_menu) == null) {
-			setBehindContentView(R.layout.sliding_chooser);
-			menu.setSlidingEnabled(true);
-			menu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
-		} else {
-			View v = new View(this);
-			setBehindContentView(v);
-			menu.setSlidingEnabled(false);
-			menu.setTouchModeAbove(SlidingMenu.TOUCHMODE_NONE);
-		}
+		setBehindContentView(R.layout.sliding_chooser);
+		menu.setSlidingEnabled(true);
+		menu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
 
 		Display display = getWindowManager().getDefaultDisplay();
 		DisplayMetrics outMetrics = new DisplayMetrics();
