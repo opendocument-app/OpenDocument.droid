@@ -201,7 +201,7 @@ public class MainActivity extends SlidingFragmentActivity implements
 		};
 		BillingController.registerObserver(billingObserver);
 		BillingController.setConfiguration(this);
-		// TODO: ugly.
+		// // TODO: ugly.
 		new Thread() {
 			public void run() {
 				try {
@@ -220,6 +220,7 @@ public class MainActivity extends SlidingFragmentActivity implements
 						adRequest.addKeyword("document");
 						adRequest.addKeyword("spreadsheet");
 						adRequest.addKeyword("presentation");
+						// adRequest.addTestDevice("ADEF071B5754A7C3313F9006D1F9FB4A");
 
 						runOnUiThread(new Runnable() {
 
@@ -264,9 +265,9 @@ public class MainActivity extends SlidingFragmentActivity implements
 		new Thread() {
 			public void run() {
 				try {
-					if (!BillingController.isPurchased(getApplicationContext(),
+					if (BillingController.isPurchased(getApplicationContext(),
 							BILLING_PRODUCT_YEAR)
-							|| !BillingController.isPurchased(
+							|| BillingController.isPurchased(
 									getApplicationContext(),
 									BILLING_PRODUCT_FOREVER)) {
 						runOnUiThread(new Runnable() {
