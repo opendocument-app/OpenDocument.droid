@@ -36,7 +36,7 @@ public class DocumentFragment extends Fragment {
 				if (currentIndex < document.getPages().size()) {
 					documentView.loadUrl(document.getPageAt(currentIndex)
 							.getUrl());
-				} else {
+				} else if (document.getPages().size() > 0) {
 					document.getPageAt(0);
 				}
 			}
@@ -69,6 +69,9 @@ public class DocumentFragment extends Fragment {
 		this.document = document;
 
 		currentIndex = 0;
+
+		if (document.getPages().size() == 0)
+			return;
 
 		Part firstPage = document.getPageAt(currentIndex);
 		loadData(firstPage.getUrl());

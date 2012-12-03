@@ -21,7 +21,6 @@ import at.andiwand.odf2html.odf.TemporaryOpenDocumentFile;
 import at.andiwand.odf2html.translator.document.SpreadsheetTranslator;
 import at.andiwand.odf2html.translator.document.TextTranslator;
 import at.tomtasche.reader.background.Document.Part;
-import at.tomtasche.reader.ui.widget.RecentlyDialog;
 
 public class DocumentLoader extends AsyncTaskLoader<Document> {
 
@@ -99,7 +98,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> {
 			}
 
 			try {
-				RecentlyDialog.addRecentDocument(getContext(),
+				RecentDocumentsUtil.addRecentDocument(getContext(),
 						uri.getLastPathSegment(), uri);
 			} catch (IOException e) {
 				// not a showstopper, so just continue
@@ -137,6 +136,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> {
 				File htmlFile = cache.getFile("temp.html");
 				FileWriter fileWriter = new FileWriter(htmlFile);
 				writer.writeTo(fileWriter);
+				fileWriter.flush();
 				fileWriter.close();
 
 				document.addPage(new Part("Document", htmlFile.toURI(), 0));

@@ -1,5 +1,5 @@
 <resources>
 
-    <dimen name="slidingmenu_offset">750dp</dimen>
+    <dimen name="slidingmenu_offset">1500dp</dimen>
 
 </resources>

@@ -1,4 +1,4 @@
-package at.tomtasche.reader.ui.widget;
+package at.tomtasche.reader.background;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -9,68 +9,14 @@ import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.net.Uri;
-import at.tomtasche.reader.R;
-import at.tomtasche.reader.ui.activity.MainActivity;
 
-// TODO: oh that's so dirty!
-public class RecentlyDialog {
+public class RecentDocumentsUtil {
 
 	private static final String FILENAME = "recent_documents";
 
-	public static void showDialog(final MainActivity activity) {
-		new Thread() {
-			@Override
-			public void run() {
-				final Map<String, String> recentDocuments;
-				try {
-					recentDocuments = getRecentDocuments(activity
-							.getApplicationContext());
-					int size = recentDocuments.size();
-					if (size == 0)
-						return;
-
-					final CharSequence[] items = new CharSequence[size];
-					int i = 0;
-					for (String title : recentDocuments.keySet()) {
-						items[i] = title;
-
-						i++;
-					}
-
-					activity.runOnUiThread(new Runnable() {
-
-						@Override
-						public void run() {
-							AlertDialog.Builder builder = new AlertDialog.Builder(
-									activity);
-							builder.setTitle(R.string.dialog_recent_title);
-							builder.setItems(items,
-									new DialogInterface.OnClickListener() {
-
-										public void onClick(
-												DialogInterface dialog, int item) {
-											activity.loadUri(Uri
-													.parse(recentDocuments
-															.get(items[item])));
-
-											dialog.dismiss();
-										}
-									});
-							builder.show();
-						}
-					});
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}.start();
-	}
-
-	private static Map<String, String> getRecentDocuments(Context context)
+	public static Map<String, String> getRecentDocuments(Context context)
 			throws IOException {
 		Map<String, String> result = new HashMap<String, String>();
 

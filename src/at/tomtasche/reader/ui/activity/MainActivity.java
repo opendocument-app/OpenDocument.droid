@@ -30,6 +30,8 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.text.InputType;
+import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -44,15 +46,16 @@ import at.tomtasche.reader.background.Document.Part;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.ReportUtil;
+import at.tomtasche.reader.ui.widget.DocumentChooserFragment;
 import at.tomtasche.reader.ui.widget.DocumentFragment;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
-import at.tomtasche.reader.ui.widget.RecentlyDialogFragment;
 
 import com.devspark.appmsg.AppMsg;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
 import com.slidingmenu.lib.SlidingMenu;
+import com.slidingmenu.lib.SlidingMenu.OnOpenedListener;
 import com.slidingmenu.lib.app.SlidingFragmentActivity;
 
 public class MainActivity extends SlidingFragmentActivity implements
@@ -69,6 +72,9 @@ public class MainActivity extends SlidingFragmentActivity implements
 	private AdRequest adRequest;
 	private AdView adView;
 
+	private Uri resultData;
+	private boolean freshStart;
+
 	// TODO: remove
 	// @SuppressLint("NewApi")
 	@Override
@@ -80,14 +86,59 @@ public class MainActivity extends SlidingFragmentActivity implements
 		// WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		// StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-		// .detectAll().penaltyDeath().build());
+		// .detectAll().penaltyLog().penaltyDeath().build());
 		// StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll()
-		// .penaltyDeath().build());
+		// .penaltyLog().penaltyDeath().build());
 
 		setTitle("");
 		setContentView(R.layout.main);
 
 		getSupportLoaderManager().initLoader(0, null, this);
+
+		SlidingMenu menu = getSlidingMenu();
+		if (findViewById(R.id.sliding_menu) == null) {
+			setBehindContentView(R.layout.sliding_chooser);
+			menu.setSlidingEnabled(true);
+			menu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
+		} else {
+			View v = new View(this);
+			setBehindContentView(v);
+			menu.setSlidingEnabled(false);
+			menu.setTouchModeAbove(SlidingMenu.TOUCHMODE_NONE);
+		}
+
+		Display display = getWindowManager().getDefaultDisplay();
+		DisplayMetrics outMetrics = new DisplayMetrics();
+		display.getMetrics(outMetrics);
+
+		int menuWidth = outMetrics.widthPixels / 3;
+		if (menuWidth > 300) {
+			menu.setBehindWidth(menuWidth);
+		} else {
+			menuWidth = outMetrics.widthPixels / 2;
+			if (menuWidth < 100) {
+				menu.setBehindWidth(outMetrics.widthPixels);
+			} else {
+				menu.setBehindWidth(menuWidth);
+			}
+		}
+		menu.setShadowWidthRes(R.dimen.shadow_width);
+		menu.setShadowDrawable(R.drawable.shadow);
+		menu.setBehindScrollScale(0.25f);
+		menu.setFadeDegree(0.25f);
+		menu.setOnOpenedListener(new OnOpenedListener() {
+
+			@Override
+			public void onOpened() {
+				showCrouton(MainActivity.this,
+						R.string.crouton_dismiss_chooser, null,
+						AppMsg.STYLE_INFO);
+			}
+		});
+
+		getSupportFragmentManager().beginTransaction()
+				.replace(R.id.sliding_menu, new DocumentChooserFragment())
+				.commit();
 
 		documentFragment = (DocumentFragment) getSupportFragmentManager()
 				.findFragmentByTag(DocumentFragment.FRAGMENT_TAG);
@@ -105,29 +156,9 @@ public class MainActivity extends SlidingFragmentActivity implements
 			} else {
 				loadUri(DocumentLoader.URI_INTRO);
 
-				RecentlyDialogFragment.showDialog(this);
+				freshStart = true;
 			}
 		}
-
-		if (findViewById(R.id.sliding_menu) == null) {
-			setBehindContentView(R.layout.chooser);
-			getSlidingMenu().setSlidingEnabled(true);
-			getSlidingMenu()
-					.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
-			// getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-		} else {
-			View v = new View(this);
-			setBehindContentView(v);
-			getSlidingMenu().setSlidingEnabled(false);
-			getSlidingMenu().setTouchModeAbove(SlidingMenu.TOUCHMODE_NONE);
-		}
-
-		SlidingMenu menu = getSlidingMenu();
-		menu.setBehindOffsetRes(R.dimen.slidingmenu_offset);
-		menu.setShadowWidthRes(R.dimen.shadow_width);
-		menu.setShadowDrawable(R.drawable.shadow);
-		menu.setBehindScrollScale(0.25f);
-		menu.setFadeDegree(0.25f);
 
 		billingObserver = new AbstractBillingObserver(this) {
 
@@ -139,7 +170,7 @@ public class MainActivity extends SlidingFragmentActivity implements
 						public void run() {
 							showCrouton(MainActivity.this,
 									getString(R.string.crouton_error_billing),
-									null);
+									null, AppMsg.STYLE_ALERT);
 						}
 					});
 			}
@@ -171,7 +202,7 @@ public class MainActivity extends SlidingFragmentActivity implements
 						public void run() {
 							showCrouton(MainActivity.this,
 									getString(R.string.crouton_error_billing),
-									null);
+									null, AppMsg.STYLE_ALERT);
 						}
 					});
 				}
@@ -218,7 +249,7 @@ public class MainActivity extends SlidingFragmentActivity implements
 						@Override
 						public void run() {
 							showCrouton(MainActivity.this,
-									getString(R.string.crouton_error_billing),
+									R.string.crouton_error_billing,
 									new Runnable() {
 
 										@Override
@@ -226,7 +257,7 @@ public class MainActivity extends SlidingFragmentActivity implements
 											ReportUtil.createFeedbackIntent(
 													MainActivity.this, e);
 										}
-									});
+									}, AppMsg.STYLE_ALERT);
 						}
 					});
 				}
@@ -262,7 +293,7 @@ public class MainActivity extends SlidingFragmentActivity implements
 						@Override
 						public void run() {
 							showCrouton(MainActivity.this,
-									getString(R.string.crouton_error_billing),
+									R.string.crouton_error_billing,
 									new Runnable() {
 
 										@Override
@@ -270,12 +301,39 @@ public class MainActivity extends SlidingFragmentActivity implements
 											ReportUtil.createFeedbackIntent(
 													MainActivity.this, e);
 										}
-									});
+									}, AppMsg.STYLE_ALERT);
 						}
 					});
 				}
 			}
 		}.start();
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		if (freshStart) {
+			SlidingMenu menu = getSlidingMenu();
+			if (menu.getTouchModeAbove() != SlidingMenu.TOUCHMODE_NONE) {
+				getSlidingMenu().toggle();
+			}
+
+			freshStart = false;
+		}
+	}
+
+	@Override
+	protected void onPostResume() {
+		super.onPostResume();
+
+		// TODO: god, it's so ugly... doing that because commiting fragments is
+		// not allowed "after onSaveInstanceState"
+		if (resultData != null) {
+			loadUri(resultData);
+
+			resultData = null;
+		}
 	}
 
 	@Override
@@ -495,9 +553,8 @@ public class MainActivity extends SlidingFragmentActivity implements
 			return;
 
 		Uri uri = intent.getData();
-		if (requestCode == 42 && resultCode == RESULT_OK && intent != null
-				&& uri != null) {
-			loadUri(uri);
+		if (requestCode == 42 && resultCode == RESULT_OK && uri != null) {
+			resultData = uri;
 		}
 	}
 
@@ -518,7 +575,12 @@ public class MainActivity extends SlidingFragmentActivity implements
 
 			@Override
 			public void run() {
-				if (progressDialog != null) {
+				if (progressDialog == null)
+					progressDialog = (ProgressDialogFragment) getSupportFragmentManager()
+							.findFragmentByTag(
+									ProgressDialogFragment.FRAGMENT_TAG);
+
+				if (progressDialog != null && progressDialog.getShowsDialog()) {
 					progressDialog.dismiss();
 
 					progressDialog = null;
@@ -536,7 +598,8 @@ public class MainActivity extends SlidingFragmentActivity implements
 			builder.setTitle(R.string.toast_error_password_protected);
 
 			final EditText input = new EditText(this);
-			input.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+			input.setInputType(InputType.TYPE_CLASS_TEXT
+					| InputType.TYPE_TEXT_VARIATION_PASSWORD);
 			builder.setView(input);
 
 			builder.setPositiveButton(getString(android.R.string.ok),
@@ -640,9 +703,14 @@ public class MainActivity extends SlidingFragmentActivity implements
 		Toast.makeText(context, message, Toast.LENGTH_LONG).show();
 	}
 
+	private static void showCrouton(final Activity activity, int resId,
+			final Runnable callback, AppMsg.Style style) {
+		showCrouton(activity, activity.getString(resId), callback, style);
+	}
+
 	private static void showCrouton(final Activity activity, String message,
-			final Runnable callback) {
-		AppMsg crouton = AppMsg.makeText(activity, message, AppMsg.STYLE_ALERT);
+			final Runnable callback, AppMsg.Style style) {
+		AppMsg crouton = AppMsg.makeText(activity, message, style);
 		crouton.getView().setOnClickListener(new View.OnClickListener() {
 
 			@Override
