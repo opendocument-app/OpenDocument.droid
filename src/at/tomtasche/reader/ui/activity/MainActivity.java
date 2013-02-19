@@ -26,12 +26,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.text.InputType;
-import android.util.DisplayMetrics;
-import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -46,7 +45,6 @@ import at.tomtasche.reader.background.Document.Part;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.ReportUtil;
-import at.tomtasche.reader.ui.widget.DocumentChooserFragment;
 import at.tomtasche.reader.ui.widget.DocumentFragment;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 
@@ -54,11 +52,8 @@ import com.devspark.appmsg.AppMsg;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
-import com.slidingmenu.lib.SlidingMenu;
-import com.slidingmenu.lib.SlidingMenu.OnOpenedListener;
-import com.slidingmenu.lib.app.SlidingFragmentActivity;
 
-public class MainActivity extends SlidingFragmentActivity implements
+public class MainActivity extends FragmentActivity implements
 		BillingController.IConfiguration, LoaderCallbacks<Document> {
 
 	private static final String BILLING_PRODUCT_YEAR = "remove_ads_for_1y";
@@ -69,11 +64,9 @@ public class MainActivity extends SlidingFragmentActivity implements
 
 	private ProgressDialogFragment progressDialog;
 	private DocumentFragment documentFragment;
-	private AdRequest adRequest;
 	private AdView adView;
 
 	private Uri resultData;
-	private boolean freshStart;
 
 	@Override
 	public void onCreate(Bundle arg0) {
@@ -93,43 +86,9 @@ public class MainActivity extends SlidingFragmentActivity implements
 
 		getSupportLoaderManager().initLoader(0, null, this);
 
-		SlidingMenu menu = getSlidingMenu();
-		setBehindContentView(R.layout.sliding_chooser);
-		menu.setSlidingEnabled(true);
-		menu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
-
-		Display display = getWindowManager().getDefaultDisplay();
-		DisplayMetrics outMetrics = new DisplayMetrics();
-		display.getMetrics(outMetrics);
-
-		int menuWidth = outMetrics.widthPixels / 3;
-		if (menuWidth > 300) {
-			menu.setBehindWidth(menuWidth);
-		} else {
-			menuWidth = outMetrics.widthPixels / 2;
-			if (menuWidth < 100) {
-				menu.setBehindWidth(outMetrics.widthPixels);
-			} else {
-				menu.setBehindWidth(menuWidth);
-			}
-		}
-		menu.setShadowWidthRes(R.dimen.shadow_width);
-		menu.setShadowDrawable(R.drawable.shadow);
-		menu.setBehindScrollScale(0.25f);
-		menu.setFadeDegree(0.25f);
-		menu.setOnOpenedListener(new OnOpenedListener() {
-
-			@Override
-			public void onOpened() {
-				showCrouton(MainActivity.this,
-						R.string.crouton_dismiss_chooser, null,
-						AppMsg.STYLE_INFO);
-			}
-		});
-
-		getSupportFragmentManager().beginTransaction()
-				.replace(R.id.sliding_menu, new DocumentChooserFragment())
-				.commit();
+		// getSupportFragmentManager().beginTransaction()
+		// .replace(R.id.sliding_menu, new DocumentChooserFragment())
+		// .commit();
 
 		documentFragment = (DocumentFragment) getSupportFragmentManager()
 				.findFragmentByTag(DocumentFragment.FRAGMENT_TAG);
@@ -146,8 +105,6 @@ public class MainActivity extends SlidingFragmentActivity implements
 				loadUri(uri);
 			} else {
 				loadUri(DocumentLoader.URI_INTRO);
-
-				freshStart = true;
 			}
 		}
 
@@ -214,21 +171,13 @@ public class MainActivity extends SlidingFragmentActivity implements
 							|| !BillingController.isPurchased(
 									getApplicationContext(),
 									BILLING_PRODUCT_FOREVER)) {
-						adRequest = new AdRequest();
-						adRequest.addKeyword("office");
-						adRequest.addKeyword("productivity");
-						adRequest.addKeyword("document");
-						adRequest.addKeyword("spreadsheet");
-						adRequest.addKeyword("presentation");
-						// adRequest.addTestDevice("ADEF071B5754A7C3313F9006D1F9FB4A");
-
 						runOnUiThread(new Runnable() {
 
 							@Override
 							public void run() {
 								adView = new AdView(MainActivity.this,
 										AdSize.SMART_BANNER, "a15042277f73506");
-								adView.loadAd(adRequest);
+								adView.loadAd(new AdRequest());
 
 								((LinearLayout) findViewById(R.id.ad_container))
 										.addView(adView);
@@ -299,20 +248,6 @@ public class MainActivity extends SlidingFragmentActivity implements
 				}
 			}
 		}.start();
-	}
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-
-		if (freshStart) {
-			SlidingMenu menu = getSlidingMenu();
-			if (menu.getTouchModeAbove() != SlidingMenu.TOUCHMODE_NONE) {
-				getSlidingMenu().toggle();
-			}
-
-			freshStart = false;
-		}
 	}
 
 	@Override
@@ -630,7 +565,10 @@ public class MainActivity extends SlidingFragmentActivity implements
 			errorDescription = R.string.toast_error_generic;
 		}
 
-		ReportUtil.submitFile(this, error, uri, errorDescription);
+		if (uri.toString().endsWith(".odt") || uri.toString().endsWith(".ods")
+				|| uri.toString().endsWith(".ott")
+				|| uri.toString().endsWith(".ots"))
+			ReportUtil.submitFile(this, error, uri, errorDescription);
 	}
 
 	@Override

@@ -86,11 +86,12 @@ public class ReportUtil {
 					version = "unknown";
 				}
 				bundle.putString(Intent.EXTRA_SUBJECT, "OpenDocument Reader ("
-						+ version + "): Couldn't open file");
+						+ version + "): Error occurred");
 
 				StringWriter writer = new StringWriter();
 				PrintWriter printer = new PrintWriter(writer);
-				printer.println("Important information for the developer:");
+				printer.println("-----------------");
+				printer.println("Information for the developer:");
 				printer.println("- " + Build.MODEL + " running Android "
 						+ Build.VERSION.SDK_INT);
 				printer.println("- The following error occured while opening the file located at: "
@@ -100,7 +101,6 @@ public class ReportUtil {
 				error.printStackTrace(printer);
 				printer.println();
 				printer.println("-----------------");
-				printer.println("Feel free to append further information here.");
 
 				try {
 					printer.close();

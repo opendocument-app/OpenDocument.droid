@@ -70,8 +70,6 @@ public class DocumentChooserFragment extends ListFragment implements
 
 		MainActivity activity = ((MainActivity) getActivity());
 		activity.loadUri(Uri.parse(uri));
-		if (activity.getSlidingMenu().isBehindShowing())
-			activity.getSlidingMenu().toggle();
 	}
 
 	@Override
