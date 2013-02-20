@@ -75,7 +75,7 @@ public class ReportUtil {
 			public void onClick(DialogInterface dialog, int which) {
 				Bundle bundle = new Bundle();
 				bundle.putStringArray(Intent.EXTRA_EMAIL,
-						new String[] { "tomtasche+reader@gmail.com" });
+						new String[] { "tickets@opendocument.uservoice.com" });
 				bundle.putParcelable(Intent.EXTRA_STREAM, uri);
 
 				String version;
