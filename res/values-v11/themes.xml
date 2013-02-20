@@ -2,4 +2,6 @@
 
     <style name="LightEverywhere" parent="@android:style/Theme.Holo.Light"></style>
 
+    <style name="LightDialogEverywhere" parent="@android:style/Theme.Holo.Light.Dialog"></style>
+
 </resources>

@@ -124,7 +124,7 @@
             android:exported="false"
             android:icon="@drawable/ic_chooser"
             android:label="@string/title_choose_file_local"
-            android:theme="@android:style/Theme.Dialog" >
+            android:theme="@style/LightDialogEverywhere" >
             <intent-filter>
                 <action android:name="android.intent.action.GET_CONTENT" />
 
@@ -138,7 +138,7 @@
             android:excludeFromRecents="true"
             android:exported="false"
             android:label="@string/title_choose_file_cloud"
-            android:theme="@android:style/Theme.Dialog" >
+            android:theme="@style/LightDialogEverywhere" >
             <intent-filter>
                 <action android:name="android.intent.action.GET_CONTENT" />
 
@@ -150,7 +150,7 @@
         <activity
             android:name="io.filepicker.AuthActivity"
             android:label="@string/title_choose_file_cloud"
-            android:theme="@android:style/Theme.Dialog" >
+            android:theme="@style/LightDialogEverywhere" >
         </activity>
     </application>
 
