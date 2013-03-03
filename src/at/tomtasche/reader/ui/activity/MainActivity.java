@@ -36,6 +36,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.Toast;
 import at.andiwand.odf2html.odf.IllegalMimeTypeException;
 import at.andiwand.odf2html.odf.ZipEntryNotFoundException;
@@ -179,8 +180,11 @@ public class MainActivity extends FragmentActivity implements
 										AdSize.SMART_BANNER, "a15042277f73506");
 								adView.loadAd(new AdRequest());
 
+								LayoutParams params = new LayoutParams(
+										LayoutParams.FILL_PARENT,
+										LayoutParams.FILL_PARENT);
 								((LinearLayout) findViewById(R.id.ad_container))
-										.addView(adView);
+										.addView(adView, params);
 							}
 						});
 					}
