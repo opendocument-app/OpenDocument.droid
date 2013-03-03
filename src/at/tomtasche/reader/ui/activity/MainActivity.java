@@ -31,6 +31,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.text.InputType;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -521,6 +522,8 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	public void onError(Throwable error, final Uri uri) {
+		Log.e("OpenDocument Reader", "", error);
+
 		int errorDescription;
 		if (error == null) {
 			return;
@@ -568,6 +571,8 @@ public class MainActivity extends FragmentActivity implements
 		} else {
 			errorDescription = R.string.toast_error_generic;
 		}
+
+		showCrouton(this, errorDescription, null, AppMsg.STYLE_ALERT);
 
 		if (uri.toString().endsWith(".odt") || uri.toString().endsWith(".ods")
 				|| uri.toString().endsWith(".ott")
@@ -637,7 +642,7 @@ public class MainActivity extends FragmentActivity implements
 		Toast.makeText(context, message, Toast.LENGTH_LONG).show();
 	}
 
-	private static void showCrouton(final Activity activity, int resId,
+	private static void showCrouton(Activity activity, int resId,
 			final Runnable callback, AppMsg.Style style) {
 		showCrouton(activity, activity.getString(resId), callback, style);
 	}
@@ -645,6 +650,7 @@ public class MainActivity extends FragmentActivity implements
 	private static void showCrouton(final Activity activity, String message,
 			final Runnable callback, AppMsg.Style style) {
 		AppMsg crouton = AppMsg.makeText(activity, message, style);
+		crouton.setDuration(AppMsg.LENGTH_LONG);
 		crouton.getView().setOnClickListener(new View.OnClickListener() {
 
 			@Override
