@@ -522,7 +522,8 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	public void onError(Throwable error, final Uri uri) {
-		Log.e("OpenDocument Reader", "", error);
+		Log.e("OpenDocument Reader", "Error opening file at " + uri.toString(),
+				error);
 
 		int errorDescription;
 		if (error == null) {
