@@ -1,5 +1,6 @@
 package at.tomtasche.reader.background;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -123,15 +124,16 @@ public class DocumentLoader extends AsyncTaskLoader<Document> {
 			OpenDocument openDocument = documentFile.getAsOpenDocument();
 			if (openDocument instanceof OpenDocumentText) {
 				File htmlFile = cache.getFile("temp.html");
-				FileWriter writer = new FileWriter(htmlFile);
+				FileWriter fileWriter = new FileWriter(htmlFile);
+				BufferedWriter writer = new BufferedWriter(fileWriter);
 				LWXMLWriter out = new LWXMLStreamWriter(writer);
 				try {
 					TextTranslator translator = new TextTranslator(cache);
 					translator.translate(openDocument, out);
 				} finally {
-					writer.flush();
 					out.close();
 					writer.close();
+					fileWriter.close();
 				}
 
 				document.addPage(new Part("Document", htmlFile.toURI(), 0));
@@ -145,7 +147,8 @@ public class DocumentLoader extends AsyncTaskLoader<Document> {
 						.getTableCount();
 				for (int i = 0; i < count; i++) {
 					File htmlFile = cache.getFile("temp" + i + ".html");
-					FileWriter writer = new FileWriter(htmlFile);
+					FileWriter fileWriter = new FileWriter(htmlFile);
+					BufferedWriter writer = new BufferedWriter(fileWriter);
 					LWXMLWriter out = new LWXMLStreamWriter(writer);
 					try {
 						translator.translate(openDocument, out, i);
@@ -153,9 +156,9 @@ public class DocumentLoader extends AsyncTaskLoader<Document> {
 						document.addPage(new Part(tableNames.get(i), htmlFile
 								.toURI(), i));
 					} finally {
-						writer.flush();
 						out.close();
 						writer.close();
+						fileWriter.close();
 					}
 				}
 			} else {
