@@ -19,31 +19,31 @@ public class Document implements Parcelable {
 		}
 	};
 
-	private final List<Part> pages;
+	private final List<Page> pages;
 
 	public Document() {
-		pages = new ArrayList<Part>();
+		pages = new ArrayList<Page>();
 	}
 
-	public Document(List<Part> pages) {
+	public Document(List<Page> pages) {
 		this.pages = pages;
 	}
 
 	private Document(Parcel in) {
-		pages = new ArrayList<Part>();
+		pages = new ArrayList<Page>();
 
-		in.readList(pages, Part.class.getClassLoader());
+		in.readList(pages, Page.class.getClassLoader());
 	}
 
-	public List<Part> getPages() {
+	public List<Page> getPages() {
 		return pages;
 	}
 
-	public void addPage(Part page) {
+	public void addPage(Page page) {
 		pages.add(page);
 	}
 
-	public Part getPageAt(int index) {
+	public Page getPageAt(int index) {
 		return pages.get(index);
 	}
 
@@ -57,15 +57,15 @@ public class Document implements Parcelable {
 		dest.writeList(pages);
 	}
 
-	public static class Part implements Parcelable {
+	public static class Page implements Parcelable {
 
-		public static final Parcelable.Creator<Part> CREATOR = new Parcelable.Creator<Part>() {
-			public Part createFromParcel(Parcel in) {
-				return new Part(in);
+		public static final Parcelable.Creator<Page> CREATOR = new Parcelable.Creator<Page>() {
+			public Page createFromParcel(Parcel in) {
+				return new Page(in);
 			}
 
-			public Part[] newArray(int size) {
-				return new Part[size];
+			public Page[] newArray(int size) {
+				return new Page[size];
 			}
 		};
 
@@ -73,13 +73,13 @@ public class Document implements Parcelable {
 		private final String url;
 		private final int index;
 
-		public Part(String name, URI url, int index) {
+		public Page(String name, URI url, int index) {
 			this.name = name;
 			this.url = url.toString();
 			this.index = index;
 		}
 
-		private Part(Parcel in) {
+		private Page(Parcel in) {
 			name = in.readString();
 			url = in.readString();
 			index = in.readInt();

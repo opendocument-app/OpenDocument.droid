@@ -2,21 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
-        android:id="@+id/menu_page_previous"
-        android:icon="@drawable/ic_menu_back"
-        android:showAsAction="always|withText"
-        android:title="@string/menu_page_previous"/>
-    <item
-        android:id="@+id/menu_page_list"
-        android:icon="@android:drawable/ic_menu_sort_by_size"
-        android:showAsAction="always|withText"
-        android:title="@string/menu_page_list"/>
-    <item
-        android:id="@+id/menu_page_next"
-        android:icon="@drawable/ic_menu_forward"
-        android:showAsAction="always|withText"
-        android:title="@string/menu_page_next"/>
-    <item
         android:id="@+id/menu_open"
         android:icon="@android:drawable/ic_menu_view"
         android:showAsAction="ifRoom|withText"

@@ -13,3 +13,6 @@
 [submodule "test"]
 	path = test
 	url = git@github.com:TomTasche/OpenDocument.test.git
+[submodule "ActionBarSherlock"]
+	path = ActionBarSherlock
+	url = git://github.com/JakeWharton/ActionBarSherlock.git

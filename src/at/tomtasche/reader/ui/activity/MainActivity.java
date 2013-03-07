@@ -26,14 +26,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.text.InputType;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -43,36 +40,44 @@ import at.andiwand.odf2html.odf.IllegalMimeTypeException;
 import at.andiwand.odf2html.odf.ZipEntryNotFoundException;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.Document;
-import at.tomtasche.reader.background.Document.Part;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.ReportUtil;
-import at.tomtasche.reader.ui.widget.DocumentFragment;
+import at.tomtasche.reader.ui.widget.PageFragment;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.ActionBar.Tab;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.devspark.appmsg.AppMsg;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
 
-public class MainActivity extends FragmentActivity implements
-		BillingController.IConfiguration, LoaderCallbacks<Document> {
+public class MainActivity extends SherlockFragmentActivity implements
+		BillingController.IConfiguration, LoaderCallbacks<Document>,
+		ActionBar.TabListener {
 
 	private static final String BILLING_PRODUCT_YEAR = "remove_ads_for_1y";
 	private static final String BILLING_PRODUCT_FOREVER = "remove_ads_for_eva";
 
 	private static final String EXTRA_URI = "uri";
 	private static final String EXTRA_PASSWORD = "password";
+	private static final String EXTRA_TAB_POSITION = "tab_position";
 
 	private ProgressDialogFragment progressDialog;
-	private DocumentFragment documentFragment;
+	private PageFragment pageFragment;
 	private AdView adView;
 
 	private Uri resultData;
+	private Document document;
+	private int lastPosition;
 
 	@Override
-	public void onCreate(Bundle arg0) {
-		super.onCreate(arg0);
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
 		// if (ActivityManager.isUserAMonkey())
 		// getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -88,18 +93,14 @@ public class MainActivity extends FragmentActivity implements
 
 		getSupportLoaderManager().initLoader(0, null, this);
 
-		// getSupportFragmentManager().beginTransaction()
-		// .replace(R.id.sliding_menu, new DocumentChooserFragment())
-		// .commit();
-
-		documentFragment = (DocumentFragment) getSupportFragmentManager()
-				.findFragmentByTag(DocumentFragment.FRAGMENT_TAG);
-		if (documentFragment == null) {
-			documentFragment = new DocumentFragment();
+		pageFragment = (PageFragment) getSupportFragmentManager()
+				.findFragmentByTag(PageFragment.FRAGMENT_TAG);
+		if (pageFragment == null) {
+			pageFragment = new PageFragment();
 			getSupportFragmentManager()
 					.beginTransaction()
-					.add(R.id.document_container, documentFragment,
-							DocumentFragment.FRAGMENT_TAG).commit();
+					.add(R.id.document_container, pageFragment,
+							PageFragment.FRAGMENT_TAG).commit();
 
 			Uri uri = getIntent().getData();
 			if (Intent.ACTION_VIEW.equals(getIntent().getAction())
@@ -209,6 +210,9 @@ public class MainActivity extends FragmentActivity implements
 				}
 			}
 		}.start();
+
+		if (savedInstanceState != null)
+			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
 	}
 
 	@Override
@@ -269,6 +273,27 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		outState.putInt(EXTRA_TAB_POSITION, getSupportActionBar()
+				.getSelectedNavigationIndex());
+	}
+
+	@Override
+	public void onTabReselected(Tab tab, FragmentTransaction ft) {
+	}
+
+	@Override
+	public void onTabSelected(Tab tab, FragmentTransaction ft) {
+		pageFragment.loadPage(document.getPageAt(tab.getPosition()));
+	}
+
+	@Override
+	public void onTabUnselected(Tab tab, FragmentTransaction ft) {
+	}
+
+	@Override
 	protected void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
 
@@ -278,43 +303,17 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(final Menu menu) {
+	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 
-		getMenuInflater().inflate(R.menu.menu_main, menu);
+		getSupportMenuInflater().inflate(R.menu.menu_main, menu);
 
 		return true;
 	}
 
 	@Override
-	public boolean onMenuItemSelected(final int featureId, final MenuItem item) {
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.menu_page_list: {
-			if (documentFragment.getPages().size() > 1) {
-				List<Part> pages = documentFragment.getPages();
-				int size = pages.size();
-				String[] names = new String[size];
-				for (int i = 0; i < size; i++) {
-					names[i] = pages.get(i).getName();
-				}
-
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle(R.string.dialog_page_title);
-				builder.setItems(names, new DialogInterface.OnClickListener() {
-
-					public void onClick(DialogInterface dialog, int item) {
-						documentFragment.goToPage(item);
-					}
-				});
-				builder.show();
-			} else {
-				Toast.makeText(this, R.string.toast_error_only_one_page,
-						Toast.LENGTH_LONG).show();
-			}
-
-			break;
-		}
-
 		case R.id.menu_search: {
 			// http://www.androidsnippets.org/snippets/20/
 			final AlertDialog.Builder alert = new AlertDialog.Builder(this);
@@ -329,7 +328,7 @@ public class MainActivity extends FragmentActivity implements
 						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
-							documentFragment.searchDocument(input.getText()
+							pageFragment.searchDocument(input.getText()
 									.toString());
 						}
 					});
@@ -341,20 +340,6 @@ public class MainActivity extends FragmentActivity implements
 
 		case R.id.menu_open: {
 			findDocument(this);
-
-			break;
-		}
-
-		case R.id.menu_page_next: {
-			if (!documentFragment.nextPage())
-				showToast(this, R.string.toast_error_no_next);
-
-			break;
-		}
-
-		case R.id.menu_page_previous: {
-			if (!documentFragment.previousPage())
-				showToast(this, R.string.toast_error_no_previous);
 
 			break;
 		}
@@ -465,7 +450,32 @@ public class MainActivity extends FragmentActivity implements
 		if (lastError != null) {
 			onError(lastError, uri);
 		} else if (document != null) {
-			documentFragment.loadDocument(document);
+			this.document = document;
+
+			ActionBar bar = getSupportActionBar();
+			int pages = document.getPages().size();
+			if (pages > 1) {
+				bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+				for (int i = 1; i <= pages; i++) {
+					ActionBar.Tab tab = getSupportActionBar().newTab();
+					// TODO: switch between "Page" and "Sheet" according to
+					// filetype
+					tab.setText("Sheet " + i);
+					tab.setTabListener(this);
+
+					getSupportActionBar().addTab(tab);
+				}
+
+				if (lastPosition > 0) {
+					getSupportActionBar().setSelectedNavigationItem(
+							lastPosition);
+
+					lastPosition = -1;
+				}
+			} else {
+				bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+				pageFragment.loadPage(document.getPageAt(0));
+			}
 		} else {
 			onError(new IllegalStateException("document and lastError null"),
 					uri);

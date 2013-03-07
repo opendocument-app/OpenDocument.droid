@@ -20,7 +20,7 @@ import at.andiwand.odf2html.odf.OpenDocumentText;
 import at.andiwand.odf2html.odf.TemporaryOpenDocumentFile;
 import at.andiwand.odf2html.translator.document.SpreadsheetTranslator;
 import at.andiwand.odf2html.translator.document.TextTranslator;
-import at.tomtasche.reader.background.Document.Part;
+import at.tomtasche.reader.background.Document.Page;
 
 public class DocumentLoader extends AsyncTaskLoader<Document> {
 
@@ -136,7 +136,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> {
 					fileWriter.close();
 				}
 
-				document.addPage(new Part("Document", htmlFile.toURI(), 0));
+				document.addPage(new Page("Document", htmlFile.toURI(), 0));
 			} else if (openDocument instanceof OpenDocumentSpreadsheet) {
 				List<String> tableNames = new ArrayList<String>(
 						((OpenDocumentSpreadsheet) openDocument).getTableMap()
@@ -153,7 +153,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> {
 					try {
 						translator.translate(openDocument, out, i);
 
-						document.addPage(new Part(tableNames.get(i), htmlFile
+						document.addPage(new Page(tableNames.get(i), htmlFile
 								.toURI(), i));
 					} finally {
 						out.close();

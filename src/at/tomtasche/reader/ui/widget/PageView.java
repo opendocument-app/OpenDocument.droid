@@ -11,14 +11,14 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-public class DocumentView extends WebView {
+public class PageView extends WebView {
 
 	protected static final String ENCODING = "UTF-8";
 
 	private boolean scrolled;
 
 	@SuppressLint("NewApi")
-	public DocumentView(Context context) {
+	public PageView(Context context) {
 		super(context);
 
 		WebSettings settings = getSettings();
@@ -37,7 +37,7 @@ public class DocumentView extends WebView {
 			}
 	}
 
-	public DocumentView(Context context, final int scroll) {
+	public PageView(Context context, final int scroll) {
 		this(context);
 
 		setWebViewClient(new WebViewClient() {
