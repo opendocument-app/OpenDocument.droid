@@ -4,15 +4,6 @@
 [submodule "Android-AppMsg"]
 	path = Android-AppMsg
 	url = git://github.com/johnkil/Android-AppMsg.git
-[submodule "AndroidBillingLibrary"]
-	path = AndroidBillingLibrary
-	url = git://github.com/robotmedia/AndroidBillingLibrary.git
-[submodule "filepicker-android"]
-	path = filepicker-android
-	url = git://github.com/Filepicker/filepicker-android.git
-[submodule "test"]
-	path = test
-	url = git@github.com:TomTasche/OpenDocument.test.git
 [submodule "ActionBarSherlock"]
 	path = ActionBarSherlock
 	url = git://github.com/JakeWharton/ActionBarSherlock.git
