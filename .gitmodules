@@ -16,6 +16,6 @@
 [submodule "odf2html"]
 	path = odf2html
 	url = git://github.com/andiwand/odf2html.git
-[submodule "commons"]
-	path = commons
+[submodule "odf2html-commons"]
+	path = odf2html-commons
 	url = git://github.com/andiwand/commons.git
