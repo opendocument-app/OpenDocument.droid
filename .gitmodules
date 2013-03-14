@@ -13,3 +13,9 @@
 [submodule "AndroidBillingLibrary"]
 	path = AndroidBillingLibrary
 	url = git@github.com:TomTasche/AndroidBillingLibrary.git
+[submodule "odf2html"]
+	path = odf2html
+	url = git://github.com/andiwand/odf2html.git
+[submodule "commons"]
+	path = commons
+	url = git://github.com/andiwand/commons.git
