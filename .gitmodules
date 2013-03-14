@@ -6,7 +6,7 @@
 	url = git://github.com/johnkil/Android-AppMsg.git
 [submodule "ActionBarSherlock"]
 	path = ActionBarSherlock
-	url = git://github.com/JakeWharton/ActionBarSherlock.git
+	url = git@github.com:TomTasche/ActionBarSherlock.git
 [submodule "filepicker-android"]
 	path = filepicker-android
 	url = git@github.com:TomTasche/filepicker-android.git
