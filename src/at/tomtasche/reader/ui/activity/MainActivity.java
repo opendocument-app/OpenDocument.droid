@@ -453,22 +453,26 @@ public class MainActivity extends SherlockFragmentActivity implements
 			this.document = document;
 
 			ActionBar bar = getSupportActionBar();
+			bar.removeAllTabs();
+
 			int pages = document.getPages().size();
 			if (pages > 1) {
 				bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-				for (int i = 1; i <= pages; i++) {
-					ActionBar.Tab tab = getSupportActionBar().newTab();
+				for (int i = 0; i < pages; i++) {
+					ActionBar.Tab tab = bar.newTab();
+					String name = document.getPageAt(i).getName();
 					// TODO: switch between "Page" and "Sheet" according to
 					// filetype
-					tab.setText("Sheet " + i);
+					if (name == null)
+						name = "Sheet " + (i + 1);
+					tab.setText(name);
 					tab.setTabListener(this);
 
-					getSupportActionBar().addTab(tab);
+					bar.addTab(tab);
 				}
 
 				if (lastPosition > 0) {
-					getSupportActionBar().setSelectedNavigationItem(
-							lastPosition);
+					bar.setSelectedNavigationItem(lastPosition);
 
 					lastPosition = -1;
 				}
