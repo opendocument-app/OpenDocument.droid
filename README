@@ -8,7 +8,8 @@ This project depends on other projects (all included as git submodules).
 Here's how to check out the code:
 - git clone this project
 - change to the newly created directory and run 'git submodule init' and 'git submodule update'
-(-) if you're using eclipse you might need to mess around with imports, classpath and stuff. This should be pretty straight-forward though.
+- now change into the 'odf2html' directory and run the above commands again
+(-) if you're using eclipse you might need to mess around with imports, classpath and stuff now. This should be pretty straight-forward though.
 
 Get the app from Google Play store (https://play.google.com/store/apps/details?id=at.tomtasche.reader)
 

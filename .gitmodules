@@ -1,21 +1,18 @@
 [submodule "aFileChooser"]
 	path = aFileChooser
-	url = git@github.com:TomTasche/aFileChooser.git
+	url = git://github.com/TomTasche/aFileChooser.git
 [submodule "Android-AppMsg"]
 	path = Android-AppMsg
 	url = git://github.com/johnkil/Android-AppMsg.git
 [submodule "ActionBarSherlock"]
 	path = ActionBarSherlock
-	url = git@github.com:TomTasche/ActionBarSherlock.git
+	url = git://github.com/TomTasche/ActionBarSherlock.git
 [submodule "filepicker-android"]
 	path = filepicker-android
-	url = git@github.com:TomTasche/filepicker-android.git
+	url = git://github.com/TomTasche/filepicker-android.git
 [submodule "AndroidBillingLibrary"]
 	path = AndroidBillingLibrary
-	url = git@github.com:TomTasche/AndroidBillingLibrary.git
+	url = git://github.com/TomTasche/AndroidBillingLibrary.git
 [submodule "odf2html"]
 	path = odf2html
 	url = git://github.com/andiwand/odf2html.git
-[submodule "odf2html-commons"]
-	path = odf2html-commons
-	url = git://github.com/andiwand/commons.git
