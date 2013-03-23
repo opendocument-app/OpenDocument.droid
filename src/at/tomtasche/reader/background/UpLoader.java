@@ -74,6 +74,12 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 
 	@Override
 	public Document loadInBackground() {
+		if (uri == DocumentLoader.URI_INTRO) {
+			cancelLoad();
+
+			return null;
+		}
+
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpPost httppost = new HttpPost(SERVER_URL + "file");
 

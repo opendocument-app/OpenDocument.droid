@@ -22,6 +22,7 @@
     <string name="dialog_choose_filemanager">Öffne Dokument mittels:</string>
     <string name="dialog_find_explorer">Anderen Dateimanager finden</string>
     <string name="dialog_loading_title">Lädt...</string>
+    <string name="dialog_uploading_title">Lädt hoch...</string>
     <string name="dialog_loading_message">Das könnte einige Minuten dauern, je nachdem wie komplex das Dokument aufgebaut ist und wie schnell dein Handy ist.</string>
     <string name="dialog_error_send_error_only">Nur den Fehler senden</string>
     <string name="dialog_feedback_title">Sag uns deine Meinung!</string>

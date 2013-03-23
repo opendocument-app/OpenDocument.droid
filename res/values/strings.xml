@@ -22,6 +22,7 @@
     <string name="dialog_choose_filemanager">Open document via:</string>
     <string name="dialog_find_explorer">Find another file explorer</string>
     <string name="dialog_loading_title">Loading...</string>
+    <string name="dialog_uploading_title">Uploading...</string>
     <string name="dialog_loading_message">This could take a few minutes, depending on the structure of your document and the processing power of your phone.</string>
     <string name="dialog_error_send_error_only">Send only the error</string>
     <string name="dialog_feedback_title">Shape the future of this app!</string>

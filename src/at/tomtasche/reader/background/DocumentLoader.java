@@ -164,9 +164,6 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 						fileWriter.close();
 					}
 				}
-			} else {
-				throw new IllegalMimeTypeException(
-						"I don't know what it is, but I can't stop parsing it");
 			}
 
 			return document;
@@ -176,7 +173,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			lastError = e;
 		}
 
-		return document;
+		return null;
 	}
 
 	@SuppressWarnings("serial")

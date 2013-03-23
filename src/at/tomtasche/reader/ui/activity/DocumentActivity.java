@@ -81,26 +81,11 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 			if (Intent.ACTION_VIEW.equals(getIntent().getAction())
 					&& uri != null) {
 				loadUri(uri);
-			} else {
-				loadUri(DocumentLoader.URI_INTRO);
 			}
 		}
 
 		if (savedInstanceState != null)
 			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
-	}
-
-	@Override
-	protected void onPostResume() {
-		super.onPostResume();
-
-		// TODO: god, it's so ugly... doing that because commiting fragments is
-		// not allowed "after onSaveInstanceState"
-		if (resultData != null) {
-			loadUri(resultData);
-
-			resultData = null;
-		}
 	}
 
 	@Override
@@ -156,8 +141,6 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 
 	@Override
 	public Loader<Document> onCreateLoader(int id, Bundle bundle) {
-		showProgress();
-
 		Uri uri;
 		String password = null;
 		if (bundle != null) {
@@ -169,6 +152,8 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 
 		switch (id) {
 		case 0:
+			showProgress(false);
+
 			DocumentLoader documentLoader = new DocumentLoader(this, uri);
 			documentLoader.setPassword(password);
 
@@ -176,6 +161,8 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 
 		case 1:
 		default:
+			showProgress(true);
+
 			UpLoader upLoader = new UpLoader(this, uri);
 
 			return upLoader;
@@ -184,8 +171,9 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 
 	@Override
 	public void onLoadFinished(Loader<Document> loader, Document document) {
-		FileLoader fileLoader = (FileLoader) loader;
+		dismissProgress();
 
+		FileLoader fileLoader = (FileLoader) loader;
 		Throwable error = fileLoader.getLastError();
 		Uri uri = fileLoader.getLastUri();
 		if (error != null) {
@@ -202,8 +190,6 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 				for (int i = 0; i < pages; i++) {
 					ActionBar.Tab tab = bar.newTab();
 					String name = document.getPageAt(i).getName();
-					// TODO: switch between "Page" and "Sheet" according to
-					// filetype
 					if (name == null)
 						name = "Sheet " + (i + 1);
 					tab.setText(name);
@@ -225,8 +211,6 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 			onError(new IllegalStateException("document and lastError null"),
 					uri);
 		}
-
-		dismissProgress();
 	}
 
 	@Override
@@ -242,19 +226,18 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 			return;
 
 		Uri uri = intent.getData();
-		if (requestCode == 42 && resultCode == RESULT_OK && uri != null) {
-			resultData = uri;
-		}
+		if (requestCode == 42 && resultCode == RESULT_OK && uri != null)
+			loadUri(uri);
 	}
 
-	private void showProgress() {
+	private void showProgress(boolean upload) {
 		if (progressDialog != null)
 			return;
 
 		FragmentTransaction transaction = getSupportFragmentManager()
 				.beginTransaction();
 
-		progressDialog = new ProgressDialogFragment();
+		progressDialog = new ProgressDialogFragment(upload);
 		progressDialog.show(transaction, ProgressDialogFragment.FRAGMENT_TAG);
 	}
 
