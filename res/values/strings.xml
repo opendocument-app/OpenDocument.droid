@@ -27,6 +27,7 @@
     <string name="dialog_feedback_title">Shape the future of this app!</string>
     <string name="dialog_feedback_message">Don\'t like our approach to monetize this app? Hate the look and feel? Desperately looking for a specific feature? Please tell us about it on our feedback platform!</string>
     <string name="dialog_remove_ads_title">Remove ads for:</string>
+    <string name="dialog_upload_file">We aren\'t able to open this document, because we don\'t support its format. Do you want to upload it to our server temporarily, so we can display it for you anyway?</string>
     <string name="title_choose_file_cloud">Choose file from cloud</string>
     <string name="title_choose_file_local">Choose file from device</string>
     <string name="menu_page_list">List pages</string>

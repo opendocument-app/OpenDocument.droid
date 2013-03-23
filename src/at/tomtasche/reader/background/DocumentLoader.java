@@ -22,7 +22,8 @@ import at.andiwand.odf2html.translator.document.SpreadsheetTranslator;
 import at.andiwand.odf2html.translator.document.TextTranslator;
 import at.tomtasche.reader.background.Document.Page;
 
-public class DocumentLoader extends AsyncTaskLoader<Document> {
+public class DocumentLoader extends AsyncTaskLoader<Document> implements
+		FileLoader {
 
 	public static final Uri URI_INTRO = Uri.parse("reader://intro.odt");
 
@@ -41,10 +42,12 @@ public class DocumentLoader extends AsyncTaskLoader<Document> {
 		this.password = password;
 	}
 
+	@Override
 	public Throwable getLastError() {
 		return lastError;
 	}
 
+	@Override
 	public Uri getLastUri() {
 		return uri;
 	}
@@ -173,7 +176,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> {
 			lastError = e;
 		}
 
-		return null;
+		return document;
 	}
 
 	@SuppressWarnings("serial")

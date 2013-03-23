@@ -4,19 +4,15 @@ import io.filepicker.FPService;
 import io.filepicker.FilePicker;
 import io.filepicker.FilePickerAPI;
 
-import java.io.FileNotFoundException;
 import java.util.List;
-import java.util.zip.ZipException;
 
 import net.robotmedia.billing.BillingController;
 import net.robotmedia.billing.BillingRequest.ResponseCode;
 import net.robotmedia.billing.helper.AbstractBillingObserver;
 import net.robotmedia.billing.model.Transaction;
 import net.robotmedia.billing.model.Transaction.PurchaseState;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
@@ -24,31 +20,14 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.Loader;
-import android.text.InputType;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import android.widget.Toast;
-import at.andiwand.odf2html.odf.IllegalMimeTypeException;
-import at.andiwand.odf2html.odf.ZipEntryNotFoundException;
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.DocumentLoader;
-import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.ReportUtil;
-import at.tomtasche.reader.ui.widget.PageFragment;
-import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.ActionBar.Tab;
-import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.devspark.appmsg.AppMsg;
@@ -56,60 +35,17 @@ import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
 
-public class MainActivity extends SherlockFragmentActivity implements
-		BillingController.IConfiguration, LoaderCallbacks<Document>,
-		ActionBar.TabListener {
+public class MainActivity extends DocumentActivity implements
+		BillingController.IConfiguration {
 
 	private static final String BILLING_PRODUCT_YEAR = "remove_ads_for_1y";
 	private static final String BILLING_PRODUCT_FOREVER = "remove_ads_for_eva";
 
-	private static final String EXTRA_URI = "uri";
-	private static final String EXTRA_PASSWORD = "password";
-	private static final String EXTRA_TAB_POSITION = "tab_position";
-
-	private ProgressDialogFragment progressDialog;
-	private PageFragment pageFragment;
 	private AdView adView;
-
-	private Uri resultData;
-	private Document document;
-	private int lastPosition;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-		// if (ActivityManager.isUserAMonkey())
-		// getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-		// WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-		// StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-		// .detectAll().penaltyLog().penaltyDeath().build());
-		// StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll()
-		// .penaltyLog().penaltyDeath().build());
-
-		setTitle("");
-		setContentView(R.layout.main);
-
-		getSupportLoaderManager().initLoader(0, null, this);
-
-		pageFragment = (PageFragment) getSupportFragmentManager()
-				.findFragmentByTag(PageFragment.FRAGMENT_TAG);
-		if (pageFragment == null) {
-			pageFragment = new PageFragment();
-			getSupportFragmentManager()
-					.beginTransaction()
-					.add(R.id.document_container, pageFragment,
-							PageFragment.FRAGMENT_TAG).commit();
-
-			Uri uri = getIntent().getData();
-			if (Intent.ACTION_VIEW.equals(getIntent().getAction())
-					&& uri != null) {
-				loadUri(uri);
-			} else {
-				loadUri(DocumentLoader.URI_INTRO);
-			}
-		}
 
 		billingObserver = new AbstractBillingObserver(this) {
 
@@ -119,7 +55,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 						@Override
 						public void run() {
-							showCrouton(MainActivity.this,
+							showCrouton(
 									getString(R.string.crouton_error_billing),
 									null, AppMsg.STYLE_ALERT);
 						}
@@ -151,7 +87,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 						@Override
 						public void run() {
-							showCrouton(MainActivity.this,
+							showCrouton(
 									getString(R.string.crouton_error_billing),
 									null, AppMsg.STYLE_ALERT);
 						}
@@ -195,8 +131,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 						@Override
 						public void run() {
-							showCrouton(MainActivity.this,
-									R.string.crouton_error_billing,
+							showCrouton(R.string.crouton_error_billing,
 									new Runnable() {
 
 										@Override
@@ -210,9 +145,6 @@ public class MainActivity extends SherlockFragmentActivity implements
 				}
 			}
 		}.start();
-
-		if (savedInstanceState != null)
-			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
 	}
 
 	@Override
@@ -242,8 +174,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 						@Override
 						public void run() {
-							showCrouton(MainActivity.this,
-									R.string.crouton_error_billing,
+							showCrouton(R.string.crouton_error_billing,
 									new Runnable() {
 
 										@Override
@@ -257,49 +188,6 @@ public class MainActivity extends SherlockFragmentActivity implements
 				}
 			}
 		}.start();
-	}
-
-	@Override
-	protected void onPostResume() {
-		super.onPostResume();
-
-		// TODO: god, it's so ugly... doing that because commiting fragments is
-		// not allowed "after onSaveInstanceState"
-		if (resultData != null) {
-			loadUri(resultData);
-
-			resultData = null;
-		}
-	}
-
-	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-
-		outState.putInt(EXTRA_TAB_POSITION, getSupportActionBar()
-				.getSelectedNavigationIndex());
-	}
-
-	@Override
-	public void onTabReselected(Tab tab, FragmentTransaction ft) {
-	}
-
-	@Override
-	public void onTabSelected(Tab tab, FragmentTransaction ft) {
-		pageFragment.loadPage(document.getPageAt(tab.getPosition()));
-	}
-
-	@Override
-	public void onTabUnselected(Tab tab, FragmentTransaction ft) {
-	}
-
-	@Override
-	protected void onNewIntent(Intent intent) {
-		super.onNewIntent(intent);
-
-		if (intent.getData() != null) {
-			loadUri(intent.getData());
-		}
 	}
 
 	@Override
@@ -328,8 +216,8 @@ public class MainActivity extends SherlockFragmentActivity implements
 						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
-							pageFragment.searchDocument(input.getText()
-									.toString());
+							getPageFragment().searchDocument(
+									input.getText().toString());
 						}
 					});
 			alert.setNegativeButton(getString(android.R.string.cancel), null);
@@ -339,7 +227,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 		}
 
 		case R.id.menu_open: {
-			findDocument(this);
+			findDocument();
 
 			break;
 		}
@@ -409,209 +297,12 @@ public class MainActivity extends SherlockFragmentActivity implements
 		return super.onMenuItemSelected(featureId, item);
 	}
 
-	public DocumentLoader loadUri(Uri uri) {
-		return loadUri(uri, null);
-	}
-
-	public DocumentLoader loadUri(Uri uri, String password) {
-		Bundle bundle = new Bundle();
-		bundle.putString(EXTRA_PASSWORD, password);
-		bundle.putParcelable(EXTRA_URI, uri);
-
-		return (DocumentLoader) getSupportLoaderManager().restartLoader(0,
-				bundle, this);
-	}
-
-	@Override
-	public Loader<Document> onCreateLoader(int id, Bundle bundle) {
-		showProgress();
-
-		Uri uri;
-		String password = null;
-		if (bundle != null) {
-			uri = bundle.getParcelable(EXTRA_URI);
-			password = bundle.getString(EXTRA_PASSWORD);
-		} else {
-			uri = DocumentLoader.URI_INTRO;
-		}
-
-		DocumentLoader documentLoader = new DocumentLoader(this, uri);
-		documentLoader.setPassword(password);
-
-		return documentLoader;
-	}
-
-	@Override
-	public void onLoadFinished(Loader<Document> loader, Document document) {
-		dismissProgress();
-
-		Throwable lastError = ((DocumentLoader) loader).getLastError();
-		Uri uri = ((DocumentLoader) loader).getLastUri();
-		if (lastError != null) {
-			onError(lastError, uri);
-		} else if (document != null) {
-			this.document = document;
-
-			ActionBar bar = getSupportActionBar();
-			bar.removeAllTabs();
-
-			int pages = document.getPages().size();
-			if (pages > 1) {
-				bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-				for (int i = 0; i < pages; i++) {
-					ActionBar.Tab tab = bar.newTab();
-					String name = document.getPageAt(i).getName();
-					// TODO: switch between "Page" and "Sheet" according to
-					// filetype
-					if (name == null)
-						name = "Sheet " + (i + 1);
-					tab.setText(name);
-					tab.setTabListener(this);
-
-					bar.addTab(tab);
-				}
-
-				if (lastPosition > 0) {
-					bar.setSelectedNavigationItem(lastPosition);
-
-					lastPosition = -1;
-				}
-			} else {
-				bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-				pageFragment.loadPage(document.getPageAt(0));
-			}
-		} else {
-			onError(new IllegalStateException("document and lastError null"),
-					uri);
-		}
-	}
-
-	@Override
-	public void onLoaderReset(Loader<Document> loader) {
-	}
-
-	@Override
-	protected void onActivityResult(final int requestCode,
-			final int resultCode, final Intent intent) {
-		super.onActivityResult(requestCode, resultCode, intent);
-
-		if (intent == null)
-			return;
-
-		Uri uri = intent.getData();
-		if (requestCode == 42 && resultCode == RESULT_OK && uri != null) {
-			resultData = uri;
-		}
-	}
-
-	private void showProgress() {
-		if (progressDialog != null)
-			return;
-
-		FragmentTransaction transaction = getSupportFragmentManager()
-				.beginTransaction();
-
-		progressDialog = new ProgressDialogFragment();
-		progressDialog.show(transaction, ProgressDialogFragment.FRAGMENT_TAG);
-	}
-
-	private void dismissProgress() {
-		// dirty hack because committing isn't allowed in onLoadFinished
-		new Handler(getMainLooper()).post(new Runnable() {
-
-			@Override
-			public void run() {
-				if (progressDialog == null)
-					progressDialog = (ProgressDialogFragment) getSupportFragmentManager()
-							.findFragmentByTag(
-									ProgressDialogFragment.FRAGMENT_TAG);
-
-				if (progressDialog != null && progressDialog.getShowsDialog()) {
-					progressDialog.dismiss();
-
-					progressDialog = null;
-				}
-			}
-		});
-	}
-
-	public void onError(Throwable error, final Uri uri) {
-		Log.e("OpenDocument Reader", "Error opening file at " + uri.toString(),
-				error);
-
-		int errorDescription;
-		if (error == null) {
-			return;
-		} else if (error instanceof EncryptedDocumentException) {
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle(R.string.toast_error_password_protected);
-
-			final EditText input = new EditText(this);
-			input.setInputType(InputType.TYPE_CLASS_TEXT
-					| InputType.TYPE_TEXT_VARIATION_PASSWORD);
-			builder.setView(input);
-
-			builder.setPositiveButton(getString(android.R.string.ok),
-					new DialogInterface.OnClickListener() {
-
-						@Override
-						public void onClick(DialogInterface dialog,
-								int whichButton) {
-							loadUri(uri, input.getText().toString());
-
-							dialog.dismiss();
-						}
-					});
-			builder.setNegativeButton(getString(android.R.string.cancel), null);
-			builder.show();
-
-			return;
-		} else if (error instanceof IllegalMimeTypeException
-				|| error instanceof ZipException
-				|| error instanceof ZipEntryNotFoundException) {
-			errorDescription = R.string.toast_error_open_file;
-		} else if (error instanceof FileNotFoundException) {
-			if (Environment.getExternalStorageState().equals(
-					Environment.MEDIA_MOUNTED_READ_ONLY)
-					|| Environment.getExternalStorageState().equals(
-							Environment.MEDIA_MOUNTED)) {
-				errorDescription = R.string.toast_error_find_file;
-			} else {
-				errorDescription = R.string.toast_error_storage;
-			}
-		} else if (error instanceof IllegalArgumentException) {
-			errorDescription = R.string.toast_error_illegal_file;
-		} else if (error instanceof OutOfMemoryError) {
-			errorDescription = R.string.toast_error_out_of_memory;
-		} else {
-			errorDescription = R.string.toast_error_generic;
-		}
-
-		showCrouton(this, errorDescription, null, AppMsg.STYLE_ALERT);
-
-		if (uri.toString().endsWith(".odt") || uri.toString().endsWith(".ods")
-				|| uri.toString().endsWith(".ott")
-				|| uri.toString().endsWith(".ots"))
-			ReportUtil.submitFile(this, error, uri, errorDescription);
-	}
-
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-
-		if (adView != null)
-			adView.destroy();
-
-		BillingController.unregisterObserver(billingObserver);
-		BillingController.setConfiguration(null);
-	}
-
-	private static void findDocument(final Activity activity) {
+	public void findDocument() {
 		final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 		intent.setType("application/vnd.oasis.opendocument.*");
 		intent.addCategory(Intent.CATEGORY_OPENABLE);
 
-		PackageManager pm = activity.getPackageManager();
+		PackageManager pm = getPackageManager();
 		final List<ResolveInfo> targets = pm.queryIntentActivities(intent, 0);
 		int size = targets.size();
 		String[] targetNames = new String[size];
@@ -619,7 +310,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 			targetNames[i] = targets.get(i).loadLabel(pm).toString();
 		}
 
-		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.dialog_choose_filemanager);
 		builder.setItems(targetNames, new OnClickListener() {
 
@@ -641,7 +332,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 					intent.setType(null);
 				}
 
-				activity.startActivityForResult(intent, 42);
+				startActivityForResult(intent, 42);
 
 				dialog.dismiss();
 			}
@@ -649,32 +340,15 @@ public class MainActivity extends SherlockFragmentActivity implements
 		builder.show();
 	}
 
-	private static void showToast(Context context, int resId) {
-		showToast(context, context.getString(resId));
-	}
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
 
-	private static void showToast(Context context, String message) {
-		Toast.makeText(context, message, Toast.LENGTH_LONG).show();
-	}
+		if (adView != null)
+			adView.destroy();
 
-	private static void showCrouton(Activity activity, int resId,
-			final Runnable callback, AppMsg.Style style) {
-		showCrouton(activity, activity.getString(resId), callback, style);
-	}
-
-	private static void showCrouton(final Activity activity, String message,
-			final Runnable callback, AppMsg.Style style) {
-		AppMsg crouton = AppMsg.makeText(activity, message, style);
-		crouton.setDuration(AppMsg.LENGTH_LONG);
-		crouton.getView().setOnClickListener(new View.OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				if (callback != null)
-					activity.runOnUiThread(callback);
-			}
-		});
-		crouton.show();
+		BillingController.unregisterObserver(billingObserver);
+		BillingController.setConfiguration(null);
 	}
 
 	// taken from net.robotmedia.billing.helper.AbstractBillingActivity

@@ -27,6 +27,7 @@
     <string name="dialog_feedback_title">Sag uns deine Meinung!</string>
     <string name="dialog_feedback_message">Dir gefällt nicht wie wir versuchen mit dieser App Geld zu verdienen? Oder hasst du das Aussehen und Verhalten der App? Du suchst vergeblich nach einem bestimmten Feature? Bitte sag uns Bescheid!</string>
     <string name="dialog_remove_ads_title">Entferne Werbung für:</string>
+    <string name="dialog_upload_file">Dieses Dokument kann nicht geöffnet werden, weil wir dessen Format nicht unterstützen. Willst du es temporär auf unsere Server hochladen, damit wir es trotzdem für dich anzeigen können?</string>
     <string name="title_choose_file_cloud">Wähle eine Datei aus dem Internet</string>
     <string name="title_choose_file_local">Wähle eine Datei von diesem Gerät</string>
     <string name="menu_page_list">Zeige Seiten</string>
