@@ -197,9 +197,6 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 				bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 				pageFragment.loadPage(document.getPageAt(0));
 			}
-		} else {
-			onError(new IllegalStateException("document and lastError null"),
-					uri);
 		}
 	}
 
