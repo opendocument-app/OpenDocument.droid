@@ -45,7 +45,6 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 	private ProgressDialogFragment progressDialog;
 	private PageFragment pageFragment;
 
-	private Uri resultData;
 	private Document document;
 	private int lastPosition;
 
@@ -242,7 +241,10 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 	}
 
 	private void dismissProgress() {
-		// dirty hack because committing isn't allowed in onLoadFinished
+		// dirty hack because committing isn't allowed right after
+		// onLoadFinished:
+		// "java.lang.IllegalStateException: Can not perform this action inside of onLoadFinished"
+
 		new Handler(getMainLooper()).post(new Runnable() {
 
 			@Override
