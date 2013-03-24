@@ -52,15 +52,6 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// if (ActivityManager.isUserAMonkey())
-		// getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-		// WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-		// StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-		// .detectAll().penaltyLog().penaltyDeath().build());
-		// StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll()
-		// .penaltyLog().penaltyDeath().build());
-
 		setTitle("");
 		setContentView(R.layout.main);
 

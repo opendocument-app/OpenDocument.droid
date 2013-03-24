@@ -7,18 +7,23 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+@SuppressLint("SetJavaScriptEnabled")
 public class PageView extends WebView {
 
 	protected static final String ENCODING = "UTF-8";
 
 	private boolean scrolled;
 
-	@SuppressLint("NewApi")
 	public PageView(Context context) {
+		this(context, 0);
+	}
+
+	public PageView(Context context, final int scroll) {
 		super(context);
 
 		WebSettings settings = getSettings();
@@ -26,6 +31,7 @@ public class PageView extends WebView {
 		settings.setLightTouchEnabled(true);
 		settings.setSupportZoom(true);
 		settings.setDefaultTextEncodingName(ENCODING);
+		settings.setJavaScriptEnabled(true);
 
 		setKeepScreenOn(true);
 		if (Build.VERSION.SDK_INT >= 14)
@@ -35,10 +41,6 @@ public class PageView extends WebView {
 				method.invoke(context, 1);
 			} catch (Exception e) {
 			}
-	}
-
-	public PageView(Context context, final int scroll) {
-		this(context);
 
 		setWebViewClient(new WebViewClient() {
 
@@ -61,10 +63,18 @@ public class PageView extends WebView {
 
 			@Override
 			public boolean shouldOverrideUrlLoading(WebView view, String url) {
-				getContext().startActivity(
-						new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+				Log.e("smn", url);
 
-				return true;
+				if (url.startsWith("https://docs.google.com/viewer?embedded=true")) {
+					Log.e("smn", "do i");
+
+					return false;
+				} else {
+					getContext().startActivity(
+							new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+
+					return true;
+				}
 			}
 		});
 	}

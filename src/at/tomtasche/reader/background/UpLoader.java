@@ -113,7 +113,7 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 
 				String key = container.get("key").toString();
 				URI viewerUri = URI
-						.create("http://docs.google.com/viewer?embedded=true&url="
+						.create("https://docs.google.com/viewer?embedded=true&url="
 								+ URLEncoder.encode(SERVER_URL + "file?key="
 										+ key, "UTF-8"));
 

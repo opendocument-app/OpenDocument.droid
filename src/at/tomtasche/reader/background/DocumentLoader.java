@@ -82,6 +82,8 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 
 	@Override
 	public Document loadInBackground() {
+		InputStream stream = null;
+		TemporaryOpenDocumentFile documentFile = null;
 		try {
 			// cleanup uri
 			if ("/./".equals(uri.toString().substring(0, 2))) {
@@ -93,7 +95,6 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			// it until the new document has finished loading
 			AndroidFileCache.cleanup(getContext());
 
-			InputStream stream;
 			if (URI_INTRO.equals(uri)) {
 				stream = getContext().getAssets().open("intro.odt");
 			} else {
@@ -109,8 +110,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			}
 
 			AndroidFileCache cache = new AndroidFileCache(getContext());
-			TemporaryOpenDocumentFile documentFile = new TemporaryOpenDocumentFile(
-					stream, cache);
+			documentFile = new TemporaryOpenDocumentFile(stream, cache);
 
 			String mimeType = documentFile.getMimetype();
 			if (!OpenDocument.checkMimetype(mimeType)) {
@@ -171,6 +171,17 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			e.printStackTrace();
 
 			lastError = e;
+		} finally {
+			try {
+				stream.close();
+			} catch (IOException e) {
+			}
+
+			try {
+				if (documentFile != null)
+					documentFile.close();
+			} catch (IOException e) {
+			}
 		}
 
 		return null;
