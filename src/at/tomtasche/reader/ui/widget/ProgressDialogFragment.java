@@ -12,6 +12,7 @@ public class ProgressDialogFragment extends DialogFragment {
 
 	public static final String FRAGMENT_TAG = "progress_dialog";
 
+	private ProgressDialog progressDialog;
 	private boolean upload;
 
 	public ProgressDialogFragment() {
@@ -24,7 +25,7 @@ public class ProgressDialogFragment extends DialogFragment {
 
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
-		ProgressDialog progressDialog = new ProgressDialog(getActivity());
+		progressDialog = new ProgressDialog(getActivity());
 
 		int title;
 		if (upload) {
@@ -35,11 +36,20 @@ public class ProgressDialogFragment extends DialogFragment {
 
 		progressDialog.setTitle(getString(title));
 		progressDialog.setMessage(getString(R.string.dialog_loading_message));
-		progressDialog.setIndeterminate(true);
 		progressDialog.setCancelable(false);
+		progressDialog.setIndeterminate(upload);
+		if (!upload) {
+			progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+			progressDialog.setMax(100);
+			progressDialog.setProgress(0);
+		}
 
 		setCancelable(false);
 
 		return progressDialog;
+	}
+
+	public void setProgress(double progress) {
+		progressDialog.setProgress(((int) (progress * 100)));
 	}
 }

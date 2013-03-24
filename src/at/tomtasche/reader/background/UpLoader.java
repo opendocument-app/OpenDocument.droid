@@ -1,9 +1,9 @@
 package at.tomtasche.reader.background;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.Map;
 
@@ -17,7 +17,6 @@ import org.apache.http.util.EntityUtils;
 import android.content.Context;
 import android.net.Uri;
 import android.support.v4.content.AsyncTaskLoader;
-import android.util.Log;
 import at.tomtasche.reader.background.Document.Page;
 
 import com.google.gson.Gson;
@@ -43,6 +42,11 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 	@Override
 	public Uri getLastUri() {
 		return uri;
+	}
+
+	@Override
+	public double getProgress() {
+		return 0;
 	}
 
 	@Override
@@ -80,8 +84,35 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 			return null;
 		}
 
+		String type = getContext().getContentResolver().getType(uri);
+		if (type == null)
+			type = URLConnection.guessContentTypeFromName(uri.toString());
+
+		if (type == null) {
+			try {
+				InputStream stream = getContext().getContentResolver()
+						.openInputStream(uri);
+				try {
+					type = URLConnection.guessContentTypeFromStream(stream);
+				} finally {
+					stream.close();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		String name = uri.getLastPathSegment();
+
+		try {
+			name = URLEncoder.encode(name, "UTF-8");
+			type = URLEncoder.encode(type, "UTF-8");
+		} catch (Exception e) {
+		}
+
 		HttpClient httpclient = new DefaultHttpClient();
-		HttpPost httppost = new HttpPost(SERVER_URL + "file");
+		HttpPost httppost = new HttpPost(SERVER_URL + "file?name=" + name
+				+ "&type=" + type);
 
 		InputStream stream = null;
 		try {
@@ -90,7 +121,6 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 			InputStreamEntity reqEntity = new InputStreamEntity(stream, -1);
 
 			httppost.setEntity(reqEntity);
-			reqEntity.setContentType("binary/octet-stream");
 
 			HttpResponse response = httpclient.execute(httppost);
 			if (response.getStatusLine().getStatusCode() == 200) {

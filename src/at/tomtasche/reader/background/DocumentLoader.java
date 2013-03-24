@@ -18,6 +18,7 @@ import at.andiwand.odf2html.odf.OpenDocument;
 import at.andiwand.odf2html.odf.OpenDocumentSpreadsheet;
 import at.andiwand.odf2html.odf.OpenDocumentText;
 import at.andiwand.odf2html.odf.TemporaryOpenDocumentFile;
+import at.andiwand.odf2html.translator.document.DocumentTranslator;
 import at.andiwand.odf2html.translator.document.SpreadsheetTranslator;
 import at.andiwand.odf2html.translator.document.TextTranslator;
 import at.tomtasche.reader.background.Document.Page;
@@ -31,6 +32,9 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 	private Uri uri;
 	private String password;
 	private Document document;
+
+	@SuppressWarnings("rawtypes")
+	private DocumentTranslator translator;
 
 	public DocumentLoader(Context context, Uri uri) {
 		super(context);
@@ -53,6 +57,14 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 	}
 
 	@Override
+	public double getProgress() {
+		if (translator != null)
+			return translator.getProgress();
+
+		return 0;
+	}
+
+	@Override
 	protected void onStartLoading() {
 		super.onStartLoading();
 
@@ -71,6 +83,9 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 
 		document = null;
 		lastError = null;
+		uri = null;
+		translator = null;
+		password = null;
 	}
 
 	@Override
@@ -131,8 +146,9 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 				BufferedWriter writer = new BufferedWriter(fileWriter);
 				LWXMLWriter out = new LWXMLStreamWriter(writer);
 				try {
-					TextTranslator translator = new TextTranslator(cache);
-					translator.translate(openDocument, out);
+					TextTranslator textTranslator = new TextTranslator(cache);
+					this.translator = textTranslator;
+					textTranslator.translate(openDocument, out);
 				} finally {
 					out.close();
 					writer.close();
@@ -144,8 +160,9 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 				List<String> tableNames = new ArrayList<String>(
 						((OpenDocumentSpreadsheet) openDocument).getTableMap()
 								.keySet());
-				SpreadsheetTranslator translator = new SpreadsheetTranslator(
+				SpreadsheetTranslator spreadsheetTranslator = new SpreadsheetTranslator(
 						cache);
+				this.translator = spreadsheetTranslator;
 				int count = ((OpenDocumentSpreadsheet) openDocument)
 						.getTableCount();
 				for (int i = 0; i < count; i++) {
@@ -154,7 +171,8 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 					BufferedWriter writer = new BufferedWriter(fileWriter);
 					LWXMLWriter out = new LWXMLStreamWriter(writer);
 					try {
-						translator.translate(openDocument, out, i);
+						spreadsheetTranslator.setTableIndex(i);
+						spreadsheetTranslator.translate(openDocument, out);
 
 						document.addPage(new Page(tableNames.get(i), htmlFile
 								.toURI(), i));

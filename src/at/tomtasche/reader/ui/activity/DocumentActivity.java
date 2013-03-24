@@ -48,12 +48,16 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 	private Document document;
 	private int lastPosition;
 
+	private Handler handler;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setTitle("");
 		setContentView(R.layout.main);
+
+		handler = new Handler();
 
 		getSupportLoaderManager().initLoader(0, null, this);
 		getSupportLoaderManager().initLoader(1, null, this);
@@ -142,18 +146,18 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 
 		switch (id) {
 		case 0:
-			showProgress(false);
-
 			DocumentLoader documentLoader = new DocumentLoader(this, uri);
 			documentLoader.setPassword(password);
+
+			showProgress(documentLoader, false);
 
 			return documentLoader;
 
 		case 1:
 		default:
-			showProgress(true);
-
 			UpLoader upLoader = new UpLoader(this, uri);
+
+			showProgress(upLoader, true);
 
 			return upLoader;
 		}
@@ -217,7 +221,7 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 			loadUri(uri);
 	}
 
-	private void showProgress(boolean upload) {
+	private void showProgress(final Loader<Document> loader, boolean upload) {
 		if (progressDialog != null)
 			return;
 
@@ -226,6 +230,24 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 
 		progressDialog = new ProgressDialogFragment(upload);
 		progressDialog.show(transaction, ProgressDialogFragment.FRAGMENT_TAG);
+
+		if (!upload) {
+			final FileLoader fileLoader = (FileLoader) loader;
+
+			handler.postDelayed(new Runnable() {
+
+				@Override
+				public void run() {
+					if (progressDialog == null)
+						return;
+
+					progressDialog.setProgress(fileLoader.getProgress());
+
+					if (loader.isStarted())
+						handler.postDelayed(this, 1000);
+				}
+			}, 1000);
+		}
 	}
 
 	private void dismissProgress() {

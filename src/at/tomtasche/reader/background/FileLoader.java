@@ -7,4 +7,6 @@ public interface FileLoader {
 	public Throwable getLastError();
 
 	public Uri getLastUri();
+	
+	public double getProgress();
 }
