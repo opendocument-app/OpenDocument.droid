@@ -191,7 +191,8 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			lastError = e;
 		} finally {
 			try {
-				stream.close();
+				if (stream != null)
+					stream.close();
 			} catch (IOException e) {
 			}
 
