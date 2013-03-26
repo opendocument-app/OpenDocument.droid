@@ -20,6 +20,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentTransaction;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -27,6 +29,7 @@ import android.widget.LinearLayout.LayoutParams;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.ReportUtil;
+import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
 
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -55,7 +58,7 @@ public class MainActivity extends DocumentActivity implements
 		// .detectAll().penaltyLog().penaltyDeath().build());
 		// StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll()
 		// .penaltyLog().penaltyDeath().build());
-		
+
 		billingObserver = new AbstractBillingObserver(this) {
 
 			public void onBillingChecked(boolean supported) {
@@ -211,6 +214,17 @@ public class MainActivity extends DocumentActivity implements
 	@Override
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
 		switch (item.getItemId()) {
+		case R.id.menu_recent: {
+			FragmentTransaction transaction = getSupportFragmentManager()
+					.beginTransaction();
+
+			DialogFragment chooserDialog = new DocumentChooserDialogFragment();
+			chooserDialog.show(transaction,
+					DocumentChooserDialogFragment.FRAGMENT_TAG);
+
+			break;
+		}
+
 		case R.id.menu_search: {
 			// http://www.androidsnippets.org/snippets/20/
 			final AlertDialog.Builder alert = new AlertDialog.Builder(this);

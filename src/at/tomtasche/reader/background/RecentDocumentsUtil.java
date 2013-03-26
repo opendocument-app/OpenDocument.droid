@@ -54,9 +54,10 @@ public class RecentDocumentsUtil {
 		FileOutputStream output = null;
 		OutputStreamWriter writer = null;
 		try {
-			output = context.openFileOutput(FILENAME, Context.MODE_PRIVATE);
+			output = context.openFileOutput(FILENAME, Context.MODE_APPEND);
 			writer = new OutputStreamWriter(output);
-			writer.append(title + ";;;" + uri.toString());
+			writer.append(System.getProperty("line.separator") + title + ";;;"
+					+ uri.toString());
 			writer.flush();
 		} finally {
 			if (output != null)

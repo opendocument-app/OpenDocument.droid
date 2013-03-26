@@ -8,7 +8,6 @@ import java.util.Map;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Environment;
 import android.support.v4.content.AsyncTaskLoader;
 
 public class DocumentChooserLoader extends AsyncTaskLoader<Map<String, String>> {
@@ -51,13 +50,14 @@ public class DocumentChooserLoader extends AsyncTaskLoader<Map<String, String>> 
 			e.printStackTrace();
 		}
 
-		String state = Environment.getExternalStorageState();
-		if (Environment.MEDIA_MOUNTED.equals(state)
-				|| Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-			File sdcard = Environment.getExternalStorageDirectory();
-			if (sdcard.canRead())
-				findOdfs(result, sdcard);
-		}
+		// TODO: use aFileChooser?
+		// String state = Environment.getExternalStorageState();
+		// if (Environment.MEDIA_MOUNTED.equals(state)
+		// || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+		// File sdcard = Environment.getExternalStorageDirectory();
+		// if (sdcard.canRead())
+		// findOdfs(result, sdcard);
+		// }
 
 		return result;
 	}
