@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="at.tomtasche.reader"
     android:installLocation="auto"
-    android:versionCode="37"
-    android:versionName="2.0.8.2" >
+    android:versionCode="38"
+    android:versionName="2.0.9" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -93,6 +93,34 @@
                 <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet-template" />
             </intent-filter>
             <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="application/vnd.oasis.opendocument.presentation" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:mimeType="application/vnd.oasis.opendocument.presentation" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="application/vnd.oasis.opendocument.presentation-template" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:mimeType="application/vnd.oasis.opendocument.presentation-template" />
+            </intent-filter>
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -133,6 +161,7 @@
                 <data android:mimeType="application/vnd.oasis.opendocument.*" />
             </intent-filter>
         </activity>
+        <!--
         <activity
             android:name="io.filepicker.FilePicker"
             android:excludeFromRecents="true"
@@ -152,6 +181,7 @@
             android:label="@string/title_choose_file_cloud"
             android:theme="@style/Theme.Sherlock.Light.Dialog" >
         </activity>
+        -->
     </application>
 
 </manifest>
