@@ -25,89 +25,85 @@ import at.tomtasche.reader.background.DocumentChooserLoader;
 import at.tomtasche.reader.ui.activity.MainActivity;
 
 public class DocumentChooserDialogFragment extends DialogFragment implements
-		LoaderCallbacks<Map<String, String>>, OnItemClickListener {
+	LoaderCallbacks<Map<String, String>>, OnItemClickListener {
 
-	public static final String FRAGMENT_TAG = "document_chooser";
+    public static final String FRAGMENT_TAG = "document_chooser";
 
-	private Map<String, String> items;
-	private ListAdapter adapter;
-	private ListView listView;
+    private Map<String, String> items;
+    private ListAdapter adapter;
+    private ListView listView;
 
-	@Override
-	public Dialog onCreateDialog(Bundle savedInstanceState) {
-		AlertDialog.Builder builder = new Builder(getActivity());
-		builder.setTitle(R.string.dialog_recent_title);
-		builder.setCancelable(true);
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+	AlertDialog.Builder builder = new Builder(getActivity());
+	builder.setTitle(R.string.dialog_recent_title);
+	builder.setCancelable(true);
 
-		TextView emptyView = new TextView(getActivity());
-		emptyView.setText(R.string.dialog_loading_title);
+	TextView emptyView = new TextView(getActivity());
+	emptyView.setText(R.string.dialog_loading_title);
 
-		listView = new ListView(getActivity());
-		listView.setEmptyView(emptyView);
-		listView.setOnItemClickListener(this);
+	listView = new ListView(getActivity());
+	listView.setEmptyView(emptyView);
+	listView.setOnItemClickListener(this);
 
-		adapter = new ArrayAdapter<String>(getActivity(),
-				android.R.layout.simple_list_item_1, new String[0]);
-		listView.setAdapter(adapter);
+	adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1,
+		new String[0]);
+	listView.setAdapter(adapter);
 
-		getLoaderManager().initLoader(0, null, this);
+	getLoaderManager().initLoader(0, null, this);
 
-		builder.setView(listView);
+	builder.setView(listView);
 
-		setCancelable(true);
+	setCancelable(true);
 
-		return builder.create();
+	return builder.create();
+    }
+
+    @Override
+    public Loader<Map<String, String>> onCreateLoader(int arg0, Bundle arg1) {
+	return new DocumentChooserLoader(getActivity());
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Map<String, String>> arg0, Map<String, String> arg1) {
+	items = Collections.unmodifiableMap(arg1);
+	if (items.size() == 0) {
+	    items = new HashMap<String, String>();
+	    items.put(getActivity().getString(R.string.list_no_documents_found), null);
 	}
 
-	@Override
-	public Loader<Map<String, String>> onCreateLoader(int arg0, Bundle arg1) {
-		return new DocumentChooserLoader(getActivity());
-	}
+	adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1,
+		new ArrayList<String>(items.keySet()));
 
-	@Override
-	public void onLoadFinished(Loader<Map<String, String>> arg0,
-			Map<String, String> arg1) {
-		items = Collections.unmodifiableMap(arg1);
-		if (items.size() == 0) {
-			items = new HashMap<String, String>();
-			items.put(
-					getActivity().getString(R.string.list_no_documents_found),
-					null);
-		}
+	listView.setAdapter(adapter);
 
-		adapter = new ArrayAdapter<String>(getActivity(),
-				android.R.layout.simple_list_item_1, new ArrayList<String>(
-						items.keySet()));
+	TextView emptyView = new TextView(getActivity());
+	emptyView.setText(R.string.list_searching_documents);
 
-		listView.setAdapter(adapter);
+	listView.setEmptyView(emptyView);
+    }
 
-		TextView emptyView = new TextView(getActivity());
-		emptyView.setText(R.string.list_searching_documents);
+    @Override
+    public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+	if (items == null)
+	    return;
 
-		listView.setEmptyView(emptyView);
-	}
+	String key = (String) adapter.getItem(arg2);
+	if (key == null)
+	    return;
 
-	@Override
-	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-		if (items == null)
-			return;
+	String uri = items.get(key);
+	if (uri == null)
+	    return;
 
-		String key = (String) adapter.getItem(arg2);
-		if (key == null)
-			return;
+	dismiss();
 
-		String uri = items.get(key);
-		if (uri == null)
-			return;
+	MainActivity activity = ((MainActivity) getActivity());
+	activity.loadUri(Uri.parse(uri));
+    }
 
-		dismiss();
-
-		MainActivity activity = ((MainActivity) getActivity());
-		activity.loadUri(Uri.parse(uri));
-	}
-
-	@Override
-	public void onLoaderReset(Loader<Map<String, String>> arg0) {
-		items = null;
-	}
+    @Override
+    public void onLoaderReset(Loader<Map<String, String>> arg0) {
+	items = null;
+    }
 }

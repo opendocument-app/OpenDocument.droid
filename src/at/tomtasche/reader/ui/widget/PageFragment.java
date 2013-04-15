@@ -10,45 +10,42 @@ import at.tomtasche.reader.background.Document.Page;
 
 public class PageFragment extends Fragment {
 
-	public static final String FRAGMENT_TAG = "page_fragment";
+    public static final String FRAGMENT_TAG = "page_fragment";
 
-	private static final String EXTRA_SCROLL_POSITION = "scroll_position";
+    private static final String EXTRA_SCROLL_POSITION = "scroll_position";
 
-	private PageView pageView;
+    private PageView pageView;
 
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
-		if (savedInstanceState != null) {
-			pageView = new PageView(getActivity(),
-					savedInstanceState.getInt(EXTRA_SCROLL_POSITION));
-		} else {
-			pageView = new PageView(getActivity());
-			pageView.loadData(
-					getActivity().getString(R.string.message_get_started),
-					"text/plain", PageView.ENCODING);
-		}
-
-		return pageView;
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+	if (savedInstanceState != null) {
+	    pageView = new PageView(getActivity(), savedInstanceState.getInt(EXTRA_SCROLL_POSITION));
+	} else {
+	    pageView = new PageView(getActivity());
+	    pageView.loadData(getActivity().getString(R.string.message_get_started), "text/plain",
+		    PageView.ENCODING);
 	}
 
-	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
+	return pageView;
+    }
 
-		outState.putInt(EXTRA_SCROLL_POSITION, pageView.getScrollY());
-	}
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+	super.onSaveInstanceState(outState);
 
-	private void loadData(String url) {
-		pageView.loadUrl(url);
-	}
+	outState.putInt(EXTRA_SCROLL_POSITION, pageView.getScrollY());
+    }
 
-	public void loadPage(Page page) {
-		loadData(page.getUrl());
-	}
+    private void loadData(String url) {
+	pageView.loadUrl(url);
+    }
 
-	@SuppressWarnings("deprecation")
-	public void searchDocument(String query) {
-		pageView.findAll(query);
-	}
+    public void loadPage(Page page) {
+	loadData(page.getUrl());
+    }
+
+    @SuppressWarnings("deprecation")
+    public void searchDocument(String query) {
+	pageView.findAll(query);
+    }
 }

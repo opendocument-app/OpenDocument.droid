@@ -12,99 +12,99 @@ import android.support.v4.content.AsyncTaskLoader;
 
 public class DocumentChooserLoader extends AsyncTaskLoader<Map<String, String>> {
 
-	private final FilenameFilter filter = new FilenameFilter() {
-
-		@Override
-		public boolean accept(File dir, String filename) {
-			File file = new File(dir, filename);
-			if (!file.canRead())
-				return false;
-
-			if (file.isDirectory())
-				return true;
-
-			// String type = getContext().getContentResolver().getType(
-			// Uri.fromFile(file));
-			// if (type == null)
-			// return false;
-
-			// return type.startsWith("application/vnd.oasis.opendocument.");
-
-			return filename.endsWith(".odt") || filename.endsWith(".ods");
-		}
-	};
-
-	private Map<String, String> result;
-
-	public DocumentChooserLoader(Context context) {
-		super(context);
-	}
+    private final FilenameFilter filter = new FilenameFilter() {
 
 	@Override
-	public Map<String, String> loadInBackground() {
-		result = new HashMap<String, String>();
+	public boolean accept(File dir, String filename) {
+	    File file = new File(dir, filename);
+	    if (!file.canRead())
+		return false;
 
-		try {
-			result.putAll(RecentDocumentsUtil.getRecentDocuments(getContext()));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	    if (file.isDirectory())
+		return true;
 
-		// TODO: use aFileChooser?
-		// String state = Environment.getExternalStorageState();
-		// if (Environment.MEDIA_MOUNTED.equals(state)
-		// || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-		// File sdcard = Environment.getExternalStorageDirectory();
-		// if (sdcard.canRead())
-		// findOdfs(result, sdcard);
-		// }
+	    // String type = getContext().getContentResolver().getType(
+	    // Uri.fromFile(file));
+	    // if (type == null)
+	    // return false;
 
-		return result;
+	    // return type.startsWith("application/vnd.oasis.opendocument.");
+
+	    return filename.endsWith(".odt") || filename.endsWith(".ods");
+	}
+    };
+
+    private Map<String, String> result;
+
+    public DocumentChooserLoader(Context context) {
+	super(context);
+    }
+
+    @Override
+    public Map<String, String> loadInBackground() {
+	result = new HashMap<String, String>();
+
+	try {
+	    result.putAll(RecentDocumentsUtil.getRecentDocuments(getContext()));
+	} catch (IOException e) {
+	    e.printStackTrace();
 	}
 
-	@Override
-	protected void onStartLoading() {
-		super.onStartLoading();
+	// TODO: use aFileChooser?
+	// String state = Environment.getExternalStorageState();
+	// if (Environment.MEDIA_MOUNTED.equals(state)
+	// || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+	// File sdcard = Environment.getExternalStorageDirectory();
+	// if (sdcard.canRead())
+	// findOdfs(result, sdcard);
+	// }
 
-		if (result != null) {
-			deliverResult(result);
-		} else {
-			forceLoad();
-		}
+	return result;
+    }
+
+    @Override
+    protected void onStartLoading() {
+	super.onStartLoading();
+
+	if (result != null) {
+	    deliverResult(result);
+	} else {
+	    forceLoad();
 	}
+    }
 
-	@Override
-	protected void onReset() {
-		super.onReset();
+    @Override
+    protected void onReset() {
+	super.onReset();
 
-		onStopLoading();
+	onStopLoading();
 
-		result = null;
+	result = null;
+    }
+
+    @Override
+    protected void onStopLoading() {
+	super.onStopLoading();
+
+	cancelLoad();
+    }
+
+    private void findOdfs(Map<String, String> result, File directory) {
+	File[] files = directory.listFiles(filter);
+	if (files == null)
+	    return;
+
+	for (File file : files) {
+	    if (file.isDirectory()) {
+		findOdfs(result, file);
+	    } else {
+		Uri uri = Uri.fromFile(file);
+		String title = uri.getLastPathSegment();
+		if (title == null)
+		    continue;
+
+		result.put(title, uri.toString());
+	    }
 	}
-
-	@Override
-	protected void onStopLoading() {
-		super.onStopLoading();
-
-		cancelLoad();
-	}
-
-	private void findOdfs(Map<String, String> result, File directory) {
-		File[] files = directory.listFiles(filter);
-		if (files == null)
-			return;
-
-		for (File file : files) {
-			if (file.isDirectory()) {
-				findOdfs(result, file);
-			} else {
-				Uri uri = Uri.fromFile(file);
-				String title = uri.getLastPathSegment();
-				if (title == null)
-					continue;
-
-				result.put(title, uri.toString());
-			}
-		}
-	}
+    }
 }

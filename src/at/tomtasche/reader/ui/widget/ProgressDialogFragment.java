@@ -10,46 +10,46 @@ import at.tomtasche.reader.R;
 @SuppressLint("ValidFragment")
 public class ProgressDialogFragment extends DialogFragment {
 
-	public static final String FRAGMENT_TAG = "progress_dialog";
+    public static final String FRAGMENT_TAG = "progress_dialog";
 
-	private ProgressDialog progressDialog;
-	private boolean upload;
+    private ProgressDialog progressDialog;
+    private boolean upload;
 
-	public ProgressDialogFragment() {
-		this(false);
+    public ProgressDialogFragment() {
+	this(false);
+    }
+
+    public ProgressDialogFragment(boolean upload) {
+	this.upload = upload;
+    }
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+	progressDialog = new ProgressDialog(getActivity());
+
+	int title;
+	if (upload) {
+	    title = R.string.dialog_uploading_title;
+	} else {
+	    title = R.string.dialog_loading_title;
 	}
 
-	public ProgressDialogFragment(boolean upload) {
-		this.upload = upload;
+	progressDialog.setTitle(getString(title));
+	progressDialog.setMessage(getString(R.string.dialog_loading_message));
+	progressDialog.setCancelable(false);
+	progressDialog.setIndeterminate(upload);
+	if (!upload) {
+	    progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+	    progressDialog.setMax(100);
+	    progressDialog.setProgress(0);
 	}
 
-	@Override
-	public Dialog onCreateDialog(Bundle savedInstanceState) {
-		progressDialog = new ProgressDialog(getActivity());
+	setCancelable(false);
 
-		int title;
-		if (upload) {
-			title = R.string.dialog_uploading_title;
-		} else {
-			title = R.string.dialog_loading_title;
-		}
+	return progressDialog;
+    }
 
-		progressDialog.setTitle(getString(title));
-		progressDialog.setMessage(getString(R.string.dialog_loading_message));
-		progressDialog.setCancelable(false);
-		progressDialog.setIndeterminate(upload);
-		if (!upload) {
-			progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-			progressDialog.setMax(100);
-			progressDialog.setProgress(0);
-		}
-
-		setCancelable(false);
-
-		return progressDialog;
-	}
-
-	public void setProgress(double progress) {
-		progressDialog.setProgress(((int) (progress * 100)));
-	}
+    public void setProgress(double progress) {
+	progressDialog.setProgress(((int) (progress * 100)));
+    }
 }

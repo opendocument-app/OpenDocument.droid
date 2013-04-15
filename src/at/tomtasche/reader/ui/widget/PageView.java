@@ -9,73 +9,76 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 import android.webkit.WebSettings;
+import android.webkit.WebSettings.LayoutAlgorithm;
+import android.webkit.WebSettings.ZoomDensity;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 @SuppressLint("SetJavaScriptEnabled")
 public class PageView extends WebView {
 
-	protected static final String ENCODING = "UTF-8";
+    protected static final String ENCODING = "UTF-8";
 
-	private boolean scrolled;
+    private boolean scrolled;
 
-	public PageView(Context context) {
-		this(context, 0);
-	}
+    public PageView(Context context) {
+	this(context, 0);
+    }
 
-	public PageView(Context context, final int scroll) {
-		super(context);
+    public PageView(Context context, final int scroll) {
+	super(context);
 
-		WebSettings settings = getSettings();
-		settings.setBuiltInZoomControls(true);
-		settings.setLightTouchEnabled(true);
-		settings.setSupportZoom(true);
-		settings.setDefaultTextEncodingName(ENCODING);
-		settings.setJavaScriptEnabled(true);
+	WebSettings settings = getSettings();
+	settings.setBuiltInZoomControls(true);
+	settings.setLightTouchEnabled(true);
+	settings.setSupportZoom(true);
+	settings.setDefaultTextEncodingName(ENCODING);
+	settings.setJavaScriptEnabled(true);
+	settings.setDefaultZoom(ZoomDensity.FAR);
+	settings.setLoadWithOverviewMode(true);
 
-		setKeepScreenOn(true);
-		if (Build.VERSION.SDK_INT >= 14)
-			try {
-				Method method = context.getClass().getMethod(
-						"setSystemUiVisibility", Integer.class);
-				method.invoke(context, 1);
-			} catch (Exception e) {
-			}
+	setKeepScreenOn(true);
+	if (Build.VERSION.SDK_INT >= 14)
+	    try {
+		Method method = context.getClass()
+			.getMethod("setSystemUiVisibility", Integer.class);
+		method.invoke(context, 1);
+	    } catch (Exception e) {
+	    }
 
-		setWebViewClient(new WebViewClient() {
+	setWebViewClient(new WebViewClient() {
 
-			@Override
-			public void onPageFinished(WebView view, String url) {
-				super.onPageFinished(view, url);
+	    @Override
+	    public void onPageFinished(WebView view, String url) {
+		super.onPageFinished(view, url);
 
-				if (!scrolled) {
-					postDelayed(new Runnable() {
-
-						@Override
-						public void run() {
-							scrollBy(0, scroll);
-						}
-					}, 250);
-
-					scrolled = true;
-				}
-			}
+		if (!scrolled) {
+		    postDelayed(new Runnable() {
 
 			@Override
-			public boolean shouldOverrideUrlLoading(WebView view, String url) {
-				Log.e("smn", url);
-
-				if (url.startsWith("https://docs.google.com/viewer?embedded=true")) {
-					Log.e("smn", "do i");
-
-					return false;
-				} else {
-					getContext().startActivity(
-							new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-
-					return true;
-				}
+			public void run() {
+			    scrollBy(0, scroll);
 			}
-		});
-	}
+		    }, 250);
+
+		    scrolled = true;
+		}
+	    }
+
+	    @Override
+	    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+		Log.e("smn", url);
+
+		if (url.startsWith("https://docs.google.com/viewer?embedded=true")) {
+		    Log.e("smn", "do i");
+
+		    return false;
+		} else {
+		    getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+
+		    return true;
+		}
+	    }
+	});
+    }
 }
