@@ -9,7 +9,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 import android.webkit.WebSettings;
-import android.webkit.WebSettings.LayoutAlgorithm;
 import android.webkit.WebSettings.ZoomDensity;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -40,8 +39,8 @@ public class PageView extends WebView {
 	setKeepScreenOn(true);
 	if (Build.VERSION.SDK_INT >= 14)
 	    try {
-		Method method = context.getClass()
-			.getMethod("setSystemUiVisibility", Integer.class);
+		Method method = context.getClass().getMethod(
+			"setSystemUiVisibility", Integer.class);
 		method.invoke(context, 1);
 	    } catch (Exception e) {
 	    }
@@ -74,7 +73,8 @@ public class PageView extends WebView {
 
 		    return false;
 		} else {
-		    getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+		    getContext().startActivity(
+			    new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
 
 		    return true;
 		}

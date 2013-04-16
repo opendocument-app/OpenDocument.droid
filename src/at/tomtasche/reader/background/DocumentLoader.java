@@ -30,7 +30,8 @@ import at.andiwand.odf2html.translator.document.SpreadsheetTranslator;
 import at.andiwand.odf2html.translator.document.TextTranslator;
 import at.tomtasche.reader.background.Document.Page;
 
-public class DocumentLoader extends AsyncTaskLoader<Document> implements FileLoader {
+public class DocumentLoader extends AsyncTaskLoader<Document> implements
+	FileLoader {
 
     public static final Uri URI_INTRO = Uri.parse("reader://intro.odt");
 
@@ -106,7 +107,8 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements FileLoa
 	try {
 	    // cleanup uri
 	    if ("/./".equals(uri.toString().substring(0, 2))) {
-		uri = Uri.parse(uri.toString().substring(2, uri.toString().length()));
+		uri = Uri.parse(uri.toString().substring(2,
+			uri.toString().length()));
 	    }
 
 	    // TODO: don't delete file being displayed at the moment, but keep
@@ -120,7 +122,8 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements FileLoa
 	    }
 
 	    try {
-		RecentDocumentsUtil.addRecentDocument(getContext(), uri.getLastPathSegment(), uri);
+		RecentDocumentsUtil.addRecentDocument(getContext(),
+			uri.getLastPathSegment(), uri);
 	    } catch (IOException e) {
 		// not a showstopper, so just continue
 		e.printStackTrace();
@@ -145,8 +148,6 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements FileLoa
 
 	    document = new Document();
 	    OpenDocument openDocument = documentFile.getAsDocument();
-
-	    BulkDocumentTranslator<?> translator = null;
 	    if (openDocument instanceof OpenDocumentText) {
 		File htmlFile = cache.getFile("temp.html");
 		FileWriter fileWriter = new FileWriter(htmlFile);
@@ -167,34 +168,39 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements FileLoa
 		List<String> pageNames = null;
 		int count = 0;
 		if (openDocument instanceof OpenDocumentSpreadsheet) {
-		    OpenDocumentSpreadsheet spreadsheet = openDocument.getAsSpreadsheet();
+		    OpenDocumentSpreadsheet spreadsheet = openDocument
+			    .getAsSpreadsheet();
 
-		    SpreadsheetTranslator spreadsheetTranslator = new SpreadsheetTranslator(cache);
-		    spreadsheetTranslator.setMaxTableDimension(new Vector2i(300, 50));
+		    SpreadsheetTranslator spreadsheetTranslator = new SpreadsheetTranslator(
+			    cache);
+		    spreadsheetTranslator.setMaxTableDimension(new Vector2i(
+			    300, 50));
 
-		    translator = new BulkSpreadsheetTranslator(spreadsheetTranslator);
-
-		    this.translator = spreadsheetTranslator;
+		    translator = new BulkSpreadsheetTranslator(
+			    spreadsheetTranslator);
 
 		    count = spreadsheet.getTableCount();
-		    pageNames = new ArrayList<String>(spreadsheet.getTableNames());
+		    pageNames = new ArrayList<String>(
+			    spreadsheet.getTableNames());
 		} else if (openDocument instanceof OpenDocumentPresentation) {
-		    OpenDocumentPresentation presentation = documentFile.getAsPresentation();
+		    OpenDocumentPresentation presentation = documentFile
+			    .getAsPresentation();
 
 		    PresentationTranslator presentationTranslator = new PresentationTranslator(
 			    cache);
 
-		    translator = new BulkPresentationTranslator(presentationTranslator);
-
-		    this.translator = presentationTranslator;
+		    translator = new BulkPresentationTranslator(
+			    presentationTranslator);
 
 		    count = presentation.getPageCount();
-		    pageNames = new ArrayList<String>(presentation.getPageNames());
+		    pageNames = new ArrayList<String>(
+			    presentation.getPageNames());
 		}
 
 		LWXMLMultiWriter writer = null;
 		try {
-		    writer = translator.provideOutput(openDocument, "temp", ".html");
+		    writer = ((BulkDocumentTranslator<?>) translator)
+			    .provideOutput(openDocument, "temp", ".html");
 		    translator.translate(openDocument, writer);
 		} finally {
 		    if (writer != null)
@@ -203,7 +209,8 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements FileLoa
 
 		for (int i = 0; i < count; i++) {
 		    File htmlFile = cache.getFile("temp" + i + ".html");
-		    document.addPage(new Page(pageNames.get(i), htmlFile.toURI(), i));
+		    document.addPage(new Page(pageNames.get(i), htmlFile
+			    .toURI(), i));
 		}
 	    }
 
