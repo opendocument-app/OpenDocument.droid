@@ -91,7 +91,8 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 
 	if (type == null) {
 	    try {
-		InputStream stream = getContext().getContentResolver().openInputStream(uri);
+		InputStream stream = getContext().getContentResolver()
+			.openInputStream(uri);
 		try {
 		    type = URLConnection.guessContentTypeFromStream(stream);
 		} finally {
@@ -102,10 +103,13 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 	    }
 	}
 
-	if (type.equals("text/plain") || type.equals("image/png") || type.equals("image/jpeg")) {
+	if (type != null
+		&& (type.equals("text/plain") || type.equals("image/png") || type
+			.equals("image/jpeg"))) {
 	    try {
 		document = new Document();
-		document.addPage(new Page("Document", new URI(uri.toString()), 0));
+		document.addPage(new Page("Document", new URI(uri.toString()),
+			0));
 
 		return document;
 	    } catch (URISyntaxException e) {
@@ -122,7 +126,8 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 	}
 
 	HttpClient httpclient = new DefaultHttpClient();
-	HttpPost httppost = new HttpPost(SERVER_URL + "file?name=" + name + "&type=" + type);
+	HttpPost httppost = new HttpPost(SERVER_URL + "file?name=" + name
+		+ "&type=" + type);
 
 	InputStream stream = null;
 	try {
@@ -138,8 +143,10 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 			EntityUtils.toString(response.getEntity()), Map.class);
 
 		String key = container.get("key").toString();
-		URI viewerUri = URI.create("https://docs.google.com/viewer?embedded=true&url="
-			+ URLEncoder.encode(SERVER_URL + "file?key=" + key, "UTF-8"));
+		URI viewerUri = URI
+			.create("https://docs.google.com/viewer?embedded=true&url="
+				+ URLEncoder.encode(SERVER_URL + "file?key="
+					+ key, "UTF-8"));
 
 		document = new Document();
 		document.addPage(new Page("Document", viewerUri, 0));

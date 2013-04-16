@@ -50,6 +50,7 @@ public class ProgressDialogFragment extends DialogFragment {
     }
 
     public void setProgress(double progress) {
-	progressDialog.setProgress(((int) (progress * 100)));
+	if (progressDialog != null)
+	    progressDialog.setProgress(((int) (progress * 100)));
     }
 }
