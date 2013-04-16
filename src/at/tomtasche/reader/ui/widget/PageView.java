@@ -7,9 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
-import android.util.Log;
 import android.webkit.WebSettings;
-import android.webkit.WebSettings.ZoomDensity;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -33,8 +31,9 @@ public class PageView extends WebView {
 	settings.setSupportZoom(true);
 	settings.setDefaultTextEncodingName(ENCODING);
 	settings.setJavaScriptEnabled(true);
-	settings.setDefaultZoom(ZoomDensity.FAR);
-	settings.setLoadWithOverviewMode(true);
+	settings.setUseWideViewPort(true);
+
+	setInitialScale(1);
 
 	setKeepScreenOn(true);
 	if (Build.VERSION.SDK_INT >= 14)
@@ -66,11 +65,7 @@ public class PageView extends WebView {
 
 	    @Override
 	    public boolean shouldOverrideUrlLoading(WebView view, String url) {
-		Log.e("smn", url);
-
 		if (url.startsWith("https://docs.google.com/viewer?embedded=true")) {
-		    Log.e("smn", "do i");
-
 		    return false;
 		} else {
 		    getContext().startActivity(
