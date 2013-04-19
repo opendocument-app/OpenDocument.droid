@@ -148,10 +148,8 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 				throw new IllegalMimeTypeException();
 			}
 
-			if (documentFile.isEncrypted() && password == null) {
-				throw new EncryptedDocumentException();
-			} else if (password != null) {
-				if (!documentFile.isPasswordValid(password))
+			if (documentFile.isEncrypted()) {
+				if (password == null || !documentFile.isPasswordValid(password))
 					throw new EncryptedDocumentException();
 
 				documentFile.setPassword(password);

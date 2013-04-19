@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="at.tomtasche.reader"
     android:installLocation="auto"
-    android:versionCode="39"
-    android:versionName="2.0.9.1" >
+    android:versionCode="40"
+    android:versionName="2.0.9.2" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />

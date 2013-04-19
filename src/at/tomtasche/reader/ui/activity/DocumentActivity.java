@@ -120,7 +120,7 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 	}
 
 	public DocumentLoader loadUri(Uri uri, String password) {
-		return loadUri(uri, null, true);
+		return loadUri(uri, password, true);
 	}
 
 	public DocumentLoader loadUri(Uri uri, boolean limit) {
