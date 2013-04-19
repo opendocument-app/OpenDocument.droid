@@ -14,6 +14,7 @@
     <string name="toast_error_only_one_page">Es gibt nur eine Seite in diesem Dokument</string>
     <string name="toast_error_password_protected">Dokument ist passwort-geschützt</string>
     <string name="toast_error_storage">Externer Speicher nicht verfügbar. Datei konnte nicht gelesen werden.</string>
+    <string name="toast_info_limited">Nur Teile des Dokumentes werden angezeigt um die Geschwindigkeit der App zu verbessern. Klicke hier wenn du das ganze Dokument sehen willst</string>
     <string name="dialog_page_title">Wähle eine Seite aus</string>
     <string name="dialog_recent_title">Kürzlich geöffnete Dokumente</string>
     <string name="dialog_submit_file_title">Wähle eine App zum Senden der Datei aus</string>
@@ -39,6 +40,7 @@
     <string name="menu_about">Über</string>
     <string name="menu_feedback">Feedback</string>
     <string name="menu_remove_ads">Entferne Werbung</string>
+    <string name="menu_reload">Ohne Begrenzung neu laden</string>
     <string name="crouton_error_billing">Fehler beim Starten von Google Play In-App Billing</string>
     <string name="crouton_dismiss_chooser">Klicke hier um zum Dokument zurückzukehren</string>
     <string name="list_searching_documents">Suche nach Dokumenten auf dem Gerät... Das könnte eine Weile dauern.</string>

@@ -4,9 +4,9 @@ import android.net.Uri;
 
 public interface FileLoader {
 
-    public Throwable getLastError();
+	public Throwable getLastError();
 
-    public Uri getLastUri();
+	public Uri getLastUri();
 
-    public double getProgress();
+	public double getProgress();
 }

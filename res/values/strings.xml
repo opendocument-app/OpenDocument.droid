@@ -14,6 +14,7 @@
     <string name="toast_error_only_one_page">There\'s only one page</string>
     <string name="toast_error_password_protected">Document is password-protected</string>
     <string name="toast_error_storage">External storage not available. Couldn\'t read file.</string>
+    <string name="toast_info_limited">Only parts of the document are being displayed in order to improve performance. Click here if you want to see the whole document</string>
     <string name="dialog_page_title">Pick a page</string>
     <string name="dialog_recent_title">Recent documents</string>
     <string name="dialog_submit_file_title">Choose an app to send us your file</string>
@@ -39,6 +40,7 @@
     <string name="menu_feedback">Feedback</string>
     <string name="menu_about">About</string>
     <string name="menu_remove_ads">Remove ads</string>
+    <string name="menu_reload">Reload without limit</string>
     <string name="crouton_error_billing">Failed to initialize Google Play In-App Billing</string>
     <string name="crouton_dismiss_chooser">Click here to get back to the document view</string>
     <string name="list_searching_documents">Searching for documents on your device... This could take some time.</string>
