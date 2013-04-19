@@ -149,7 +149,12 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			}
 
 			if (documentFile.isEncrypted()) {
-				if (password == null || !documentFile.isPasswordValid(password))
+				// TODO: isPasswordValid is broken in odf2html at the moment
+				// if (password == null ||
+				// !documentFile.isPasswordValid(password))
+				// throw new EncryptedDocumentException();
+
+				if (password == null)
 					throw new EncryptedDocumentException();
 
 				documentFile.setPassword(password);
@@ -229,6 +234,10 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			return document;
 		} catch (Throwable e) {
 			e.printStackTrace();
+
+			// TODO: remove as soon as isPasswordValid is no more broken
+			if (password != null)
+				e = new EncryptedDocumentException();
 
 			lastError = e;
 		} finally {
