@@ -1,9 +1,5 @@
 package at.tomtasche.reader.ui.activity;
 
-import io.filepicker.FPService;
-import io.filepicker.FilePicker;
-import io.filepicker.FilePickerAPI;
-
 import java.util.List;
 
 import net.robotmedia.billing.BillingController;
@@ -354,17 +350,6 @@ public class MainActivity extends DocumentActivity implements
 				intent.setComponent(new ComponentName(
 						target.activityInfo.packageName,
 						target.activityInfo.name));
-
-				if (FilePicker.class.getCanonicalName().equals(
-						target.activityInfo.name)) {
-					FilePickerAPI.setKey("Ao7lHjOFkSnuR9mgQ5Jhtz");
-
-					intent.putExtra("services", new String[] {
-							FPService.DROPBOX, FPService.BOX, FPService.GDRIVE,
-							FPService.GMAIL });
-
-					intent.setType(null);
-				}
 
 				startActivityForResult(intent, 42);
 

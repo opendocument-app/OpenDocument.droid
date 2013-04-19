@@ -7,9 +7,6 @@
 [submodule "ActionBarSherlock"]
 	path = ActionBarSherlock
 	url = git://github.com/TomTasche/ActionBarSherlock.git
-[submodule "filepicker-android"]
-	path = filepicker-android
-	url = git://github.com/TomTasche/filepicker-android.git
 [submodule "AndroidBillingLibrary"]
 	path = AndroidBillingLibrary
 	url = git://github.com/TomTasche/AndroidBillingLibrary.git
