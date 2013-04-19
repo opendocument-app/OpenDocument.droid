@@ -36,7 +36,8 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.devspark.appmsg.AppMsg;
 
 public class DocumentActivity extends SherlockFragmentActivity implements
-		LoaderCallbacks<Document>, ActionBar.TabListener, DocumentLoadingActivity {
+		LoaderCallbacks<Document>, ActionBar.TabListener,
+		DocumentLoadingActivity {
 
 	private static final String EXTRA_URI = "uri";
 	private static final String EXTRA_LIMIT = "limit";
