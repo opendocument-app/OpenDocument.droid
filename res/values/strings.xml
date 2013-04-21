@@ -41,7 +41,9 @@
     <string name="menu_about">About</string>
     <string name="menu_remove_ads">Remove ads</string>
     <string name="menu_reload">Reload without limit</string>
+    <string name="menu_fullscreen">Fullscreen mode</string>
     <string name="crouton_error_billing">Failed to initialize Google Play In-App Billing</string>
+    <string name="crouton_leave_fullscreen">Press Back to leave fullscreen mode</string>
     <string name="crouton_dismiss_chooser">Click here to get back to the document view</string>
     <string name="list_searching_documents">Searching for documents on your device... This could take some time.</string>
     <string name="list_no_documents_found">No documents found</string>

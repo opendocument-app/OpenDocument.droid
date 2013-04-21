@@ -42,6 +42,9 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 	private Document document;
 	private DocumentTranslator<?> translator;
 
+	// support File parameter too (saves us from copying the file
+	// unnecessarily)!
+	// https://github.com/iPaulPro/aFileChooser/issues/4#issuecomment-16226515
 	public DocumentLoader(Context context, Uri uri) {
 		super(context);
 
@@ -149,15 +152,12 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			}
 
 			if (documentFile.isEncrypted()) {
-				// TODO: isPasswordValid is broken in odf2html at the moment
-				// if (password == null ||
-				// !documentFile.isPasswordValid(password))
-				// throw new EncryptedDocumentException();
-
 				if (password == null)
 					throw new EncryptedDocumentException();
 
 				documentFile.setPassword(password);
+				if (!documentFile.isPasswordValid())
+					throw new EncryptedDocumentException();
 			}
 
 			document = new Document();
@@ -234,10 +234,6 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			return document;
 		} catch (Throwable e) {
 			e.printStackTrace();
-
-			// TODO: remove as soon as isPasswordValid is no more broken
-			if (password != null)
-				e = new EncryptedDocumentException();
 
 			lastError = e;
 		} finally {

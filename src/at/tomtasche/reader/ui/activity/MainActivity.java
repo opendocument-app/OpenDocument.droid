@@ -1,5 +1,6 @@
 package at.tomtasche.reader.ui.activity;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import net.robotmedia.billing.BillingController;
@@ -7,28 +8,41 @@ import net.robotmedia.billing.BillingRequest.ResponseCode;
 import net.robotmedia.billing.helper.AbstractBillingObserver;
 import net.robotmedia.billing.model.Transaction;
 import net.robotmedia.billing.model.Transaction.PurchaseState;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
+import android.app.Presentation;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.hardware.display.DisplayManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.Loader;
+import android.view.Display;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.Document;
+import at.tomtasche.reader.background.Document.Page;
 import at.tomtasche.reader.background.DocumentLoader;
+import at.tomtasche.reader.background.LoadingListener;
 import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
+import at.tomtasche.reader.ui.widget.PageView;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.ActionBar.Tab;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.devspark.appmsg.AppMsg;
@@ -37,12 +51,58 @@ import com.google.ads.AdSize;
 import com.google.ads.AdView;
 
 public class MainActivity extends DocumentActivity implements
-		BillingController.IConfiguration {
+		BillingController.IConfiguration, ActionBar.TabListener,
+		LoadingListener {
 
 	private static final String BILLING_PRODUCT_YEAR = "remove_ads_for_1y";
 	private static final String BILLING_PRODUCT_FOREVER = "remove_ads_for_eva";
 
+	private static final String EXTRA_TAB_POSITION = "tab_position";
+
+	private List<DocumentPresentation> presentations;
 	private AdView adView;
+	private int lastPosition;
+	private boolean fullscreen;
+
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	public class DocumentPresentation extends Presentation implements
+			LoadingListener {
+
+		private PageView pageView;
+
+		public DocumentPresentation(Context outerContext, Display display) {
+			super(outerContext, display);
+		}
+
+		@Override
+		protected void onCreate(Bundle savedInstanceState) {
+			super.onCreate(savedInstanceState);
+
+			pageView = new PageView(getContext());
+			pageView.loadData(
+					getContext().getString(R.string.message_get_started),
+					"text/plain", PageView.ENCODING);
+
+			pageView.setLayoutParams(new LinearLayout.LayoutParams(
+					LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+
+			setContentView(pageView);
+		}
+
+		@Override
+		public void onSuccess(Document document, Uri uri) {
+		}
+
+		@Override
+		public void onError(Throwable error, Uri uri) {
+			// trolololo :)
+			pageView.loadUrl("http://goo.gl/HgQJc");
+		}
+
+		public void loadPage(Page page) {
+			pageView.loadUrl(page.getUrl());
+		}
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -56,6 +116,16 @@ public class MainActivity extends DocumentActivity implements
 		// .detectAll().penaltyLog().penaltyDeath().build());
 		// StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll()
 		// .penaltyLog().penaltyDeath().build());
+
+		presentations = new LinkedList<MainActivity.DocumentPresentation>();
+		// TODO: fix zoom
+		// if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
+		// multiscreen();
+
+		if (savedInstanceState != null)
+			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
+
+		addLoadingListener(this);
 
 		billingObserver = new AbstractBillingObserver(this) {
 
@@ -158,6 +228,40 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	@Override
+	protected void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+
+		if (intent.getData() != null) {
+			loadUri(intent.getData());
+		}
+	}
+
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	private void multiscreen() {
+		DisplayManager displayManager = (DisplayManager) getSystemService(DISPLAY_SERVICE);
+		if (displayManager != null) {
+			Display[] displays = displayManager
+					.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
+			for (Display display : displays) {
+				DocumentPresentation presentation = new DocumentPresentation(
+						this, display);
+				presentation.show();
+
+				addLoadingListener(presentation);
+
+				presentations.add(presentation);
+			}
+		}
+	}
+
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	private void loadPageOnMultiscreens(Page page) {
+		for (DocumentPresentation presentation : presentations) {
+			presentation.loadPage(page);
+		}
+	}
+
+	@Override
 	protected void onStart() {
 		super.onStart();
 
@@ -198,6 +302,14 @@ public class MainActivity extends DocumentActivity implements
 				}
 			}
 		}.start();
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		outState.putInt(EXTRA_TAB_POSITION, getSupportActionBar()
+				.getSelectedNavigationIndex());
 	}
 
 	@Override
@@ -274,8 +386,7 @@ public class MainActivity extends DocumentActivity implements
 						break;
 
 					default:
-						if (adView != null)
-							adView.setVisibility(View.GONE);
+						removeAds();
 
 						break;
 					}
@@ -322,9 +433,82 @@ public class MainActivity extends DocumentActivity implements
 
 			break;
 		}
+		case R.id.menu_fullscreen: {
+			if (fullscreen) {
+				leaveFullscreen();
+			} else {
+				getWindow().setFlags(
+						WindowManager.LayoutParams.FLAG_FULLSCREEN,
+						WindowManager.LayoutParams.FLAG_FULLSCREEN);
+				getWindow().clearFlags(
+						WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+
+				getSupportActionBar().hide();
+
+				removeAds();
+
+				showCrouton(R.string.crouton_leave_fullscreen, new Runnable() {
+
+					@Override
+					public void run() {
+						leaveFullscreen();
+					}
+				}, AppMsg.STYLE_INFO);
+			}
+
+			fullscreen = !fullscreen;
+		}
 		}
 
 		return super.onMenuItemSelected(featureId, item);
+	}
+
+	private void removeAds() {
+		if (adView != null)
+			adView.setVisibility(View.GONE);
+	}
+
+	private void leaveFullscreen() {
+		getSupportActionBar().show();
+
+		getWindow().setFlags(
+				WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN,
+				WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+		fullscreen = false;
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (fullscreen && keyCode == KeyEvent.KEYCODE_BACK) {
+			leaveFullscreen();
+
+			return true;
+		}
+
+		return super.onKeyDown(keyCode, event);
+	}
+
+	@Override
+	public void onTabReselected(Tab tab, FragmentTransaction ft) {
+	}
+
+	@Override
+	public void onTabSelected(Tab tab, FragmentTransaction ft) {
+		Page page = getDocument().getPageAt(tab.getPosition());
+		showPage(page);
+	}
+
+	@Override
+	public void onTabUnselected(Tab tab, FragmentTransaction ft) {
+	}
+
+	private void showPage(Page page) {
+		getPageFragment().loadPage(page);
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
+			loadPageOnMultiscreens(page);
 	}
 
 	public void findDocument() {
@@ -381,5 +565,36 @@ public class MainActivity extends DocumentActivity implements
 	@Override
 	public String getPublicKey() {
 		return "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDsdGybFkj9/26Fpu2mNASpAC8xQDRYocvVkxbpN6mF8k4a9L5ocnyUAY7sfKb0wjEc5e+vxL21kFKvvW0zEZX8a5wSXUfD5oiaXaiMPrp7cC1YbPPAelZvFEAzriA6pyk7PPKuqtAN2tcTiJED+kpiVAyEVU42lDUqE70xlRE6dQIDAQAB";
+	}
+
+	@Override
+	public void onSuccess(Document document, Uri uri) {
+		ActionBar bar = getSupportActionBar();
+		bar.removeAllTabs();
+
+		int pages = document.getPages().size();
+		if (pages > 1) {
+			bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+			for (int i = 0; i < pages; i++) {
+				ActionBar.Tab tab = bar.newTab();
+				String name = document.getPageAt(i).getName();
+				if (name == null)
+					name = "Page " + (i + 1);
+				tab.setText(name);
+				tab.setTabListener(this);
+
+				bar.addTab(tab);
+			}
+
+			if (lastPosition > 0) {
+				bar.setSelectedNavigationItem(lastPosition);
+
+				lastPosition = -1;
+			}
+		} else {
+			bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+
+			showPage(document.getPageAt(0));
+		}
 	}
 }

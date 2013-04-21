@@ -14,7 +14,7 @@ import android.webkit.WebViewClient;
 @SuppressLint("SetJavaScriptEnabled")
 public class PageView extends WebView {
 
-	protected static final String ENCODING = "UTF-8";
+	public static final String ENCODING = "UTF-8";
 
 	private boolean scrolled;
 

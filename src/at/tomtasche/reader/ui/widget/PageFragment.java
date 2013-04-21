@@ -56,4 +56,8 @@ public class PageFragment extends Fragment {
 	public void searchDocument(String query) {
 		pageView.findAll(query);
 	}
+
+	public PageView getPageView() {
+		return pageView;
+	}
 }

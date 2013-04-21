@@ -1,6 +1,8 @@
 package at.tomtasche.reader.ui.activity;
 
 import java.io.FileNotFoundException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.zip.ZipException;
 
 import android.app.AlertDialog;
@@ -31,27 +33,22 @@ import at.tomtasche.reader.background.UpLoader;
 import at.tomtasche.reader.ui.widget.PageFragment;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.ActionBar.Tab;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.devspark.appmsg.AppMsg;
 
-public class DocumentActivity extends SherlockFragmentActivity implements
-		LoaderCallbacks<Document>, ActionBar.TabListener,
-		DocumentLoadingActivity {
+public abstract class DocumentActivity extends SherlockFragmentActivity
+		implements LoaderCallbacks<Document>, DocumentLoadingActivity {
 
 	private static final String EXTRA_URI = "uri";
 	private static final String EXTRA_LIMIT = "limit";
 	private static final String EXTRA_PASSWORD = "password";
-	private static final String EXTRA_TAB_POSITION = "tab_position";
 
 	private ProgressDialogFragment progressDialog;
 	private PageFragment pageFragment;
 
-	private LoadingListener loadingListener;
+	private List<LoadingListener> loadingListeners;
 
 	private Document document;
-	private int lastPosition;
 
 	private Handler handler;
 
@@ -63,6 +60,7 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 		setContentView(R.layout.main);
 
 		handler = new Handler();
+		loadingListeners = new LinkedList<LoadingListener>();
 
 		getSupportLoaderManager().initLoader(0, null, this);
 		getSupportLoaderManager().initLoader(1, null, this);
@@ -81,39 +79,6 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 					&& uri != null) {
 				loadUri(uri);
 			}
-		}
-
-		if (savedInstanceState != null)
-			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
-	}
-
-	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-
-		outState.putInt(EXTRA_TAB_POSITION, getSupportActionBar()
-				.getSelectedNavigationIndex());
-	}
-
-	@Override
-	public void onTabReselected(Tab tab, FragmentTransaction ft) {
-	}
-
-	@Override
-	public void onTabSelected(Tab tab, FragmentTransaction ft) {
-		pageFragment.loadPage(document.getPageAt(tab.getPosition()));
-	}
-
-	@Override
-	public void onTabUnselected(Tab tab, FragmentTransaction ft) {
-	}
-
-	@Override
-	protected void onNewIntent(Intent intent) {
-		super.onNewIntent(intent);
-
-		if (intent.getData() != null) {
-			loadUri(intent.getData());
 		}
 	}
 
@@ -191,32 +156,9 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 		} else if (document != null) {
 			this.document = document;
 
-			ActionBar bar = getSupportActionBar();
-			bar.removeAllTabs();
-
-			int pages = document.getPages().size();
-			if (pages > 1) {
-				bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-				for (int i = 0; i < pages; i++) {
-					ActionBar.Tab tab = bar.newTab();
-					String name = document.getPageAt(i).getName();
-					if (name == null)
-						name = "Sheet " + (i + 1);
-					tab.setText(name);
-					tab.setTabListener(this);
-
-					bar.addTab(tab);
-				}
-
-				if (lastPosition > 0) {
-					bar.setSelectedNavigationItem(lastPosition);
-
-					lastPosition = -1;
-				}
-			} else {
-				bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-				pageFragment.loadPage(document.getPageAt(0));
-			}
+			// TODO: we should load the first page here already
+			// DocumentActivity should - basically - work out-of-the-box
+			// (without any further logic)!
 
 			if (document.isLimited()) {
 				showCrouton(R.string.toast_info_limited, new Runnable() {
@@ -229,8 +171,9 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 				}, AppMsg.STYLE_INFO);
 			}
 
-			if (loadingListener != null)
-				loadingListener.onSuccess(uri);
+			for (LoadingListener listener : loadingListeners) {
+				listener.onSuccess(document, uri);
+			}
 		}
 	}
 
@@ -258,58 +201,54 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 
 		progressDialog = new ProgressDialogFragment(upload);
 
-				FragmentTransaction transaction = getSupportFragmentManager()
-						.beginTransaction();
+		FragmentTransaction transaction = getSupportFragmentManager()
+				.beginTransaction();
+		progressDialog.show(transaction, ProgressDialogFragment.FRAGMENT_TAG);
 
-					progressDialog.show(transaction,
-							ProgressDialogFragment.FRAGMENT_TAG);
+		if (!upload) {
+			final FileLoader fileLoader = (FileLoader) loader;
 
-				if (!upload) {
-					final FileLoader fileLoader = (FileLoader) loader;
+			handler.postDelayed(new Runnable() {
 
-					handler.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					if (progressDialog == null)
+						return;
 
-						@Override
-						public void run() {
-								if (progressDialog == null)
-									return;
+					progressDialog.setProgress(fileLoader.getProgress());
 
-								progressDialog.setProgress(fileLoader
-										.getProgress());
-
-								if (loader.isStarted())
-									handler.postDelayed(this, 1000);
-						}
-					}, 1000);
+					if (loader.isStarted())
+						handler.postDelayed(this, 1000);
 				}
+			}, 1000);
+		}
 	}
 
 	private void dismissProgress() {
 		// dirty hack because committing isn't allowed right after
 		// onLoadFinished:
 		// "java.lang.IllegalStateException: Can not perform this action inside of onLoadFinished"
-					if (progressDialog == null)
-						progressDialog = (ProgressDialogFragment) getSupportFragmentManager()
-								.findFragmentByTag(
-										ProgressDialogFragment.FRAGMENT_TAG);
+		if (progressDialog == null)
+			progressDialog = (ProgressDialogFragment) getSupportFragmentManager()
+					.findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
 
-					if (progressDialog != null
-							&& progressDialog.getShowsDialog() && progressDialog.isNotNull()) {
-						progressDialog.dismissAllowingStateLoss();
+		if (progressDialog != null && progressDialog.getShowsDialog()
+				&& progressDialog.isNotNull()) {
+			progressDialog.dismissAllowingStateLoss();
 
-						progressDialog = null;
-					}
+			progressDialog = null;
+		}
 	}
 
 	public void onError(Throwable error, final Uri uri) {
 		Log.e("OpenDocument Reader", "Error opening file at " + uri.toString(),
 				error);
 
-		// used for JUnit tests
-		if (loadingListener != null) {
-			loadingListener.onError(error, uri);
+		for (LoadingListener listener : loadingListeners) {
+			listener.onError(error, uri);
 
-			return;
+			// TODO: return here, but only if the listener was registered by a
+			// JUnit test
 		}
 
 		int errorDescription;
@@ -387,8 +326,12 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 			ReportUtil.submitFile(this, error, uri, errorDescription);
 	}
 
-	public void setLoadingListener(LoadingListener loadingListener) {
-		this.loadingListener = loadingListener;
+	public void addLoadingListener(LoadingListener loadingListener) {
+		loadingListeners.add(loadingListener);
+	}
+
+	public Document getDocument() {
+		return document;
 	}
 
 	public PageFragment getPageFragment() {

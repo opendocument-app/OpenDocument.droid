@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
 import android.test.ActivityInstrumentationTestCase2;
+import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.LoadingListener;
 import at.tomtasche.reader.ui.activity.MainActivity;
@@ -40,7 +41,7 @@ public class DocumentParseTest extends
 		passwordTested = new HashMap<Uri, Boolean>();
 
 		activity = getActivity();
-		activity.setLoadingListener(this);
+		activity.addLoadingListener(this);
 
 		File directory = Environment.getExternalStorageDirectory();
 
@@ -105,7 +106,7 @@ public class DocumentParseTest extends
 	}
 
 	@Override
-	public void onSuccess(Uri uri) {
+	public void onSuccess(Document document, Uri uri) {
 		queue.remove(uri);
 
 		if (queue.isEmpty()) {
