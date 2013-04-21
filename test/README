@@ -1,0 +1,6 @@
+in order to run these tests, you have to create three folders in the root of your external storage:
+- text
+- spreadsheet
+- presentation
+
+you can put the ODFs to test in there (actually it doesn't matter if you put only presentations in the presentation folder or not)
