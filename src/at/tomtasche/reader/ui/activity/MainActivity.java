@@ -1,5 +1,8 @@
 package at.tomtasche.reader.ui.activity;
 
+import google.com.android.cloudprint.PrintDialogActivity;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -119,6 +122,8 @@ public class MainActivity extends DocumentActivity implements
 
 		presentations = new LinkedList<MainActivity.DocumentPresentation>();
 		// TODO: fix zoom
+		// TODO: listen for connected / disconnected displays:
+		// http://blog.stylingandroid.com/archives/1440
 		// if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
 		// multiscreen();
 
@@ -457,6 +462,33 @@ public class MainActivity extends DocumentActivity implements
 			}
 
 			fullscreen = !fullscreen;
+		}
+		case R.id.menu_share: {
+			Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+			intent.setType("text/html");
+
+			ArrayList<Uri> uris = new ArrayList<Uri>();
+			for (Page page : getDocument().getPages()) {
+				uris.add(Uri.parse("content://at.tomtasche.reader/"
+						+ page.getUrl()));
+			}
+
+			intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+
+			startActivity(intent);
+		}
+		case R.id.menu_print: {
+			int index = getSupportActionBar().getSelectedNavigationIndex();
+			if (index < 0)
+				index = 0;
+			Page page = getDocument().getPageAt(index);
+			Uri uri = Uri.parse(page.getUrl());
+
+			Intent printIntent = new Intent(this, PrintDialogActivity.class);
+			printIntent.setDataAndType(uri, "text/html");
+			printIntent.putExtra("title",
+					"OpenDocument Reader - " + uri.getLastPathSegment());
+			startActivity(printIntent);
 		}
 		}
 

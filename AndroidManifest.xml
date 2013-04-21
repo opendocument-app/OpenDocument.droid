@@ -17,7 +17,7 @@
         android:required="false" />
 
     <uses-sdk
-        android:minSdkVersion="7"
+        android:minSdkVersion="8"
         android:targetSdkVersion="17" />
 
     <supports-screens
@@ -127,26 +127,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <provider
-            android:name=".background.ImageProvider"
-            android:authorities="at.tomtasche.reader" />
-
         <activity
             android:name="com.google.ads.AdActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:excludeFromRecents="true" />
-
-        <service android:name="net.robotmedia.billing.BillingService" />
-
-        <receiver android:name="net.robotmedia.billing.BillingReceiver" >
-            <intent-filter>
-                <action android:name="com.android.vending.billing.IN_APP_NOTIFY" />
-                <action android:name="com.android.vending.billing.RESPONSE_CODE" />
-                <action android:name="com.android.vending.billing.PURCHASE_STATE_CHANGED" />
-            </intent-filter>
-        </receiver>
-
+        <activity
+            android:name="google.com.android.cloudprint.PrintDialogActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:theme="@style/Theme.Sherlock.Light.Dialog" />
         <activity
             android:name="at.tomtasche.reader.ui.activity.ShortcutActivity"
             android:excludeFromRecents="true"
@@ -174,6 +163,21 @@
                 <data android:mimeType="application/vnd.oasis.opendocument.*" />
             </intent-filter>
         </activity>
+
+        <provider
+            android:name=".background.FileProvider"
+            android:authorities="at.tomtasche.reader"
+            android:exported="true" />
+
+        <service android:name="net.robotmedia.billing.BillingService" />
+
+        <receiver android:name="net.robotmedia.billing.BillingReceiver" >
+            <intent-filter>
+                <action android:name="com.android.vending.billing.IN_APP_NOTIFY" />
+                <action android:name="com.android.vending.billing.RESPONSE_CODE" />
+                <action android:name="com.android.vending.billing.PURCHASE_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -42,6 +42,8 @@
     <string name="menu_remove_ads">Remove ads</string>
     <string name="menu_reload">Reload without limit</string>
     <string name="menu_fullscreen">Fullscreen mode</string>
+    <string name="menu_share">Share</string>
+    <string name="menu_print">Print</string>
     <string name="crouton_error_billing">Failed to initialize Google Play In-App Billing</string>
     <string name="crouton_leave_fullscreen">Press Back to leave fullscreen mode</string>
     <string name="crouton_dismiss_chooser">Click here to get back to the document view</string>

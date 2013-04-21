@@ -9,7 +9,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 
-public class ImageProvider extends ContentProvider {
+public class FileProvider extends ContentProvider {
 
 	@Override
 	public ParcelFileDescriptor openFile(final Uri uri, final String mode)
