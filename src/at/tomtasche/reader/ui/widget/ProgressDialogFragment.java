@@ -53,4 +53,9 @@ public class ProgressDialogFragment extends DialogFragment {
 		if (progressDialog != null)
 			progressDialog.setProgress(((int) (progress * 100)));
 	}
+
+	// another dirty hack for a nullpointerexception thrown sometimes on dismiss()
+	public boolean isNotNull() {
+		return progressDialog != null;
+	}
 }

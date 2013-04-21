@@ -25,6 +25,7 @@ import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.FileLoader;
+import at.tomtasche.reader.background.LoadingListener;
 import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.background.UpLoader;
 import at.tomtasche.reader.ui.widget.PageFragment;
@@ -46,6 +47,8 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 
 	private ProgressDialogFragment progressDialog;
 	private PageFragment pageFragment;
+
+	private LoadingListener loadingListener;
 
 	private Document document;
 	private int lastPosition;
@@ -225,6 +228,9 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 					}
 				}, AppMsg.STYLE_INFO);
 			}
+
+			if (loadingListener != null)
+				loadingListener.onSuccess(uri);
 		}
 	}
 
@@ -245,61 +251,66 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 			loadUri(uri);
 	}
 
-	private void showProgress(final Loader<Document> loader, boolean upload) {
+	private void showProgress(final Loader<Document> loader,
+			final boolean upload) {
 		if (progressDialog != null)
 			return;
 
-		FragmentTransaction transaction = getSupportFragmentManager()
-				.beginTransaction();
-
 		progressDialog = new ProgressDialogFragment(upload);
-		progressDialog.show(transaction, ProgressDialogFragment.FRAGMENT_TAG);
 
-		if (!upload) {
-			final FileLoader fileLoader = (FileLoader) loader;
+				FragmentTransaction transaction = getSupportFragmentManager()
+						.beginTransaction();
 
-			handler.postDelayed(new Runnable() {
+					progressDialog.show(transaction,
+							ProgressDialogFragment.FRAGMENT_TAG);
 
-				@Override
-				public void run() {
-					if (progressDialog == null)
-						return;
+				if (!upload) {
+					final FileLoader fileLoader = (FileLoader) loader;
 
-					progressDialog.setProgress(fileLoader.getProgress());
+					handler.postDelayed(new Runnable() {
 
-					if (loader.isStarted())
-						handler.postDelayed(this, 1000);
+						@Override
+						public void run() {
+								if (progressDialog == null)
+									return;
+
+								progressDialog.setProgress(fileLoader
+										.getProgress());
+
+								if (loader.isStarted())
+									handler.postDelayed(this, 1000);
+						}
+					}, 1000);
 				}
-			}, 1000);
-		}
 	}
 
 	private void dismissProgress() {
 		// dirty hack because committing isn't allowed right after
 		// onLoadFinished:
 		// "java.lang.IllegalStateException: Can not perform this action inside of onLoadFinished"
+					if (progressDialog == null)
+						progressDialog = (ProgressDialogFragment) getSupportFragmentManager()
+								.findFragmentByTag(
+										ProgressDialogFragment.FRAGMENT_TAG);
 
-		new Handler(getMainLooper()).post(new Runnable() {
+					if (progressDialog != null
+							&& progressDialog.getShowsDialog() && progressDialog.isNotNull()) {
+						progressDialog.dismissAllowingStateLoss();
 
-			@Override
-			public void run() {
-				if (progressDialog == null)
-					progressDialog = (ProgressDialogFragment) getSupportFragmentManager()
-							.findFragmentByTag(
-									ProgressDialogFragment.FRAGMENT_TAG);
-
-				if (progressDialog != null && progressDialog.getShowsDialog()) {
-					progressDialog.dismiss();
-
-					progressDialog = null;
-				}
-			}
-		});
+						progressDialog = null;
+					}
 	}
 
 	public void onError(Throwable error, final Uri uri) {
 		Log.e("OpenDocument Reader", "Error opening file at " + uri.toString(),
 				error);
+
+		// used for JUnit tests
+		if (loadingListener != null) {
+			loadingListener.onError(error, uri);
+
+			return;
+		}
 
 		int errorDescription;
 		if (error == null) {
@@ -374,6 +385,10 @@ public class DocumentActivity extends SherlockFragmentActivity implements
 				|| uri.toString().endsWith(".odp")
 				|| uri.toString().endsWith(".otp"))
 			ReportUtil.submitFile(this, error, uri, errorDescription);
+	}
+
+	public void setLoadingListener(LoadingListener loadingListener) {
+		this.loadingListener = loadingListener;
 	}
 
 	public PageFragment getPageFragment() {
