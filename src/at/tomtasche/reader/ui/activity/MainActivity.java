@@ -462,6 +462,8 @@ public class MainActivity extends DocumentActivity implements
 			}
 
 			fullscreen = !fullscreen;
+
+			break;
 		}
 		case R.id.menu_share: {
 			Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
@@ -476,6 +478,8 @@ public class MainActivity extends DocumentActivity implements
 			intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
 
 			startActivity(intent);
+
+			break;
 		}
 		case R.id.menu_print: {
 			int index = getSupportActionBar().getSelectedNavigationIndex();
@@ -489,6 +493,8 @@ public class MainActivity extends DocumentActivity implements
 			printIntent.putExtra("title",
 					"OpenDocument Reader - " + uri.getLastPathSegment());
 			startActivity(printIntent);
+
+			break;
 		}
 		}
 
