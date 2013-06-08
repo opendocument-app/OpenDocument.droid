@@ -6,11 +6,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.robotmedia.billing.BillingController;
-import net.robotmedia.billing.BillingRequest.ResponseCode;
-import net.robotmedia.billing.helper.AbstractBillingObserver;
-import net.robotmedia.billing.model.Transaction;
-import net.robotmedia.billing.model.Transaction.PurchaseState;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Presentation;
@@ -36,11 +31,11 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.background.BillingPreferences;
 import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.Document.Page;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.LoadingListener;
-import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
 import at.tomtasche.reader.ui.widget.PageView;
@@ -50,13 +45,22 @@ import com.actionbarsherlock.app.ActionBar.Tab;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.devspark.appmsg.AppMsg;
+import com.github.jberkel.pay.me.IabHelper;
+import com.github.jberkel.pay.me.IabResult;
+import com.github.jberkel.pay.me.listener.OnIabPurchaseFinishedListener;
+import com.github.jberkel.pay.me.listener.OnIabSetupFinishedListener;
+import com.github.jberkel.pay.me.listener.QueryInventoryFinishedListener;
+import com.github.jberkel.pay.me.model.Inventory;
+import com.github.jberkel.pay.me.model.ItemType;
+import com.github.jberkel.pay.me.model.Purchase;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
 
 public class MainActivity extends DocumentActivity implements
-		BillingController.IConfiguration, ActionBar.TabListener,
-		LoadingListener {
+		ActionBar.TabListener, LoadingListener {
+
+	private int PURCHASE_CODE = 1337;
 
 	private static final String BILLING_PRODUCT_YEAR = "remove_ads_for_1y";
 	private static final String BILLING_PRODUCT_FOREVER = "remove_ads_for_eva";
@@ -67,6 +71,9 @@ public class MainActivity extends DocumentActivity implements
 	private AdView adView;
 	private int lastPosition;
 	private boolean fullscreen;
+	private IabHelper billingHelper;
+
+	private BillingPreferences billingPreferences;
 
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	public class DocumentPresentation extends Presentation implements
@@ -133,104 +140,75 @@ public class MainActivity extends DocumentActivity implements
 
 		addLoadingListener(this);
 
-		billingObserver = new AbstractBillingObserver(this) {
+		billingPreferences = new BillingPreferences(this);
 
-			public void onBillingChecked(boolean supported) {
-				if (!supported)
+		billingHelper = new IabHelper(this, getPublicKey());
+		billingHelper.startSetup(new OnIabSetupFinishedListener() {
+
+			@Override
+			public void onIabSetupFinished(IabResult result) {
+				if (billingPreferences.hasPurchased()) {
+					return;
+				}
+
+				if (result.isFailure()) {
 					runOnUiThread(new Runnable() {
 
 						@Override
 						public void run() {
+							showAds();
+
 							showCrouton(
 									getString(R.string.crouton_error_billing),
 									null, AppMsg.STYLE_ALERT);
 						}
 					});
-			}
+				} else if (result.isSuccess()) {
+					// query every 30 days
+					if ((billingPreferences.getLastQueryTime() + 1000 * 60 * 60
+							* 24 * 30) < System.currentTimeMillis()) {
+						billingHelper
+								.queryInventoryAsync(new QueryInventoryFinishedListener() {
 
-			public void onSubscriptionChecked(boolean supported) {
-			}
+									@Override
+									public void onQueryInventoryFinished(
+											IabResult result, Inventory inv) {
+										if (result.isSuccess()) {
+											boolean purchased = inv
+													.getPurchase(BILLING_PRODUCT_FOREVER) != null;
+											purchased |= inv
+													.getPurchase(BILLING_PRODUCT_YEAR) != null;
 
-			public void onPurchaseStateChanged(String itemId,
-					PurchaseState state) {
-				List<Transaction> transactions = BillingController
-						.getTransactions(MainActivity.this);
-				for (Transaction t : transactions) {
-					if (t.purchaseState == PurchaseState.PURCHASED) {
-						if (adView != null)
-							adView.setVisibility(View.GONE);
-					}
-				}
-			}
+											if (purchased) {
+												removeAds();
+											} else {
+												showAds();
+											}
 
-			public void onRequestPurchaseResponse(String itemId,
-					ResponseCode response) {
-				if (response == ResponseCode.RESULT_OK) {
-					if (adView != null)
-						adView.setVisibility(View.GONE);
-				} else {
-					runOnUiThread(new Runnable() {
-
-						@Override
-						public void run() {
-							showCrouton(
-									getString(R.string.crouton_error_billing),
-									null, AppMsg.STYLE_ALERT);
-						}
-					});
-				}
-			}
-		};
-		BillingController.registerObserver(billingObserver);
-		BillingController.setConfiguration(this);
-		// // TODO: ugly.
-		new Thread() {
-			public void run() {
-				try {
-					if (!billingObserver.isTransactionsRestored())
-						BillingController
-								.restoreTransactions(getApplicationContext());
-
-					if (!BillingController.isPurchased(getApplicationContext(),
-							BILLING_PRODUCT_YEAR)
-							|| !BillingController.isPurchased(
-									getApplicationContext(),
-									BILLING_PRODUCT_FOREVER)) {
-						runOnUiThread(new Runnable() {
-
-							@Override
-							public void run() {
-								adView = new AdView(MainActivity.this,
-										AdSize.SMART_BANNER, "a15042277f73506");
-								adView.loadAd(new AdRequest());
-
-								LayoutParams params = new LayoutParams(
-										LayoutParams.MATCH_PARENT,
-										LayoutParams.MATCH_PARENT);
-								((LinearLayout) findViewById(R.id.ad_container))
-										.addView(adView, params);
-							}
-						});
-					}
-				} catch (final Exception e) {
-					runOnUiThread(new Runnable() {
-
-						@Override
-						public void run() {
-							showCrouton(R.string.crouton_error_billing,
-									new Runnable() {
-
-										@Override
-										public void run() {
-											ReportUtil.createFeedbackIntent(
-													MainActivity.this, e);
+											billingPreferences
+													.setPurchased(purchased);
 										}
-									}, AppMsg.STYLE_ALERT);
-						}
-					});
+
+										billingPreferences
+												.setLastQueryTime(System
+														.currentTimeMillis());
+									}
+								});
+					}
 				}
 			}
-		}.start();
+		});
+	}
+
+	private void showAds() {
+		adView = new AdView(MainActivity.this, AdSize.SMART_BANNER,
+				"a15042277f73506");
+		adView.loadAd(new AdRequest());
+
+		LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT,
+				LayoutParams.MATCH_PARENT);
+		((LinearLayout) findViewById(R.id.ad_container))
+				.addView(adView, params);
 	}
 
 	@Override
@@ -268,49 +246,6 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	@Override
-	protected void onStart() {
-		super.onStart();
-
-		// TODO: ugly.
-		new Thread() {
-			public void run() {
-				try {
-					if (BillingController.isPurchased(getApplicationContext(),
-							BILLING_PRODUCT_YEAR)
-							|| BillingController.isPurchased(
-									getApplicationContext(),
-									BILLING_PRODUCT_FOREVER)) {
-						runOnUiThread(new Runnable() {
-
-							@Override
-							public void run() {
-								if (adView != null)
-									adView.setVisibility(View.GONE);
-							}
-						});
-					}
-				} catch (final Exception e) {
-					runOnUiThread(new Runnable() {
-
-						@Override
-						public void run() {
-							showCrouton(R.string.crouton_error_billing,
-									new Runnable() {
-
-										@Override
-										public void run() {
-											ReportUtil.createFeedbackIntent(
-													MainActivity.this, e);
-										}
-									}, AppMsg.STYLE_ALERT);
-						}
-					});
-				}
-			}
-		}.start();
-	}
-
-	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 
@@ -325,6 +260,16 @@ public class MainActivity extends DocumentActivity implements
 		getSupportMenuInflater().inflate(R.menu.menu_main, menu);
 
 		return true;
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode,
+			Intent intent) {
+		if (requestCode == PURCHASE_CODE) {
+			billingHelper.handleActivityResult(requestCode, resultCode, intent);
+		}
+
+		super.onActivityResult(requestCode, resultCode, intent);
 	}
 
 	@Override
@@ -387,24 +332,50 @@ public class MainActivity extends DocumentActivity implements
 
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
+					String product = null;
+
 					switch (which) {
 					case 0:
-						BillingController.requestPurchase(MainActivity.this,
-								BILLING_PRODUCT_YEAR, true, null);
+						product = BILLING_PRODUCT_YEAR;
 
 						break;
 
 					case 1:
-						BillingController.requestPurchase(MainActivity.this,
-								BILLING_PRODUCT_FOREVER, true, null);
+						product = BILLING_PRODUCT_FOREVER;
 
 						break;
 
 					default:
 						removeAds();
 
-						break;
+						dialog.dismiss();
+
+						return;
 					}
+
+					billingHelper.launchPurchaseFlow(MainActivity.this,
+							product, ItemType.INAPP, PURCHASE_CODE,
+							new OnIabPurchaseFinishedListener() {
+								public void onIabPurchaseFinished(
+										IabResult result, Purchase purchase) {
+									// remove ads even if the purchase failed /
+									// the user canceled the purchase
+									runOnUiThread(new Runnable() {
+
+										@Override
+										public void run() {
+											removeAds();
+										}
+									});
+
+									if (result.isSuccess()) {
+										billingPreferences.setPurchased(true);
+										billingPreferences
+												.setLastQueryTime(System
+														.currentTimeMillis());
+									}
+								}
+							}, null);
 
 					dialog.dismiss();
 				}
@@ -592,25 +563,15 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	@Override
-	protected void onDestroy() {
-		super.onDestroy();
+	protected void onStop() {
+		super.onStop();
 
 		if (adView != null)
 			adView.destroy();
 
-		BillingController.unregisterObserver(billingObserver);
-		BillingController.setConfiguration(null);
+		billingHelper.dispose();
 	}
 
-	// taken from net.robotmedia.billing.helper.AbstractBillingActivity
-	protected AbstractBillingObserver billingObserver;
-
-	@Override
-	public byte[] getObfuscationSalt() {
-		return new byte[] { 16, 1, 19, 93, -16, -1, -19, -93, 23, 7 };
-	}
-
-	@Override
 	public String getPublicKey() {
 		return "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDsdGybFkj9/26Fpu2mNASpAC8xQDRYocvVkxbpN6mF8k4a9L5ocnyUAY7sfKb0wjEc5e+vxL21kFKvvW0zEZX8a5wSXUfD5oiaXaiMPrp7cC1YbPPAelZvFEAzriA6pyk7PPKuqtAN2tcTiJED+kpiVAyEVU42lDUqE70xlRE6dQIDAQAB";
 	}

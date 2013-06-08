@@ -7,9 +7,9 @@
 [submodule "ActionBarSherlock"]
 	path = ActionBarSherlock
 	url = git://github.com/TomTasche/ActionBarSherlock.git
-[submodule "AndroidBillingLibrary"]
-	path = AndroidBillingLibrary
-	url = git://github.com/TomTasche/AndroidBillingLibrary.git
 [submodule "odf2html"]
 	path = odf2html
 	url = git://github.com/andiwand/odf2html.git
+[submodule "pay-me"]
+	path = pay-me
+	url = git@github.com:TomTasche/pay-me.git
