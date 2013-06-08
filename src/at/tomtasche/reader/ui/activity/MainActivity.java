@@ -3,27 +3,21 @@ package at.tomtasche.reader.ui.activity;
 import google.com.android.cloudprint.PrintDialogActivity;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
-import android.app.Presentation;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.hardware.display.DisplayManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.Loader;
-import android.view.Display;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -38,12 +32,12 @@ import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.LoadingListener;
 import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
-import at.tomtasche.reader.ui.widget.PageView;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.ActionBar.Tab;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.bugsense.trace.BugSenseHandler;
 import com.devspark.appmsg.AppMsg;
 import com.github.jberkel.pay.me.IabHelper;
 import com.github.jberkel.pay.me.IabResult;
@@ -56,6 +50,7 @@ import com.github.jberkel.pay.me.model.Purchase;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
+import com.google.analytics.tracking.android.EasyTracker;
 
 public class MainActivity extends DocumentActivity implements
 		ActionBar.TabListener, LoadingListener {
@@ -67,53 +62,55 @@ public class MainActivity extends DocumentActivity implements
 
 	private static final String EXTRA_TAB_POSITION = "tab_position";
 
-	private List<DocumentPresentation> presentations;
 	private AdView adView;
+
 	private int lastPosition;
 	private boolean fullscreen;
-	private IabHelper billingHelper;
 
+	// private List<DocumentPresentation> presentations;
+
+	private IabHelper billingHelper;
 	private BillingPreferences billingPreferences;
 
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-	public class DocumentPresentation extends Presentation implements
-			LoadingListener {
-
-		private PageView pageView;
-
-		public DocumentPresentation(Context outerContext, Display display) {
-			super(outerContext, display);
-		}
-
-		@Override
-		protected void onCreate(Bundle savedInstanceState) {
-			super.onCreate(savedInstanceState);
-
-			pageView = new PageView(getContext());
-			pageView.loadData(
-					getContext().getString(R.string.message_get_started),
-					"text/plain", PageView.ENCODING);
-
-			pageView.setLayoutParams(new LinearLayout.LayoutParams(
-					LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-
-			setContentView(pageView);
-		}
-
-		@Override
-		public void onSuccess(Document document, Uri uri) {
-		}
-
-		@Override
-		public void onError(Throwable error, Uri uri) {
-			// trolololo :)
-			pageView.loadUrl("http://goo.gl/HgQJc");
-		}
-
-		public void loadPage(Page page) {
-			pageView.loadUrl(page.getUrl());
-		}
-	}
+	// @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	// public class DocumentPresentation extends Presentation implements
+	// LoadingListener {
+	//
+	// private PageView pageView;
+	//
+	// public DocumentPresentation(Context outerContext, Display display) {
+	// super(outerContext, display);
+	// }
+	//
+	// @Override
+	// protected void onCreate(Bundle savedInstanceState) {
+	// super.onCreate(savedInstanceState);
+	//
+	// pageView = new PageView(getContext());
+	// pageView.loadData(
+	// getContext().getString(R.string.message_get_started),
+	// "text/plain", PageView.ENCODING);
+	//
+	// pageView.setLayoutParams(new LinearLayout.LayoutParams(
+	// LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+	//
+	// setContentView(pageView);
+	// }
+	//
+	// @Override
+	// public void onSuccess(Document document, Uri uri) {
+	// }
+	//
+	// @Override
+	// public void onError(Throwable error, Uri uri) {
+	// // trolololo :)
+	// pageView.loadUrl("http://goo.gl/HgQJc");
+	// }
+	//
+	// public void loadPage(Page page) {
+	// pageView.loadUrl(page.getUrl());
+	// }
+	// }
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -122,21 +119,28 @@ public class MainActivity extends DocumentActivity implements
 		// if (ActivityManager.isUserAMonkey())
 		// getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 		// WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		//
+
 		// StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
 		// .detectAll().penaltyLog().penaltyDeath().build());
 		// StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll()
 		// .penaltyLog().penaltyDeath().build());
 
-		presentations = new LinkedList<MainActivity.DocumentPresentation>();
+		BugSenseHandler.initAndStartSession(this, "efe5d68e");
+
+		// presentations = new LinkedList<MainActivity.DocumentPresentation>();
 		// TODO: fix zoom
 		// TODO: listen for connected / disconnected displays:
 		// http://blog.stylingandroid.com/archives/1440
 		// if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
 		// multiscreen();
 
-		if (savedInstanceState != null)
+		EasyTracker.getInstance().activityStart(this);
+
+		if (savedInstanceState != null) {
 			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
+		} else if (getIntent().getData() == null) {
+			EasyTracker.getTracker().sendEvent("ui", "open", "intro", null);
+		}
 
 		addLoadingListener(this);
 
@@ -209,6 +213,8 @@ public class MainActivity extends DocumentActivity implements
 				LayoutParams.MATCH_PARENT);
 		((LinearLayout) findViewById(R.id.ad_container))
 				.addView(adView, params);
+
+		EasyTracker.getTracker().sendEvent("monetization", "ads", "show", null);
 	}
 
 	@Override
@@ -217,33 +223,36 @@ public class MainActivity extends DocumentActivity implements
 
 		if (intent.getData() != null) {
 			loadUri(intent.getData());
+
+			EasyTracker.getTracker().sendEvent("ui", "open", "other", null);
 		}
 	}
 
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-	private void multiscreen() {
-		DisplayManager displayManager = (DisplayManager) getSystemService(DISPLAY_SERVICE);
-		if (displayManager != null) {
-			Display[] displays = displayManager
-					.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
-			for (Display display : displays) {
-				DocumentPresentation presentation = new DocumentPresentation(
-						this, display);
-				presentation.show();
+	// @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	// private void multiscreen() {
+	// DisplayManager displayManager = (DisplayManager)
+	// getSystemService(DISPLAY_SERVICE);
+	// if (displayManager != null) {
+	// Display[] displays = displayManager
+	// .getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
+	// for (Display display : displays) {
+	// DocumentPresentation presentation = new DocumentPresentation(
+	// this, display);
+	// presentation.show();
+	//
+	// addLoadingListener(presentation);
+	//
+	// presentations.add(presentation);
+	// }
+	// }
+	// }
 
-				addLoadingListener(presentation);
-
-				presentations.add(presentation);
-			}
-		}
-	}
-
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-	private void loadPageOnMultiscreens(Page page) {
-		for (DocumentPresentation presentation : presentations) {
-			presentation.loadPage(page);
-		}
-	}
+	// @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	// private void loadPageOnMultiscreens(Page page) {
+	// for (DocumentPresentation presentation : presentations) {
+	// presentation.loadPage(page);
+	// }
+	// }
 
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
@@ -283,6 +292,8 @@ public class MainActivity extends DocumentActivity implements
 			chooserDialog.show(transaction,
 					DocumentChooserDialogFragment.FRAGMENT_TAG);
 
+			EasyTracker.getTracker().sendEvent("ui", "open", "recent", null);
+
 			break;
 		}
 
@@ -316,11 +327,15 @@ public class MainActivity extends DocumentActivity implements
 				startActionMode(findActionModeCallback);
 			}
 
+			EasyTracker.getTracker().sendEvent("ui", "search", "start", null);
+
 			break;
 		}
 
 		case R.id.menu_open: {
 			findDocument();
+
+			EasyTracker.getTracker().sendEvent("ui", "open", "choose", null);
 
 			break;
 		}
@@ -373,6 +388,14 @@ public class MainActivity extends DocumentActivity implements
 										billingPreferences
 												.setLastQueryTime(System
 														.currentTimeMillis());
+
+										EasyTracker.getTracker().sendEvent(
+												"monetization", "in-app",
+												purchase.getSku(), null);
+									} else {
+										EasyTracker.getTracker().sendEvent(
+												"monetization", "in-app",
+												"failed", null);
 									}
 								}
 							}, null);
@@ -387,6 +410,8 @@ public class MainActivity extends DocumentActivity implements
 
 		case R.id.menu_about: {
 			loadUri(DocumentLoader.URI_ABOUT);
+
+			EasyTracker.getTracker().sendEvent("ui", "open", "about", null);
 
 			break;
 		}
@@ -408,6 +433,9 @@ public class MainActivity extends DocumentActivity implements
 			builder.setNegativeButton(android.R.string.cancel, null);
 			builder.show();
 
+			EasyTracker.getTracker()
+					.sendEvent("ui", "feedback", "launch", null);
+
 			break;
 		}
 		case R.id.menu_reload: {
@@ -416,6 +444,9 @@ public class MainActivity extends DocumentActivity implements
 
 			loadUri(documentLoader.getLastUri(), documentLoader.getPassword(),
 					false);
+
+			EasyTracker.getTracker()
+					.sendEvent("ui", "reload", "no-limit", null);
 
 			break;
 		}
@@ -440,6 +471,9 @@ public class MainActivity extends DocumentActivity implements
 						leaveFullscreen();
 					}
 				}, AppMsg.STYLE_INFO);
+
+				EasyTracker.getTracker().sendEvent("ui", "fullscreen", "enter",
+						null);
 			}
 
 			fullscreen = !fullscreen;
@@ -460,6 +494,8 @@ public class MainActivity extends DocumentActivity implements
 
 			startActivity(intent);
 
+			EasyTracker.getTracker().sendEvent("ui", "share", "", null);
+
 			break;
 		}
 		case R.id.menu_print: {
@@ -475,6 +511,8 @@ public class MainActivity extends DocumentActivity implements
 					"OpenDocument Reader - " + uri.getLastPathSegment());
 			startActivity(printIntent);
 
+			EasyTracker.getTracker().sendEvent("ui", "print", "", null);
+
 			break;
 		}
 		}
@@ -485,6 +523,8 @@ public class MainActivity extends DocumentActivity implements
 	private void removeAds() {
 		if (adView != null)
 			adView.setVisibility(View.GONE);
+
+		EasyTracker.getTracker().sendEvent("monetization", "ads", "hide", null);
 	}
 
 	private void leaveFullscreen() {
@@ -496,6 +536,8 @@ public class MainActivity extends DocumentActivity implements
 		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		fullscreen = false;
+
+		EasyTracker.getTracker().sendEvent("ui", "fullscreen", "leave", null);
 	}
 
 	@Override
@@ -526,8 +568,8 @@ public class MainActivity extends DocumentActivity implements
 	private void showPage(Page page) {
 		getPageFragment().loadPage(page);
 
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
-			loadPageOnMultiscreens(page);
+		// if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
+		// loadPageOnMultiscreens(page);
 	}
 
 	public void findDocument() {
@@ -570,6 +612,8 @@ public class MainActivity extends DocumentActivity implements
 			adView.destroy();
 
 		billingHelper.dispose();
+
+		EasyTracker.getInstance().activityStop(this);
 	}
 
 	public String getPublicKey() {
@@ -609,8 +653,13 @@ public class MainActivity extends DocumentActivity implements
 
 	@Override
 	public void onError(Throwable error, Uri uri) {
-		// do nothing. DocumentActivity handles the error for us.
 		// DO NOT call the super-method here! otherwise we end up in an infinite
 		// recursion.
+
+		BugSenseHandler.sendExceptionMessage("uri", uri.toString(),
+				new Exception(error));
+
+		EasyTracker.getTracker().sendEvent("app", "error",
+				error.getClass().getSimpleName(), null);
 	}
 }

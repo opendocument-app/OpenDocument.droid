@@ -31,6 +31,7 @@
 -keep public class * extends android.content.BroadcastReceiver
 -keep public class * extends android.content.ContentProvider
 -keep public class * extends android.preference.Preference
+-keep public class com.android.vending.licensing.ILicensingService 
 
 -keepclassmembers enum * {
     public static **[] values();
@@ -64,6 +65,13 @@
 -keepclassmembers class **.R$* {
     public static <fields>;
 }
+
+-keep class com.google.android.gms.analytics.**
+-keep class com.google.analytics.tracking.**
+-dontwarn com.google.android.gms.analytics.**
+-dontwarn com.google.analytics.tracking.**
+
+-keep public class com.bugsense.*
 
 -keep class android.support.v4.app.** { *; }
 -keep interface android.support.v4.app.** { *; }

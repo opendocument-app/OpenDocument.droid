@@ -31,9 +31,9 @@ public class PageView extends WebView {
 		settings.setSupportZoom(true);
 		settings.setDefaultTextEncodingName(ENCODING);
 		settings.setJavaScriptEnabled(true);
-		settings.setUseWideViewPort(true);
 
-		setInitialScale(1);
+		// settings.setUseWideViewPort(true);
+		// setInitialScale(1);
 
 		setKeepScreenOn(true);
 		if (Build.VERSION.SDK_INT >= 14)
