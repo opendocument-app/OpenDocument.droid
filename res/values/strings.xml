@@ -49,7 +49,10 @@
     <string name="crouton_dismiss_chooser">Click here to get back to the document view</string>
     <string name="list_searching_documents">Searching for documents on your device... This could take some time.</string>
     <string name="list_no_documents_found">No documents found</string>
-
+    <string name="find_previous">Previous</string>
+    <string name="find_next">Next</string>
+    <string name="find_on_page">Find on page</string>
+    
     <string-array name="remove_ads_options">
         <item>for one year</item>
         <item>forever</item>

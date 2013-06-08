@@ -41,6 +41,7 @@ import at.tomtasche.reader.background.Document.Page;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.LoadingListener;
 import at.tomtasche.reader.background.ReportUtil;
+import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
 import at.tomtasche.reader.ui.widget.PageView;
 
@@ -341,25 +342,34 @@ public class MainActivity extends DocumentActivity implements
 		}
 
 		case R.id.menu_search: {
-			// http://www.androidsnippets.org/snippets/20/
-			final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-			alert.setTitle(getString(R.string.menu_search));
+			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+				// http://www.androidsnippets.org/snippets/20/
+				final AlertDialog.Builder alert = new AlertDialog.Builder(this);
+				alert.setTitle(getString(R.string.menu_search));
 
-			final EditText input = new EditText(this);
-			alert.setView(input);
+				final EditText input = new EditText(this);
+				alert.setView(input);
 
-			alert.setPositiveButton(getString(android.R.string.ok),
-					new DialogInterface.OnClickListener() {
+				alert.setPositiveButton(getString(android.R.string.ok),
+						new DialogInterface.OnClickListener() {
 
-						@Override
-						public void onClick(DialogInterface dialog,
-								int whichButton) {
-							getPageFragment().searchDocument(
-									input.getText().toString());
-						}
-					});
-			alert.setNegativeButton(getString(android.R.string.cancel), null);
-			alert.show();
+							@Override
+							public void onClick(DialogInterface dialog,
+									int whichButton) {
+								getPageFragment().searchDocument(
+										input.getText().toString());
+							}
+						});
+				alert.setNegativeButton(getString(android.R.string.cancel),
+						null);
+				alert.show();
+			} else {
+				FindActionModeCallback findActionModeCallback = new FindActionModeCallback(
+						this);
+				findActionModeCallback.setWebView(getPageFragment()
+						.getPageView());
+				startActionMode(findActionModeCallback);
+			}
 
 			break;
 		}
@@ -405,7 +415,7 @@ public class MainActivity extends DocumentActivity implements
 		}
 
 		case R.id.menu_about: {
-			loadUri(DocumentLoader.URI_INTRO);
+			loadUri(DocumentLoader.URI_ABOUT);
 
 			break;
 		}
