@@ -3,7 +3,7 @@
 
     <string name="ga_trackingId">UA-41583346-1</string>
 
-    <bool name="ga_autoActivityTracking">true</bool>
+    <bool name="ga_autoActivityTracking">false</bool>
     <bool name="ga_reportUncaughtExceptions">false</bool>
 
 </resources>
