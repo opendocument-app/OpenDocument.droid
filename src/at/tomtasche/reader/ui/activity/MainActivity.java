@@ -645,4 +645,11 @@ public class MainActivity extends DocumentActivity implements
 			showPage(document.getPageAt(0));
 		}
 	}
+
+	@Override
+	public void onError(Throwable error, Uri uri) {
+		// do nothing. DocumentActivity handles the error for us.
+		// DO NOT call the super-method here! otherwise we end up in an infinite
+		// recursion.
+	}
 }
