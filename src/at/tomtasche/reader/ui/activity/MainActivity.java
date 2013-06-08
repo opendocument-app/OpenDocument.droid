@@ -87,7 +87,7 @@ public class MainActivity extends DocumentActivity implements
 					"text/plain", PageView.ENCODING);
 
 			pageView.setLayoutParams(new LinearLayout.LayoutParams(
-					LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+					LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
 			setContentView(pageView);
 		}
@@ -204,8 +204,8 @@ public class MainActivity extends DocumentActivity implements
 								adView.loadAd(new AdRequest());
 
 								LayoutParams params = new LayoutParams(
-										LayoutParams.FILL_PARENT,
-										LayoutParams.FILL_PARENT);
+										LayoutParams.MATCH_PARENT,
+										LayoutParams.MATCH_PARENT);
 								((LinearLayout) findViewById(R.id.ad_container))
 										.addView(adView, params);
 							}

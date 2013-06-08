@@ -32,7 +32,7 @@ public class PageFragment extends Fragment {
 		}
 
 		pageView.setLayoutParams(new LinearLayout.LayoutParams(
-				LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+				LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
 		return pageView;
 	}
