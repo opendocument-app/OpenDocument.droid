@@ -152,7 +152,7 @@ public abstract class DocumentActivity extends SherlockFragmentActivity
 		Throwable error = fileLoader.getLastError();
 		final Uri uri = fileLoader.getLastUri();
 		if (error != null) {
-			onError(error, uri);
+			handleError(error, uri);
 		} else if (document != null) {
 			this.document = document;
 
@@ -240,7 +240,7 @@ public abstract class DocumentActivity extends SherlockFragmentActivity
 		}
 	}
 
-	public void onError(Throwable error, final Uri uri) {
+	public void handleError(Throwable error, final Uri uri) {
 		Log.e("OpenDocument Reader", "Error opening file at " + uri.toString(),
 				error);
 
