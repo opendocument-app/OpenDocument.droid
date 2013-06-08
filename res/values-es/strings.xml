@@ -12,7 +12,7 @@
   <string name="toast_error_no_previous">No hay ninguna página previa disponible</string>
   <string name="toast_error_no_next">No hay ninguna página siguiente disponible</string>
   <string name="toast_error_only_one_page">Sólo hay una página</string>
-  <string name="toast_error_password_protected">Documento está protegido por contraseña</string>
+  <string name="toast_error_password_protected">El documento está protegido por contraseña</string>
   <string name="toast_error_storage">Almacenamiento externo no disponible. No se ha podido leer el archivo.</string>
   <string name="dialog_page_title">Elija una página</string>
   <string name="dialog_recent_title">Documentos recientes</string>

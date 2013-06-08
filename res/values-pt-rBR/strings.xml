@@ -3,49 +3,49 @@
 <resources>
   <string name="app_name">OpenDocument Reader</string>
   <string name="message_get_started"></string>
-  <string name="toast_error_generic">Something bad happened. Couldn\'t open file.</string>
-  <string name="toast_error_access_file">Couldn\'t access file.</string>
-  <string name="toast_error_find_file">Couldn\'t find file. Maybe it doesn\'t exist any longer?</string>
-  <string name="toast_error_illegal_file">This doesn\'t seem to be a supported file format.</string>
-  <string name="toast_error_open_file">Couldn\'t open file. Only .odt and .ods documents are supported!</string>
-  <string name="toast_error_out_of_memory">Phone out of memory! Too many pictures, or too big file.</string>
-  <string name="toast_error_no_previous">No previous page available</string>
-  <string name="toast_error_no_next">No next page available</string>
-  <string name="toast_error_only_one_page">There\'s only one page</string>
-  <string name="toast_error_password_protected">Document is password-protected</string>
-  <string name="toast_error_storage">External storage not available. Couldn\'t read file.</string>
-  <string name="dialog_page_title">Pick a page</string>
-  <string name="dialog_recent_title">Recent documents</string>
-  <string name="dialog_submit_file_title">Choose an app to send us your file</string>
-  <string name="dialog_submit_file">Do you want to send us the file so we can take a look and probably make it work with the next update?</string>
-  <string name="dialog_no_filemanager">No file explorer found. We recommend one of these:</string>
-  <string name="dialog_choose_filemanager">Open document via:</string>
-  <string name="dialog_find_explorer">Find another file explorer</string>
-  <string name="dialog_loading_title">Loading...</string>
-  <string name="dialog_uploading_title">Uploading...</string>
-  <string name="dialog_loading_message">This could take a few minutes, depending on the structure of your document and the processing power of your phone.</string>
-  <string name="dialog_error_send_error_only">Send only the error</string>
-  <string name="dialog_feedback_title">Shape the future of this app!</string>
-  <string name="dialog_feedback_message">Don\'t like our approach to monetize this app? Hate the look and feel? Desperately looking for a specific feature? Please tell us about it on our feedback platform!</string>
-  <string name="dialog_remove_ads_title">Remove ads for:</string>
-  <string name="dialog_upload_file">We aren\'t able to open this document, because we don\'t support its format. Do you want to upload it to our server temporarily, so we can display it for you anyway?</string>
-  <string name="title_choose_file_cloud">Choose file from cloud</string>
-  <string name="title_choose_file_local">Choose file from device</string>
-  <string name="menu_page_list">List pages</string>
-  <string name="menu_page_next">Next</string>
-  <string name="menu_page_previous">Previous</string>
-  <string name="menu_search">Search</string>
-  <string name="menu_open">Open</string>
+  <string name="toast_error_generic">Algo ruim aconteceu. O arquivo não pode ser aberto.</string>
+  <string name="toast_error_access_file">O arquivo não pode ser acessado.</string>
+  <string name="toast_error_find_file">Não pude encontrar o arquivo. Será que ele não existe mais?</string>
+  <string name="toast_error_illegal_file">Esse não parece ser um formato de arquivo suportado.</string>
+  <string name="toast_error_open_file">Não foi possível abrir o arquivo. Apenas documentos .odt e .ods são suportados!</string>
+  <string name="toast_error_out_of_memory">Dispositivo sem memória. Arquivo muito grande ou com muitas figuras.</string>
+  <string name="toast_error_no_previous">Página anterior não disponível</string>
+  <string name="toast_error_no_next">Página seguinte não disponível</string>
+  <string name="toast_error_only_one_page">Há apenas uma página</string>
+  <string name="toast_error_password_protected">O documento é protegido por senha</string>
+  <string name="toast_error_storage">Armazenamento externo não disponível. Não foi possível ler o arquivo.</string>
+  <string name="dialog_page_title">Escolha uma página</string>
+  <string name="dialog_recent_title">Documentos recentes</string>
+  <string name="dialog_submit_file_title">Escolha um aplicativo para nos enviar seu arquivo</string>
+  <string name="dialog_submit_file">Você deseja nos enviar o arquivo para que possamos analisar e provavelmente fazer com que ele funcione na próxima atualização?</string>
+  <string name="dialog_no_filemanager">Nenhum gerenciador de arquivos encontrado. Nós recomendamos um desses:</string>
+  <string name="dialog_choose_filemanager">Documento aberto via:</string>
+  <string name="dialog_find_explorer">Procure outro gerenciador de arquivo</string>
+  <string name="dialog_loading_title">Carregando...</string>
+  <string name="dialog_uploading_title">Enviando...</string>
+  <string name="dialog_loading_message">Isso pode demorar alguns minutos, dependendo da estrutura do documento e o poder de processamento do seu dispositivo.</string>
+  <string name="dialog_error_send_error_only">Enviar apenas o erro</string>
+  <string name="dialog_feedback_title">Molde o futuro deste app!</string>
+  <string name="dialog_feedback_message">Não gosta de nossa abordagem para ganhar dinheiro neste app? Odeia a aparência? Está procurando desesperadamente uma característica específica? Por favor nos deixe saber em nossa plataforma de feedback!</string>
+  <string name="dialog_remove_ads_title">Remova anúncios por:</string>
+  <string name="dialog_upload_file">Não é possível abrir este documento porque não há suporte a seu formato. Você quer enviá-lo para o nosso servidor temporariamente, para que ele possa ser exibido assim mesmo?</string>
+  <string name="title_choose_file_cloud">Escolha arquivos da nuvem</string>
+  <string name="title_choose_file_local">Escolha arquivos do dispositivo</string>
+  <string name="menu_page_list">Listar páginas</string>
+  <string name="menu_page_next">Próximo</string>
+  <string name="menu_page_previous">Anterior</string>
+  <string name="menu_search">Pesquisa</string>
+  <string name="menu_open">Abrir</string>
   <string name="menu_feedback">Feedback</string>
-  <string name="menu_about">About</string>
-  <string name="menu_remove_ads">Remove ads</string>
-  <string name="crouton_error_billing">Failed to initialize Google Play In-App Billing</string>
-  <string name="crouton_dismiss_chooser">Click here to get back to the document view</string>
-  <string name="list_searching_documents">Searching for documents on your device... This could take some time.</string>
-  <string name="list_no_documents_found">No documents found</string>
+  <string name="menu_about">Sobre</string>
+  <string name="menu_remove_ads">Remover anúncios</string>
+  <string name="crouton_error_billing">Falha ao inicializar Google Play In-App Billing</string>
+  <string name="crouton_dismiss_chooser">Clique aqui para voltar para a visualização documento</string>
+  <string name="list_searching_documents">Procurando por documentos no seu dispositivo... Isso pode demorar um pouco.</string>
+  <string name="list_no_documents_found">Nenhum documento encontrado</string>
   <string-array name="remove_ads_options">
-    <item>for one year</item>
-    <item>forever</item>
-    <item>temporarily</item>
+    <item>por um ano</item>
+    <item>para sempre</item>
+    <item>temporariamente</item>
   </string-array>
 </resources>
