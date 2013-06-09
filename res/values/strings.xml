@@ -52,7 +52,12 @@
     <string name="find_previous">Previous</string>
     <string name="find_next">Next</string>
     <string name="find_on_page">Find on page</string>
-    
+    <string name="menu_tts">Text-To-Speech</string>
+    <string name="tts_play">Play</string>
+    <string name="tts_pause">Pause</string>
+    <string name="tts_next">Next</string>
+    <string name="tts_previous">Previous</string>
+
     <string-array name="remove_ads_options">
         <item>for one year</item>
         <item>forever</item>

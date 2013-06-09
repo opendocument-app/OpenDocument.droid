@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.webkit.ConsoleMessage;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -16,7 +18,11 @@ public class PageView extends WebView {
 
 	public static final String ENCODING = "UTF-8";
 
+	private static final String TAG = "ODR-message:";
+
 	private boolean scrolled;
+
+	private ParagraphListener paragraphListener;
 
 	public PageView(Context context) {
 		this(context, 0);
@@ -43,6 +49,20 @@ public class PageView extends WebView {
 				method.invoke(context, 1);
 			} catch (Exception e) {
 			}
+
+		setWebChromeClient(new WebChromeClient() {
+
+			@Override
+			public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+				String message = consoleMessage.message();
+				if (paragraphListener != null && message.startsWith(TAG)) {
+					paragraphListener
+							.paragraph(message.substring(TAG.length() + 1));
+				}
+
+				return true;
+			}
+		});
 
 		setWebViewClient(new WebViewClient() {
 
@@ -75,5 +95,17 @@ public class PageView extends WebView {
 				}
 			}
 		});
+	}
+
+	public void getParagraphs(ParagraphListener listener) {
+		this.paragraphListener = listener;
+
+		loadUrl("javascript:console.log('" + TAG
+				+ "' + document.body.innerText);");
+	}
+
+	public static interface ParagraphListener {
+
+		public void paragraph(String text);
 	}
 }

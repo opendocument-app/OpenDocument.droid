@@ -31,6 +31,7 @@ import at.tomtasche.reader.background.Document.Page;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.LoadingListener;
 import at.tomtasche.reader.ui.FindActionModeCallback;
+import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
 
 import com.actionbarsherlock.app.ActionBar;
@@ -512,6 +513,12 @@ public class MainActivity extends DocumentActivity implements
 			startActivity(printIntent);
 
 			EasyTracker.getTracker().sendEvent("ui", "print", "", null);
+
+			break;
+		}
+		case R.id.menu_tts: {
+			startActionMode(new TtsActionModeCallback(this, getPageFragment()
+					.getPageView()));
 
 			break;
 		}
