@@ -73,6 +73,8 @@ public class MainActivity extends DocumentActivity implements
 	private IabHelper billingHelper;
 	private BillingPreferences billingPreferences;
 
+	private TtsActionModeCallback ttsActionMode;
+
 	// @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	// public class DocumentPresentation extends Presentation implements
 	// LoadingListener {
@@ -226,6 +228,15 @@ public class MainActivity extends DocumentActivity implements
 			loadUri(intent.getData());
 
 			EasyTracker.getTracker().sendEvent("ui", "open", "other", null);
+		}
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+
+		if (ttsActionMode != null) {
+			ttsActionMode.stop();
 		}
 	}
 
@@ -517,8 +528,9 @@ public class MainActivity extends DocumentActivity implements
 			break;
 		}
 		case R.id.menu_tts: {
-			startActionMode(new TtsActionModeCallback(this, getPageFragment()
-					.getPageView()));
+			ttsActionMode = new TtsActionModeCallback(this, getPageFragment()
+					.getPageView());
+			startActionMode(ttsActionMode);
 
 			break;
 		}

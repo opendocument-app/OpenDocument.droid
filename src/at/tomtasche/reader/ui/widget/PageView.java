@@ -7,22 +7,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
-import android.webkit.ConsoleMessage;
-import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import at.tomtasche.reader.ui.ParagraphListener;
 
 @SuppressLint("SetJavaScriptEnabled")
-public class PageView extends WebView {
+public class PageView extends WebView implements ParagraphListener {
 
 	public static final String ENCODING = "UTF-8";
 
-	private static final String TAG = "ODR-message:";
-
-	private boolean scrolled;
-
 	private ParagraphListener paragraphListener;
+	private boolean scrolled;
 
 	public PageView(Context context) {
 		this(context, 0);
@@ -38,6 +34,8 @@ public class PageView extends WebView {
 		settings.setDefaultTextEncodingName(ENCODING);
 		settings.setJavaScriptEnabled(true);
 
+		addJavascriptInterface(this, "paragraphListener");
+
 		// settings.setUseWideViewPort(true);
 		// setInitialScale(1);
 
@@ -49,20 +47,6 @@ public class PageView extends WebView {
 				method.invoke(context, 1);
 			} catch (Exception e) {
 			}
-
-		setWebChromeClient(new WebChromeClient() {
-
-			@Override
-			public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
-				String message = consoleMessage.message();
-				if (paragraphListener != null && message.startsWith(TAG)) {
-					paragraphListener
-							.paragraph(message.substring(TAG.length() + 1));
-				}
-
-				return true;
-			}
-		});
 
 		setWebViewClient(new WebViewClient() {
 
@@ -97,15 +81,41 @@ public class PageView extends WebView {
 		});
 	}
 
-	public void getParagraphs(ParagraphListener listener) {
-		this.paragraphListener = listener;
-
-		loadUrl("javascript:console.log('" + TAG
-				+ "' + document.body.innerText);");
+	public void setParagraphListener(ParagraphListener paragraphListener) {
+		this.paragraphListener = paragraphListener;
 	}
 
-	public static interface ParagraphListener {
+	public void getParagraph(final int index) {
+		post(new Runnable() {
 
-		public void paragraph(String text);
+			@Override
+			public void run() {
+				loadUrl("javascript:var children = document.body.childNodes; "
+						// document.body.firstChild.childNodes in the desktop
+						// version of Google Chrome
+						+ "if (children.length <= " + index + ") { "
+						+ "paragraphListener.end();" + " return; " + "}"
+						+ "var child = children[" + index + "]; "
+						+ "if (child) { "
+						+ "paragraphListener.paragraph(child.innerText); "
+						+ "} else { " + "paragraphListener.increaseIndex(); "
+						+ "}");
+			}
+		});
+	}
+
+	@Override
+	public void paragraph(String text) {
+		paragraphListener.paragraph(text);
+	}
+
+	@Override
+	public void increaseIndex() {
+		paragraphListener.increaseIndex();
+	}
+
+	@Override
+	public void end() {
+		paragraphListener.end();
 	}
 }
