@@ -35,7 +35,7 @@
     <item
         android:id="@+id/menu_print"
         android:showAsAction="never"
-        android:title="@string/menu_print"/>
+        android:title="@string/menu_cloud_print"/>
     <item
         android:id="@+id/menu_fullscreen"
         android:showAsAction="never"
