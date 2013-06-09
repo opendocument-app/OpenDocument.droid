@@ -615,12 +615,17 @@ public class MainActivity extends DocumentActivity implements
 	protected void onStop() {
 		super.onStop();
 
-		if (adView != null)
-			adView.destroy();
-
 		billingHelper.dispose();
 
 		EasyTracker.getInstance().activityStop(this);
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+
+		if (adView != null)
+			adView.destroy();
 	}
 
 	public String getPublicKey() {
