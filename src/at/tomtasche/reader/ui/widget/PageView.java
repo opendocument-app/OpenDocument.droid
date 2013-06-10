@@ -34,6 +34,9 @@ public class PageView extends WebView implements ParagraphListener {
 		settings.setDefaultTextEncodingName(ENCODING);
 		settings.setJavaScriptEnabled(true);
 
+		// WebView simply ignores viewport-tag in HTML if we don't set a initial scale > 0
+		setInitialScale(100);
+
 		addJavascriptInterface(this, "paragraphListener");
 
 		// settings.setUseWideViewPort(true);
