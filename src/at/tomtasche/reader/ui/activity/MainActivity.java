@@ -235,8 +235,6 @@ public class MainActivity extends DocumentActivity implements
 
 		// shows after 10 launches after 7 days
 		RateThisApp.showRateDialogIfNeeded(this);
-
-		analytics.sendView();
 	}
 
 	@Override
@@ -570,6 +568,13 @@ public class MainActivity extends DocumentActivity implements
 
 			break;
 		}
+		case R.id.menu_googleplus: {
+			startActivity(new Intent(
+					Intent.ACTION_VIEW,
+					Uri.parse("https://plus.google.com/communities/113494011673882132018")));
+
+			analytics.sendEvent("ui", "google+", null, null);
+		}
 		}
 
 		return super.onMenuItemSelected(featureId, item);
@@ -710,7 +715,12 @@ public class MainActivity extends DocumentActivity implements
 		} else {
 			bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 
-			showPage(document.getPageAt(0));
+			if (pages == 1) {
+				showPage(document.getPageAt(0));
+			} else {
+				BugSenseHandler.sendExceptionMessage("uri", uri.toString(),
+						new IllegalStateException("empty document"));
+			}
 		}
 	}
 

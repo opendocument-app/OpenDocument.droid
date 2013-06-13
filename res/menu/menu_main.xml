@@ -45,6 +45,10 @@
         android:showAsAction="never"
         android:title="@string/menu_tts"/>
     <item
+        android:id="@+id/menu_googleplus"
+        android:showAsAction="never"
+        android:title="Google+ Community"/>
+    <item
         android:id="@+id/menu_about"
         android:showAsAction="never"
         android:title="@string/menu_about"/>
