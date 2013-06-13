@@ -52,6 +52,8 @@ import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
 import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.Tracker;
+import com.kskkbys.rate.RateThisApp;
 
 public class MainActivity extends DocumentActivity implements
 		ActionBar.TabListener, LoadingListener {
@@ -74,6 +76,10 @@ public class MainActivity extends DocumentActivity implements
 	private BillingPreferences billingPreferences;
 
 	private TtsActionModeCallback ttsActionMode;
+
+	private Tracker analytics;
+
+	private long loadingStartTime;
 
 	// @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	// public class DocumentPresentation extends Presentation implements
@@ -138,11 +144,12 @@ public class MainActivity extends DocumentActivity implements
 		// multiscreen();
 
 		EasyTracker.getInstance().activityStart(this);
+		analytics = EasyTracker.getTracker();
 
 		if (savedInstanceState != null) {
 			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
 		} else if (getIntent().getData() == null) {
-			EasyTracker.getTracker().sendEvent("ui", "open", "intro", null);
+			analytics.sendEvent("ui", "open", "intro", null);
 		}
 
 		addLoadingListener(this);
@@ -217,7 +224,19 @@ public class MainActivity extends DocumentActivity implements
 		((LinearLayout) findViewById(R.id.ad_container))
 				.addView(adView, params);
 
-		EasyTracker.getTracker().sendEvent("monetization", "ads", "show", null);
+		analytics.sendEvent("monetization", "ads", "show", null);
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+
+		RateThisApp.onStart(this);
+
+		// shows after 10 launches after 7 days
+		RateThisApp.showRateDialogIfNeeded(this);
+
+		analytics.sendView();
 	}
 
 	@Override
@@ -227,7 +246,23 @@ public class MainActivity extends DocumentActivity implements
 		if (intent.getData() != null) {
 			loadUri(intent.getData());
 
-			EasyTracker.getTracker().sendEvent("ui", "open", "other", null);
+			analytics.sendEvent("ui", "open", "other", null);
+		}
+	}
+
+	@Override
+	public DocumentLoader loadUri(Uri uri, String password, boolean limit) {
+		loadingStartTime = System.currentTimeMillis();
+
+		return super.loadUri(uri, password, limit);
+	}
+
+	@Override
+	public void onLoadFinished(Loader<Document> loader, Document document) {
+		super.onLoadFinished(loader, document);
+
+		if (loadingStartTime > 0) {
+			analytics.sendTiming("app", loadingStartTime, "load", "document");
 		}
 	}
 
@@ -304,7 +339,7 @@ public class MainActivity extends DocumentActivity implements
 			chooserDialog.show(transaction,
 					DocumentChooserDialogFragment.FRAGMENT_TAG);
 
-			EasyTracker.getTracker().sendEvent("ui", "open", "recent", null);
+			analytics.sendEvent("ui", "open", "recent", null);
 
 			break;
 		}
@@ -339,7 +374,7 @@ public class MainActivity extends DocumentActivity implements
 				startActionMode(findActionModeCallback);
 			}
 
-			EasyTracker.getTracker().sendEvent("ui", "search", "start", null);
+			analytics.sendEvent("ui", "search", "start", null);
 
 			break;
 		}
@@ -347,7 +382,7 @@ public class MainActivity extends DocumentActivity implements
 		case R.id.menu_open: {
 			findDocument();
 
-			EasyTracker.getTracker().sendEvent("ui", "open", "choose", null);
+			analytics.sendEvent("ui", "open", "choose", null);
 
 			break;
 		}
@@ -380,6 +415,9 @@ public class MainActivity extends DocumentActivity implements
 						return;
 					}
 
+					analytics.sendEvent("monetization", "in-app", "attempt",
+							null);
+
 					billingHelper.launchPurchaseFlow(MainActivity.this,
 							product, ItemType.INAPP, PURCHASE_CODE,
 							new OnIabPurchaseFinishedListener() {
@@ -401,13 +439,12 @@ public class MainActivity extends DocumentActivity implements
 												.setLastQueryTime(System
 														.currentTimeMillis());
 
-										EasyTracker.getTracker().sendEvent(
-												"monetization", "in-app",
-												purchase.getSku(), null);
+										analytics.sendEvent("monetization",
+												"in-app", purchase.getSku(),
+												null);
 									} else {
-										EasyTracker.getTracker().sendEvent(
-												"monetization", "in-app",
-												"failed", null);
+										analytics.sendEvent("monetization",
+												"in-app", "abort", null);
 									}
 								}
 							}, null);
@@ -423,7 +460,7 @@ public class MainActivity extends DocumentActivity implements
 		case R.id.menu_about: {
 			loadUri(DocumentLoader.URI_ABOUT);
 
-			EasyTracker.getTracker().sendEvent("ui", "open", "about", null);
+			analytics.sendEvent("ui", "open", "about", null);
 
 			break;
 		}
@@ -445,8 +482,7 @@ public class MainActivity extends DocumentActivity implements
 			builder.setNegativeButton(android.R.string.cancel, null);
 			builder.show();
 
-			EasyTracker.getTracker()
-					.sendEvent("ui", "feedback", "launch", null);
+			analytics.sendEvent("ui", "feedback", null, null);
 
 			break;
 		}
@@ -457,8 +493,7 @@ public class MainActivity extends DocumentActivity implements
 			loadUri(documentLoader.getLastUri(), documentLoader.getPassword(),
 					false);
 
-			EasyTracker.getTracker()
-					.sendEvent("ui", "reload", "no-limit", null);
+			analytics.sendEvent("ui", "reload", "no-limit", null);
 
 			break;
 		}
@@ -484,8 +519,7 @@ public class MainActivity extends DocumentActivity implements
 					}
 				}, AppMsg.STYLE_INFO);
 
-				EasyTracker.getTracker().sendEvent("ui", "fullscreen", "enter",
-						null);
+				analytics.sendEvent("ui", "fullscreen", "enter", null);
 			}
 
 			fullscreen = !fullscreen;
@@ -506,7 +540,7 @@ public class MainActivity extends DocumentActivity implements
 
 			startActivity(intent);
 
-			EasyTracker.getTracker().sendEvent("ui", "share", "", null);
+			analytics.sendEvent("ui", "share", null, null);
 
 			break;
 		}
@@ -523,7 +557,7 @@ public class MainActivity extends DocumentActivity implements
 					"OpenDocument Reader - " + uri.getLastPathSegment());
 			startActivity(printIntent);
 
-			EasyTracker.getTracker().sendEvent("ui", "print", "", null);
+			analytics.sendEvent("ui", "print", null, null);
 
 			break;
 		}
@@ -531,6 +565,8 @@ public class MainActivity extends DocumentActivity implements
 			ttsActionMode = new TtsActionModeCallback(this, getPageFragment()
 					.getPageView());
 			startActionMode(ttsActionMode);
+
+			analytics.sendEvent("ui", "tts", null, null);
 
 			break;
 		}
@@ -543,7 +579,7 @@ public class MainActivity extends DocumentActivity implements
 		if (adView != null)
 			adView.setVisibility(View.GONE);
 
-		EasyTracker.getTracker().sendEvent("monetization", "ads", "hide", null);
+		analytics.sendEvent("monetization", "ads", "hide", null);
 	}
 
 	private void leaveFullscreen() {
@@ -556,7 +592,7 @@ public class MainActivity extends DocumentActivity implements
 
 		fullscreen = false;
 
-		EasyTracker.getTracker().sendEvent("ui", "fullscreen", "leave", null);
+		analytics.sendEvent("ui", "fullscreen", "leave", null);
 	}
 
 	@Override
@@ -616,6 +652,9 @@ public class MainActivity extends DocumentActivity implements
 						target.activityInfo.name));
 
 				startActivityForResult(intent, 42);
+
+				analytics.sendEvent("ui", "open",
+						target.activityInfo.packageName, null);
 
 				dialog.dismiss();
 			}
@@ -683,7 +722,6 @@ public class MainActivity extends DocumentActivity implements
 		BugSenseHandler.sendExceptionMessage("uri", uri.toString(),
 				new Exception(error));
 
-		EasyTracker.getTracker().sendEvent("app", "error",
-				error.getClass().getSimpleName(), null);
+		analytics.sendException(error.getMessage(), error, false);
 	}
 }
