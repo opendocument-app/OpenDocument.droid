@@ -256,15 +256,6 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	@Override
-	public void onLoadFinished(Loader<Document> loader, Document document) {
-		super.onLoadFinished(loader, document);
-
-		if (loadingStartTime > 0) {
-			analytics.sendTiming("app", loadingStartTime, "load", "document");
-		}
-	}
-
-	@Override
 	protected void onPause() {
 		super.onPause();
 
@@ -721,6 +712,13 @@ public class MainActivity extends DocumentActivity implements
 				BugSenseHandler.sendExceptionMessage("uri", uri.toString(),
 						new IllegalStateException("empty document"));
 			}
+		}
+
+		if (loadingStartTime > 0) {
+			analytics.sendTiming("app", System.currentTimeMillis()
+					- loadingStartTime, "load", "document");
+
+			loadingStartTime = 0;
 		}
 	}
 
