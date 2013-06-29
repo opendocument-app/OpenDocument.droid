@@ -1,11 +1,10 @@
 package at.tomtasche.reader.ui.activity;
 
-import google.com.android.cloudprint.PrintDialogActivity;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -48,7 +47,10 @@ import com.github.jberkel.pay.me.listener.QueryInventoryFinishedListener;
 import com.github.jberkel.pay.me.model.Inventory;
 import com.github.jberkel.pay.me.model.ItemType;
 import com.github.jberkel.pay.me.model.Purchase;
+import com.google.ads.Ad;
+import com.google.ads.AdListener;
 import com.google.ads.AdRequest;
+import com.google.ads.AdRequest.ErrorCode;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
 import com.google.analytics.tracking.android.EasyTracker;
@@ -56,7 +58,7 @@ import com.google.analytics.tracking.android.Tracker;
 import com.kskkbys.rate.RateThisApp;
 
 public class MainActivity extends DocumentActivity implements
-		ActionBar.TabListener, LoadingListener {
+		ActionBar.TabListener, LoadingListener, AdListener {
 
 	private int PURCHASE_CODE = 1337;
 
@@ -217,6 +219,7 @@ public class MainActivity extends DocumentActivity implements
 	private void showAds() {
 		adView = new AdView(MainActivity.this, AdSize.SMART_BANNER,
 				"a15042277f73506");
+		adView.setAdListener(this);
 		adView.loadAd(new AdRequest());
 
 		LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT,
@@ -224,7 +227,30 @@ public class MainActivity extends DocumentActivity implements
 		((LinearLayout) findViewById(R.id.ad_container))
 				.addView(adView, params);
 
+		showCrouton(R.string.consume_ad, null, AppMsg.STYLE_CONFIRM);
+
 		analytics.sendEvent("monetization", "ads", "show", null);
+	}
+
+	@Override
+	public void onDismissScreen(Ad arg0) {
+		removeAds();
+	}
+
+	@Override
+	public void onFailedToReceiveAd(Ad arg0, ErrorCode arg1) {
+	}
+
+	@Override
+	public void onLeaveApplication(Ad arg0) {
+	}
+
+	@Override
+	public void onPresentScreen(Ad arg0) {
+	}
+
+	@Override
+	public void onReceiveAd(Ad arg0) {
 	}
 
 	@Override
@@ -404,9 +430,6 @@ public class MainActivity extends DocumentActivity implements
 						return;
 					}
 
-					analytics.sendEvent("monetization", "in-app", "attempt",
-							null);
-
 					billingHelper.launchPurchaseFlow(MainActivity.this,
 							product, ItemType.INAPP, PURCHASE_CODE,
 							new OnIabPurchaseFinishedListener() {
@@ -437,6 +460,9 @@ public class MainActivity extends DocumentActivity implements
 									}
 								}
 							}, null);
+
+					analytics.sendEvent("monetization", "in-app", "attempt",
+							null);
 
 					dialog.dismiss();
 				}
@@ -538,13 +564,25 @@ public class MainActivity extends DocumentActivity implements
 			if (index < 0)
 				index = 0;
 			Page page = getDocument().getPageAt(index);
-			Uri uri = Uri.parse(page.getUrl());
+			Uri uri = Uri.parse("content://at.tomtasche.reader/"
+					+ page.getUrl());
 
-			Intent printIntent = new Intent(this, PrintDialogActivity.class);
-			printIntent.setDataAndType(uri, "text/html");
-			printIntent.putExtra("title",
-					"OpenDocument Reader - " + uri.getLastPathSegment());
-			startActivity(printIntent);
+			Intent printIntent = new Intent(Intent.ACTION_SEND);
+			printIntent.setType("text/html");
+			printIntent.putExtra(Intent.EXTRA_TITLE, "OpenDocument Reader - "
+					+ uri.getLastPathSegment());
+
+			printIntent.putExtra(Intent.EXTRA_STREAM, uri);
+
+			try {
+				startActivity(printIntent);
+			} catch (ActivityNotFoundException e) {
+				Intent installIntent = new Intent(
+						Intent.ACTION_VIEW,
+						Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.cloudprint"));
+
+				startActivity(installIntent);
+			}
 
 			analytics.sendEvent("ui", "print", null, null);
 

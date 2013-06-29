@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.Document.Page;
 
 public class PageFragment extends Fragment {
@@ -26,9 +25,7 @@ public class PageFragment extends Fragment {
 					savedInstanceState.getInt(EXTRA_SCROLL_POSITION));
 		} else {
 			pageView = new PageView(getActivity());
-			pageView.loadData(
-					getActivity().getString(R.string.message_get_started),
-					"text/plain", PageView.ENCODING);
+			pageView.loadData("", "text/plain", PageView.ENCODING);
 		}
 
 		pageView.setLayoutParams(new LinearLayout.LayoutParams(

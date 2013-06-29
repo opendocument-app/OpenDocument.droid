@@ -14,6 +14,7 @@
   <string name="toast_error_only_one_page">Il y a une seule page</string>
   <string name="toast_error_password_protected">Le document est protégé par un mot de passe</string>
   <string name="toast_error_storage">Le stockage externe n\'est pas disponible. Impossible de lire le fichier.</string>
+  <string name="toast_info_limited">Seulement quelques parties du document sont affichées afin d\'améliorer les performances. Cliquez ici si vous voulez voir l\'intégrale.</string>
   <string name="dialog_page_title">Choisir une page</string>
   <string name="dialog_recent_title">Documents récents</string>
   <string name="dialog_submit_file_title">Sélectionnez une application pour nous envoyer le fichier</string>
@@ -28,7 +29,7 @@
   <string name="dialog_feedback_title">Façonnez le futur de cette application!</string>
   <string name="dialog_feedback_message">Vous n\'aimez pas notre manière de monétiser cette application? Vous détestez l\'apparence et l\'ergonomie ? Vous cherchez désespérément une fonction spécifique? S\'il vous plaît, envoyez-nous vos commentaires!</string>
   <string name="dialog_remove_ads_title">Enlever la publicité:</string>
-  <string name="dialog_upload_file">Nous sommes dans l\'incapacité d\'ouvrir ce document, son format est inconnu par le logiciel. Voulez-vous envoyer le document sur notre serveur temporairement, afin de trouver une solution pour l\'afficher ?</string>
+  <string name="dialog_upload_file">Nous sommes dans l\'incapacité d\'ouvrir ce document, car son format est inconnu par le logiciel. Voulez-vous envoyer le document sur notre serveur temporairement, afin de trouver une solution pour l\'afficher ?</string>
   <string name="title_choose_file_cloud">Sélectionner un fichier depuis le nuage</string>
   <string name="title_choose_file_local">Sélectionner un fichier depuis l\'appareil</string>
   <string name="menu_page_list">Lister les pages</string>
@@ -39,10 +40,23 @@
   <string name="menu_feedback">Avis</string>
   <string name="menu_about">A propos</string>
   <string name="menu_remove_ads">Enlever la publicité</string>
+  <string name="menu_reload">Recharger sans limite</string>
+  <string name="menu_fullscreen">Mode plein écran</string>
+  <string name="menu_share">Partager</string>
+  <string name="menu_cloud_print">Google Cloud Print</string>
   <string name="crouton_error_billing">Échec lors de l\'initialisation de la fonction d\'achats inclus dans les applications Google Play</string>
+  <string name="crouton_leave_fullscreen">Cliquez sur Avant pour quitter le mode plein écran</string>
   <string name="crouton_dismiss_chooser">Cliquez ici pour revenir à l\'affichage du document</string>
   <string name="list_searching_documents">Recherche des documents sur votre appareil... Ceci peut prendre un certain temps.</string>
   <string name="list_no_documents_found">Aucun document trouvé</string>
+  <string name="find_previous">Précédent</string>
+  <string name="find_next">Suivant</string>
+  <string name="find_on_page">Rechercher sur la page</string>
+  <string name="menu_tts">Synthèse vocale</string>
+  <string name="tts_play">Jouer</string>
+  <string name="tts_pause">Pause</string>
+  <string name="tts_next">Suivant</string>
+  <string name="tts_previous">Précédent</string>
   <string-array name="remove_ads_options">
     <item>pour un an</item>
     <item>pour toujours</item>

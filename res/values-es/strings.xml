@@ -14,6 +14,7 @@
   <string name="toast_error_only_one_page">Sólo hay una página</string>
   <string name="toast_error_password_protected">El documento está protegido por contraseña</string>
   <string name="toast_error_storage">Almacenamiento externo no disponible. No se ha podido leer el archivo.</string>
+  <string name="toast_info_limited">Sólo se muestran partes del documento para mejorar el rendimiento. Haga clic aquí para ver el documento completo</string>
   <string name="dialog_page_title">Elija una página</string>
   <string name="dialog_recent_title">Documentos recientes</string>
   <string name="dialog_submit_file_title">Elija una aplicación para enviarnos su archivo</string>
@@ -39,10 +40,23 @@
   <string name="menu_feedback">Sugerencias</string>
   <string name="menu_about">Acerca de</string>
   <string name="menu_remove_ads">Eliminar los anuncios</string>
+  <string name="menu_reload">Recargar sin límite</string>
+  <string name="menu_fullscreen">Modo de pantalla completa</string>
+  <string name="menu_share">Compartir</string>
+  <string name="menu_cloud_print">Google Cloud Print</string>
   <string name="crouton_error_billing">No se pudo iniciar Google Play In-App Billing</string>
+  <string name="crouton_leave_fullscreen">Pulse Atrás para abandonar el modo de pantalla completa</string>
   <string name="crouton_dismiss_chooser">Haga clic aquí para volver a la vista de documento</string>
   <string name="list_searching_documents">Se están buscando documentos en el dispositivo... Podría tomar algún tiempo.</string>
   <string name="list_no_documents_found">No se ha encontrado ningún documento</string>
+  <string name="find_previous">Anterior</string>
+  <string name="find_next">Siguiente</string>
+  <string name="find_on_page">Buscar en la página</string>
+  <string name="menu_tts">Texto a voz</string>
+  <string name="tts_play">Reproducir</string>
+  <string name="tts_pause">Pausa</string>
+  <string name="tts_next">Siguiente</string>
+  <string name="tts_previous">Anterior</string>
   <string-array name="remove_ads_options">
     <item>por un año</item>
     <item>para siempre</item>

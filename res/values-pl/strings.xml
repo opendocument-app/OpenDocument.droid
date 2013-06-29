@@ -14,6 +14,7 @@
   <string name="toast_error_only_one_page">Istnieje tylko jedna strona</string>
   <string name="toast_error_password_protected">Dokument jest zabezpieczony hasłem</string>
   <string name="toast_error_storage">Pamięć zewnętrzna niedostępna. Nie można odczytać pliku.</string>
+  <string name="toast_info_limited">Tylko części dokumentu są wyświetlane w celu poprawy wydajności. Kliknij tutaj, jeśli chcesz zobaczyć cały dokument</string>
   <string name="dialog_page_title">Wybierz stronę</string>
   <string name="dialog_recent_title">Ostatnie dokumenty</string>
   <string name="dialog_submit_file_title">Wybierz aplikację, aby przesłać nam plik.</string>
@@ -39,10 +40,23 @@
   <string name="menu_feedback">Opinie</string>
   <string name="menu_about">O aplikacji</string>
   <string name="menu_remove_ads">Usuń reklamy</string>
+  <string name="menu_reload">Przeładuj bez limitu</string>
+  <string name="menu_fullscreen">Tryb pełnoekranowy</string>
+  <string name="menu_share">Udostępnij</string>
+  <string name="menu_cloud_print">Wydruk z chmury google</string>
   <string name="crouton_error_billing">Nie można uruchomić płatności Google Play</string>
+  <string name="crouton_leave_fullscreen">Naciśnij przycisk Wstecz, aby opuścić tryb pełnoekranowy</string>
   <string name="crouton_dismiss_chooser">Kliknij tutaj, aby powrócić do widoku dokumentu</string>
   <string name="list_searching_documents">Wyszukiwanie dokumentów na urządzeniu... Może to zająć trochę czasu.</string>
   <string name="list_no_documents_found">Nie znaleziono dokumentów</string>
+  <string name="find_previous">Poprzedni</string>
+  <string name="find_next">Następny</string>
+  <string name="find_on_page">Wyszukaj na stronie</string>
+  <string name="menu_tts">Tekst na mowę</string>
+  <string name="tts_play">Zagraj</string>
+  <string name="tts_pause">Wstrzymaj</string>
+  <string name="tts_next">Następny</string>
+  <string name="tts_previous">Poprzedni</string>
   <string-array name="remove_ads_options">
     <item>na okres jednego roku</item>
     <item>na zawsze</item>

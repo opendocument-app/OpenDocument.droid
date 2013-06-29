@@ -14,6 +14,7 @@
   <string name="toast_error_only_one_page">Només hi ha una pàgina</string>
   <string name="toast_error_password_protected">El document està protegit per contrasenya</string>
   <string name="toast_error_storage">L\'emmagatzematge extern no està disponible. No s\'ha pogut llegir el fitxer.</string>
+  <string name="toast_info_limited">Només es mostren parts del document per millorar el rendiment. Feu clic aquí si voleu veure tot el document</string>
   <string name="dialog_page_title">Trieu una pàgina</string>
   <string name="dialog_recent_title">Documents recents</string>
   <string name="dialog_submit_file_title">Trieu una aplicació per enviar-nos el fitxer</string>
@@ -39,10 +40,23 @@
   <string name="menu_feedback">Opinió</string>
   <string name="menu_about">Quant a</string>
   <string name="menu_remove_ads">Supressió dels anuncis</string>
+  <string name="menu_reload">Torna a carregar sense límit</string>
+  <string name="menu_fullscreen">Mode de pantalla completa</string>
+  <string name="menu_share">Comparteix</string>
+  <string name="menu_cloud_print">Google Cloud Print</string>
   <string name="crouton_error_billing">No s\'ha pogut iniciar el Google Play In-App Billing</string>
+  <string name="crouton_leave_fullscreen">Premeu Enrere per abandonar el mode de pantalla completa</string>
   <string name="crouton_dismiss_chooser">Feu clic aquí per tornar a la vista de document</string>
   <string name="list_searching_documents">S\'està cercant documents al dispositiu... Pot ser que es trigui una mica.</string>
   <string name="list_no_documents_found">No s\'ha trobat cap document</string>
+  <string name="find_previous">Anterior</string>
+  <string name="find_next">Següent</string>
+  <string name="find_on_page">Cerca a la pàgina</string>
+  <string name="menu_tts">Text-a-paraula</string>
+  <string name="tts_play">Reprodueix</string>
+  <string name="tts_pause">Pausa</string>
+  <string name="tts_next">Següent</string>
+  <string name="tts_previous">Anterior</string>
   <string-array name="remove_ads_options">
     <item>durant un any</item>
     <item>per sempre</item>
