@@ -151,7 +151,7 @@ public class MainActivity extends DocumentActivity implements
 		if (savedInstanceState != null) {
 			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
 		} else if (getIntent().getData() == null) {
-			analytics.sendEvent("ui", "open", "intro", null);
+			analytics.sendEvent("ui", "open", "google", null);
 		}
 
 		addLoadingListener(this);
