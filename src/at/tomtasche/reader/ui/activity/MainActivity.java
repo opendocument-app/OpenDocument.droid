@@ -1,5 +1,6 @@
 package at.tomtasche.reader.ui.activity;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,8 +18,14 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.Loader;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
+import android.support.v7.app.MediaRouteActionProvider;
+import android.support.v7.app.MediaRouteDialogFactory;
+import android.support.v7.media.MediaRouteSelector;
+import android.support.v7.media.MediaRouter;
+import android.support.v7.media.MediaRouter.RouteInfo;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -55,10 +62,22 @@ import com.google.ads.AdSize;
 import com.google.ads.AdView;
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.Tracker;
+import com.google.cast.ApplicationChannel;
+import com.google.cast.ApplicationMetadata;
+import com.google.cast.ApplicationSession;
+import com.google.cast.CastContext;
+import com.google.cast.CastDevice;
+import com.google.cast.ContentMetadata;
+import com.google.cast.MediaProtocolCommand;
+import com.google.cast.MediaProtocolMessageStream;
+import com.google.cast.MediaRouteAdapter;
+import com.google.cast.MediaRouteHelper;
+import com.google.cast.MediaRouteStateChangeListener;
+import com.google.cast.SessionError;
 import com.kskkbys.rate.RateThisApp;
 
 public class MainActivity extends DocumentActivity implements
-		ActionBar.TabListener, LoadingListener, AdListener {
+		ActionBar.TabListener, LoadingListener, AdListener, MediaRouteAdapter {
 
 	private int PURCHASE_CODE = 1337;
 
@@ -82,6 +101,17 @@ public class MainActivity extends DocumentActivity implements
 	private Tracker analytics;
 
 	private long loadingStartTime;
+
+	private CastContext mCastContext = null;
+	private CastDevice mSelectedDevice;
+	private ContentMetadata mMetaData;
+	private ApplicationSession mSession;
+	private MediaProtocolMessageStream mMessageStream;
+	private MediaRouter mMediaRouter;
+	private MediaRouteSelector mMediaRouteSelector;
+	private MediaRouter.Callback mMediaRouterCallback;
+	private MediaProtocolCommand mStatus;
+	private RouteInfo mCurrentRoute;
 
 	// @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	// public class DocumentPresentation extends Presentation implements
@@ -329,6 +359,26 @@ public class MainActivity extends DocumentActivity implements
 		super.onCreateOptionsMenu(menu);
 
 		getMenuInflater().inflate(R.menu.menu_main, menu);
+
+		mCastContext = new CastContext(getApplicationContext());
+		mMetaData = new ContentMetadata();
+
+		MediaRouteHelper.registerMinimalMediaRouteProvider(mCastContext, this);
+		mMediaRouter = MediaRouter.getInstance(getApplicationContext());
+		mMediaRouteSelector = MediaRouteHelper
+				.buildMediaRouteSelector(MediaRouteHelper.CATEGORY_CAST);
+
+		MediaRouteActionProvider mediaRouteActionProvider = (MediaRouteActionProvider) MenuItemCompat
+				.getActionProvider(menu.findItem(R.id.media_route_menu_item));
+		mediaRouteActionProvider.setRouteSelector(mMediaRouteSelector);
+
+		mediaRouteActionProvider.setRouteSelector(mMediaRouteSelector);
+		mediaRouteActionProvider
+				.setDialogFactory(new MediaRouteDialogFactory());
+		mMediaRouterCallback = new MyMediaRouterCallback();
+
+		mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback,
+				MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
 
 		return true;
 	}
@@ -701,19 +751,34 @@ public class MainActivity extends DocumentActivity implements
 
 	@Override
 	protected void onStop() {
-		super.onStop();
+		if (mMediaRouter != null) {
+			mMediaRouter.removeCallback(mMediaRouterCallback);
+		}
 
 		billingHelper.dispose();
 
 		EasyTracker.getInstance().activityStop(this);
+
+		super.onStop();
 	}
 
 	@Override
 	protected void onDestroy() {
-		super.onDestroy();
+		if (mSession != null) {
+			try {
+				if (!mSession.hasStopped()) {
+					mSession.endSession();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		mSession = null;
 
 		if (adView != null)
 			adView.destroy();
+
+		super.onDestroy();
 	}
 
 	public String getPublicKey() {
@@ -772,5 +837,109 @@ public class MainActivity extends DocumentActivity implements
 				new Exception(error));
 
 		analytics.sendException(error.getMessage(), error, false);
+	}
+
+	@Override
+	public void onDeviceAvailable(CastDevice device, String arg1,
+			MediaRouteStateChangeListener arg2) {
+		mSelectedDevice = device;
+		openSession();
+	}
+
+	@Override
+	public void onSetVolume(double arg0) {
+		// doesn't make sense for presentations
+	}
+
+	@Override
+	public void onUpdateVolume(double arg0) {
+		// doesn't make sense for presentations
+	}
+
+	/**
+	 * Starts a new video playback session with the current CastContext and
+	 * selected device.
+	 */
+	private void openSession() {
+		mSession = new ApplicationSession(mCastContext, mSelectedDevice);
+
+		// TODO: The below lines allow you to specify either that your
+		// application uses the default
+		// implementations of the Notification and Lock Screens, or that you
+		// will be using your own.
+		int flags = 0;
+
+		// Comment out the below line if you are not writing your own
+		// Notification Screen.
+		// flags |= ApplicationSession.FLAG_DISABLE_NOTIFICATION;
+
+		// Comment out the below line if you are not writing your own Lock
+		// Screen.
+		// flags |= ApplicationSession.FLAG_DISABLE_LOCK_SCREEN_REMOTE_CONTROL;
+		mSession.setApplicationOptions(flags);
+
+		mSession.setListener(new com.google.cast.ApplicationSession.Listener() {
+
+			@Override
+			public void onSessionStarted(ApplicationMetadata appMetadata) {
+				ApplicationChannel channel = mSession.getChannel();
+				if (channel == null) {
+					return;
+				}
+				mMessageStream = new MediaProtocolMessageStream();
+				channel.attachMessageStream(mMessageStream);
+
+				if (mMessageStream.getPlayerState() == null) {
+					// TODO: loadMedia()
+				}
+			}
+
+			@Override
+			public void onSessionStartFailed(SessionError error) {
+			}
+
+			@Override
+			public void onSessionEnded(SessionError error) {
+			}
+		});
+		try {
+			// TODO: To run your own copy of the receiver, you will need to set
+			// app_name in
+			// /res/strings.xml to your own appID, and then upload the provided
+			// receiver
+			// to the url that you whitelisted for your app.
+			// The current value of app_name is "YOUR_APP_ID_HERE".
+			mSession.startSession(getString(R.string.app_name));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * A callback class which listens for route select or unselect events and
+	 * processes devices and sessions accordingly.
+	 */
+	private class MyMediaRouterCallback extends MediaRouter.Callback {
+
+		@Override
+		public void onRouteSelected(MediaRouter router, RouteInfo route) {
+			MediaRouteHelper.requestCastDeviceForRoute(route);
+		}
+
+		@Override
+		public void onRouteUnselected(MediaRouter router, RouteInfo route) {
+			try {
+				if (mSession != null) {
+					mSession.setStopApplicationWhenEnding(false);
+					mSession.endSession();
+				}
+			} catch (IllegalStateException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			mMessageStream = null;
+			mSelectedDevice = null;
+		}
 	}
 }
