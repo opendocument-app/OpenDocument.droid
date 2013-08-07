@@ -23,21 +23,20 @@ import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
+import android.support.v7.view.ActionMode;
 import android.text.Editable;
 import android.text.Selection;
 import android.text.Spannable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
 import android.webkit.WebView.FindListener;
 import android.widget.EditText;
 import at.tomtasche.reader.R;
-
-import com.actionbarsherlock.view.ActionMode;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class FindActionModeCallback implements ActionMode.Callback,

@@ -17,7 +17,11 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.Loader;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBar.Tab;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -33,10 +37,6 @@ import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
 
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.ActionBar.Tab;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
 import com.bugsense.trace.BugSenseHandler;
 import com.devspark.appmsg.AppMsg;
 import com.github.jberkel.pay.me.IabHelper;
@@ -328,7 +328,7 @@ public class MainActivity extends DocumentActivity implements
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 
-		getSupportMenuInflater().inflate(R.menu.menu_main, menu);
+		getMenuInflater().inflate(R.menu.menu_main, menu);
 
 		return true;
 	}
@@ -344,7 +344,7 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	@Override
-	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.menu_recent: {
 			FragmentTransaction transaction = getSupportFragmentManager()
@@ -386,7 +386,7 @@ public class MainActivity extends DocumentActivity implements
 						this);
 				findActionModeCallback.setWebView(getPageFragment()
 						.getPageView());
-				startActionMode(findActionModeCallback);
+				startSupportActionMode(findActionModeCallback);
 			}
 
 			analytics.sendEvent("ui", "search", "start", null);
@@ -591,7 +591,7 @@ public class MainActivity extends DocumentActivity implements
 		case R.id.menu_tts: {
 			ttsActionMode = new TtsActionModeCallback(this, getPageFragment()
 					.getPageView());
-			startActionMode(ttsActionMode);
+			startSupportActionMode(ttsActionMode);
 
 			analytics.sendEvent("ui", "tts", null, null);
 
@@ -604,9 +604,12 @@ public class MainActivity extends DocumentActivity implements
 
 			analytics.sendEvent("ui", "google+", null, null);
 		}
+		default: {
+			return super.onOptionsItemSelected(item);
+		}
 		}
 
-		return super.onMenuItemSelected(featureId, item);
+		return true;
 	}
 
 	private void removeAds() {

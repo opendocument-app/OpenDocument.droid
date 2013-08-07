@@ -3,10 +3,7 @@
 	url = git://github.com/TomTasche/aFileChooser.git
 [submodule "Android-AppMsg"]
 	path = Android-AppMsg
-	url = git://github.com/johnkil/Android-AppMsg.git
-[submodule "ActionBarSherlock"]
-	path = ActionBarSherlock
-	url = git://github.com/TomTasche/ActionBarSherlock.git
+	url = git://github.com/TomTasche/Android-AppMsg.git
 [submodule "odf2html"]
 	path = odf2html
 	url = git://github.com/andiwand/odf2html.git
@@ -15,4 +12,4 @@
 	url = git://github.com/TomTasche/pay-me.git
 [submodule "Android-RateThisApp"]
 	path = Android-RateThisApp
-	url = git://github.com/kskkbys/Android-RateThisApp.git
+	url = git://github.com/TomTasche/Android-RateThisApp.git

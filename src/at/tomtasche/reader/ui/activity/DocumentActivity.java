@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
+import android.support.v7.app.ActionBarActivity;
 import android.text.InputType;
 import android.util.Log;
 import android.view.View;
@@ -33,10 +34,9 @@ import at.tomtasche.reader.background.UpLoader;
 import at.tomtasche.reader.ui.widget.PageFragment;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 
-import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.devspark.appmsg.AppMsg;
 
-public abstract class DocumentActivity extends SherlockFragmentActivity
+public abstract class DocumentActivity extends ActionBarActivity
 		implements LoaderCallbacks<Document>, DocumentLoadingActivity {
 
 	private static final String EXTRA_URI = "uri";
