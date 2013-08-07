@@ -13,3 +13,12 @@
 [submodule "Android-RateThisApp"]
 	path = Android-RateThisApp
 	url = git://github.com/TomTasche/Android-RateThisApp.git
+[submodule "android-support-v7"]
+	path = android-support-v7
+	url = git://github.com/TomTasche/android-support-v7.git
+[submodule "Chromecast"]
+	path = Chromecast
+	url = git://github.com/TomTasche/Chromecast.git
+[submodule "android-support-v7-mediarouter"]
+	path = android-support-v7-mediarouter
+	url = git://github.com/TomTasche/android-support-v7-mediarouter.git
