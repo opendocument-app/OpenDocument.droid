@@ -22,48 +22,35 @@ limitations under the License.
 
     cast.receiver.logger.setLevelValue(0);
     
+    var iframe;
+    
     // Initialize and start the media playing receiver
     var receiver = new cast.receiver.Receiver(
-        'YOUR_APP_ID_HERE', 
+        'OpenDocumentReader', 
         [cast.receiver.RemoteMedia.NAMESPACE],
         "",
         5);
     var remoteMedia = new cast.receiver.RemoteMedia();
     remoteMedia.addChannelFactory(
         receiver.createChannelFactory(cast.receiver.RemoteMedia.NAMESPACE));
+    
+    remoteMedia.onLoad = function(channel, message) {
+    	iframe.src = message.src;
+    	
+        var status = document.getElementById('status');
+        status.style.display = 'none';
+    }
 
     receiver.start();
 
     window.addEventListener('load', function() {
-      var elem = document.getElementById('vid');
-      remoteMedia.setMediaElement(elem);
-
-      var checkStatus = function() {
-        var status = document.getElementById('status');
-        var st = remoteMedia.getStatus()['state'];
-        
-        if( st == 0 || remoteMedia.getStatus()['current_time'] == 0 ) {
-            status.style.display = 'block';
-        }
-        else {
-            if( st == 1 && remoteMedia.getStatus()['current_time'] > 0 ) {
-                status.innerHTML = 'Paused...';
-                status.style.display = 'block';
-            }
-            else {
-                status.innerHTML = remoteMedia.getStatus()['current_time'];
-                status.style.display = 'none';
-                elem.style.display = 'block';
-            }
-        }
-      }
-      setInterval(checkStatus, 1000);
+      iframe = document.getElementById('doc');
     });
   </script>
-  <title>Media Player App</title>
+  <title>OpenDocument Reader</title>
   <body>
-    <video id="vid"
-           style="position:absolute;top:0;left:0;height:100%;width:100%">
+    <iframe id="doc"
+           style="position:absolute;top:0;left:0;height:100%;width:100%;border:0">
     <div id="status" style="display:none; font-size:300%; position:absolute;top:40%;left:40%;">
       <img src="/images/chrome_loading.gif" width="60%">
     </div>

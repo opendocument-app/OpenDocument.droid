@@ -76,6 +76,9 @@ import com.google.cast.MediaRouteStateChangeListener;
 import com.google.cast.SessionError;
 import com.kskkbys.rate.RateThisApp;
 
+import fi.iki.elonen.ServerRunner;
+import fi.iki.elonen.SimpleWebServer;
+
 public class MainActivity extends DocumentActivity implements
 		ActionBar.TabListener, LoadingListener, AdListener, MediaRouteAdapter {
 
@@ -890,7 +893,7 @@ public class MainActivity extends DocumentActivity implements
 				channel.attachMessageStream(mMessageStream);
 
 				if (mMessageStream.getPlayerState() == null) {
-					// TODO: loadMedia()
+					loadMedia();
 				}
 			}
 
@@ -902,6 +905,7 @@ public class MainActivity extends DocumentActivity implements
 			public void onSessionEnded(SessionError error) {
 			}
 		});
+
 		try {
 			// TODO: To run your own copy of the receiver, you will need to set
 			// app_name in
@@ -909,7 +913,42 @@ public class MainActivity extends DocumentActivity implements
 			// receiver
 			// to the url that you whitelisted for your app.
 			// The current value of app_name is "YOUR_APP_ID_HERE".
-			mSession.startSession(getString(R.string.app_name));
+			mSession.startSession("OpenDocumentReader");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Loads the stored media object and casts it to the currently selected
+	 * device.
+	 */
+	protected void loadMedia() {
+		mMetaData.setTitle("odr");
+		try {
+			new Thread() {
+
+				public void run() {
+					ServerRunner.executeInstance(new SimpleWebServer(null,
+							1993, getCacheDir(), false));
+				}
+			}.start();
+
+			// TODO: replace IP
+			MediaProtocolCommand cmd = mMessageStream.loadMedia(
+					"http://192.168.1.8:1993/temp.html", mMetaData, true);
+			cmd.setListener(new MediaProtocolCommand.Listener() {
+
+				@Override
+				public void onCompleted(MediaProtocolCommand mPCommand) {
+				}
+
+				@Override
+				public void onCancelled(MediaProtocolCommand mPCommand) {
+				}
+			});
+		} catch (IllegalStateException e) {
+			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
