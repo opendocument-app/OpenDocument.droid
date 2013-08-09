@@ -50,8 +50,10 @@ public class AndroidFileCache extends DefaultFileCache {
 
 			URI result = null;
 			try {
-				result = new URI("content://at.tomtasche.reader/"
-						+ Uri.encode(imageFileName));
+				result = new URI(
+				// use relative paths (important for chromecast-support)
+				// "content://at.tomtasche.reader/" +
+						Uri.encode(imageFileName));
 			} catch (URISyntaxException e) {
 				e.printStackTrace();
 			}

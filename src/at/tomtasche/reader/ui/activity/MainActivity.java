@@ -98,6 +98,7 @@ public class MainActivity extends DocumentActivity implements
 	private int lastPosition;
 	private boolean fullscreen;
 
+	private Page currentPage;
 	// private List<DocumentPresentation> presentations;
 
 	private IabHelper billingHelper;
@@ -117,8 +118,6 @@ public class MainActivity extends DocumentActivity implements
 	private MediaRouter mMediaRouter;
 	private MediaRouteSelector mMediaRouteSelector;
 	private MediaRouter.Callback mMediaRouterCallback;
-	private MediaProtocolCommand mStatus;
-	private RouteInfo mCurrentRoute;
 
 	private SimpleWebServer simpleWebServer;
 
@@ -717,10 +716,14 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	private void showPage(Page page) {
+		currentPage = page;
+
 		getPageFragment().loadPage(page);
 
 		// if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
 		// loadPageOnMultiscreens(page);
+
+		loadMedia(page);
 	}
 
 	public void findDocument() {
@@ -910,9 +913,7 @@ public class MainActivity extends DocumentActivity implements
 					mMessageStream = new MediaProtocolMessageStream();
 					channel.attachMessageStream(mMessageStream);
 
-					if (mMessageStream.getPlayerState() == null) {
-						loadMedia();
-					}
+					loadMedia(currentPage);
 				} catch (IOException e) {
 					// TODO: show crouton
 					e.printStackTrace();
@@ -973,13 +974,18 @@ public class MainActivity extends DocumentActivity implements
 	 * Loads the stored media object and casts it to the currently selected
 	 * device.
 	 */
-	protected void loadMedia() {
+	protected void loadMedia(Page page) {
+		if (mMessageStream == null) {
+			return;
+		}
+
 		mMetaData.setTitle("odr");
 		try {
 			String ip = getLocalIpAddress();
+			String fileName = page.getUri().getLastPathSegment();
 
 			MediaProtocolCommand cmd = mMessageStream.loadMedia("http://" + ip
-					+ ":1993/temp.html", mMetaData, true);
+					+ ":1993/" + fileName, mMetaData, true);
 			cmd.setListener(new MediaProtocolCommand.Listener() {
 
 				@Override
