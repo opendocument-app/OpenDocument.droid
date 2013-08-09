@@ -35,6 +35,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.BillingPreferences;
 import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.Document.Page;
@@ -76,7 +77,6 @@ import com.google.cast.MediaRouteStateChangeListener;
 import com.google.cast.SessionError;
 import com.kskkbys.rate.RateThisApp;
 
-import fi.iki.elonen.ServerRunner;
 import fi.iki.elonen.SimpleWebServer;
 
 public class MainActivity extends DocumentActivity implements
@@ -115,6 +115,8 @@ public class MainActivity extends DocumentActivity implements
 	private MediaRouter.Callback mMediaRouterCallback;
 	private MediaProtocolCommand mStatus;
 	private RouteInfo mCurrentRoute;
+
+	private SimpleWebServer simpleWebServer;
 
 	// @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	// public class DocumentPresentation extends Presentation implements
@@ -758,6 +760,10 @@ public class MainActivity extends DocumentActivity implements
 			mMediaRouter.removeCallback(mMediaRouterCallback);
 		}
 
+		if (simpleWebServer != null) {
+			simpleWebServer.stop();
+		}
+
 		billingHelper.dispose();
 
 		EasyTracker.getInstance().activityStop(this);
@@ -889,11 +895,23 @@ public class MainActivity extends DocumentActivity implements
 				if (channel == null) {
 					return;
 				}
-				mMessageStream = new MediaProtocolMessageStream();
-				channel.attachMessageStream(mMessageStream);
 
-				if (mMessageStream.getPlayerState() == null) {
-					loadMedia();
+				try {
+					simpleWebServer = new SimpleWebServer(null, 1993,
+							AndroidFileCache
+									.getCacheDirectory(MainActivity.this),
+							false);
+					simpleWebServer.start();
+
+					mMessageStream = new MediaProtocolMessageStream();
+					channel.attachMessageStream(mMessageStream);
+
+					if (mMessageStream.getPlayerState() == null) {
+						loadMedia();
+					}
+				} catch (IOException e) {
+					// TODO: show crouton
+					e.printStackTrace();
 				}
 			}
 
@@ -903,6 +921,9 @@ public class MainActivity extends DocumentActivity implements
 
 			@Override
 			public void onSessionEnded(SessionError error) {
+				if (simpleWebServer != null) {
+					simpleWebServer.stop();
+				}
 			}
 		});
 
@@ -926,17 +947,9 @@ public class MainActivity extends DocumentActivity implements
 	protected void loadMedia() {
 		mMetaData.setTitle("odr");
 		try {
-			new Thread() {
-
-				public void run() {
-					ServerRunner.executeInstance(new SimpleWebServer(null,
-							1993, getCacheDir(), false));
-				}
-			}.start();
-
 			// TODO: replace IP
 			MediaProtocolCommand cmd = mMessageStream.loadMedia(
-					"http://192.168.1.8:1993/temp.html", mMetaData, true);
+					"http://192.168.1.7:1993/temp.html", mMetaData, true);
 			cmd.setListener(new MediaProtocolCommand.Listener() {
 
 				@Override
