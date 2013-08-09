@@ -1,7 +1,11 @@
 package at.tomtasche.reader.ui.activity;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 import android.app.AlertDialog;
@@ -940,6 +944,31 @@ public class MainActivity extends DocumentActivity implements
 		}
 	}
 
+	// taken from: http://stackoverflow.com/a/1720431/198996
+	public String getLocalIpAddress() {
+		try {
+			for (Enumeration<NetworkInterface> en = NetworkInterface
+					.getNetworkInterfaces(); en.hasMoreElements();) {
+				NetworkInterface intf = en.nextElement();
+				for (Enumeration<InetAddress> enumIpAddr = intf
+						.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+					InetAddress inetAddress = enumIpAddr.nextElement();
+
+					String address = inetAddress.getHostAddress().toString();
+					// filter loopback and ipv6
+					if (!inetAddress.isLoopbackAddress()
+							&& !address.contains(":")) {
+						return address;
+					}
+				}
+			}
+		} catch (SocketException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
+	}
+
 	/**
 	 * Loads the stored media object and casts it to the currently selected
 	 * device.
@@ -947,9 +976,10 @@ public class MainActivity extends DocumentActivity implements
 	protected void loadMedia() {
 		mMetaData.setTitle("odr");
 		try {
-			// TODO: replace IP
-			MediaProtocolCommand cmd = mMessageStream.loadMedia(
-					"http://192.168.1.7:1993/temp.html", mMetaData, true);
+			String ip = getLocalIpAddress();
+
+			MediaProtocolCommand cmd = mMessageStream.loadMedia("http://" + ip
+					+ ":1993/temp.html", mMetaData, true);
 			cmd.setListener(new MediaProtocolCommand.Listener() {
 
 				@Override
