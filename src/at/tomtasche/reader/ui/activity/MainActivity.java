@@ -379,8 +379,6 @@ public class MainActivity extends DocumentActivity implements
 		MediaRouteActionProvider mediaRouteActionProvider = (MediaRouteActionProvider) MenuItemCompat
 				.getActionProvider(menu.findItem(R.id.media_route_menu_item));
 		mediaRouteActionProvider.setRouteSelector(mMediaRouteSelector);
-
-		mediaRouteActionProvider.setRouteSelector(mMediaRouteSelector);
 		mediaRouteActionProvider
 				.setDialogFactory(new MediaRouteDialogFactory());
 		mMediaRouterCallback = new MyMediaRouterCallback();
@@ -767,10 +765,6 @@ public class MainActivity extends DocumentActivity implements
 			mMediaRouter.removeCallback(mMediaRouterCallback);
 		}
 
-		if (simpleWebServer != null) {
-			simpleWebServer.stop();
-		}
-
 		billingHelper.dispose();
 
 		EasyTracker.getInstance().activityStop(this);
@@ -780,6 +774,14 @@ public class MainActivity extends DocumentActivity implements
 
 	@Override
 	protected void onDestroy() {
+		if (simpleWebServer != null) {
+			simpleWebServer.stop();
+		}
+
+		if (adView != null) {
+			adView.destroy();
+		}
+
 		if (mSession != null) {
 			try {
 				if (!mSession.hasStopped()) {
@@ -790,9 +792,6 @@ public class MainActivity extends DocumentActivity implements
 			}
 		}
 		mSession = null;
-
-		if (adView != null)
-			adView.destroy();
 
 		super.onDestroy();
 	}
@@ -879,19 +878,15 @@ public class MainActivity extends DocumentActivity implements
 	private void openSession() {
 		mSession = new ApplicationSession(mCastContext, mSelectedDevice);
 
-		// TODO: The below lines allow you to specify either that your
-		// application uses the default
-		// implementations of the Notification and Lock Screens, or that you
-		// will be using your own.
 		int flags = 0;
 
 		// Comment out the below line if you are not writing your own
 		// Notification Screen.
-		// flags |= ApplicationSession.FLAG_DISABLE_NOTIFICATION;
+		flags |= ApplicationSession.FLAG_DISABLE_NOTIFICATION;
 
 		// Comment out the below line if you are not writing your own Lock
 		// Screen.
-		// flags |= ApplicationSession.FLAG_DISABLE_LOCK_SCREEN_REMOTE_CONTROL;
+		flags |= ApplicationSession.FLAG_DISABLE_LOCK_SCREEN_REMOTE_CONTROL;
 		mSession.setApplicationOptions(flags);
 
 		mSession.setListener(new com.google.cast.ApplicationSession.Listener() {
@@ -904,41 +899,38 @@ public class MainActivity extends DocumentActivity implements
 				}
 
 				try {
-					simpleWebServer = new SimpleWebServer(null, 1993,
-							AndroidFileCache
-									.getCacheDirectory(MainActivity.this),
-							false);
-					simpleWebServer.start();
+					if (simpleWebServer == null) {
+						simpleWebServer = new SimpleWebServer(null, 1993,
+								AndroidFileCache
+										.getCacheDirectory(MainActivity.this),
+								true);
+						simpleWebServer.start();
+					}
 
 					mMessageStream = new MediaProtocolMessageStream();
 					channel.attachMessageStream(mMessageStream);
 
 					loadMedia(currentPage);
 				} catch (IOException e) {
-					// TODO: show crouton
 					e.printStackTrace();
+
+					showCrouton(R.string.chromecast_failed, null,
+							AppMsg.STYLE_ALERT);
 				}
 			}
 
 			@Override
 			public void onSessionStartFailed(SessionError error) {
+				showCrouton(R.string.chromecast_failed, null,
+						AppMsg.STYLE_ALERT);
 			}
 
 			@Override
 			public void onSessionEnded(SessionError error) {
-				if (simpleWebServer != null) {
-					simpleWebServer.stop();
-				}
 			}
 		});
 
 		try {
-			// TODO: To run your own copy of the receiver, you will need to set
-			// app_name in
-			// /res/strings.xml to your own appID, and then upload the provided
-			// receiver
-			// to the url that you whitelisted for your app.
-			// The current value of app_name is "YOUR_APP_ID_HERE".
 			mSession.startSession("OpenDocumentReader");
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -996,10 +988,10 @@ public class MainActivity extends DocumentActivity implements
 				public void onCancelled(MediaProtocolCommand mPCommand) {
 				}
 			});
-		} catch (IllegalStateException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+
+			showCrouton(R.string.chromecast_failed, null, AppMsg.STYLE_ALERT);
 		}
 	}
 

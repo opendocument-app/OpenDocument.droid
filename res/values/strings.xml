@@ -65,5 +65,6 @@
         <item>forever</item>
         <item>temporarily</item>
     </string-array>
+        <string name="chromecast_failed">Connection to Chromecast failed</string>
 
 </resources>
