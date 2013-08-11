@@ -931,7 +931,7 @@ public class MainActivity extends DocumentActivity implements
 		});
 
 		try {
-			mSession.startSession("OpenDocumentReader");
+			mSession.startSession("c529f89e-2377-48fb-b949-b753d9094119");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
