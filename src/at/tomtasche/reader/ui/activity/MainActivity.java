@@ -46,6 +46,11 @@ import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
 
+import com.amazon.device.ads.AdError;
+import com.amazon.device.ads.AdLayout;
+import com.amazon.device.ads.AdProperties;
+import com.amazon.device.ads.AdRegistration;
+import com.amazon.device.ads.AdTargetingOptions;
 import com.bugsense.trace.BugSenseHandler;
 import com.devspark.appmsg.AppMsg;
 import com.github.jberkel.pay.me.IabHelper;
@@ -81,7 +86,8 @@ import com.kskkbys.rate.RateThisApp;
 import fi.iki.elonen.SimpleWebServer;
 
 public class MainActivity extends DocumentActivity implements
-		ActionBar.TabListener, LoadingListener, AdListener, MediaRouteAdapter {
+		ActionBar.TabListener, LoadingListener, AdListener,
+		com.amazon.device.ads.AdListener, MediaRouteAdapter {
 
 	private int PURCHASE_CODE = 1337;
 
@@ -90,7 +96,7 @@ public class MainActivity extends DocumentActivity implements
 
 	private static final String EXTRA_TAB_POSITION = "tab_position";
 
-	private AdView adView;
+	private View madView;
 
 	private int lastPosition;
 	private boolean fullscreen;
@@ -118,6 +124,8 @@ public class MainActivity extends DocumentActivity implements
 
 	private SimpleWebServer simpleWebServer;
 
+	private LinearLayout adContainer;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -135,6 +143,8 @@ public class MainActivity extends DocumentActivity implements
 
 		EasyTracker.getInstance().activityStart(this);
 		analytics = EasyTracker.getTracker();
+
+		adContainer = (LinearLayout) findViewById(R.id.ad_container);
 
 		if (savedInstanceState != null) {
 			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
@@ -160,7 +170,7 @@ public class MainActivity extends DocumentActivity implements
 
 						@Override
 						public void run() {
-							showAds();
+							showAmazonAds();
 
 							showCrouton(
 									getString(R.string.crouton_error_billing),
@@ -186,7 +196,7 @@ public class MainActivity extends DocumentActivity implements
 											if (purchased) {
 												removeAds();
 											} else {
-												showAds();
+												showAmazonAds();
 											}
 
 											billingPreferences
@@ -204,24 +214,74 @@ public class MainActivity extends DocumentActivity implements
 		});
 	}
 
-	private void showAds() {
-		adView = new AdView(MainActivity.this, AdSize.SMART_BANNER,
-				"a15042277f73506");
-		adView.setAdListener(this);
-		adView.loadAd(new AdRequest());
+	private void showAds(View adView) {
+		this.madView = adView;
+
+		adContainer.removeAllViews();
 
 		LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT,
 				LayoutParams.MATCH_PARENT);
-		((LinearLayout) findViewById(R.id.ad_container))
-				.addView(adView, params);
-
-		showCrouton(R.string.consume_ad, null, AppMsg.STYLE_CONFIRM);
+		adContainer.addView(adView, params);
 
 		analytics.sendEvent("monetization", "ads", "show", null);
 	}
 
+	private void showAmazonAds() {
+		AdRegistration.setAppKey("eb900b26936d42e780bba6041ed7e400");
+
+		AdLayout adView = new AdLayout(this);
+		adView.setListener(this);
+
+		showAds(adView);
+
+		adView.loadAd(new AdTargetingOptions());
+	}
+
+	private void showGoogleAds() {
+		AdView adView = new AdView(MainActivity.this, AdSize.SMART_BANNER,
+				"a15042277f73506");
+		adView.setAdListener(this);
+		adView.loadAd(new AdRequest());
+
+		showAds(adView);
+	}
+
+	private void adLoaded() {
+		showCrouton(R.string.consume_ad, null, AppMsg.STYLE_CONFIRM);
+	}
+
+	// amazon
+	@Override
+	public void onAdCollapsed(AdLayout arg0) {
+	}
+
+	@Override
+	public void onAdExpanded(AdLayout arg0) {
+		removeAds();
+	}
+
+	@Override
+	public void onAdFailedToLoad(AdLayout arg0, AdError arg1) {
+		((AdLayout) madView).destroy();
+
+		showGoogleAds();
+	}
+
+	@Override
+	public void onAdLoaded(AdLayout arg0, AdProperties arg1) {
+		adLoaded();
+
+		// seems to be necessary - otherwise the view won't show up at all
+		adContainer.invalidate();
+		adContainer.requestLayout();
+
+		analytics.sendEvent("monetization", "ads", "amazon", null);
+	}
+
+	// admob
 	@Override
 	public void onDismissScreen(Ad arg0) {
+		// user returned from AdActivity
 		removeAds();
 	}
 
@@ -239,6 +299,9 @@ public class MainActivity extends DocumentActivity implements
 
 	@Override
 	public void onReceiveAd(Ad arg0) {
+		adLoaded();
+
+		analytics.sendEvent("monetization", "ads", "google", null);
 	}
 
 	@Override
@@ -595,8 +658,8 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	private void removeAds() {
-		if (adView != null)
-			adView.setVisibility(View.GONE);
+		if (madView != null)
+			madView.setVisibility(View.GONE);
 
 		analytics.sendEvent("monetization", "ads", "hide", null);
 	}
@@ -704,8 +767,12 @@ public class MainActivity extends DocumentActivity implements
 			simpleWebServer.stop();
 		}
 
-		if (adView != null) {
-			adView.destroy();
+		if (madView != null) {
+			if (madView instanceof AdView) {
+				((AdView) madView).destroy();
+			} else if (madView instanceof AdLayout) {
+				((AdLayout) madView).destroy();
+			}
 		}
 
 		if (mSession != null) {

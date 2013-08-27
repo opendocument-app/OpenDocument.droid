@@ -133,6 +133,10 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:excludeFromRecents="true" />
         <activity
+            android:name="com.amazon.device.ads.AdActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:excludeFromRecents="true" />
+        <activity
             android:name="at.tomtasche.reader.ui.activity.ShortcutActivity"
             android:excludeFromRecents="true"
             android:icon="@drawable/icon"
