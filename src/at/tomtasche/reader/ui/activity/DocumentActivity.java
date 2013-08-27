@@ -21,8 +21,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
-import at.andiwand.odf2html.odf.IllegalMimeTypeException;
-import at.andiwand.odf2html.odf.ZipEntryNotFoundException;
+import at.stefl.opendocument.java.odf.IllegalMimeTypeException;
+import at.stefl.opendocument.java.odf.UnsupportedMimeTypeException;
+import at.stefl.opendocument.java.odf.ZipEntryNotFoundException;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.DocumentLoader;
@@ -36,8 +37,8 @@ import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 
 import com.devspark.appmsg.AppMsg;
 
-public abstract class DocumentActivity extends ActionBarActivity
-		implements LoaderCallbacks<Document>, DocumentLoadingActivity {
+public abstract class DocumentActivity extends ActionBarActivity implements
+		LoaderCallbacks<Document>, DocumentLoadingActivity {
 
 	private static final String EXTRA_URI = "uri";
 	private static final String EXTRA_LIMIT = "limit";
@@ -280,7 +281,8 @@ public abstract class DocumentActivity extends ActionBarActivity
 			return;
 		} else if (error instanceof IllegalMimeTypeException
 				|| error instanceof ZipException
-				|| error instanceof ZipEntryNotFoundException) {
+				|| error instanceof ZipEntryNotFoundException
+				|| error instanceof UnsupportedMimeTypeException) {
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setTitle(R.string.toast_error_illegal_file);
 			builder.setMessage(R.string.dialog_upload_file);

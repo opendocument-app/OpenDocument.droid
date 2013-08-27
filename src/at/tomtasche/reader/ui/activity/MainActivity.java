@@ -22,11 +22,8 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.Loader;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
-import android.support.v7.app.MediaRouteActionProvider;
-import android.support.v7.app.MediaRouteDialogFactory;
 import android.support.v7.media.MediaRouteSelector;
 import android.support.v7.media.MediaRouter;
 import android.support.v7.media.MediaRouter.RouteInfo;
@@ -121,46 +118,6 @@ public class MainActivity extends DocumentActivity implements
 
 	private SimpleWebServer simpleWebServer;
 
-	// @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-	// public class DocumentPresentation extends Presentation implements
-	// LoadingListener {
-	//
-	// private PageView pageView;
-	//
-	// public DocumentPresentation(Context outerContext, Display display) {
-	// super(outerContext, display);
-	// }
-	//
-	// @Override
-	// protected void onCreate(Bundle savedInstanceState) {
-	// super.onCreate(savedInstanceState);
-	//
-	// pageView = new PageView(getContext());
-	// pageView.loadData(
-	// getContext().getString(R.string.message_get_started),
-	// "text/plain", PageView.ENCODING);
-	//
-	// pageView.setLayoutParams(new LinearLayout.LayoutParams(
-	// LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-	//
-	// setContentView(pageView);
-	// }
-	//
-	// @Override
-	// public void onSuccess(Document document, Uri uri) {
-	// }
-	//
-	// @Override
-	// public void onError(Throwable error, Uri uri) {
-	// // trolololo :)
-	// pageView.loadUrl("http://goo.gl/HgQJc");
-	// }
-	//
-	// public void loadPage(Page page) {
-	// pageView.loadUrl(page.getUrl());
-	// }
-	// }
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -175,13 +132,6 @@ public class MainActivity extends DocumentActivity implements
 		// .penaltyLog().penaltyDeath().build());
 
 		BugSenseHandler.initAndStartSession(this, "efe5d68e");
-
-		// presentations = new LinkedList<MainActivity.DocumentPresentation>();
-		// TODO: fix zoom
-		// TODO: listen for connected / disconnected displays:
-		// http://blog.stylingandroid.com/archives/1440
-		// if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
-		// multiscreen();
 
 		EasyTracker.getInstance().activityStart(this);
 		analytics = EasyTracker.getTracker();
@@ -328,32 +278,6 @@ public class MainActivity extends DocumentActivity implements
 		}
 	}
 
-	// @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-	// private void multiscreen() {
-	// DisplayManager displayManager = (DisplayManager)
-	// getSystemService(DISPLAY_SERVICE);
-	// if (displayManager != null) {
-	// Display[] displays = displayManager
-	// .getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
-	// for (Display display : displays) {
-	// DocumentPresentation presentation = new DocumentPresentation(
-	// this, display);
-	// presentation.show();
-	//
-	// addLoadingListener(presentation);
-	//
-	// presentations.add(presentation);
-	// }
-	// }
-	// }
-
-	// @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-	// private void loadPageOnMultiscreens(Page page) {
-	// for (DocumentPresentation presentation : presentations) {
-	// presentation.loadPage(page);
-	// }
-	// }
-
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
@@ -368,23 +292,25 @@ public class MainActivity extends DocumentActivity implements
 
 		getMenuInflater().inflate(R.menu.menu_main, menu);
 
-		mCastContext = new CastContext(getApplicationContext());
-		mMetaData = new ContentMetadata();
-
-		MediaRouteHelper.registerMinimalMediaRouteProvider(mCastContext, this);
-		mMediaRouter = MediaRouter.getInstance(getApplicationContext());
-		mMediaRouteSelector = MediaRouteHelper
-				.buildMediaRouteSelector(MediaRouteHelper.CATEGORY_CAST);
-
-		MediaRouteActionProvider mediaRouteActionProvider = (MediaRouteActionProvider) MenuItemCompat
-				.getActionProvider(menu.findItem(R.id.media_route_menu_item));
-		mediaRouteActionProvider.setRouteSelector(mMediaRouteSelector);
-		mediaRouteActionProvider
-				.setDialogFactory(new MediaRouteDialogFactory());
-		mMediaRouterCallback = new MyMediaRouterCallback();
-
-		mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback,
-				MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
+		// mCastContext = new CastContext(getApplicationContext());
+		// mMetaData = new ContentMetadata();
+		//
+		// MediaRouteHelper.registerMinimalMediaRouteProvider(mCastContext,
+		// this);
+		// mMediaRouter = MediaRouter.getInstance(getApplicationContext());
+		// mMediaRouteSelector = MediaRouteHelper
+		// .buildMediaRouteSelector(MediaRouteHelper.CATEGORY_CAST);
+		//
+		// MediaRouteActionProvider mediaRouteActionProvider =
+		// (MediaRouteActionProvider) MenuItemCompat
+		// .getActionProvider(menu.findItem(R.id.media_route_menu_item));
+		// mediaRouteActionProvider.setRouteSelector(mMediaRouteSelector);
+		// mediaRouteActionProvider
+		// .setDialogFactory(new MediaRouteDialogFactory());
+		// mMediaRouterCallback = new MyMediaRouterCallback();
+		//
+		// mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback,
+		// MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
 
 		return true;
 	}

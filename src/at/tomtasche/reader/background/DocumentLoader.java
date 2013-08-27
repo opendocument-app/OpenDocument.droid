@@ -11,23 +11,22 @@ import java.util.List;
 import android.content.Context;
 import android.net.Uri;
 import android.support.v4.content.AsyncTaskLoader;
-import at.andiwand.commons.lwxml.writer.LWXMLMultiWriter;
-import at.andiwand.commons.lwxml.writer.LWXMLStreamWriter;
-import at.andiwand.commons.lwxml.writer.LWXMLWriter;
-import at.andiwand.commons.math.vector.Vector2i;
-import at.andiwand.odf2html.odf.IllegalMimeTypeException;
-import at.andiwand.odf2html.odf.OpenDocument;
-import at.andiwand.odf2html.odf.OpenDocumentPresentation;
-import at.andiwand.odf2html.odf.OpenDocumentSpreadsheet;
-import at.andiwand.odf2html.odf.OpenDocumentText;
-import at.andiwand.odf2html.odf.TemporaryOpenDocumentFile;
-import at.andiwand.odf2html.translator.document.BulkDocumentTranslator;
-import at.andiwand.odf2html.translator.document.BulkPresentationTranslator;
-import at.andiwand.odf2html.translator.document.BulkSpreadsheetTranslator;
-import at.andiwand.odf2html.translator.document.DocumentTranslator;
-import at.andiwand.odf2html.translator.document.PresentationTranslator;
-import at.andiwand.odf2html.translator.document.SpreadsheetTranslator;
-import at.andiwand.odf2html.translator.document.TextTranslator;
+import at.stefl.commons.lwxml.writer.LWXMLMultiWriter;
+import at.stefl.commons.lwxml.writer.LWXMLStreamWriter;
+import at.stefl.commons.lwxml.writer.LWXMLWriter;
+import at.stefl.commons.math.vector.Vector2i;
+import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
+import at.stefl.opendocument.java.odf.OpenDocument;
+import at.stefl.opendocument.java.odf.OpenDocumentPresentation;
+import at.stefl.opendocument.java.odf.OpenDocumentSpreadsheet;
+import at.stefl.opendocument.java.odf.OpenDocumentText;
+import at.stefl.opendocument.java.translator.document.BulkPresentationTranslator;
+import at.stefl.opendocument.java.translator.document.BulkSpreadsheetTranslator;
+import at.stefl.opendocument.java.translator.document.DocumentTranslator;
+import at.stefl.opendocument.java.translator.document.GenericBulkDocumentTranslator;
+import at.stefl.opendocument.java.translator.document.TextTranslator;
+import at.stefl.opendocument.java.translator.settings.ImageStoreMode;
+import at.stefl.opendocument.java.translator.settings.TranslationSettings;
 import at.tomtasche.reader.background.Document.Page;
 
 public class DocumentLoader extends AsyncTaskLoader<Document> implements
@@ -41,7 +40,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 	private boolean limit;
 	private String password;
 	private Document document;
-	private DocumentTranslator<?> translator;
+	private DocumentTranslator translator;
 
 	// support File parameter too (saves us from copying the file
 	// unnecessarily)!
@@ -77,8 +76,9 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 
 	@Override
 	public double getProgress() {
-		if (translator != null)
-			return translator.getProgress();
+		// TODO: add progress again
+		// if (translator != null)
+		// return translator.getProgress();
 
 		return 0;
 	}
@@ -118,7 +118,8 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 	@Override
 	public Document loadInBackground() {
 		InputStream stream = null;
-		TemporaryOpenDocumentFile documentFile = null;
+
+		LocatedOpenDocumentFile documentFile = null;
 		try {
 			// cleanup uri
 			if ("/./".equals(uri.toString().substring(0, 2))) {
@@ -147,12 +148,10 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			}
 
 			AndroidFileCache cache = new AndroidFileCache(getContext());
-			documentFile = new TemporaryOpenDocumentFile(stream, cache);
 
-			String mimeType = documentFile.getMimetype();
-			if (!OpenDocument.checkMimetype(mimeType)) {
-				throw new IllegalMimeTypeException();
-			}
+			String cachedFileName = cache.create(stream);
+			documentFile = new LocatedOpenDocumentFile(
+					cache.getFile(cachedFileName));
 
 			if (documentFile.isEncrypted()) {
 				if (password == null)
@@ -165,15 +164,24 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 
 			document = new Document();
 			OpenDocument openDocument = documentFile.getAsDocument();
+
+			TranslationSettings settings = new TranslationSettings();
+			settings.setCache(cache);
+			settings.setImageStoreMode(ImageStoreMode.CACHE);
+			if (limit) {
+				settings.setMaxTableDimension(new Vector2i(300, 50));
+				document.setLimited(true);
+			}
+
 			if (openDocument instanceof OpenDocumentText) {
-				File htmlFile = cache.getFile("temp.html");
+				File htmlFile = cache.create("temp.html");
 				FileWriter fileWriter = new FileWriter(htmlFile);
 				BufferedWriter writer = new BufferedWriter(fileWriter);
 				LWXMLWriter out = new LWXMLStreamWriter(writer);
 				try {
-					TextTranslator textTranslator = new TextTranslator(cache);
-					this.translator = textTranslator;
-					textTranslator.translate(openDocument, out);
+					translator = new TextTranslator();
+
+					translator.translate(openDocument, out, settings);
 				} finally {
 					out.close();
 					writer.close();
@@ -185,32 +193,17 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 				List<String> pageNames = null;
 				int count = 0;
 				if (openDocument instanceof OpenDocumentSpreadsheet) {
-					OpenDocumentSpreadsheet spreadsheet = openDocument
-							.getAsSpreadsheet();
+					translator = new BulkSpreadsheetTranslator();
 
-					SpreadsheetTranslator spreadsheetTranslator = new SpreadsheetTranslator(
-							cache);
-					if (limit) {
-						spreadsheetTranslator
-								.setMaxTableDimension(new Vector2i(300, 50));
-						document.setLimited(true);
-					}
-
-					translator = new BulkSpreadsheetTranslator(
-							spreadsheetTranslator);
+					OpenDocumentSpreadsheet spreadsheet = (OpenDocumentSpreadsheet) openDocument;
 
 					count = spreadsheet.getTableCount();
 					pageNames = new ArrayList<String>(
 							spreadsheet.getTableNames());
 				} else if (openDocument instanceof OpenDocumentPresentation) {
-					OpenDocumentPresentation presentation = documentFile
-							.getAsPresentation();
+					translator = new BulkPresentationTranslator();
 
-					PresentationTranslator presentationTranslator = new PresentationTranslator(
-							cache);
-
-					translator = new BulkPresentationTranslator(
-							presentationTranslator);
+					OpenDocumentPresentation presentation = (OpenDocumentPresentation) openDocument;
 
 					count = presentation.getPageCount();
 					pageNames = new ArrayList<String>(
@@ -219,9 +212,10 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 
 				LWXMLMultiWriter writer = null;
 				try {
-					writer = ((BulkDocumentTranslator<?>) translator)
-							.provideOutput(openDocument, "temp", ".html");
-					translator.translate(openDocument, writer);
+					writer = GenericBulkDocumentTranslator.provideOutput(
+							openDocument, cache, "temp", ".html");
+
+					translator.translate(openDocument, writer, settings);
 				} finally {
 					if (writer != null)
 						writer.close();
