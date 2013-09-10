@@ -6,14 +6,13 @@ import android.content.Context;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
+import android.support.v7.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.webkit.JavascriptInterface;
 import android.widget.TextView;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.ui.widget.PageView;
-
-import com.actionbarsherlock.view.ActionMode;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
 
 public class TtsActionModeCallback implements ActionMode.Callback,
 		OnInitListener, ParagraphListener, OnUtteranceCompletedListener {

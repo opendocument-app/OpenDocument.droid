@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -102,6 +103,10 @@ public class Document implements Parcelable {
 
 		public String getUrl() {
 			return url;
+		}
+
+		public Uri getUri() {
+			return Uri.parse(url);
 		}
 
 		public int getIndex() {

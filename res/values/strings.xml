@@ -58,11 +58,13 @@
     <string name="tts_next">Next</string>
     <string name="tts_previous">Previous</string>
     <string name="consume_ad">Consuming an ad will remove them for a while</string>
+    <string name="media_route_menu_title">External Display</string>
 
     <string-array name="remove_ads_options">
         <item>for one year</item>
         <item>forever</item>
         <item>temporarily</item>
     </string-array>
+        <string name="chromecast_failed">Connection to Chromecast failed</string>
 
 </resources>
