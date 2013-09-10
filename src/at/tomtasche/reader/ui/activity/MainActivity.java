@@ -1,6 +1,11 @@
 package at.tomtasche.reader.ui.activity;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 import android.app.AlertDialog;
@@ -17,13 +22,21 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.Loader;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBar.Tab;
+import android.support.v7.media.MediaRouteSelector;
+import android.support.v7.media.MediaRouter;
+import android.support.v7.media.MediaRouter.RouteInfo;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.BillingPreferences;
 import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.Document.Page;
@@ -33,10 +46,11 @@ import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
 
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.ActionBar.Tab;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
+import com.amazon.device.ads.AdError;
+import com.amazon.device.ads.AdLayout;
+import com.amazon.device.ads.AdProperties;
+import com.amazon.device.ads.AdRegistration;
+import com.amazon.device.ads.AdTargetingOptions;
 import com.bugsense.trace.BugSenseHandler;
 import com.devspark.appmsg.AppMsg;
 import com.github.jberkel.pay.me.IabHelper;
@@ -55,10 +69,25 @@ import com.google.ads.AdSize;
 import com.google.ads.AdView;
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.Tracker;
+import com.google.cast.ApplicationChannel;
+import com.google.cast.ApplicationMetadata;
+import com.google.cast.ApplicationSession;
+import com.google.cast.CastContext;
+import com.google.cast.CastDevice;
+import com.google.cast.ContentMetadata;
+import com.google.cast.MediaProtocolCommand;
+import com.google.cast.MediaProtocolMessageStream;
+import com.google.cast.MediaRouteAdapter;
+import com.google.cast.MediaRouteHelper;
+import com.google.cast.MediaRouteStateChangeListener;
+import com.google.cast.SessionError;
 import com.kskkbys.rate.RateThisApp;
 
+import fi.iki.elonen.SimpleWebServer;
+
 public class MainActivity extends DocumentActivity implements
-		ActionBar.TabListener, LoadingListener, AdListener {
+		ActionBar.TabListener, LoadingListener, AdListener,
+		com.amazon.device.ads.AdListener, MediaRouteAdapter {
 
 	private int PURCHASE_CODE = 1337;
 
@@ -67,11 +96,12 @@ public class MainActivity extends DocumentActivity implements
 
 	private static final String EXTRA_TAB_POSITION = "tab_position";
 
-	private AdView adView;
+	private View madView;
 
 	private int lastPosition;
 	private boolean fullscreen;
 
+	private Page currentPage;
 	// private List<DocumentPresentation> presentations;
 
 	private IabHelper billingHelper;
@@ -83,45 +113,18 @@ public class MainActivity extends DocumentActivity implements
 
 	private long loadingStartTime;
 
-	// @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-	// public class DocumentPresentation extends Presentation implements
-	// LoadingListener {
-	//
-	// private PageView pageView;
-	//
-	// public DocumentPresentation(Context outerContext, Display display) {
-	// super(outerContext, display);
-	// }
-	//
-	// @Override
-	// protected void onCreate(Bundle savedInstanceState) {
-	// super.onCreate(savedInstanceState);
-	//
-	// pageView = new PageView(getContext());
-	// pageView.loadData(
-	// getContext().getString(R.string.message_get_started),
-	// "text/plain", PageView.ENCODING);
-	//
-	// pageView.setLayoutParams(new LinearLayout.LayoutParams(
-	// LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-	//
-	// setContentView(pageView);
-	// }
-	//
-	// @Override
-	// public void onSuccess(Document document, Uri uri) {
-	// }
-	//
-	// @Override
-	// public void onError(Throwable error, Uri uri) {
-	// // trolololo :)
-	// pageView.loadUrl("http://goo.gl/HgQJc");
-	// }
-	//
-	// public void loadPage(Page page) {
-	// pageView.loadUrl(page.getUrl());
-	// }
-	// }
+	private CastContext mCastContext = null;
+	private CastDevice mSelectedDevice;
+	private ContentMetadata mMetaData;
+	private ApplicationSession mSession;
+	private MediaProtocolMessageStream mMessageStream;
+	private MediaRouter mMediaRouter;
+	private MediaRouteSelector mMediaRouteSelector;
+	private MediaRouter.Callback mMediaRouterCallback;
+
+	private SimpleWebServer simpleWebServer;
+
+	private LinearLayout adContainer;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -138,15 +141,10 @@ public class MainActivity extends DocumentActivity implements
 
 		BugSenseHandler.initAndStartSession(this, "efe5d68e");
 
-		// presentations = new LinkedList<MainActivity.DocumentPresentation>();
-		// TODO: fix zoom
-		// TODO: listen for connected / disconnected displays:
-		// http://blog.stylingandroid.com/archives/1440
-		// if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
-		// multiscreen();
-
 		EasyTracker.getInstance().activityStart(this);
 		analytics = EasyTracker.getTracker();
+
+		adContainer = (LinearLayout) findViewById(R.id.ad_container);
 
 		if (savedInstanceState != null) {
 			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
@@ -172,7 +170,7 @@ public class MainActivity extends DocumentActivity implements
 
 						@Override
 						public void run() {
-							showAds();
+							showAmazonAds();
 
 							showCrouton(
 									getString(R.string.crouton_error_billing),
@@ -198,7 +196,7 @@ public class MainActivity extends DocumentActivity implements
 											if (purchased) {
 												removeAds();
 											} else {
-												showAds();
+												showAmazonAds();
 											}
 
 											billingPreferences
@@ -216,24 +214,74 @@ public class MainActivity extends DocumentActivity implements
 		});
 	}
 
-	private void showAds() {
-		adView = new AdView(MainActivity.this, AdSize.SMART_BANNER,
-				"a15042277f73506");
-		adView.setAdListener(this);
-		adView.loadAd(new AdRequest());
+	private void showAds(View adView) {
+		this.madView = adView;
+
+		adContainer.removeAllViews();
 
 		LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT,
 				LayoutParams.MATCH_PARENT);
-		((LinearLayout) findViewById(R.id.ad_container))
-				.addView(adView, params);
-
-		showCrouton(R.string.consume_ad, null, AppMsg.STYLE_CONFIRM);
+		adContainer.addView(adView, params);
 
 		analytics.sendEvent("monetization", "ads", "show", null);
 	}
 
+	private void showAmazonAds() {
+		AdRegistration.setAppKey("eb900b26936d42e780bba6041ed7e400");
+
+		AdLayout adView = new AdLayout(this);
+		adView.setListener(this);
+
+		showAds(adView);
+
+		adView.loadAd(new AdTargetingOptions());
+	}
+
+	private void showGoogleAds() {
+		AdView adView = new AdView(MainActivity.this, AdSize.SMART_BANNER,
+				"a15042277f73506");
+		adView.setAdListener(this);
+		adView.loadAd(new AdRequest());
+
+		showAds(adView);
+	}
+
+	private void adLoaded() {
+		showCrouton(R.string.consume_ad, null, AppMsg.STYLE_CONFIRM);
+	}
+
+	// amazon
+	@Override
+	public void onAdCollapsed(AdLayout arg0) {
+	}
+
+	@Override
+	public void onAdExpanded(AdLayout arg0) {
+		removeAds();
+	}
+
+	@Override
+	public void onAdFailedToLoad(AdLayout arg0, AdError arg1) {
+		((AdLayout) madView).destroy();
+
+		showGoogleAds();
+	}
+
+	@Override
+	public void onAdLoaded(AdLayout arg0, AdProperties arg1) {
+		adLoaded();
+
+		// seems to be necessary - otherwise the view won't show up at all
+		adContainer.invalidate();
+		adContainer.requestLayout();
+
+		analytics.sendEvent("monetization", "ads", "amazon", null);
+	}
+
+	// admob
 	@Override
 	public void onDismissScreen(Ad arg0) {
+		// user returned from AdActivity
 		removeAds();
 	}
 
@@ -251,6 +299,9 @@ public class MainActivity extends DocumentActivity implements
 
 	@Override
 	public void onReceiveAd(Ad arg0) {
+		adLoaded();
+
+		analytics.sendEvent("monetization", "ads", "google", null);
 	}
 
 	@Override
@@ -290,32 +341,6 @@ public class MainActivity extends DocumentActivity implements
 		}
 	}
 
-	// @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-	// private void multiscreen() {
-	// DisplayManager displayManager = (DisplayManager)
-	// getSystemService(DISPLAY_SERVICE);
-	// if (displayManager != null) {
-	// Display[] displays = displayManager
-	// .getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
-	// for (Display display : displays) {
-	// DocumentPresentation presentation = new DocumentPresentation(
-	// this, display);
-	// presentation.show();
-	//
-	// addLoadingListener(presentation);
-	//
-	// presentations.add(presentation);
-	// }
-	// }
-	// }
-
-	// @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-	// private void loadPageOnMultiscreens(Page page) {
-	// for (DocumentPresentation presentation : presentations) {
-	// presentation.loadPage(page);
-	// }
-	// }
-
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
@@ -328,7 +353,27 @@ public class MainActivity extends DocumentActivity implements
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 
-		getSupportMenuInflater().inflate(R.menu.menu_main, menu);
+		getMenuInflater().inflate(R.menu.menu_main, menu);
+
+		// mCastContext = new CastContext(getApplicationContext());
+		// mMetaData = new ContentMetadata();
+		//
+		// MediaRouteHelper.registerMinimalMediaRouteProvider(mCastContext,
+		// this);
+		// mMediaRouter = MediaRouter.getInstance(getApplicationContext());
+		// mMediaRouteSelector = MediaRouteHelper
+		// .buildMediaRouteSelector(MediaRouteHelper.CATEGORY_CAST);
+		//
+		// MediaRouteActionProvider mediaRouteActionProvider =
+		// (MediaRouteActionProvider) MenuItemCompat
+		// .getActionProvider(menu.findItem(R.id.media_route_menu_item));
+		// mediaRouteActionProvider.setRouteSelector(mMediaRouteSelector);
+		// mediaRouteActionProvider
+		// .setDialogFactory(new MediaRouteDialogFactory());
+		// mMediaRouterCallback = new MyMediaRouterCallback();
+		//
+		// mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback,
+		// MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
 
 		return true;
 	}
@@ -344,7 +389,7 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	@Override
-	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.menu_recent: {
 			FragmentTransaction transaction = getSupportFragmentManager()
@@ -386,7 +431,7 @@ public class MainActivity extends DocumentActivity implements
 						this);
 				findActionModeCallback.setWebView(getPageFragment()
 						.getPageView());
-				startActionMode(findActionModeCallback);
+				startSupportActionMode(findActionModeCallback);
 			}
 
 			analytics.sendEvent("ui", "search", "start", null);
@@ -591,7 +636,7 @@ public class MainActivity extends DocumentActivity implements
 		case R.id.menu_tts: {
 			ttsActionMode = new TtsActionModeCallback(this, getPageFragment()
 					.getPageView());
-			startActionMode(ttsActionMode);
+			startSupportActionMode(ttsActionMode);
 
 			analytics.sendEvent("ui", "tts", null, null);
 
@@ -604,14 +649,17 @@ public class MainActivity extends DocumentActivity implements
 
 			analytics.sendEvent("ui", "google+", null, null);
 		}
+		default: {
+			return super.onOptionsItemSelected(item);
+		}
 		}
 
-		return super.onMenuItemSelected(featureId, item);
+		return true;
 	}
 
 	private void removeAds() {
-		if (adView != null)
-			adView.setVisibility(View.GONE);
+		if (madView != null)
+			madView.setVisibility(View.GONE);
 
 		analytics.sendEvent("monetization", "ads", "hide", null);
 	}
@@ -655,10 +703,14 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	private void showPage(Page page) {
+		currentPage = page;
+
 		getPageFragment().loadPage(page);
 
 		// if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
 		// loadPageOnMultiscreens(page);
+
+		loadMedia(page);
 	}
 
 	public void findDocument() {
@@ -698,19 +750,43 @@ public class MainActivity extends DocumentActivity implements
 
 	@Override
 	protected void onStop() {
-		super.onStop();
+		if (mMediaRouter != null) {
+			mMediaRouter.removeCallback(mMediaRouterCallback);
+		}
 
 		billingHelper.dispose();
 
 		EasyTracker.getInstance().activityStop(this);
+
+		super.onStop();
 	}
 
 	@Override
 	protected void onDestroy() {
-		super.onDestroy();
+		if (simpleWebServer != null) {
+			simpleWebServer.stop();
+		}
 
-		if (adView != null)
-			adView.destroy();
+		if (madView != null) {
+			if (madView instanceof AdView) {
+				((AdView) madView).destroy();
+			} else if (madView instanceof AdLayout) {
+				((AdLayout) madView).destroy();
+			}
+		}
+
+		if (mSession != null) {
+			try {
+				if (!mSession.hasStopped()) {
+					mSession.endSession();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		mSession = null;
+
+		super.onDestroy();
 	}
 
 	public String getPublicKey() {
@@ -769,5 +845,174 @@ public class MainActivity extends DocumentActivity implements
 				new Exception(error));
 
 		analytics.sendException(error.getMessage(), error, false);
+	}
+
+	@Override
+	public void onDeviceAvailable(CastDevice device, String arg1,
+			MediaRouteStateChangeListener arg2) {
+		mSelectedDevice = device;
+		openSession();
+	}
+
+	@Override
+	public void onSetVolume(double arg0) {
+		// doesn't make sense for presentations
+	}
+
+	@Override
+	public void onUpdateVolume(double arg0) {
+		// doesn't make sense for presentations
+	}
+
+	/**
+	 * Starts a new video playback session with the current CastContext and
+	 * selected device.
+	 */
+	private void openSession() {
+		mSession = new ApplicationSession(mCastContext, mSelectedDevice);
+
+		int flags = 0;
+
+		// Comment out the below line if you are not writing your own
+		// Notification Screen.
+		flags |= ApplicationSession.FLAG_DISABLE_NOTIFICATION;
+
+		// Comment out the below line if you are not writing your own Lock
+		// Screen.
+		flags |= ApplicationSession.FLAG_DISABLE_LOCK_SCREEN_REMOTE_CONTROL;
+		mSession.setApplicationOptions(flags);
+
+		mSession.setListener(new com.google.cast.ApplicationSession.Listener() {
+
+			@Override
+			public void onSessionStarted(ApplicationMetadata appMetadata) {
+				ApplicationChannel channel = mSession.getChannel();
+				if (channel == null) {
+					return;
+				}
+
+				try {
+					if (simpleWebServer == null) {
+						simpleWebServer = new SimpleWebServer(null, 1993,
+								AndroidFileCache
+										.getCacheDirectory(MainActivity.this),
+								true);
+						simpleWebServer.start();
+					}
+
+					mMessageStream = new MediaProtocolMessageStream();
+					channel.attachMessageStream(mMessageStream);
+
+					loadMedia(currentPage);
+				} catch (IOException e) {
+					e.printStackTrace();
+
+					showCrouton(R.string.chromecast_failed, null,
+							AppMsg.STYLE_ALERT);
+				}
+			}
+
+			@Override
+			public void onSessionStartFailed(SessionError error) {
+				showCrouton(R.string.chromecast_failed, null,
+						AppMsg.STYLE_ALERT);
+			}
+
+			@Override
+			public void onSessionEnded(SessionError error) {
+			}
+		});
+
+		try {
+			mSession.startSession("c529f89e-2377-48fb-b949-b753d9094119");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// taken from: http://stackoverflow.com/a/1720431/198996
+	public String getLocalIpAddress() {
+		try {
+			for (Enumeration<NetworkInterface> en = NetworkInterface
+					.getNetworkInterfaces(); en.hasMoreElements();) {
+				NetworkInterface intf = en.nextElement();
+				for (Enumeration<InetAddress> enumIpAddr = intf
+						.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+					InetAddress inetAddress = enumIpAddr.nextElement();
+
+					String address = inetAddress.getHostAddress().toString();
+					// filter loopback and ipv6
+					if (!inetAddress.isLoopbackAddress()
+							&& !address.contains(":")) {
+						return address;
+					}
+				}
+			}
+		} catch (SocketException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * Loads the stored media object and casts it to the currently selected
+	 * device.
+	 */
+	protected void loadMedia(Page page) {
+		if (mMessageStream == null) {
+			return;
+		}
+
+		mMetaData.setTitle("odr");
+		try {
+			String ip = getLocalIpAddress();
+			String fileName = page.getUri().getLastPathSegment();
+
+			MediaProtocolCommand cmd = mMessageStream.loadMedia("http://" + ip
+					+ ":1993/" + fileName, mMetaData, true);
+			cmd.setListener(new MediaProtocolCommand.Listener() {
+
+				@Override
+				public void onCompleted(MediaProtocolCommand mPCommand) {
+				}
+
+				@Override
+				public void onCancelled(MediaProtocolCommand mPCommand) {
+				}
+			});
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			showCrouton(R.string.chromecast_failed, null, AppMsg.STYLE_ALERT);
+		}
+	}
+
+	/**
+	 * A callback class which listens for route select or unselect events and
+	 * processes devices and sessions accordingly.
+	 */
+	private class MyMediaRouterCallback extends MediaRouter.Callback {
+
+		@Override
+		public void onRouteSelected(MediaRouter router, RouteInfo route) {
+			MediaRouteHelper.requestCastDeviceForRoute(route);
+		}
+
+		@Override
+		public void onRouteUnselected(MediaRouter router, RouteInfo route) {
+			try {
+				if (mSession != null) {
+					mSession.setStopApplicationWhenEnding(false);
+					mSession.endSession();
+				}
+			} catch (IllegalStateException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			mMessageStream = null;
+			mSelectedDevice = null;
+		}
 	}
 }

@@ -1,56 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
 
+    <item
+        android:id="@+id/media_route_menu_item"
+        android:title="@string/media_route_menu_title"
+        app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
+        app:showAsAction="always"/>
     <item
         android:id="@+id/menu_recent"
         android:icon="@drawable/ic_action_heart"
-        android:showAsAction="always"
+        app:showAsAction="ifRoom"
         android:title="@string/menu_open"/>
     <item
         android:id="@+id/menu_open"
         android:icon="@drawable/ic_action_folder_open"
-        android:showAsAction="always"
+        app:showAsAction="ifRoom"
         android:title="@string/menu_open"/>
     <item
         android:id="@+id/menu_search"
         android:icon="@drawable/ic_action_search"
-        android:showAsAction="always"
+        app:showAsAction="ifRoom"
         android:title="@string/menu_search"/>
     <item
         android:id="@+id/menu_fullscreen"
-        android:showAsAction="never"
+        app:showAsAction="never"
         android:title="@string/menu_fullscreen"/>
     <item
         android:id="@+id/menu_reload"
-        android:showAsAction="never"
+        app:showAsAction="never"
         android:title="@string/menu_reload"/>
     <item
         android:id="@+id/menu_remove_ads"
-        android:showAsAction="never"
+        app:showAsAction="never"
         android:title="@string/menu_remove_ads"/>
     <item
         android:id="@+id/menu_share"
-        android:showAsAction="never"
+        app:showAsAction="never"
         android:title="@string/menu_share"/>
     <item
         android:id="@+id/menu_feedback"
-        android:showAsAction="never"
+        app:showAsAction="never"
         android:title="@string/menu_feedback"/>
     <item
         android:id="@+id/menu_print"
-        android:showAsAction="never"
+        app:showAsAction="never"
         android:title="@string/menu_cloud_print"/>
     <item
         android:id="@+id/menu_tts"
-        android:showAsAction="never"
+        app:showAsAction="never"
         android:title="@string/menu_tts"/>
     <item
         android:id="@+id/menu_googleplus"
-        android:showAsAction="never"
+        app:showAsAction="never"
         android:title="Google+ Community"/>
     <item
         android:id="@+id/menu_about"
-        android:showAsAction="never"
+        app:showAsAction="never"
         android:title="@string/menu_about"/>
 
 </menu>

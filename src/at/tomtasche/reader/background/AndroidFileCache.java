@@ -7,8 +7,8 @@ import java.net.URISyntaxException;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
-import at.andiwand.odf2html.translator.File2URITranslator;
-import at.andiwand.odf2html.util.DefaultFileCache;
+import at.stefl.opendocument.java.translator.File2URITranslator;
+import at.stefl.opendocument.java.util.DefaultFileCache;
 
 public class AndroidFileCache extends DefaultFileCache {
 
@@ -50,8 +50,10 @@ public class AndroidFileCache extends DefaultFileCache {
 
 			URI result = null;
 			try {
-				result = new URI("content://at.tomtasche.reader/"
-						+ Uri.encode(imageFileName));
+				result = new URI(
+				// use relative paths (important for chromecast-support)
+				// "content://at.tomtasche.reader/" +
+						Uri.encode(imageFileName));
 			} catch (URISyntaxException e) {
 				e.printStackTrace();
 			}
