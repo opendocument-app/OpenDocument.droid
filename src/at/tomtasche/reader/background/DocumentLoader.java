@@ -165,10 +165,6 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			TranslationSettings settings = new TranslationSettings();
 			settings.setCache(cache);
 			settings.setImageStoreMode(ImageStoreMode.CACHE);
-			if (limit) {
-				settings.setMaxTableDimension(new Vector2i(300, 50));
-				document.setLimited(true);
-			}
 
 			if (openDocument instanceof OpenDocumentText) {
 				File htmlFile = cache.create("temp.html");
@@ -187,6 +183,12 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			} else {
 				GenericBulkDocumentTranslator<?, ?, ?> bulkTranslator = null;
 				if (openDocument instanceof OpenDocumentSpreadsheet) {
+					if (limit) {
+						settings.setMaxTableDimension(new Vector2i(300, 50));
+						settings.setMaxRowRepetition(25);
+						document.setLimited(true);
+					}
+
 					bulkTranslator = new BulkSpreadsheetTranslator();
 				} else if (openDocument instanceof OpenDocumentPresentation) {
 					bulkTranslator = new BulkPresentationTranslator();
