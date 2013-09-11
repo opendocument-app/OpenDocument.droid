@@ -1,18 +1,16 @@
 package at.tomtasche.reader.background;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 import android.content.Context;
 import android.net.Uri;
 import android.support.v4.content.AsyncTaskLoader;
+import at.stefl.commons.lwxml.writer.LWXMLStreamWriter;
 import at.stefl.commons.lwxml.writer.LWXMLWriter;
 import at.stefl.commons.math.vector.Vector2i;
-import at.stefl.commons.util.collection.OrderedPair;
 import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
 import at.stefl.opendocument.java.odf.OpenDocument;
 import at.stefl.opendocument.java.odf.OpenDocumentPresentation;
@@ -21,6 +19,7 @@ import at.stefl.opendocument.java.odf.OpenDocumentText;
 import at.stefl.opendocument.java.translator.document.BulkPresentationTranslator;
 import at.stefl.opendocument.java.translator.document.BulkSpreadsheetTranslator;
 import at.stefl.opendocument.java.translator.document.DocumentTranslatorUtil;
+import at.stefl.opendocument.java.translator.document.DocumentTranslatorUtil.BulkOutput;
 import at.stefl.opendocument.java.translator.document.GenericBulkDocumentTranslator;
 import at.stefl.opendocument.java.translator.document.GenericDocumentTranslator;
 import at.stefl.opendocument.java.translator.document.TextTranslator;
@@ -171,46 +170,45 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 				document.setLimited(true);
 			}
 
-			List<String> pageNames = null;
 			if (openDocument instanceof OpenDocumentText) {
-				pageNames = new LinkedList<String>();
-				pageNames.add("Document");
+				File htmlFile = cache.create("temp.html");
+				FileWriter writer = new FileWriter(htmlFile);
+				LWXMLWriter out = new LWXMLStreamWriter(writer);
+				try {
+					translator = new TextTranslator();
 
-				translator = new TextTranslator();
+					translator.translate(openDocument, out, settings);
+				} finally {
+					out.close();
+					writer.close();
+				}
+
+				document.addPage(new Page("Document", htmlFile.toURI(), 0));
 			} else {
 				GenericBulkDocumentTranslator<?, ?, ?> bulkTranslator = null;
 				if (openDocument instanceof OpenDocumentSpreadsheet) {
 					bulkTranslator = new BulkSpreadsheetTranslator();
-
-					OpenDocumentSpreadsheet spreadsheet = (OpenDocumentSpreadsheet) openDocument;
-
-					pageNames = new ArrayList<String>(
-							spreadsheet.getTableNames());
 				} else if (openDocument instanceof OpenDocumentPresentation) {
 					bulkTranslator = new BulkPresentationTranslator();
-
-					OpenDocumentPresentation presentation = (OpenDocumentPresentation) openDocument;
-
-					pageNames = new ArrayList<String>(
-							presentation.getPageNames());
 				}
 
 				translator = bulkTranslator;
-			}
 
-			OrderedPair<String[], LWXMLWriter> output = DocumentTranslatorUtil
-					.provideOutput(openDocument, cache, "temp", ".html");
-			try {
-				translator.translate(openDocument, output.getElement2(),
-						settings);
-			} finally {
-				output.getElement2().close();
-			}
+				BulkOutput output = DocumentTranslatorUtil.provideBulkOutput(
+						openDocument, cache, "temp", ".html");
+				try {
+					translator.translate(openDocument, output.getWriter(),
+							settings);
+				} finally {
+					output.getWriter().close();
+				}
 
-			for (int i = 0; i < output.getElement1().length; i++) {
-				File htmlFile = cache.getFile(output.getElement1()[i]);
+				for (int i = 0; i < output.getNames().size(); i++) {
+					File htmlFile = cache.getFile(output.getNames().get(i));
 
-				document.addPage(new Page(pageNames.get(i), htmlFile.toURI(), i));
+					document.addPage(new Page(output.getTitles().get(i),
+							htmlFile.toURI(), i));
+				}
 			}
 
 			return document;
