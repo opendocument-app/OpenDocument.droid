@@ -89,6 +89,8 @@ public class MainActivity extends DocumentActivity implements
 		ActionBar.TabListener, LoadingListener, AdListener,
 		com.amazon.device.ads.AdListener, MediaRouteAdapter {
 
+	private static final boolean AMAZON_RELEASE = false;
+
 	private int PURCHASE_CODE = 1337;
 
 	private static final String BILLING_PRODUCT_YEAR = "remove_ads_for_1y";
@@ -149,69 +151,79 @@ public class MainActivity extends DocumentActivity implements
 		if (savedInstanceState != null) {
 			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
 		} else if (getIntent().getData() == null) {
-			analytics.sendEvent("ui", "open", "google", null);
+			String provider;
+			if (AMAZON_RELEASE) {
+				provider = "amazon";
+			} else {
+				provider = "google";
+			}
+
+			analytics.sendEvent("ui", "open", provider, null);
 		}
 
 		addLoadingListener(this);
 
-		billingPreferences = new BillingPreferences(this);
+		if (!AMAZON_RELEASE) {
+			billingPreferences = new BillingPreferences(this);
 
-		billingHelper = new IabHelper(this, getPublicKey());
-		billingHelper.startSetup(new OnIabSetupFinishedListener() {
+			billingHelper = new IabHelper(this, getPublicKey());
+			billingHelper.startSetup(new OnIabSetupFinishedListener() {
 
-			@Override
-			public void onIabSetupFinished(IabResult result) {
-				if (billingPreferences.hasPurchased()) {
-					return;
-				}
+				@Override
+				public void onIabSetupFinished(IabResult result) {
+					if (billingPreferences.hasPurchased()) {
+						return;
+					}
 
-				if (result.isFailure()) {
-					runOnUiThread(new Runnable() {
+					if (result.isFailure()) {
+						runOnUiThread(new Runnable() {
 
-						@Override
-						public void run() {
-							showAmazonAds();
+							@Override
+							public void run() {
+								showAmazonAds();
 
-							showCrouton(
-									getString(R.string.crouton_error_billing),
-									null, AppMsg.STYLE_ALERT);
-						}
-					});
-				} else if (result.isSuccess()) {
-					// query every 30 days
-					if ((billingPreferences.getLastQueryTime() + 1000 * 60 * 60
-							* 24 * 30) < System.currentTimeMillis()) {
-						billingHelper
-								.queryInventoryAsync(new QueryInventoryFinishedListener() {
+								showCrouton(
+										getString(R.string.crouton_error_billing),
+										null, AppMsg.STYLE_ALERT);
+							}
+						});
+					} else if (result.isSuccess()) {
+						// query every 30 days
+						if ((billingPreferences.getLastQueryTime() + 1000 * 60
+								* 60 * 24 * 30) < System.currentTimeMillis()) {
+							billingHelper
+									.queryInventoryAsync(new QueryInventoryFinishedListener() {
 
-									@Override
-									public void onQueryInventoryFinished(
-											IabResult result, Inventory inv) {
-										if (result.isSuccess()) {
-											boolean purchased = inv
-													.getPurchase(BILLING_PRODUCT_FOREVER) != null;
-											purchased |= inv
-													.getPurchase(BILLING_PRODUCT_YEAR) != null;
+										@Override
+										public void onQueryInventoryFinished(
+												IabResult result, Inventory inv) {
+											if (result.isSuccess()) {
+												boolean purchased = inv
+														.getPurchase(BILLING_PRODUCT_FOREVER) != null;
+												purchased |= inv
+														.getPurchase(BILLING_PRODUCT_YEAR) != null;
 
-											if (purchased) {
-												removeAds();
-											} else {
-												showAmazonAds();
+												if (purchased) {
+													removeAds();
+												} else {
+													showAmazonAds();
+												}
+
+												billingPreferences
+														.setPurchased(purchased);
 											}
 
-											billingPreferences
-													.setPurchased(purchased);
+											billingPreferences.setLastQueryTime(System
+													.currentTimeMillis());
 										}
-
-										billingPreferences
-												.setLastQueryTime(System
-														.currentTimeMillis());
-									}
-								});
+									});
+						}
 					}
 				}
-			}
-		});
+			});
+		} else {
+			showAmazonAds();
+		}
 	}
 
 	private void showAds(View adView) {
@@ -448,71 +460,87 @@ public class MainActivity extends DocumentActivity implements
 		}
 
 		case R.id.menu_remove_ads: {
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle(R.string.dialog_remove_ads_title);
-			builder.setItems(R.array.remove_ads_options, new OnClickListener() {
+			if (!AMAZON_RELEASE) {
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setTitle(R.string.dialog_remove_ads_title);
+				builder.setItems(R.array.remove_ads_options,
+						new OnClickListener() {
 
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					String product = null;
+							@Override
+							public void onClick(DialogInterface dialog,
+									int which) {
+								String product = null;
 
-					switch (which) {
-					case 0:
-						product = BILLING_PRODUCT_YEAR;
+								switch (which) {
+								case 0:
+									product = BILLING_PRODUCT_YEAR;
 
-						break;
+									break;
 
-					case 1:
-						product = BILLING_PRODUCT_FOREVER;
+								case 1:
+									product = BILLING_PRODUCT_FOREVER;
 
-						break;
+									break;
 
-					default:
-						removeAds();
+								default:
+									removeAds();
 
-						dialog.dismiss();
+									dialog.dismiss();
 
-						return;
-					}
-
-					billingHelper.launchPurchaseFlow(MainActivity.this,
-							product, ItemType.INAPP, PURCHASE_CODE,
-							new OnIabPurchaseFinishedListener() {
-								public void onIabPurchaseFinished(
-										IabResult result, Purchase purchase) {
-									// remove ads even if the purchase failed /
-									// the user canceled the purchase
-									runOnUiThread(new Runnable() {
-
-										@Override
-										public void run() {
-											removeAds();
-										}
-									});
-
-									if (result.isSuccess()) {
-										billingPreferences.setPurchased(true);
-										billingPreferences
-												.setLastQueryTime(System
-														.currentTimeMillis());
-
-										analytics.sendEvent("monetization",
-												"in-app", purchase.getSku(),
-												null);
-									} else {
-										analytics.sendEvent("monetization",
-												"in-app", "abort", null);
-									}
+									return;
 								}
-							}, null);
 
-					analytics.sendEvent("monetization", "in-app", "attempt",
-							null);
+								billingHelper.launchPurchaseFlow(
+										MainActivity.this, product,
+										ItemType.INAPP, PURCHASE_CODE,
+										new OnIabPurchaseFinishedListener() {
+											public void onIabPurchaseFinished(
+													IabResult result,
+													Purchase purchase) {
+												// remove ads even if the
+												// purchase failed /
+												// the user canceled the
+												// purchase
+												runOnUiThread(new Runnable() {
 
-					dialog.dismiss();
-				}
-			});
-			builder.show();
+													@Override
+													public void run() {
+														removeAds();
+													}
+												});
+
+												if (result.isSuccess()) {
+													billingPreferences
+															.setPurchased(true);
+													billingPreferences
+															.setLastQueryTime(System
+																	.currentTimeMillis());
+
+													analytics.sendEvent(
+															"monetization",
+															"in-app",
+															purchase.getSku(),
+															null);
+												} else {
+													analytics.sendEvent(
+															"monetization",
+															"in-app", "abort",
+															null);
+												}
+											}
+										}, null);
+
+								analytics.sendEvent("monetization", "in-app",
+										"attempt", null);
+
+								dialog.dismiss();
+							}
+						});
+				builder.show();
+			} else {
+				showCrouton("Not available at the moment", null,
+						AppMsg.STYLE_ALERT);
+			}
 
 			break;
 		}
