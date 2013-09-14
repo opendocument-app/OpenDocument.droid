@@ -104,7 +104,6 @@ public class MainActivity extends DocumentActivity implements
 	private boolean fullscreen;
 
 	private Page currentPage;
-	// private List<DocumentPresentation> presentations;
 
 	private IabHelper billingHelper;
 	private BillingPreferences billingPreferences;
@@ -782,7 +781,9 @@ public class MainActivity extends DocumentActivity implements
 			mMediaRouter.removeCallback(mMediaRouterCallback);
 		}
 
-		billingHelper.dispose();
+		if (billingHelper != null) {
+			billingHelper.dispose();
+		}
 
 		EasyTracker.getInstance().activityStop(this);
 
