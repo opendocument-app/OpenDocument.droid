@@ -796,12 +796,22 @@ public class MainActivity extends DocumentActivity implements
 			simpleWebServer.stop();
 		}
 
-		if (madView != null) {
-			if (madView instanceof AdView) {
-				((AdView) madView).destroy();
-			} else if (madView instanceof AdLayout) {
-				((AdLayout) madView).destroy();
+		try {
+			// keeps throwing exceptions for some users:
+			//
+			// Caused by: java.lang.NullPointerException
+			// at android.webkit.WebViewClassic.requestFocus(WebViewClassic.java:9898)
+			// at android.webkit.WebView.requestFocus(WebView.java:2133)
+			// at android.view.ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
+			if (madView != null) {
+				if (madView instanceof AdView) {
+					((AdView) madView).destroy();
+				} else if (madView instanceof AdLayout) {
+					((AdLayout) madView).destroy();
+				}
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 		if (mSession != null) {
