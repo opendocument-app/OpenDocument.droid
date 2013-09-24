@@ -760,6 +760,10 @@ public class MainActivity extends DocumentActivity implements
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				ResolveInfo target = targets.get(which);
+				if (target == null) {
+					return;
+				}
+
 				intent.setComponent(new ComponentName(
 						target.activityInfo.packageName,
 						target.activityInfo.name));
@@ -798,11 +802,10 @@ public class MainActivity extends DocumentActivity implements
 
 		try {
 			// keeps throwing exceptions for some users:
-			//
 			// Caused by: java.lang.NullPointerException
-			// at android.webkit.WebViewClassic.requestFocus(WebViewClassic.java:9898)
-			// at android.webkit.WebView.requestFocus(WebView.java:2133)
-			// at android.view.ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
+			// android.webkit.WebViewClassic.requestFocus(WebViewClassic.java:9898)
+			// android.webkit.WebView.requestFocus(WebView.java:2133)
+			// android.view.ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
 			if (madView != null) {
 				if (madView instanceof AdView) {
 					((AdView) madView).destroy();

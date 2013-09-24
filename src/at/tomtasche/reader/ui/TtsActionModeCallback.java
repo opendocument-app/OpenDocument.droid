@@ -153,7 +153,13 @@ public class TtsActionModeCallback implements ActionMode.Callback,
 	@Override
 	@JavascriptInterface
 	public void end() {
-		statusView.setText("Finished.");
+		pageView.post(new Runnable() {
+
+			@Override
+			public void run() {
+				statusView.setText("Finished.");
+			}
+		});
 	}
 
 	@Override
