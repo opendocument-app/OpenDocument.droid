@@ -38,6 +38,8 @@
     <string name="menu_search">Search</string>
     <string name="menu_open">Open</string>
     <string name="menu_edit">Edit</string>
+    <string name="edit_save">Save</string>
+    <string name="edit_help">Help!?</string>
     <string name="menu_feedback">Feedback</string>
     <string name="menu_about">About</string>
     <string name="menu_remove_ads">Remove ads</string>
@@ -66,6 +68,7 @@
         <item>forever</item>
         <item>temporarily</item>
     </string-array>
-        <string name="chromecast_failed">Connection to Chromecast failed</string>
+
+    <string name="chromecast_failed">Connection to Chromecast failed</string>
 
 </resources>
