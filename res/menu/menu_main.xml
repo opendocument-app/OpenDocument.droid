@@ -8,55 +8,61 @@
         app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
         app:showAsAction="always"/>
     <item
+        android:id="@+id/menu_edit"
+        android:icon="@drawable/ic_action_edit"
+        android:title="@string/menu_edit"
+        app:showAsAction="ifRoom"/>
+    <item
         android:id="@+id/menu_recent"
         android:icon="@drawable/ic_action_heart"
-        app:showAsAction="ifRoom"
-        android:title="@string/menu_open"/>
+        android:title="@string/menu_open"
+        app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/menu_open"
         android:icon="@drawable/ic_action_folder_open"
-        app:showAsAction="ifRoom"
-        android:title="@string/menu_open"/>
+        android:title="@string/menu_open"
+        app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/menu_search"
         android:icon="@drawable/ic_action_search"
-        app:showAsAction="ifRoom"
-        android:title="@string/menu_search"/>
+        android:title="@string/menu_search"
+        app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/menu_fullscreen"
-        app:showAsAction="never"
-        android:title="@string/menu_fullscreen"/>
+        android:icon="@drawable/ic_action_expand"
+        android:title="@string/menu_fullscreen"
+        app:showAsAction="never"/>
     <item
         android:id="@+id/menu_reload"
-        app:showAsAction="never"
-        android:title="@string/menu_reload"/>
+        android:title="@string/menu_reload"
+        app:showAsAction="never"/>
     <item
         android:id="@+id/menu_remove_ads"
-        app:showAsAction="never"
-        android:title="@string/menu_remove_ads"/>
+        android:title="@string/menu_remove_ads"
+        app:showAsAction="never"/>
     <item
         android:id="@+id/menu_share"
-        app:showAsAction="never"
-        android:title="@string/menu_share"/>
+        android:title="@string/menu_share"
+        app:showAsAction="never"/>
     <item
         android:id="@+id/menu_feedback"
-        app:showAsAction="never"
-        android:title="@string/menu_feedback"/>
+        android:title="@string/menu_feedback"
+        app:showAsAction="never"/>
     <item
         android:id="@+id/menu_print"
-        app:showAsAction="never"
-        android:title="@string/menu_cloud_print"/>
+        android:title="@string/menu_cloud_print"
+        app:showAsAction="never"/>
     <item
         android:id="@+id/menu_tts"
-        app:showAsAction="never"
-        android:title="@string/menu_tts"/>
+        android:title="@string/menu_tts"
+        app:showAsAction="never"/>
     <item
         android:id="@+id/menu_googleplus"
-        app:showAsAction="never"
-        android:title="Google+ Community"/>
+        android:title="Google+ Community"
+        app:showAsAction="never"/>
     <item
         android:id="@+id/menu_about"
-        app:showAsAction="never"
-        android:title="@string/menu_about"/>
+        android:title="@string/menu_about"
+        app:showAsAction="never"/>
 
 </menu>

@@ -1,11 +1,6 @@
 package at.tomtasche.reader.ui.activity;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
 import android.app.AlertDialog;
@@ -24,9 +19,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
-import android.support.v7.media.MediaRouteSelector;
-import android.support.v7.media.MediaRouter;
-import android.support.v7.media.MediaRouter.RouteInfo;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,12 +28,12 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.BillingPreferences;
 import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.Document.Page;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.LoadingListener;
+import at.tomtasche.reader.ui.ChromecastManager;
 import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
@@ -69,25 +61,11 @@ import com.google.ads.AdSize;
 import com.google.ads.AdView;
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.Tracker;
-import com.google.cast.ApplicationChannel;
-import com.google.cast.ApplicationMetadata;
-import com.google.cast.ApplicationSession;
-import com.google.cast.CastContext;
-import com.google.cast.CastDevice;
-import com.google.cast.ContentMetadata;
-import com.google.cast.MediaProtocolCommand;
-import com.google.cast.MediaProtocolMessageStream;
-import com.google.cast.MediaRouteAdapter;
-import com.google.cast.MediaRouteHelper;
-import com.google.cast.MediaRouteStateChangeListener;
-import com.google.cast.SessionError;
 import com.kskkbys.rate.RateThisApp;
-
-import fi.iki.elonen.SimpleWebServer;
 
 public class MainActivity extends DocumentActivity implements
 		ActionBar.TabListener, LoadingListener, AdListener,
-		com.amazon.device.ads.AdListener, MediaRouteAdapter {
+		com.amazon.device.ads.AdListener {
 
 	private static final boolean AMAZON_RELEASE = false;
 
@@ -98,6 +76,7 @@ public class MainActivity extends DocumentActivity implements
 
 	private static final String EXTRA_TAB_POSITION = "tab_position";
 
+	private LinearLayout adContainer;
 	private View madView;
 
 	private int lastPosition;
@@ -111,21 +90,9 @@ public class MainActivity extends DocumentActivity implements
 	private TtsActionModeCallback ttsActionMode;
 
 	private Tracker analytics;
-
 	private long loadingStartTime;
 
-	private CastContext mCastContext = null;
-	private CastDevice mSelectedDevice;
-	private ContentMetadata mMetaData;
-	private ApplicationSession mSession;
-	private MediaProtocolMessageStream mMessageStream;
-	private MediaRouter mMediaRouter;
-	private MediaRouteSelector mMediaRouteSelector;
-	private MediaRouter.Callback mMediaRouterCallback;
-
-	private SimpleWebServer simpleWebServer;
-
-	private LinearLayout adContainer;
+	private ChromecastManager chromecast;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -223,6 +190,10 @@ public class MainActivity extends DocumentActivity implements
 		} else {
 			showAmazonAds();
 		}
+
+		chromecast = new ChromecastManager(this);
+		// disable until Chromecast SDK is final and stable
+		chromecast.setEnabled(false);
 	}
 
 	private void showAds(View adView) {
@@ -366,25 +337,7 @@ public class MainActivity extends DocumentActivity implements
 
 		getMenuInflater().inflate(R.menu.menu_main, menu);
 
-		// mCastContext = new CastContext(getApplicationContext());
-		// mMetaData = new ContentMetadata();
-		//
-		// MediaRouteHelper.registerMinimalMediaRouteProvider(mCastContext,
-		// this);
-		// mMediaRouter = MediaRouter.getInstance(getApplicationContext());
-		// mMediaRouteSelector = MediaRouteHelper
-		// .buildMediaRouteSelector(MediaRouteHelper.CATEGORY_CAST);
-		//
-		// MediaRouteActionProvider mediaRouteActionProvider =
-		// (MediaRouteActionProvider) MenuItemCompat
-		// .getActionProvider(menu.findItem(R.id.media_route_menu_item));
-		// mediaRouteActionProvider.setRouteSelector(mMediaRouteSelector);
-		// mediaRouteActionProvider
-		// .setDialogFactory(new MediaRouteDialogFactory());
-		// mMediaRouterCallback = new MyMediaRouterCallback();
-		//
-		// mMediaRouter.addCallback(mMediaRouteSelector, mMediaRouterCallback,
-		// MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
+		chromecast.onCreateOptionsMenu(menu);
 
 		return true;
 	}
@@ -676,6 +629,13 @@ public class MainActivity extends DocumentActivity implements
 
 			analytics.sendEvent("ui", "google+", null, null);
 		}
+		case R.id.menu_edit: {
+			editDocument();
+
+			analytics.sendEvent("ui", "edit", null, null);
+
+			break;
+		}
 		default: {
 			return super.onOptionsItemSelected(item);
 		}
@@ -737,7 +697,7 @@ public class MainActivity extends DocumentActivity implements
 		// if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
 		// loadPageOnMultiscreens(page);
 
-		loadMedia(page);
+		chromecast.load(page);
 	}
 
 	public void findDocument() {
@@ -781,9 +741,7 @@ public class MainActivity extends DocumentActivity implements
 
 	@Override
 	protected void onStop() {
-		if (mMediaRouter != null) {
-			mMediaRouter.removeCallback(mMediaRouterCallback);
-		}
+		chromecast.onStop();
 
 		if (billingHelper != null) {
 			billingHelper.dispose();
@@ -796,9 +754,7 @@ public class MainActivity extends DocumentActivity implements
 
 	@Override
 	protected void onDestroy() {
-		if (simpleWebServer != null) {
-			simpleWebServer.stop();
-		}
+		chromecast.onDestroy();
 
 		try {
 			// keeps throwing exceptions for some users:
@@ -816,17 +772,6 @@ public class MainActivity extends DocumentActivity implements
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		if (mSession != null) {
-			try {
-				if (!mSession.hasStopped()) {
-					mSession.endSession();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		mSession = null;
 
 		super.onDestroy();
 	}
@@ -889,172 +834,11 @@ public class MainActivity extends DocumentActivity implements
 		analytics.sendException(error.getMessage(), error, false);
 	}
 
-	@Override
-	public void onDeviceAvailable(CastDevice device, String arg1,
-			MediaRouteStateChangeListener arg2) {
-		mSelectedDevice = device;
-		openSession();
+	public Page getCurrentPage() {
+		return currentPage;
 	}
 
-	@Override
-	public void onSetVolume(double arg0) {
-		// doesn't make sense for presentations
-	}
+	private void editDocument() {
 
-	@Override
-	public void onUpdateVolume(double arg0) {
-		// doesn't make sense for presentations
-	}
-
-	/**
-	 * Starts a new video playback session with the current CastContext and
-	 * selected device.
-	 */
-	private void openSession() {
-		mSession = new ApplicationSession(mCastContext, mSelectedDevice);
-
-		int flags = 0;
-
-		// Comment out the below line if you are not writing your own
-		// Notification Screen.
-		flags |= ApplicationSession.FLAG_DISABLE_NOTIFICATION;
-
-		// Comment out the below line if you are not writing your own Lock
-		// Screen.
-		flags |= ApplicationSession.FLAG_DISABLE_LOCK_SCREEN_REMOTE_CONTROL;
-		mSession.setApplicationOptions(flags);
-
-		mSession.setListener(new com.google.cast.ApplicationSession.Listener() {
-
-			@Override
-			public void onSessionStarted(ApplicationMetadata appMetadata) {
-				ApplicationChannel channel = mSession.getChannel();
-				if (channel == null) {
-					return;
-				}
-
-				try {
-					if (simpleWebServer == null) {
-						simpleWebServer = new SimpleWebServer(null, 1993,
-								AndroidFileCache
-										.getCacheDirectory(MainActivity.this),
-								true);
-						simpleWebServer.start();
-					}
-
-					mMessageStream = new MediaProtocolMessageStream();
-					channel.attachMessageStream(mMessageStream);
-
-					loadMedia(currentPage);
-				} catch (IOException e) {
-					e.printStackTrace();
-
-					showCrouton(R.string.chromecast_failed, null,
-							AppMsg.STYLE_ALERT);
-				}
-			}
-
-			@Override
-			public void onSessionStartFailed(SessionError error) {
-				showCrouton(R.string.chromecast_failed, null,
-						AppMsg.STYLE_ALERT);
-			}
-
-			@Override
-			public void onSessionEnded(SessionError error) {
-			}
-		});
-
-		try {
-			mSession.startSession("c529f89e-2377-48fb-b949-b753d9094119");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	// taken from: http://stackoverflow.com/a/1720431/198996
-	public String getLocalIpAddress() {
-		try {
-			for (Enumeration<NetworkInterface> en = NetworkInterface
-					.getNetworkInterfaces(); en.hasMoreElements();) {
-				NetworkInterface intf = en.nextElement();
-				for (Enumeration<InetAddress> enumIpAddr = intf
-						.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-					InetAddress inetAddress = enumIpAddr.nextElement();
-
-					String address = inetAddress.getHostAddress().toString();
-					// filter loopback and ipv6
-					if (!inetAddress.isLoopbackAddress()
-							&& !address.contains(":")) {
-						return address;
-					}
-				}
-			}
-		} catch (SocketException ex) {
-			ex.printStackTrace();
-		}
-
-		return null;
-	}
-
-	/**
-	 * Loads the stored media object and casts it to the currently selected
-	 * device.
-	 */
-	protected void loadMedia(Page page) {
-		if (mMessageStream == null) {
-			return;
-		}
-
-		mMetaData.setTitle("odr");
-		try {
-			String ip = getLocalIpAddress();
-			String fileName = page.getUri().getLastPathSegment();
-
-			MediaProtocolCommand cmd = mMessageStream.loadMedia("http://" + ip
-					+ ":1993/" + fileName, mMetaData, true);
-			cmd.setListener(new MediaProtocolCommand.Listener() {
-
-				@Override
-				public void onCompleted(MediaProtocolCommand mPCommand) {
-				}
-
-				@Override
-				public void onCancelled(MediaProtocolCommand mPCommand) {
-				}
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
-
-			showCrouton(R.string.chromecast_failed, null, AppMsg.STYLE_ALERT);
-		}
-	}
-
-	/**
-	 * A callback class which listens for route select or unselect events and
-	 * processes devices and sessions accordingly.
-	 */
-	private class MyMediaRouterCallback extends MediaRouter.Callback {
-
-		@Override
-		public void onRouteSelected(MediaRouter router, RouteInfo route) {
-			MediaRouteHelper.requestCastDeviceForRoute(route);
-		}
-
-		@Override
-		public void onRouteUnselected(MediaRouter router, RouteInfo route) {
-			try {
-				if (mSession != null) {
-					mSession.setStopApplicationWhenEnding(false);
-					mSession.endSession();
-				}
-			} catch (IllegalStateException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			mMessageStream = null;
-			mSelectedDevice = null;
-		}
 	}
 }
