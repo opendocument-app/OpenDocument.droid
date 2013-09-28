@@ -159,8 +159,8 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 					throw new EncryptedDocumentException();
 			}
 
-			document = new Document();
 			OpenDocument openDocument = documentFile.getAsDocument();
+			document = new Document(openDocument);
 
 			TranslationSettings settings = new TranslationSettings();
 			settings.setCache(cache);

@@ -633,7 +633,7 @@ public class MainActivity extends DocumentActivity implements
 		}
 		case R.id.menu_edit: {
 			editActionMode = new EditActionModeCallback(this, getPageFragment()
-					.getPageView());
+					.getPageView(), getDocument().getOrigin());
 			startSupportActionMode(editActionMode);
 
 			analytics.sendEvent("ui", "edit", null, null);

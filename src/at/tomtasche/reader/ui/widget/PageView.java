@@ -1,5 +1,8 @@
 package at.tomtasche.reader.ui.widget;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Method;
 
 import android.annotation.SuppressLint;
@@ -7,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -19,6 +23,9 @@ public class PageView extends WebView implements ParagraphListener {
 
 	private ParagraphListener paragraphListener;
 	private boolean scrolled;
+
+	private File writeTo;
+	private Runnable writtenCallback;
 
 	public PageView(Context context) {
 		this(context, 0);
@@ -34,7 +41,8 @@ public class PageView extends WebView implements ParagraphListener {
 		settings.setDefaultTextEncodingName(ENCODING);
 		settings.setJavaScriptEnabled(true);
 
-		// WebView simply ignores viewport-tag in HTML if we don't set a initial scale > 0
+		// WebView simply ignores viewport-tag in HTML if we don't set a initial
+		// scale > 0
 		setInitialScale(100);
 
 		addJavascriptInterface(this, "paragraphListener");
@@ -105,6 +113,28 @@ public class PageView extends WebView implements ParagraphListener {
 						+ "}");
 			}
 		});
+	}
+
+	public void requestHtml(File writeTo, Runnable callback) {
+		this.writeTo = writeTo;
+		this.writtenCallback = callback;
+
+		loadUrl("javascript:window.paragraphListener.sendHtml('<html>' + document.getElementsByTagName('html')[0].innerHTML + '</html>');");
+	}
+
+	@JavascriptInterface
+	public void sendHtml(String html) {
+		FileWriter writer;
+		try {
+			writer = new FileWriter(writeTo);
+			writer.write(html);
+			writer.close();
+
+			writtenCallback.run();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override

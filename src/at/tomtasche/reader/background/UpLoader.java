@@ -108,7 +108,7 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 						|| type.equals("image/png") || type
 							.equals("image/jpeg"))) {
 			try {
-				document = new Document();
+				document = new Document(null);
 				document.addPage(new Page("Document", new URI(uri.toString()),
 						0));
 
@@ -149,7 +149,7 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 								+ URLEncoder.encode(SERVER_URL + "file?key="
 										+ key, "UTF-8"));
 
-				document = new Document();
+				document = new Document(null);
 				document.addPage(new Page("Document", viewerUri, 0));
 			} else {
 				throw new RuntimeException("server couldn't handle request");

@@ -1,32 +1,40 @@
 package at.tomtasche.reader.ui;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.webkit.ValueCallback;
 import android.widget.TextView;
+import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
+import at.stefl.opendocument.java.odf.OpenDocument;
+import at.stefl.opendocument.java.translator.Retranslator;
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.ui.activity.MainActivity;
 import at.tomtasche.reader.ui.widget.PageView;
 
 public class EditActionModeCallback implements ActionMode.Callback {
 
-	private Context context;
+	private MainActivity activity;
 	private PageView pageView;
 	private TextView statusView;
+	private OpenDocument document;
 
-	public EditActionModeCallback(Context context, PageView pageView) {
-		this.context = context;
+	public EditActionModeCallback(MainActivity activity, PageView pageView,
+			OpenDocument document) {
+		this.activity = activity;
 		this.pageView = pageView;
+		this.document = document;
 	}
 
 	@Override
 	public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-		statusView = new TextView(context);
+		statusView = new TextView(activity);
 		statusView.setText("Getting your document ready for some changes...");
 		mode.setCustomView(statusView);
 
@@ -44,7 +52,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
 	public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.edit_help: {
-			context.startActivity(new Intent(
+			activity.startActivity(new Intent(
 					Intent.ACTION_VIEW,
 					Uri.parse("https://plus.google.com/communities/113494011673882132018")));
 
@@ -52,16 +60,64 @@ public class EditActionModeCallback implements ActionMode.Callback {
 		}
 
 		case R.id.edit_save: {
-			pageView.saveWebArchive("webarchive", false,
-					new ValueCallback<String>() {
+			final File htmlFile = new File(activity.getCacheDir(),
+					"content.html");
+			pageView.requestHtml(htmlFile, new Runnable() {
 
-						@Override
-						public void onReceiveValue(String value) {
-							File archive = new File(context.getFilesDir(),
-									value);
+				@Override
+				public void run() {
+					FileInputStream htmlStream = null;
+					FileOutputStream modifiedStream = null;
+					LocatedOpenDocumentFile documentFile = null;
+					try {
+						htmlStream = new FileInputStream(htmlFile);
 
+						File modifiedFile = new File(activity
+								.getExternalCacheDir(), "modified.odt");
+						modifiedStream = new FileOutputStream(modifiedFile);
+
+						// TODO: ugly and risky cast
+						documentFile = new LocatedOpenDocumentFile(
+								((LocatedOpenDocumentFile) document
+										.getDocumentFile()).getFile());
+
+						Retranslator.retranslate(documentFile.getAsDocument(),
+								htmlStream, modifiedStream);
+
+						modifiedStream.close();
+
+						activity.loadUri(Uri.parse("file://"
+								+ modifiedFile.getAbsolutePath()));
+					} catch (IOException e) {
+						e.printStackTrace();
+					} finally {
+						if (documentFile != null) {
+							try {
+								documentFile.close();
+							} catch (IOException e) {
+							}
 						}
-					});
+
+						if (htmlStream != null) {
+							try {
+								htmlStream.close();
+							} catch (IOException e) {
+							}
+						}
+
+						if (modifiedStream != null) {
+							try {
+								modifiedStream.close();
+							} catch (IOException e) {
+							}
+						}
+
+						if (htmlFile != null) {
+							htmlFile.delete();
+						}
+					}
+				}
+			});
 
 			break;
 		}
