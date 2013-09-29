@@ -13,7 +13,6 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
 import at.stefl.opendocument.java.odf.OpenDocument;
-import at.stefl.opendocument.java.translator.Retranslator;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.ui.activity.MainActivity;
 import at.tomtasche.reader.ui.widget.PageView;
@@ -81,8 +80,9 @@ public class EditActionModeCallback implements ActionMode.Callback {
 								((LocatedOpenDocumentFile) document
 										.getDocumentFile()).getFile());
 
-						Retranslator.retranslate(documentFile.getAsDocument(),
-								htmlStream, modifiedStream);
+						// TODO: disabled for hotifx-release
+//						Retranslator.retranslate(documentFile.getAsDocument(),
+//								htmlStream, modifiedStream);
 
 						modifiedStream.close();
 

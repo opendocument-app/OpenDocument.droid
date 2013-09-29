@@ -34,7 +34,6 @@ import at.tomtasche.reader.background.Document.Page;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.LoadingListener;
 import at.tomtasche.reader.ui.ChromecastManager;
-import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
@@ -89,7 +88,6 @@ public class MainActivity extends DocumentActivity implements
 	private BillingPreferences billingPreferences;
 
 	private TtsActionModeCallback ttsActionMode;
-	private EditActionModeCallback editActionMode;
 
 	private Tracker analytics;
 	private long loadingStartTime;
@@ -631,15 +629,16 @@ public class MainActivity extends DocumentActivity implements
 
 			analytics.sendEvent("ui", "google+", null, null);
 		}
-		case R.id.menu_edit: {
-			editActionMode = new EditActionModeCallback(this, getPageFragment()
-					.getPageView(), getDocument().getOrigin());
-			startSupportActionMode(editActionMode);
-
-			analytics.sendEvent("ui", "edit", null, null);
-
-			break;
-		}
+		// case R.id.menu_edit: {
+		// EditActionModeCallback editActionMode = new
+		// EditActionModeCallback(this, getPageFragment()
+		// .getPageView(), getDocument().getOrigin());
+		// startSupportActionMode(editActionMode);
+		//
+		// analytics.sendEvent("ui", "edit", null, null);
+		//
+		// break;
+		// }
 		default: {
 			return super.onOptionsItemSelected(item);
 		}
