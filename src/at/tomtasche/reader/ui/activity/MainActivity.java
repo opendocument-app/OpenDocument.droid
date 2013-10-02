@@ -23,6 +23,7 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -244,7 +245,10 @@ public class MainActivity extends DocumentActivity implements
 
 	@Override
 	public void onAdFailedToLoad(AdLayout arg0, AdError arg1) {
+		((ViewGroup) madView.getParent()).removeView(madView);
 		((AdLayout) madView).destroy();
+
+		madView = null;
 
 		showGoogleAds();
 	}
@@ -776,7 +780,23 @@ public class MainActivity extends DocumentActivity implements
 			e.printStackTrace();
 		}
 
-		super.onDestroy();
+		try {
+			// keeps throwing exceptions for some users:
+			// Caused by: java.lang.NullPointerException
+			// android.webkit.WebViewClassic.requestFocus(WebViewClassic.java:9898)
+			// android.webkit.WebView.requestFocus(WebView.java:2133)
+			// android.view.ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
+			if (madView != null) {
+				if (madView instanceof AdView) {
+					((AdView) madView).destroy();
+				} else if (madView instanceof AdLayout) {
+					((AdLayout) madView).destroy();
+				}
+			}
+			super.onDestroy();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public String getPublicKey() {
