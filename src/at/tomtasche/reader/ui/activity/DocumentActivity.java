@@ -43,6 +43,7 @@ public abstract class DocumentActivity extends ActionBarActivity implements
 	private static final String EXTRA_URI = "uri";
 	private static final String EXTRA_LIMIT = "limit";
 	private static final String EXTRA_PASSWORD = "password";
+	private static final String EXTRA_TRANSLATABLE = "translatable";
 
 	private ProgressDialogFragment progressDialog;
 	private PageFragment pageFragment;
@@ -85,22 +86,24 @@ public abstract class DocumentActivity extends ActionBarActivity implements
 
 	@Override
 	public DocumentLoader loadUri(Uri uri) {
-		return loadUri(uri, null, true);
+		return loadUri(uri, null, true, false);
 	}
 
 	public DocumentLoader loadUri(Uri uri, String password) {
-		return loadUri(uri, password, true);
+		return loadUri(uri, password, true, false);
 	}
 
 	public DocumentLoader loadUri(Uri uri, boolean limit) {
-		return loadUri(uri, null, limit);
+		return loadUri(uri, null, limit, false);
 	}
 
-	public DocumentLoader loadUri(Uri uri, String password, boolean limit) {
+	public DocumentLoader loadUri(Uri uri, String password, boolean limit,
+			boolean translatable) {
 		Bundle bundle = new Bundle();
 		bundle.putString(EXTRA_PASSWORD, password);
 		bundle.putParcelable(EXTRA_URI, uri);
 		bundle.putBoolean(EXTRA_LIMIT, limit);
+		bundle.putBoolean(EXTRA_TRANSLATABLE, translatable);
 
 		return (DocumentLoader) getSupportLoaderManager().restartLoader(0,
 				bundle, this);
@@ -117,11 +120,13 @@ public abstract class DocumentActivity extends ActionBarActivity implements
 	@Override
 	public Loader<Document> onCreateLoader(int id, Bundle bundle) {
 		boolean limit = true;
+		boolean translatable = false;
 		String password = null;
 		Uri uri = DocumentLoader.URI_INTRO;
 		if (bundle != null) {
 			uri = bundle.getParcelable(EXTRA_URI);
 			limit = bundle.getBoolean(EXTRA_LIMIT);
+			translatable = bundle.getBoolean(EXTRA_TRANSLATABLE);
 			password = bundle.getString(EXTRA_PASSWORD);
 		}
 
@@ -130,6 +135,7 @@ public abstract class DocumentActivity extends ActionBarActivity implements
 			DocumentLoader documentLoader = new DocumentLoader(this, uri);
 			documentLoader.setPassword(password);
 			documentLoader.setLimit(limit);
+			documentLoader.setTranslatable(translatable);
 
 			showProgress(documentLoader, false);
 
@@ -167,7 +173,7 @@ public abstract class DocumentActivity extends ActionBarActivity implements
 					@Override
 					public void run() {
 						loadUri(uri, ((DocumentLoader) loader).getPassword(),
-								false);
+								false, false);
 					}
 				}, AppMsg.STYLE_INFO);
 			}

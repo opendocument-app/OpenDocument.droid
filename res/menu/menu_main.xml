@@ -7,11 +7,11 @@
         android:title="@string/media_route_menu_title"
         app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
         app:showAsAction="always"/>
-<!--     <item -->
-<!--         android:id="@+id/menu_edit" -->
-<!--         android:icon="@drawable/ic_action_edit" -->
-<!--         android:title="@string/menu_edit" -->
-<!--         app:showAsAction="ifRoom"/> -->
+    <item
+        android:id="@+id/menu_edit"
+        android:icon="@drawable/ic_action_edit"
+        android:title="@string/menu_edit"
+        app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/menu_recent"
         android:icon="@drawable/ic_action_heart"

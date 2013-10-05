@@ -36,6 +36,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 	private Throwable lastError;
 	private Uri uri;
 	private boolean limit;
+	private boolean translatable;
 	private String password;
 	private Document document;
 	private GenericDocumentTranslator<?, ?, ?> translator;
@@ -60,6 +61,10 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 
 	public void setLimit(boolean limit) {
 		this.limit = limit;
+	}
+
+	public void setTranslatable(boolean translatable) {
+		this.translatable = translatable;
 	}
 
 	@Override
@@ -103,6 +108,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 		translator = null;
 		password = null;
 		limit = true;
+		translatable = false;
 	}
 
 	@Override
@@ -124,16 +130,28 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 						uri.toString().length()));
 			}
 
-			// TODO: don't delete file being displayed at the moment, but keep
-			// it until the new document has finished loading
-			AndroidFileCache.cleanup(getContext());
+			AndroidFileCache cache = new AndroidFileCache(getContext());
 
-			if (URI_INTRO.equals(uri)) {
-				stream = getContext().getAssets().open("intro.odt");
-			} else if (URI_ABOUT.equals(uri)) {
-				stream = getContext().getAssets().open("about.odt");
+			if (uri.getScheme() == null) {
+				documentFile = new LocatedOpenDocumentFile(new File(
+						uri.getPath()));
 			} else {
-				stream = getContext().getContentResolver().openInputStream(uri);
+				// TODO: don't delete file being displayed at the moment, but
+				// keep it until the new document has finished loading
+				AndroidFileCache.cleanup(getContext());
+
+				if (URI_INTRO.equals(uri)) {
+					stream = getContext().getAssets().open("intro.odt");
+				} else if (URI_ABOUT.equals(uri)) {
+					stream = getContext().getAssets().open("about.odt");
+				} else {
+					stream = getContext().getContentResolver().openInputStream(
+							uri);
+				}
+
+				String cachedFileName = cache.create(stream);
+				documentFile = new LocatedOpenDocumentFile(
+						cache.getFile(cachedFileName));
 			}
 
 			try {
@@ -143,12 +161,6 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 				// not a showstopper, so just continue
 				e.printStackTrace();
 			}
-
-			AndroidFileCache cache = new AndroidFileCache(getContext());
-
-			String cachedFileName = cache.create(stream);
-			documentFile = new LocatedOpenDocumentFile(
-					cache.getFile(cachedFileName));
 
 			if (documentFile.isEncrypted()) {
 				if (password == null)
@@ -164,6 +176,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 
 			TranslationSettings settings = new TranslationSettings();
 			settings.setCache(cache);
+			settings.setBackTranslateable(translatable);
 			settings.setImageStoreMode(ImageStoreMode.CACHE);
 
 			if (openDocument instanceof OpenDocumentText) {

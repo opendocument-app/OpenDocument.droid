@@ -1,5 +1,6 @@
 package at.tomtasche.reader.ui.activity;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +36,7 @@ import at.tomtasche.reader.background.Document.Page;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.LoadingListener;
 import at.tomtasche.reader.ui.ChromecastManager;
+import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
@@ -217,7 +219,39 @@ public class MainActivity extends DocumentActivity implements
 
 		showAds(adView);
 
-		adView.loadAd(new AdTargetingOptions());
+		try {
+			adView.loadAd(new AdTargetingOptions());
+		} catch (Exception e) {
+			// (1802) os_unix.c:30011: (2)
+			// stat(/data/data/at.tomtasche.reader/databases/webviewCache.db) -
+			// (1802) statement aborts at 38: [CREATE TABLE IF NOT EXISTS
+			// android_metadata (locale TEXT)] disk I/O error
+			// Failed to open database
+			// '/data/data/at.tomtasche.reader/databases/webviewCache.db'.
+			// android.database.sqlite.SQLiteException: Failed to change locale
+			// for db '/data/data/at.tomtasche.reader/databases/webviewCache.db'
+			// to 'en_US'.
+			// android.database.sqlite.SQLiteConnection.setLocaleFromConfiguration(SQLiteConnection.java:386)
+			// android.database.sqlite.SQLiteConnection.open(SQLiteConnection.java:218)
+			// android.database.sqlite.SQLiteConnection.open(SQLiteConnection.java:193)
+			// android.database.sqlite.SQLiteConnectionPool.openConnectionLocked(SQLiteConnectionPool.java:463)
+			// android.database.sqlite.SQLiteConnectionPool.open(SQLiteConnectionPool.java:185)
+			// android.database.sqlite.SQLiteConnectionPool.open(SQLiteConnectionPool.java:177)
+			// android.database.sqlite.SQLiteDatabase.openInner(SQLiteDatabase.java:804)
+			// android.database.sqlite.SQLiteDatabase.open(SQLiteDatabase.java:789)
+			// android.database.sqlite.SQLiteDatabase.openDatabase(SQLiteDatabase.java:694)
+			// android.app.ContextImpl.openOrCreateDatabase(ContextImpl.java:854)
+			// android.app.ContextImpl.openOrCreateDatabase(ContextImpl.java:843)
+			// android.content.ContextWrapper.openOrCreateDatabase(ContextWrapper.java:223)
+			// com.amazon.device.ads.Utils.isWebViewOk(Utils.java:99)
+			// com.amazon.device.ads.AdLayout.isWebViewOk(AdLayout.java:703)
+			// com.amazon.device.ads.AdLayout.loadAd(AdLayout.java:490)
+			// at.tomtasche.reader.ui.activity.MainActivity.showAmazonAds(MainActivity.java:222)
+
+			e.printStackTrace();
+
+			onAdFailedToLoad(null, null);
+		}
 	}
 
 	private void showGoogleAds() {
@@ -312,10 +346,11 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	@Override
-	public DocumentLoader loadUri(Uri uri, String password, boolean limit) {
+	public DocumentLoader loadUri(Uri uri, String password, boolean limit,
+			boolean translatable) {
 		loadingStartTime = System.currentTimeMillis();
 
-		return super.loadUri(uri, password, limit);
+		return super.loadUri(uri, password, limit, translatable);
 	}
 
 	@Override
@@ -534,7 +569,7 @@ public class MainActivity extends DocumentActivity implements
 			Loader<Document> loader = getSupportLoaderManager().getLoader(0);
 			DocumentLoader documentLoader = (DocumentLoader) loader;
 
-			loadUri(documentLoader.getLastUri(), documentLoader.getPassword(),
+			loadUri(getCacheFileUri(), documentLoader.getPassword(), false,
 					false);
 
 			analytics.sendEvent("ui", "reload", "no-limit", null);
@@ -633,22 +668,26 @@ public class MainActivity extends DocumentActivity implements
 
 			analytics.sendEvent("ui", "google+", null, null);
 		}
-		// case R.id.menu_edit: {
-		// EditActionModeCallback editActionMode = new
-		// EditActionModeCallback(this, getPageFragment()
-		// .getPageView(), getDocument().getOrigin());
-		// startSupportActionMode(editActionMode);
-		//
-		// analytics.sendEvent("ui", "edit", null, null);
-		//
-		// break;
-		// }
+		case R.id.menu_edit: {
+			EditActionModeCallback editActionMode = new EditActionModeCallback(
+					this, getPageFragment().getPageView(), getDocument()
+							.getOrigin());
+			startSupportActionMode(editActionMode);
+
+			analytics.sendEvent("ui", "edit", null, null);
+
+			break;
+		}
 		default: {
 			return super.onOptionsItemSelected(item);
 		}
 		}
 
 		return true;
+	}
+
+	public Uri getCacheFileUri() {
+		return Uri.parse(new File(getCacheDir(), "0").getAbsolutePath());
 	}
 
 	private void removeAds() {
@@ -859,9 +898,5 @@ public class MainActivity extends DocumentActivity implements
 
 	public Page getCurrentPage() {
 		return currentPage;
-	}
-
-	private void editDocument() {
-
 	}
 }

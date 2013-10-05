@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
 import at.stefl.opendocument.java.odf.OpenDocument;
+import at.stefl.opendocument.java.translator.Retranslator;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.ui.activity.MainActivity;
 import at.tomtasche.reader.ui.widget.PageView;
@@ -34,7 +35,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
 	@Override
 	public boolean onCreateActionMode(ActionMode mode, Menu menu) {
 		statusView = new TextView(activity);
-		statusView.setText("Getting your document ready for some changes...");
+		statusView.setText(R.string.edit_banner);
 		mode.setCustomView(statusView);
 
 		mode.getMenuInflater().inflate(R.menu.edit, menu);
@@ -44,7 +45,10 @@ public class EditActionModeCallback implements ActionMode.Callback {
 
 	@Override
 	public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-		return false;
+		// reload document with translation enabled
+		activity.loadUri(activity.getCacheFileUri(), null, true, true);
+
+		return true;
 	}
 
 	@Override
@@ -59,7 +63,8 @@ public class EditActionModeCallback implements ActionMode.Callback {
 		}
 
 		case R.id.edit_save: {
-			final File htmlFile = new File(activity.getCacheDir(),
+			// TODO: use getCacheDir() in release-build
+			final File htmlFile = new File(activity.getExternalCacheDir(),
 					"content.html");
 			pageView.requestHtml(htmlFile, new Runnable() {
 
@@ -80,9 +85,8 @@ public class EditActionModeCallback implements ActionMode.Callback {
 								((LocatedOpenDocumentFile) document
 										.getDocumentFile()).getFile());
 
-						// TODO: disabled for hotifx-release
-//						Retranslator.retranslate(documentFile.getAsDocument(),
-//								htmlStream, modifiedStream);
+						Retranslator.retranslate(documentFile.getAsDocument(),
+								htmlStream, modifiedStream);
 
 						modifiedStream.close();
 
