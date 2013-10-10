@@ -24,7 +24,6 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -41,11 +40,6 @@ import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
 
-import com.amazon.device.ads.AdError;
-import com.amazon.device.ads.AdLayout;
-import com.amazon.device.ads.AdProperties;
-import com.amazon.device.ads.AdRegistration;
-import com.amazon.device.ads.AdTargetingOptions;
 import com.bugsense.trace.BugSenseHandler;
 import com.devspark.appmsg.AppMsg;
 import com.github.jberkel.pay.me.IabHelper;
@@ -67,8 +61,7 @@ import com.google.analytics.tracking.android.Tracker;
 import com.kskkbys.rate.RateThisApp;
 
 public class MainActivity extends DocumentActivity implements
-		ActionBar.TabListener, LoadingListener, AdListener,
-		com.amazon.device.ads.AdListener {
+		ActionBar.TabListener, LoadingListener, AdListener {
 
 	private static final boolean AMAZON_RELEASE = false;
 
@@ -80,7 +73,7 @@ public class MainActivity extends DocumentActivity implements
 	private static final String EXTRA_TAB_POSITION = "tab_position";
 
 	private LinearLayout adContainer;
-	private View madView;
+	private AdView madView;
 
 	private int lastPosition;
 	private boolean fullscreen;
@@ -149,7 +142,7 @@ public class MainActivity extends DocumentActivity implements
 
 							@Override
 							public void run() {
-								showAmazonAds();
+								showGoogleAds();
 
 								showCrouton(
 										getString(R.string.crouton_error_billing),
@@ -175,7 +168,7 @@ public class MainActivity extends DocumentActivity implements
 												if (purchased) {
 													removeAds();
 												} else {
-													showAmazonAds();
+													showGoogleAds();
 												}
 
 												billingPreferences
@@ -191,7 +184,7 @@ public class MainActivity extends DocumentActivity implements
 				}
 			});
 		} else {
-			showAmazonAds();
+			showGoogleAds();
 		}
 
 		chromecast = new ChromecastManager(this);
@@ -199,7 +192,7 @@ public class MainActivity extends DocumentActivity implements
 		chromecast.setEnabled(false);
 	}
 
-	private void showAds(View adView) {
+	private void showAds(AdView adView) {
 		this.madView = adView;
 
 		adContainer.removeAllViews();
@@ -209,49 +202,6 @@ public class MainActivity extends DocumentActivity implements
 		adContainer.addView(adView, params);
 
 		analytics.sendEvent("monetization", "ads", "show", null);
-	}
-
-	private void showAmazonAds() {
-		AdRegistration.setAppKey("eb900b26936d42e780bba6041ed7e400");
-
-		AdLayout adView = new AdLayout(this);
-		adView.setListener(this);
-
-		showAds(adView);
-
-		try {
-			adView.loadAd(new AdTargetingOptions());
-		} catch (Exception e) {
-			// (1802) os_unix.c:30011: (2)
-			// stat(/data/data/at.tomtasche.reader/databases/webviewCache.db) -
-			// (1802) statement aborts at 38: [CREATE TABLE IF NOT EXISTS
-			// android_metadata (locale TEXT)] disk I/O error
-			// Failed to open database
-			// '/data/data/at.tomtasche.reader/databases/webviewCache.db'.
-			// android.database.sqlite.SQLiteException: Failed to change locale
-			// for db '/data/data/at.tomtasche.reader/databases/webviewCache.db'
-			// to 'en_US'.
-			// android.database.sqlite.SQLiteConnection.setLocaleFromConfiguration(SQLiteConnection.java:386)
-			// android.database.sqlite.SQLiteConnection.open(SQLiteConnection.java:218)
-			// android.database.sqlite.SQLiteConnection.open(SQLiteConnection.java:193)
-			// android.database.sqlite.SQLiteConnectionPool.openConnectionLocked(SQLiteConnectionPool.java:463)
-			// android.database.sqlite.SQLiteConnectionPool.open(SQLiteConnectionPool.java:185)
-			// android.database.sqlite.SQLiteConnectionPool.open(SQLiteConnectionPool.java:177)
-			// android.database.sqlite.SQLiteDatabase.openInner(SQLiteDatabase.java:804)
-			// android.database.sqlite.SQLiteDatabase.open(SQLiteDatabase.java:789)
-			// android.database.sqlite.SQLiteDatabase.openDatabase(SQLiteDatabase.java:694)
-			// android.app.ContextImpl.openOrCreateDatabase(ContextImpl.java:854)
-			// android.app.ContextImpl.openOrCreateDatabase(ContextImpl.java:843)
-			// android.content.ContextWrapper.openOrCreateDatabase(ContextWrapper.java:223)
-			// com.amazon.device.ads.Utils.isWebViewOk(Utils.java:99)
-			// com.amazon.device.ads.AdLayout.isWebViewOk(AdLayout.java:703)
-			// com.amazon.device.ads.AdLayout.loadAd(AdLayout.java:490)
-			// at.tomtasche.reader.ui.activity.MainActivity.showAmazonAds(MainActivity.java:222)
-
-			e.printStackTrace();
-
-			onAdFailedToLoad(null, null);
-		}
 	}
 
 	private void showGoogleAds() {
@@ -271,37 +221,6 @@ public class MainActivity extends DocumentActivity implements
 				buyAdRemoval();
 			}
 		}, AppMsg.STYLE_CONFIRM);
-	}
-
-	// amazon
-	@Override
-	public void onAdCollapsed(AdLayout arg0) {
-	}
-
-	@Override
-	public void onAdExpanded(AdLayout arg0) {
-		removeAds();
-	}
-
-	@Override
-	public void onAdFailedToLoad(AdLayout arg0, AdError arg1) {
-		((ViewGroup) madView.getParent()).removeView(madView);
-		((AdLayout) madView).destroy();
-
-		madView = null;
-
-		showGoogleAds();
-	}
-
-	@Override
-	public void onAdLoaded(AdLayout arg0, AdProperties arg1) {
-		adLoaded();
-
-		// seems to be necessary - otherwise the view won't show up at all
-		adContainer.invalidate();
-		adContainer.requestLayout();
-
-		analytics.sendEvent("monetization", "ads", "amazon", null);
 	}
 
 	// admob
@@ -809,11 +728,7 @@ public class MainActivity extends DocumentActivity implements
 			// android.webkit.WebView.requestFocus(WebView.java:2133)
 			// android.view.ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
 			if (madView != null) {
-				if (madView instanceof AdView) {
-					((AdView) madView).destroy();
-				} else if (madView instanceof AdLayout) {
-					((AdLayout) madView).destroy();
-				}
+				((AdView) madView).destroy();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -825,13 +740,7 @@ public class MainActivity extends DocumentActivity implements
 			// android.webkit.WebViewClassic.requestFocus(WebViewClassic.java:9898)
 			// android.webkit.WebView.requestFocus(WebView.java:2133)
 			// android.view.ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
-			if (madView != null) {
-				if (madView instanceof AdView) {
-					((AdView) madView).destroy();
-				} else if (madView instanceof AdLayout) {
-					((AdLayout) madView).destroy();
-				}
-			}
+
 			super.onDestroy();
 		} catch (Exception e) {
 			e.printStackTrace();
