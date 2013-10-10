@@ -264,7 +264,13 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	private void adLoaded() {
-		showCrouton(R.string.consume_ad, null, AppMsg.STYLE_CONFIRM);
+		showCrouton(R.string.consume_ad, new Runnable() {
+
+			@Override
+			public void run() {
+				buyAdRemoval();
+			}
+		}, AppMsg.STYLE_CONFIRM);
 	}
 
 	// amazon
@@ -451,87 +457,7 @@ public class MainActivity extends DocumentActivity implements
 		}
 
 		case R.id.menu_remove_ads: {
-			if (!AMAZON_RELEASE) {
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle(R.string.dialog_remove_ads_title);
-				builder.setItems(R.array.remove_ads_options,
-						new OnClickListener() {
-
-							@Override
-							public void onClick(DialogInterface dialog,
-									int which) {
-								String product = null;
-
-								switch (which) {
-								case 0:
-									product = BILLING_PRODUCT_YEAR;
-
-									break;
-
-								case 1:
-									product = BILLING_PRODUCT_FOREVER;
-
-									break;
-
-								default:
-									removeAds();
-
-									dialog.dismiss();
-
-									return;
-								}
-
-								billingHelper.launchPurchaseFlow(
-										MainActivity.this, product,
-										ItemType.INAPP, PURCHASE_CODE,
-										new OnIabPurchaseFinishedListener() {
-											public void onIabPurchaseFinished(
-													IabResult result,
-													Purchase purchase) {
-												// remove ads even if the
-												// purchase failed /
-												// the user canceled the
-												// purchase
-												runOnUiThread(new Runnable() {
-
-													@Override
-													public void run() {
-														removeAds();
-													}
-												});
-
-												if (result.isSuccess()) {
-													billingPreferences
-															.setPurchased(true);
-													billingPreferences
-															.setLastQueryTime(System
-																	.currentTimeMillis());
-
-													analytics.sendEvent(
-															"monetization",
-															"in-app",
-															purchase.getSku(),
-															null);
-												} else {
-													analytics.sendEvent(
-															"monetization",
-															"in-app", "abort",
-															null);
-												}
-											}
-										}, null);
-
-								analytics.sendEvent("monetization", "in-app",
-										"attempt", null);
-
-								dialog.dismiss();
-							}
-						});
-				builder.show();
-			} else {
-				showCrouton("Not available at the moment", null,
-						AppMsg.STYLE_ALERT);
-			}
+			buyAdRemoval();
 
 			break;
 		}
@@ -684,6 +610,80 @@ public class MainActivity extends DocumentActivity implements
 		}
 
 		return true;
+	}
+
+	private void buyAdRemoval() {
+		if (!AMAZON_RELEASE) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle(R.string.dialog_remove_ads_title);
+			builder.setItems(R.array.remove_ads_options, new OnClickListener() {
+
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					String product = null;
+
+					switch (which) {
+					case 0:
+						product = BILLING_PRODUCT_YEAR;
+
+						break;
+
+					case 1:
+						product = BILLING_PRODUCT_FOREVER;
+
+						break;
+
+					default:
+						removeAds();
+
+						dialog.dismiss();
+
+						return;
+					}
+
+					billingHelper.launchPurchaseFlow(MainActivity.this,
+							product, ItemType.INAPP, PURCHASE_CODE,
+							new OnIabPurchaseFinishedListener() {
+								public void onIabPurchaseFinished(
+										IabResult result, Purchase purchase) {
+									// remove ads even if the
+									// purchase failed /
+									// the user canceled the
+									// purchase
+									runOnUiThread(new Runnable() {
+
+										@Override
+										public void run() {
+											removeAds();
+										}
+									});
+
+									if (result.isSuccess()) {
+										billingPreferences.setPurchased(true);
+										billingPreferences
+												.setLastQueryTime(System
+														.currentTimeMillis());
+
+										analytics.sendEvent("monetization",
+												"in-app", purchase.getSku(),
+												null);
+									} else {
+										analytics.sendEvent("monetization",
+												"in-app", "abort", null);
+									}
+								}
+							}, null);
+
+					analytics.sendEvent("monetization", "in-app", "attempt",
+							null);
+
+					dialog.dismiss();
+				}
+			});
+			builder.show();
+		} else {
+			showCrouton("Not available at the moment", null, AppMsg.STYLE_ALERT);
+		}
 	}
 
 	public Uri getCacheFileUri() {

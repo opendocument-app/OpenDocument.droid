@@ -18,10 +18,10 @@ import at.stefl.opendocument.java.odf.OpenDocumentSpreadsheet;
 import at.stefl.opendocument.java.odf.OpenDocumentText;
 import at.stefl.opendocument.java.translator.document.BulkPresentationTranslator;
 import at.stefl.opendocument.java.translator.document.BulkSpreadsheetTranslator;
+import at.stefl.opendocument.java.translator.document.DocumentTranslator;
 import at.stefl.opendocument.java.translator.document.DocumentTranslatorUtil;
 import at.stefl.opendocument.java.translator.document.DocumentTranslatorUtil.BulkOutput;
 import at.stefl.opendocument.java.translator.document.GenericBulkDocumentTranslator;
-import at.stefl.opendocument.java.translator.document.GenericDocumentTranslator;
 import at.stefl.opendocument.java.translator.document.TextTranslator;
 import at.stefl.opendocument.java.translator.settings.ImageStoreMode;
 import at.stefl.opendocument.java.translator.settings.TranslationSettings;
@@ -39,7 +39,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 	private boolean translatable;
 	private String password;
 	private Document document;
-	private GenericDocumentTranslator<?, ?, ?> translator;
+	private DocumentTranslator translator;
 
 	// support File parameter too (saves us from copying the file
 	// unnecessarily)!
@@ -79,8 +79,9 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 
 	@Override
 	public double getProgress() {
-		if (translator != null)
+		if (translator != null) {
 			return translator.getCurrentProgress();
+		}
 
 		return 0;
 	}
@@ -178,6 +179,10 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			settings.setCache(cache);
 			settings.setBackTranslateable(translatable);
 			settings.setImageStoreMode(ImageStoreMode.CACHE);
+			if (limit) {
+				settings.setMaxTableDimension(new Vector2i(300, 50));
+				settings.setMaxRowRepetition(25);
+			}
 
 			if (openDocument instanceof OpenDocumentText) {
 				File htmlFile = cache.create("temp.html");
@@ -196,12 +201,6 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			} else {
 				GenericBulkDocumentTranslator<?, ?, ?> bulkTranslator = null;
 				if (openDocument instanceof OpenDocumentSpreadsheet) {
-					if (limit) {
-						settings.setMaxTableDimension(new Vector2i(300, 50));
-						settings.setMaxRowRepetition(25);
-						document.setLimited(true);
-					}
-
 					bulkTranslator = new BulkSpreadsheetTranslator();
 				} else if (openDocument instanceof OpenDocumentPresentation) {
 					bulkTranslator = new BulkPresentationTranslator();
@@ -224,6 +223,8 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 					document.addPage(new Page(output.getTitles().get(i),
 							htmlFile.toURI(), i));
 				}
+
+				document.setLimited(translator.isCurrentOutputTruncated());
 			}
 
 			return document;
