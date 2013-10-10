@@ -28,7 +28,6 @@
   <string name="dialog_error_send_error_only">Invia solo l\'errore</string>
   <string name="dialog_feedback_title">Disegna il futuro di questa app!</string>
   <string name="dialog_feedback_message">Non ti piace il nostro approccio per monetizzare questa app? Odi il look and feel? Cerchi disperatamente una funzionalità specifica? Per favore informaci sulla nostra piattaforma di feedback!</string>
-  <string name="dialog_remove_ads_title">Rimuovere gli annunci per:</string>
   <string name="dialog_upload_file">Non siamo stati in grado di aprire questo documento, perché non supportiamo il formato. Si desidera caricarlo sul nostro server temporaneamente, così che possiamo visualizzartelo comunque?</string>
   <string name="title_choose_file_cloud">Scegliere file dal cloud</string>
   <string name="title_choose_file_local">Scegliere file dal dispositivo</string>
@@ -39,7 +38,6 @@
   <string name="menu_open">Apri</string>
   <string name="menu_feedback">Feedback</string>
   <string name="menu_about">Info su</string>
-  <string name="menu_remove_ads">Rimuovere gli annunci</string>
   <string name="menu_reload">Ricarica senza limite</string>
   <string name="menu_fullscreen">Modalità a schermo intero</string>
   <string name="menu_share">Condividi</string>
@@ -57,9 +55,4 @@
   <string name="tts_pause">Pausa</string>
   <string name="tts_next">Successivo</string>
   <string name="tts_previous">Precedente</string>
-  <string-array name="remove_ads_options">
-    <item>per un anno</item>
-    <item>per sempre</item>
-    <item>temporaneamente</item>
-  </string-array>
 </resources>

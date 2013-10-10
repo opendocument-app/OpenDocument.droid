@@ -56,6 +56,7 @@ import com.google.ads.AdRequest;
 import com.google.ads.AdRequest.ErrorCode;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
+import com.google.ads.InterstitialAd;
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.Tracker;
 import com.kskkbys.rate.RateThisApp;
@@ -74,9 +75,11 @@ public class MainActivity extends DocumentActivity implements
 
 	private LinearLayout adContainer;
 	private AdView madView;
+	private InterstitialAd interstitial;
 
 	private int lastPosition;
 	private boolean fullscreen;
+	private boolean showAds;
 
 	private Page currentPage;
 
@@ -205,10 +208,15 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	private void showGoogleAds() {
+		showAds = true;
+
 		AdView adView = new AdView(MainActivity.this, AdSize.SMART_BANNER,
-				"a15042277f73506");
+				"ca-app-pub-8161473686436957/2477707165");
 		adView.setAdListener(this);
-		adView.loadAd(new AdRequest());
+
+		AdRequest adRequest = new AdRequest();
+
+		adView.loadAd(adRequest);
 
 		showAds(adView);
 	}
@@ -244,9 +252,15 @@ public class MainActivity extends DocumentActivity implements
 
 	@Override
 	public void onReceiveAd(Ad arg0) {
-		adLoaded();
+		if (interstitial != null) {
+			interstitial.show();
 
-		analytics.sendEvent("monetization", "ads", "google", null);
+			analytics.sendEvent("monetization", "interstitial", "google", null);
+		} else {
+			adLoaded();
+
+			analytics.sendEvent("monetization", "ads", "google", null);
+		}
 	}
 
 	@Override
@@ -514,12 +528,22 @@ public class MainActivity extends DocumentActivity implements
 			analytics.sendEvent("ui", "google+", null, null);
 		}
 		case R.id.menu_edit: {
-			EditActionModeCallback editActionMode = new EditActionModeCallback(
-					this, getPageFragment().getPageView(), getDocument()
-							.getOrigin());
-			startSupportActionMode(editActionMode);
+			if (!showAds) {
+				EditActionModeCallback editActionMode = new EditActionModeCallback(
+						this, getPageFragment().getPageView(), getDocument()
+								.getOrigin());
+				startSupportActionMode(editActionMode);
 
-			analytics.sendEvent("ui", "edit", null, null);
+				analytics.sendEvent("ui", "edit", null, null);
+			} else {
+				showCrouton(R.string.crouton_purchase, new Runnable() {
+
+					@Override
+					public void run() {
+						buyAdRemoval();
+					}
+				}, AppMsg.STYLE_INFO);
+			}
 
 			break;
 		}
@@ -610,6 +634,8 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	private void removeAds() {
+		showAds = false;
+
 		if (madView != null)
 			madView.setVisibility(View.GONE);
 
@@ -702,6 +728,17 @@ public class MainActivity extends DocumentActivity implements
 			}
 		});
 		builder.show();
+
+		if (showAds) {
+			interstitial = new InterstitialAd(this,
+					"ca-app-pub-8161473686436957/2477707165");
+
+			AdRequest adRequest = new AdRequest();
+
+			interstitial.loadAd(adRequest);
+
+			interstitial.setAdListener(this);
+		}
 	}
 
 	@Override
@@ -720,6 +757,14 @@ public class MainActivity extends DocumentActivity implements
 	@Override
 	protected void onDestroy() {
 		chromecast.onDestroy();
+
+		try {
+			if (interstitial != null) {
+				interstitial.stopLoading();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		try {
 			// keeps throwing exceptions for some users:

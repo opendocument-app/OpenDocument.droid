@@ -28,7 +28,6 @@
   <string name="dialog_error_send_error_only">Wyślij tylko błąd</string>
   <string name="dialog_feedback_title">Twórz przyszłość tej aplikacji!</string>
   <string name="dialog_feedback_message">Nie lubisz sposobu w jaki zarabiamy na tej aplikacji? Nie podoba ci się wygląd lub obsługa? Szukasz innej specjalnej funkcji? Proszę opowiedz nam o tym na platformie rozwoju!</string>
-  <string name="dialog_remove_ads_title">Usuń reklamy za:</string>
   <string name="dialog_upload_file">Nie można otworzyć pliku, ponieważ format pliku nie jest obsługiwany. Czy chcesz dodać plik na nasz serwer tymczasowo, tak by można go było wyświetlić mimo wszystko?</string>
   <string name="title_choose_file_cloud">Wybierz plik z chmury</string>
   <string name="title_choose_file_local">Wybierz plik z urządzenia</string>
@@ -39,7 +38,6 @@
   <string name="menu_open">Otwórz</string>
   <string name="menu_feedback">Opinie</string>
   <string name="menu_about">O aplikacji</string>
-  <string name="menu_remove_ads">Usuń reklamy</string>
   <string name="menu_reload">Przeładuj bez limitu</string>
   <string name="menu_fullscreen">Tryb pełnoekranowy</string>
   <string name="menu_share">Udostępnij</string>
@@ -57,9 +55,4 @@
   <string name="tts_pause">Wstrzymaj</string>
   <string name="tts_next">Następny</string>
   <string name="tts_previous">Poprzedni</string>
-  <string-array name="remove_ads_options">
-    <item>na okres jednego roku</item>
-    <item>na zawsze</item>
-    <item>tymczasowo</item>
-  </string-array>
 </resources>

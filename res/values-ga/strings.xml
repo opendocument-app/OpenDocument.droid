@@ -27,7 +27,6 @@
   <string name="dialog_error_send_error_only">Seol an botún amháin</string>
   <string name="dialog_feedback_title">Cuidigh le feabhsú an fheidhmchláirín seo!</string>
   <string name="dialog_feedback_message">Nach maith leat ár gcur chuige chun airgead a thuilleamh ón bhfeidhmchláirín seo? An beag leat an chuma agus mar a bhraitheann sé? An bhfuil gné faoi leith de dhíth uait? Inis dúinn ar an leathanach aiseolais!</string>
-  <string name="dialog_remove_ads_title">Bain fógraí:</string>
   <string name="dialog_upload_file">Ní thig linn an cháipéis seo a oscailt mar ní thugtar tacaíocht don chineál comhad sin. An mian leat í a uasluchtú go sealadach chuig ár bhfreastalaí ionas gur féidir linn í a thaispeáint duit?</string>
   <string name="title_choose_file_cloud">Roghnaigh comhad ón scamall</string>
   <string name="title_choose_file_local">Roghnaigh comhad ón ngléas</string>
@@ -38,14 +37,8 @@
   <string name="menu_open">Oscail</string>
   <string name="menu_feedback">Aiseolas</string>
   <string name="menu_about">Maidir leis</string>
-  <string name="menu_remove_ads">Bain na fógraí</string>
   <string name="crouton_error_billing">Theip ar Ghoogle Play In-App Billing tosú</string>
   <string name="crouton_dismiss_chooser">Brúigh anseo chun filleadh ar an amharc cáipéise</string>
   <string name="list_searching_documents">Ag cuardach i gcomhair cáipéisí ar an ngléas agat... B\'fhéidir go mairfidh sé seo ar feadh tamall.</string>
   <string name="list_no_documents_found">Níor aimsíodh cáipéis ar bith</string>
-  <string-array name="remove_ads_options">
-    <item>ar feadh aon bhliain amháin</item>
-    <item>go deo</item>
-    <item>go sealadach</item>
-  </string-array>
 </resources>

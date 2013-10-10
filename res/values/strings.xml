@@ -28,7 +28,7 @@
     <string name="dialog_error_send_error_only">Send only the error</string>
     <string name="dialog_feedback_title">Shape the future of this app!</string>
     <string name="dialog_feedback_message">Don\'t like our approach to monetize this app? Hate the look and feel? Desperately looking for a specific feature? Please tell us about it on our feedback platform!</string>
-    <string name="dialog_remove_ads_title">Remove ads for:</string>
+    <string name="dialog_remove_ads_title">Purchase new features:</string>
     <string name="dialog_upload_file">We aren\'t able to open this document, because we don\'t support its format. Do you want to upload it to our server temporarily, so we can display it for you anyway?</string>
     <string name="title_choose_file_cloud">Choose file from cloud</string>
     <string name="title_choose_file_local">Choose file from device</string>
@@ -43,7 +43,7 @@
     <string name="edit_banner">Edit your document below and press Save</string>
     <string name="menu_feedback">Feedback</string>
     <string name="menu_about">About</string>
-    <string name="menu_remove_ads">Remove ads</string>
+    <string name="menu_remove_ads">Feature Store</string>
     <string name="menu_reload">Reload without limit</string>
     <string name="menu_fullscreen">Fullscreen mode</string>
     <string name="menu_share">Share</string>
@@ -63,13 +63,13 @@
     <string name="tts_previous">Previous</string>
     <string name="consume_ad">Consuming an ad will remove them for a while. You can also remove them for a small fee</string>
     <string name="media_route_menu_title">External Display</string>
+    <string name="chromecast_failed">Connection to Chromecast failed</string>
+    <string name="crouton_purchase">This feature is only available to users who purchased a feature pack. Please purchase one first in the "Feature Store"</string>
 
     <string-array name="remove_ads_options">
-        <item>for one year</item>
-        <item>forever</item>
-        <item>temporarily</item>
+        <item>remove ads for one year</item>
+        <item>remove ads forever + support for modifying documents</item>
+        <item>remove ads temporarily</item>
     </string-array>
-
-    <string name="chromecast_failed">Connection to Chromecast failed</string>
 
 </resources>
