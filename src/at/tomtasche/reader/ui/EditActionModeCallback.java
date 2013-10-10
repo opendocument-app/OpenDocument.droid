@@ -7,16 +7,22 @@ import java.io.IOException;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Environment;
 import android.support.v7.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
 import at.stefl.opendocument.java.odf.OpenDocument;
+import at.stefl.opendocument.java.odf.OpenDocumentPresentation;
+import at.stefl.opendocument.java.odf.OpenDocumentSpreadsheet;
+import at.stefl.opendocument.java.odf.OpenDocumentText;
 import at.stefl.opendocument.java.translator.Retranslator;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.ui.activity.MainActivity;
 import at.tomtasche.reader.ui.widget.PageView;
+
+import com.devspark.appmsg.AppMsg;
 
 public class EditActionModeCallback implements ActionMode.Callback {
 
@@ -76,22 +82,54 @@ public class EditActionModeCallback implements ActionMode.Callback {
 					try {
 						htmlStream = new FileInputStream(htmlFile);
 
-						File modifiedFile = new File(activity
-								.getExternalCacheDir(), "modified.odt");
-						modifiedStream = new FileOutputStream(modifiedFile);
-
 						// TODO: ugly and risky cast
 						documentFile = new LocatedOpenDocumentFile(
 								((LocatedOpenDocumentFile) document
 										.getDocumentFile()).getFile());
 
-						Retranslator.retranslate(documentFile.getAsDocument(),
-								htmlStream, modifiedStream);
+						String extension = "unknown";
+						OpenDocument openDocument = documentFile
+								.getAsDocument();
+						if (openDocument instanceof OpenDocumentText) {
+							extension = "odt";
+						} else if (openDocument instanceof OpenDocumentSpreadsheet) {
+							extension = "ods";
+						} else if (openDocument instanceof OpenDocumentPresentation) {
+							extension = "odp";
+						}
+
+						File modifiedFile = new File(Environment
+								.getExternalStorageDirectory(),
+								"modified-by-opendocument-reader." + extension);
+						modifiedStream = new FileOutputStream(modifiedFile);
+
+						Retranslator.retranslate(openDocument, htmlStream,
+								modifiedStream);
 
 						modifiedStream.close();
 
-						activity.loadUri(Uri.parse("file://"
-								+ modifiedFile.getAbsolutePath()));
+						final Uri fileUri = Uri.parse("file://"
+								+ modifiedFile.getAbsolutePath());
+
+						activity.loadUri(fileUri);
+
+						activity.showCrouton(
+								"Document successfully saved. You can find it on your sdcard: "
+										+ modifiedFile.getName(),
+								new Runnable() {
+
+									@Override
+									public void run() {
+										Intent intent = new Intent(
+												Intent.ACTION_SEND);
+										intent.setData(fileUri);
+										intent.setType("application/*");
+										intent.putExtra(Intent.EXTRA_STREAM,
+												fileUri);
+
+										activity.startActivity(intent);
+									}
+								}, AppMsg.STYLE_INFO);
 					} catch (IOException e) {
 						e.printStackTrace();
 					} finally {
