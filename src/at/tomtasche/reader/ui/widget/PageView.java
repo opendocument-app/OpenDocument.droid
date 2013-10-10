@@ -35,7 +35,6 @@ public class PageView extends WebView implements ParagraphListener {
 		super(context);
 
 		WebSettings settings = getSettings();
-		settings.setBuiltInZoomControls(true);
 		settings.setLightTouchEnabled(true);
 		settings.setSupportZoom(true);
 		settings.setDefaultTextEncodingName(ENCODING);

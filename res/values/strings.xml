@@ -61,7 +61,7 @@
     <string name="tts_pause">Pause</string>
     <string name="tts_next">Next</string>
     <string name="tts_previous">Previous</string>
-    <string name="consume_ad">Consuming an ad will remove them for a while</string>
+    <string name="consume_ad">Consuming an ad will remove them for a while. You can also remove them for a small fee</string>
     <string name="media_route_menu_title">External Display</string>
 
     <string-array name="remove_ads_options">

@@ -45,7 +45,7 @@
   <string name="menu_share">Partager</string>
   <string name="menu_cloud_print">Google Cloud Print</string>
   <string name="crouton_error_billing">Échec lors de l\'initialisation de la fonction d\'achats inclus dans les applications Google Play</string>
-  <string name="crouton_leave_fullscreen">Cliquez sur Avant pour quitter le mode plein écran</string>
+  <string name="crouton_leave_fullscreen">Appuyez sur Avant pour quitter le mode plein écran</string>
   <string name="crouton_dismiss_chooser">Cliquez ici pour revenir à l\'affichage du document</string>
   <string name="list_searching_documents">Recherche des documents sur votre appareil... Ceci peut prendre un certain temps.</string>
   <string name="list_no_documents_found">Aucun document trouvé</string>
