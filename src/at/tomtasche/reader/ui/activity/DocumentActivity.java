@@ -241,7 +241,11 @@ public abstract class DocumentActivity extends ActionBarActivity implements
 
 		if (progressDialog != null && progressDialog.getShowsDialog()
 				&& progressDialog.isNotNull()) {
-			progressDialog.dismissAllowingStateLoss();
+			try {
+				progressDialog.dismissAllowingStateLoss();
+			} catch (NullPointerException e) {
+				e.printStackTrace();
+			}
 
 			progressDialog = null;
 		}
