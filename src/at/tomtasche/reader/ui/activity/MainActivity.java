@@ -214,7 +214,7 @@ public class MainActivity extends DocumentActivity implements
 		showAds = true;
 
 		AdView adView = new AdView(MainActivity.this, AdSize.SMART_BANNER,
-				"ca-app-pub-8161473686436957/2477707165");
+				"a15042277f73506");
 		adView.setAdListener(this);
 
 		AdRequest adRequest = new AdRequest();
