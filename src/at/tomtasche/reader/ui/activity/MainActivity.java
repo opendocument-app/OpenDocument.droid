@@ -70,6 +70,7 @@ public class MainActivity extends DocumentActivity implements
 
 	private static final String BILLING_PRODUCT_YEAR = "remove_ads_for_1y";
 	private static final String BILLING_PRODUCT_FOREVER = "remove_ads_for_eva";
+	private static final String BILLING_PRODUCT_LOVE = "love_and_everything";
 
 	private static final String EXTRA_TAB_POSITION = "tab_position";
 
@@ -167,6 +168,8 @@ public class MainActivity extends DocumentActivity implements
 														.getPurchase(BILLING_PRODUCT_FOREVER) != null;
 												purchased |= inv
 														.getPurchase(BILLING_PRODUCT_YEAR) != null;
+												purchased |= inv
+														.getPurchase(BILLING_PRODUCT_LOVE) != null;
 
 												if (purchased) {
 													removeAds();
@@ -573,6 +576,11 @@ public class MainActivity extends DocumentActivity implements
 
 					case 1:
 						product = BILLING_PRODUCT_FOREVER;
+
+						break;
+
+					case 2:
+						product = BILLING_PRODUCT_LOVE;
 
 						break;
 

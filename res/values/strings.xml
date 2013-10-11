@@ -69,6 +69,7 @@
     <string-array name="remove_ads_options">
         <item>remove ads for one year</item>
         <item>remove ads forever + support for modifying documents</item>
+        <item>remove ads forever + support for modifying documents + deep love</item>
         <item>remove ads temporarily</item>
     </string-array>
 
