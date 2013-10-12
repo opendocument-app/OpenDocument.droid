@@ -72,5 +72,6 @@
         <item>remove ads forever + support for modifying documents + deep love</item>
         <item>remove ads temporarily</item>
     </string-array>
+        <string name="crouton_error_open_app">Couldn\'t open app.</string>
 
 </resources>

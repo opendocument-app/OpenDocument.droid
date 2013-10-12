@@ -81,6 +81,7 @@ public class MainActivity extends DocumentActivity implements
 	private int lastPosition;
 	private boolean fullscreen;
 	private boolean showAds;
+	private boolean hasEditing;
 
 	private Page currentPage;
 
@@ -169,6 +170,11 @@ public class MainActivity extends DocumentActivity implements
 												purchased |= inv
 														.getPurchase(BILLING_PRODUCT_YEAR) != null;
 												purchased |= inv
+														.getPurchase(BILLING_PRODUCT_LOVE) != null;
+
+												hasEditing = inv
+														.getPurchase(BILLING_PRODUCT_FOREVER) != null;
+												hasEditing |= inv
 														.getPurchase(BILLING_PRODUCT_LOVE) != null;
 
 												if (purchased) {
@@ -479,9 +485,16 @@ public class MainActivity extends DocumentActivity implements
 
 			intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
 
-			startActivity(intent);
+			try {
+				startActivity(intent);
 
-			analytics.sendEvent("ui", "share", null, null);
+				analytics.sendEvent("ui", "share", null, null);
+			} catch (Exception e) {
+				e.printStackTrace();
+
+				showCrouton(R.string.crouton_error_open_app, null,
+						AppMsg.STYLE_ALERT);
+			}
 
 			break;
 		}
@@ -727,7 +740,20 @@ public class MainActivity extends DocumentActivity implements
 						target.activityInfo.packageName,
 						target.activityInfo.name));
 
-				startActivityForResult(intent, 42);
+				try {
+					startActivityForResult(intent, 42);
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					showCrouton(R.string.crouton_error_open_app,
+							new Runnable() {
+
+								@Override
+								public void run() {
+									findDocument();
+								}
+							}, AppMsg.STYLE_ALERT);
+				}
 
 				analytics.sendEvent("ui", "open",
 						target.activityInfo.packageName, null);

@@ -83,10 +83,16 @@ public class PageView extends WebView implements ParagraphListener {
 				if (url.startsWith("https://docs.google.com/viewer?embedded=true")) {
 					return false;
 				} else {
-					getContext().startActivity(
-							new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+					try {
+						getContext().startActivity(
+								new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
 
-					return true;
+						return true;
+					} catch (Exception e) {
+						e.printStackTrace();
+
+						return false;
+					}
 				}
 			}
 		});
