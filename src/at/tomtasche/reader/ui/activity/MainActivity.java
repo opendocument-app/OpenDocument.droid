@@ -544,7 +544,7 @@ public class MainActivity extends DocumentActivity implements
 			analytics.sendEvent("ui", "google+", null, null);
 		}
 		case R.id.menu_edit: {
-			if (!showAds) {
+			if (hasEditing) {
 				EditActionModeCallback editActionMode = new EditActionModeCallback(
 						this, getPageFragment().getPageView(), getDocument()
 								.getOrigin());
