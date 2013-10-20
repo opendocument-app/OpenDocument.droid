@@ -29,8 +29,8 @@
   <string name="dialog_feedback_title">Twórz przyszłość tej aplikacji!</string>
   <string name="dialog_feedback_message">Nie lubisz sposobu w jaki zarabiamy na tej aplikacji? Nie podoba ci się wygląd lub obsługa? Szukasz innej specjalnej funkcji? Proszę opowiedz nam o tym na platformie rozwoju!</string>
   <string name="dialog_upload_file">Nie można otworzyć pliku, ponieważ format pliku nie jest obsługiwany. Czy chcesz dodać plik na nasz serwer tymczasowo, tak by można go było wyświetlić mimo wszystko?</string>
-  <string name="title_choose_file_cloud">Wybierz plik z chmury</string>
-  <string name="title_choose_file_local">Wybierz plik z urządzenia</string>
+  <string name="dialog_title_choose_file_cloud">Wybierz plik z chmury</string>
+  <string name="dialog_title_choose_file">Wybierz plik z urządzenia</string>
   <string name="menu_page_list">Lista stron</string>
   <string name="menu_page_next">Następny</string>
   <string name="menu_page_previous">Poprzedni</string>
@@ -46,13 +46,13 @@
   <string name="crouton_leave_fullscreen">Naciśnij przycisk Wstecz, aby opuścić tryb pełnoekranowy</string>
   <string name="crouton_dismiss_chooser">Kliknij tutaj, aby powrócić do widoku dokumentu</string>
   <string name="list_searching_documents">Wyszukiwanie dokumentów na urządzeniu... Może to zająć trochę czasu.</string>
-  <string name="list_no_documents_found">Nie znaleziono dokumentów</string>
-  <string name="find_previous">Poprzedni</string>
-  <string name="find_next">Następny</string>
-  <string name="find_on_page">Wyszukaj na stronie</string>
+  <string name="dialog_list_no_documents_found">Nie znaleziono dokumentów</string>
+  <string name="action_find_previous">Poprzedni</string>
+  <string name="action_find_next">Następny</string>
+  <string name="action_find_on_page">Wyszukaj na stronie</string>
   <string name="menu_tts">Tekst na mowę</string>
-  <string name="tts_play">Zagraj</string>
-  <string name="tts_pause">Wstrzymaj</string>
-  <string name="tts_next">Następny</string>
-  <string name="tts_previous">Poprzedni</string>
+  <string name="action_tts_play">Zagraj</string>
+  <string name="action_tts_pause">Wstrzymaj</string>
+  <string name="action_tts_next">Następny</string>
+  <string name="action_tts_previous">Poprzedni</string>
 </resources>

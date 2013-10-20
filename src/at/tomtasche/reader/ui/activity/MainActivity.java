@@ -1,15 +1,17 @@
 package at.tomtasche.reader.ui.activity;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
@@ -42,6 +44,8 @@ import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
 
 import com.bugsense.trace.BugSenseHandler;
 import com.devspark.appmsg.AppMsg;
+import com.espian.showcaseview.ShowcaseView;
+import com.espian.showcaseview.ShowcaseViews;
 import com.github.jberkel.pay.me.IabHelper;
 import com.github.jberkel.pay.me.IabResult;
 import com.github.jberkel.pay.me.listener.OnIabPurchaseFinishedListener;
@@ -81,7 +85,7 @@ public class MainActivity extends DocumentActivity implements
 	private int lastPosition;
 	private boolean fullscreen;
 	private boolean showAds;
-	private boolean hasEditing;
+	private boolean showcased;
 
 	private Page currentPage;
 
@@ -95,18 +99,11 @@ public class MainActivity extends DocumentActivity implements
 
 	private ChromecastManager chromecast;
 
+	private SharedPreferences preferences;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-		// if (ActivityManager.isUserAMonkey())
-		// getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-		// WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-		// StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-		// .detectAll().penaltyLog().penaltyDeath().build());
-		// StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll()
-		// .penaltyLog().penaltyDeath().build());
 
 		BugSenseHandler.initAndStartSession(this, "efe5d68e");
 
@@ -130,74 +127,8 @@ public class MainActivity extends DocumentActivity implements
 
 		addLoadingListener(this);
 
-		if (!AMAZON_RELEASE) {
-			billingPreferences = new BillingPreferences(this);
-
-			billingHelper = new IabHelper(this, getPublicKey());
-			billingHelper.startSetup(new OnIabSetupFinishedListener() {
-
-				@Override
-				public void onIabSetupFinished(IabResult result) {
-					if (billingPreferences.hasPurchased()) {
-						return;
-					}
-
-					if (result.isFailure()) {
-						runOnUiThread(new Runnable() {
-
-							@Override
-							public void run() {
-								showGoogleAds();
-
-								showCrouton(
-										getString(R.string.crouton_error_billing),
-										null, AppMsg.STYLE_ALERT);
-							}
-						});
-					} else if (result.isSuccess()) {
-						// query every 30 days
-						if ((billingPreferences.getLastQueryTime() + 1000 * 60
-								* 60 * 24 * 30) < System.currentTimeMillis()) {
-							billingHelper
-									.queryInventoryAsync(new QueryInventoryFinishedListener() {
-
-										@Override
-										public void onQueryInventoryFinished(
-												IabResult result, Inventory inv) {
-											if (result.isSuccess()) {
-												boolean purchased = inv
-														.getPurchase(BILLING_PRODUCT_FOREVER) != null;
-												purchased |= inv
-														.getPurchase(BILLING_PRODUCT_YEAR) != null;
-												purchased |= inv
-														.getPurchase(BILLING_PRODUCT_LOVE) != null;
-
-												hasEditing = inv
-														.getPurchase(BILLING_PRODUCT_FOREVER) != null;
-												hasEditing |= inv
-														.getPurchase(BILLING_PRODUCT_LOVE) != null;
-
-												if (purchased) {
-													removeAds();
-												} else {
-													showGoogleAds();
-												}
-
-												billingPreferences
-														.setPurchased(purchased);
-											}
-
-											billingPreferences.setLastQueryTime(System
-													.currentTimeMillis());
-										}
-									});
-						}
-					}
-				}
-			});
-		} else {
-			showGoogleAds();
-		}
+		preferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
+		showcased = preferences.getBoolean("showcased", false);
 
 		chromecast = new ChromecastManager(this);
 		// disable until Chromecast SDK is final and stable
@@ -220,7 +151,7 @@ public class MainActivity extends DocumentActivity implements
 		showAds = true;
 
 		AdView adView = new AdView(MainActivity.this, AdSize.SMART_BANNER,
-				"a15042277f73506");
+				"ca-app-pub-8161473686436957/5931994762");
 		adView.setAdListener(this);
 
 		AdRequest adRequest = new AdRequest();
@@ -228,16 +159,8 @@ public class MainActivity extends DocumentActivity implements
 		adView.loadAd(adRequest);
 
 		showAds(adView);
-	}
 
-	private void adLoaded() {
-		showCrouton(R.string.consume_ad, new Runnable() {
-
-			@Override
-			public void run() {
-				buyAdRemoval();
-			}
-		}, AppMsg.STYLE_CONFIRM);
+		showcase();
 	}
 
 	// admob
@@ -264,10 +187,10 @@ public class MainActivity extends DocumentActivity implements
 		if (interstitial != null) {
 			interstitial.show();
 
+			interstitial = null;
+
 			analytics.sendEvent("monetization", "interstitial", "google", null);
 		} else {
-			adLoaded();
-
 			analytics.sendEvent("monetization", "ads", "google", null);
 		}
 	}
@@ -326,7 +249,95 @@ public class MainActivity extends DocumentActivity implements
 
 		chromecast.onCreateOptionsMenu(menu);
 
+		if (!AMAZON_RELEASE) {
+			billingPreferences = new BillingPreferences(this);
+
+			billingHelper = new IabHelper(this, getPublicKey());
+			billingHelper.startSetup(new OnIabSetupFinishedListener() {
+
+				@Override
+				public void onIabSetupFinished(IabResult result) {
+					if (billingPreferences.hasPurchased()) {
+						removeAds();
+
+						return;
+					}
+
+					if (result.isFailure()) {
+						runOnUiThread(new Runnable() {
+
+							@Override
+							public void run() {
+								showGoogleAds();
+
+								showCrouton(
+										getString(R.string.crouton_error_billing),
+										null, AppMsg.STYLE_ALERT);
+							}
+						});
+					} else if (result.isSuccess()) {
+						// query every 30 days
+						if ((billingPreferences.getLastQueryTime() + 1000 * 60
+								* 60 * 24 * 7) < System.currentTimeMillis()) {
+							billingHelper
+									.queryInventoryAsync(new QueryInventoryFinishedListener() {
+
+										@Override
+										public void onQueryInventoryFinished(
+												IabResult result, Inventory inv) {
+											if (result.isSuccess()) {
+												boolean purchased = inv
+														.getPurchase(BILLING_PRODUCT_FOREVER) != null;
+												purchased |= inv
+														.getPurchase(BILLING_PRODUCT_YEAR) != null;
+												purchased |= inv
+														.getPurchase(BILLING_PRODUCT_LOVE) != null;
+
+												if (purchased) {
+													removeAds();
+												} else {
+													showGoogleAds();
+												}
+
+												billingPreferences
+														.setPurchased(purchased);
+											}
+
+											billingPreferences.setLastQueryTime(System
+													.currentTimeMillis());
+										}
+									});
+						}
+					}
+				}
+			});
+		} else {
+			showGoogleAds();
+		}
+
 		return true;
+	}
+
+	private void showcase() {
+		if (!showcased && getIntent().getData() == null) {
+			ShowcaseViews mViews = new ShowcaseViews(this, 0);
+			mViews.addView(new ShowcaseViews.ItemViewProperties(R.id.menu_edit,
+					R.string.showcase_edit_title,
+					R.string.showcase_edit_detail,
+					ShowcaseView.ITEM_ACTION_ITEM));
+			if (showAds) {
+				mViews.addView(new ShowcaseViews.ItemViewProperties(
+						R.id.ad_container, R.string.showcase_ad_title,
+						R.string.showcase_ad_detail));
+			}
+			mViews.show();
+
+			showcased = true;
+
+			Editor editor = preferences.edit();
+			editor.putBoolean("showcased", true);
+			editor.commit();
+		}
 	}
 
 	@Override
@@ -354,7 +365,6 @@ public class MainActivity extends DocumentActivity implements
 
 			break;
 		}
-
 		case R.id.menu_search: {
 			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
 				// http://www.androidsnippets.org/snippets/20/
@@ -389,7 +399,6 @@ public class MainActivity extends DocumentActivity implements
 
 			break;
 		}
-
 		case R.id.menu_open: {
 			findDocument();
 
@@ -397,13 +406,11 @@ public class MainActivity extends DocumentActivity implements
 
 			break;
 		}
-
 		case R.id.menu_remove_ads: {
 			buyAdRemoval();
 
 			break;
 		}
-
 		case R.id.menu_about: {
 			loadUri(DocumentLoader.URI_ABOUT);
 
@@ -411,23 +418,10 @@ public class MainActivity extends DocumentActivity implements
 
 			break;
 		}
-
 		case R.id.menu_feedback: {
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle(R.string.dialog_feedback_title);
-			builder.setMessage(R.string.dialog_feedback_message);
-			builder.setPositiveButton(android.R.string.ok,
-					new OnClickListener() {
-
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							startActivity(new Intent(
-									Intent.ACTION_VIEW,
-									Uri.parse("https://opendocument.uservoice.com/")));
-						}
-					});
-			builder.setNegativeButton(android.R.string.cancel, null);
-			builder.show();
+			startActivity(new Intent(
+					Intent.ACTION_VIEW,
+					Uri.parse("https://plus.google.com/communities/113494011673882132018")));
 
 			analytics.sendEvent("ui", "feedback", null, null);
 
@@ -474,27 +468,7 @@ public class MainActivity extends DocumentActivity implements
 			break;
 		}
 		case R.id.menu_share: {
-			Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
-			intent.setType("text/html");
-
-			ArrayList<Uri> uris = new ArrayList<Uri>();
-			for (Page page : getDocument().getPages()) {
-				uris.add(Uri.parse("content://at.tomtasche.reader/"
-						+ page.getUrl()));
-			}
-
-			intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-
-			try {
-				startActivity(intent);
-
-				analytics.sendEvent("ui", "share", null, null);
-			} catch (Exception e) {
-				e.printStackTrace();
-
-				showCrouton(R.string.crouton_error_open_app, null,
-						AppMsg.STYLE_ALERT);
-			}
+			share(Uri.parse("content://at.tomtasche.reader/document.odt"));
 
 			break;
 		}
@@ -536,30 +510,17 @@ public class MainActivity extends DocumentActivity implements
 
 			break;
 		}
-		case R.id.menu_googleplus: {
-			startActivity(new Intent(
-					Intent.ACTION_VIEW,
-					Uri.parse("https://plus.google.com/communities/113494011673882132018")));
-
-			analytics.sendEvent("ui", "google+", null, null);
-		}
 		case R.id.menu_edit: {
-			if (hasEditing) {
-				EditActionModeCallback editActionMode = new EditActionModeCallback(
-						this, getPageFragment().getPageView(), getDocument()
-								.getOrigin());
-				startSupportActionMode(editActionMode);
-
-				analytics.sendEvent("ui", "edit", null, null);
-			} else {
-				showCrouton(R.string.crouton_purchase, new Runnable() {
-
-					@Override
-					public void run() {
-						buyAdRemoval();
-					}
-				}, AppMsg.STYLE_INFO);
+			if (!showAds) {
+				showInterstitial();
 			}
+
+			EditActionModeCallback editActionMode = new EditActionModeCallback(
+					this, getPageFragment().getPageView(), getDocument()
+							.getOrigin());
+			startSupportActionMode(editActionMode);
+
+			analytics.sendEvent("ui", "edit", null, null);
 
 			break;
 		}
@@ -571,79 +532,115 @@ public class MainActivity extends DocumentActivity implements
 		return true;
 	}
 
+	public void share(Uri uri) {
+		Intent intent = new Intent(Intent.ACTION_SEND);
+		intent.setData(uri);
+		intent.setType("application/*");
+		intent.putExtra(Intent.EXTRA_STREAM, uri);
+
+		try {
+			startActivity(intent);
+
+			analytics.sendEvent("ui", "share", null, null);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			showCrouton(R.string.crouton_error_open_app, null,
+					AppMsg.STYLE_ALERT);
+		}
+	}
+
+	private void showInterstitial() {
+		interstitial = new InterstitialAd(this,
+				"ca-app-pub-8161473686436957/2477707165");
+
+		AdRequest adRequest = new AdRequest();
+
+		interstitial.loadAd(adRequest);
+
+		interstitial.setAdListener(this);
+	}
+
 	private void buyAdRemoval() {
 		if (!AMAZON_RELEASE) {
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setTitle(R.string.dialog_remove_ads_title);
-			builder.setItems(R.array.remove_ads_options, new OnClickListener() {
+			builder.setItems(R.array.dialog_remove_ads_options,
+					new OnClickListener() {
 
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					String product = null;
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							String product = null;
 
-					switch (which) {
-					case 0:
-						product = BILLING_PRODUCT_YEAR;
+							switch (which) {
+							case 0:
+								product = BILLING_PRODUCT_YEAR;
 
-						break;
+								break;
 
-					case 1:
-						product = BILLING_PRODUCT_FOREVER;
+							case 1:
+								product = BILLING_PRODUCT_FOREVER;
 
-						break;
+								break;
 
-					case 2:
-						product = BILLING_PRODUCT_LOVE;
+							case 2:
+								product = BILLING_PRODUCT_LOVE;
 
-						break;
+								break;
 
-					default:
-						removeAds();
+							default:
+								removeAds();
 
-						dialog.dismiss();
+								dialog.dismiss();
 
-						return;
-					}
+								return;
+							}
 
-					billingHelper.launchPurchaseFlow(MainActivity.this,
-							product, ItemType.INAPP, PURCHASE_CODE,
-							new OnIabPurchaseFinishedListener() {
-								public void onIabPurchaseFinished(
-										IabResult result, Purchase purchase) {
-									// remove ads even if the
-									// purchase failed /
-									// the user canceled the
-									// purchase
-									runOnUiThread(new Runnable() {
+							billingHelper.launchPurchaseFlow(MainActivity.this,
+									product, ItemType.INAPP, PURCHASE_CODE,
+									new OnIabPurchaseFinishedListener() {
+										public void onIabPurchaseFinished(
+												IabResult result,
+												Purchase purchase) {
+											// remove ads even if the
+											// purchase failed /
+											// the user canceled the
+											// purchase
+											runOnUiThread(new Runnable() {
 
-										@Override
-										public void run() {
-											removeAds();
+												@Override
+												public void run() {
+													removeAds();
+												}
+											});
+
+											if (result.isSuccess()) {
+												billingPreferences
+														.setPurchased(true);
+												billingPreferences
+														.setLastQueryTime(System
+																.currentTimeMillis());
+
+												analytics.sendEvent(
+														"monetization",
+														"in-app",
+														purchase.getSku(), null);
+											} else {
+												analytics
+														.sendEvent(
+																"monetization",
+																"in-app",
+																"abort", null);
+											}
 										}
-									});
+									}, null);
 
-									if (result.isSuccess()) {
-										billingPreferences.setPurchased(true);
-										billingPreferences
-												.setLastQueryTime(System
-														.currentTimeMillis());
+							analytics.sendEvent("monetization", "in-app",
+									"attempt", null);
 
-										analytics.sendEvent("monetization",
-												"in-app", purchase.getSku(),
-												null);
-									} else {
-										analytics.sendEvent("monetization",
-												"in-app", "abort", null);
-									}
-								}
-							}, null);
-
-					analytics.sendEvent("monetization", "in-app", "attempt",
-							null);
-
-					dialog.dismiss();
-				}
-			});
+							dialog.dismiss();
+						}
+					});
 			builder.show();
 		} else {
 			showCrouton("Not available at the moment", null, AppMsg.STYLE_ALERT);
@@ -651,14 +648,19 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	public Uri getCacheFileUri() {
-		return Uri.parse(new File(getCacheDir(), "0").getAbsolutePath());
+		// hex hex!
+		return Uri.parse(new File(getCacheDir(), "document.odt")
+				.getAbsolutePath());
 	}
 
 	private void removeAds() {
 		showAds = false;
 
-		if (madView != null)
+		if (madView != null) {
 			madView.setVisibility(View.GONE);
+		}
+
+		showcase();
 
 		analytics.sendEvent("monetization", "ads", "hide", null);
 	}
@@ -764,14 +766,7 @@ public class MainActivity extends DocumentActivity implements
 		builder.show();
 
 		if (showAds) {
-			interstitial = new InterstitialAd(this,
-					"ca-app-pub-8161473686436957/2477707165");
-
-			AdRequest adRequest = new AdRequest();
-
-			interstitial.loadAd(adRequest);
-
-			interstitial.setAdListener(this);
+			showInterstitial();
 		}
 	}
 
@@ -877,9 +872,6 @@ public class MainActivity extends DocumentActivity implements
 	public void onError(Throwable error, Uri uri) {
 		// DO NOT call the super-method here! otherwise we end up in an infinite
 		// recursion.
-
-		BugSenseHandler.sendExceptionMessage("uri", uri.toString(),
-				new Exception(error));
 
 		analytics.sendException(error.getMessage(), error, false);
 	}

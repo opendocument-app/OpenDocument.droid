@@ -36,19 +36,12 @@ public class PageView extends WebView implements ParagraphListener {
 
 		WebSettings settings = getSettings();
 		settings.setBuiltInZoomControls(true);
-		settings.setLightTouchEnabled(true);
+		settings.setDisplayZoomControls(false);
 		settings.setSupportZoom(true);
 		settings.setDefaultTextEncodingName(ENCODING);
 		settings.setJavaScriptEnabled(true);
 
-		// WebView simply ignores viewport-tag in HTML if we don't set a initial
-		// scale > 0
-		setInitialScale(100);
-
 		addJavascriptInterface(this, "paragraphListener");
-
-		// settings.setUseWideViewPort(true);
-		// setInitialScale(1);
 
 		setKeepScreenOn(true);
 		if (Build.VERSION.SDK_INT >= 14)

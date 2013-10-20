@@ -27,8 +27,8 @@
   <string name="dialog_feedback_title">Molde o futuro deste app!</string>
   <string name="dialog_feedback_message">Não gosta de nossa abordagem para ganhar dinheiro neste app? Odeia a aparência? Está procurando desesperadamente uma característica específica? Por favor nos deixe saber em nossa plataforma de feedback!</string>
   <string name="dialog_upload_file">Não é possível abrir este documento porque não há suporte a seu formato. Você quer enviá-lo para o nosso servidor temporariamente, para que ele possa ser exibido assim mesmo?</string>
-  <string name="title_choose_file_cloud">Escolha arquivos da nuvem</string>
-  <string name="title_choose_file_local">Escolha arquivos do dispositivo</string>
+  <string name="dialog_title_choose_file_cloud">Escolha arquivos da nuvem</string>
+  <string name="dialog_title_choose_file">Escolha arquivos do dispositivo</string>
   <string name="menu_page_list">Listar páginas</string>
   <string name="menu_page_next">Próximo</string>
   <string name="menu_page_previous">Anterior</string>
@@ -44,13 +44,13 @@
   <string name="crouton_leave_fullscreen">Aperte Voltar para sair do modo tela cheia</string>
   <string name="crouton_dismiss_chooser">Clique aqui para voltar para a visualização documento</string>
   <string name="list_searching_documents">Procurando por documentos no seu dispositivo... Isso pode demorar um pouco.</string>
-  <string name="list_no_documents_found">Nenhum documento encontrado</string>
-  <string name="find_previous">Anterior</string>
-  <string name="find_next">Seguinte</string>
-  <string name="find_on_page">Encontre na página</string>
+  <string name="dialog_list_no_documents_found">Nenhum documento encontrado</string>
+  <string name="action_find_previous">Anterior</string>
+  <string name="action_find_next">Seguinte</string>
+  <string name="action_find_on_page">Encontre na página</string>
   <string name="menu_tts">Text-To-Speech</string>
-  <string name="tts_play">Play</string>
-  <string name="tts_pause">Pausa</string>
-  <string name="tts_next">Seguinte</string>
-  <string name="tts_previous">Anterior</string>
+  <string name="action_tts_play">Play</string>
+  <string name="action_tts_pause">Pausa</string>
+  <string name="action_tts_next">Seguinte</string>
+  <string name="action_tts_previous">Anterior</string>
 </resources>

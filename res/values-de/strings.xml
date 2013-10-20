@@ -6,7 +6,7 @@
   <string name="toast_error_access_file">Auf die Datei konnte nicht zugegriffen werden. Vielleicht ist die Datei nicht mehr vorhanden?</string>
   <string name="toast_error_find_file">Datei konnte nicht gefunden werden.</string>
   <string name="toast_error_illegal_file">Diese Datei scheint nicht keines der unterstützten Formate zu haben.</string>
-  <string name="toast_error_open_file">Datei konnte nicht geöffnet werden. Nur .odt und .ods-Dokumente werden unterstüzt!</string>
+  <string name="toast_error_open_file">Datei konnte nicht geöffnet werden. Nur .odt und .ods-Dokumente werden unterstützt!</string>
   <string name="toast_error_out_of_memory">Restlicher Speicher geht zur Neige! Zu viele Bilder oder eine zu große Datei.</string>
   <string name="toast_error_no_previous">Keine vorhergehende Seite vorhanden</string>
   <string name="toast_error_no_next">Keine weitere Seite vorhanden</string>
@@ -28,8 +28,8 @@
   <string name="dialog_feedback_title">Sag uns deine Meinung!</string>
   <string name="dialog_feedback_message">Dir gefällt nicht wie wir versuchen mit dieser App Geld zu verdienen? Oder hasst du das Aussehen und Verhalten der App? Du suchst vergeblich nach einem bestimmten Feature? Bitte sag uns Bescheid!</string>
   <string name="dialog_upload_file">Dieses Dokument kann nicht geöffnet werden, weil wir dessen Format nicht unterstützen. Willst du es temporär auf unsere Server hochladen, damit wir es trotzdem für dich anzeigen können?</string>
-  <string name="title_choose_file_cloud">Wähle eine Datei aus dem Internet</string>
-  <string name="title_choose_file_local">Wähle eine Datei von diesem Gerät</string>
+  <string name="dialog_title_choose_file_cloud">Wähle eine Datei aus dem Internet</string>
+  <string name="dialog_title_choose_file">Wähle eine Datei von diesem Gerät</string>
   <string name="menu_page_list">Zeige Seiten</string>
   <string name="menu_page_next">Weiter</string>
   <string name="menu_page_previous">Zurück</string>
@@ -43,5 +43,5 @@
   <string name="crouton_error_billing">Fehler beim Starten von Google Play In-App Billing</string>
   <string name="crouton_dismiss_chooser">Klicke hier um zum Dokument zurückzukehren</string>
   <string name="list_searching_documents">Suche nach Dokumenten auf dem Gerät... Das könnte eine Weile dauern.</string>
-  <string name="list_no_documents_found">Keine Dokumente gefunden</string>
+  <string name="dialog_list_no_documents_found">Keine Dokumente gefunden</string>
 </resources>

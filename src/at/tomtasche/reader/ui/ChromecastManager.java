@@ -142,14 +142,14 @@ public class ChromecastManager implements MediaRouteAdapter {
 				} catch (IOException e) {
 					e.printStackTrace();
 
-					activity.showCrouton(R.string.chromecast_failed, null,
+					activity.showCrouton(R.string.crouton_chromecast_failed, null,
 							AppMsg.STYLE_ALERT);
 				}
 			}
 
 			@Override
 			public void onSessionStartFailed(SessionError error) {
-				activity.showCrouton(R.string.chromecast_failed, null,
+				activity.showCrouton(R.string.crouton_chromecast_failed, null,
 						AppMsg.STYLE_ALERT);
 			}
 
@@ -219,7 +219,7 @@ public class ChromecastManager implements MediaRouteAdapter {
 		} catch (Exception e) {
 			e.printStackTrace();
 
-			activity.showCrouton(R.string.chromecast_failed, null,
+			activity.showCrouton(R.string.crouton_chromecast_failed, null,
 					AppMsg.STYLE_ALERT);
 		}
 	}

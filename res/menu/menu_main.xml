@@ -4,7 +4,7 @@
 
     <item
         android:id="@+id/media_route_menu_item"
-        android:title="@string/media_route_menu_title"
+        android:title="@string/menu_media_route"
         app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
         app:showAsAction="always"/>
     <item
@@ -55,10 +55,6 @@
     <item
         android:id="@+id/menu_tts"
         android:title="@string/menu_tts"
-        app:showAsAction="never"/>
-    <item
-        android:id="@+id/menu_googleplus"
-        android:title="Google+ Community"
         app:showAsAction="never"/>
     <item
         android:id="@+id/menu_about"

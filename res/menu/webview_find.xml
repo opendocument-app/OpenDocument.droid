@@ -21,11 +21,11 @@
         android:id="@+id/find_prev"
         android:icon="@drawable/ic_action_arrow_top"
         android:showAsAction="always"
-        android:title="@string/find_previous"/>
+        android:title="@string/action_find_previous"/>
     <item
         android:id="@+id/find_next"
         android:icon="@drawable/ic_action_arrow_bottom"
         android:showAsAction="always"
-        android:title="@string/find_next"/>
+        android:title="@string/action_find_next"/>
 
 </menu>

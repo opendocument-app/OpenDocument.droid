@@ -41,7 +41,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
 	@Override
 	public boolean onCreateActionMode(ActionMode mode, Menu menu) {
 		statusView = new TextView(activity);
-		statusView.setText(R.string.edit_banner);
+		statusView.setText(R.string.action_edit_banner);
 		mode.setCustomView(statusView);
 
 		mode.getMenuInflater().inflate(R.menu.edit, menu);
@@ -120,14 +120,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
 
 									@Override
 									public void run() {
-										Intent intent = new Intent(
-												Intent.ACTION_SEND);
-										intent.setData(fileUri);
-										intent.setType("application/*");
-										intent.putExtra(Intent.EXTRA_STREAM,
-												fileUri);
-
-										activity.startActivity(intent);
+										activity.share(fileUri);
 									}
 								}, AppMsg.STYLE_INFO);
 					} catch (IOException e) {

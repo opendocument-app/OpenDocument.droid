@@ -6,24 +6,24 @@
         android:enabled="false"
         android:icon="@drawable/ic_action_playback_prev"
         android:showAsAction="ifRoom"
-        android:title="@string/tts_previous"/>
+        android:title="@string/action_tts_previous"/>
     <item
         android:id="@+id/tts_play"
         android:enabled="false"
         android:icon="@drawable/ic_action_playback_play"
         android:showAsAction="always"
-        android:title="@string/tts_play"/>
+        android:title="@string/action_tts_play"/>
     <item
         android:id="@+id/tts_pause"
         android:enabled="false"
         android:icon="@drawable/ic_action_playback_pause"
         android:showAsAction="always"
-        android:title="@string/tts_pause"/>
+        android:title="@string/action_tts_pause"/>
     <item
         android:id="@+id/tts_next"
         android:enabled="false"
         android:icon="@drawable/ic_action_playback_next"
         android:showAsAction="ifRoom"
-        android:title="@string/tts_next"/>
+        android:title="@string/action_tts_next"/>
 
 </menu>

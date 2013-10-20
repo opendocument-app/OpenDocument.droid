@@ -28,8 +28,8 @@
   <string name="dialog_feedback_title">Cuidigh le feabhsú an fheidhmchláirín seo!</string>
   <string name="dialog_feedback_message">Nach maith leat ár gcur chuige chun airgead a thuilleamh ón bhfeidhmchláirín seo? An beag leat an chuma agus mar a bhraitheann sé? An bhfuil gné faoi leith de dhíth uait? Inis dúinn ar an leathanach aiseolais!</string>
   <string name="dialog_upload_file">Ní thig linn an cháipéis seo a oscailt mar ní thugtar tacaíocht don chineál comhad sin. An mian leat í a uasluchtú go sealadach chuig ár bhfreastalaí ionas gur féidir linn í a thaispeáint duit?</string>
-  <string name="title_choose_file_cloud">Roghnaigh comhad ón scamall</string>
-  <string name="title_choose_file_local">Roghnaigh comhad ón ngléas</string>
+  <string name="dialog_title_choose_file_cloud">Roghnaigh comhad ón scamall</string>
+  <string name="dialog_title_choose_file">Roghnaigh comhad ón ngléas</string>
   <string name="menu_page_list">Cuir na leathanaigh i liosta</string>
   <string name="menu_page_next">Ar aghaidh</string>
   <string name="menu_page_previous">Roimhe</string>
@@ -40,5 +40,5 @@
   <string name="crouton_error_billing">Theip ar Ghoogle Play In-App Billing tosú</string>
   <string name="crouton_dismiss_chooser">Brúigh anseo chun filleadh ar an amharc cáipéise</string>
   <string name="list_searching_documents">Ag cuardach i gcomhair cáipéisí ar an ngléas agat... B\'fhéidir go mairfidh sé seo ar feadh tamall.</string>
-  <string name="list_no_documents_found">Níor aimsíodh cáipéis ar bith</string>
+  <string name="dialog_list_no_documents_found">Níor aimsíodh cáipéis ar bith</string>
 </resources>

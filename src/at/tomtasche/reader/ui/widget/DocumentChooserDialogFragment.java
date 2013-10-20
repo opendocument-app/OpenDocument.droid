@@ -71,7 +71,7 @@ public class DocumentChooserDialogFragment extends DialogFragment implements
 		if (items.size() == 0) {
 			items = new HashMap<String, String>();
 			items.put(
-					getActivity().getString(R.string.list_no_documents_found),
+					getActivity().getString(R.string.dialog_list_no_documents_found),
 					null);
 		}
 
@@ -82,7 +82,7 @@ public class DocumentChooserDialogFragment extends DialogFragment implements
 		listView.setAdapter(adapter);
 
 		TextView emptyView = new TextView(getActivity());
-		emptyView.setText(R.string.list_searching_documents);
+		emptyView.setText(R.string.dialog_list_searching_documents);
 
 		listView.setEmptyView(emptyView);
 	}

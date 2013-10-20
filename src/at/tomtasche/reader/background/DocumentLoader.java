@@ -150,9 +150,8 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 							uri);
 				}
 
-				String cachedFileName = cache.create(stream);
-				documentFile = new LocatedOpenDocumentFile(
-						cache.getFile(cachedFileName));
+				File cachedFile = cache.create("document.odt", stream);
+				documentFile = new LocatedOpenDocumentFile(cachedFile);
 			}
 
 			try {
@@ -180,8 +179,8 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			settings.setBackTranslateable(translatable);
 			settings.setImageStoreMode(ImageStoreMode.CACHE);
 			if (limit) {
-				settings.setMaxTableDimension(new Vector2i(300, 50));
-				settings.setMaxRowRepetition(25);
+				settings.setMaxTableDimension(new Vector2i(500, 100));
+				settings.setMaxRowRepetition(50);
 			}
 
 			if (openDocument instanceof OpenDocumentText) {
