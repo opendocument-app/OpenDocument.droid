@@ -22,8 +22,6 @@ import at.tomtasche.reader.R;
 import at.tomtasche.reader.ui.activity.MainActivity;
 import at.tomtasche.reader.ui.widget.PageView;
 
-import com.devspark.appmsg.AppMsg;
-
 public class EditActionModeCallback implements ActionMode.Callback {
 
 	private MainActivity activity;
@@ -69,8 +67,9 @@ public class EditActionModeCallback implements ActionMode.Callback {
 		}
 
 		case R.id.edit_save: {
-			// TODO: use getCacheDir() in release-build
-			final File htmlFile = new File(activity.getExternalCacheDir(),
+			activity.showInterstitial();
+
+			final File htmlFile = new File(activity.getCacheDir(),
 					"content.html");
 			pageView.requestHtml(htmlFile, new Runnable() {
 
@@ -113,16 +112,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
 
 						activity.loadUri(fileUri);
 
-						activity.showCrouton(
-								"Document successfully saved. You can find it on your sdcard: "
-										+ modifiedFile.getName(),
-								new Runnable() {
-
-									@Override
-									public void run() {
-										activity.share(fileUri);
-									}
-								}, AppMsg.STYLE_INFO);
+						activity.showSaveCroutonLater(modifiedFile, fileUri);
 					} catch (IOException e) {
 						e.printStackTrace();
 					} finally {

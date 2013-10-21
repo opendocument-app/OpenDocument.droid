@@ -101,6 +101,8 @@ public class MainActivity extends DocumentActivity implements
 
 	private SharedPreferences preferences;
 
+	private Runnable saveCroutonRunnable;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -185,10 +187,6 @@ public class MainActivity extends DocumentActivity implements
 	@Override
 	public void onReceiveAd(Ad arg0) {
 		if (interstitial != null) {
-			interstitial.show();
-
-			interstitial = null;
-
 			analytics.sendEvent("monetization", "interstitial", "google", null);
 		} else {
 			analytics.sendEvent("monetization", "ads", "google", null);
@@ -203,6 +201,13 @@ public class MainActivity extends DocumentActivity implements
 
 		// shows after 10 launches after 7 days
 		RateThisApp.showRateDialogIfNeeded(this);
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		showSaveCrouton();
 	}
 
 	@Override
@@ -345,9 +350,46 @@ public class MainActivity extends DocumentActivity implements
 			Intent intent) {
 		if (requestCode == PURCHASE_CODE) {
 			billingHelper.handleActivityResult(requestCode, resultCode, intent);
+		} else {
+			showInterstitial();
 		}
 
 		super.onActivityResult(requestCode, resultCode, intent);
+	}
+
+	public void showInterstitial() {
+		if (interstitial != null) {
+			interstitial.show();
+		}
+
+		interstitial = null;
+	}
+
+	// TODO: that's super ugly - good job :)
+	public void showSaveCroutonLater(final File modifiedFile, final Uri fileUri) {
+		saveCroutonRunnable = new Runnable() {
+
+			@Override
+			public void run() {
+				showCrouton(
+						"Document successfully saved. You can find it on your sdcard: "
+								+ modifiedFile.getName(), new Runnable() {
+
+							@Override
+							public void run() {
+								share(fileUri);
+							}
+						}, AppMsg.STYLE_INFO);
+			}
+		};
+	}
+
+	private void showSaveCrouton() {
+		if (saveCroutonRunnable != null) {
+			saveCroutonRunnable.run();
+
+			saveCroutonRunnable = null;
+		}
 	}
 
 	@Override
@@ -511,8 +553,8 @@ public class MainActivity extends DocumentActivity implements
 			break;
 		}
 		case R.id.menu_edit: {
-			if (!showAds) {
-				showInterstitial();
+			if (showAds) {
+				loadInterstitial();
 			}
 
 			EditActionModeCallback editActionMode = new EditActionModeCallback(
@@ -550,7 +592,7 @@ public class MainActivity extends DocumentActivity implements
 		}
 	}
 
-	private void showInterstitial() {
+	private void loadInterstitial() {
 		interstitial = new InterstitialAd(this,
 				"ca-app-pub-8161473686436957/2477707165");
 
@@ -715,6 +757,10 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	public void findDocument() {
+		if (showAds) {
+			loadInterstitial();
+		}
+
 		final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 		intent.setType("application/vnd.oasis.opendocument.*");
 		intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -764,10 +810,6 @@ public class MainActivity extends DocumentActivity implements
 			}
 		});
 		builder.show();
-
-		if (showAds) {
-			showInterstitial();
-		}
 	}
 
 	@Override
