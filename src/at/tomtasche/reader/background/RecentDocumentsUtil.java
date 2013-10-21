@@ -12,6 +12,7 @@ import java.util.Map;
 import android.content.Context;
 import android.net.Uri;
 
+// TODO: rewrite this class. it's a fucking mess!
 public class RecentDocumentsUtil {
 
 	private static final String FILENAME = "recent_documents";
@@ -31,8 +32,13 @@ public class RecentDocumentsUtil {
 			for (String s = bufferedReader.readLine(); s != null; s = bufferedReader
 					.readLine()) {
 				String[] temp = s.split(";;;");
-				if (temp.length == 2)
+				if (temp.length == 2) {
+					if (temp[0].length() == 0 || temp[1].length() == 0) {
+						continue;
+					}
+
 					result.put(temp[0], temp[1]);
+				}
 			}
 		} finally {
 			if (input != null)
@@ -62,6 +68,43 @@ public class RecentDocumentsUtil {
 		} finally {
 			if (output != null)
 				output.close();
+			if (writer != null)
+				writer.close();
+		}
+	}
+
+	public static void removeRecentDocument(Context context, String title)
+			throws IOException {
+		if (title == null)
+			return;
+
+		FileOutputStream output = null;
+		OutputStreamWriter writer = null;
+
+		InputStreamReader reader = null;
+		BufferedReader bufferedReader = null;
+
+		try {
+			reader = new InputStreamReader(context.openFileInput(FILENAME));
+			bufferedReader = new BufferedReader(reader);
+
+			output = context.openFileOutput(FILENAME, 0);
+			writer = new OutputStreamWriter(output);
+
+			for (String s = bufferedReader.readLine(); s != null; s = bufferedReader
+					.readLine()) {
+				if (s.contains(title)) {
+					continue;
+				} else {
+					writer.append(System.getProperty("line.separator") + s);
+				}
+			}
+		} finally {
+			if (reader != null)
+				reader.close();
+			if (bufferedReader != null)
+				bufferedReader.close();
+
 			if (writer != null)
 				writer.close();
 		}

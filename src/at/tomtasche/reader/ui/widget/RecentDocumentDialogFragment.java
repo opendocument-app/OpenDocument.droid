@@ -1,7 +1,7 @@
 package at.tomtasche.reader.ui.widget;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,21 +11,20 @@ import android.app.Dialog;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.Loader;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.DocumentChooserLoader;
+import at.tomtasche.reader.background.RecentDocumentsUtil;
 import at.tomtasche.reader.ui.activity.DocumentLoadingActivity;
 
-public class DocumentChooserDialogFragment extends DialogFragment implements
-		LoaderCallbacks<Map<String, String>>, OnItemClickListener {
+public class RecentDocumentDialogFragment extends DialogFragment implements
+		OnItemClickListener, OnItemLongClickListener {
 
 	public static final String FRAGMENT_TAG = "document_chooser";
 
@@ -45,34 +44,38 @@ public class DocumentChooserDialogFragment extends DialogFragment implements
 		listView = new ListView(getActivity());
 		listView.setEmptyView(emptyView);
 		listView.setOnItemClickListener(this);
+		listView.setOnItemLongClickListener(this);
 
 		adapter = new ArrayAdapter<String>(getActivity(),
 				android.R.layout.simple_list_item_1, new String[0]);
 		listView.setAdapter(adapter);
 
-		getLoaderManager().initLoader(0, null, this);
-
 		builder.setView(listView);
 
 		setCancelable(true);
 
+		items = new HashMap<String, String>();
+
+		loadRecentDocuments();
+
+		listView.setEmptyView(emptyView);
+
 		return builder.create();
 	}
 
-	@Override
-	public Loader<Map<String, String>> onCreateLoader(int arg0, Bundle arg1) {
-		return new DocumentChooserLoader(getActivity());
-	}
+	private void loadRecentDocuments() {
+		items.clear();
+		try {
+			items.putAll(RecentDocumentsUtil.getRecentDocuments(getActivity()));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
-	@Override
-	public void onLoadFinished(Loader<Map<String, String>> arg0,
-			Map<String, String> arg1) {
-		items = Collections.unmodifiableMap(arg1);
 		if (items.size() == 0) {
 			items = new HashMap<String, String>();
 			items.put(
-					getActivity().getString(R.string.dialog_list_no_documents_found),
-					null);
+					getActivity().getString(
+							R.string.dialog_list_no_documents_found), null);
 		}
 
 		adapter = new ArrayAdapter<String>(getActivity(),
@@ -80,11 +83,6 @@ public class DocumentChooserDialogFragment extends DialogFragment implements
 						items.keySet()));
 
 		listView.setAdapter(adapter);
-
-		TextView emptyView = new TextView(getActivity());
-		emptyView.setText(R.string.dialog_list_searching_documents);
-
-		listView.setEmptyView(emptyView);
 	}
 
 	@Override
@@ -107,7 +105,23 @@ public class DocumentChooserDialogFragment extends DialogFragment implements
 	}
 
 	@Override
-	public void onLoaderReset(Loader<Map<String, String>> arg0) {
-		items = null;
+	public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int arg2,
+			long arg3) {
+		if (items == null)
+			return false;
+
+		final String key = (String) adapter.getItem(arg2);
+		if (key == null)
+			return false;
+
+		try {
+			RecentDocumentsUtil.removeRecentDocument(getActivity(), key);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		loadRecentDocuments();
+
+		return true;
 	}
 }

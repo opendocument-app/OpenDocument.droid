@@ -8,7 +8,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.DocumentLoader;
-import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
+import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
 
 public class ShortcutActivity extends FragmentActivity implements
 		DocumentLoadingActivity {
@@ -19,7 +19,7 @@ public class ShortcutActivity extends FragmentActivity implements
 
 		FragmentTransaction transaction = getSupportFragmentManager()
 				.beginTransaction();
-		transaction.add(new DocumentChooserDialogFragment(), "chooser");
+		transaction.add(new RecentDocumentDialogFragment(), "chooser");
 		transaction.commit();
 	}
 

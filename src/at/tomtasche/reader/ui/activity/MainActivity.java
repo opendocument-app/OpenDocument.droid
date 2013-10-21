@@ -40,7 +40,7 @@ import at.tomtasche.reader.ui.ChromecastManager;
 import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
-import at.tomtasche.reader.ui.widget.DocumentChooserDialogFragment;
+import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
 
 import com.bugsense.trace.BugSenseHandler;
 import com.devspark.appmsg.AppMsg;
@@ -357,9 +357,9 @@ public class MainActivity extends DocumentActivity implements
 			FragmentTransaction transaction = getSupportFragmentManager()
 					.beginTransaction();
 
-			DialogFragment chooserDialog = new DocumentChooserDialogFragment();
+			DialogFragment chooserDialog = new RecentDocumentDialogFragment();
 			chooserDialog.show(transaction,
-					DocumentChooserDialogFragment.FRAGMENT_TAG);
+					RecentDocumentDialogFragment.FRAGMENT_TAG);
 
 			analytics.sendEvent("ui", "open", "recent", null);
 
