@@ -11,17 +11,17 @@
         android:id="@+id/menu_edit"
         android:icon="@drawable/ic_action_edit"
         android:title="@string/menu_edit"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
     <item
         android:id="@+id/menu_recent"
         android:icon="@drawable/ic_action_heart"
         android:title="@string/menu_open"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
     <item
         android:id="@+id/menu_open"
         android:icon="@drawable/ic_action_folder_open"
         android:title="@string/menu_open"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
     <item
         android:id="@+id/menu_search"
         android:icon="@drawable/ic_action_search"
