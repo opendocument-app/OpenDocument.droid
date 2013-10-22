@@ -19,6 +19,7 @@ import at.stefl.opendocument.java.odf.OpenDocumentSpreadsheet;
 import at.stefl.opendocument.java.odf.OpenDocumentText;
 import at.stefl.opendocument.java.translator.Retranslator;
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.ui.activity.MainActivity;
 import at.tomtasche.reader.ui.widget.PageView;
 
@@ -75,6 +76,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
 
 				@Override
 				public void run() {
+					Uri fileUri = null;
 					FileInputStream htmlStream = null;
 					FileOutputStream modifiedStream = null;
 					LocatedOpenDocumentFile documentFile = null;
@@ -107,14 +109,19 @@ public class EditActionModeCallback implements ActionMode.Callback {
 
 						modifiedStream.close();
 
-						final Uri fileUri = Uri.parse("file://"
+						fileUri = Uri.parse("file://"
 								+ modifiedFile.getAbsolutePath());
 
 						activity.loadUri(fileUri);
 
 						activity.showSaveCroutonLater(modifiedFile, fileUri);
-					} catch (IOException e) {
+					} catch (Throwable e) {
 						e.printStackTrace();
+
+						activity.onError(e, fileUri);
+
+						ReportUtil.submitFile(activity, e, fileUri,
+								"Editing failed");
 					} finally {
 						if (documentFile != null) {
 							try {

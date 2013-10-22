@@ -51,11 +51,16 @@ public class ReportUtil {
 		return intent;
 	}
 
+	public static void submitFile(Context context, Throwable error, Uri uri,
+			int errorDescription) {
+		submitFile(context, error, uri, context.getString(errorDescription));
+	}
+
 	public static void submitFile(final Context context, final Throwable error,
-			final Uri uri, final int errorDescription) {
+			final Uri uri, final String errorDescription) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		builder.setTitle(R.string.toast_error_generic);
-		builder.setMessage(context.getString(errorDescription)
+		builder.setMessage(errorDescription
 				+ System.getProperty("line.separator")
 				+ System.getProperty("line.separator")
 				+ context.getString(R.string.dialog_submit_file));
@@ -96,7 +101,7 @@ public class ReportUtil {
 						+ Build.VERSION.SDK_INT);
 				printer.println("- The following error occured while opening the file located at: "
 						+ uri.toString());
-				printer.println(context.getString(errorDescription));
+				printer.println(errorDescription);
 				printer.println();
 				error.printStackTrace(printer);
 				printer.println();
