@@ -370,18 +370,26 @@ public abstract class DocumentActivity extends ActionBarActivity implements
 		showCrouton(getString(resId), callback, style);
 	}
 
-	public void showCrouton(String message, final Runnable callback,
-			AppMsg.Style style) {
-		AppMsg crouton = AppMsg.makeText(this, message, style);
-		crouton.setDuration(AppMsg.LENGTH_LONG);
-		crouton.getView().setOnClickListener(new View.OnClickListener() {
+	public void showCrouton(final String message, final Runnable callback,
+			final AppMsg.Style style) {
+		runOnUiThread(new Runnable() {
 
 			@Override
-			public void onClick(View v) {
-				if (callback != null)
-					callback.run();
+			public void run() {
+				AppMsg crouton = AppMsg.makeText(DocumentActivity.this,
+						message, style);
+				crouton.setDuration(AppMsg.LENGTH_LONG);
+				crouton.getView().setOnClickListener(
+						new View.OnClickListener() {
+
+							@Override
+							public void onClick(View v) {
+								if (callback != null)
+									callback.run();
+							}
+						});
+				crouton.show();
 			}
 		});
-		crouton.show();
 	}
 }
