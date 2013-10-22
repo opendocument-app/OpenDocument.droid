@@ -24,6 +24,7 @@
     <string name="dialog_title_choose_file">Choose file from device</string>
     <string name="dialog_list_no_documents_found">No documents found</string>
     <string name="dialog_list_searching_documents">Searching for documents on your device... This could take some time.</string>
+    <string name="menu_recent">Recent documents</string>
     <string name="menu_search">Search</string>
     <string name="menu_open">Open</string>
     <string name="menu_edit">Edit</string>

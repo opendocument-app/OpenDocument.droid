@@ -15,7 +15,7 @@
     <item
         android:id="@+id/menu_recent"
         android:icon="@drawable/ic_action_heart"
-        android:title="@string/menu_open"
+        android:title="@string/menu_recent"
         app:showAsAction="always"/>
     <item
         android:id="@+id/menu_open"

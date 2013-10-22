@@ -206,28 +206,35 @@ public abstract class DocumentActivity extends ActionBarActivity implements
 		if (progressDialog != null)
 			return;
 
-		progressDialog = new ProgressDialogFragment(upload);
+		try {
+			progressDialog = new ProgressDialogFragment(upload);
 
-		FragmentTransaction transaction = getSupportFragmentManager()
-				.beginTransaction();
-		progressDialog.show(transaction, ProgressDialogFragment.FRAGMENT_TAG);
+			FragmentTransaction transaction = getSupportFragmentManager()
+					.beginTransaction();
+			progressDialog.show(transaction,
+					ProgressDialogFragment.FRAGMENT_TAG);
 
-		if (!upload) {
-			final FileLoader fileLoader = (FileLoader) loader;
+			if (!upload) {
+				final FileLoader fileLoader = (FileLoader) loader;
 
-			handler.postDelayed(new Runnable() {
+				handler.postDelayed(new Runnable() {
 
-				@Override
-				public void run() {
-					if (progressDialog == null)
-						return;
+					@Override
+					public void run() {
+						if (progressDialog == null)
+							return;
 
-					progressDialog.setProgress(fileLoader.getProgress());
+						progressDialog.setProgress(fileLoader.getProgress());
 
-					if (loader.isStarted())
-						handler.postDelayed(this, 1000);
-				}
-			}, 1000);
+						if (loader.isStarted())
+							handler.postDelayed(this, 1000);
+					}
+				}, 1000);
+			}
+		} catch (IllegalStateException e) {
+			e.printStackTrace();
+
+			progressDialog = null;
 		}
 	}
 
