@@ -28,6 +28,7 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 
 	private Uri uri;
 	private Document document;
+	private Throwable lastError;
 
 	public UpLoader(Context context, Uri uri) {
 		super(context);
@@ -37,7 +38,7 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 
 	@Override
 	public Throwable getLastError() {
-		return null;
+		return lastError;
 	}
 
 	@Override
@@ -154,11 +155,15 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 			} else {
 				throw new RuntimeException("server couldn't handle request");
 			}
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			e.printStackTrace();
+
+			lastError = e;
 		} finally {
 			try {
-				stream.close();
+				if (stream != null) {
+					stream.close();
+				}
 			} catch (IOException e) {
 			}
 
