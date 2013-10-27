@@ -31,6 +31,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.BillingPreferences;
 import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.Document.Page;
@@ -135,6 +136,72 @@ public class MainActivity extends DocumentActivity implements
 		chromecast = new ChromecastManager(this);
 		// disable until Chromecast SDK is final and stable
 		chromecast.setEnabled(false);
+
+		if (!AMAZON_RELEASE) {
+			billingPreferences = new BillingPreferences(this);
+
+			billingHelper = new IabHelper(this, getPublicKey());
+			billingHelper.startSetup(new OnIabSetupFinishedListener() {
+
+				@Override
+				public void onIabSetupFinished(IabResult result) {
+					if (billingPreferences.hasPurchased()) {
+						removeAds();
+
+						return;
+					}
+
+					if (result.isFailure()) {
+						runOnUiThread(new Runnable() {
+
+							@Override
+							public void run() {
+								showGoogleAds();
+
+								showCrouton(
+										getString(R.string.crouton_error_billing),
+										null, AppMsg.STYLE_ALERT);
+							}
+						});
+					} else if (result.isSuccess()) {
+						// query every 7 days
+						if ((billingPreferences.getLastQueryTime() + 1000 * 60
+								* 60 * 24 * 7) < System.currentTimeMillis()) {
+							billingHelper
+									.queryInventoryAsync(new QueryInventoryFinishedListener() {
+
+										@Override
+										public void onQueryInventoryFinished(
+												IabResult result, Inventory inv) {
+											if (result.isSuccess()) {
+												boolean purchased = inv
+														.getPurchase(BILLING_PRODUCT_FOREVER) != null;
+												purchased |= inv
+														.getPurchase(BILLING_PRODUCT_YEAR) != null;
+												purchased |= inv
+														.getPurchase(BILLING_PRODUCT_LOVE) != null;
+
+												if (purchased) {
+													removeAds();
+												} else {
+													showGoogleAds();
+												}
+
+												billingPreferences
+														.setPurchased(purchased);
+											}
+
+											billingPreferences.setLastQueryTime(System
+													.currentTimeMillis());
+										}
+									});
+						}
+					}
+				}
+			});
+		} else {
+			showGoogleAds();
+		}
 	}
 
 	private void showAds(AdView adView) {
@@ -161,8 +228,6 @@ public class MainActivity extends DocumentActivity implements
 		adView.loadAd(adRequest);
 
 		showAds(adView);
-
-		showcase();
 	}
 
 	// admob
@@ -174,6 +239,15 @@ public class MainActivity extends DocumentActivity implements
 
 	@Override
 	public void onFailedToReceiveAd(Ad arg0, ErrorCode arg1) {
+		if (showAds) {
+			showCrouton(R.string.crouton_remove_ads, new Runnable() {
+
+				@Override
+				public void run() {
+					buyAdRemoval();
+				}
+			}, AppMsg.STYLE_CONFIRM);
+		}
 	}
 
 	@Override
@@ -186,6 +260,8 @@ public class MainActivity extends DocumentActivity implements
 
 	@Override
 	public void onReceiveAd(Ad arg0) {
+		showcase();
+
 		if (interstitial != null) {
 			analytics.sendEvent("monetization", "interstitial", "google", null);
 		} else {
@@ -254,95 +330,36 @@ public class MainActivity extends DocumentActivity implements
 
 		chromecast.onCreateOptionsMenu(menu);
 
-		if (!AMAZON_RELEASE) {
-			billingPreferences = new BillingPreferences(this);
-
-			billingHelper = new IabHelper(this, getPublicKey());
-			billingHelper.startSetup(new OnIabSetupFinishedListener() {
-
-				@Override
-				public void onIabSetupFinished(IabResult result) {
-					if (billingPreferences.hasPurchased()) {
-						removeAds();
-
-						return;
-					}
-
-					if (result.isFailure()) {
-						runOnUiThread(new Runnable() {
-
-							@Override
-							public void run() {
-								showGoogleAds();
-
-								showCrouton(
-										getString(R.string.crouton_error_billing),
-										null, AppMsg.STYLE_ALERT);
-							}
-						});
-					} else if (result.isSuccess()) {
-						// query every 30 days
-						if ((billingPreferences.getLastQueryTime() + 1000 * 60
-								* 60 * 24 * 7) < System.currentTimeMillis()) {
-							billingHelper
-									.queryInventoryAsync(new QueryInventoryFinishedListener() {
-
-										@Override
-										public void onQueryInventoryFinished(
-												IabResult result, Inventory inv) {
-											if (result.isSuccess()) {
-												boolean purchased = inv
-														.getPurchase(BILLING_PRODUCT_FOREVER) != null;
-												purchased |= inv
-														.getPurchase(BILLING_PRODUCT_YEAR) != null;
-												purchased |= inv
-														.getPurchase(BILLING_PRODUCT_LOVE) != null;
-
-												if (purchased) {
-													removeAds();
-												} else {
-													showGoogleAds();
-												}
-
-												billingPreferences
-														.setPurchased(purchased);
-											}
-
-											billingPreferences.setLastQueryTime(System
-													.currentTimeMillis());
-										}
-									});
-						}
-					}
-				}
-			});
-		} else {
-			showGoogleAds();
+		if (billingPreferences.hasPurchased()) {
+			showcase();
 		}
 
 		return true;
 	}
 
-	private void showcase() {
-		if (!showcased && getIntent().getData() == null) {
-			ShowcaseViews mViews = new ShowcaseViews(this, 0);
-			mViews.addView(new ShowcaseViews.ItemViewProperties(R.id.menu_edit,
-					R.string.showcase_edit_title,
-					R.string.showcase_edit_detail,
-					ShowcaseView.ITEM_ACTION_ITEM));
-			if (showAds) {
-				mViews.addView(new ShowcaseViews.ItemViewProperties(
-						R.id.ad_container, R.string.showcase_ad_title,
-						R.string.showcase_ad_detail));
-			}
-			mViews.show();
-
-			showcased = true;
-
-			Editor editor = preferences.edit();
-			editor.putBoolean("showcased", true);
-			editor.commit();
+	private boolean showcase() {
+		if (showcased) {
+			return false;
 		}
+
+		ShowcaseViews mViews = new ShowcaseViews(this, 0);
+		mViews.addView(new ShowcaseViews.ItemViewProperties(R.id.menu_edit,
+				R.string.showcase_edit_title, R.string.showcase_edit_detail,
+				ShowcaseView.ITEM_ACTION_ITEM));
+		if (showAds) {
+			mViews.addView(new ShowcaseViews.ItemViewProperties(
+					R.id.ad_container, R.string.showcase_ad_title,
+					R.string.showcase_ad_detail));
+		}
+		mViews.show();
+
+		showcased = true;
+
+		Editor editor = preferences.edit();
+		editor.putBoolean("showcased", true);
+		editor.commit();
+
+		return true;
 	}
 
 	@Override
@@ -382,6 +399,9 @@ public class MainActivity extends DocumentActivity implements
 						}, AppMsg.STYLE_INFO);
 			}
 		};
+
+		// also execute it immediately, for users who don't see ads
+		saveCroutonRunnable.run();
 	}
 
 	private void showSaveCrouton() {
@@ -473,8 +493,8 @@ public class MainActivity extends DocumentActivity implements
 			Loader<Document> loader = getSupportLoaderManager().getLoader(0);
 			DocumentLoader documentLoader = (DocumentLoader) loader;
 
-			loadUri(getCacheFileUri(), documentLoader.getPassword(), false,
-					false);
+			loadUri(AndroidFileCache.getCacheFileUri(),
+					documentLoader.getPassword(), false, false);
 
 			analytics.sendEvent("ui", "reload", "no-limit", null);
 
@@ -689,20 +709,12 @@ public class MainActivity extends DocumentActivity implements
 		}
 	}
 
-	public Uri getCacheFileUri() {
-		// hex hex!
-		return Uri.parse(new File(getCacheDir(), "document.odt")
-				.getAbsolutePath());
-	}
-
 	private void removeAds() {
 		showAds = false;
 
 		if (madView != null) {
 			madView.setVisibility(View.GONE);
 		}
-
-		showcase();
 
 		analytics.sendEvent("monetization", "ads", "hide", null);
 	}

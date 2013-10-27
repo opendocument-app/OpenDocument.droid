@@ -25,6 +25,7 @@ import at.stefl.opendocument.java.odf.IllegalMimeTypeException;
 import at.stefl.opendocument.java.odf.UnsupportedMimeTypeException;
 import at.stefl.opendocument.java.odf.ZipEntryNotFoundException;
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
@@ -262,6 +263,8 @@ public abstract class DocumentActivity extends ActionBarActivity implements
 		Log.e("OpenDocument Reader", "Error opening file at " + uri.toString(),
 				error);
 
+		final Uri cacheUri = AndroidFileCache.getCacheFileUri();
+
 		for (LoadingListener listener : loadingListeners) {
 			listener.onError(error, uri);
 
@@ -287,7 +290,7 @@ public abstract class DocumentActivity extends ActionBarActivity implements
 						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
-							loadUri(uri, input.getText().toString());
+							loadUri(cacheUri, input.getText().toString());
 
 							dialog.dismiss();
 						}
@@ -309,7 +312,7 @@ public abstract class DocumentActivity extends ActionBarActivity implements
 						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
-							uploadUri(uri);
+							uploadUri(cacheUri);
 
 							dialog.dismiss();
 						}
@@ -342,7 +345,7 @@ public abstract class DocumentActivity extends ActionBarActivity implements
 				|| uri.toString().endsWith(".ots")
 				|| uri.toString().endsWith(".odp")
 				|| uri.toString().endsWith(".otp"))
-			ReportUtil.submitFile(this, error, uri, errorDescription);
+			ReportUtil.submitFile(this, error, cacheUri, uri, errorDescription);
 	}
 
 	public void addLoadingListener(LoadingListener loadingListener) {

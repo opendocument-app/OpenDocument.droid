@@ -19,6 +19,7 @@ import at.stefl.opendocument.java.odf.OpenDocumentSpreadsheet;
 import at.stefl.opendocument.java.odf.OpenDocumentText;
 import at.stefl.opendocument.java.translator.Retranslator;
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.ui.activity.MainActivity;
 import at.tomtasche.reader.ui.widget.PageView;
@@ -51,7 +52,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
 	@Override
 	public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
 		// reload document with translation enabled
-		activity.loadUri(activity.getCacheFileUri(), null, true, true);
+		activity.loadUri(AndroidFileCache.getCacheFileUri(), null, true, true);
 
 		return true;
 	}
@@ -118,15 +119,16 @@ public class EditActionModeCallback implements ActionMode.Callback {
 					} catch (final Throwable e) {
 						e.printStackTrace();
 
-						activity.onError(e, fileUri);
+						final Uri cacheUri = AndroidFileCache.getCacheFileUri();
 
-						final Uri finalUri = fileUri;
+						activity.onError(e, cacheUri);
+
 						activity.runOnUiThread(new Runnable() {
 
 							@Override
 							public void run() {
-								ReportUtil.submitFile(activity, e, finalUri,
-										"Editing failed");
+								ReportUtil.submitFile(activity, e, cacheUri,
+										cacheUri, "Editing failed");
 							}
 						});
 					} finally {

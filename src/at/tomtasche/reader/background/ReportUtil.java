@@ -51,13 +51,15 @@ public class ReportUtil {
 		return intent;
 	}
 
-	public static void submitFile(Context context, Throwable error, Uri uri,
-			int errorDescription) {
-		submitFile(context, error, uri, context.getString(errorDescription));
+	public static void submitFile(Context context, Throwable error,
+			Uri cacheUri, Uri originalUri, int errorDescription) {
+		submitFile(context, error, cacheUri, originalUri,
+				context.getString(errorDescription));
 	}
 
 	public static void submitFile(final Context context, final Throwable error,
-			final Uri uri, final String errorDescription) {
+			final Uri cacheUri, final Uri originalUri,
+			final String errorDescription) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		builder.setTitle(R.string.toast_error_generic);
 		builder.setMessage(errorDescription
@@ -81,7 +83,7 @@ public class ReportUtil {
 				Bundle bundle = new Bundle();
 				bundle.putStringArray(Intent.EXTRA_EMAIL,
 						new String[] { "tickets@opendocument.uservoice.com" });
-				bundle.putParcelable(Intent.EXTRA_STREAM, uri);
+				bundle.putParcelable(Intent.EXTRA_STREAM, cacheUri);
 
 				String version;
 				try {
@@ -100,7 +102,7 @@ public class ReportUtil {
 				printer.println("- " + Build.MODEL + " running Android "
 						+ Build.VERSION.SDK_INT);
 				printer.println("- The following error occured while opening the file located at: "
-						+ uri.toString());
+						+ originalUri.toString());
 				printer.println(errorDescription);
 				printer.println();
 				error.printStackTrace(printer);

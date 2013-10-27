@@ -132,15 +132,16 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			}
 
 			AndroidFileCache cache = new AndroidFileCache(getContext());
+			// TODO: don't delete file being displayed at the moment, but
+			// keep it until the new document has finished loading.
+			// this must not delete document.odt!
+			AndroidFileCache.cleanup(getContext());
 
-			if (uri.getScheme() == null) {
+			if (uri.equals(AndroidFileCache.getCacheFileUri())) {
 				documentFile = new LocatedOpenDocumentFile(new File(
-						uri.getPath()));
+						AndroidFileCache.getCacheDirectory(getContext()),
+						"document.odt"));
 			} else {
-				// TODO: don't delete file being displayed at the moment, but
-				// keep it until the new document has finished loading
-				AndroidFileCache.cleanup(getContext());
-
 				if (URI_INTRO.equals(uri)) {
 					stream = getContext().getAssets().open("intro.odt");
 				} else if (URI_ABOUT.equals(uri)) {

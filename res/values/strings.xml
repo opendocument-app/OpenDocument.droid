@@ -41,6 +41,7 @@
     <string name="crouton_leave_fullscreen">Press Back to leave fullscreen mode</string>
     <string name="crouton_chromecast_failed">Connection to Chromecast failed</string>
     <string name="crouton_error_open_app">Couldn\'t open this app.</string>
+    <string name="crouton_remove_ads">Don\'t like advertisements? Click here to remove them!</string>
     <string name="action_find_previous">Previous</string>
     <string name="action_find_next">Next</string>
     <string name="action_find_on_page">Find on page</string>

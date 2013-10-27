@@ -66,6 +66,11 @@ public class AndroidFileCache extends DefaultFileCache {
 		super(getCacheDirectory(context), URI_TRANSLATOR);
 	}
 
+	public static Uri getCacheFileUri() {
+		// hex hex!
+		return Uri.parse("content://at.tomtasche.reader/document.odt");
+	}
+
 	public static void cleanup(Context context) {
 		File cache = getCacheDirectory(context);
 		String[] files = cache.list();
@@ -74,7 +79,9 @@ public class AndroidFileCache extends DefaultFileCache {
 
 		for (String s : files) {
 			try {
-				new File(cache, s).delete();
+				if (!s.equals("document.odt")) {
+					new File(cache, s).delete();
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
