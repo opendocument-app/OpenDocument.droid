@@ -115,13 +115,20 @@ public class EditActionModeCallback implements ActionMode.Callback {
 						activity.loadUri(fileUri);
 
 						activity.showSaveCroutonLater(modifiedFile, fileUri);
-					} catch (Throwable e) {
+					} catch (final Throwable e) {
 						e.printStackTrace();
 
 						activity.onError(e, fileUri);
 
-						ReportUtil.submitFile(activity, e, fileUri,
-								"Editing failed");
+						final Uri finalUri = fileUri;
+						activity.runOnUiThread(new Runnable() {
+
+							@Override
+							public void run() {
+								ReportUtil.submitFile(activity, e, finalUri,
+										"Editing failed");
+							}
+						});
 					} finally {
 						if (documentFile != null) {
 							try {
