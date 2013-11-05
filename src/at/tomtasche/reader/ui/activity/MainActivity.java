@@ -64,6 +64,8 @@ import com.google.ads.AdView;
 import com.google.ads.InterstitialAd;
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.Tracker;
+import com.google.analytics.tracking.android.Transaction;
+import com.google.analytics.tracking.android.Transaction.Item;
 import com.kskkbys.rate.RateThisApp;
 
 public class MainActivity extends DocumentActivity implements
@@ -687,6 +689,27 @@ public class MainActivity extends DocumentActivity implements
 														"monetization",
 														"in-app",
 														purchase.getSku(), null);
+
+												Transaction myTrans = new Transaction.Builder(
+														purchase.getOrderId(),
+														(long) (1 * 1000000))
+														.setAffiliation(
+																"in-app")
+														.build();
+
+												myTrans.addItem(new Item.Builder(
+														purchase.getSku(),
+														"Remove ads",
+														(long) (1 * 1000000),
+														(long) 1)
+														.setProductCategory(
+																"Remove ads")
+														.build());
+
+												Tracker myTracker = EasyTracker
+														.getTracker();
+												myTracker
+														.sendTransaction(myTrans);
 											} else {
 												analytics
 														.sendEvent(
