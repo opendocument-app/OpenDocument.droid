@@ -797,7 +797,8 @@ public class MainActivity extends DocumentActivity implements
 		}
 
 		final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-		intent.setType("application/vnd.oasis.opendocument.*");
+		// remove mime-type because most apps don't support ODF mime-types
+		intent.setType("application/*");
 		intent.addCategory(Intent.CATEGORY_OPENABLE);
 
 		PackageManager pm = getPackageManager();
