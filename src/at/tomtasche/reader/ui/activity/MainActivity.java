@@ -36,6 +36,7 @@ import at.tomtasche.reader.background.BillingPreferences;
 import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.Document.Page;
 import at.tomtasche.reader.background.DocumentLoader;
+import at.tomtasche.reader.background.KitKatPrinter;
 import at.tomtasche.reader.background.LoadingListener;
 import at.tomtasche.reader.ui.ChromecastManager;
 import at.tomtasche.reader.ui.EditActionModeCallback;
@@ -537,28 +538,33 @@ public class MainActivity extends DocumentActivity implements
 			break;
 		}
 		case R.id.menu_print: {
-			int index = getSupportActionBar().getSelectedNavigationIndex();
-			if (index < 0)
-				index = 0;
-			Page page = getDocument().getPageAt(index);
-			Uri uri = Uri.parse("content://at.tomtasche.reader/"
-					+ page.getUrl());
+			if (Build.VERSION.SDK_INT >= 19) {
+				KitKatPrinter.print(this, getPageFragment().getPageView());
+			} else {
+				int index = getSupportActionBar().getSelectedNavigationIndex();
+				if (index < 0)
+					index = 0;
 
-			Intent printIntent = new Intent(Intent.ACTION_SEND);
-			printIntent.setType("text/html");
-			printIntent.putExtra(Intent.EXTRA_TITLE, "OpenDocument Reader - "
-					+ uri.getLastPathSegment());
+				Page page = getDocument().getPageAt(index);
+				Uri uri = Uri.parse("content://at.tomtasche.reader/"
+						+ page.getUrl());
 
-			printIntent.putExtra(Intent.EXTRA_STREAM, uri);
+				Intent printIntent = new Intent(Intent.ACTION_SEND);
+				printIntent.setType("text/html");
+				printIntent.putExtra(Intent.EXTRA_TITLE,
+						"OpenDocument Reader - " + uri.getLastPathSegment());
 
-			try {
-				startActivity(printIntent);
-			} catch (ActivityNotFoundException e) {
-				Intent installIntent = new Intent(
-						Intent.ACTION_VIEW,
-						Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.cloudprint"));
+				printIntent.putExtra(Intent.EXTRA_STREAM, uri);
 
-				startActivity(installIntent);
+				try {
+					startActivity(printIntent);
+				} catch (ActivityNotFoundException e) {
+					Intent installIntent = new Intent(
+							Intent.ACTION_VIEW,
+							Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.cloudprint"));
+
+					startActivity(installIntent);
+				}
 			}
 
 			analytics.sendEvent("ui", "print", null, null);
