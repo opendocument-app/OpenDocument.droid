@@ -71,7 +71,8 @@ public class EditActionModeCallback implements ActionMode.Callback {
 		case R.id.edit_save: {
 			activity.showInterstitial();
 
-			final File htmlFile = new File(activity.getCacheDir(),
+			final File htmlFile = new File(
+					AndroidFileCache.getCacheDirectory(activity),
 					"content.html");
 			pageView.requestHtml(htmlFile, new Runnable() {
 
@@ -120,6 +121,8 @@ public class EditActionModeCallback implements ActionMode.Callback {
 						e.printStackTrace();
 
 						final Uri cacheUri = AndroidFileCache.getCacheFileUri();
+						final Uri htmlUri = AndroidFileCache
+								.getHtmlCacheFileUri();
 
 						activity.onError(e, cacheUri);
 
@@ -128,7 +131,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
 							@Override
 							public void run() {
 								ReportUtil.submitFile(activity, e, cacheUri,
-										cacheUri, "Editing failed");
+										cacheUri, htmlUri, "Editing failed");
 							}
 						});
 					} finally {
@@ -151,10 +154,6 @@ public class EditActionModeCallback implements ActionMode.Callback {
 								modifiedStream.close();
 							} catch (IOException e) {
 							}
-						}
-
-						if (htmlFile != null) {
-							htmlFile.delete();
 						}
 					}
 				}

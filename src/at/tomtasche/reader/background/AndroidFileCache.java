@@ -71,6 +71,11 @@ public class AndroidFileCache extends DefaultFileCache {
 		return Uri.parse("content://at.tomtasche.reader/document.odt");
 	}
 
+	public static Uri getHtmlCacheFileUri() {
+		// hex hex!
+		return Uri.parse("content://at.tomtasche.reader/content.html");
+	}
+
 	public static void cleanup(Context context) {
 		File cache = getCacheDirectory(context);
 		String[] files = cache.list();

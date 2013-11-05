@@ -345,7 +345,7 @@ public abstract class DocumentActivity extends ActionBarActivity implements
 				|| uri.toString().endsWith(".ots")
 				|| uri.toString().endsWith(".odp")
 				|| uri.toString().endsWith(".otp"))
-			ReportUtil.submitFile(this, error, cacheUri, uri, errorDescription);
+			ReportUtil.submitFile(this, error, cacheUri, uri, null, errorDescription);
 	}
 
 	public void addLoadingListener(LoadingListener loadingListener) {

@@ -3,6 +3,7 @@ package at.tomtasche.reader.background;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
@@ -52,14 +53,15 @@ public class ReportUtil {
 	}
 
 	public static void submitFile(Context context, Throwable error,
-			Uri cacheUri, Uri originalUri, int errorDescription) {
-		submitFile(context, error, cacheUri, originalUri,
+			Uri originalCacheUri, Uri originalUri, Uri htmlCacheUri,
+			int errorDescription) {
+		submitFile(context, error, originalCacheUri, originalUri, htmlCacheUri,
 				context.getString(errorDescription));
 	}
 
 	public static void submitFile(final Context context, final Throwable error,
-			final Uri cacheUri, final Uri originalUri,
-			final String errorDescription) {
+			final Uri originalCacheUri, final Uri originalUri,
+			final Uri htmlCacheUri, final String errorDescription) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		builder.setTitle(R.string.toast_error_generic);
 		builder.setMessage(errorDescription
@@ -83,7 +85,13 @@ public class ReportUtil {
 				Bundle bundle = new Bundle();
 				bundle.putStringArray(Intent.EXTRA_EMAIL,
 						new String[] { "tickets@opendocument.uservoice.com" });
-				bundle.putParcelable(Intent.EXTRA_STREAM, cacheUri);
+
+				ArrayList<Uri> uris = new ArrayList<Uri>();
+				uris.add(originalCacheUri);
+				if (htmlCacheUri != null) {
+					uris.add(htmlCacheUri);
+				}
+				bundle.putParcelableArrayList(Intent.EXTRA_STREAM, uris);
 
 				String version;
 				try {
@@ -117,7 +125,7 @@ public class ReportUtil {
 
 				bundle.putString(Intent.EXTRA_TEXT, writer.toString());
 
-				Intent intent = new Intent(Intent.ACTION_SEND);
+				Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
 				intent.setType("plain/text");
 				intent.putExtras(bundle);
 
