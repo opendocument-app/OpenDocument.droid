@@ -25,3 +25,30 @@
 [submodule "ShowcaseView"]
 	path = ShowcaseView
 	url = git://github.com/TomTasche/ShowcaseView.git
+[submodule "android-google-play-services-basement"]
+	path = android-google-play-services-basement
+	url = git@github.com:dandar3/android-google-play-services-basement.git
+[submodule "android-google-play-services-base"]
+	path = android-google-play-services-base
+	url = git@github.com:dandar3/android-google-play-services-base.git
+[submodule "android-google-play-services-ads-lite"]
+	path = android-google-play-services-ads-lite
+	url = git@github.com:dandar3/android-google-play-services-ads-lite.git
+[submodule "android-google-play-services-ads"]
+	path = android-google-play-services-ads
+	url = git@github.com:dandar3/android-google-play-services-ads.git
+[submodule "android-google-play-services-gass"]
+	path = android-google-play-services-gass
+	url = git@github.com:dandar3/android-google-play-services-gass.git
+[submodule "android-google-play-services-clearcut"]
+	path = android-google-play-services-clearcut
+	url = git@github.com:dandar3/android-google-play-services-clearcut.git
+[submodule "android-google-play-services-tasks"]
+	path = android-google-play-services-tasks
+	url = git@github.com:dandar3/android-google-play-services-tasks.git
+[submodule "android-support-v4"]
+	path = android-support-v4
+	url = git@github.com:dandar3/android-support-v4.git
+[submodule "android-support-annotations"]
+	path = android-support-annotations
+	url = git@github.com:dandar3/android-support-annotations.git

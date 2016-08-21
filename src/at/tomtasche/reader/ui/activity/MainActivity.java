@@ -3,6 +3,29 @@ package at.tomtasche.reader.ui.activity;
 import java.io.File;
 import java.util.List;
 
+import com.devspark.appmsg.AppMsg;
+import com.espian.showcaseview.ShowcaseView;
+import com.espian.showcaseview.ShowcaseViews;
+import com.github.jberkel.pay.me.IabHelper;
+import com.github.jberkel.pay.me.IabResult;
+import com.github.jberkel.pay.me.listener.OnIabPurchaseFinishedListener;
+import com.github.jberkel.pay.me.listener.OnIabSetupFinishedListener;
+import com.github.jberkel.pay.me.listener.QueryInventoryFinishedListener;
+import com.github.jberkel.pay.me.model.Inventory;
+import com.github.jberkel.pay.me.model.ItemType;
+import com.github.jberkel.pay.me.model.Purchase;
+import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.Tracker;
+import com.google.analytics.tracking.android.Transaction;
+import com.google.analytics.tracking.android.Transaction.Item;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.MobileAds;
+import com.kskkbys.rate.RateThisApp;
+
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
@@ -44,33 +67,7 @@ import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
 
-import com.bugsense.trace.BugSenseHandler;
-import com.devspark.appmsg.AppMsg;
-import com.espian.showcaseview.ShowcaseView;
-import com.espian.showcaseview.ShowcaseViews;
-import com.github.jberkel.pay.me.IabHelper;
-import com.github.jberkel.pay.me.IabResult;
-import com.github.jberkel.pay.me.listener.OnIabPurchaseFinishedListener;
-import com.github.jberkel.pay.me.listener.OnIabSetupFinishedListener;
-import com.github.jberkel.pay.me.listener.QueryInventoryFinishedListener;
-import com.github.jberkel.pay.me.model.Inventory;
-import com.github.jberkel.pay.me.model.ItemType;
-import com.github.jberkel.pay.me.model.Purchase;
-import com.google.ads.Ad;
-import com.google.ads.AdListener;
-import com.google.ads.AdRequest;
-import com.google.ads.AdRequest.ErrorCode;
-import com.google.ads.AdSize;
-import com.google.ads.AdView;
-import com.google.ads.InterstitialAd;
-import com.google.analytics.tracking.android.EasyTracker;
-import com.google.analytics.tracking.android.Tracker;
-import com.google.analytics.tracking.android.Transaction;
-import com.google.analytics.tracking.android.Transaction.Item;
-import com.kskkbys.rate.RateThisApp;
-
-public class MainActivity extends DocumentActivity implements
-		ActionBar.TabListener, LoadingListener, AdListener {
+public class MainActivity extends DocumentActivity implements ActionBar.TabListener, LoadingListener {
 
 	private static final boolean AMAZON_RELEASE = false;
 
@@ -111,7 +108,7 @@ public class MainActivity extends DocumentActivity implements
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		BugSenseHandler.initAndStartSession(this, "efe5d68e");
+		MobileAds.initialize(getApplicationContext(), "ca-app-pub-8161473686436957~9025061963");
 
 		EasyTracker.getInstance().activityStart(this);
 		analytics = EasyTracker.getTracker();
@@ -161,43 +158,34 @@ public class MainActivity extends DocumentActivity implements
 							public void run() {
 								showGoogleAds();
 
-								showCrouton(
-										getString(R.string.crouton_error_billing),
-										null, AppMsg.STYLE_ALERT);
+								showCrouton(getString(R.string.crouton_error_billing), null, AppMsg.STYLE_ALERT);
 							}
 						});
 					} else if (result.isSuccess()) {
 						// query every 7 days
-						if ((billingPreferences.getLastQueryTime() + 1000 * 60
-								* 60 * 24 * 7) < System.currentTimeMillis()) {
-							billingHelper
-									.queryInventoryAsync(new QueryInventoryFinishedListener() {
+						if ((billingPreferences.getLastQueryTime() + 1000 * 60 * 60 * 24 * 7) < System
+								.currentTimeMillis()) {
+							billingHelper.queryInventoryAsync(new QueryInventoryFinishedListener() {
 
-										@Override
-										public void onQueryInventoryFinished(
-												IabResult result, Inventory inv) {
-											if (result.isSuccess()) {
-												boolean purchased = inv
-														.getPurchase(BILLING_PRODUCT_FOREVER) != null;
-												purchased |= inv
-														.getPurchase(BILLING_PRODUCT_YEAR) != null;
-												purchased |= inv
-														.getPurchase(BILLING_PRODUCT_LOVE) != null;
+								@Override
+								public void onQueryInventoryFinished(IabResult result, Inventory inv) {
+									if (result.isSuccess()) {
+										boolean purchased = inv.getPurchase(BILLING_PRODUCT_FOREVER) != null;
+										purchased |= inv.getPurchase(BILLING_PRODUCT_YEAR) != null;
+										purchased |= inv.getPurchase(BILLING_PRODUCT_LOVE) != null;
 
-												if (purchased) {
-													removeAds();
-												} else {
-													showGoogleAds();
-												}
-
-												billingPreferences
-														.setPurchased(purchased);
-											}
-
-											billingPreferences.setLastQueryTime(System
-													.currentTimeMillis());
+										if (purchased) {
+											removeAds();
+										} else {
+											showGoogleAds();
 										}
-									});
+
+										billingPreferences.setPurchased(purchased);
+									}
+
+									billingPreferences.setLastQueryTime(System.currentTimeMillis());
+								}
+							});
 						}
 					}
 				}
@@ -212,8 +200,7 @@ public class MainActivity extends DocumentActivity implements
 
 		adContainer.removeAllViews();
 
-		LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT,
-				LayoutParams.MATCH_PARENT);
+		LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
 		adContainer.addView(adView, params);
 
 		analytics.sendEvent("monetization", "ads", "show", null);
@@ -222,54 +209,16 @@ public class MainActivity extends DocumentActivity implements
 	private void showGoogleAds() {
 		showAds = true;
 
-		AdView adView = new AdView(MainActivity.this, AdSize.SMART_BANNER,
-				"ca-app-pub-8161473686436957/5931994762");
-		adView.setAdListener(this);
+		AdView adView = new AdView(MainActivity.this);
+		adView.setAdSize(AdSize.SMART_BANNER);
+		adView.setAdUnitId("ca-app-pub-8161473686436957/5931994762");
+		adView.setAdListener(new MyAdListener());
 
-		AdRequest adRequest = new AdRequest();
+		AdRequest adRequest = new AdRequest.Builder().build();
 
 		adView.loadAd(adRequest);
 
 		showAds(adView);
-	}
-
-	// admob
-	@Override
-	public void onDismissScreen(Ad arg0) {
-		// user returned from AdActivity
-		removeAds();
-	}
-
-	@Override
-	public void onFailedToReceiveAd(Ad arg0, ErrorCode arg1) {
-		if (showAds) {
-			showCrouton(R.string.crouton_remove_ads, new Runnable() {
-
-				@Override
-				public void run() {
-					buyAdRemoval();
-				}
-			}, AppMsg.STYLE_CONFIRM);
-		}
-	}
-
-	@Override
-	public void onLeaveApplication(Ad arg0) {
-	}
-
-	@Override
-	public void onPresentScreen(Ad arg0) {
-	}
-
-	@Override
-	public void onReceiveAd(Ad arg0) {
-		showcase();
-
-		if (interstitial != null) {
-			analytics.sendEvent("monetization", "interstitial", "google", null);
-		} else {
-			analytics.sendEvent("monetization", "ads", "google", null);
-		}
 	}
 
 	@Override
@@ -301,8 +250,7 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	@Override
-	public DocumentLoader loadUri(Uri uri, String password, boolean limit,
-			boolean translatable) {
+	public DocumentLoader loadUri(Uri uri, String password, boolean limit, boolean translatable) {
 		loadingStartTime = System.currentTimeMillis();
 
 		return super.loadUri(uri, password, limit, translatable);
@@ -321,8 +269,7 @@ public class MainActivity extends DocumentActivity implements
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 
-		outState.putInt(EXTRA_TAB_POSITION, getSupportActionBar()
-				.getSelectedNavigationIndex());
+		outState.putInt(EXTRA_TAB_POSITION, getSupportActionBar().getSelectedNavigationIndex());
 	}
 
 	@Override
@@ -346,12 +293,10 @@ public class MainActivity extends DocumentActivity implements
 		}
 
 		ShowcaseViews mViews = new ShowcaseViews(this, 0);
-		mViews.addView(new ShowcaseViews.ItemViewProperties(R.id.menu_edit,
-				R.string.showcase_edit_title, R.string.showcase_edit_detail,
-				ShowcaseView.ITEM_ACTION_ITEM));
+		mViews.addView(new ShowcaseViews.ItemViewProperties(R.id.menu_edit, R.string.showcase_edit_title,
+				R.string.showcase_edit_detail, ShowcaseView.ITEM_ACTION_ITEM));
 		if (showAds) {
-			mViews.addView(new ShowcaseViews.ItemViewProperties(
-					R.id.ad_container, R.string.showcase_ad_title,
+			mViews.addView(new ShowcaseViews.ItemViewProperties(R.id.ad_container, R.string.showcase_ad_title,
 					R.string.showcase_ad_detail));
 		}
 		mViews.show();
@@ -366,8 +311,7 @@ public class MainActivity extends DocumentActivity implements
 	}
 
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode,
-			Intent intent) {
+	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		if (requestCode == PURCHASE_CODE) {
 			billingHelper.handleActivityResult(requestCode, resultCode, intent);
 		} else {
@@ -391,9 +335,8 @@ public class MainActivity extends DocumentActivity implements
 
 			@Override
 			public void run() {
-				showCrouton(
-						"Document successfully saved. You can find it on your sdcard: "
-								+ modifiedFile.getName(), new Runnable() {
+				showCrouton("Document successfully saved. You can find it on your sdcard: " + modifiedFile.getName(),
+						new Runnable() {
 
 							@Override
 							public void run() {
@@ -419,12 +362,10 @@ public class MainActivity extends DocumentActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.menu_recent: {
-			FragmentTransaction transaction = getSupportFragmentManager()
-					.beginTransaction();
+			FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
 			DialogFragment chooserDialog = new RecentDocumentDialogFragment();
-			chooserDialog.show(transaction,
-					RecentDocumentDialogFragment.FRAGMENT_TAG);
+			chooserDialog.show(transaction, RecentDocumentDialogFragment.FRAGMENT_TAG);
 
 			analytics.sendEvent("ui", "open", "recent", null);
 
@@ -439,24 +380,18 @@ public class MainActivity extends DocumentActivity implements
 				final EditText input = new EditText(this);
 				alert.setView(input);
 
-				alert.setPositiveButton(getString(android.R.string.ok),
-						new DialogInterface.OnClickListener() {
+				alert.setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
 
-							@Override
-							public void onClick(DialogInterface dialog,
-									int whichButton) {
-								getPageFragment().searchDocument(
-										input.getText().toString());
-							}
-						});
-				alert.setNegativeButton(getString(android.R.string.cancel),
-						null);
+					@Override
+					public void onClick(DialogInterface dialog, int whichButton) {
+						getPageFragment().searchDocument(input.getText().toString());
+					}
+				});
+				alert.setNegativeButton(getString(android.R.string.cancel), null);
 				alert.show();
 			} else {
-				FindActionModeCallback findActionModeCallback = new FindActionModeCallback(
-						this);
-				findActionModeCallback.setWebView(getPageFragment()
-						.getPageView());
+				FindActionModeCallback findActionModeCallback = new FindActionModeCallback(this);
+				findActionModeCallback.setWebView(getPageFragment().getPageView());
 				startSupportActionMode(findActionModeCallback);
 			}
 
@@ -484,8 +419,7 @@ public class MainActivity extends DocumentActivity implements
 			break;
 		}
 		case R.id.menu_feedback: {
-			startActivity(new Intent(
-					Intent.ACTION_VIEW,
+			startActivity(new Intent(Intent.ACTION_VIEW,
 					Uri.parse("https://plus.google.com/communities/113494011673882132018")));
 
 			analytics.sendEvent("ui", "feedback", null, null);
@@ -496,8 +430,7 @@ public class MainActivity extends DocumentActivity implements
 			Loader<Document> loader = getSupportLoaderManager().getLoader(0);
 			DocumentLoader documentLoader = (DocumentLoader) loader;
 
-			loadUri(AndroidFileCache.getCacheFileUri(),
-					documentLoader.getPassword(), false, false);
+			loadUri(AndroidFileCache.getCacheFileUri(), documentLoader.getPassword(), false, false);
 
 			analytics.sendEvent("ui", "reload", "no-limit", null);
 
@@ -507,11 +440,9 @@ public class MainActivity extends DocumentActivity implements
 			if (fullscreen) {
 				leaveFullscreen();
 			} else {
-				getWindow().setFlags(
-						WindowManager.LayoutParams.FLAG_FULLSCREEN,
+				getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 						WindowManager.LayoutParams.FLAG_FULLSCREEN);
-				getWindow().clearFlags(
-						WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+				getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 
 				getSupportActionBar().hide();
 
@@ -546,22 +477,19 @@ public class MainActivity extends DocumentActivity implements
 					index = 0;
 
 				Page page = getDocument().getPageAt(index);
-				Uri uri = Uri.parse("content://at.tomtasche.reader/"
-						+ page.getUrl());
+				Uri uri = Uri.parse("content://at.tomtasche.reader/" + page.getUrl());
 
 				Intent printIntent = new Intent(Intent.ACTION_SEND);
 				printIntent.setType("text/html");
-				printIntent.putExtra(Intent.EXTRA_TITLE,
-						"OpenDocument Reader - " + uri.getLastPathSegment());
+				printIntent.putExtra(Intent.EXTRA_TITLE, "OpenDocument Reader - " + uri.getLastPathSegment());
 
 				printIntent.putExtra(Intent.EXTRA_STREAM, uri);
 
 				try {
 					startActivity(printIntent);
 				} catch (ActivityNotFoundException e) {
-					Intent installIntent = new Intent(
-							Intent.ACTION_VIEW,
-							Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.cloudprint"));
+					Intent installIntent = new Intent(Intent.ACTION_VIEW, Uri
+							.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.cloudprint"));
 
 					startActivity(installIntent);
 				}
@@ -572,8 +500,7 @@ public class MainActivity extends DocumentActivity implements
 			break;
 		}
 		case R.id.menu_tts: {
-			ttsActionMode = new TtsActionModeCallback(this, getPageFragment()
-					.getPageView());
+			ttsActionMode = new TtsActionModeCallback(this, getPageFragment().getPageView());
 			startSupportActionMode(ttsActionMode);
 
 			analytics.sendEvent("ui", "tts", null, null);
@@ -585,9 +512,8 @@ public class MainActivity extends DocumentActivity implements
 				loadInterstitial();
 			}
 
-			EditActionModeCallback editActionMode = new EditActionModeCallback(
-					this, getPageFragment().getPageView(), getDocument()
-							.getOrigin());
+			EditActionModeCallback editActionMode = new EditActionModeCallback(this, getPageFragment().getPageView(),
+					getDocument().getOrigin());
 			startSupportActionMode(editActionMode);
 
 			analytics.sendEvent("ui", "edit", null, null);
@@ -615,123 +541,96 @@ public class MainActivity extends DocumentActivity implements
 		} catch (Exception e) {
 			e.printStackTrace();
 
-			showCrouton(R.string.crouton_error_open_app, null,
-					AppMsg.STYLE_ALERT);
+			showCrouton(R.string.crouton_error_open_app, null, AppMsg.STYLE_ALERT);
 		}
 	}
 
 	private void loadInterstitial() {
-		interstitial = new InterstitialAd(this,
-				"ca-app-pub-8161473686436957/2477707165");
+		interstitial = new InterstitialAd(this);
+		interstitial.setAdUnitId("ca-app-pub-8161473686436957/2477707165");
 
-		AdRequest adRequest = new AdRequest();
+		AdRequest adRequest = new AdRequest.Builder().build();
 
 		interstitial.loadAd(adRequest);
 
-		interstitial.setAdListener(this);
+		interstitial.setAdListener(new MyAdListener());
 	}
 
 	private void buyAdRemoval() {
 		if (!AMAZON_RELEASE) {
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setTitle(R.string.dialog_remove_ads_title);
-			builder.setItems(R.array.dialog_remove_ads_options,
-					new OnClickListener() {
+			builder.setItems(R.array.dialog_remove_ads_options, new OnClickListener() {
 
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							String product = null;
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					String product = null;
 
-							switch (which) {
-							case 0:
-								product = BILLING_PRODUCT_YEAR;
+					switch (which) {
+					case 0:
+						product = BILLING_PRODUCT_YEAR;
 
-								break;
+						break;
 
-							case 1:
-								product = BILLING_PRODUCT_FOREVER;
+					case 1:
+						product = BILLING_PRODUCT_FOREVER;
 
-								break;
+						break;
 
-							case 2:
-								product = BILLING_PRODUCT_LOVE;
+					case 2:
+						product = BILLING_PRODUCT_LOVE;
 
-								break;
+						break;
 
-							default:
-								removeAds();
+					default:
+						removeAds();
 
-								dialog.dismiss();
+						dialog.dismiss();
 
-								return;
-							}
+						return;
+					}
 
-							billingHelper.launchPurchaseFlow(MainActivity.this,
-									product, ItemType.INAPP, PURCHASE_CODE,
-									new OnIabPurchaseFinishedListener() {
-										public void onIabPurchaseFinished(
-												IabResult result,
-												Purchase purchase) {
-											// remove ads even if the
-											// purchase failed /
-											// the user canceled the
-											// purchase
-											runOnUiThread(new Runnable() {
+					billingHelper.launchPurchaseFlow(MainActivity.this, product, ItemType.INAPP, PURCHASE_CODE,
+							new OnIabPurchaseFinishedListener() {
+								public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
+									// remove ads even if the
+									// purchase failed /
+									// the user canceled the
+									// purchase
+									runOnUiThread(new Runnable() {
 
-												@Override
-												public void run() {
-													removeAds();
-												}
-											});
-
-											if (result.isSuccess()) {
-												billingPreferences
-														.setPurchased(true);
-												billingPreferences
-														.setLastQueryTime(System
-																.currentTimeMillis());
-
-												analytics.sendEvent(
-														"monetization",
-														"in-app",
-														purchase.getSku(), null);
-
-												Transaction myTrans = new Transaction.Builder(
-														purchase.getOrderId(),
-														(long) (1 * 1000000))
-														.setAffiliation(
-																"in-app")
-														.build();
-
-												myTrans.addItem(new Item.Builder(
-														purchase.getSku(),
-														"Remove ads",
-														(long) (1 * 1000000),
-														(long) 1)
-														.setProductCategory(
-																"Remove ads")
-														.build());
-
-												Tracker myTracker = EasyTracker
-														.getTracker();
-												myTracker
-														.sendTransaction(myTrans);
-											} else {
-												analytics
-														.sendEvent(
-																"monetization",
-																"in-app",
-																"abort", null);
-											}
+										@Override
+										public void run() {
+											removeAds();
 										}
-									}, null);
+									});
 
-							analytics.sendEvent("monetization", "in-app",
-									"attempt", null);
+									if (result.isSuccess()) {
+										billingPreferences.setPurchased(true);
+										billingPreferences.setLastQueryTime(System.currentTimeMillis());
 
-							dialog.dismiss();
-						}
-					});
+										analytics.sendEvent("monetization", "in-app", purchase.getSku(), null);
+
+										Transaction myTrans = new Transaction.Builder(purchase.getOrderId(),
+												(long) (1 * 1000000)).setAffiliation("in-app").build();
+
+										myTrans.addItem(
+												new Item.Builder(purchase.getSku(), "Remove ads", (long) (1 * 1000000),
+														(long) 1).setProductCategory("Remove ads").build());
+
+										Tracker myTracker = EasyTracker.getTracker();
+										myTracker.sendTransaction(myTrans);
+									} else {
+										analytics.sendEvent("monetization", "in-app", "abort", null);
+									}
+								}
+							}, null);
+
+					analytics.sendEvent("monetization", "in-app", "attempt", null);
+
+					dialog.dismiss();
+				}
+			});
 			builder.show();
 		} else {
 			showCrouton("Not available at the moment", null, AppMsg.STYLE_ALERT);
@@ -751,8 +650,7 @@ public class MainActivity extends DocumentActivity implements
 	private void leaveFullscreen() {
 		getSupportActionBar().show();
 
-		getWindow().setFlags(
-				WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN,
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN,
 				WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
@@ -826,27 +724,23 @@ public class MainActivity extends DocumentActivity implements
 					return;
 				}
 
-				intent.setComponent(new ComponentName(
-						target.activityInfo.packageName,
-						target.activityInfo.name));
+				intent.setComponent(new ComponentName(target.activityInfo.packageName, target.activityInfo.name));
 
 				try {
 					startActivityForResult(intent, 42);
 				} catch (Exception e) {
 					e.printStackTrace();
 
-					showCrouton(R.string.crouton_error_open_app,
-							new Runnable() {
+					showCrouton(R.string.crouton_error_open_app, new Runnable() {
 
-								@Override
-								public void run() {
-									findDocument();
-								}
-							}, AppMsg.STYLE_ALERT);
+						@Override
+						public void run() {
+							findDocument();
+						}
+					}, AppMsg.STYLE_ALERT);
 				}
 
-				analytics.sendEvent("ui", "open",
-						target.activityInfo.packageName, null);
+				analytics.sendEvent("ui", "open", target.activityInfo.packageName, null);
 
 				dialog.dismiss();
 			}
@@ -870,14 +764,6 @@ public class MainActivity extends DocumentActivity implements
 	@Override
 	protected void onDestroy() {
 		chromecast.onDestroy();
-
-		try {
-			if (interstitial != null) {
-				interstitial.stopLoading();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
 		try {
 			// keeps throwing exceptions for some users:
@@ -938,15 +824,11 @@ public class MainActivity extends DocumentActivity implements
 
 			if (pages == 1) {
 				showPage(document.getPageAt(0));
-			} else {
-				BugSenseHandler.sendExceptionMessage("uri", uri.toString(),
-						new IllegalStateException("empty document"));
 			}
 		}
 
 		if (loadingStartTime > 0) {
-			analytics.sendTiming("app", System.currentTimeMillis()
-					- loadingStartTime, "load", "document");
+			analytics.sendTiming("app", System.currentTimeMillis() - loadingStartTime, "load", "document");
 
 			loadingStartTime = 0;
 		}
@@ -962,5 +844,38 @@ public class MainActivity extends DocumentActivity implements
 
 	public Page getCurrentPage() {
 		return currentPage;
+	}
+
+	private class MyAdListener extends AdListener {
+
+		@Override
+		public void onAdClosed() {
+			// user returned from AdActivity
+			removeAds();
+		}
+
+		@Override
+		public void onAdFailedToLoad(int arg0) {
+			if (showAds) {
+				showCrouton(R.string.crouton_remove_ads, new Runnable() {
+
+					@Override
+					public void run() {
+						buyAdRemoval();
+					}
+				}, AppMsg.STYLE_CONFIRM);
+			}
+		}
+
+		@Override
+		public void onAdLoaded() {
+			showcase();
+
+			if (interstitial != null) {
+				analytics.sendEvent("monetization", "interstitial", "google", null);
+			} else {
+				analytics.sendEvent("monetization", "ads", "google", null);
+			}
+		}
 	}
 }
