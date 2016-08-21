@@ -19,9 +19,6 @@
 [submodule "Chromecast"]
 	path = Chromecast
 	url = git://github.com/TomTasche/Chromecast.git
-[submodule "android-support-v7-mediarouter"]
-	path = android-support-v7-mediarouter
-	url = git://github.com/TomTasche/android-support-v7-mediarouter.git
 [submodule "ShowcaseView"]
 	path = ShowcaseView
 	url = git://github.com/TomTasche/ShowcaseView.git
@@ -52,3 +49,6 @@
 [submodule "android-support-annotations"]
 	path = android-support-annotations
 	url = git@github.com:dandar3/android-support-annotations.git
+[submodule "android-support-v7-mediarouter"]
+	path = android-support-v7-mediarouter
+	url = git@github.com:dandar3/android-support-v7-mediarouter.git
