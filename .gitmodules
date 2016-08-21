@@ -13,12 +13,6 @@
 [submodule "Android-RateThisApp"]
 	path = Android-RateThisApp
 	url = git://github.com/TomTasche/Android-RateThisApp.git
-[submodule "android-support-v7"]
-	path = android-support-v7
-	url = git://github.com/TomTasche/android-support-v7.git
-[submodule "Chromecast"]
-	path = Chromecast
-	url = git://github.com/TomTasche/Chromecast.git
 [submodule "ShowcaseView"]
 	path = ShowcaseView
 	url = git://github.com/TomTasche/ShowcaseView.git
@@ -52,3 +46,27 @@
 [submodule "android-support-v7-mediarouter"]
 	path = android-support-v7-mediarouter
 	url = git@github.com:dandar3/android-support-v7-mediarouter.git
+[submodule "android-support-v7-appcompat"]
+	path = android-support-v7-appcompat
+	url = git@github.com:dandar3/android-support-v7-appcompat.git
+[submodule "android-support-vector-drawable"]
+	path = android-support-vector-drawable
+	url = git@github.com:dandar3/android-support-vector-drawable.git
+[submodule "android-support-animated-vector-drawable"]
+	path = android-support-animated-vector-drawable
+	url = git@github.com:dandar3/android-support-animated-vector-drawable.git
+[submodule "android-support-v7-palette"]
+	path = android-support-v7-palette
+	url = git@github.com:dandar3/android-support-v7-palette.git
+[submodule "android-google-play-services-cast-framework"]
+	path = android-google-play-services-cast-framework
+	url = git@github.com:dandar3/android-google-play-services-cast-framework.git
+[submodule "android-google-play-services-cast"]
+	path = android-google-play-services-cast
+	url = git@github.com:dandar3/android-google-play-services-cast.git
+[submodule "android-google-play-services-analytics"]
+	path = android-google-play-services-analytics
+	url = git@github.com:dandar3/android-google-play-services-analytics.git
+[submodule "android-google-play-services-analytics-impl"]
+	path = android-google-play-services-analytics-impl
+	url = git@github.com:dandar3/android-google-play-services-analytics-impl.git

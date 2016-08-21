@@ -14,10 +14,6 @@ import com.github.jberkel.pay.me.listener.QueryInventoryFinishedListener;
 import com.github.jberkel.pay.me.model.Inventory;
 import com.github.jberkel.pay.me.model.ItemType;
 import com.github.jberkel.pay.me.model.Purchase;
-import com.google.analytics.tracking.android.EasyTracker;
-import com.google.analytics.tracking.android.Tracker;
-import com.google.analytics.tracking.android.Transaction;
-import com.google.analytics.tracking.android.Transaction.Item;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
@@ -53,6 +49,7 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import at.tomtasche.reader.AnalyticsBridge;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.BillingPreferences;
@@ -61,7 +58,6 @@ import at.tomtasche.reader.background.Document.Page;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.KitKatPrinter;
 import at.tomtasche.reader.background.LoadingListener;
-import at.tomtasche.reader.ui.ChromecastManager;
 import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
@@ -95,14 +91,11 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 	private TtsActionModeCallback ttsActionMode;
 
-	private Tracker analytics;
-	private long loadingStartTime;
-
-	private ChromecastManager chromecast;
-
 	private SharedPreferences preferences;
 
 	private Runnable saveCroutonRunnable;
+
+	private AnalyticsBridge analyticsBridge;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -110,8 +103,8 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 		MobileAds.initialize(getApplicationContext(), "ca-app-pub-8161473686436957~9025061963");
 
-		EasyTracker.getInstance().activityStart(this);
-		analytics = EasyTracker.getTracker();
+		analyticsBridge = new AnalyticsBridge();
+		analyticsBridge.initialize(this);
 
 		adContainer = (LinearLayout) findViewById(R.id.ad_container);
 
@@ -125,17 +118,13 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 				provider = "google";
 			}
 
-			analytics.sendEvent("ui", "open", provider, null);
+			analyticsBridge.sendEvent("ui", "open", provider);
 		}
 
 		addLoadingListener(this);
 
 		preferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
 		showcased = preferences.getBoolean("showcased", false);
-
-		chromecast = new ChromecastManager(this);
-		// disable until Chromecast SDK is final and stable
-		chromecast.setEnabled(false);
 
 		if (!AMAZON_RELEASE) {
 			billingPreferences = new BillingPreferences(this);
@@ -203,7 +192,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
 		adContainer.addView(adView, params);
 
-		analytics.sendEvent("monetization", "ads", "show", null);
+		analyticsBridge.sendEvent("monetization", "ads", "show");
 	}
 
 	private void showGoogleAds() {
@@ -245,14 +234,12 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		if (intent.getData() != null) {
 			loadUri(intent.getData());
 
-			analytics.sendEvent("ui", "open", "other", null);
+			analyticsBridge.sendEvent("ui", "open", "other");
 		}
 	}
 
 	@Override
 	public DocumentLoader loadUri(Uri uri, String password, boolean limit, boolean translatable) {
-		loadingStartTime = System.currentTimeMillis();
-
 		return super.loadUri(uri, password, limit, translatable);
 	}
 
@@ -277,8 +264,6 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		super.onCreateOptionsMenu(menu);
 
 		getMenuInflater().inflate(R.menu.menu_main, menu);
-
-		chromecast.onCreateOptionsMenu(menu);
 
 		if (billingPreferences.hasPurchased()) {
 			showcase();
@@ -367,7 +352,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			DialogFragment chooserDialog = new RecentDocumentDialogFragment();
 			chooserDialog.show(transaction, RecentDocumentDialogFragment.FRAGMENT_TAG);
 
-			analytics.sendEvent("ui", "open", "recent", null);
+			analyticsBridge.sendEvent("ui", "open", "recent");
 
 			break;
 		}
@@ -395,14 +380,14 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 				startSupportActionMode(findActionModeCallback);
 			}
 
-			analytics.sendEvent("ui", "search", "start", null);
+			analyticsBridge.sendEvent("ui", "search", "start");
 
 			break;
 		}
 		case R.id.menu_open: {
 			findDocument();
 
-			analytics.sendEvent("ui", "open", "choose", null);
+			analyticsBridge.sendEvent("ui", "open", "choose");
 
 			break;
 		}
@@ -414,7 +399,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		case R.id.menu_about: {
 			loadUri(DocumentLoader.URI_ABOUT);
 
-			analytics.sendEvent("ui", "open", "about", null);
+			analyticsBridge.sendEvent("ui", "open", "about");
 
 			break;
 		}
@@ -422,7 +407,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			startActivity(new Intent(Intent.ACTION_VIEW,
 					Uri.parse("https://plus.google.com/communities/113494011673882132018")));
 
-			analytics.sendEvent("ui", "feedback", null, null);
+			analyticsBridge.sendEvent("ui", "feedback", null);
 
 			break;
 		}
@@ -432,7 +417,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 			loadUri(AndroidFileCache.getCacheFileUri(), documentLoader.getPassword(), false, false);
 
-			analytics.sendEvent("ui", "reload", "no-limit", null);
+			analyticsBridge.sendEvent("ui", "reload", "no-limit");
 
 			break;
 		}
@@ -456,7 +441,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 					}
 				}, AppMsg.STYLE_INFO);
 
-				analytics.sendEvent("ui", "fullscreen", "enter", null);
+				analyticsBridge.sendEvent("ui", "fullscreen", "enter");
 			}
 
 			fullscreen = !fullscreen;
@@ -495,7 +480,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 				}
 			}
 
-			analytics.sendEvent("ui", "print", null, null);
+			analyticsBridge.sendEvent("ui", "print", null);
 
 			break;
 		}
@@ -503,7 +488,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			ttsActionMode = new TtsActionModeCallback(this, getPageFragment().getPageView());
 			startSupportActionMode(ttsActionMode);
 
-			analytics.sendEvent("ui", "tts", null, null);
+			analyticsBridge.sendEvent("ui", "tts", null);
 
 			break;
 		}
@@ -516,7 +501,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 					getDocument().getOrigin());
 			startSupportActionMode(editActionMode);
 
-			analytics.sendEvent("ui", "edit", null, null);
+			analyticsBridge.sendEvent("ui", "edit", null);
 
 			break;
 		}
@@ -537,7 +522,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		try {
 			startActivity(intent);
 
-			analytics.sendEvent("ui", "share", null, null);
+			analyticsBridge.sendEvent("ui", "share", null);
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -609,24 +594,14 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 										billingPreferences.setPurchased(true);
 										billingPreferences.setLastQueryTime(System.currentTimeMillis());
 
-										analytics.sendEvent("monetization", "in-app", purchase.getSku(), null);
-
-										Transaction myTrans = new Transaction.Builder(purchase.getOrderId(),
-												(long) (1 * 1000000)).setAffiliation("in-app").build();
-
-										myTrans.addItem(
-												new Item.Builder(purchase.getSku(), "Remove ads", (long) (1 * 1000000),
-														(long) 1).setProductCategory("Remove ads").build());
-
-										Tracker myTracker = EasyTracker.getTracker();
-										myTracker.sendTransaction(myTrans);
+										analyticsBridge.sendEvent("monetization", "in-app", purchase.getSku());
 									} else {
-										analytics.sendEvent("monetization", "in-app", "abort", null);
+										analyticsBridge.sendEvent("monetization", "in-app", "abort");
 									}
 								}
 							}, null);
 
-					analytics.sendEvent("monetization", "in-app", "attempt", null);
+					analyticsBridge.sendEvent("monetization", "in-app", "attempt");
 
 					dialog.dismiss();
 				}
@@ -644,7 +619,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			madView.setVisibility(View.GONE);
 		}
 
-		analytics.sendEvent("monetization", "ads", "hide", null);
+		analyticsBridge.sendEvent("monetization", "ads", "hide");
 	}
 
 	private void leaveFullscreen() {
@@ -656,7 +631,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 		fullscreen = false;
 
-		analytics.sendEvent("ui", "fullscreen", "leave", null);
+		analyticsBridge.sendEvent("ui", "fullscreen", "leave");
 	}
 
 	@Override
@@ -691,8 +666,6 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 		// if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
 		// loadPageOnMultiscreens(page);
-
-		chromecast.load(page);
 	}
 
 	public void findDocument() {
@@ -740,7 +713,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 					}, AppMsg.STYLE_ALERT);
 				}
 
-				analytics.sendEvent("ui", "open", target.activityInfo.packageName, null);
+				analyticsBridge.sendEvent("ui", "open", target.activityInfo.packageName);
 
 				dialog.dismiss();
 			}
@@ -750,21 +723,15 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 	@Override
 	protected void onStop() {
-		chromecast.onStop();
-
 		if (billingHelper != null) {
 			billingHelper.dispose();
 		}
-
-		EasyTracker.getInstance().activityStop(this);
 
 		super.onStop();
 	}
 
 	@Override
 	protected void onDestroy() {
-		chromecast.onDestroy();
-
 		try {
 			// keeps throwing exceptions for some users:
 			// Caused by: java.lang.NullPointerException
@@ -826,12 +793,6 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 				showPage(document.getPageAt(0));
 			}
 		}
-
-		if (loadingStartTime > 0) {
-			analytics.sendTiming("app", System.currentTimeMillis() - loadingStartTime, "load", "document");
-
-			loadingStartTime = 0;
-		}
 	}
 
 	@Override
@@ -839,7 +800,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		// DO NOT call the super-method here! otherwise we end up in an infinite
 		// recursion.
 
-		analytics.sendException(error.getMessage(), error, false);
+		analyticsBridge.sendException(error.getMessage(), error);
 	}
 
 	public Page getCurrentPage() {
@@ -872,9 +833,9 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			showcase();
 
 			if (interstitial != null) {
-				analytics.sendEvent("monetization", "interstitial", "google", null);
+				analyticsBridge.sendEvent("monetization", "interstitial", "google");
 			} else {
-				analytics.sendEvent("monetization", "ads", "google", null);
+				analyticsBridge.sendEvent("monetization", "ads", "google");
 			}
 		}
 	}
