@@ -160,8 +160,20 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			}
 
 			try {
+				String filename = null;
+				// https://stackoverflow.com/a/38304115/198996
+				Cursor fileCursor = getContext().getContentResolver().query(uri, null, null, null, null);
+				if (fileCursor != null) {
+					int nameIndex = fileCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+					fileCursor.moveToFirst();
+					filename = fileCursor.getString(nameIndex);
+					fileCursor.close();
+				} else {
+					filename = uri.getLastPathSegment();
+				}
+
 				RecentDocumentsUtil.addRecentDocument(getContext(),
-						uri.getLastPathSegment(), uri);
+						filename, uri);
 			} catch (IOException e) {
 				// not a showstopper, so just continue
 				e.printStackTrace();
