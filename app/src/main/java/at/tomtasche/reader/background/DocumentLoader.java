@@ -180,8 +180,8 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			settings.setBackTranslateable(translatable);
 			settings.setImageStoreMode(ImageStoreMode.CACHE);
 			if (limit) {
-				settings.setMaxTableDimension(new Vector2i(500, 100));
-				settings.setMaxRowRepetition(50);
+				settings.setMaxTableDimension(new Vector2i(5000, 1000));
+				settings.setMaxRowRepetition(100);
 			}
 
 			if (openDocument instanceof OpenDocumentText) {
