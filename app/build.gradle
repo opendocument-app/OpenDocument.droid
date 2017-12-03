@@ -1,0 +1,62 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "27.0.0"
+
+    useLibrary 'org.apache.http.legacy'
+
+    defaultConfig {
+        applicationId "at.tomtasche.reader"
+        minSdkVersion 14
+        targetSdkVersion 25
+
+        testApplicationId "at.tomtasche.reader.test"
+        testInstrumentationRunner "android.test.InstrumentationTestRunner"
+
+        multiDexEnabled true
+    }
+
+    dexOptions {
+        javaMaxHeapSize "2g"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}
+
+dependencies {
+    compile 'com.android.support:multidex:1.0.1'
+
+    compile (project(':payme'), {
+        transitive = false
+    })
+
+    compile 'com.google.code.gson:gson:2.8.2'
+
+    compile 'com.google.android.gms:play-services-ads:11.6.0'
+    compile 'com.google.android.gms:play-services-analytics:11.6.0'
+
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:support-compat:25.3.1'
+
+    compile ('io.github.kobakei:ratethisapp:1.2.0') {
+        exclude group: 'com.google.android'
+        exclude group: 'com.android.support'
+    }
+    compile('de.keyboardsurfer.android.widget:crouton:1.8.5@aar') {
+        exclude group: 'com.google.android'
+        exclude group: 'com.android.support'
+    }
+
+    compile 'com.android.support:recyclerview-v7:25.3.1'
+    compile ('com.nononsenseapps:filepicker:4.1.0', {
+        exclude group: 'com.android.support'
+    })
+
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
