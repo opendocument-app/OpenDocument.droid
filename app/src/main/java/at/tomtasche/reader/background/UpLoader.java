@@ -1,175 +1,173 @@
 package at.tomtasche.reader.background;
 
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.OpenableColumns;
+import android.support.v4.content.AsyncTaskLoader;
+import android.util.Log;
+import android.webkit.MimeTypeMap;
+
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.net.URLEncoder;
-import java.util.Map;
+import java.util.UUID;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
-
-import android.content.Context;
-import android.net.Uri;
-import android.support.v4.content.AsyncTaskLoader;
 import at.tomtasche.reader.background.Document.Page;
-
-import com.google.gson.Gson;
 
 public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 
-	private static final String SERVER_URL = "https://opendocument-engine.appspot.com/";
+    private Uri uri;
+    private Document document;
+    private Throwable lastError;
 
-	private Uri uri;
-	private Document document;
-	private Throwable lastError;
+    private StorageReference storage;
 
-	public UpLoader(Context context, Uri uri) {
-		super(context);
+    public UpLoader(Context context, Uri uri) {
+        super(context);
 
-		this.uri = uri;
-	}
+        this.uri = uri;
 
-	@Override
-	public Throwable getLastError() {
-		return lastError;
-	}
+        storage = FirebaseStorage.getInstance().getReference();
+    }
 
-	@Override
-	public Uri getLastUri() {
-		return uri;
-	}
+    @Override
+    public Throwable getLastError() {
+        return lastError;
+    }
 
-	@Override
-	public double getProgress() {
-		return 0;
-	}
+    @Override
+    public Uri getLastUri() {
+        return uri;
+    }
 
-	@Override
-	protected void onStartLoading() {
-		super.onStartLoading();
+    @Override
+    public double getProgress() {
+        return 0;
+    }
 
-		if (document != null) {
-			deliverResult(document);
-		} else {
-			forceLoad();
-		}
-	}
+    @Override
+    protected void onStartLoading() {
+        super.onStartLoading();
 
-	@Override
-	protected void onReset() {
-		super.onReset();
+        if (document != null) {
+            deliverResult(document);
+        } else {
+            forceLoad();
+        }
+    }
 
-		onStopLoading();
+    @Override
+    protected void onReset() {
+        super.onReset();
 
-		document = null;
-	}
+        onStopLoading();
 
-	@Override
-	protected void onStopLoading() {
-		super.onStopLoading();
+        document = null;
+    }
 
-		cancelLoad();
-	}
+    @Override
+    protected void onStopLoading() {
+        super.onStopLoading();
 
-	@Override
-	public Document loadInBackground() {
-		if (uri == DocumentLoader.URI_INTRO) {
-			cancelLoad();
+        cancelLoad();
+    }
 
-			return null;
-		}
+    @Override
+    public Document loadInBackground() {
+        if (uri == DocumentLoader.URI_INTRO) {
+            cancelLoad();
 
-		String type = getContext().getContentResolver().getType(uri);
-		if (type == null)
-			type = URLConnection.guessContentTypeFromName(uri.toString());
+            return null;
+        }
 
-		if (type == null) {
-			try {
-				InputStream stream = getContext().getContentResolver()
-						.openInputStream(uri);
-				try {
-					type = URLConnection.guessContentTypeFromStream(stream);
-				} finally {
-					stream.close();
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+        String filename = null;
+        // https://stackoverflow.com/a/38304115/198996
+        Cursor fileCursor = getContext().getContentResolver().query(uri, null, null, null, null);
+        if (fileCursor != null) {
+            int nameIndex = fileCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+            fileCursor.moveToFirst();
+            filename = fileCursor.getString(nameIndex);
+            fileCursor.close();
+        }
 
-		if (type != null
-				&& (type.equals("text/html") || type.equals("text/plain")
-						|| type.equals("image/png") || type
-							.equals("image/jpeg"))) {
-			try {
-				document = new Document(null);
-				document.addPage(new Page("Document", new URI(uri.toString()),
-						0));
+        String type = getContext().getContentResolver().getType(uri);
+        if (type == null)
+            type = URLConnection.guessContentTypeFromName(filename);
 
-				return document;
-			} catch (URISyntaxException e) {
-				e.printStackTrace();
-			}
-		}
+        if (type == null) {
+            try {
+                InputStream stream = getContext().getContentResolver()
+                        .openInputStream(uri);
+                try {
+                    type = URLConnection.guessContentTypeFromStream(stream);
+                } finally {
+                    stream.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
-		String name = uri.getLastPathSegment();
+        if (type != null
+                && (type.equals("text/html") || type.equals("text/plain")
+                || type.equals("image/png") || type.equals("image/jpeg"))) {
+            try {
+                document = new Document(null);
+                document.addPage(new Page("Document", new URI(uri.toString()),
+                        0));
 
-		try {
-			name = URLEncoder.encode(name, "UTF-8");
-			type = URLEncoder.encode(type, "UTF-8");
-		} catch (Exception e) {
-		}
+                return document;
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
+        }
 
-		HttpClient httpclient = new DefaultHttpClient();
-		HttpPost httppost = new HttpPost(SERVER_URL + "file?name=" + name
-				+ "&type=" + type);
+        InputStream stream = null;
+        try {
+            stream = getContext().getContentResolver().openInputStream(uri);
 
-		InputStream stream = null;
-		try {
-			stream = getContext().getContentResolver().openInputStream(uri);
+            String fileExtension = MimeTypeMap.getSingleton().getExtensionFromMimeType(type);
+            StorageReference reference = storage.child("uploads/" + UUID.randomUUID() + "." + fileExtension);
 
-			InputStreamEntity reqEntity = new InputStreamEntity(stream, -1);
+            UploadTask uploadTask = reference.putStream(stream);
+            while (!uploadTask.isComplete()) {
+                Thread.sleep(500);
+            }
 
-			httppost.setEntity(reqEntity);
+            if (uploadTask.isSuccessful()) {
+                UploadTask.TaskSnapshot result = uploadTask.getResult();
+                String downloadUrl = result.getDownloadUrl().toString();
 
-			HttpResponse response = httpclient.execute(httppost);
-			if (response.getStatusLine().getStatusCode() == 200) {
-				Map<String, Object> container = new Gson().fromJson(
-						EntityUtils.toString(response.getEntity()), Map.class);
+                URI viewerUri = URI
+                        .create("https://docs.google.com/viewer?embedded=true&url="
+                                + URLEncoder.encode(downloadUrl, "UTF-8"));
 
-				String key = container.get("key").toString();
-				URI viewerUri = URI
-						.create("https://docs.google.com/viewer?embedded=true&url="
-								+ URLEncoder.encode(SERVER_URL + "file?key="
-										+ key, "UTF-8"));
+                document = new Document(null);
+                document.addPage(new Page("Document", viewerUri, 0));
+            } else {
+                throw new RuntimeException("server couldn't handle request");
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
 
-				document = new Document(null);
-				document.addPage(new Page("Document", viewerUri, 0));
-			} else {
-				throw new RuntimeException("server couldn't handle request");
-			}
-		} catch (Throwable e) {
-			e.printStackTrace();
+            lastError = e;
+        } finally {
+            try {
+                if (stream != null) {
+                    stream.close();
+                }
+            } catch (IOException e) {
+            }
+        }
 
-			lastError = e;
-		} finally {
-			try {
-				if (stream != null) {
-					stream.close();
-				}
-			} catch (IOException e) {
-			}
-
-			httpclient.getConnectionManager().shutdown();
-		}
-
-		return document;
-	}
+        return document;
+    }
 }

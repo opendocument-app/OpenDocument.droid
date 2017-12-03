@@ -6,8 +6,12 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
+import android.provider.OpenableColumns;
 import android.support.v4.content.AsyncTaskLoader;
+import android.util.Log;
+
 import at.stefl.commons.lwxml.writer.LWXMLStreamWriter;
 import at.stefl.commons.lwxml.writer.LWXMLWriter;
 import at.stefl.commons.math.vector.Vector2i;

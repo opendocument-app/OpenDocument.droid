@@ -313,7 +313,7 @@ public abstract class DocumentActivity extends ActionBarActivity implements
 						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
-							uploadUri(cacheUri);
+							uploadUri(uri);
 
 							dialog.dismiss();
 						}
