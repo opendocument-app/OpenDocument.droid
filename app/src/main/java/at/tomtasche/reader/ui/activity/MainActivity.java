@@ -770,12 +770,6 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 	private class MyAdListener extends AdListener {
 
 		@Override
-		public void onAdClosed() {
-			// user returned from AdActivity
-			removeAds();
-		}
-
-		@Override
 		public void onAdFailedToLoad(int arg0) {
 			if (showAds) {
 				showCrouton(R.string.crouton_remove_ads, new Runnable() {
@@ -786,6 +780,11 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 					}
 				}, Style.CONFIRM);
 			}
+		}
+
+		@Override
+		public void onAdClicked() {
+			removeAds();
 		}
 
 		@Override
