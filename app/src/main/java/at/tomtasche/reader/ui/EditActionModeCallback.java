@@ -5,12 +5,15 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
 import android.support.v7.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
 import at.stefl.opendocument.java.odf.OpenDocument;
@@ -31,6 +34,8 @@ public class EditActionModeCallback implements ActionMode.Callback {
 	private TextView statusView;
 	private OpenDocument document;
 
+	private InputMethodManager imm;
+
 	public EditActionModeCallback(MainActivity activity, PageView pageView,
 			OpenDocument document) {
 		this.activity = activity;
@@ -46,6 +51,8 @@ public class EditActionModeCallback implements ActionMode.Callback {
 
 		mode.getMenuInflater().inflate(R.menu.edit, menu);
 
+		imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+
 		return true;
 	}
 
@@ -53,6 +60,8 @@ public class EditActionModeCallback implements ActionMode.Callback {
 	public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
 		// reload document with translation enabled
 		activity.loadUri(AndroidFileCache.getCacheFileUri(), null, true, true);
+
+		imm.toggleSoftInputFromWindow(activity.getWindow().getDecorView().getRootView().getWindowToken(), InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
 
 		return true;
 	}
@@ -171,5 +180,6 @@ public class EditActionModeCallback implements ActionMode.Callback {
 
 	@Override
 	public void onDestroyActionMode(ActionMode mode) {
+		imm.toggleSoftInputFromWindow(activity.getWindow().getDecorView().getRootView().getWindowToken(), 0,0);
 	}
 }
