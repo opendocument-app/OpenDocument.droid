@@ -1,0 +1,7 @@
+{
+    "orderId": "someOrderId",
+    "packageName": "com.example.test",
+    "purchaseTime": 12345,
+    "purchaseState": 1,
+    "developerPayload": "custom"
+}
