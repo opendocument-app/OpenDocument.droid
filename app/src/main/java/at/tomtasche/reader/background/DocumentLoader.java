@@ -24,8 +24,9 @@ import at.stefl.opendocument.java.translator.document.BulkPresentationTranslator
 import at.stefl.opendocument.java.translator.document.BulkSpreadsheetTranslator;
 import at.stefl.opendocument.java.translator.document.DocumentTranslator;
 import at.stefl.opendocument.java.translator.document.DocumentTranslatorUtil;
-import at.stefl.opendocument.java.translator.document.DocumentTranslatorUtil.BulkOutput;
 import at.stefl.opendocument.java.translator.document.GenericBulkDocumentTranslator;
+import at.stefl.opendocument.java.translator.document.PresentationTranslator;
+import at.stefl.opendocument.java.translator.document.SpreadsheetTranslator;
 import at.stefl.opendocument.java.translator.document.TextTranslator;
 import at.stefl.opendocument.java.translator.settings.ImageStoreMode;
 import at.stefl.opendocument.java.translator.settings.TranslationSettings;
@@ -200,48 +201,43 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 				settings.setMaxRowRepetition(100);
 			}
 
-			if (openDocument instanceof OpenDocumentText) {
-				File htmlFile = cache.create("temp.html");
-				FileWriter writer = new FileWriter(htmlFile);
-				LWXMLWriter out = new LWXMLStreamWriter(writer);
-				try {
+			// https://github.com/andiwand/OpenDocument.java/blob/7f13222f77fabd62ee6a9d52cd6ed3e512532a9b/src/at/stefl/opendocument/java/translator/document/DocumentTranslatorUtil.java#L131
+			if (!settings.isSplitPages() || (openDocument instanceof OpenDocumentText)) {
+				if (openDocument instanceof OpenDocumentText) {
 					translator = new TextTranslator();
-
-					translator.translate(openDocument, out, settings);
-				} finally {
-					out.close();
-					writer.close();
-				}
-
-				document.addPage(new Page("Document", htmlFile.toURI(), 0));
-			} else {
-				GenericBulkDocumentTranslator<?, ?, ?> bulkTranslator = null;
-				if (openDocument instanceof OpenDocumentSpreadsheet) {
-					bulkTranslator = new BulkSpreadsheetTranslator();
+				} else if (openDocument instanceof OpenDocumentSpreadsheet) {
+					translator = new SpreadsheetTranslator();
 				} else if (openDocument instanceof OpenDocumentPresentation) {
-					bulkTranslator = new BulkPresentationTranslator();
+					translator = new PresentationTranslator();
+				} else {
+					throw new IllegalStateException("unsupported document");
 				}
-
-				translator = bulkTranslator;
-
-				BulkOutput output = DocumentTranslatorUtil.provideBulkOutput(
-						openDocument, cache, "temp", ".html");
-				try {
-					translator.translate(openDocument, output.getWriter(),
-							settings);
-				} finally {
-					output.getWriter().close();
+			} else {
+				if (openDocument instanceof OpenDocumentSpreadsheet) {
+					translator = new BulkSpreadsheetTranslator();
+				} else if (openDocument instanceof OpenDocumentPresentation) {
+					translator = new BulkPresentationTranslator();
+				} else {
+					throw new IllegalStateException("unsupported document");
 				}
-
-				for (int i = 0; i < output.getNames().size(); i++) {
-					File htmlFile = cache.getFile(output.getNames().get(i));
-
-					document.addPage(new Page(output.getTitles().get(i),
-							htmlFile.toURI(), i));
-				}
-
-				document.setLimited(translator.isCurrentOutputTruncated());
 			}
+
+			DocumentTranslatorUtil.Output output = DocumentTranslatorUtil.provideOutput(
+					openDocument, settings, "temp", ".html");
+			try {
+				translator.translate(openDocument, output.getWriter(), settings);
+			} finally {
+				output.getWriter().close();
+			}
+
+			for (int i = 0; i < output.getNames().size(); i++) {
+				File htmlFile = cache.getFile(output.getNames().get(i));
+
+				document.addPage(new Page(output.getTitles().get(i),
+						htmlFile.toURI(), i));
+			}
+
+			document.setLimited(translator.isCurrentOutputTruncated());
 
 			return document;
 		} catch (Throwable e) {
