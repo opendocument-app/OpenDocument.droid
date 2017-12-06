@@ -57,6 +57,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support:support-compat:25.3.1'
     compile 'com.android.support:recyclerview-v7:25.3.1'
-    compile 'com.google.firebase:firebase-auth:10.0.1'
 }
+
 apply plugin: 'com.google.gms.google-services'
