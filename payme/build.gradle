@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 8
-    buildToolsVersion "27.0.0"
+    buildToolsVersion '28.0.2'
 
     defaultConfig {
         minSdkVersion 8
@@ -18,5 +18,5 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:18.0.0'
+    implementation 'com.android.support:support-v4:18.0.0'
 }

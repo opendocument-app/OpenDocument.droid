@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "27.0.0"
+    buildToolsVersion '28.0.2'
 
     useLibrary 'org.apache.http.legacy'
 
@@ -27,36 +27,41 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
-    compile(project(':payme'), {
+    implementation(project(':payme'), {
         transitive = false
     })
 
-    compile('io.github.kobakei:ratethisapp:1.2.0') {
+    implementation('io.github.kobakei:ratethisapp:1.2.0') {
         exclude group: 'com.google.android'
         exclude group: 'com.android.support'
     }
-    compile('de.keyboardsurfer.android.widget:crouton:1.8.5@aar') {
+    implementation('de.keyboardsurfer.android.widget:crouton:1.8.5@aar') {
         exclude group: 'com.google.android'
         exclude group: 'com.android.support'
     }
 
-    compile('com.nononsenseapps:filepicker:4.1.0', {
+    implementation('com.nononsenseapps:filepicker:4.1.0', {
         exclude group: 'com.android.support'
     })
 
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    compile 'com.android.support:multidex:1.0.1'
-    compile 'com.google.firebase:firebase-storage:11.6.2'
-    compile 'com.google.code.gson:gson:2.8.2'
-    compile 'com.google.android.gms:play-services-ads:11.6.2'
-    compile 'com.google.android.gms:play-services-analytics:11.6.2'
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support:support-compat:25.3.1'
-    compile 'com.android.support:recyclerview-v7:25.3.1'
+    implementation 'com.android.support:multidex:1.0.1'
+    implementation 'com.google.firebase:firebase-storage:11.6.2'
+    implementation 'com.google.code.gson:gson:2.8.2'
+    implementation 'com.google.android.gms:play-services-ads:11.6.2'
+    implementation 'com.google.android.gms:play-services-analytics:11.6.2'
+    implementation 'com.android.support:appcompat-v7:25.3.1'
+    implementation 'com.android.support:support-compat:25.3.1'
+    implementation 'com.android.support:recyclerview-v7:25.3.1'
 }
 
 apply plugin: 'com.google.gms.google-services'
