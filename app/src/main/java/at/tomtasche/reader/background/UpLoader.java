@@ -4,10 +4,17 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
+import android.support.annotation.NonNull;
 import android.support.v4.content.AsyncTaskLoader;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -28,7 +35,8 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
     private Document document;
     private Throwable lastError;
 
-    private StorageReference storage;
+    private final StorageReference storage;
+    private final FirebaseAuth auth;
 
     public UpLoader(Context context, Uri uri) {
         super(context);
@@ -36,6 +44,7 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
         this.uri = uri;
 
         storage = FirebaseStorage.getInstance().getReference();
+        auth = FirebaseAuth.getInstance();
     }
 
     @Override
@@ -88,6 +97,14 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
             return null;
         }
 
+        Task<AuthResult> authenticationTask = null;
+        String currentUserId = null;
+        if (auth.getCurrentUser() != null) {
+            currentUserId = auth.getCurrentUser().getUid();
+        } else {
+            authenticationTask = auth.signInAnonymously();
+        }
+
         String filename = null;
         // https://stackoverflow.com/a/38304115/198996
         Cursor fileCursor = getContext().getContentResolver().query(uri, null, null, null, null);
@@ -132,19 +149,25 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 
         InputStream stream = null;
         try {
+            if (authenticationTask != null) {
+                Tasks.await(authenticationTask);
+
+                currentUserId = authenticationTask.getResult().getUser().getUid();
+            }
+
             stream = getContext().getContentResolver().openInputStream(uri);
 
             String fileExtension = MimeTypeMap.getSingleton().getExtensionFromMimeType(type);
-            StorageReference reference = storage.child("uploads/" + UUID.randomUUID() + "." + fileExtension);
+            StorageReference reference = storage.child("uploads/" + currentUserId + "/" + UUID.randomUUID() + "." + fileExtension);
 
             UploadTask uploadTask = reference.putStream(stream);
-            while (!uploadTask.isComplete()) {
-                Thread.sleep(500);
-            }
+            Tasks.await(uploadTask);
 
             if (uploadTask.isSuccessful()) {
-                UploadTask.TaskSnapshot result = uploadTask.getResult();
-                String downloadUrl = result.getDownloadUrl().toString();
+                Task<Uri> urlTask = reference.getDownloadUrl();
+                Tasks.await(urlTask);
+
+                String downloadUrl = urlTask.getResult().toString();
 
                 URI viewerUri = URI
                         .create("https://docs.google.com/viewer?embedded=true&url="

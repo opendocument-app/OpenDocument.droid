@@ -15,7 +15,7 @@ import android.os.Handler;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Log;
 import android.view.View;
@@ -39,7 +39,7 @@ import de.keyboardsurfer.android.widget.crouton.Configuration;
 import de.keyboardsurfer.android.widget.crouton.Crouton;
 import de.keyboardsurfer.android.widget.crouton.Style;
 
-public abstract class DocumentActivity extends ActionBarActivity implements
+public abstract class DocumentActivity extends AppCompatActivity implements
 		LoaderCallbacks<Document>, DocumentLoadingActivity {
 
 	private static final String EXTRA_URI = "uri";
