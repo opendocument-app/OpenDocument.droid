@@ -12,7 +12,6 @@ import android.os.Environment;
 import android.support.v7.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
@@ -23,7 +22,6 @@ import at.stefl.opendocument.java.odf.OpenDocumentText;
 import at.stefl.opendocument.java.translator.Retranslator;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
-import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.ui.activity.MainActivity;
 import at.tomtasche.reader.ui.widget.PageView;
 
@@ -59,7 +57,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
 	@Override
 	public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
 		// reload document with translation enabled
-		activity.loadUri(AndroidFileCache.getCacheFileUri(), null, true, true);
+		activity.loadUri(AndroidFileCache.getCacheFileUri(), null, false, true);
 
 		imm.toggleSoftInputFromWindow(activity.getWindow().getDecorView().getRootView().getWindowToken(), InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
 
@@ -134,15 +132,6 @@ public class EditActionModeCallback implements ActionMode.Callback {
 								.getHtmlCacheFileUri();
 
 						activity.onError(e, cacheUri);
-
-						activity.runOnUiThread(new Runnable() {
-
-							@Override
-							public void run() {
-								ReportUtil.submitFile(activity, e, cacheUri,
-										cacheUri, htmlUri, "Editing failed");
-							}
-						});
 					} finally {
 						if (documentFile != null) {
 							try {

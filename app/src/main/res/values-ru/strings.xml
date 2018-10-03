@@ -29,7 +29,6 @@
     <string name="menu_edit">Изменить</string>
     <string name="menu_feedback">Отзыв</string>
     <string name="menu_about">О приложении</string>
-    <string name="menu_remove_ads">Магазин функций</string>
     <string name="menu_reload">Перезагрузка без ограничений</string>
     <string name="menu_fullscreen">Полноэкранный режим</string>
     <string name="menu_share">Поделиться</string>

@@ -116,8 +116,9 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
         }
 
         String type = getContext().getContentResolver().getType(uri);
-        if (type == null)
+        if (type == null && filename != null) {
             type = URLConnection.guessContentTypeFromName(filename);
+        }
 
         if (type == null) {
             try {

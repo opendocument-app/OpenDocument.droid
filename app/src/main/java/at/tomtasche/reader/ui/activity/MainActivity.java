@@ -47,6 +47,7 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import android.widget.Toast;
 
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
@@ -298,20 +299,16 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		boolean showDocumentMissing = false;
+
 		switch (item.getItemId()) {
-		case R.id.menu_recent: {
-			FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-			DialogFragment chooserDialog = new RecentDocumentDialogFragment();
-			chooserDialog.show(transaction, RecentDocumentDialogFragment.FRAGMENT_TAG);
-
-			Bundle bundle = new Bundle();
-			bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "recent");
-			analytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
-
-			break;
-		}
 		case R.id.menu_search: {
+			if (getDocument() == null) {
+				showDocumentMissing = true;
+
+				break;
+			}
+
 			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
 				// http://www.androidsnippets.org/snippets/20/
 				final AlertDialog.Builder alert = new AlertDialog.Builder(this);
@@ -353,34 +350,13 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 			break;
 		}
-		case R.id.menu_about: {
-			loadUri(DocumentLoader.URI_ABOUT);
-
-			Bundle bundle = new Bundle();
-			bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, "about");
-			analytics.logEvent(FirebaseAnalytics.Event.VIEW_ITEM, bundle);
-
-			break;
-		}
-		case R.id.menu_feedback: {
-			startActivity(new Intent(Intent.ACTION_VIEW,
-					Uri.parse("https://plus.google.com/communities/113494011673882132018")));
-
-			analytics.logEvent("feedback", null);
-
-			break;
-		}
-		case R.id.menu_reload: {
-			Loader<Document> loader = getSupportLoaderManager().getLoader(0);
-			DocumentLoader documentLoader = (DocumentLoader) loader;
-
-			loadUri(AndroidFileCache.getCacheFileUri(), documentLoader.getPassword(), false, false);
-
-			analytics.logEvent("reload_no_limit", null);
-
-			break;
-		}
 		case R.id.menu_fullscreen: {
+			if (getDocument() == null) {
+				showDocumentMissing = true;
+
+				break;
+			}
+
 			if (fullscreen) {
 				leaveFullscreen();
 			} else {
@@ -408,11 +384,23 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			break;
 		}
 		case R.id.menu_share: {
+			if (getDocument() == null) {
+				showDocumentMissing = true;
+
+				break;
+			}
+
 			share(Uri.parse("content://at.tomtasche.reader/document.odt"));
 
 			break;
 		}
 		case R.id.menu_print: {
+			if (getDocument() == null) {
+				showDocumentMissing = true;
+
+				break;
+			}
+
 			if (Build.VERSION.SDK_INT >= 19) {
 				KitKatPrinter.print(this, getPageFragment().getPageView());
 			} else {
@@ -444,6 +432,12 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			break;
 		}
 		case R.id.menu_tts: {
+			if (getDocument() == null) {
+				showDocumentMissing = true;
+
+				break;
+			}
+
 			ttsActionMode = new TtsActionModeCallback(this, getPageFragment().getPageView());
 			startSupportActionMode(ttsActionMode);
 
@@ -453,6 +447,12 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			break;
 		}
 		case R.id.menu_edit: {
+			if (getDocument() == null) {
+				showDocumentMissing = true;
+
+				break;
+			}
+
 			if (showAds) {
 				loadInterstitial();
 			}
@@ -470,7 +470,22 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		}
 		}
 
+		if (showDocumentMissing) {
+			Toast.makeText(this, "Please open a document first", Toast.LENGTH_LONG).show();
+		}
+
 		return true;
+	}
+
+	private void showRecent() {
+		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+		DialogFragment chooserDialog = new RecentDocumentDialogFragment();
+		chooserDialog.show(transaction, RecentDocumentDialogFragment.FRAGMENT_TAG);
+
+		Bundle bundle = new Bundle();
+		bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "recent");
+		analytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
 	}
 
 	public void share(Uri uri) {
@@ -637,11 +652,13 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 		PackageManager pm = getPackageManager();
 		final List<ResolveInfo> targets = pm.queryIntentActivities(intent, 0);
-		int size = targets.size();
+		int size = targets.size() + 1;
 		String[] targetNames = new String[size];
-		for (int i = 0; i < size; i++) {
+		for (int i = 0; i < targets.size(); i++) {
 			targetNames[i] = targets.get(i).loadLabel(pm).toString();
 		}
+
+		targetNames[size - 1] = getString(R.string.menu_recent);
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.dialog_choose_filemanager);
@@ -649,6 +666,12 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
+				if (which == size - 1) {
+					showRecent();
+
+					return;
+				}
+
 				ResolveInfo target = targets.get(which);
 				if (target == null) {
 					return;

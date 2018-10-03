@@ -31,7 +31,6 @@ import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.FileLoader;
 import at.tomtasche.reader.background.LoadingListener;
-import at.tomtasche.reader.background.ReportUtil;
 import at.tomtasche.reader.background.UpLoader;
 import at.tomtasche.reader.ui.widget.PageFragment;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
@@ -88,11 +87,11 @@ public abstract class DocumentActivity extends AppCompatActivity implements
 
 	@Override
 	public DocumentLoader loadUri(Uri uri) {
-		return loadUri(uri, null, true, false);
+		return loadUri(uri, null, false, false);
 	}
 
 	public DocumentLoader loadUri(Uri uri, String password) {
-		return loadUri(uri, password, true, false);
+		return loadUri(uri, password, false, false);
 	}
 
 	public DocumentLoader loadUri(Uri uri, boolean limit) {
@@ -340,14 +339,6 @@ public abstract class DocumentActivity extends AppCompatActivity implements
 		}
 
 		showCrouton(errorDescription, null, Style.ALERT);
-
-		if (uri.toString().endsWith(".odt") || uri.toString().endsWith(".ods")
-				|| uri.toString().endsWith(".ott")
-				|| uri.toString().endsWith(".ots")
-				|| uri.toString().endsWith(".odp")
-				|| uri.toString().endsWith(".otp"))
-			ReportUtil.submitFile(this, error, cacheUri, uri, null,
-					errorDescription);
 	}
 
 	public void addLoadingListener(LoadingListener loadingListener) {

@@ -36,7 +36,6 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 		FileLoader {
 
 	public static final Uri URI_INTRO = Uri.parse("reader://intro.odt");
-	public static final Uri URI_ABOUT = Uri.parse("reader://about.odt");
 
 	private Throwable lastError;
 	private Uri uri;
@@ -149,8 +148,6 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 			} else {
 				if (URI_INTRO.equals(uri)) {
 					stream = getContext().getAssets().open("intro.odt");
-				} else if (URI_ABOUT.equals(uri)) {
-					stream = getContext().getAssets().open("about.odt");
 				} else {
 					stream = getContext().getContentResolver().openInputStream(
 							uri);
