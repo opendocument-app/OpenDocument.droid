@@ -22,21 +22,24 @@ import at.stefl.opendocument.java.odf.OpenDocumentText;
 import at.stefl.opendocument.java.translator.Retranslator;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
+import at.tomtasche.reader.nonfree.AdManager;
 import at.tomtasche.reader.ui.activity.MainActivity;
 import at.tomtasche.reader.ui.widget.PageView;
 
 public class EditActionModeCallback implements ActionMode.Callback {
 
 	private MainActivity activity;
+	private AdManager adManager;
 	private PageView pageView;
 	private TextView statusView;
 	private OpenDocument document;
 
 	private InputMethodManager imm;
 
-	public EditActionModeCallback(MainActivity activity, PageView pageView,
-			OpenDocument document) {
+	public EditActionModeCallback(MainActivity activity, AdManager adManager, PageView pageView,
+								  OpenDocument document) {
 		this.activity = activity;
+		this.adManager = adManager;
 		this.pageView = pageView;
 		this.document = document;
 	}
@@ -76,7 +79,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
 		}
 
 		case R.id.edit_save: {
-			activity.showInterstitial();
+			adManager.showInterstitial();
 
 			final File htmlFile = new File(
 					AndroidFileCache.getCacheDirectory(activity),

@@ -3,7 +3,6 @@ package at.tomtasche.reader.ui.activity;
 import java.io.File;
 import java.util.List;
 
-import com.crashlytics.android.Crashlytics;
 import com.github.jberkel.pay.me.IabHelper;
 import com.github.jberkel.pay.me.IabResult;
 import com.github.jberkel.pay.me.listener.OnIabPurchaseFinishedListener;
@@ -57,6 +56,9 @@ import at.tomtasche.reader.background.Document.Page;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.KitKatPrinter;
 import at.tomtasche.reader.background.LoadingListener;
+import at.tomtasche.reader.nonfree.AdManager;
+import at.tomtasche.reader.nonfree.AnalyticsManager;
+import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
@@ -64,6 +66,8 @@ import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
 import de.keyboardsurfer.android.widget.crouton.Style;
 
 public class MainActivity extends DocumentActivity implements ActionBar.TabListener, LoadingListener {
+
+	private static final boolean USE_PROPRIETARY_LIBRARIES = true;
 
 	private int PURCHASE_CODE = 1337;
 
@@ -73,15 +77,8 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 	private static final String EXTRA_TAB_POSITION = "tab_position";
 
-	private LinearLayout adContainer;
-	private AdView madView;
-	private InterstitialAd interstitial;
-
 	private int lastPosition;
 	private boolean fullscreen;
-	private boolean showAds;
-
-	private Page currentPage;
 
 	private IabHelper billingHelper;
 	private BillingPreferences billingPreferences;
@@ -92,17 +89,38 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 	private Runnable saveCroutonRunnable;
 
-	private FirebaseAnalytics analytics;
+	private CrashManager crashManager;
+	private AnalyticsManager analyticsManager;
+	private AdManager adManager;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		MobileAds.initialize(getApplicationContext(), "ca-app-pub-8161473686436957~9025061963");
+		crashManager = new CrashManager();
+		crashManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+		crashManager.initialize();
 
-		analytics = FirebaseAnalytics.getInstance(this);
+		analyticsManager = new AnalyticsManager();
+		analyticsManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+		analyticsManager.initialize(this);
 
-		adContainer = (LinearLayout) findViewById(R.id.ad_container);
+		adManager = new AdManager();
+		adManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+		adManager.initialize(getApplicationContext(), analyticsManager, new Runnable() {
+			@Override
+			public void run() {
+				showCrouton(R.string.crouton_remove_ads, new Runnable() {
+
+					@Override
+					public void run() {
+						buyAdRemoval();
+					}
+				}, Style.CONFIRM);
+			}
+		});
+
+		adManager.setAdContainer(findViewById(R.id.ad_container));
 
 		if (savedInstanceState != null) {
 			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
@@ -118,7 +136,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
             @Override
             public void onIabSetupFinished(IabResult result) {
                 if (billingPreferences.hasPurchased()) {
-                    removeAds();
+                    adManager.removeAds();
 
                     return;
                 }
@@ -128,7 +146,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
                         @Override
                         public void run() {
-                            showGoogleAds();
+                            adManager.showGoogleAds();
 
                             showCrouton(getString(R.string.crouton_error_billing), null, Style.ALERT);
                         }
@@ -147,9 +165,9 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
                                     purchased |= inv.getPurchase(BILLING_PRODUCT_LOVE) != null;
 
                                     if (purchased) {
-                                        removeAds();
+                                        adManager.removeAds();
                                     } else {
-                                        showGoogleAds();
+                                        adManager.showGoogleAds();
                                     }
 
                                     billingPreferences.setPurchased(purchased);
@@ -169,30 +187,6 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		RateThisApp.showRateDialogIfNeeded(this);
 	}
 
-	private void showAds(AdView adView) {
-		this.madView = adView;
-
-		adContainer.removeAllViews();
-
-		LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-		adContainer.addView(adView, params);
-	}
-
-	private void showGoogleAds() {
-		showAds = true;
-
-		AdView adView = new AdView(MainActivity.this);
-		adView.setAdSize(AdSize.SMART_BANNER);
-		adView.setAdUnitId("ca-app-pub-8161473686436957/5931994762");
-		adView.setAdListener(new MyAdListener());
-
-		AdRequest adRequest = new AdRequest.Builder().build();
-
-		adView.loadAd(adRequest);
-
-		showAds(adView);
-	}
-
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -207,9 +201,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		if (intent.getData() != null) {
 			loadUri(intent.getData());
 
-			Bundle bundle = new Bundle();
-			bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "other");
-			analytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
+			analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "other");
 		}
 	}
 
@@ -248,18 +240,10 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		if (requestCode == PURCHASE_CODE) {
 			billingHelper.handleActivityResult(requestCode, resultCode, intent);
 		} else {
-			showInterstitial();
+			adManager.showInterstitial();
 		}
 
 		super.onActivityResult(requestCode, resultCode, intent);
-	}
-
-	public void showInterstitial() {
-		if (interstitial != null) {
-			interstitial.show();
-		}
-
-		interstitial = null;
 	}
 
 	// TODO: that's super ugly - good job :)
@@ -326,16 +310,14 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 				startSupportActionMode(findActionModeCallback);
 			}
 
-			analytics.logEvent(FirebaseAnalytics.Event.SEARCH, null);
+			analyticsManager.report(FirebaseAnalytics.Event.SEARCH);
 
 			break;
 		}
 		case R.id.menu_open: {
 			findDocument();
 
-			Bundle bundle = new Bundle();
-			bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "choose");
-			analytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
+			analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "choose");
 
 			break;
 		}
@@ -360,7 +342,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 				getSupportActionBar().hide();
 
-				removeAds();
+				adManager.removeAds();
 
 				showCrouton(R.string.crouton_leave_fullscreen, new Runnable() {
 
@@ -370,7 +352,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 					}
 				}, Style.INFO);
 
-				analytics.logEvent("fullscreen_start", null);
+				analyticsManager.report("fullscreen_start");
 			}
 
 			fullscreen = !fullscreen;
@@ -421,7 +403,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 				}
 			}
 
-			analytics.logEvent("print", null);
+			analyticsManager.report("print");
 
 			break;
 		}
@@ -435,8 +417,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			ttsActionMode = new TtsActionModeCallback(this, getPageFragment().getPageView());
 			startSupportActionMode(ttsActionMode);
 
-			analytics.logEvent("tts", null);
-
+			analyticsManager.report("tts");
 
 			break;
 		}
@@ -447,15 +428,13 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 				break;
 			}
 
-			if (showAds) {
-				loadInterstitial();
-			}
+			adManager.loadInterstitial();
 
-			EditActionModeCallback editActionMode = new EditActionModeCallback(this, getPageFragment().getPageView(),
+			EditActionModeCallback editActionMode = new EditActionModeCallback(this, adManager, getPageFragment().getPageView(),
 					getDocument().getOrigin());
 			startSupportActionMode(editActionMode);
 
-			analytics.logEvent("edit", null);
+			analyticsManager.report("edit");
 
 			break;
 		}
@@ -477,9 +456,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		DialogFragment chooserDialog = new RecentDocumentDialogFragment();
 		chooserDialog.show(transaction, RecentDocumentDialogFragment.FRAGMENT_TAG);
 
-		Bundle bundle = new Bundle();
-		bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "recent");
-		analytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
+		analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "recent");
 	}
 
 	public void share(Uri uri) {
@@ -490,23 +467,12 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		try {
 			startActivity(intent);
 
-			analytics.logEvent(FirebaseAnalytics.Event.SHARE, null);
+			analyticsManager.report(FirebaseAnalytics.Event.SHARE);
 		} catch (Exception e) {
 			e.printStackTrace();
 
 			showCrouton(R.string.crouton_error_open_app, null, Style.ALERT);
 		}
-	}
-
-	private void loadInterstitial() {
-		interstitial = new InterstitialAd(this);
-		interstitial.setAdUnitId("ca-app-pub-8161473686436957/2477707165");
-
-		AdRequest adRequest = new AdRequest.Builder().build();
-
-		interstitial.loadAd(adRequest);
-
-		interstitial.setAdListener(new MyAdListener());
 	}
 
 	private void buyAdRemoval() {
@@ -535,8 +501,6 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 					break;
 
 				default:
-					removeAds();
-
 					dialog.dismiss();
 
 					return;
@@ -553,7 +517,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 									@Override
 									public void run() {
-										removeAds();
+										adManager.removeAds();
 									}
 								});
 
@@ -561,27 +525,17 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 									billingPreferences.setPurchased(true);
 									billingPreferences.setLastQueryTime(System.currentTimeMillis());
 								} else {
-									analytics.logEvent("purchase_abort", null);
+									analyticsManager.report("purchase_abort");
 								}
 							}
 						}, null);
 
-				analytics.logEvent("purchase_attempt", null);
+				analyticsManager.report("purchase_attempt");
 
 				dialog.dismiss();
 			}
 		});
 		builder.show();
-	}
-
-	private void removeAds() {
-		showAds = false;
-
-		if (madView != null) {
-			madView.setVisibility(View.GONE);
-		}
-
-		analytics.logEvent("remove_ads", null);
 	}
 
 	private void leaveFullscreen() {
@@ -593,7 +547,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 		fullscreen = false;
 
-		analytics.logEvent("fullscreen_end", null);
+		analyticsManager.report("fullscreen_end");
 	}
 
 	@Override
@@ -622,18 +576,11 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 	}
 
 	private void showPage(Page page) {
-		currentPage = page;
-
 		getPageFragment().loadPage(page);
-
-		// if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
-		// loadPageOnMultiscreens(page);
 	}
 
 	public void findDocument() {
-		if (showAds) {
-			loadInterstitial();
-		}
+		adManager.loadInterstitial();
 
 		final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 		// remove mime-type because most apps don't support ODF mime-types
@@ -683,9 +630,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 					}, Style.ALERT);
 				}
 
-				Bundle bundle = new Bundle();
-				bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, target.activityInfo.packageName);
-				analytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
+				analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, target.activityInfo.packageName);
 
 				dialog.dismiss();
 			}
@@ -704,18 +649,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 	@Override
 	protected void onDestroy() {
-		try {
-			// keeps throwing exceptions for some users:
-			// Caused by: java.lang.NullPointerException
-			// android.webkit.WebViewClassic.requestFocus(WebViewClassic.java:9898)
-			// android.webkit.WebView.requestFocus(WebView.java:2133)
-			// android.view.ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
-			if (madView != null) {
-				((AdView) madView).destroy();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		adManager.destroyAds();
 
 		try {
 			// keeps throwing exceptions for some users:
@@ -772,39 +706,6 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		// DO NOT call the super-method here! otherwise we end up in an infinite
 		// recursion.
 
-		Crashlytics.log(Log.ERROR, "MainActivity", "could not load document at: " + uri.toString());
-		Crashlytics.logException(error);
-	}
-
-	public Page getCurrentPage() {
-		return currentPage;
-	}
-
-	private class MyAdListener extends AdListener {
-
-		@Override
-		public void onAdFailedToLoad(int arg0) {
-			if (showAds) {
-				showCrouton(R.string.crouton_remove_ads, new Runnable() {
-
-					@Override
-					public void run() {
-						buyAdRemoval();
-					}
-				}, Style.CONFIRM);
-			}
-		}
-
-		@Override
-		public void onAdClicked() {
-			removeAds();
-		}
-
-		@Override
-		public void onAdLoaded() {
-			if (interstitial != null) {
-				analytics.logEvent("ads_interstitial_shown", null);
-			}
-		}
+		crashManager.log(error, uri);
 	}
 }
