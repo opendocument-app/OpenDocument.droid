@@ -65,8 +65,6 @@ import de.keyboardsurfer.android.widget.crouton.Style;
 
 public class MainActivity extends DocumentActivity implements ActionBar.TabListener, LoadingListener {
 
-	private static final boolean AMAZON_RELEASE = false;
-
 	private int PURCHASE_CODE = 1337;
 
 	private static final String BILLING_PRODUCT_YEAR = "remove_ads_for_1y";
@@ -112,62 +110,58 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 		addLoadingListener(this);
 
-		if (!AMAZON_RELEASE) {
-			billingPreferences = new BillingPreferences(this);
+        billingPreferences = new BillingPreferences(this);
 
-			billingHelper = new IabHelper(this, getPublicKey());
-			billingHelper.startSetup(new OnIabSetupFinishedListener() {
+        billingHelper = new IabHelper(this, getPublicKey());
+        billingHelper.startSetup(new OnIabSetupFinishedListener() {
 
-				@Override
-				public void onIabSetupFinished(IabResult result) {
-					if (billingPreferences.hasPurchased()) {
-						removeAds();
+            @Override
+            public void onIabSetupFinished(IabResult result) {
+                if (billingPreferences.hasPurchased()) {
+                    removeAds();
 
-						return;
-					}
+                    return;
+                }
 
-					if (result.isFailure()) {
-						runOnUiThread(new Runnable() {
+                if (result.isFailure()) {
+                    runOnUiThread(new Runnable() {
 
-							@Override
-							public void run() {
-								showGoogleAds();
+                        @Override
+                        public void run() {
+                            showGoogleAds();
 
-								showCrouton(getString(R.string.crouton_error_billing), null, Style.ALERT);
-							}
-						});
-					} else if (result.isSuccess()) {
-						// query every 7 days
-						if ((billingPreferences.getLastQueryTime() + 1000 * 60 * 60 * 24 * 7) < System
-								.currentTimeMillis()) {
-							billingHelper.queryInventoryAsync(new QueryInventoryFinishedListener() {
+                            showCrouton(getString(R.string.crouton_error_billing), null, Style.ALERT);
+                        }
+                    });
+                } else if (result.isSuccess()) {
+                    // query every 7 days
+                    if ((billingPreferences.getLastQueryTime() + 1000 * 60 * 60 * 24 * 7) < System
+                            .currentTimeMillis()) {
+                        billingHelper.queryInventoryAsync(new QueryInventoryFinishedListener() {
 
-								@Override
-								public void onQueryInventoryFinished(IabResult result, Inventory inv) {
-									if (result.isSuccess()) {
-										boolean purchased = inv.getPurchase(BILLING_PRODUCT_FOREVER) != null;
-										purchased |= inv.getPurchase(BILLING_PRODUCT_YEAR) != null;
-										purchased |= inv.getPurchase(BILLING_PRODUCT_LOVE) != null;
+                            @Override
+                            public void onQueryInventoryFinished(IabResult result, Inventory inv) {
+                                if (result.isSuccess()) {
+                                    boolean purchased = inv.getPurchase(BILLING_PRODUCT_FOREVER) != null;
+                                    purchased |= inv.getPurchase(BILLING_PRODUCT_YEAR) != null;
+                                    purchased |= inv.getPurchase(BILLING_PRODUCT_LOVE) != null;
 
-										if (purchased) {
-											removeAds();
-										} else {
-											showGoogleAds();
-										}
+                                    if (purchased) {
+                                        removeAds();
+                                    } else {
+                                        showGoogleAds();
+                                    }
 
-										billingPreferences.setPurchased(purchased);
-									}
+                                    billingPreferences.setPurchased(purchased);
+                                }
 
-									billingPreferences.setLastQueryTime(System.currentTimeMillis());
-								}
-							});
-						}
-					}
-				}
-			});
-		} else {
-			showGoogleAds();
-		}
+                                billingPreferences.setLastQueryTime(System.currentTimeMillis());
+                            }
+                        });
+                    }
+                }
+            }
+        });
 
 		RateThisApp.onCreate(this);
 
