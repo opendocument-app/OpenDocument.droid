@@ -510,72 +510,68 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 	}
 
 	private void buyAdRemoval() {
-		if (!AMAZON_RELEASE) {
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle(R.string.dialog_remove_ads_title);
-			builder.setItems(R.array.dialog_remove_ads_options, new OnClickListener() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.dialog_remove_ads_title);
+		builder.setItems(R.array.dialog_remove_ads_options, new OnClickListener() {
 
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					String product = null;
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				String product = null;
 
-					switch (which) {
-					case 0:
-						product = BILLING_PRODUCT_YEAR;
+				switch (which) {
+				case 0:
+					product = BILLING_PRODUCT_YEAR;
 
-						break;
+					break;
 
-					case 1:
-						product = BILLING_PRODUCT_FOREVER;
+				case 1:
+					product = BILLING_PRODUCT_FOREVER;
 
-						break;
+					break;
 
-					case 2:
-						product = BILLING_PRODUCT_LOVE;
+				case 2:
+					product = BILLING_PRODUCT_LOVE;
 
-						break;
+					break;
 
-					default:
-						removeAds();
-
-						dialog.dismiss();
-
-						return;
-					}
-
-					billingHelper.launchPurchaseFlow(MainActivity.this, product, ItemType.INAPP, PURCHASE_CODE,
-							new OnIabPurchaseFinishedListener() {
-								public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
-									// remove ads even if the
-									// purchase failed /
-									// the user canceled the
-									// purchase
-									runOnUiThread(new Runnable() {
-
-										@Override
-										public void run() {
-											removeAds();
-										}
-									});
-
-									if (result.isSuccess()) {
-										billingPreferences.setPurchased(true);
-										billingPreferences.setLastQueryTime(System.currentTimeMillis());
-									} else {
-										analytics.logEvent("purchase_abort", null);
-									}
-								}
-							}, null);
-
-					analytics.logEvent("purchase_attempt", null);
+				default:
+					removeAds();
 
 					dialog.dismiss();
+
+					return;
 				}
-			});
-			builder.show();
-		} else {
-			showCrouton("Not available at the moment", null, Style.ALERT);
-		}
+
+				billingHelper.launchPurchaseFlow(MainActivity.this, product, ItemType.INAPP, PURCHASE_CODE,
+						new OnIabPurchaseFinishedListener() {
+							public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
+								// remove ads even if the
+								// purchase failed /
+								// the user canceled the
+								// purchase
+								runOnUiThread(new Runnable() {
+
+									@Override
+									public void run() {
+										removeAds();
+									}
+								});
+
+								if (result.isSuccess()) {
+									billingPreferences.setPurchased(true);
+									billingPreferences.setLastQueryTime(System.currentTimeMillis());
+								} else {
+									analytics.logEvent("purchase_abort", null);
+								}
+							}
+						}, null);
+
+				analytics.logEvent("purchase_attempt", null);
+
+				dialog.dismiss();
+			}
+		});
+		builder.show();
 	}
 
 	private void removeAds() {
