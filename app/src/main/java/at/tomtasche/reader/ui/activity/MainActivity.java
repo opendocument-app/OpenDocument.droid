@@ -3,20 +3,6 @@ package at.tomtasche.reader.ui.activity;
 import java.io.File;
 import java.util.List;
 
-import com.github.jberkel.pay.me.IabHelper;
-import com.github.jberkel.pay.me.IabResult;
-import com.github.jberkel.pay.me.listener.OnIabPurchaseFinishedListener;
-import com.github.jberkel.pay.me.listener.OnIabSetupFinishedListener;
-import com.github.jberkel.pay.me.listener.QueryInventoryFinishedListener;
-import com.github.jberkel.pay.me.model.Inventory;
-import com.github.jberkel.pay.me.model.ItemType;
-import com.github.jberkel.pay.me.model.Purchase;
-import com.google.android.gms.ads.AdListener;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.InterstitialAd;
-import com.google.android.gms.ads.MobileAds;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.kobakei.ratethisapp.RateThisApp;
 
@@ -58,6 +44,7 @@ import at.tomtasche.reader.background.KitKatPrinter;
 import at.tomtasche.reader.background.LoadingListener;
 import at.tomtasche.reader.nonfree.AdManager;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
+import at.tomtasche.reader.nonfree.BillingManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.FindActionModeCallback;
@@ -69,19 +56,10 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 	private static final boolean USE_PROPRIETARY_LIBRARIES = true;
 
-	private int PURCHASE_CODE = 1337;
-
-	private static final String BILLING_PRODUCT_YEAR = "remove_ads_for_1y";
-	private static final String BILLING_PRODUCT_FOREVER = "remove_ads_for_eva";
-	private static final String BILLING_PRODUCT_LOVE = "love_and_everything";
-
 	private static final String EXTRA_TAB_POSITION = "tab_position";
 
 	private int lastPosition;
 	private boolean fullscreen;
-
-	private IabHelper billingHelper;
-	private BillingPreferences billingPreferences;
 
 	private TtsActionModeCallback ttsActionMode;
 
@@ -92,6 +70,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 	private CrashManager crashManager;
 	private AnalyticsManager analyticsManager;
 	private AdManager adManager;
+	private BillingManager billingManager;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -107,7 +86,8 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 		adManager = new AdManager();
 		adManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
-		adManager.initialize(getApplicationContext(), analyticsManager, new Runnable() {
+		adManager.setAdContainer(findViewById(R.id.ad_container));
+		adManager.setOnAdFailedCallback(new Runnable() {
 			@Override
 			public void run() {
 				showCrouton(R.string.crouton_remove_ads, new Runnable() {
@@ -119,67 +99,23 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 				}, Style.CONFIRM);
 			}
 		});
+		adManager.initialize(getApplicationContext(), analyticsManager);
 
-		adManager.setAdContainer(findViewById(R.id.ad_container));
+		billingManager = new BillingManager();
+		billingManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+		billingManager.setOnBillingFailedCallback(new Runnable() {
+			@Override
+			public void run() {
+				showCrouton(getString(R.string.crouton_error_billing), null, Style.ALERT);
+			}
+		});
+		billingManager.initialize(this, analyticsManager, adManager);
 
 		if (savedInstanceState != null) {
 			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
 		}
 
 		addLoadingListener(this);
-
-        billingPreferences = new BillingPreferences(this);
-
-        billingHelper = new IabHelper(this, getPublicKey());
-        billingHelper.startSetup(new OnIabSetupFinishedListener() {
-
-            @Override
-            public void onIabSetupFinished(IabResult result) {
-                if (billingPreferences.hasPurchased()) {
-                    adManager.removeAds();
-
-                    return;
-                }
-
-                if (result.isFailure()) {
-                    runOnUiThread(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            adManager.showGoogleAds();
-
-                            showCrouton(getString(R.string.crouton_error_billing), null, Style.ALERT);
-                        }
-                    });
-                } else if (result.isSuccess()) {
-                    // query every 7 days
-                    if ((billingPreferences.getLastQueryTime() + 1000 * 60 * 60 * 24 * 7) < System
-                            .currentTimeMillis()) {
-                        billingHelper.queryInventoryAsync(new QueryInventoryFinishedListener() {
-
-                            @Override
-                            public void onQueryInventoryFinished(IabResult result, Inventory inv) {
-                                if (result.isSuccess()) {
-                                    boolean purchased = inv.getPurchase(BILLING_PRODUCT_FOREVER) != null;
-                                    purchased |= inv.getPurchase(BILLING_PRODUCT_YEAR) != null;
-                                    purchased |= inv.getPurchase(BILLING_PRODUCT_LOVE) != null;
-
-                                    if (purchased) {
-                                        adManager.removeAds();
-                                    } else {
-                                        adManager.showGoogleAds();
-                                    }
-
-                                    billingPreferences.setPurchased(purchased);
-                                }
-
-                                billingPreferences.setLastQueryTime(System.currentTimeMillis());
-                            }
-                        });
-                    }
-                }
-            }
-        });
 
 		RateThisApp.onCreate(this);
 
@@ -237,8 +173,8 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-		if (requestCode == PURCHASE_CODE) {
-			billingHelper.handleActivityResult(requestCode, resultCode, intent);
+		if (requestCode == BillingManager.PURCHASE_CODE) {
+			billingManager.endPurchase(requestCode, resultCode, intent);
 		} else {
 			adManager.showInterstitial();
 		}
@@ -486,17 +422,17 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 				switch (which) {
 				case 0:
-					product = BILLING_PRODUCT_YEAR;
+					product = BillingManager.BILLING_PRODUCT_YEAR;
 
 					break;
 
 				case 1:
-					product = BILLING_PRODUCT_FOREVER;
+					product = BillingManager.BILLING_PRODUCT_FOREVER;
 
 					break;
 
 				case 2:
-					product = BILLING_PRODUCT_LOVE;
+					product = BillingManager.BILLING_PRODUCT_LOVE;
 
 					break;
 
@@ -506,31 +442,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 					return;
 				}
 
-				billingHelper.launchPurchaseFlow(MainActivity.this, product, ItemType.INAPP, PURCHASE_CODE,
-						new OnIabPurchaseFinishedListener() {
-							public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
-								// remove ads even if the
-								// purchase failed /
-								// the user canceled the
-								// purchase
-								runOnUiThread(new Runnable() {
-
-									@Override
-									public void run() {
-										adManager.removeAds();
-									}
-								});
-
-								if (result.isSuccess()) {
-									billingPreferences.setPurchased(true);
-									billingPreferences.setLastQueryTime(System.currentTimeMillis());
-								} else {
-									analyticsManager.report("purchase_abort");
-								}
-							}
-						}, null);
-
-				analyticsManager.report("purchase_attempt");
+				billingManager.startPurchase(MainActivity.this, product);
 
 				dialog.dismiss();
 			}
@@ -640,9 +552,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 	@Override
 	protected void onStop() {
-		if (billingHelper != null) {
-			billingHelper.dispose();
-		}
+		billingManager.close();
 
 		super.onStop();
 	}
@@ -662,10 +572,6 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	public String getPublicKey() {
-		return "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDsdGybFkj9/26Fpu2mNASpAC8xQDRYocvVkxbpN6mF8k4a9L5ocnyUAY7sfKb0wjEc5e+vxL21kFKvvW0zEZX8a5wSXUfD5oiaXaiMPrp7cC1YbPPAelZvFEAzriA6pyk7PPKuqtAN2tcTiJED+kpiVAyEVU42lDUqE70xlRE6dQIDAQAB";
 	}
 
 	@Override

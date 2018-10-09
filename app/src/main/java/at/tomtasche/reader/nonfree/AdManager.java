@@ -1,12 +1,9 @@
 package at.tomtasche.reader.nonfree;
 
 import android.content.Context;
-import android.net.Uri;
-import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 
-import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
@@ -14,38 +11,37 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.MobileAds;
 
-import at.tomtasche.reader.R;
-import at.tomtasche.reader.ui.activity.MainActivity;
-import de.keyboardsurfer.android.widget.crouton.Style;
-
 public class AdManager {
 
     private boolean enabled;
 
     private Context applicationContext;
     private AnalyticsManager analyticsManager;
-    private Runnable onAdFailed;
 
     private boolean showAds;
 
     private LinearLayout adContainer;
     private AdView madView;
     private InterstitialAd interstitial;
+    private Runnable adFailedRunnable;
 
-    public void initialize(Context applicationContext, AnalyticsManager analyticsManager, Runnable onAdFailed) {
+    public void initialize(Context applicationContext, AnalyticsManager analyticsManager) {
         if (!enabled) {
             return;
         }
 
         this.applicationContext = applicationContext;
         this.analyticsManager = analyticsManager;
-        this.onAdFailed = onAdFailed;
 
         MobileAds.initialize(applicationContext, "ca-app-pub-8161473686436957~9025061963");
     }
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public void setOnAdFailedCallback(Runnable runnable) {
+        adFailedRunnable = runnable;
     }
 
     public void setAdContainer(LinearLayout adContainer) {
@@ -145,11 +141,12 @@ public class AdManager {
 
         @Override
         public void onAdFailedToLoad(int arg0) {
-            onAdFailed.run();
+            adFailedRunnable.run();
         }
 
         @Override
-        public void onAdClicked() {}
+        public void onAdClicked() {
+        }
 
         @Override
         public void onAdLoaded() {
