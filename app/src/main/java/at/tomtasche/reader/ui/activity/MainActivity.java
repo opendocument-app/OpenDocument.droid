@@ -3,6 +3,8 @@ package at.tomtasche.reader.ui.activity;
 import java.io.File;
 import java.util.List;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.kobakei.ratethisapp.RateThisApp;
 
@@ -12,7 +14,6 @@ import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
@@ -20,23 +21,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
 import android.widget.Toast;
 
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.AndroidFileCache;
-import at.tomtasche.reader.background.BillingPreferences;
 import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.Document.Page;
 import at.tomtasche.reader.background.DocumentLoader;
@@ -55,15 +49,13 @@ import de.keyboardsurfer.android.widget.crouton.Style;
 public class MainActivity extends DocumentActivity implements ActionBar.TabListener, LoadingListener {
 
 	private static final boolean USE_PROPRIETARY_LIBRARIES = true;
-
 	private static final String EXTRA_TAB_POSITION = "tab_position";
+	private static final int GOOGLE_REQUEST_CODE = 1993;
 
 	private int lastPosition;
 	private boolean fullscreen;
 
 	private TtsActionModeCallback ttsActionMode;
-
-	private SharedPreferences preferences;
 
 	private Runnable saveCroutonRunnable;
 
@@ -76,16 +68,42 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		initializeProprietaryLibraries();
+
+		if (savedInstanceState != null) {
+			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
+		}
+
+		addLoadingListener(this);
+
+		RateThisApp.onCreate(this);
+
+		// shows after 10 launches after 7 days
+		RateThisApp.showRateDialogIfNeeded(this);
+	}
+
+	private void initializeProprietaryLibraries() {
+		boolean proprietaryAvailable = USE_PROPRIETARY_LIBRARIES;
+		if (proprietaryAvailable) {
+			GoogleApiAvailability googleApi = GoogleApiAvailability.getInstance();
+			int googleAvailability = googleApi.isGooglePlayServicesAvailable(this);
+			if (googleAvailability != ConnectionResult.SUCCESS) {
+				googleApi.getErrorDialog(this, googleAvailability, GOOGLE_REQUEST_CODE).show();
+
+				proprietaryAvailable = false;
+			}
+		}
+
 		crashManager = new CrashManager();
-		crashManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+		crashManager.setEnabled(proprietaryAvailable);
 		crashManager.initialize();
 
 		analyticsManager = new AnalyticsManager();
-		analyticsManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+		analyticsManager.setEnabled(proprietaryAvailable);
 		analyticsManager.initialize(this);
 
 		adManager = new AdManager();
-		adManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+		adManager.setEnabled(proprietaryAvailable);
 		adManager.setAdContainer(findViewById(R.id.ad_container));
 		adManager.setOnAdFailedCallback(new Runnable() {
 			@Override
@@ -102,7 +120,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		adManager.initialize(getApplicationContext(), analyticsManager);
 
 		billingManager = new BillingManager();
-		billingManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+		billingManager.setEnabled(proprietaryAvailable);
 		billingManager.setOnBillingFailedCallback(new Runnable() {
 			@Override
 			public void run() {
@@ -110,17 +128,6 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			}
 		});
 		billingManager.initialize(this, analyticsManager, adManager);
-
-		if (savedInstanceState != null) {
-			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
-		}
-
-		addLoadingListener(this);
-
-		RateThisApp.onCreate(this);
-
-		// shows after 10 launches after 7 days
-		RateThisApp.showRateDialogIfNeeded(this);
 	}
 
 	@Override
@@ -175,6 +182,8 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		if (requestCode == BillingManager.PURCHASE_CODE) {
 			billingManager.endPurchase(requestCode, resultCode, intent);
+		} else if (requestCode == GOOGLE_REQUEST_CODE) {
+			initializeProprietaryLibraries();
 		} else {
 			adManager.showInterstitial();
 		}
