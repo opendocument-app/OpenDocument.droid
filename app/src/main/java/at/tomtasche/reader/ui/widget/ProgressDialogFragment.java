@@ -2,9 +2,9 @@ package at.tomtasche.reader.ui.widget;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
 import at.tomtasche.reader.R;
 
 @SuppressLint("ValidFragment")

@@ -1,26 +1,32 @@
 package at.tomtasche.reader.ui.activity;
 
 import java.io.FileNotFoundException;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.zip.ZipException;
 
+import android.app.ActionBar;
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
+import android.app.LoaderManager;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.Loader;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.Loader;
-import android.support.v7.app.AppCompatActivity;
+import android.support.annotation.Nullable;
 import android.text.InputType;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.Toast;
+import android.widget.FrameLayout;
+
 import at.stefl.opendocument.java.odf.IllegalMimeTypeException;
 import at.stefl.opendocument.java.odf.UnsupportedMimeTypeException;
 import at.stefl.opendocument.java.odf.ZipEntryNotFoundException;
@@ -30,58 +36,67 @@ import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.FileLoader;
-import at.tomtasche.reader.background.LoadingListener;
 import at.tomtasche.reader.background.UpLoader;
-import at.tomtasche.reader.ui.widget.PageFragment;
+import at.tomtasche.reader.ui.CroutonHelper;
+import at.tomtasche.reader.ui.widget.PageView;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
-import de.keyboardsurfer.android.widget.crouton.Configuration;
-import de.keyboardsurfer.android.widget.crouton.Crouton;
 import de.keyboardsurfer.android.widget.crouton.Style;
 
-public abstract class DocumentActivity extends AppCompatActivity implements
-		LoaderCallbacks<Document>, DocumentLoadingActivity {
+public class DocumentFragment extends Fragment implements
+		LoaderManager.LoaderCallbacks<Document>, DocumentLoadingActivity, ActionBar.TabListener {
 
 	private static final String EXTRA_URI = "uri";
 	private static final String EXTRA_LIMIT = "limit";
 	private static final String EXTRA_PASSWORD = "password";
 	private static final String EXTRA_TRANSLATABLE = "translatable";
+	private static final String EXTRA_TAB_POSITION = "tab_position";
+	private static final String EXTRA_SCROLL_POSITION = "scroll_position";
+
+	private Handler mainHandler;
+
+	private int lastPosition;
 
 	private ProgressDialogFragment progressDialog;
-	private PageFragment pageFragment;
-
-	private List<LoadingListener> loadingListeners;
+	private PageView pageView;
 
 	private Document document;
-
-	private Handler handler;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		setTitle("");
-		setContentView(R.layout.main);
+		getActivity().setTitle("");
 
-		handler = new Handler();
-		loadingListeners = new LinkedList<LoadingListener>();
+		mainHandler = new Handler();
 
-		getSupportLoaderManager().initLoader(0, null, this);
-		getSupportLoaderManager().initLoader(1, null, this);
+		getLoaderManager().initLoader(0, null, this);
+		getLoaderManager().initLoader(1, null, this);
+	}
 
-		pageFragment = (PageFragment) getSupportFragmentManager()
-				.findFragmentByTag(PageFragment.FRAGMENT_TAG);
-		if (pageFragment == null) {
-			pageFragment = new PageFragment();
-			getSupportFragmentManager()
-					.beginTransaction()
-					.add(R.id.document_container, pageFragment,
-							PageFragment.FRAGMENT_TAG).commit();
+	@Nullable
+	@Override
+	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+		if (savedInstanceState != null) {
+			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
 
-			Uri uri = getIntent().getData();
-			if (Intent.ACTION_VIEW.equals(getIntent().getAction())
-					&& uri != null) {
-				loadUri(uri);
-			}
+			pageView = new PageView(getActivity(),
+					savedInstanceState.getInt(EXTRA_SCROLL_POSITION));
+		} else {
+			pageView = new PageView(getActivity());
+			pageView.loadData("", "text/plain", PageView.ENCODING);
+		}
+
+		return pageView;
+	}
+
+	@Override
+	public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
+
+		Intent intent = getActivity().getIntent();
+		Uri uri = intent.getData();
+		if (Intent.ACTION_VIEW.equals(intent.getAction()) && uri != null) {
+			loadUri(uri);
 		}
 	}
 
@@ -94,10 +109,6 @@ public abstract class DocumentActivity extends AppCompatActivity implements
 		return loadUri(uri, password, false, false);
 	}
 
-	public DocumentLoader loadUri(Uri uri, boolean limit) {
-		return loadUri(uri, null, limit, false);
-	}
-
 	public DocumentLoader loadUri(Uri uri, String password, boolean limit,
 			boolean translatable) {
 		Bundle bundle = new Bundle();
@@ -106,7 +117,7 @@ public abstract class DocumentActivity extends AppCompatActivity implements
 		bundle.putBoolean(EXTRA_LIMIT, limit);
 		bundle.putBoolean(EXTRA_TRANSLATABLE, translatable);
 
-		return (DocumentLoader) getSupportLoaderManager().restartLoader(0,
+		return (DocumentLoader) getLoaderManager().restartLoader(0,
 				bundle, this);
 	}
 
@@ -114,7 +125,7 @@ public abstract class DocumentActivity extends AppCompatActivity implements
 		Bundle bundle = new Bundle();
 		bundle.putParcelable(EXTRA_URI, uri);
 
-		return (UpLoader) getSupportLoaderManager().restartLoader(1, bundle,
+		return (UpLoader) getLoaderManager().restartLoader(1, bundle,
 				this);
 	}
 
@@ -133,7 +144,7 @@ public abstract class DocumentActivity extends AppCompatActivity implements
 
 		switch (id) {
 		case 0:
-			DocumentLoader documentLoader = new DocumentLoader(this, uri);
+			DocumentLoader documentLoader = new DocumentLoader(getActivity(), uri);
 			documentLoader.setPassword(password);
 			documentLoader.setLimit(limit);
 			documentLoader.setTranslatable(translatable);
@@ -144,7 +155,7 @@ public abstract class DocumentActivity extends AppCompatActivity implements
 
 		case 1:
 		default:
-			UpLoader upLoader = new UpLoader(this, uri);
+			UpLoader upLoader = new UpLoader(getActivity(), uri);
 
 			showProgress(upLoader, true);
 
@@ -165,11 +176,11 @@ public abstract class DocumentActivity extends AppCompatActivity implements
 			this.document = document;
 
 			// TODO: we should load the first page here already
-			// DocumentActivity should - basically - work out-of-the-box
+			// DocumentFragment should - basically - work out-of-the-box
 			// (without any further logic)!
 
 			if (document.isLimited()) {
-				showCrouton(R.string.toast_info_limited, new Runnable() {
+				CroutonHelper.showCrouton(getActivity(), R.string.toast_info_limited, new Runnable() {
 
 					@Override
 					public void run() {
@@ -179,8 +190,34 @@ public abstract class DocumentActivity extends AppCompatActivity implements
 				}, Style.INFO);
 			}
 
-			for (LoadingListener listener : loadingListeners) {
-				listener.onSuccess(document, uri);
+			android.app.ActionBar bar = getActivity().getActionBar();
+			//TODO: bar.removeAllTabs();
+
+			int pages = document.getPages().size();
+			if (pages > 1) {
+				bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+				for (int i = 0; i < pages; i++) {
+					android.app.ActionBar.Tab tab = bar.newTab();
+					String name = document.getPageAt(i).getName();
+					if (name == null)
+						name = "Page " + (i + 1);
+					tab.setText(name);
+					tab.setTabListener(this);
+
+					bar.addTab(tab);
+				}
+
+				if (lastPosition > 0) {
+					bar.setSelectedNavigationItem(lastPosition);
+
+					lastPosition = -1;
+				}
+			} else {
+				//TODO: bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+
+				if (pages == 1) {
+					showPage(document.getPageAt(0));
+				}
 			}
 		}
 	}
@@ -189,28 +226,16 @@ public abstract class DocumentActivity extends AppCompatActivity implements
 	public void onLoaderReset(Loader<Document> loader) {
 	}
 
-	@Override
-	protected void onActivityResult(final int requestCode,
-			final int resultCode, final Intent intent) {
-		super.onActivityResult(requestCode, resultCode, intent);
-
-		if (intent == null)
-			return;
-
-		Uri uri = intent.getData();
-		if (requestCode == 42 && resultCode == RESULT_OK && uri != null)
-			loadUri(uri);
-	}
-
 	private void showProgress(final Loader<Document> loader,
 			final boolean upload) {
-		if (progressDialog != null)
+		if (progressDialog != null) {
 			return;
+		}
 
 		try {
 			progressDialog = new ProgressDialogFragment(upload);
 
-			FragmentTransaction transaction = getSupportFragmentManager()
+			FragmentTransaction transaction = getFragmentManager()
 					.beginTransaction();
 			progressDialog.show(transaction,
 					ProgressDialogFragment.FRAGMENT_TAG);
@@ -218,17 +243,19 @@ public abstract class DocumentActivity extends AppCompatActivity implements
 			if (!upload) {
 				final FileLoader fileLoader = (FileLoader) loader;
 
-				handler.postDelayed(new Runnable() {
+				mainHandler.postDelayed(new Runnable() {
 
 					@Override
 					public void run() {
-						if (progressDialog == null)
+						if (progressDialog == null) {
 							return;
+						}
 
 						progressDialog.setProgress(fileLoader.getProgress());
 
-						if (loader.isStarted())
-							handler.postDelayed(this, 1000);
+						if (loader.isStarted()) {
+							mainHandler.postDelayed(this, 1000);
+						}
 					}
 				}, 1000);
 			}
@@ -243,9 +270,10 @@ public abstract class DocumentActivity extends AppCompatActivity implements
 		// dirty hack because committing isn't allowed right after
 		// onLoadFinished:
 		// "java.lang.IllegalStateException: Can not perform this action inside of onLoadFinished"
-		if (progressDialog == null)
-			progressDialog = (ProgressDialogFragment) getSupportFragmentManager()
+		if (progressDialog == null) {
+			progressDialog = (ProgressDialogFragment) getFragmentManager()
 					.findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
+		}
 
 		if (progressDialog != null && progressDialog.getShowsDialog()
 				&& progressDialog.isNotNull()) {
@@ -263,23 +291,18 @@ public abstract class DocumentActivity extends AppCompatActivity implements
 		Log.e("OpenDocument Reader", "Error opening file at " + uri.toString(),
 				error);
 
+		((MainActivity) getActivity()).getCrashManager().log(error, uri);
+
 		final Uri cacheUri = AndroidFileCache.getCacheFileUri();
-
-		for (LoadingListener listener : loadingListeners) {
-			listener.onError(error, uri);
-
-			// TODO: return here, but only if the listener was registered by a
-			// JUnit test
-		}
 
 		int errorDescription;
 		if (error == null) {
 			return;
 		} else if (error instanceof EncryptedDocumentException) {
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 			builder.setTitle(R.string.toast_error_password_protected);
 
-			final EditText input = new EditText(this);
+			final EditText input = new EditText(getActivity());
 			input.setInputType(InputType.TYPE_CLASS_TEXT
 					| InputType.TYPE_TEXT_VARIATION_PASSWORD);
 			builder.setView(input);
@@ -303,7 +326,7 @@ public abstract class DocumentActivity extends AppCompatActivity implements
 				|| error instanceof ZipException
 				|| error instanceof ZipEntryNotFoundException
 				|| error instanceof UnsupportedMimeTypeException) {
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 			builder.setTitle(R.string.toast_error_illegal_file);
 			builder.setMessage(R.string.dialog_upload_file);
 			builder.setPositiveButton(getString(android.R.string.ok),
@@ -338,57 +361,48 @@ public abstract class DocumentActivity extends AppCompatActivity implements
 			errorDescription = R.string.toast_error_generic;
 		}
 
-		showCrouton(errorDescription, null, Style.ALERT);
+		CroutonHelper.showCrouton(getActivity(), errorDescription, null, Style.ALERT);
 	}
 
-	public void addLoadingListener(LoadingListener loadingListener) {
-		loadingListeners.add(loadingListener);
+
+	@Override
+	public void onTabSelected(android.app.ActionBar.Tab tab, android.app.FragmentTransaction fragmentTransaction) {
+		Document.Page page = getDocument().getPageAt(tab.getPosition());
+		showPage(page);
+	}
+
+	@Override
+	public void onTabUnselected(android.app.ActionBar.Tab tab, android.app.FragmentTransaction fragmentTransaction) {}
+
+	@Override
+	public void onTabReselected(android.app.ActionBar.Tab tab, android.app.FragmentTransaction fragmentTransaction) {}
+
+	private void showPage(Document.Page page) {
+		loadData(page.getUrl());
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		//TODO: outState.putInt(EXTRA_TAB_POSITION, getActivity().getActionBar().getSelectedNavigationIndex());
+		outState.putInt(EXTRA_SCROLL_POSITION, pageView.getScrollY());
 	}
 
 	public Document getDocument() {
 		return document;
 	}
 
-	public PageFragment getPageFragment() {
-		return pageFragment;
+	private void loadData(String url) {
+		pageView.loadUrl(url);
 	}
 
-	public void showToast(int resId) {
-		showToast(getString(resId));
+	@SuppressWarnings("deprecation")
+	public void searchDocument(String query) {
+		pageView.findAll(query);
 	}
 
-	public void showToast(String message) {
-		Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-	}
-
-	public void showCrouton(int resId, final Runnable callback,
-			Style style) {
-		showCrouton(getString(resId), callback, style);
-	}
-
-	public void showCrouton(final String message, final Runnable callback,
-			final Style style) {
-		runOnUiThread(new Runnable() {
-
-			@Override
-			public void run() {
-				Crouton crouton = Crouton.makeText(DocumentActivity.this,
-						message, style);
-
-				Configuration configuration = new Configuration.Builder().setDuration(10000).build();
-				crouton.setConfiguration(configuration);
-
-				crouton.setOnClickListener(
-						new View.OnClickListener() {
-
-							@Override
-							public void onClick(View v) {
-								if (callback != null)
-									callback.run();
-							}
-						});
-				crouton.show();
-			}
-		});
+	public PageView getPageView() {
+		return pageView;
 	}
 }

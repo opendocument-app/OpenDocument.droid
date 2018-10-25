@@ -8,6 +8,7 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.kobakei.ratethisapp.RateThisApp;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
@@ -21,8 +22,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBar.Tab;
+import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -31,32 +31,29 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.Document.Page;
-import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.KitKatPrinter;
-import at.tomtasche.reader.background.LoadingListener;
 import at.tomtasche.reader.nonfree.AdManager;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.BillingManager;
 import at.tomtasche.reader.nonfree.CrashManager;
+import at.tomtasche.reader.ui.CroutonHelper;
 import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
 import de.keyboardsurfer.android.widget.crouton.Style;
 
-public class MainActivity extends DocumentActivity implements ActionBar.TabListener, LoadingListener {
+public class MainActivity extends AppCompatActivity {
 
 	private static final boolean USE_PROPRIETARY_LIBRARIES = true;
-	private static final String EXTRA_TAB_POSITION = "tab_position";
 	private static final int GOOGLE_REQUEST_CODE = 1993;
+	private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
 
-	private int lastPosition;
+	private DocumentFragment documentFragment;
+
 	private boolean fullscreen;
-
 	private TtsActionModeCallback ttsActionMode;
-
 	private Runnable saveCroutonRunnable;
 
 	private CrashManager crashManager;
@@ -68,13 +65,19 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		setContentView(R.layout.main);
+
 		initializeProprietaryLibraries();
 
-		if (savedInstanceState != null) {
-			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
+		documentFragment = (DocumentFragment) getFragmentManager()
+				.findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
+		if (documentFragment == null) {
+			documentFragment = new DocumentFragment();
+			getFragmentManager()
+					.beginTransaction()
+					.add(R.id.document_container, documentFragment,
+							DOCUMENT_FRAGMENT_TAG).commit();
 		}
-
-		addLoadingListener(this);
 
 		RateThisApp.onCreate(this);
 
@@ -106,9 +109,10 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		adManager.setEnabled(proprietaryAvailable);
 		adManager.setAdContainer(findViewById(R.id.ad_container));
 		adManager.setOnAdFailedCallback(new Runnable() {
+
 			@Override
 			public void run() {
-				showCrouton(R.string.crouton_remove_ads, new Runnable() {
+				CroutonHelper.showCrouton(MainActivity.this, R.string.crouton_remove_ads, new Runnable() {
 
 					@Override
 					public void run() {
@@ -124,7 +128,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		billingManager.setOnBillingFailedCallback(new Runnable() {
 			@Override
 			public void run() {
-				showCrouton(getString(R.string.crouton_error_billing), null, Style.ALERT);
+				CroutonHelper.showCrouton(MainActivity.this, getString(R.string.crouton_error_billing), null, Style.ALERT);
 			}
 		});
 		billingManager.initialize(this, analyticsManager, adManager);
@@ -142,31 +146,10 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		super.onNewIntent(intent);
 
 		if (intent.getData() != null) {
-			loadUri(intent.getData());
+			documentFragment.loadUri(intent.getData());
 
 			analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "other");
 		}
-	}
-
-	@Override
-	public DocumentLoader loadUri(Uri uri, String password, boolean limit, boolean translatable) {
-		return super.loadUri(uri, password, limit, translatable);
-	}
-
-	@Override
-	protected void onPause() {
-		super.onPause();
-
-		if (ttsActionMode != null) {
-			ttsActionMode.stop();
-		}
-	}
-
-	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-
-		outState.putInt(EXTRA_TAB_POSITION, getSupportActionBar().getSelectedNavigationIndex());
 	}
 
 	@Override
@@ -186,6 +169,11 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			initializeProprietaryLibraries();
 		} else {
 			adManager.showInterstitial();
+
+			Uri uri = intent.getData();
+			if (requestCode == 42 && resultCode == Activity.RESULT_OK && uri != null) {
+				documentFragment.loadUri(uri);
+			}
 		}
 
 		super.onActivityResult(requestCode, resultCode, intent);
@@ -197,7 +185,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 			@Override
 			public void run() {
-				showCrouton("Document successfully saved. You can find it on your sdcard: " + modifiedFile.getName(),
+				CroutonHelper.showCrouton(MainActivity.this, "Document successfully saved. You can find it on your sdcard: " + modifiedFile.getName(),
 						new Runnable() {
 
 							@Override
@@ -226,7 +214,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 		switch (item.getItemId()) {
 		case R.id.menu_search: {
-			if (getDocument() == null) {
+			if (documentFragment.getDocument() == null) {
 				showDocumentMissing = true;
 
 				break;
@@ -244,14 +232,14 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 					@Override
 					public void onClick(DialogInterface dialog, int whichButton) {
-						getPageFragment().searchDocument(input.getText().toString());
+						documentFragment.searchDocument(input.getText().toString());
 					}
 				});
 				alert.setNegativeButton(getString(android.R.string.cancel), null);
 				alert.show();
 			} else {
 				FindActionModeCallback findActionModeCallback = new FindActionModeCallback(this);
-				findActionModeCallback.setWebView(getPageFragment().getPageView());
+				findActionModeCallback.setWebView(documentFragment.getPageView());
 				startSupportActionMode(findActionModeCallback);
 			}
 
@@ -272,7 +260,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			break;
 		}
 		case R.id.menu_fullscreen: {
-			if (getDocument() == null) {
+			if (documentFragment.getDocument() == null) {
 				showDocumentMissing = true;
 
 				break;
@@ -289,7 +277,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 				adManager.removeAds();
 
-				showCrouton(R.string.crouton_leave_fullscreen, new Runnable() {
+				CroutonHelper.showCrouton(this, R.string.crouton_leave_fullscreen, new Runnable() {
 
 					@Override
 					public void run() {
@@ -305,7 +293,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			break;
 		}
 		case R.id.menu_share: {
-			if (getDocument() == null) {
+			if (documentFragment.getDocument() == null) {
 				showDocumentMissing = true;
 
 				break;
@@ -316,20 +304,20 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			break;
 		}
 		case R.id.menu_print: {
-			if (getDocument() == null) {
+			if (documentFragment.getDocument() == null) {
 				showDocumentMissing = true;
 
 				break;
 			}
 
 			if (Build.VERSION.SDK_INT >= 19) {
-				KitKatPrinter.print(this, getPageFragment().getPageView());
+				KitKatPrinter.print(this, documentFragment.getPageView());
 			} else {
 				int index = getSupportActionBar().getSelectedNavigationIndex();
 				if (index < 0)
 					index = 0;
 
-				Page page = getDocument().getPageAt(index);
+				Page page = documentFragment.getDocument().getPageAt(index);
 				Uri uri = Uri.parse("content://at.tomtasche.reader/" + page.getUrl());
 
 				Intent printIntent = new Intent(Intent.ACTION_SEND);
@@ -353,13 +341,13 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			break;
 		}
 		case R.id.menu_tts: {
-			if (getDocument() == null) {
+			if (documentFragment.getDocument() == null) {
 				showDocumentMissing = true;
 
 				break;
 			}
 
-			ttsActionMode = new TtsActionModeCallback(this, getPageFragment().getPageView());
+			ttsActionMode = new TtsActionModeCallback(this, documentFragment.getPageView());
 			startSupportActionMode(ttsActionMode);
 
 			analyticsManager.report("tts");
@@ -367,7 +355,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			break;
 		}
 		case R.id.menu_edit: {
-			if (getDocument() == null) {
+			if (documentFragment.getDocument() == null) {
 				showDocumentMissing = true;
 
 				break;
@@ -375,8 +363,8 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 
 			adManager.loadInterstitial();
 
-			EditActionModeCallback editActionMode = new EditActionModeCallback(this, adManager, getPageFragment().getPageView(),
-					getDocument().getOrigin());
+			EditActionModeCallback editActionMode = new EditActionModeCallback(this, documentFragment, adManager, documentFragment.getPageView(),
+					documentFragment.getDocument().getOrigin());
 			startSupportActionMode(editActionMode);
 
 			analyticsManager.report("edit");
@@ -416,7 +404,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		} catch (Exception e) {
 			e.printStackTrace();
 
-			showCrouton(R.string.crouton_error_open_app, null, Style.ALERT);
+			CroutonHelper.showCrouton(this, R.string.crouton_error_open_app, null, Style.ALERT);
 		}
 	}
 
@@ -482,24 +470,6 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		return super.onKeyDown(keyCode, event);
 	}
 
-	@Override
-	public void onTabReselected(Tab tab, FragmentTransaction ft) {
-	}
-
-	@Override
-	public void onTabSelected(Tab tab, FragmentTransaction ft) {
-		Page page = getDocument().getPageAt(tab.getPosition());
-		showPage(page);
-	}
-
-	@Override
-	public void onTabUnselected(Tab tab, FragmentTransaction ft) {
-	}
-
-	private void showPage(Page page) {
-		getPageFragment().loadPage(page);
-	}
-
 	public void findDocument() {
 		adManager.loadInterstitial();
 
@@ -542,7 +512,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 				} catch (Exception e) {
 					e.printStackTrace();
 
-					showCrouton(R.string.crouton_error_open_app, new Runnable() {
+					CroutonHelper.showCrouton(MainActivity.this, R.string.crouton_error_open_app, new Runnable() {
 
 						@Override
 						public void run() {
@@ -557,6 +527,15 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 			}
 		});
 		builder.show();
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+
+		if (ttsActionMode != null) {
+			ttsActionMode.stop();
+		}
 	}
 
 	@Override
@@ -583,44 +562,7 @@ public class MainActivity extends DocumentActivity implements ActionBar.TabListe
 		}
 	}
 
-	@Override
-	public void onSuccess(Document document, Uri uri) {
-		ActionBar bar = getSupportActionBar();
-		bar.removeAllTabs();
-
-		int pages = document.getPages().size();
-		if (pages > 1) {
-			bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-			for (int i = 0; i < pages; i++) {
-				ActionBar.Tab tab = bar.newTab();
-				String name = document.getPageAt(i).getName();
-				if (name == null)
-					name = "Page " + (i + 1);
-				tab.setText(name);
-				tab.setTabListener(this);
-
-				bar.addTab(tab);
-			}
-
-			if (lastPosition > 0) {
-				bar.setSelectedNavigationItem(lastPosition);
-
-				lastPosition = -1;
-			}
-		} else {
-			bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-
-			if (pages == 1) {
-				showPage(document.getPageAt(0));
-			}
-		}
-	}
-
-	@Override
-	public void onError(Throwable error, Uri uri) {
-		// DO NOT call the super-method here! otherwise we end up in an infinite
-		// recursion.
-
-		crashManager.log(error, uri);
+	public CrashManager getCrashManager() {
+		return crashManager;
 	}
 }

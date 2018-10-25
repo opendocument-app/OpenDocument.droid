@@ -7,6 +7,8 @@ import android.print.PrintDocumentAdapter;
 import android.print.PrintJob;
 import android.print.PrintManager;
 import android.webkit.WebView;
+
+import at.tomtasche.reader.ui.CroutonHelper;
 import at.tomtasche.reader.ui.activity.MainActivity;
 import de.keyboardsurfer.android.widget.crouton.Style;
 
@@ -24,6 +26,6 @@ public class KitKatPrinter {
 		PrintJob printJob = printManager.print(jobName, printAdapter,
 				new PrintAttributes.Builder().build());
 
-		activity.showCrouton("Printing...", null, Style.INFO);
+		CroutonHelper.showCrouton(activity, "Printing...", null, Style.INFO);
 	}
 }

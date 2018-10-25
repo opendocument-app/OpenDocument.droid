@@ -23,12 +23,14 @@ import at.stefl.opendocument.java.translator.Retranslator;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.nonfree.AdManager;
+import at.tomtasche.reader.ui.activity.DocumentFragment;
 import at.tomtasche.reader.ui.activity.MainActivity;
 import at.tomtasche.reader.ui.widget.PageView;
 
 public class EditActionModeCallback implements ActionMode.Callback {
 
 	private MainActivity activity;
+	private DocumentFragment documentFragment;
 	private AdManager adManager;
 	private PageView pageView;
 	private TextView statusView;
@@ -36,9 +38,10 @@ public class EditActionModeCallback implements ActionMode.Callback {
 
 	private InputMethodManager imm;
 
-	public EditActionModeCallback(MainActivity activity, AdManager adManager, PageView pageView,
+	public EditActionModeCallback(MainActivity activity, DocumentFragment documentFragment, AdManager adManager, PageView pageView,
 								  OpenDocument document) {
 		this.activity = activity;
+		this.documentFragment = documentFragment;
 		this.adManager = adManager;
 		this.pageView = pageView;
 		this.document = document;
@@ -60,7 +63,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
 	@Override
 	public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
 		// reload document with translation enabled
-		activity.loadUri(AndroidFileCache.getCacheFileUri(), null, false, true);
+		documentFragment.loadUri(AndroidFileCache.getCacheFileUri(), null, false, true);
 
 		imm.toggleSoftInputFromWindow(activity.getWindow().getDecorView().getRootView().getWindowToken(), InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
 
@@ -71,7 +74,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
 	public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.edit_help: {
-			activity.startActivity(new Intent(
+			documentFragment.startActivity(new Intent(
 					Intent.ACTION_VIEW,
 					Uri.parse("https://plus.google.com/communities/113494011673882132018")));
 
@@ -124,7 +127,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
 						fileUri = Uri.parse("file://"
 								+ modifiedFile.getAbsolutePath());
 
-						activity.loadUri(fileUri);
+						documentFragment.loadUri(fileUri);
 
 						activity.showSaveCroutonLater(modifiedFile, fileUri);
 					} catch (final Throwable e) {
@@ -134,7 +137,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
 						final Uri htmlUri = AndroidFileCache
 								.getHtmlCacheFileUri();
 
-						activity.onError(e, cacheUri);
+						documentFragment.handleError(e, cacheUri);
 					} finally {
 						if (documentFile != null) {
 							try {

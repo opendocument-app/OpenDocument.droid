@@ -1,11 +1,11 @@
 package at.tomtasche.reader.background;
 
+import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
-import android.support.v4.content.AsyncTaskLoader;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
