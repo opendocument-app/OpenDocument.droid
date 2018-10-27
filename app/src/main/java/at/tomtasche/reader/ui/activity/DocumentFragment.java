@@ -43,7 +43,7 @@ import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 import de.keyboardsurfer.android.widget.crouton.Style;
 
 public class DocumentFragment extends Fragment implements
-		LoaderManager.LoaderCallbacks<Document>, DocumentLoadingActivity, ActionBar.TabListener {
+		LoaderManager.LoaderCallbacks<Document>, DocumentLoadingActivity, android.support.v7.app.ActionBar.TabListener {
 
 	private static final String EXTRA_URI = "uri";
 	private static final String EXTRA_LIMIT = "limit";
@@ -190,14 +190,14 @@ public class DocumentFragment extends Fragment implements
 				}, Style.INFO);
 			}
 
-			android.app.ActionBar bar = getActivity().getActionBar();
-			//TODO: bar.removeAllTabs();
+			android.support.v7.app.ActionBar bar = ((MainActivity) getActivity()).getSupportActionBar();
+			bar.removeAllTabs();
 
 			int pages = document.getPages().size();
 			if (pages > 1) {
 				bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 				for (int i = 0; i < pages; i++) {
-					android.app.ActionBar.Tab tab = bar.newTab();
+					android.support.v7.app.ActionBar.Tab tab = bar.newTab();
 					String name = document.getPageAt(i).getName();
 					if (name == null)
 						name = "Page " + (i + 1);
@@ -213,7 +213,7 @@ public class DocumentFragment extends Fragment implements
 					lastPosition = -1;
 				}
 			} else {
-				//TODO: bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+				bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 
 				if (pages == 1) {
 					showPage(document.getPageAt(0));
@@ -364,18 +364,19 @@ public class DocumentFragment extends Fragment implements
 		CroutonHelper.showCrouton(getActivity(), errorDescription, null, Style.ALERT);
 	}
 
-
 	@Override
-	public void onTabSelected(android.app.ActionBar.Tab tab, android.app.FragmentTransaction fragmentTransaction) {
+	public void onTabSelected(android.support.v7.app.ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
 		Document.Page page = getDocument().getPageAt(tab.getPosition());
 		showPage(page);
 	}
 
 	@Override
-	public void onTabUnselected(android.app.ActionBar.Tab tab, android.app.FragmentTransaction fragmentTransaction) {}
+	public void onTabUnselected(android.support.v7.app.ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
+	}
 
 	@Override
-	public void onTabReselected(android.app.ActionBar.Tab tab, android.app.FragmentTransaction fragmentTransaction) {}
+	public void onTabReselected(android.support.v7.app.ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
+	}
 
 	private void showPage(Document.Page page) {
 		loadData(page.getUrl());
@@ -385,7 +386,7 @@ public class DocumentFragment extends Fragment implements
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 
-		//TODO: outState.putInt(EXTRA_TAB_POSITION, getActivity().getActionBar().getSelectedNavigationIndex());
+		outState.putInt(EXTRA_TAB_POSITION, ((MainActivity) getActivity()).getSupportActionBar().getSelectedNavigationIndex());
 		outState.putInt(EXTRA_SCROLL_POSITION, pageView.getScrollY());
 	}
 
