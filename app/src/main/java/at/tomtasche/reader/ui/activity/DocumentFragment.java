@@ -68,9 +68,6 @@ public class DocumentFragment extends Fragment implements
 		getActivity().setTitle("");
 
 		mainHandler = new Handler();
-
-		getLoaderManager().initLoader(0, null, this);
-		getLoaderManager().initLoader(1, null, this);
 	}
 
 	@Nullable
@@ -134,7 +131,7 @@ public class DocumentFragment extends Fragment implements
 		boolean limit = true;
 		boolean translatable = false;
 		String password = null;
-		Uri uri = DocumentLoader.URI_INTRO;
+		Uri uri = null;
 		if (bundle != null) {
 			uri = bundle.getParcelable(EXTRA_URI);
 			limit = bundle.getBoolean(EXTRA_LIMIT);

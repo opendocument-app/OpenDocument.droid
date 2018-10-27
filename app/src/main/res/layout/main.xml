@@ -8,16 +8,36 @@
         android:orientation="vertical">
 
     <LinearLayout
-            android:id="@+id/ad_container"
+        android:id="@+id/ad_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/landing_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/ad_container"
+        android:orientation="horizontal">
+
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_gravity="center_horizontal"
-            android:orientation="horizontal"/>
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="Hit the button on the top to browse files on your device and open a document."
+            android:textStyle="bold"
+            android:textSize="20dp"
+            android:layout_margin="60dp"
+            android:textColor="@android:color/black"/>
+    </LinearLayout>
 
     <FrameLayout
             android:id="@+id/document_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/ad_container"/>
+            android:layout_below="@id/ad_container"
+            android:visibility="gone" />
 </RelativeLayout>

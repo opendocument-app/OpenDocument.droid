@@ -26,8 +26,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import at.tomtasche.reader.R;
@@ -50,6 +52,11 @@ public class MainActivity extends AppCompatActivity {
 	private static final int GOOGLE_REQUEST_CODE = 1993;
 	private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
 
+	private Menu menu;
+
+	private View landingContainer;
+	private View documentContainer;
+	private LinearLayout adContainer;
 	private DocumentFragment documentFragment;
 
 	private boolean fullscreen;
@@ -67,7 +74,9 @@ public class MainActivity extends AppCompatActivity {
 
 		setContentView(R.layout.main);
 
-		initializeProprietaryLibraries();
+		adContainer = findViewById(R.id.ad_container);
+		landingContainer = findViewById(R.id.landing_container);
+		documentContainer = findViewById(R.id.document_container);
 
 		documentFragment = (DocumentFragment) getFragmentManager()
 				.findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
@@ -75,9 +84,11 @@ public class MainActivity extends AppCompatActivity {
 			documentFragment = new DocumentFragment();
 			getFragmentManager()
 					.beginTransaction()
-					.add(R.id.document_container, documentFragment,
+					.replace(R.id.document_container, documentFragment,
 							DOCUMENT_FRAGMENT_TAG).commit();
 		}
+
+		initializeProprietaryLibraries();
 
 		RateThisApp.onCreate(this);
 
@@ -107,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
 
 		adManager = new AdManager();
 		adManager.setEnabled(proprietaryAvailable);
-		adManager.setAdContainer(findViewById(R.id.ad_container));
+		adManager.setAdContainer(adContainer);
 		adManager.setOnAdFailedCallback(new Runnable() {
 
 			@Override
@@ -125,12 +136,6 @@ public class MainActivity extends AppCompatActivity {
 
 		billingManager = new BillingManager();
 		billingManager.setEnabled(proprietaryAvailable);
-		billingManager.setOnBillingFailedCallback(new Runnable() {
-			@Override
-			public void run() {
-				CroutonHelper.showCrouton(MainActivity.this, getString(R.string.crouton_error_billing), null, Style.ALERT);
-			}
-		});
 		billingManager.initialize(this, analyticsManager, adManager);
 	}
 
@@ -146,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
 		super.onNewIntent(intent);
 
 		if (intent.getData() != null) {
-			documentFragment.loadUri(intent.getData());
+			loadUri(intent.getData());
 
 			analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "other");
 		}
@@ -157,6 +162,8 @@ public class MainActivity extends AppCompatActivity {
 		super.onCreateOptionsMenu(menu);
 
 		getMenuInflater().inflate(R.menu.menu_main, menu);
+
+		this.menu = menu;
 
 		return true;
 	}
@@ -172,11 +179,21 @@ public class MainActivity extends AppCompatActivity {
 
 			Uri uri = intent.getData();
 			if (requestCode == 42 && resultCode == Activity.RESULT_OK && uri != null) {
-				documentFragment.loadUri(uri);
+				loadUri(uri);
 			}
 		}
 
 		super.onActivityResult(requestCode, resultCode, intent);
+	}
+
+	private void loadUri(Uri uri) {
+		documentFragment.loadUri(uri);
+
+		adManager.toggleVisibility(true);
+		landingContainer.setVisibility(View.GONE);
+		documentContainer.setVisibility(View.VISIBLE);
+
+		menu.setGroupVisible(R.id.menu_document_group, true);
 	}
 
 	// TODO: that's super ugly - good job :)
