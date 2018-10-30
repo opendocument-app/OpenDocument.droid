@@ -29,10 +29,10 @@
     <application
         android:allowBackup="true"
         android:hardwareAccelerated="true"
-        android:icon="@drawable/icon"
+        android:icon="@mipmap/icon"
         android:label="OpenDocument Reader"
         android:theme="@style/Theme.AppCompat.Light"
-        android:name="android.support.multidex.MultiDexApplication">
+        android:name="androidx.multidex.MultiDexApplication">
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
@@ -139,7 +139,7 @@
         <activity
             android:name="at.tomtasche.reader.ui.activity.ShortcutActivity"
             android:excludeFromRecents="true"
-            android:icon="@drawable/icon"
+            android:icon="@mipmap/icon"
             android:label="OpenDocument Reader"
             android:theme="@style/Theme.Light.Dialog" >
             <intent-filter>
@@ -151,6 +151,7 @@
 
         <activity
             android:name="com.nononsenseapps.filepicker.FilePickerActivity"
+            android:icon="@mipmap/icon"
             android:excludeFromRecents="true"
             android:exported="false"
             android:label="@string/dialog_title_choose_file"
@@ -164,13 +165,19 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".ui.activity.IntroActivity"
+            android:icon="@mipmap/icon"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:label="OpenDocument Reader" />
+
         <provider
             android:name=".background.FileProvider"
             android:authorities="at.tomtasche.reader"
             android:exported="false" />
 
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">

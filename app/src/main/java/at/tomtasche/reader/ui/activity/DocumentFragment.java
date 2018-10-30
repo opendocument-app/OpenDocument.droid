@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.util.zip.ZipException;
 
 import android.app.ActionBar;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
@@ -16,16 +15,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 
 import at.stefl.opendocument.java.odf.IllegalMimeTypeException;
 import at.stefl.opendocument.java.odf.UnsupportedMimeTypeException;
@@ -43,7 +39,7 @@ import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 import de.keyboardsurfer.android.widget.crouton.Style;
 
 public class DocumentFragment extends Fragment implements
-		LoaderManager.LoaderCallbacks<Document>, DocumentLoadingActivity, android.support.v7.app.ActionBar.TabListener {
+		LoaderManager.LoaderCallbacks<Document>, DocumentLoadingActivity, androidx.appcompat.app.ActionBar.TabListener {
 
 	private static final String EXTRA_URI = "uri";
 	private static final String EXTRA_LIMIT = "limit";
@@ -187,14 +183,14 @@ public class DocumentFragment extends Fragment implements
 				}, Style.INFO);
 			}
 
-			android.support.v7.app.ActionBar bar = ((MainActivity) getActivity()).getSupportActionBar();
+			androidx.appcompat.app.ActionBar bar = ((MainActivity) getActivity()).getSupportActionBar();
 			bar.removeAllTabs();
 
 			int pages = document.getPages().size();
 			if (pages > 1) {
 				bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 				for (int i = 0; i < pages; i++) {
-					android.support.v7.app.ActionBar.Tab tab = bar.newTab();
+					androidx.appcompat.app.ActionBar.Tab tab = bar.newTab();
 					String name = document.getPageAt(i).getName();
 					if (name == null)
 						name = "Page " + (i + 1);
@@ -362,17 +358,17 @@ public class DocumentFragment extends Fragment implements
 	}
 
 	@Override
-	public void onTabSelected(android.support.v7.app.ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
+	public void onTabSelected(androidx.appcompat.app.ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {
 		Document.Page page = getDocument().getPageAt(tab.getPosition());
 		showPage(page);
 	}
 
 	@Override
-	public void onTabUnselected(android.support.v7.app.ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
+	public void onTabUnselected(androidx.appcompat.app.ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {
 	}
 
 	@Override
-	public void onTabReselected(android.support.v7.app.ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
+	public void onTabReselected(androidx.appcompat.app.ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {
 	}
 
 	private void showPage(Document.Page page) {

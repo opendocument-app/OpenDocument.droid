@@ -15,14 +15,17 @@ import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.preference.PreferenceManager;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -94,6 +97,30 @@ public class MainActivity extends AppCompatActivity {
 
 		// shows after 10 launches after 7 days
 		RateThisApp.showRateDialogIfNeeded(this);
+
+		showIntroActivity();
+	}
+
+	private void showIntroActivity() {
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				SharedPreferences getPrefs = PreferenceManager
+						.getDefaultSharedPreferences(getBaseContext());
+
+				boolean wasIntroShown = getPrefs.getBoolean("introShown", false);
+				if (!wasIntroShown) {
+					Intent intent = new Intent(MainActivity.this, IntroActivity.class);
+					startActivity(intent);
+
+					SharedPreferences.Editor editor = getPrefs.edit();
+					//editor.putBoolean("introShown", true);
+					editor.apply();
+				}
+			}
+		}).start();
+
 	}
 
 	private void initializeProprietaryLibraries() {

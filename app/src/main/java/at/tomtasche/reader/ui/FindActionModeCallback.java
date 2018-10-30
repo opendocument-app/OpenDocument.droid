@@ -23,7 +23,7 @@ import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
-import android.support.v7.view.ActionMode;
+import androidx.appcompat.view.ActionMode;
 import android.text.Editable;
 import android.text.Selection;
 import android.text.Spannable;

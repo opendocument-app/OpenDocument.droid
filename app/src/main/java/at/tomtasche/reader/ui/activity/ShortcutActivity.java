@@ -4,8 +4,8 @@ import android.content.Intent;
 import android.content.Intent.ShortcutIconResource;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentTransaction;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
@@ -26,7 +26,7 @@ public class ShortcutActivity extends FragmentActivity implements
 	@Override
 	public DocumentLoader loadUri(Uri uri) {
 		ShortcutIconResource icon = Intent.ShortcutIconResource.fromContext(
-				this, R.drawable.icon);
+				this, R.mipmap.icon);
 
 		Intent intent = new Intent();
 
