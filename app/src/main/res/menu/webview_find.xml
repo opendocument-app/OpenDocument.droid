@@ -19,12 +19,12 @@
 
     <item
         android:id="@+id/find_prev"
-        android:icon="@drawable/ic_action_arrow_top"
+        android:icon="@drawable/ic_keyboard_arrow_up"
         android:showAsAction="always"
         android:title="@string/action_find_previous"/>
     <item
         android:id="@+id/find_next"
-        android:icon="@drawable/ic_action_arrow_bottom"
+        android:icon="@drawable/ic_keyboard_arrow_down"
         android:showAsAction="always"
         android:title="@string/action_find_next"/>
 

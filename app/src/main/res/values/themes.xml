@@ -1,12 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <style name="MainTheme" parent="Theme.AppCompat.Light">
+        <item name="colorPrimary">#ffffff</item>
+        <item name="colorPrimaryDark">#6b6b6b</item>
+        <item name="colorAccent">#b5b5b5</item>
+        <item name="android:textColorPrimary">#6b6b6b</item>
+        <item name="android:textColorSecondary">#b5b5b5</item>
+    </style>
+
     <style name="Theme.Light.Dialog" parent="android:Theme.Dialog"></style>
 
     <style name="IntroTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">#ffffff</item>
         <item name="colorPrimaryDark">#6b6b6b</item>
         <item name="colorAccent">#b5b5b5</item>
+        <item name="android:textColorPrimary">#6b6b6b</item>
+        <item name="android:textColorSecondary">#b5b5b5</item>
     </style>
+
 
 </resources>
