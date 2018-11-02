@@ -1,16 +1,9 @@
 package at.tomtasche.reader.ui.activity;
 
-import android.content.Context;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
-import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.github.paolorotolo.appintro.AppIntro;
@@ -18,7 +11,6 @@ import com.github.paolorotolo.appintro.AppIntroFragment;
 import com.github.paolorotolo.appintro.model.SliderPage;
 
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import at.tomtasche.reader.R;
 
@@ -32,14 +24,14 @@ public class IntroActivity extends AppIntro {
 
         SliderPage sliderPage = createStyledPage();
         sliderPage.setTitle("Open and read your ODF file on the go!");
-        sliderPage.setDescription("OpenDocument Reader allows you to view documents that were stored in OpenDocument format (.odt, .ods, .odp). " +
+        sliderPage.setDescription("OpenDocument Reader allows you to view documents that are stored in OpenDocument format (.odt, .ods, .odp). " +
                 "These files are usually created using LibreOffice or OpenOffice. " +
                 "This app allows to open those files on your mobile device too, so you can read them on the go.");
         sliderPage.setImageDrawable(R.drawable.onboard1);
         addSlide(AppIntroFragment.newInstance(sliderPage));
 
         sliderPage = createStyledPage();
-        sliderPage.setTitle("Found any typo in your document? Now supports modification!");
+        sliderPage.setTitle("Found a typo in your document? Now supports modification!");
         sliderPage.setDescription("OpenDocument Reader not only allows to read documents on your mobile device, but also supports modifying them too. " +
                 "Typos are fixed in a breeze, even on the train!");
         sliderPage.setImageDrawable(R.drawable.onboard2);
@@ -59,6 +51,8 @@ public class IntroActivity extends AppIntro {
         setColorSkipButton(Color.parseColor("#b5b5b5"));
         setNextArrowColor(Color.parseColor("#6b6b6b"));
         setIndicatorColor(Color.parseColor("#b5b5b5"), Color.parseColor("#dadada"));
+
+        setDoneText("START");
 
         showSkipButton(true);
         setProgressButtonEnabled(true);

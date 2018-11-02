@@ -35,8 +35,6 @@ import at.tomtasche.reader.background.Document.Page;
 public class DocumentLoader extends AsyncTaskLoader<Document> implements
 		FileLoader {
 
-	public static final Uri URI_INTRO = Uri.parse("reader://intro.odt");
-
 	private Throwable lastError;
 	private Uri uri;
 	private boolean limit;
@@ -146,12 +144,8 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
 						AndroidFileCache.getCacheDirectory(getContext()),
 						"document.odt"));
 			} else {
-				if (URI_INTRO.equals(uri)) {
-					stream = getContext().getAssets().open("intro.odt");
-				} else {
-					stream = getContext().getContentResolver().openInputStream(
-							uri);
-				}
+				stream = getContext().getContentResolver().openInputStream(
+						uri);
 
 				File cachedFile = cache.create("document.odt", stream);
 				documentFile = new LocatedOpenDocumentFile(cachedFile);

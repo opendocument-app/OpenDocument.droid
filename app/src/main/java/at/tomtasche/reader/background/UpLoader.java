@@ -87,12 +87,6 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 
     @Override
     public Document loadInBackground() {
-        if (uri == DocumentLoader.URI_INTRO) {
-            cancelLoad();
-
-            return null;
-        }
-
         Task<AuthResult> authenticationTask = null;
         String currentUserId = null;
         if (auth.getCurrentUser() != null) {
