@@ -32,22 +32,24 @@ public class IntroActivity extends AppIntro {
 
         SliderPage sliderPage = createStyledPage();
         sliderPage.setTitle("Open and read your ODF file on the go!");
-        sliderPage.setDescription("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Sit amet consectetur adipiscing elit ut aliquam. Porttitor massa id neque aliquam vestibulum morbi blandit cursus risus.\n" +
-                "\n");
+        sliderPage.setDescription("OpenDocument Reader allows you to view documents that were stored in OpenDocument format (.odt, .ods, .odp). " +
+                "These files are usually created using LibreOffice or OpenOffice. " +
+                "This app allows to open those files on your mobile device too, so you can read them on the go.");
         sliderPage.setImageDrawable(R.drawable.onboard1);
         addSlide(AppIntroFragment.newInstance(sliderPage));
 
         sliderPage = createStyledPage();
         sliderPage.setTitle("Found any typo in your document? Now supports modification!");
-        sliderPage.setDescription("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Sit amet consectetur adipiscing elit ut aliquam. Porttitor massa id neque aliquam vestibulum morbi blandit cursus risus.\n" +
-                "\n");
+        sliderPage.setDescription("OpenDocument Reader not only allows to read documents on your mobile device, but also supports modifying them too. " +
+                "Typos are fixed in a breeze, even on the train!");
         sliderPage.setImageDrawable(R.drawable.onboard2);
         addSlide(AppIntroFragment.newInstance(sliderPage));
 
         sliderPage = createStyledPage();
-        sliderPage.setTitle("Read your documents within other apps");
-        sliderPage.setDescription("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Sit amet consectetur adipiscing elit ut aliquam. Porttitor massa id neque aliquam vestibulum morbi blandit cursus risus.\n" +
-                "\n");
+        sliderPage.setTitle("Read your documents from within other apps");
+        sliderPage.setDescription("OpenDocument Reader supports a huge range of other apps to open documents from. " +
+                "A colleague sent a presentation via Gmail? " +
+                "Click the attachment and this app is going to open right away!");
         sliderPage.setImageDrawable(R.drawable.onboard3);
         addSlide(AppIntroFragment.newInstance(sliderPage));
 

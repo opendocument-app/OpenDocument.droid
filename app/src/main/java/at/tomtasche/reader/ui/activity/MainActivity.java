@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
 					startActivity(intent);
 
 					SharedPreferences.Editor editor = getPrefs.edit();
-					//editor.putBoolean("introShown", true);
+					editor.putBoolean("introShown", true);
 					editor.apply();
 				}
 			}
