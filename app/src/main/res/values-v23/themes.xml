@@ -4,9 +4,8 @@
     <style name="Theme.Light.Dialog" parent="android:Theme.Dialog"></style>
 
     <style name="IntroTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">#ffffff</item>
-        <item name="colorPrimaryDark">#6b6b6b</item>
-        <item name="colorAccent">#b5b5b5</item>
+        <item name="colorPrimaryDark">#ffffff</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
 </resources>

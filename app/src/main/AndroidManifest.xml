@@ -169,7 +169,8 @@
             android:icon="@mipmap/icon"
             android:excludeFromRecents="true"
             android:exported="false"
-            android:label="OpenDocument Reader" />
+            android:label="OpenDocument Reader"
+            android:theme="@style/IntroTheme" />
 
         <provider
             android:name=".background.FileProvider"
