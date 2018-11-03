@@ -1,7 +1,5 @@
 package at.tomtasche.reader.ui.widget;
 
-import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
 import android.app.Dialog;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,6 +17,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog.Builder;
 import androidx.fragment.app.DialogFragment;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.RecentDocumentsUtil;

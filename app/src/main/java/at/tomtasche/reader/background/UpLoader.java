@@ -1,6 +1,5 @@
 package at.tomtasche.reader.background;
 
-import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -23,6 +22,7 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.UUID;
 
+import androidx.loader.content.AsyncTaskLoader;
 import at.tomtasche.reader.background.Document.Page;
 
 public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {

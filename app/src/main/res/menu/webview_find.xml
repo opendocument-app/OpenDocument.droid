@@ -14,17 +14,18 @@
      limitations under the License.
 -->
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
         android:id="@+id/find_prev"
         android:icon="@drawable/ic_keyboard_arrow_up"
-        android:showAsAction="always"
+        app:showAsAction="always"
         android:title="@string/action_find_previous" />
     <item
         android:id="@+id/find_next"
         android:icon="@drawable/ic_keyboard_arrow_down"
-        android:showAsAction="always"
+        app:showAsAction="always"
         android:title="@string/action_find_next" />
 
 </menu>

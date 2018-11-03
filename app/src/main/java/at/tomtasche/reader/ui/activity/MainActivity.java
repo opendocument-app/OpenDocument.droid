@@ -1,7 +1,6 @@
 package at.tomtasche.reader.ui.activity;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.DialogInterface;
@@ -31,6 +30,7 @@ import com.kobakei.ratethisapp.RateThisApp;
 import java.io.File;
 import java.util.List;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
@@ -82,11 +82,11 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         landingContainer = findViewById(R.id.landing_container);
         documentContainer = findViewById(R.id.document_container);
 
-        documentFragment = (DocumentFragment) getFragmentManager()
+        documentFragment = (DocumentFragment) getSupportFragmentManager()
                 .findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
         if (documentFragment == null) {
             documentFragment = new DocumentFragment();
-            getFragmentManager()
+            getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.document_container, documentFragment,
                             DOCUMENT_FRAGMENT_TAG).commit();
