@@ -98,9 +98,8 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
         String filename = null;
         // https://stackoverflow.com/a/38304115/198996
         Cursor fileCursor = getContext().getContentResolver().query(uri, null, null, null, null);
-        if (fileCursor != null) {
+        if (fileCursor != null && fileCursor.moveToFirst()) {
             int nameIndex = fileCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-            fileCursor.moveToFirst();
             filename = fileCursor.getString(nameIndex);
             fileCursor.close();
         }

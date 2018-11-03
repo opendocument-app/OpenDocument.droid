@@ -5,57 +5,58 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.os.Bundle;
+
 import at.tomtasche.reader.R;
 
 @SuppressLint("ValidFragment")
 public class ProgressDialogFragment extends DialogFragment {
 
-	public static final String FRAGMENT_TAG = "progress_dialog";
+    public static final String FRAGMENT_TAG = "progress_dialog";
 
-	private ProgressDialog progressDialog;
-	private boolean upload;
+    private ProgressDialog progressDialog;
+    private boolean upload;
 
-	public ProgressDialogFragment() {
-		this(false);
-	}
+    public ProgressDialogFragment() {
+        this(false);
+    }
 
-	public ProgressDialogFragment(boolean upload) {
-		this.upload = upload;
-	}
+    public ProgressDialogFragment(boolean upload) {
+        this.upload = upload;
+    }
 
-	@Override
-	public Dialog onCreateDialog(Bundle savedInstanceState) {
-		progressDialog = new ProgressDialog(getActivity());
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        progressDialog = new ProgressDialog(getActivity());
 
-		int title;
-		if (upload) {
-			title = R.string.dialog_uploading_title;
-		} else {
-			title = R.string.dialog_loading_title;
-		}
+        int title;
+        if (upload) {
+            title = R.string.dialog_uploading_title;
+        } else {
+            title = R.string.dialog_loading_title;
+        }
 
-		progressDialog.setTitle(getString(title));
-		progressDialog.setMessage(getString(R.string.dialog_loading_message));
-		progressDialog.setCancelable(false);
-		progressDialog.setIndeterminate(upload);
-		if (!upload) {
-			progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-			progressDialog.setMax(100);
-			progressDialog.setProgress(0);
-		}
+        progressDialog.setTitle(getString(title));
+        progressDialog.setMessage(getString(R.string.dialog_loading_message));
+        progressDialog.setCancelable(false);
+        progressDialog.setIndeterminate(upload);
+        if (!upload) {
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            progressDialog.setMax(100);
+            progressDialog.setProgress(0);
+        }
 
-		setCancelable(false);
+        setCancelable(false);
 
-		return progressDialog;
-	}
+        return progressDialog;
+    }
 
-	public void setProgress(double progress) {
-		if (progressDialog != null)
-			progressDialog.setProgress(((int) (progress * 100)));
-	}
+    public void setProgress(double progress) {
+        if (progressDialog != null)
+            progressDialog.setProgress(((int) (progress * 100)));
+    }
 
-	// another dirty hack for a nullpointerexception thrown sometimes on dismiss()
-	public boolean isNotNull() {
-		return progressDialog != null;
-	}
+    // another dirty hack for a nullpointerexception thrown sometimes on dismiss()
+    public boolean isNotNull() {
+        return progressDialog != null;
+    }
 }
