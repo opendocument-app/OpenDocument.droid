@@ -4,17 +4,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
-import android.support.annotation.NonNull;
-import android.support.v4.content.AsyncTaskLoader;
-import android.util.Log;
 import android.webkit.MimeTypeMap;
 
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -27,6 +22,7 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.UUID;
 
+import androidx.loader.content.AsyncTaskLoader;
 import at.tomtasche.reader.background.Document.Page;
 
 public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
@@ -91,12 +87,6 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
 
     @Override
     public Document loadInBackground() {
-        if (uri == DocumentLoader.URI_INTRO) {
-            cancelLoad();
-
-            return null;
-        }
-
         Task<AuthResult> authenticationTask = null;
         String currentUserId = null;
         if (auth.getCurrentUser() != null) {
@@ -108,9 +98,8 @@ public class UpLoader extends AsyncTaskLoader<Document> implements FileLoader {
         String filename = null;
         // https://stackoverflow.com/a/38304115/198996
         Cursor fileCursor = getContext().getContentResolver().query(uri, null, null, null, null);
-        if (fileCursor != null) {
+        if (fileCursor != null && fileCursor.moveToFirst()) {
             int nameIndex = fileCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-            fileCursor.moveToFirst();
             filename = fileCursor.getString(nameIndex);
             fileCursor.close();
         }

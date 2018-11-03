@@ -19,6 +19,7 @@ public class AdManager {
     private AnalyticsManager analyticsManager;
 
     private boolean showAds;
+    private boolean adFailed;
 
     private LinearLayout adContainer;
     private AdView madView;
@@ -80,6 +81,11 @@ public class AdManager {
         showAds(adView);
     }
 
+    public void toggleVisibility(boolean visible) {
+        boolean show = visible && adFailed && enabled;
+        adContainer.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
     public void loadInterstitial() {
         if (!enabled) {
             return;
@@ -115,9 +121,7 @@ public class AdManager {
     public void removeAds() {
         showAds = false;
 
-        if (madView != null) {
-            madView.setVisibility(View.GONE);
-        }
+        adContainer.setVisibility(View.GONE);
 
         analyticsManager.report("remove_ads");
     }
@@ -130,7 +134,7 @@ public class AdManager {
             // android.webkit.WebView.requestFocus(WebView.java:2133)
             // android.view.ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
             if (madView != null) {
-                ((AdView) madView).destroy();
+                madView.destroy();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -141,6 +145,8 @@ public class AdManager {
 
         @Override
         public void onAdFailedToLoad(int arg0) {
+            adFailed = true;
+            toggleVisibility(false);
             adFailedRunnable.run();
         }
 

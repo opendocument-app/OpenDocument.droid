@@ -9,7 +9,8 @@ public class CrashManager {
 
     private boolean enabled;
 
-    public void initialize() {}
+    public void initialize() {
+    }
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;

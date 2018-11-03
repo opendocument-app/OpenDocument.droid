@@ -1,6 +1,5 @@
 package at.tomtasche.reader.nonfree;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 
@@ -13,6 +12,7 @@ import com.github.jberkel.pay.me.model.Inventory;
 import com.github.jberkel.pay.me.model.ItemType;
 import com.github.jberkel.pay.me.model.Purchase;
 
+import androidx.appcompat.app.AppCompatActivity;
 import at.tomtasche.reader.background.BillingPreferences;
 
 public class BillingManager {
@@ -26,11 +26,9 @@ public class BillingManager {
     private boolean enabled;
 
     private AnalyticsManager analyticsManager;
-    private AdManager adManager;
 
     private IabHelper billingHelper;
     private BillingPreferences billingPreferences;
-    private Runnable billingFailedRunnable;
 
     public void initialize(Context context, AnalyticsManager analyticsManager, AdManager adManager) {
         if (!enabled) {
@@ -38,7 +36,6 @@ public class BillingManager {
         }
 
         this.analyticsManager = analyticsManager;
-        this.adManager = adManager;
 
         billingPreferences = new BillingPreferences(context);
         billingHelper = new IabHelper(context, getPublicKey());
@@ -54,15 +51,7 @@ public class BillingManager {
                 }
 
                 if (result.isFailure()) {
-                    new android.os.Handler().post(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            adManager.showGoogleAds();
-
-                            billingFailedRunnable.run();
-                        }
-                    });
+                    adManager.showGoogleAds();
                 } else if (result.isSuccess()) {
                     // query every 7 days
                     if ((billingPreferences.getLastQueryTime() + 1000 * 60 * 60 * 24 * 7) < System
@@ -98,11 +87,7 @@ public class BillingManager {
         this.enabled = enabled;
     }
 
-    public void setOnBillingFailedCallback(Runnable runnable) {
-        billingFailedRunnable = runnable;
-    }
-
-    public void startPurchase(Activity activity, String productSku) {
+    public void startPurchase(AppCompatActivity activity, String productSku) {
         billingHelper.launchPurchaseFlow(activity, productSku, ItemType.INAPP, PURCHASE_CODE,
                 new OnIabPurchaseFinishedListener() {
                     public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
