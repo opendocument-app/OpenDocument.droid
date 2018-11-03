@@ -25,7 +25,7 @@ public class ShortcutActivity extends FragmentActivity implements
     }
 
     @Override
-    public DocumentLoader loadUri(Uri uri) {
+    public void loadUri(Uri uri) {
         ShortcutIconResource icon = Intent.ShortcutIconResource.fromContext(
                 this, R.mipmap.icon);
 
@@ -42,7 +42,5 @@ public class ShortcutActivity extends FragmentActivity implements
         setResult(RESULT_OK, intent);
 
         finish();
-
-        return null;
     }
 }

@@ -39,7 +39,7 @@ import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 import de.keyboardsurfer.android.widget.crouton.Style;
 
 public class DocumentFragment extends Fragment implements
-        LoaderManager.LoaderCallbacks<Document>, DocumentLoadingActivity, androidx.appcompat.app.ActionBar.TabListener {
+        LoaderManager.LoaderCallbacks<Document>, androidx.appcompat.app.ActionBar.TabListener {
 
     private static final String EXTRA_URI = "uri";
     private static final String EXTRA_LIMIT = "limit";
@@ -84,7 +84,6 @@ public class DocumentFragment extends Fragment implements
         return pageView;
     }
 
-    @Override
     public DocumentLoader loadUri(Uri uri) {
         return loadUri(uri, null, false, false);
     }
@@ -180,7 +179,7 @@ public class DocumentFragment extends Fragment implements
 
             int pages = document.getPages().size();
             if (pages > 1) {
-                bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+                bar.setNavigationMode(androidx.appcompat.app.ActionBar.NAVIGATION_MODE_TABS);
                 for (int i = 0; i < pages; i++) {
                     androidx.appcompat.app.ActionBar.Tab tab = bar.newTab();
                     String name = document.getPageAt(i).getName();

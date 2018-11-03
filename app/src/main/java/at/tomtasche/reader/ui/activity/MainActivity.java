@@ -48,7 +48,7 @@ import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
 import de.keyboardsurfer.android.widget.crouton.Style;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements DocumentLoadingActivity {
 
     private static final boolean USE_PROPRIETARY_LIBRARIES = true;
     private static final int GOOGLE_REQUEST_CODE = 1993;
@@ -231,7 +231,8 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, intent);
     }
 
-    private void loadUri(Uri uri) {
+    @Override
+    public void loadUri(Uri uri) {
         isDocumentLoaded = true;
 
         documentFragment.loadUri(uri);

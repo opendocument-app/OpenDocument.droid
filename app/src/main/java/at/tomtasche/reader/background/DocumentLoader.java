@@ -182,6 +182,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
             settings.setCache(cache);
             settings.setBackTranslateable(translatable);
             settings.setImageStoreMode(ImageStoreMode.CACHE);
+            settings.setSplitPages(true);
             if (limit) {
                 settings.setMaxTableDimension(new Vector2i(5000, 1000));
                 settings.setMaxRowRepetition(100);

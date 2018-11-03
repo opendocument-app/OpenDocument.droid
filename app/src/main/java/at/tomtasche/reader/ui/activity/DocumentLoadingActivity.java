@@ -6,5 +6,5 @@ import at.tomtasche.reader.background.DocumentLoader;
 
 public interface DocumentLoadingActivity {
 
-    public DocumentLoader loadUri(Uri uri);
+    public void loadUri(Uri uri);
 }
