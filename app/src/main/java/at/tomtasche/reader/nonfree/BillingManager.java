@@ -26,11 +26,14 @@ public class BillingManager {
     private boolean enabled;
 
     private AnalyticsManager analyticsManager;
+    private AdManager adManager;
 
     private IabHelper billingHelper;
     private BillingPreferences billingPreferences;
 
     public void initialize(Context context, AnalyticsManager analyticsManager, AdManager adManager) {
+        this.adManager = adManager;
+
         if (!enabled) {
             return;
         }
@@ -94,6 +97,8 @@ public class BillingManager {
                         if (result.isSuccess()) {
                             billingPreferences.setPurchased(true);
                             billingPreferences.setLastQueryTime(System.currentTimeMillis());
+
+                            adManager.removeAds();
                         } else {
                             analyticsManager.report("purchase_abort");
                         }

@@ -56,6 +56,10 @@
     <string name="showcase_edit_detail">We do now support editing of documents! Press the pen shown at the top to enter edit-mode. After you have finished modifying your document, press Save. The document is then saved on your sdcard and reloaded in read-only mode again.</string>
     <string name="showcase_ad_title">Support the developers of this app!</string>
     <string name="showcase_ad_detail">Every time you consume an ad (e.g. by clicking on it) you make two young boys in Austria smile. If you don\'t like ads, you can remove them for a small fee and make these boys even happier.</string>
+    <string name="landing_welcome_title">Welcome to \nOpenDocument Reader</string>
+    <string name="landing_intro_view">OpenDocument Reader allows you to view documents that are stored in OpenDocument format (.odt, .ods, .odp) wherever you are.</string>
+    <string name="landing_intro_search">With OpenDocument Reader you can read and search through your documents in a breeze.</string>
+    <string name="landing_intro_edit">Found one last typo left to fix in your document? It now supports modifications too!</string>
 
     <string-array name="dialog_remove_ads_options">
         <item>remove ads for one year</item>

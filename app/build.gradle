@@ -16,6 +16,8 @@ android {
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
 
         multiDexEnabled true
+
+        vectorDrawables.useSupportLibrary = true
     }
 
     dexOptions {

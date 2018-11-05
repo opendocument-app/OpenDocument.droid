@@ -95,8 +95,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         initializeProprietaryLibraries();
 
         RateThisApp.onCreate(this);
-
-        // shows after 10 launches after 7 days
         RateThisApp.showRateDialogIfNeeded(this);
 
         showIntroActivity();
@@ -135,27 +133,24 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     }
 
     private void initializeProprietaryLibraries() {
-        boolean proprietaryAvailable = USE_PROPRIETARY_LIBRARIES;
-        if (proprietaryAvailable) {
+        if (USE_PROPRIETARY_LIBRARIES) {
             GoogleApiAvailability googleApi = GoogleApiAvailability.getInstance();
             int googleAvailability = googleApi.isGooglePlayServicesAvailable(this);
             if (googleAvailability != ConnectionResult.SUCCESS) {
                 googleApi.getErrorDialog(this, googleAvailability, GOOGLE_REQUEST_CODE).show();
-
-                proprietaryAvailable = false;
             }
         }
 
         crashManager = new CrashManager();
-        crashManager.setEnabled(proprietaryAvailable);
+        crashManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
         crashManager.initialize();
 
         analyticsManager = new AnalyticsManager();
-        analyticsManager.setEnabled(proprietaryAvailable);
+        analyticsManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
         analyticsManager.initialize(this);
 
         adManager = new AdManager();
-        adManager.setEnabled(proprietaryAvailable);
+        adManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
         adManager.setAdContainer(adContainer);
         adManager.setOnAdFailedCallback(new Runnable() {
 
@@ -173,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         adManager.initialize(getApplicationContext(), analyticsManager);
 
         billingManager = new BillingManager();
-        billingManager.setEnabled(proprietaryAvailable);
+        billingManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
         billingManager.initialize(this, analyticsManager, adManager);
     }
 
@@ -237,7 +232,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         documentFragment.loadUri(uri);
 
-        adManager.toggleVisibility(true);
         landingContainer.setVisibility(View.GONE);
         documentContainer.setVisibility(View.VISIBLE);
 
@@ -505,6 +499,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                         break;
 
                     default:
+                        adManager.removeAds();
+
                         dialog.dismiss();
 
                         return;

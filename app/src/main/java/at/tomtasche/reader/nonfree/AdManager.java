@@ -49,7 +49,7 @@ public class AdManager {
         this.adContainer = adContainer;
     }
 
-    public void showAds(AdView adView) {
+    private void showAds(AdView adView) {
         if (!enabled) {
             return;
         }
@@ -60,6 +60,8 @@ public class AdManager {
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         adContainer.addView(adView, params);
+
+        toggleVisibility(true);
     }
 
     public void showGoogleAds() {
@@ -81,8 +83,8 @@ public class AdManager {
         showAds(adView);
     }
 
-    public void toggleVisibility(boolean visible) {
-        boolean show = visible && adFailed && enabled;
+    private void toggleVisibility(boolean visible) {
+        boolean show = visible && !adFailed && enabled;
         adContainer.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
