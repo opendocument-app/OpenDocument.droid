@@ -22,6 +22,16 @@ public class CrashManager {
         }
 
         Crashlytics.log(Log.ERROR, "MainActivity", "could not load document at: " + uri.toString());
+        log(error);
+    }
+
+    public void log(Throwable error) {
+        error.printStackTrace();
+
+        if (!enabled) {
+            return;
+        }
+
         Crashlytics.logException(error);
     }
 }

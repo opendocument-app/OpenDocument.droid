@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         billingManager = new BillingManager();
         billingManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
-        billingManager.initialize(this, analyticsManager, adManager);
+        billingManager.initialize(this, analyticsManager, adManager, crashManager);
     }
 
     @Override
@@ -388,8 +388,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                     Intent printIntent = new Intent(Intent.ACTION_SEND);
                     printIntent.setType("text/html");
                     printIntent.putExtra(Intent.EXTRA_TITLE, "OpenDocument Reader - " + uri.getLastPathSegment());
-
                     printIntent.putExtra(Intent.EXTRA_STREAM, uri);
+                    printIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
                     try {
                         startActivity(printIntent);
@@ -461,6 +461,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setDataAndType(uri, "application/*");
         intent.putExtra(Intent.EXTRA_STREAM, uri);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
         try {
             startActivity(intent);

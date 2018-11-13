@@ -115,16 +115,20 @@ public class IntroActivity extends AppIntro {
         }
 
         // change order of image and text
-        View imageView = newFragment.getView().findViewById(R.id.image);
-        ViewGroup imageParent = (ViewGroup) imageView.getParent();
-        ViewGroup contentParent = (ViewGroup) imageParent.getParent();
-        contentParent.removeView(imageParent);
-        contentParent.addView(imageParent, 0);
+        if (newFragment.getView() != null) {
+            View imageView = newFragment.getView().findViewById(R.id.image);
+            if (imageView != null) {
+                ViewGroup imageParent = (ViewGroup) imageView.getParent();
+                ViewGroup contentParent = (ViewGroup) imageParent.getParent();
+                contentParent.removeView(imageParent);
+                contentParent.addView(imageParent, 0);
 
-        // change line spacing for big screens
-        if (getResources().getConfiguration().screenHeightDp > 600) {
-            TextView descriptionView = newFragment.getView().findViewById(R.id.description);
-            descriptionView.setLineSpacing(0, 1.5f);
+                // change line spacing for big screens
+                if (getResources().getConfiguration().screenHeightDp > 600) {
+                    TextView descriptionView = newFragment.getView().findViewById(R.id.description);
+                    descriptionView.setLineSpacing(0, 1.5f);
+                }
+            }
         }
 
         super.onSlideChanged(oldFragment, newFragment);
