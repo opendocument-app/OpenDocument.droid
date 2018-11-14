@@ -3,15 +3,15 @@
 
     <style name="landing_intro_margin">
         <item name="android:layout_marginLeft">3dp</item>
-        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:layout_marginTop">0dp</item>
         <item name="android:layout_marginRight">3dp</item>
     </style>
 
     <style name="landing_intro_title_container" parent="landing_intro_margin">
-        <item name="android:layout_height">100dp</item>
+        <item name="android:layout_height">90dp</item>
     </style>
 
     <style name="landing_intro_title">
-        <item name="android:textSize">23dp</item>
+        <item name="android:textSize">22dp</item>
     </style>
 </resources>
