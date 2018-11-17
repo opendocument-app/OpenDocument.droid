@@ -55,6 +55,8 @@ public class BillingManager {
                     }
 
                     if (result.isFailure()) {
+                        enabled = false;
+
                         adManager.showGoogleAds();
                     } else if (result.isSuccess()) {
                         // only query once per day
@@ -101,6 +103,10 @@ public class BillingManager {
     }
 
     public void startPurchase(AppCompatActivity activity, String productSku) {
+        if (!enabled) {
+            return;
+        }
+
         billingHelper.launchPurchaseFlow(activity, productSku, ItemType.INAPP, PURCHASE_CODE,
                 new OnIabPurchaseFinishedListener() {
                     public void onIabPurchaseFinished(IabResult result, Purchase purchase) {

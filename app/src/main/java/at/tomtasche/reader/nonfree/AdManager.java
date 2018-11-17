@@ -153,5 +153,30 @@ public class AdManager {
 
             analyticsManager.report("ads_failed");
         }
+
+        @Override
+        public void onAdLoaded() {
+            analyticsManager.report("ads_loaded");
+        }
+
+        @Override
+        public void onAdClicked() {
+            analyticsManager.report("ads_clicked");
+        }
+
+        @Override
+        public void onAdImpression() {
+            analyticsManager.report("ads_impression");
+        }
+
+        @Override
+        public void onAdClosed() {
+            analyticsManager.report("ads_closed");
+        }
+
+        @Override
+        public void onAdOpened() {
+            analyticsManager.report("ads_opened");
+        }
     }
 }
