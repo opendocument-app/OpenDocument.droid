@@ -31,7 +31,7 @@ public class BillingManager {
     private IabHelper billingHelper;
     private BillingPreferences billingPreferences;
 
-    public void initialize(Context context, AnalyticsManager analyticsManager, AdManager adManager) {
+    public void initialize(Context context, AnalyticsManager analyticsManager, AdManager adManager, CrashManager crashManager) {
         this.adManager = adManager;
 
         if (!enabled) {
@@ -43,47 +43,57 @@ public class BillingManager {
         billingPreferences = new BillingPreferences(context);
         billingHelper = new IabHelper(context, getPublicKey());
 
-        billingHelper.startSetup(new OnIabSetupFinishedListener() {
+        try {
+            billingHelper.startSetup(new OnIabSetupFinishedListener() {
 
-            @Override
-            public void onIabSetupFinished(IabResult result) {
-                if (billingPreferences.hasPurchased()) {
-                    adManager.removeAds();
+                @Override
+                public void onIabSetupFinished(IabResult result) {
+                    if (billingPreferences.hasPurchased()) {
+                        adManager.removeAds();
 
-                    return;
-                }
+                        return;
+                    }
 
-                if (result.isFailure()) {
-                    adManager.showGoogleAds();
-                } else if (result.isSuccess()) {
-                    // query every 7 days
-                    if ((billingPreferences.getLastQueryTime() + 1000 * 60 * 60 * 24 * 7) < System
-                            .currentTimeMillis()) {
-                        billingHelper.queryInventoryAsync(new QueryInventoryFinishedListener() {
+                    if (result.isFailure()) {
+                        adManager.showGoogleAds();
+                    } else if (result.isSuccess()) {
+                        // only query once per day
+                        if ((billingPreferences.getLastQueryTime() + 1000 * 60 * 60 * 24) < System
+                                .currentTimeMillis()) {
+                            billingHelper.queryInventoryAsync(new QueryInventoryFinishedListener() {
 
-                            @Override
-                            public void onQueryInventoryFinished(IabResult result, Inventory inv) {
-                                if (result.isSuccess()) {
-                                    boolean purchased = inv.getPurchase(BILLING_PRODUCT_FOREVER) != null;
-                                    purchased |= inv.getPurchase(BILLING_PRODUCT_YEAR) != null;
-                                    purchased |= inv.getPurchase(BILLING_PRODUCT_LOVE) != null;
+                                @Override
+                                public void onQueryInventoryFinished(IabResult result, Inventory inv) {
+                                    if (result.isSuccess()) {
+                                        boolean purchased = inv.getPurchase(BILLING_PRODUCT_FOREVER) != null;
+                                        purchased |= inv.getPurchase(BILLING_PRODUCT_YEAR) != null;
+                                        purchased |= inv.getPurchase(BILLING_PRODUCT_LOVE) != null;
 
-                                    if (purchased) {
-                                        adManager.removeAds();
-                                    } else {
-                                        adManager.showGoogleAds();
+                                        if (purchased) {
+                                            adManager.removeAds();
+                                        } else {
+                                            adManager.showGoogleAds();
+                                        }
+
+                                        billingPreferences.setPurchased(purchased);
                                     }
 
-                                    billingPreferences.setPurchased(purchased);
+                                    billingPreferences.setLastQueryTime(System.currentTimeMillis());
                                 }
-
-                                billingPreferences.setLastQueryTime(System.currentTimeMillis());
-                            }
-                        });
+                            });
+                        } else if (!billingPreferences.hasPurchased()) {
+                            adManager.showGoogleAds();
+                        }
                     }
                 }
-            }
-        });
+            });
+        } catch (Exception e) {
+            crashManager.log(e);
+
+            enabled = false;
+
+            adManager.showGoogleAds();
+        }
     }
 
     public void setEnabled(boolean enabled) {

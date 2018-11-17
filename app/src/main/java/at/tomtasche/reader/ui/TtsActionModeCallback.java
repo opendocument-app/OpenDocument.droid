@@ -38,7 +38,7 @@ public class TtsActionModeCallback implements ActionMode.Callback,
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
         statusView = new TextView(context);
-        statusView.setText("Initializing TTS...");
+        statusView.setText(R.string.tts_status_initializing);
         mode.setCustomView(statusView);
 
         mode.getMenuInflater().inflate(R.menu.tts, menu);
@@ -55,7 +55,7 @@ public class TtsActionModeCallback implements ActionMode.Callback,
     @Override
     public void onInit(int status) {
         if (status == TextToSpeech.SUCCESS) {
-            statusView.setText("Ready!");
+            statusView.setText(R.string.tts_status_ready);
 
             textToSpeech.setOnUtteranceCompletedListener(this);
 
@@ -64,7 +64,7 @@ public class TtsActionModeCallback implements ActionMode.Callback,
             menu.findItem(R.id.tts_previous).setEnabled(true);
             menu.findItem(R.id.tts_next).setEnabled(true);
         } else {
-            statusView.setText("TTS failed.");
+            statusView.setText(R.string.tts_status_failed);
 
             // TODO: download voices?
         }
@@ -79,7 +79,7 @@ public class TtsActionModeCallback implements ActionMode.Callback,
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
         switch (item.getItemId()) {
             case R.id.tts_previous: {
-                statusView.setText("Reading...");
+                statusView.setText(R.string.tts_status_reading);
 
                 textToSpeech.stop();
 
@@ -92,7 +92,7 @@ public class TtsActionModeCallback implements ActionMode.Callback,
 
             case R.id.tts_play: {
                 if (!textToSpeech.isSpeaking()) {
-                    statusView.setText("Reading...");
+                    statusView.setText(R.string.tts_status_reading);
 
                     paused = false;
 
@@ -103,7 +103,7 @@ public class TtsActionModeCallback implements ActionMode.Callback,
             }
 
             case R.id.tts_pause: {
-                statusView.setText("Paused.");
+                statusView.setText(R.string.tts_status_paused);
 
                 paused = true;
 
@@ -115,7 +115,7 @@ public class TtsActionModeCallback implements ActionMode.Callback,
             }
 
             case R.id.tts_next: {
-                statusView.setText("Reading...");
+                statusView.setText(R.string.tts_status_reading);
 
                 textToSpeech.stop();
 
@@ -158,7 +158,7 @@ public class TtsActionModeCallback implements ActionMode.Callback,
 
             @Override
             public void run() {
-                statusView.setText("Finished.");
+                statusView.setText(R.string.tts_status_finished);
             }
         });
     }

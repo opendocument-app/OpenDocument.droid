@@ -16,102 +16,104 @@
         android:visibility="gone" />
 
     <LinearLayout
-        android:id="@+id/landing_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/ad_container"
-        android:orientation="vertical">
+            android:id="@+id/landing_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/ad_container"
+            android:orientation="vertical"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="0dp">
 
         <LinearLayout
-            style="@style/landing_intro_title_container"
-            android:layout_width="match_parent"
-            android:orientation="horizontal"
-            android:weightSum="1">
+                style="@style/landing_intro_title_container"
+                android:layout_width="match_parent"
+                android:orientation="horizontal"
+                android:weightSum="1">
 
             <ImageView
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.3"
-                app:srcCompat="@mipmap/ic_launcher_foreground" />
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.3"
+                    app:srcCompat="@mipmap/ic_launcher_foreground"/>
 
             <TextView
-                style="@style/landing_intro_title"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.7"
-                android:gravity="center_vertical"
-                android:lineSpacingMultiplier="1.2"
-                android:text="@string/landing_welcome_title"
-                android:textStyle="bold" />
+                    style="@style/landing_intro_title"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.7"
+                    android:gravity="center_vertical"
+                    android:lineSpacingMultiplier="1.2"
+                    android:text="@string/landing_welcome_title"
+                    android:textStyle="bold"/>
         </LinearLayout>
 
         <LinearLayout
-            style="@style/landing_intro_margin"
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:orientation="horizontal"
-            android:weightSum="1">
+                style="@style/landing_intro_margin"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:orientation="horizontal"
+                android:weightSum="1">
 
             <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_weight="0.2"
-                app:srcCompat="@drawable/ic_folder_open" />
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight="0.2"
+                    app:srcCompat="@drawable/ic_folder_open"/>
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.7"
-                android:gravity="center_vertical"
-                android:lineSpacingMultiplier="1.2"
-                android:text="@string/landing_intro_view" />
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.7"
+                    android:gravity="center_vertical"
+                    android:lineSpacingMultiplier="1.2"
+                    android:text="@string/landing_intro_view"/>
         </LinearLayout>
 
         <LinearLayout
-            style="@style/landing_intro_margin"
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:orientation="horizontal"
-            android:weightSum="1">
+                style="@style/landing_intro_margin"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:orientation="horizontal"
+                android:weightSum="1">
 
             <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_weight="0.2"
-                app:srcCompat="@drawable/ic_search" />
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight="0.2"
+                    app:srcCompat="@drawable/ic_search"/>
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.7"
-                android:gravity="center_vertical"
-                android:lineSpacingMultiplier="1.2"
-                android:text="@string/landing_intro_search" />
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.7"
+                    android:gravity="center_vertical"
+                    android:lineSpacingMultiplier="1.2"
+                    android:text="@string/landing_intro_search"/>
         </LinearLayout>
 
         <LinearLayout
-            style="@style/landing_intro_margin"
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:orientation="horizontal"
-            android:weightSum="1">
+                style="@style/landing_intro_margin"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:orientation="horizontal"
+                android:weightSum="1">
 
             <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_weight="0.2"
-                app:srcCompat="@drawable/ic_edit" />
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight="0.2"
+                    app:srcCompat="@drawable/ic_edit"/>
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.7"
-                android:gravity="center_vertical"
-                android:lineSpacingMultiplier="1.2"
-                android:text="@string/landing_intro_edit" />
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.7"
+                    android:gravity="center_vertical"
+                    android:lineSpacingMultiplier="1.2"
+                    android:text="@string/landing_intro_edit"/>
         </LinearLayout>
     </LinearLayout>
 
