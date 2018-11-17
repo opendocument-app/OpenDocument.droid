@@ -150,17 +150,8 @@ public class AdManager {
             adFailed = true;
             toggleVisibility(false);
             adFailedRunnable.run();
-        }
 
-        @Override
-        public void onAdClicked() {
-        }
-
-        @Override
-        public void onAdLoaded() {
-            if (interstitial != null) {
-                analyticsManager.report("ads_interstitial_shown");
-            }
+            analyticsManager.report("ads_failed");
         }
     }
 }

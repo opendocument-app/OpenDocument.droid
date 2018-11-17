@@ -131,7 +131,12 @@ public class DocumentFragment extends Fragment implements
                 documentLoader.setLimit(limit);
                 documentLoader.setTranslatable(translatable);
 
-                showProgress(documentLoader, false);
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        showProgress(documentLoader, false);
+                    }
+                });
 
                 this.documentLoader = documentLoader;
                 return documentLoader;
@@ -140,7 +145,12 @@ public class DocumentFragment extends Fragment implements
             default:
                 UpLoader upLoader = new UpLoader(getActivity(), uri);
 
-                showProgress(upLoader, true);
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        showProgress(upLoader, true);
+                    }
+                });
 
                 return upLoader;
         }
