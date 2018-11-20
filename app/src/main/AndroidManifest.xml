@@ -39,6 +39,10 @@
                 android:name="com.google.android.gms.ads.APPLICATION_ID"
                 android:value="ca-app-pub-8161473686436957~9025061963" />
 
+        <uses-library
+                android:name="org.apache.http.legacy"
+                android:required="false" />
+
         <activity
             android:name=".ui.activity.MainActivity"
             android:label="OpenDocument Reader" >

@@ -19,6 +19,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.Loader;
@@ -228,8 +229,15 @@ public class DocumentFragment extends Fragment implements
         try {
             progressDialog = new ProgressDialogFragment(upload);
 
-            FragmentTransaction transaction = getFragmentManager()
-                    .beginTransaction();
+            FragmentManager fragmentManager = getFragmentManager();
+            if (fragmentManager == null) {
+                // TODO: use crashmanager
+                progressDialog = null;
+
+                return;
+            }
+
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
             progressDialog.show(transaction,
                     ProgressDialogFragment.FRAGMENT_TAG);
 
