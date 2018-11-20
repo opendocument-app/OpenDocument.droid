@@ -65,6 +65,8 @@ public class DocumentFragment extends Fragment implements
 
         getActivity().setTitle("");
 
+        setRetainInstance(true);
+
         mainHandler = new Handler();
     }
 

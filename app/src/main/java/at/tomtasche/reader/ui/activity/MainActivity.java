@@ -90,6 +90,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                     .beginTransaction()
                     .replace(R.id.document_container, documentFragment,
                             DOCUMENT_FRAGMENT_TAG).commit();
+        } else {
+            loadUri(null);
         }
 
         initializeProprietaryLibraries();
@@ -230,7 +232,11 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     public void loadUri(Uri uri) {
         isDocumentLoaded = true;
 
-        documentFragment.loadUri(uri);
+        if (uri != null) {
+            documentFragment.loadUri(uri);
+        } else {
+            // null passed in case of orientation change
+        }
 
         landingContainer.setVisibility(View.GONE);
         documentContainer.setVisibility(View.VISIBLE);

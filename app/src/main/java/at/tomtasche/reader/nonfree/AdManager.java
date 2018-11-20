@@ -151,7 +151,7 @@ public class AdManager {
             toggleVisibility(false);
             adFailedRunnable.run();
 
-            analyticsManager.report("ads_failed");
+            analyticsManager.report("ads_failed_" + arg0);
         }
 
         @Override
