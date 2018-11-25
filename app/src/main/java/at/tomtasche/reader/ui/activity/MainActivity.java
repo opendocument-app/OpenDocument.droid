@@ -267,8 +267,9 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             }
         };
 
+
         // also execute it immediately, for users who don't see ads
-        saveCroutonRunnable.run();
+        runOnUiThread(saveCroutonRunnable);
     }
 
     private void showSaveCrouton() {

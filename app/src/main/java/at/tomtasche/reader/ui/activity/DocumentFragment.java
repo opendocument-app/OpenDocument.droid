@@ -102,8 +102,12 @@ public class DocumentFragment extends Fragment implements
         bundle.putBoolean(EXTRA_LIMIT, limit);
         bundle.putBoolean(EXTRA_TRANSLATABLE, translatable);
 
-        return (DocumentLoader) getLoaderManager().restartLoader(0,
-                bundle, this);
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                getLoaderManager().restartLoader(0, bundle, DocumentFragment.this);
+            }
+        });
     }
 
     public UpLoader uploadUri(Uri uri) {
@@ -322,7 +326,13 @@ public class DocumentFragment extends Fragment implements
                         }
                     });
             builder.setNegativeButton(getString(android.R.string.cancel), null);
-            builder.show();
+
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    builder.show();
+                }
+            });
 
             return;
         } else if (error instanceof IllegalMimeTypeException
@@ -344,7 +354,13 @@ public class DocumentFragment extends Fragment implements
                         }
                     });
             builder.setNegativeButton(getString(android.R.string.cancel), null);
-            builder.show();
+
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    builder.show();
+                }
+            });
 
             return;
         } else if (error instanceof FileNotFoundException) {
