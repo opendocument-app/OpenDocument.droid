@@ -1,7 +1,6 @@
 package at.tomtasche.reader.ui.activity;
 
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -28,7 +27,6 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.kobakei.ratethisapp.RateThisApp;
 
-import java.io.File;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -37,7 +35,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.Document.Page;
 import at.tomtasche.reader.background.KitKatPrinter;
 import at.tomtasche.reader.nonfree.AdManager;
 import at.tomtasche.reader.nonfree.AnalyticsManager;

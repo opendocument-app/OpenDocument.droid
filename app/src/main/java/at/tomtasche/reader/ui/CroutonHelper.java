@@ -3,7 +3,6 @@ package at.tomtasche.reader.ui;
 import android.app.Activity;
 import android.view.View;
 
-import androidx.appcompat.app.AppCompatActivity;
 import de.keyboardsurfer.android.widget.crouton.Configuration;
 import de.keyboardsurfer.android.widget.crouton.Crouton;
 import de.keyboardsurfer.android.widget.crouton.Style;

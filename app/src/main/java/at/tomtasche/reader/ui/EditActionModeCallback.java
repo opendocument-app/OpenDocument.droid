@@ -5,26 +5,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Environment;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 import androidx.appcompat.view.ActionMode;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
-import at.stefl.opendocument.java.odf.OpenDocument;
-import at.stefl.opendocument.java.odf.OpenDocumentPresentation;
-import at.stefl.opendocument.java.odf.OpenDocumentSpreadsheet;
-import at.stefl.opendocument.java.odf.OpenDocumentText;
-import at.stefl.opendocument.java.translator.Retranslator;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.nonfree.AdManager;
@@ -104,7 +94,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_CODE);
         } else {
-            final File htmlFile = new File(AndroidFileCache.getCacheDirectory(activity),"content.html");
+            final File htmlFile = new File(AndroidFileCache.getCacheDirectory(activity), "content.html");
             pageView.requestHtml(htmlFile, new Runnable() {
 
                 @Override
