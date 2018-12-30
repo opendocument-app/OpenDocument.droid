@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.ActionMode;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,6 +31,7 @@ import com.kobakei.ratethisapp.RateThisApp;
 import java.io.File;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
@@ -65,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
     private boolean fullscreen;
     private TtsActionModeCallback ttsActionMode;
-    private Runnable saveCroutonRunnable;
+    private EditActionModeCallback editActionMode;
 
     private CrashManager crashManager;
     private AnalyticsManager analyticsManager;
@@ -77,6 +79,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.main);
+
+        setTitle("");
 
         adContainer = findViewById(R.id.ad_container);
         landingContainer = findViewById(R.id.landing_container);
@@ -175,13 +179,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-
-        showSaveCrouton();
-    }
-
-    @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
@@ -250,48 +247,10 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         }
     }
 
-    // TODO: that's super ugly - good job :)
-    public void showSaveCroutonLater(final File modifiedFile, final Uri fileUri) {
-        saveCroutonRunnable = new Runnable() {
-
-            @Override
-            public void run() {
-                CroutonHelper.showCrouton(MainActivity.this, "Document successfully saved. You can find it on your sdcard: " + modifiedFile.getName(),
-                        new Runnable() {
-
-                            @Override
-                            public void run() {
-                                share(fileUri);
-                            }
-                        }, Style.INFO);
-            }
-        };
-
-
-        // also execute it immediately, for users who don't see ads
-        runOnUiThread(saveCroutonRunnable);
-    }
-
-    private void showSaveCrouton() {
-        if (saveCroutonRunnable != null) {
-            saveCroutonRunnable.run();
-
-            saveCroutonRunnable = null;
-        }
-    }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        boolean showDocumentMissing = false;
-
         switch (item.getItemId()) {
             case R.id.menu_search: {
-                if (documentFragment.getDocument() == null) {
-                    showDocumentMissing = true;
-
-                    break;
-                }
-
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
                     // http://www.androidsnippets.org/snippets/20/
                     final AlertDialog.Builder alert = new AlertDialog.Builder(this);
@@ -332,12 +291,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 break;
             }
             case R.id.menu_fullscreen: {
-                if (documentFragment.getDocument() == null) {
-                    showDocumentMissing = true;
-
-                    break;
-                }
-
                 if (fullscreen) {
                     leaveFullscreen();
                 } else {
@@ -365,47 +318,15 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 break;
             }
             case R.id.menu_share: {
-                if (documentFragment.getDocument() == null) {
-                    showDocumentMissing = true;
-
-                    break;
-                }
-
                 share(Uri.parse("content://at.tomtasche.reader/document.odt"));
 
                 break;
             }
             case R.id.menu_print: {
-                if (documentFragment.getDocument() == null) {
-                    showDocumentMissing = true;
-
-                    break;
-                }
-
                 if (Build.VERSION.SDK_INT >= 19) {
                     KitKatPrinter.print(this, documentFragment.getPageView());
                 } else {
-                    int index = getSupportActionBar().getSelectedNavigationIndex();
-                    if (index < 0)
-                        index = 0;
-
-                    Page page = documentFragment.getDocument().getPageAt(index);
-                    Uri uri = Uri.parse("content://at.tomtasche.reader/" + page.getUrl());
-
-                    Intent printIntent = new Intent(Intent.ACTION_SEND);
-                    printIntent.setType("text/html");
-                    printIntent.putExtra(Intent.EXTRA_TITLE, "OpenDocument Reader - " + uri.getLastPathSegment());
-                    printIntent.putExtra(Intent.EXTRA_STREAM, uri);
-                    printIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-                    try {
-                        startActivity(printIntent);
-                    } catch (ActivityNotFoundException e) {
-                        Intent installIntent = new Intent(Intent.ACTION_VIEW, Uri
-                                .parse("https://play.google.com/store/apps/details?id=com.google.android.apps.cloudprint"));
-
-                        startActivity(installIntent);
-                    }
+                    Toast.makeText(this, "Printing not available on your device. Please upgrade to a newer version of Android.", Toast.LENGTH_SHORT).show();
                 }
 
                 analyticsManager.report("print");
@@ -413,12 +334,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 break;
             }
             case R.id.menu_tts: {
-                if (documentFragment.getDocument() == null) {
-                    showDocumentMissing = true;
-
-                    break;
-                }
-
                 ttsActionMode = new TtsActionModeCallback(this, documentFragment.getPageView());
                 startSupportActionMode(ttsActionMode);
 
@@ -427,16 +342,9 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 break;
             }
             case R.id.menu_edit: {
-                if (documentFragment.getDocument() == null) {
-                    showDocumentMissing = true;
-
-                    break;
-                }
-
                 adManager.loadInterstitial();
 
-                EditActionModeCallback editActionMode = new EditActionModeCallback(this, documentFragment, adManager, documentFragment.getPageView(),
-                        documentFragment.getDocument().getOrigin());
+                editActionMode = new EditActionModeCallback(this, documentFragment, adManager);
                 startSupportActionMode(editActionMode);
 
                 analyticsManager.report("edit");
@@ -448,11 +356,24 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             }
         }
 
-        if (showDocumentMissing) {
-            Toast.makeText(this, "Please open a document first", Toast.LENGTH_LONG).show();
-        }
-
         return true;
+    }
+
+    @Override
+    public void onActionModeFinished(ActionMode mode) {
+        super.onActionModeFinished(mode);
+
+        editActionMode = null;
+        ttsActionMode = null;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == EditActionModeCallback.PERMISSION_CODE) {
+            editActionMode.save();
+        }
     }
 
     private void showRecent() {

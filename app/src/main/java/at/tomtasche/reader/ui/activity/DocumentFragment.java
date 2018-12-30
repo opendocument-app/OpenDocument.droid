@@ -12,7 +12,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.zip.ZipException;
 
 import androidx.annotation.Nullable;
@@ -21,11 +25,15 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.Loader;
 import at.stefl.opendocument.java.odf.IllegalMimeTypeException;
+import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
+import at.stefl.opendocument.java.odf.OpenDocument;
+import at.stefl.opendocument.java.odf.OpenDocumentPresentation;
+import at.stefl.opendocument.java.odf.OpenDocumentSpreadsheet;
+import at.stefl.opendocument.java.odf.OpenDocumentText;
 import at.stefl.opendocument.java.odf.UnsupportedMimeTypeException;
 import at.stefl.opendocument.java.odf.ZipEntryNotFoundException;
+import at.stefl.opendocument.java.translator.Retranslator;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.Document;
@@ -38,273 +46,196 @@ import at.tomtasche.reader.ui.widget.PageView;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 import de.keyboardsurfer.android.widget.crouton.Style;
 
-public class DocumentFragment extends Fragment implements
-        LoaderManager.LoaderCallbacks<Document>, ActionBar.TabListener {
-
-    private static final String EXTRA_URI = "uri";
-    private static final String EXTRA_LIMIT = "limit";
-    private static final String EXTRA_PASSWORD = "password";
-    private static final String EXTRA_TRANSLATABLE = "translatable";
-    private static final String EXTRA_TAB_POSITION = "tab_position";
-    private static final String EXTRA_SCROLL_POSITION = "scroll_position";
+public class DocumentFragment extends Fragment implements FileLoader.FileLoaderListener, ActionBar.TabListener {
 
     private Handler mainHandler;
 
-    private int lastPosition;
-
     private DocumentLoader documentLoader;
+    private UpLoader upLoader;
 
     private ProgressDialogFragment progressDialog;
     private PageView pageView;
 
-    private Document document;
+    private Uri lastUri;
+    private String lastPassword;
+    private Document lastDocument;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        getActivity().setTitle("");
+        mainHandler = new Handler();
+
+        documentLoader = new DocumentLoader(getContext());
+        documentLoader.initialize(this);
+
+        upLoader = new UpLoader(getContext());
+        upLoader.initialize(this);
 
         setRetainInstance(true);
-
-        mainHandler = new Handler();
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
-
-            pageView = new PageView(getActivity(),
-                    savedInstanceState.getInt(EXTRA_SCROLL_POSITION));
-        } else {
-            pageView = new PageView(getActivity());
-            pageView.loadData("", "text/plain", PageView.ENCODING);
-        }
+        pageView = new PageView(getActivity());
+        pageView.loadData("", "text/plain", PageView.ENCODING);
 
         return pageView;
     }
 
-    public DocumentLoader loadUri(Uri uri) {
-        return loadUri(uri, null, false, false);
+    public void loadUri(Uri uri) {
+        loadUri(uri, null, false, false);
     }
 
-    public DocumentLoader loadUri(Uri uri, String password) {
-        return loadUri(uri, password, false, false);
+    public void loadUri(Uri uri, String password) {
+        loadUri(uri, password, false, false);
     }
 
-    public DocumentLoader loadUri(Uri uri, String password, boolean limit,
-                                  boolean translatable) {
-        Bundle bundle = new Bundle();
-        bundle.putString(EXTRA_PASSWORD, password);
-        bundle.putParcelable(EXTRA_URI, uri);
-        bundle.putBoolean(EXTRA_LIMIT, limit);
-        bundle.putBoolean(EXTRA_TRANSLATABLE, translatable);
+    public void loadUri(Uri uri, String password, boolean limit, boolean translatable) {
+        lastUri = uri;
+        lastPassword = password;
 
-        mainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                getLoaderManager().restartLoader(0, bundle, DocumentFragment.this);
-            }
-        });
+        documentLoader.loadAsync(uri, password, limit, translatable);
+
+        showProgress(documentLoader, false);
     }
 
-    public UpLoader uploadUri(Uri uri) {
-        Bundle bundle = new Bundle();
-        bundle.putParcelable(EXTRA_URI, uri);
-
-        return (UpLoader) getLoaderManager().restartLoader(1, bundle,
-                this);
+    public void reloadUri(boolean limit, boolean translatable) {
+        loadUri(AndroidFileCache.getCacheFileUri(), lastPassword, limit, translatable);
     }
 
-    @Override
-    public Loader<Document> onCreateLoader(int id, Bundle bundle) {
-        boolean limit = true;
-        boolean translatable = false;
-        String password = null;
-        Uri uri = null;
-        if (bundle != null) {
-            uri = bundle.getParcelable(EXTRA_URI);
-            limit = bundle.getBoolean(EXTRA_LIMIT);
-            translatable = bundle.getBoolean(EXTRA_TRANSLATABLE);
-            password = bundle.getString(EXTRA_PASSWORD);
-        }
-
-        switch (id) {
-            case 0:
-                DocumentLoader documentLoader = new DocumentLoader(getActivity(), uri);
-                documentLoader.setPassword(password);
-                documentLoader.setLimit(limit);
-                documentLoader.setTranslatable(translatable);
-
-                mainHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        showProgress(documentLoader, false);
-                    }
-                });
-
-                this.documentLoader = documentLoader;
-                return documentLoader;
-
-            case 1:
-            default:
-                UpLoader upLoader = new UpLoader(getActivity(), uri);
-
-                mainHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        showProgress(upLoader, true);
-                    }
-                });
-
-                return upLoader;
-        }
-    }
-
-    @Override
-    public void onLoadFinished(final Loader<Document> loader, Document document) {
-        dismissProgress();
-
-        FileLoader fileLoader = (FileLoader) loader;
-        Throwable error = fileLoader.getLastError();
-        final Uri uri = fileLoader.getLastUri();
-        if (error != null) {
-            handleError(error, uri);
-        } else if (document != null) {
-            this.document = document;
-
-            // TODO: we should load the first page here already
-            // DocumentFragment should - basically - work out-of-the-box
-            // (without any further logic)!
-
-            if (document.isLimited()) {
-                CroutonHelper.showCrouton(getActivity(), R.string.toast_info_limited, new Runnable() {
-
-                    @Override
-                    public void run() {
-                        loadUri(uri, ((DocumentLoader) loader).getPassword(),
-                                false, false);
-                    }
-                }, Style.INFO);
-            }
-
-            ActionBar bar = ((MainActivity) getActivity()).getSupportActionBar();
-            bar.removeAllTabs();
-
-            int pages = document.getPages().size();
-            if (pages > 1) {
-                bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-                for (int i = 0; i < pages; i++) {
-                    ActionBar.Tab tab = bar.newTab();
-                    String name = document.getPageAt(i).getName();
-                    if (name == null)
-                        name = "Page " + (i + 1);
-                    tab.setText(name);
-                    tab.setTabListener(this);
-
-                    bar.addTab(tab);
-                }
-
-                if (lastPosition > 0) {
-                    bar.setSelectedNavigationItem(lastPosition);
-
-                    lastPosition = -1;
-                }
-            } else {
-                bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-
-                if (pages == 1) {
-                    showPage(document.getPageAt(0));
-                }
-            }
-        }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Document> loader) {
-    }
-
-    private void showProgress(final Loader<Document> loader,
-                              final boolean upload) {
-        if (progressDialog != null) {
-            return;
-        }
-
+    public void save(File htmlFile) {
+        FileInputStream htmlStream = null;
+        FileOutputStream modifiedStream = null;
+        LocatedOpenDocumentFile documentFile = null;
         try {
-            progressDialog = new ProgressDialogFragment(upload);
+            htmlStream = new FileInputStream(htmlFile);
 
-            FragmentManager fragmentManager = getFragmentManager();
-            if (fragmentManager == null) {
-                // TODO: use crashmanager
-                progressDialog = null;
+            // TODO: ugly and risky cast
+            documentFile = new LocatedOpenDocumentFile(((LocatedOpenDocumentFile) lastDocument.getOrigin().getDocumentFile()).getFile());
+            documentFile.setPassword(lastPassword);
 
-                return;
+            String extension = "unknown";
+            OpenDocument openDocument = documentFile.getAsDocument();
+            if (openDocument instanceof OpenDocumentText) {
+                extension = "odt";
+            } else if (openDocument instanceof OpenDocumentSpreadsheet) {
+                extension = "ods";
+            } else if (openDocument instanceof OpenDocumentPresentation) {
+                extension = "odp";
             }
 
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
-            progressDialog.show(transaction,
-                    ProgressDialogFragment.FRAGMENT_TAG);
+            File modifiedFile = new File(Environment
+                    .getExternalStorageDirectory(),
+                    "modified-by-opendocument-reader." + extension);
+            modifiedStream = new FileOutputStream(modifiedFile);
 
-            if (!upload) {
-                final FileLoader fileLoader = (FileLoader) loader;
+            Retranslator.retranslate(openDocument, htmlStream,
+                    modifiedStream);
 
-                mainHandler.postDelayed(new Runnable() {
+            modifiedStream.close();
 
-                    @Override
-                    public void run() {
-                        if (progressDialog == null) {
-                            return;
-                        }
+            Uri fileUri = Uri.parse("file://"
+                    + modifiedFile.getAbsolutePath());
 
-                        progressDialog.setProgress(fileLoader.getProgress());
-
-                        if (loader.isStarted()) {
-                            mainHandler.postDelayed(this, 1000);
-                        }
-                    }
-                }, 1000);
-            }
-        } catch (IllegalStateException e) {
+            loadUri(fileUri, lastPassword, false, true);
+        } catch (final Throwable e) {
             e.printStackTrace();
 
-            progressDialog = null;
-        }
-    }
-
-    private void dismissProgress() {
-        // dirty hack because committing isn't allowed right after
-        // onLoadFinished:
-        // "java.lang.IllegalStateException: Can not perform this action inside of onLoadFinished"
-        if (progressDialog == null) {
-            progressDialog = (ProgressDialogFragment) getFragmentManager()
-                    .findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
-        }
-
-        if (progressDialog != null && progressDialog.getShowsDialog()
-                && progressDialog.isNotNull()) {
-            try {
-                progressDialog.dismissAllowingStateLoss();
-            } catch (NullPointerException e) {
-                e.printStackTrace();
+            onError(e);
+        } finally {
+            if (documentFile != null) {
+                try {
+                    documentFile.close();
+                } catch (IOException e) {
+                }
             }
 
-            progressDialog = null;
+            if (htmlStream != null) {
+                try {
+                    htmlStream.close();
+                } catch (IOException e) {
+                }
+            }
+
+            if (modifiedStream != null) {
+                try {
+                    modifiedStream.close();
+                } catch (IOException e) {
+                }
+            }
         }
     }
 
-    public void handleError(Throwable error, final Uri uri) {
-        Log.e("OpenDocument Reader", "Error opening file at " + uri.toString(),
-                error);
+    public void uploadUri(Uri uri) {
+        lastUri = uri;
+        lastPassword = null;
 
-        ((MainActivity) getActivity()).getCrashManager().log(error, uri);
+        upLoader.loadAsync(uri, null, false, false);
+
+        showProgress(upLoader, true);
+    }
+
+    @Override
+    public void onSuccess(Document document) {
+        this.lastDocument = document;
+
+        dismissProgress();
+
+        // TODO: we should load the first page here already
+        // DocumentFragment should - basically - work out-of-the-box
+        // (without any further logic)!
+
+        if (document.isLimited()) {
+            CroutonHelper.showCrouton(getActivity(), R.string.toast_info_limited, new Runnable() {
+
+                @Override
+                public void run() {
+                    loadUri(lastUri, lastPassword,
+                            false, false);
+                }
+            }, Style.INFO);
+        }
+
+        ActionBar bar = ((MainActivity) getActivity()).getSupportActionBar();
+        bar.removeAllTabs();
+
+        int pages = document.getPages().size();
+        if (pages > 1) {
+            bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+            for (int i = 0; i < pages; i++) {
+                ActionBar.Tab tab = bar.newTab();
+                String name = document.getPageAt(i).getName();
+                if (name == null)
+                    name = "Page " + (i + 1);
+                tab.setText(name);
+                tab.setTabListener(this);
+
+                bar.addTab(tab);
+            }
+
+            bar.setSelectedNavigationItem(0);
+        } else {
+            bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+
+            if (pages == 1) {
+                showPage(document.getPageAt(0));
+            }
+        }
+    }
+
+    @Override
+    public void onError(Throwable error) {
+        lastDocument = null;
+
+        dismissProgress();
 
         final Uri cacheUri = AndroidFileCache.getCacheFileUri();
 
         int errorDescription;
         if (error == null) {
-            return;
+            throw new RuntimeException("no error given");
         } else if (error instanceof EncryptedDocumentException) {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setTitle(R.string.toast_error_password_protected);
@@ -348,7 +279,7 @@ public class DocumentFragment extends Fragment implements
                         @Override
                         public void onClick(DialogInterface dialog,
                                             int whichButton) {
-                            uploadUri(uri);
+                            uploadUri(lastUri);
 
                             dialog.dismiss();
                         }
@@ -381,11 +312,82 @@ public class DocumentFragment extends Fragment implements
         }
 
         CroutonHelper.showCrouton(getActivity(), errorDescription, null, Style.ALERT);
+
+        Log.e("OpenDocument Reader", "Error opening file at " + lastUri.toString(),
+                error);
+
+        ((MainActivity) getActivity()).getCrashManager().log(error, lastUri);
+    }
+
+    private void showProgress(final FileLoader fileLoader,
+                              final boolean upload) {
+        if (progressDialog != null) {
+            return;
+        }
+
+        try {
+            progressDialog = new ProgressDialogFragment(upload);
+
+            FragmentManager fragmentManager = getFragmentManager();
+            if (fragmentManager == null) {
+                // TODO: use crashmanager
+                progressDialog = null;
+
+                return;
+            }
+
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            progressDialog.show(transaction,
+                    ProgressDialogFragment.FRAGMENT_TAG);
+
+            if (!upload) {
+                mainHandler.postDelayed(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        if (progressDialog == null) {
+                            return;
+                        }
+
+                        progressDialog.setProgress(fileLoader.getProgress());
+
+                        if (fileLoader.isLoading()) {
+                            mainHandler.postDelayed(this, 1000);
+                        }
+                    }
+                }, 1000);
+            }
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+
+            progressDialog = null;
+        }
+    }
+
+    private void dismissProgress() {
+        // dirty hack because committing isn't allowed right after
+        // onLoadFinished:
+        // "java.lang.IllegalStateException: Can not perform this action inside of onLoadFinished"
+        if (progressDialog == null) {
+            progressDialog = (ProgressDialogFragment) getFragmentManager()
+                    .findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
+        }
+
+        if (progressDialog != null && progressDialog.getShowsDialog()
+                && progressDialog.isNotNull()) {
+            try {
+                progressDialog.dismissAllowingStateLoss();
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+            }
+
+            progressDialog = null;
+        }
     }
 
     @Override
     public void onTabSelected(ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {
-        Document.Page page = getDocument().getPageAt(tab.getPosition());
+        Document.Page page = lastDocument.getPageAt(tab.getPosition());
         showPage(page);
     }
 
@@ -401,18 +403,6 @@ public class DocumentFragment extends Fragment implements
         loadData(page.getUrl());
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        outState.putInt(EXTRA_TAB_POSITION, ((MainActivity) getActivity()).getSupportActionBar().getSelectedNavigationIndex());
-        outState.putInt(EXTRA_SCROLL_POSITION, pageView.getScrollY());
-    }
-
-    public Document getDocument() {
-        return document;
-    }
-
     private void loadData(String url) {
         pageView.loadUrl(url);
     }
@@ -426,7 +416,16 @@ public class DocumentFragment extends Fragment implements
         return pageView;
     }
 
-    public DocumentLoader getDocumentLoader() {
-        return documentLoader;
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        if (documentLoader != null) {
+            documentLoader.close();
+        }
+
+        if (upLoader != null) {
+            upLoader.close();
+        }
     }
 }

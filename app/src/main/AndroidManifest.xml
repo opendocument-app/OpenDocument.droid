@@ -1,185 +1,187 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        package="at.tomtasche.reader"
-        android:installLocation="auto"
-        android:versionCode="76"
-        android:versionName="3.0.9">
+          xmlns:tools="http://schemas.android.com/tools"
+          package="at.tomtasche.reader"
+          android:installLocation="auto"
+          android:versionCode="76"
+          android:versionName="3.0.9">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="com.android.vending.BILLING" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="com.android.vending.BILLING"/>
 
     <uses-feature
-        android:name="android.hardware.touchscreen"
-        android:required="false" />
+            android:name="android.hardware.touchscreen"
+            android:required="false"/>
     <uses-feature
-        android:name="android.hardware.wifi"
-        android:required="false" />
+            android:name="android.hardware.wifi"
+            android:required="false"/>
 
     <supports-screens
-        android:anyDensity="true"
-        android:largeScreens="true"
-        android:normalScreens="true"
-        android:resizeable="true"
-        android:smallScreens="true"
-        android:xlargeScreens="true" />
+            android:anyDensity="true"
+            android:largeScreens="true"
+            android:normalScreens="true"
+            android:resizeable="true"
+            android:smallScreens="true"
+            android:xlargeScreens="true"/>
 
     <application
-        android:allowBackup="true"
-        android:hardwareAccelerated="true"
-        android:icon="@mipmap/icon"
-        android:label="OpenDocument Reader"
-        android:theme="@style/MainTheme"
-        android:name="androidx.multidex.MultiDexApplication">
+            android:allowBackup="true"
+            android:hardwareAccelerated="true"
+            android:icon="@mipmap/icon"
+            android:label="OpenDocument Reader"
+            android:theme="@style/MainTheme"
+            android:name="androidx.multidex.MultiDexApplication">
+
         <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
+                android:name="com.google.android.gms.version"
+                android:value="@integer/google_play_services_version"/>
         <meta-data
                 android:name="com.google.android.gms.ads.APPLICATION_ID"
-                android:value="ca-app-pub-8161473686436957~9025061963" />
+                android:value="ca-app-pub-8161473686436957~9025061963"/>
 
         <uses-library
                 android:name="org.apache.http.legacy"
-                android:required="false" />
+                android:required="false"/>
 
         <activity
-            android:name=".ui.activity.MainActivity"
-            android:label="OpenDocument Reader" >
+                android:name=".ui.activity.MainActivity"
+                android:label="OpenDocument Reader"
+                android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.DEFAULT"/>
 
-                <data android:mimeType="application/vnd.oasis.opendocument.text" />
+                <data android:mimeType="application/vnd.oasis.opendocument.text"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.BROWSABLE"/>
 
-                <data android:mimeType="application/vnd.oasis.opendocument.text" />
+                <data android:mimeType="application/vnd.oasis.opendocument.text"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.DEFAULT"/>
 
-                <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet" />
+                <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.BROWSABLE"/>
 
-                <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet" />
+                <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.DEFAULT"/>
 
-                <data android:mimeType="application/vnd.oasis.opendocument.text-template" />
+                <data android:mimeType="application/vnd.oasis.opendocument.text-template"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.BROWSABLE"/>
 
-                <data android:mimeType="application/vnd.oasis.opendocument.text-template" />
+                <data android:mimeType="application/vnd.oasis.opendocument.text-template"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.DEFAULT"/>
 
-                <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet-template" />
+                <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet-template"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.BROWSABLE"/>
 
-                <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet-template" />
+                <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet-template"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.DEFAULT"/>
 
-                <data android:mimeType="application/vnd.oasis.opendocument.presentation" />
+                <data android:mimeType="application/vnd.oasis.opendocument.presentation"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.BROWSABLE"/>
 
-                <data android:mimeType="application/vnd.oasis.opendocument.presentation" />
+                <data android:mimeType="application/vnd.oasis.opendocument.presentation"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.DEFAULT"/>
 
-                <data android:mimeType="application/vnd.oasis.opendocument.presentation-template" />
+                <data android:mimeType="application/vnd.oasis.opendocument.presentation-template"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.BROWSABLE"/>
 
-                <data android:mimeType="application/vnd.oasis.opendocument.presentation-template" />
+                <data android:mimeType="application/vnd.oasis.opendocument.presentation-template"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
 
         <activity
-            android:name="com.nononsenseapps.filepicker.FilePickerActivity"
-            android:icon="@mipmap/icon"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:label="@string/dialog_title_choose_file"
-            android:theme="@style/NNF_BaseTheme.Light">
+                android:name="com.nononsenseapps.filepicker.FilePickerActivity"
+                android:icon="@mipmap/icon"
+                android:excludeFromRecents="true"
+                android:exported="false"
+                android:label="@string/dialog_title_choose_file"
+                android:theme="@style/NNF_BaseTheme.Light">
             <intent-filter>
-                <action android:name="android.intent.action.GET_CONTENT" />
+                <action android:name="android.intent.action.GET_CONTENT"/>
 
-                <category android:name="android.intent.category.OPENABLE" />
+                <category android:name="android.intent.category.OPENABLE"/>
 
-                <data android:mimeType="application/vnd.oasis.opendocument.*" />
+                <data android:mimeType="application/vnd.oasis.opendocument.*"/>
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.activity.IntroActivity"
-            android:icon="@mipmap/icon"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:label="OpenDocument Reader"
-            android:theme="@style/IntroTheme" />
+        <activity
+                android:name=".ui.activity.IntroActivity"
+                android:icon="@mipmap/icon"
+                android:excludeFromRecents="true"
+                android:exported="false"
+                android:label="OpenDocument Reader"
+                android:theme="@style/IntroTheme"/>
 
         <provider
-            android:name=".background.FileProvider"
-            android:authorities="at.tomtasche.reader"
-            android:exported="false" />
+                android:name=".background.FileProvider"
+                android:authorities="at.tomtasche.reader"
+                android:exported="false"/>
 
         <activity
                 android:name="com.google.android.gms.ads.AdActivity"
                 android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
-                tools:replace="android:theme" />
-
+                tools:replace="android:theme"/>
 
         <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.provider"
-            android:exported="false"
-            android:grantUriPermissions="true">
+                android:name="androidx.core.content.FileProvider"
+                android:authorities="${applicationId}.provider"
+                android:exported="false"
+                android:grantUriPermissions="true">
             <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/nnf_provider_paths" />
+                    android:name="android.support.FILE_PROVIDER_PATHS"
+                    android:resource="@xml/nnf_provider_paths"/>
         </provider>
     </application>
 

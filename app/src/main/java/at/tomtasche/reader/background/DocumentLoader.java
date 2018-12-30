@@ -3,13 +3,14 @@ package at.tomtasche.reader.background;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.provider.OpenableColumns;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import androidx.loader.content.AsyncTaskLoader;
 import at.stefl.commons.math.vector.Vector2i;
 import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
 import at.stefl.opendocument.java.odf.OpenDocument;
@@ -27,97 +28,73 @@ import at.stefl.opendocument.java.translator.settings.ImageStoreMode;
 import at.stefl.opendocument.java.translator.settings.TranslationSettings;
 import at.tomtasche.reader.background.Document.Page;
 
-public class DocumentLoader extends AsyncTaskLoader<Document> implements
-        FileLoader {
+public class DocumentLoader implements FileLoader {
 
-    private Throwable lastError;
-    private Uri uri;
-    private boolean limit;
-    private boolean translatable;
-    private String password;
-    private Document document;
-    private DocumentTranslator translator;
+    private Context context;
 
-    // support File parameter too (saves us from copying the file
-    // unnecessarily)!
-    // https://github.com/iPaulPro/aFileChooser/issues/4#issuecomment-16226515
-    public DocumentLoader(Context context, Uri uri) {
-        super(context);
+    private HandlerThread backgroundThread;
+    private Handler backgroundHandler;
 
-        this.uri = uri;
-        this.limit = true;
-    }
+    private Handler mainHandler;
 
-    public String getPassword() {
-        return password;
-    }
+    private FileLoaderListener listener;
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    private boolean initialized;
+    private boolean loading;
 
-    public void setLimit(boolean limit) {
-        this.limit = limit;
-    }
+    private DocumentTranslator lastTranslator;
 
-    public void setTranslatable(boolean translatable) {
-        this.translatable = translatable;
+    public DocumentLoader(Context context) {
+        this.context = context;
     }
 
     @Override
-    public Throwable getLastError() {
-        return lastError;
-    }
+    public void initialize(FileLoaderListener listener) {
+        this.listener = listener;
 
-    @Override
-    public Uri getLastUri() {
-        return uri;
+        mainHandler = new Handler();
+
+        backgroundThread = new HandlerThread(DocumentLoader.class.getSimpleName());
+        backgroundThread.start();
+
+        backgroundHandler = new Handler(backgroundThread.getLooper());
+
+        initialized = true;
     }
 
     @Override
     public double getProgress() {
-        if (translator != null) {
-            return translator.getCurrentProgress();
+        if (initialized && lastTranslator != null) {
+            return lastTranslator.getCurrentProgress();
         }
 
         return 0;
     }
 
     @Override
-    protected void onStartLoading() {
-        super.onStartLoading();
+    public boolean isLoading() {
+        return loading;
+    }
 
-        if (document != null && lastError == null) {
-            deliverResult(document);
-        } else {
-            forceLoad();
+    @Override
+    public void loadAsync(Uri uri, String password, boolean limit, boolean translatable) {
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                loadSync(uri, password, limit, translatable);
+            }
+        });
+    }
+
+    @Override
+    public void loadSync(Uri uri, String password, boolean limit, boolean translatable) {
+        if (!initialized) {
+            throw new RuntimeException("not initialized");
         }
-    }
 
-    @Override
-    protected void onReset() {
-        super.onReset();
+        loading = true;
+        lastTranslator = null;
 
-        onStopLoading();
-
-        document = null;
-        lastError = null;
-        uri = null;
-        translator = null;
-        password = null;
-        limit = true;
-        translatable = false;
-    }
-
-    @Override
-    protected void onStopLoading() {
-        super.onStopLoading();
-
-        cancelLoad();
-    }
-
-    @Override
-    public Document loadInBackground() {
         InputStream stream = null;
 
         LocatedOpenDocumentFile documentFile = null;
@@ -128,18 +105,18 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
                         uri.toString().length()));
             }
 
-            AndroidFileCache cache = new AndroidFileCache(getContext());
+            AndroidFileCache cache = new AndroidFileCache(context);
             // TODO: don't delete file being displayed at the moment, but
             // keep it until the new document has finished loading.
             // this must not delete document.odt!
-            AndroidFileCache.cleanup(getContext());
+            AndroidFileCache.cleanup(context);
 
             if (uri.equals(AndroidFileCache.getCacheFileUri())) {
                 documentFile = new LocatedOpenDocumentFile(new File(
-                        AndroidFileCache.getCacheDirectory(getContext()),
+                        AndroidFileCache.getCacheDirectory(context),
                         "document.odt"));
             } else {
-                stream = getContext().getContentResolver().openInputStream(
+                stream = context.getContentResolver().openInputStream(
                         uri);
 
                 File cachedFile = cache.create("document.odt", stream);
@@ -149,7 +126,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
             try {
                 String filename = null;
                 // https://stackoverflow.com/a/38304115/198996
-                Cursor fileCursor = getContext().getContentResolver().query(uri, null, null, null, null);
+                Cursor fileCursor = context.getContentResolver().query(uri, null, null, null, null);
                 if (fileCursor != null) {
                     int nameIndex = fileCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                     fileCursor.moveToFirst();
@@ -159,7 +136,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
                     filename = uri.getLastPathSegment();
                 }
 
-                RecentDocumentsUtil.addRecentDocument(getContext(),
+                RecentDocumentsUtil.addRecentDocument(context,
                         filename, uri);
             } catch (IOException e) {
                 // not a showstopper, so just continue
@@ -176,7 +153,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
             }
 
             OpenDocument openDocument = documentFile.getAsDocument();
-            document = new Document(openDocument);
+            Document document = new Document(openDocument);
 
             TranslationSettings settings = new TranslationSettings();
             settings.setCache(cache);
@@ -191,19 +168,19 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
             // https://github.com/andiwand/OpenDocument.java/blob/7f13222f77fabd62ee6a9d52cd6ed3e512532a9b/src/at/stefl/opendocument/java/translator/document/DocumentTranslatorUtil.java#L131
             if (!settings.isSplitPages() || (openDocument instanceof OpenDocumentText)) {
                 if (openDocument instanceof OpenDocumentText) {
-                    translator = new TextTranslator();
+                    lastTranslator = new TextTranslator();
                 } else if (openDocument instanceof OpenDocumentSpreadsheet) {
-                    translator = new SpreadsheetTranslator();
+                    lastTranslator = new SpreadsheetTranslator();
                 } else if (openDocument instanceof OpenDocumentPresentation) {
-                    translator = new PresentationTranslator();
+                    lastTranslator = new PresentationTranslator();
                 } else {
                     throw new IllegalStateException("unsupported document");
                 }
             } else {
                 if (openDocument instanceof OpenDocumentSpreadsheet) {
-                    translator = new BulkSpreadsheetTranslator();
+                    lastTranslator = new BulkSpreadsheetTranslator();
                 } else if (openDocument instanceof OpenDocumentPresentation) {
-                    translator = new BulkPresentationTranslator();
+                    lastTranslator = new BulkPresentationTranslator();
                 } else {
                     throw new IllegalStateException("unsupported document");
                 }
@@ -212,7 +189,7 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
             DocumentTranslatorUtil.Output output = DocumentTranslatorUtil.provideOutput(
                     openDocument, settings, "temp", ".html");
             try {
-                translator.translate(openDocument, output.getWriter(), settings);
+                lastTranslator.translate(openDocument, output.getWriter(), settings);
             } finally {
                 output.getWriter().close();
             }
@@ -224,13 +201,23 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
                         htmlFile.toURI(), i));
             }
 
-            document.setLimited(translator.isCurrentOutputTruncated());
+            document.setLimited(lastTranslator.isCurrentOutputTruncated());
 
-            return document;
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onSuccess(document);
+                }
+            });
         } catch (Throwable e) {
             e.printStackTrace();
 
-            lastError = e;
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onError(e);
+                }
+            });
         } finally {
             try {
                 if (stream != null)
@@ -245,8 +232,26 @@ public class DocumentLoader extends AsyncTaskLoader<Document> implements
             }
         }
 
-        return null;
+        loading = false;
     }
+
+    @Override
+    public void close() {
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                initialized = false;
+                listener = null;
+                context = null;
+                lastTranslator = null;
+
+                backgroundThread.quit();
+                backgroundThread = null;
+                backgroundHandler = null;
+            }
+        });
+    }
+
 
     @SuppressWarnings("serial")
     public static class EncryptedDocumentException extends Exception {

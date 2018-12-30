@@ -1,7 +1,9 @@
 package at.tomtasche.reader.ui;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Environment;
 import android.view.Menu;
@@ -15,6 +17,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import androidx.appcompat.view.ActionMode;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
 import at.stefl.opendocument.java.odf.OpenDocument;
 import at.stefl.opendocument.java.odf.OpenDocumentPresentation;
@@ -30,22 +34,21 @@ import at.tomtasche.reader.ui.widget.PageView;
 
 public class EditActionModeCallback implements ActionMode.Callback {
 
+    public static int PERMISSION_CODE = 21874033;
+
     private MainActivity activity;
     private DocumentFragment documentFragment;
     private AdManager adManager;
     private PageView pageView;
     private TextView statusView;
-    private OpenDocument document;
 
     private InputMethodManager imm;
 
-    public EditActionModeCallback(MainActivity activity, DocumentFragment documentFragment, AdManager adManager, PageView pageView,
-                                  OpenDocument document) {
+    public EditActionModeCallback(MainActivity activity, DocumentFragment documentFragment, AdManager adManager) {
         this.activity = activity;
         this.documentFragment = documentFragment;
         this.adManager = adManager;
-        this.pageView = pageView;
-        this.document = document;
+        this.pageView = documentFragment.getPageView();
     }
 
     @Override
@@ -64,7 +67,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
     @Override
     public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
         // reload document with translation enabled
-        documentFragment.loadUri(AndroidFileCache.getCacheFileUri(), documentFragment.getDocumentLoader().getPassword(), false, true);
+        documentFragment.reloadUri(false, true);
 
         imm.toggleSoftInputFromWindow(activity.getWindow().getDecorView().getRootView().getWindowToken(), InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
 
@@ -85,84 +88,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
             case R.id.edit_save: {
                 adManager.showInterstitial();
 
-                final File htmlFile = new File(
-                        AndroidFileCache.getCacheDirectory(activity),
-                        "content.html");
-                pageView.requestHtml(htmlFile, new Runnable() {
-
-                    @Override
-                    public void run() {
-                        Uri fileUri = null;
-                        FileInputStream htmlStream = null;
-                        FileOutputStream modifiedStream = null;
-                        LocatedOpenDocumentFile documentFile = null;
-                        try {
-                            htmlStream = new FileInputStream(htmlFile);
-
-                            // TODO: ugly and risky cast
-                            documentFile = new LocatedOpenDocumentFile(
-                                    ((LocatedOpenDocumentFile) document
-                                            .getDocumentFile()).getFile());
-
-                            String extension = "unknown";
-                            OpenDocument openDocument = documentFile
-                                    .getAsDocument();
-                            if (openDocument instanceof OpenDocumentText) {
-                                extension = "odt";
-                            } else if (openDocument instanceof OpenDocumentSpreadsheet) {
-                                extension = "ods";
-                            } else if (openDocument instanceof OpenDocumentPresentation) {
-                                extension = "odp";
-                            }
-
-                            File modifiedFile = new File(Environment
-                                    .getExternalStorageDirectory(),
-                                    "modified-by-opendocument-reader." + extension);
-                            modifiedStream = new FileOutputStream(modifiedFile);
-
-                            Retranslator.retranslate(openDocument, htmlStream,
-                                    modifiedStream);
-
-                            modifiedStream.close();
-
-                            fileUri = Uri.parse("file://"
-                                    + modifiedFile.getAbsolutePath());
-
-                            documentFragment.loadUri(fileUri);
-
-                            activity.showSaveCroutonLater(modifiedFile, fileUri);
-                        } catch (final Throwable e) {
-                            e.printStackTrace();
-
-                            final Uri cacheUri = AndroidFileCache.getCacheFileUri();
-                            final Uri htmlUri = AndroidFileCache
-                                    .getHtmlCacheFileUri();
-
-                            documentFragment.handleError(e, cacheUri);
-                        } finally {
-                            if (documentFile != null) {
-                                try {
-                                    documentFile.close();
-                                } catch (IOException e) {
-                                }
-                            }
-
-                            if (htmlStream != null) {
-                                try {
-                                    htmlStream.close();
-                                } catch (IOException e) {
-                                }
-                            }
-
-                            if (modifiedStream != null) {
-                                try {
-                                    modifiedStream.close();
-                                } catch (IOException e) {
-                                }
-                            }
-                        }
-                    }
-                });
+                save();
 
                 break;
             }
@@ -174,8 +100,32 @@ public class EditActionModeCallback implements ActionMode.Callback {
         return true;
     }
 
+    public void save() {
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_CODE);
+        } else {
+            final File htmlFile = new File(AndroidFileCache.getCacheDirectory(activity),"content.html");
+            pageView.requestHtml(htmlFile, new Runnable() {
+
+                @Override
+                public void run() {
+                    documentFragment.save(htmlFile);
+
+                    pageView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            statusView.setText("Document saved to your SD card");
+                        }
+                    });
+                }
+            });
+        }
+    }
+
     @Override
     public void onDestroyActionMode(ActionMode mode) {
         imm.toggleSoftInputFromWindow(activity.getWindow().getDecorView().getRootView().getWindowToken(), 0, 0);
+
+        documentFragment.reloadUri(false, false);
     }
 }
