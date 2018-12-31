@@ -4,9 +4,23 @@ import android.net.Uri;
 
 public interface FileLoader {
 
-	public Throwable getLastError();
+    public void initialize(FileLoaderListener listener);
 
-	public Uri getLastUri();
+    public void loadAsync(Uri uri, String password, boolean limit, boolean translatable);
 
-	public double getProgress();
+    public void loadSync(Uri uri, String password, boolean limit, boolean translatable);
+
+    public boolean isLoading();
+
+    public double getProgress();
+
+    public void close();
+
+
+    public interface FileLoaderListener {
+
+        public void onSuccess(Document document);
+
+        public void onError(Throwable throwable);
+    }
 }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="landing_intro_margin">
+        <item name="android:layout_marginLeft">3dp</item>
+        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:layout_marginRight">3dp</item>
+    </style>
+
+    <style name="landing_intro_title_container" parent="landing_intro_margin">
+        <item name="android:layout_height">100dp</item>
+    </style>
+
+    <style name="landing_intro_title">
+        <item name="android:textSize">30dp</item>
+    </style>
+</resources>

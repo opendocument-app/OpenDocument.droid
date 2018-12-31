@@ -1,26 +1,6 @@
 package at.tomtasche.reader.ui.activity;
 
-import java.io.File;
-import java.util.List;
-
-import com.github.jberkel.pay.me.IabHelper;
-import com.github.jberkel.pay.me.IabResult;
-import com.github.jberkel.pay.me.listener.OnIabPurchaseFinishedListener;
-import com.github.jberkel.pay.me.listener.OnIabSetupFinishedListener;
-import com.github.jberkel.pay.me.listener.QueryInventoryFinishedListener;
-import com.github.jberkel.pay.me.model.Inventory;
-import com.github.jberkel.pay.me.model.ItemType;
-import com.github.jberkel.pay.me.model.Purchase;
-import com.google.android.gms.ads.AdListener;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.InterstitialAd;
-import com.google.android.gms.ads.MobileAds;
-import com.kobakei.ratethisapp.RateThisApp;
-
-import android.app.AlertDialog;
-import android.content.ActivityNotFoundException;
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -31,11 +11,8 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.Loader;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBar.Tab;
+import android.preference.PreferenceManager;
+import android.view.ActionMode;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -43,757 +20,542 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
-import at.tomtasche.reader.AnalyticsBridge;
+import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.firebase.analytics.FirebaseAnalytics;
+import com.kobakei.ratethisapp.RateThisApp;
+
+import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentTransaction;
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.AndroidFileCache;
-import at.tomtasche.reader.background.BillingPreferences;
-import at.tomtasche.reader.background.Document;
-import at.tomtasche.reader.background.Document.Page;
-import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.KitKatPrinter;
-import at.tomtasche.reader.background.LoadingListener;
+import at.tomtasche.reader.nonfree.AdManager;
+import at.tomtasche.reader.nonfree.AnalyticsManager;
+import at.tomtasche.reader.nonfree.BillingManager;
+import at.tomtasche.reader.nonfree.CrashManager;
+import at.tomtasche.reader.ui.CroutonHelper;
 import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
 import de.keyboardsurfer.android.widget.crouton.Style;
 
-public class MainActivity extends DocumentActivity implements ActionBar.TabListener, LoadingListener {
-
-	private static final boolean AMAZON_RELEASE = false;
-
-	private int PURCHASE_CODE = 1337;
-
-	private static final String BILLING_PRODUCT_YEAR = "remove_ads_for_1y";
-	private static final String BILLING_PRODUCT_FOREVER = "remove_ads_for_eva";
-	private static final String BILLING_PRODUCT_LOVE = "love_and_everything";
-
-	private static final String EXTRA_TAB_POSITION = "tab_position";
-
-	private LinearLayout adContainer;
-	private AdView madView;
-	private InterstitialAd interstitial;
-
-	private int lastPosition;
-	private boolean fullscreen;
-	private boolean showAds;
-
-	private Page currentPage;
-
-	private IabHelper billingHelper;
-	private BillingPreferences billingPreferences;
-
-	private TtsActionModeCallback ttsActionMode;
-
-	private SharedPreferences preferences;
-
-	private Runnable saveCroutonRunnable;
-
-	private AnalyticsBridge analyticsBridge;
-
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-
-		MobileAds.initialize(getApplicationContext(), "ca-app-pub-8161473686436957~9025061963");
-
-		analyticsBridge = new AnalyticsBridge();
-		analyticsBridge.initialize(this);
-
-		adContainer = (LinearLayout) findViewById(R.id.ad_container);
-
-		if (savedInstanceState != null) {
-			lastPosition = savedInstanceState.getInt(EXTRA_TAB_POSITION);
-		} else if (getIntent().getData() == null) {
-			String provider;
-			if (AMAZON_RELEASE) {
-				provider = "amazon";
-			} else {
-				provider = "google";
-			}
-
-			analyticsBridge.sendEvent("ui", "open", provider);
-		}
-
-		addLoadingListener(this);
-
-		if (!AMAZON_RELEASE) {
-			billingPreferences = new BillingPreferences(this);
-
-			billingHelper = new IabHelper(this, getPublicKey());
-			billingHelper.startSetup(new OnIabSetupFinishedListener() {
-
-				@Override
-				public void onIabSetupFinished(IabResult result) {
-					if (billingPreferences.hasPurchased()) {
-						removeAds();
-
-						return;
-					}
-
-					if (result.isFailure()) {
-						runOnUiThread(new Runnable() {
-
-							@Override
-							public void run() {
-								showGoogleAds();
-
-								showCrouton(getString(R.string.crouton_error_billing), null, Style.ALERT);
-							}
-						});
-					} else if (result.isSuccess()) {
-						// query every 7 days
-						if ((billingPreferences.getLastQueryTime() + 1000 * 60 * 60 * 24 * 7) < System
-								.currentTimeMillis()) {
-							billingHelper.queryInventoryAsync(new QueryInventoryFinishedListener() {
-
-								@Override
-								public void onQueryInventoryFinished(IabResult result, Inventory inv) {
-									if (result.isSuccess()) {
-										boolean purchased = inv.getPurchase(BILLING_PRODUCT_FOREVER) != null;
-										purchased |= inv.getPurchase(BILLING_PRODUCT_YEAR) != null;
-										purchased |= inv.getPurchase(BILLING_PRODUCT_LOVE) != null;
-
-										if (purchased) {
-											removeAds();
-										} else {
-											showGoogleAds();
-										}
-
-										billingPreferences.setPurchased(purchased);
-									}
-
-									billingPreferences.setLastQueryTime(System.currentTimeMillis());
-								}
-							});
-						}
-					}
-				}
-			});
-		} else {
-			showGoogleAds();
-		}
-
-		RateThisApp.onCreate(this);
-
-		// shows after 10 launches after 7 days
-		RateThisApp.showRateDialogIfNeeded(this);
-	}
-
-	private void showAds(AdView adView) {
-		this.madView = adView;
-
-		adContainer.removeAllViews();
-
-		LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-		adContainer.addView(adView, params);
-
-		analyticsBridge.sendEvent("monetization", "ads", "show");
-	}
-
-	private void showGoogleAds() {
-		showAds = true;
-
-		AdView adView = new AdView(MainActivity.this);
-		adView.setAdSize(AdSize.SMART_BANNER);
-		adView.setAdUnitId("ca-app-pub-8161473686436957/5931994762");
-		adView.setAdListener(new MyAdListener());
-
-		AdRequest adRequest = new AdRequest.Builder().build();
-
-		adView.loadAd(adRequest);
-
-		showAds(adView);
-	}
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-
-		showSaveCrouton();
-	}
-
-	@Override
-	protected void onNewIntent(Intent intent) {
-		super.onNewIntent(intent);
-
-		if (intent.getData() != null) {
-			loadUri(intent.getData());
-
-			analyticsBridge.sendEvent("ui", "open", "other");
-		}
-	}
-
-	@Override
-	public DocumentLoader loadUri(Uri uri, String password, boolean limit, boolean translatable) {
-		return super.loadUri(uri, password, limit, translatable);
-	}
-
-	@Override
-	protected void onPause() {
-		super.onPause();
-
-		if (ttsActionMode != null) {
-			ttsActionMode.stop();
-		}
-	}
-
-	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-
-		outState.putInt(EXTRA_TAB_POSITION, getSupportActionBar().getSelectedNavigationIndex());
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		super.onCreateOptionsMenu(menu);
-
-		getMenuInflater().inflate(R.menu.menu_main, menu);
-
-		return true;
-	}
-
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-		if (requestCode == PURCHASE_CODE) {
-			billingHelper.handleActivityResult(requestCode, resultCode, intent);
-		} else {
-			showInterstitial();
-		}
-
-		super.onActivityResult(requestCode, resultCode, intent);
-	}
-
-	public void showInterstitial() {
-		if (interstitial != null) {
-			interstitial.show();
-		}
-
-		interstitial = null;
-	}
-
-	// TODO: that's super ugly - good job :)
-	public void showSaveCroutonLater(final File modifiedFile, final Uri fileUri) {
-		saveCroutonRunnable = new Runnable() {
-
-			@Override
-			public void run() {
-				showCrouton("Document successfully saved. You can find it on your sdcard: " + modifiedFile.getName(),
-						new Runnable() {
-
-							@Override
-							public void run() {
-								share(fileUri);
-							}
-						}, Style.INFO);
-			}
-		};
-
-		// also execute it immediately, for users who don't see ads
-		saveCroutonRunnable.run();
-	}
-
-	private void showSaveCrouton() {
-		if (saveCroutonRunnable != null) {
-			saveCroutonRunnable.run();
-
-			saveCroutonRunnable = null;
-		}
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case R.id.menu_recent: {
-			FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-			DialogFragment chooserDialog = new RecentDocumentDialogFragment();
-			chooserDialog.show(transaction, RecentDocumentDialogFragment.FRAGMENT_TAG);
-
-			analyticsBridge.sendEvent("ui", "open", "recent");
-
-			break;
-		}
-		case R.id.menu_search: {
-			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-				// http://www.androidsnippets.org/snippets/20/
-				final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-				alert.setTitle(getString(R.string.menu_search));
-
-				final EditText input = new EditText(this);
-				alert.setView(input);
-
-				alert.setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
-
-					@Override
-					public void onClick(DialogInterface dialog, int whichButton) {
-						getPageFragment().searchDocument(input.getText().toString());
-					}
-				});
-				alert.setNegativeButton(getString(android.R.string.cancel), null);
-				alert.show();
-			} else {
-				FindActionModeCallback findActionModeCallback = new FindActionModeCallback(this);
-				findActionModeCallback.setWebView(getPageFragment().getPageView());
-				startSupportActionMode(findActionModeCallback);
-			}
-
-			analyticsBridge.sendEvent("ui", "search", "start");
-
-			break;
-		}
-		case R.id.menu_open: {
-			findDocument();
-
-			analyticsBridge.sendEvent("ui", "open", "choose");
-
-			break;
-		}
-		case R.id.menu_remove_ads: {
-			buyAdRemoval();
-
-			break;
-		}
-		case R.id.menu_about: {
-			loadUri(DocumentLoader.URI_ABOUT);
-
-			analyticsBridge.sendEvent("ui", "open", "about");
-
-			break;
-		}
-		case R.id.menu_feedback: {
-			startActivity(new Intent(Intent.ACTION_VIEW,
-					Uri.parse("https://plus.google.com/communities/113494011673882132018")));
-
-			analyticsBridge.sendEvent("ui", "feedback", null);
-
-			break;
-		}
-		case R.id.menu_reload: {
-			Loader<Document> loader = getSupportLoaderManager().getLoader(0);
-			DocumentLoader documentLoader = (DocumentLoader) loader;
-
-			loadUri(AndroidFileCache.getCacheFileUri(), documentLoader.getPassword(), false, false);
-
-			analyticsBridge.sendEvent("ui", "reload", "no-limit");
-
-			break;
-		}
-		case R.id.menu_fullscreen: {
-			if (fullscreen) {
-				leaveFullscreen();
-			} else {
-				getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-						WindowManager.LayoutParams.FLAG_FULLSCREEN);
-				getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-
-				getSupportActionBar().hide();
-
-				removeAds();
-
-				showCrouton(R.string.crouton_leave_fullscreen, new Runnable() {
-
-					@Override
-					public void run() {
-						leaveFullscreen();
-					}
-				}, Style.INFO);
-
-				analyticsBridge.sendEvent("ui", "fullscreen", "enter");
-			}
-
-			fullscreen = !fullscreen;
-
-			break;
-		}
-		case R.id.menu_share: {
-			share(Uri.parse("content://at.tomtasche.reader/document.odt"));
-
-			break;
-		}
-		case R.id.menu_print: {
-			if (Build.VERSION.SDK_INT >= 19) {
-				KitKatPrinter.print(this, getPageFragment().getPageView());
-			} else {
-				int index = getSupportActionBar().getSelectedNavigationIndex();
-				if (index < 0)
-					index = 0;
-
-				Page page = getDocument().getPageAt(index);
-				Uri uri = Uri.parse("content://at.tomtasche.reader/" + page.getUrl());
-
-				Intent printIntent = new Intent(Intent.ACTION_SEND);
-				printIntent.setType("text/html");
-				printIntent.putExtra(Intent.EXTRA_TITLE, "OpenDocument Reader - " + uri.getLastPathSegment());
-
-				printIntent.putExtra(Intent.EXTRA_STREAM, uri);
-
-				try {
-					startActivity(printIntent);
-				} catch (ActivityNotFoundException e) {
-					Intent installIntent = new Intent(Intent.ACTION_VIEW, Uri
-							.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.cloudprint"));
-
-					startActivity(installIntent);
-				}
-			}
-
-			analyticsBridge.sendEvent("ui", "print", null);
-
-			break;
-		}
-		case R.id.menu_tts: {
-			ttsActionMode = new TtsActionModeCallback(this, getPageFragment().getPageView());
-			startSupportActionMode(ttsActionMode);
-
-			analyticsBridge.sendEvent("ui", "tts", null);
-
-			break;
-		}
-		case R.id.menu_edit: {
-			if (showAds) {
-				loadInterstitial();
-			}
-
-			EditActionModeCallback editActionMode = new EditActionModeCallback(this, getPageFragment().getPageView(),
-					getDocument().getOrigin());
-			startSupportActionMode(editActionMode);
-
-			analyticsBridge.sendEvent("ui", "edit", null);
-
-			break;
-		}
-		default: {
-			return super.onOptionsItemSelected(item);
-		}
-		}
-
-		return true;
-	}
-
-	public void share(Uri uri) {
-		Intent intent = new Intent(Intent.ACTION_SEND);
-		intent.setData(uri);
-		intent.setType("application/*");
-		intent.putExtra(Intent.EXTRA_STREAM, uri);
-
-		try {
-			startActivity(intent);
-
-			analyticsBridge.sendEvent("ui", "share", null);
-		} catch (Exception e) {
-			e.printStackTrace();
-
-			showCrouton(R.string.crouton_error_open_app, null, Style.ALERT);
-		}
-	}
-
-	private void loadInterstitial() {
-		interstitial = new InterstitialAd(this);
-		interstitial.setAdUnitId("ca-app-pub-8161473686436957/2477707165");
-
-		AdRequest adRequest = new AdRequest.Builder().build();
-
-		interstitial.loadAd(adRequest);
-
-		interstitial.setAdListener(new MyAdListener());
-	}
-
-	private void buyAdRemoval() {
-		if (!AMAZON_RELEASE) {
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle(R.string.dialog_remove_ads_title);
-			builder.setItems(R.array.dialog_remove_ads_options, new OnClickListener() {
-
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					String product = null;
-
-					switch (which) {
-					case 0:
-						product = BILLING_PRODUCT_YEAR;
-
-						break;
-
-					case 1:
-						product = BILLING_PRODUCT_FOREVER;
-
-						break;
-
-					case 2:
-						product = BILLING_PRODUCT_LOVE;
-
-						break;
-
-					default:
-						removeAds();
-
-						dialog.dismiss();
-
-						return;
-					}
-
-					billingHelper.launchPurchaseFlow(MainActivity.this, product, ItemType.INAPP, PURCHASE_CODE,
-							new OnIabPurchaseFinishedListener() {
-								public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
-									// remove ads even if the
-									// purchase failed /
-									// the user canceled the
-									// purchase
-									runOnUiThread(new Runnable() {
-
-										@Override
-										public void run() {
-											removeAds();
-										}
-									});
-
-									if (result.isSuccess()) {
-										billingPreferences.setPurchased(true);
-										billingPreferences.setLastQueryTime(System.currentTimeMillis());
-
-										analyticsBridge.sendEvent("monetization", "in-app", purchase.getSku());
-									} else {
-										analyticsBridge.sendEvent("monetization", "in-app", "abort");
-									}
-								}
-							}, null);
-
-					analyticsBridge.sendEvent("monetization", "in-app", "attempt");
-
-					dialog.dismiss();
-				}
-			});
-			builder.show();
-		} else {
-			showCrouton("Not available at the moment", null, Style.ALERT);
-		}
-	}
-
-	private void removeAds() {
-		showAds = false;
-
-		if (madView != null) {
-			madView.setVisibility(View.GONE);
-		}
-
-		analyticsBridge.sendEvent("monetization", "ads", "hide");
-	}
-
-	private void leaveFullscreen() {
-		getSupportActionBar().show();
-
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN,
-				WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-		fullscreen = false;
-
-		analyticsBridge.sendEvent("ui", "fullscreen", "leave");
-	}
-
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (fullscreen && keyCode == KeyEvent.KEYCODE_BACK) {
-			leaveFullscreen();
-
-			return true;
-		}
-
-		return super.onKeyDown(keyCode, event);
-	}
-
-	@Override
-	public void onTabReselected(Tab tab, FragmentTransaction ft) {
-	}
-
-	@Override
-	public void onTabSelected(Tab tab, FragmentTransaction ft) {
-		Page page = getDocument().getPageAt(tab.getPosition());
-		showPage(page);
-	}
-
-	@Override
-	public void onTabUnselected(Tab tab, FragmentTransaction ft) {
-	}
-
-	private void showPage(Page page) {
-		currentPage = page;
-
-		getPageFragment().loadPage(page);
-
-		// if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
-		// loadPageOnMultiscreens(page);
-	}
-
-	public void findDocument() {
-		if (showAds) {
-			loadInterstitial();
-		}
-
-		final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-		// remove mime-type because most apps don't support ODF mime-types
-		intent.setType("application/*");
-		intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-		PackageManager pm = getPackageManager();
-		final List<ResolveInfo> targets = pm.queryIntentActivities(intent, 0);
-		int size = targets.size();
-		String[] targetNames = new String[size];
-		for (int i = 0; i < size; i++) {
-			targetNames[i] = targets.get(i).loadLabel(pm).toString();
-		}
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(R.string.dialog_choose_filemanager);
-		builder.setItems(targetNames, new OnClickListener() {
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				ResolveInfo target = targets.get(which);
-				if (target == null) {
-					return;
-				}
-
-				intent.setComponent(new ComponentName(target.activityInfo.packageName, target.activityInfo.name));
-
-				try {
-					startActivityForResult(intent, 42);
-				} catch (Exception e) {
-					e.printStackTrace();
-
-					showCrouton(R.string.crouton_error_open_app, new Runnable() {
-
-						@Override
-						public void run() {
-							findDocument();
-						}
-					}, Style.ALERT);
-				}
-
-				analyticsBridge.sendEvent("ui", "open", target.activityInfo.packageName);
-
-				dialog.dismiss();
-			}
-		});
-		builder.show();
-	}
-
-	@Override
-	protected void onStop() {
-		if (billingHelper != null) {
-			billingHelper.dispose();
-		}
-
-		super.onStop();
-	}
-
-	@Override
-	protected void onDestroy() {
-		try {
-			// keeps throwing exceptions for some users:
-			// Caused by: java.lang.NullPointerException
-			// android.webkit.WebViewClassic.requestFocus(WebViewClassic.java:9898)
-			// android.webkit.WebView.requestFocus(WebView.java:2133)
-			// android.view.ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
-			if (madView != null) {
-				((AdView) madView).destroy();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		try {
-			// keeps throwing exceptions for some users:
-			// Caused by: java.lang.NullPointerException
-			// android.webkit.WebViewClassic.requestFocus(WebViewClassic.java:9898)
-			// android.webkit.WebView.requestFocus(WebView.java:2133)
-			// android.view.ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
-
-			super.onDestroy();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public String getPublicKey() {
-		return "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDsdGybFkj9/26Fpu2mNASpAC8xQDRYocvVkxbpN6mF8k4a9L5ocnyUAY7sfKb0wjEc5e+vxL21kFKvvW0zEZX8a5wSXUfD5oiaXaiMPrp7cC1YbPPAelZvFEAzriA6pyk7PPKuqtAN2tcTiJED+kpiVAyEVU42lDUqE70xlRE6dQIDAQAB";
-	}
-
-	@Override
-	public void onSuccess(Document document, Uri uri) {
-		ActionBar bar = getSupportActionBar();
-		bar.removeAllTabs();
-
-		int pages = document.getPages().size();
-		if (pages > 1) {
-			bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-			for (int i = 0; i < pages; i++) {
-				ActionBar.Tab tab = bar.newTab();
-				String name = document.getPageAt(i).getName();
-				if (name == null)
-					name = "Page " + (i + 1);
-				tab.setText(name);
-				tab.setTabListener(this);
-
-				bar.addTab(tab);
-			}
-
-			if (lastPosition > 0) {
-				bar.setSelectedNavigationItem(lastPosition);
-
-				lastPosition = -1;
-			}
-		} else {
-			bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-
-			if (pages == 1) {
-				showPage(document.getPageAt(0));
-			}
-		}
-	}
-
-	@Override
-	public void onError(Throwable error, Uri uri) {
-		// DO NOT call the super-method here! otherwise we end up in an infinite
-		// recursion.
-
-		analyticsBridge.sendException(error.getMessage(), error);
-	}
-
-	public Page getCurrentPage() {
-		return currentPage;
-	}
-
-	private class MyAdListener extends AdListener {
-
-		@Override
-		public void onAdFailedToLoad(int arg0) {
-			if (showAds) {
-				showCrouton(R.string.crouton_remove_ads, new Runnable() {
-
-					@Override
-					public void run() {
-						buyAdRemoval();
-					}
-				}, Style.CONFIRM);
-			}
-		}
-
-		@Override
-		public void onAdClicked() {
-			removeAds();
-		}
-
-		@Override
-		public void onAdLoaded() {
-			if (interstitial != null) {
-				analyticsBridge.sendEvent("monetization", "interstitial", "google");
-			} else {
-				analyticsBridge.sendEvent("monetization", "ads", "google");
-			}
-		}
-	}
+public class MainActivity extends AppCompatActivity implements DocumentLoadingActivity {
+
+    private static final boolean USE_PROPRIETARY_LIBRARIES = true;
+    private static final int GOOGLE_REQUEST_CODE = 1993;
+    private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
+
+    private boolean isDocumentLoaded = false;
+
+    private Menu menu;
+
+    private View landingContainer;
+    private View documentContainer;
+    private LinearLayout adContainer;
+    private DocumentFragment documentFragment;
+
+    private boolean fullscreen;
+    private TtsActionModeCallback ttsActionMode;
+    private EditActionModeCallback editActionMode;
+
+    private CrashManager crashManager;
+    private AnalyticsManager analyticsManager;
+    private AdManager adManager;
+    private BillingManager billingManager;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.main);
+
+        setTitle("");
+
+        adContainer = findViewById(R.id.ad_container);
+        landingContainer = findViewById(R.id.landing_container);
+        documentContainer = findViewById(R.id.document_container);
+
+        documentFragment = (DocumentFragment) getSupportFragmentManager()
+                .findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
+        if (documentFragment == null) {
+            documentFragment = new DocumentFragment();
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.document_container, documentFragment,
+                            DOCUMENT_FRAGMENT_TAG).commit();
+        } else {
+            loadUri(null);
+        }
+
+        initializeProprietaryLibraries();
+
+        RateThisApp.onCreate(this);
+        RateThisApp.showRateDialogIfNeeded(this);
+
+        showIntroActivity();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // app was started from another app, but make sure not to load it twice
+        // (i.e. after bringing app back from background)
+        if (!isDocumentLoaded) {
+            handleIntent(getIntent());
+        }
+    }
+
+    private void showIntroActivity() {
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                SharedPreferences getPrefs = PreferenceManager
+                        .getDefaultSharedPreferences(getBaseContext());
+
+                boolean wasIntroShown = getPrefs.getBoolean("introShown", false);
+                if (!wasIntroShown) {
+                    Intent intent = new Intent(MainActivity.this, IntroActivity.class);
+                    startActivity(intent);
+
+                    SharedPreferences.Editor editor = getPrefs.edit();
+                    editor.putBoolean("introShown", true);
+                    editor.apply();
+                }
+            }
+        }).start();
+    }
+
+    private void initializeProprietaryLibraries() {
+        if (USE_PROPRIETARY_LIBRARIES) {
+            GoogleApiAvailability googleApi = GoogleApiAvailability.getInstance();
+            int googleAvailability = googleApi.isGooglePlayServicesAvailable(this);
+            if (googleAvailability != ConnectionResult.SUCCESS) {
+                googleApi.getErrorDialog(this, googleAvailability, GOOGLE_REQUEST_CODE).show();
+            }
+        }
+
+        crashManager = new CrashManager();
+        crashManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+        crashManager.initialize();
+
+        analyticsManager = new AnalyticsManager();
+        analyticsManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+        analyticsManager.initialize(this);
+
+        adManager = new AdManager();
+        adManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+        adManager.setAdContainer(adContainer);
+        adManager.setOnAdFailedCallback(new Runnable() {
+
+            @Override
+            public void run() {
+                CroutonHelper.showCrouton(MainActivity.this, R.string.crouton_remove_ads, new Runnable() {
+
+                    @Override
+                    public void run() {
+                        buyAdRemoval();
+                    }
+                }, Style.CONFIRM);
+            }
+        });
+        adManager.initialize(getApplicationContext(), analyticsManager);
+
+        billingManager = new BillingManager();
+        billingManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+        billingManager.initialize(this, analyticsManager, adManager, crashManager);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent.getData() != null) {
+            loadUri(intent.getData());
+
+            analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "other");
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        this.menu = menu;
+
+        if (isDocumentLoaded) {
+            showDocumentMenu();
+        }
+
+        return true;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if (requestCode == BillingManager.PURCHASE_CODE) {
+            billingManager.endPurchase(requestCode, resultCode, intent);
+        } else if (requestCode == GOOGLE_REQUEST_CODE) {
+            initializeProprietaryLibraries();
+        } else if (intent != null) {
+            adManager.showInterstitial();
+
+            Uri uri = intent.getData();
+            if (requestCode == 42 && resultCode == Activity.RESULT_OK && uri != null) {
+                loadUri(uri);
+            }
+        }
+
+        super.onActivityResult(requestCode, resultCode, intent);
+    }
+
+    @Override
+    public void loadUri(Uri uri) {
+        isDocumentLoaded = true;
+
+        if (uri != null) {
+            documentFragment.loadUri(uri);
+        } else {
+            // null passed in case of orientation change
+        }
+
+        landingContainer.setVisibility(View.GONE);
+        documentContainer.setVisibility(View.VISIBLE);
+
+        showDocumentMenu();
+    }
+
+    private void showDocumentMenu() {
+        if (menu != null) {
+            menu.setGroupVisible(R.id.menu_document_group, true);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_search: {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+                    // http://www.androidsnippets.org/snippets/20/
+                    final AlertDialog.Builder alert = new AlertDialog.Builder(this);
+                    alert.setTitle(getString(R.string.menu_search));
+
+                    final EditText input = new EditText(this);
+                    alert.setView(input);
+
+                    alert.setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+
+                        @Override
+                        public void onClick(DialogInterface dialog, int whichButton) {
+                            documentFragment.searchDocument(input.getText().toString());
+                        }
+                    });
+                    alert.setNegativeButton(getString(android.R.string.cancel), null);
+                    alert.show();
+                } else {
+                    FindActionModeCallback findActionModeCallback = new FindActionModeCallback(this);
+                    findActionModeCallback.setWebView(documentFragment.getPageView());
+                    startSupportActionMode(findActionModeCallback);
+                }
+
+                analyticsManager.report(FirebaseAnalytics.Event.SEARCH);
+
+                break;
+            }
+            case R.id.menu_open: {
+                findDocument();
+
+                analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "choose");
+
+                break;
+            }
+            case R.id.menu_remove_ads: {
+                buyAdRemoval();
+
+                break;
+            }
+            case R.id.menu_fullscreen: {
+                if (fullscreen) {
+                    leaveFullscreen();
+                } else {
+                    getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                            WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+
+                    getSupportActionBar().hide();
+
+                    adManager.removeAds();
+
+                    CroutonHelper.showCrouton(this, R.string.crouton_leave_fullscreen, new Runnable() {
+
+                        @Override
+                        public void run() {
+                            leaveFullscreen();
+                        }
+                    }, Style.INFO);
+
+                    analyticsManager.report("fullscreen_start");
+                }
+
+                fullscreen = !fullscreen;
+
+                break;
+            }
+            case R.id.menu_share: {
+                share(Uri.parse("content://at.tomtasche.reader/document.odt"));
+
+                break;
+            }
+            case R.id.menu_print: {
+                if (Build.VERSION.SDK_INT >= 19) {
+                    KitKatPrinter.print(this, documentFragment.getPageView());
+                } else {
+                    Toast.makeText(this, "Printing not available on your device. Please upgrade to a newer version of Android.", Toast.LENGTH_SHORT).show();
+                }
+
+                analyticsManager.report("print");
+
+                break;
+            }
+            case R.id.menu_tts: {
+                ttsActionMode = new TtsActionModeCallback(this, documentFragment.getPageView());
+                startSupportActionMode(ttsActionMode);
+
+                analyticsManager.report("tts");
+
+                break;
+            }
+            case R.id.menu_edit: {
+                adManager.loadInterstitial();
+
+                editActionMode = new EditActionModeCallback(this, documentFragment, adManager);
+                startSupportActionMode(editActionMode);
+
+                analyticsManager.report("edit");
+
+                break;
+            }
+            default: {
+                return super.onOptionsItemSelected(item);
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public void onActionModeFinished(ActionMode mode) {
+        super.onActionModeFinished(mode);
+
+        editActionMode = null;
+        ttsActionMode = null;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == EditActionModeCallback.PERMISSION_CODE) {
+            editActionMode.save();
+        }
+    }
+
+    private void showRecent() {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        DialogFragment chooserDialog = new RecentDocumentDialogFragment();
+        chooserDialog.show(transaction, RecentDocumentDialogFragment.FRAGMENT_TAG);
+
+        analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "recent");
+    }
+
+    public void share(Uri uri) {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setDataAndType(uri, "application/*");
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        try {
+            startActivity(intent);
+
+            analyticsManager.report(FirebaseAnalytics.Event.SHARE);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            CroutonHelper.showCrouton(this, R.string.crouton_error_open_app, null, Style.ALERT);
+        }
+    }
+
+    private void buyAdRemoval() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.dialog_remove_ads_title);
+        builder.setItems(R.array.dialog_remove_ads_options, new OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String product = null;
+
+                switch (which) {
+                    case 0:
+                        product = BillingManager.BILLING_PRODUCT_YEAR;
+
+                        break;
+
+                    case 1:
+                        product = BillingManager.BILLING_PRODUCT_FOREVER;
+
+                        break;
+
+                    case 2:
+                        product = BillingManager.BILLING_PRODUCT_LOVE;
+
+                        break;
+
+                    default:
+                        adManager.removeAds();
+
+                        dialog.dismiss();
+
+                        return;
+                }
+
+                billingManager.startPurchase(MainActivity.this, product);
+
+                dialog.dismiss();
+            }
+        });
+        builder.show();
+    }
+
+    private void leaveFullscreen() {
+        getSupportActionBar().show();
+
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        fullscreen = false;
+
+        analyticsManager.report("fullscreen_end");
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (fullscreen && keyCode == KeyEvent.KEYCODE_BACK) {
+            leaveFullscreen();
+
+            return true;
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+
+    public void findDocument() {
+        adManager.loadInterstitial();
+
+        final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        // remove mime-type because most apps don't support ODF mime-types
+        intent.setType("application/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        PackageManager pm = getPackageManager();
+        final List<ResolveInfo> targets = pm.queryIntentActivities(intent, 0);
+        int size = targets.size() + 1;
+        String[] targetNames = new String[size];
+        for (int i = 0; i < targets.size(); i++) {
+            targetNames[i] = targets.get(i).loadLabel(pm).toString();
+        }
+
+        targetNames[size - 1] = getString(R.string.menu_recent);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.dialog_choose_filemanager);
+        builder.setItems(targetNames, new OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (which == size - 1) {
+                    showRecent();
+
+                    return;
+                }
+
+                ResolveInfo target = targets.get(which);
+                if (target == null) {
+                    return;
+                }
+
+                intent.setComponent(new ComponentName(target.activityInfo.packageName, target.activityInfo.name));
+
+                try {
+                    startActivityForResult(intent, 42);
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                    CroutonHelper.showCrouton(MainActivity.this, R.string.crouton_error_open_app, new Runnable() {
+
+                        @Override
+                        public void run() {
+                            findDocument();
+                        }
+                    }, Style.ALERT);
+                }
+
+                analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, target.activityInfo.packageName);
+
+                dialog.dismiss();
+            }
+        });
+        builder.show();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (ttsActionMode != null) {
+            ttsActionMode.stop();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        billingManager.close();
+
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        adManager.destroyAds();
+
+        try {
+            // keeps throwing exceptions for some users:
+            // Caused by: java.lang.NullPointerException
+            // android.webkit.WebViewClassic.requestFocus(WebViewClassic.java:9898)
+            // android.webkit.WebView.requestFocus(WebView.java:2133)
+            // android.view.ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
+
+            super.onDestroy();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public CrashManager getCrashManager() {
+        return crashManager;
+    }
 }

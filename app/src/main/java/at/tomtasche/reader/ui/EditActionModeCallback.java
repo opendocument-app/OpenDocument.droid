@@ -1,185 +1,121 @@
 package at.tomtasche.reader.ui;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Environment;
-import android.support.v7.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
-import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
-import at.stefl.opendocument.java.odf.OpenDocument;
-import at.stefl.opendocument.java.odf.OpenDocumentPresentation;
-import at.stefl.opendocument.java.odf.OpenDocumentSpreadsheet;
-import at.stefl.opendocument.java.odf.OpenDocumentText;
-import at.stefl.opendocument.java.translator.Retranslator;
+
+import java.io.File;
+
+import androidx.appcompat.view.ActionMode;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
-import at.tomtasche.reader.background.ReportUtil;
+import at.tomtasche.reader.nonfree.AdManager;
+import at.tomtasche.reader.ui.activity.DocumentFragment;
 import at.tomtasche.reader.ui.activity.MainActivity;
 import at.tomtasche.reader.ui.widget.PageView;
 
 public class EditActionModeCallback implements ActionMode.Callback {
 
-	private MainActivity activity;
-	private PageView pageView;
-	private TextView statusView;
-	private OpenDocument document;
+    public static int PERMISSION_CODE = 21874;
 
-	private InputMethodManager imm;
+    private MainActivity activity;
+    private DocumentFragment documentFragment;
+    private AdManager adManager;
+    private PageView pageView;
+    private TextView statusView;
 
-	public EditActionModeCallback(MainActivity activity, PageView pageView,
-			OpenDocument document) {
-		this.activity = activity;
-		this.pageView = pageView;
-		this.document = document;
-	}
+    private InputMethodManager imm;
 
-	@Override
-	public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-		statusView = new TextView(activity);
-		statusView.setText(R.string.action_edit_banner);
-		mode.setCustomView(statusView);
+    public EditActionModeCallback(MainActivity activity, DocumentFragment documentFragment, AdManager adManager) {
+        this.activity = activity;
+        this.documentFragment = documentFragment;
+        this.adManager = adManager;
+        this.pageView = documentFragment.getPageView();
+    }
 
-		mode.getMenuInflater().inflate(R.menu.edit, menu);
+    @Override
+    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+        statusView = new TextView(activity);
+        statusView.setText(R.string.action_edit_banner);
+        mode.setCustomView(statusView);
 
-		imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        mode.getMenuInflater().inflate(R.menu.edit, menu);
 
-		return true;
-	}
+        imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
 
-	@Override
-	public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-		// reload document with translation enabled
-		activity.loadUri(AndroidFileCache.getCacheFileUri(), null, true, true);
+        return true;
+    }
 
-		imm.toggleSoftInputFromWindow(activity.getWindow().getDecorView().getRootView().getWindowToken(), InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+    @Override
+    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+        // reload document with translation enabled
+        documentFragment.reloadUri(false, true);
 
-		return true;
-	}
+        imm.toggleSoftInputFromWindow(activity.getWindow().getDecorView().getRootView().getWindowToken(), InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
 
-	@Override
-	public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-		switch (item.getItemId()) {
-		case R.id.edit_help: {
-			activity.startActivity(new Intent(
-					Intent.ACTION_VIEW,
-					Uri.parse("https://plus.google.com/communities/113494011673882132018")));
+        return true;
+    }
 
-			break;
-		}
+    @Override
+    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.edit_help: {
+                documentFragment.startActivity(new Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("https://plus.google.com/communities/113494011673882132018")));
 
-		case R.id.edit_save: {
-			activity.showInterstitial();
+                break;
+            }
 
-			final File htmlFile = new File(
-					AndroidFileCache.getCacheDirectory(activity),
-					"content.html");
-			pageView.requestHtml(htmlFile, new Runnable() {
+            case R.id.edit_save: {
+                adManager.showInterstitial();
 
-				@Override
-				public void run() {
-					Uri fileUri = null;
-					FileInputStream htmlStream = null;
-					FileOutputStream modifiedStream = null;
-					LocatedOpenDocumentFile documentFile = null;
-					try {
-						htmlStream = new FileInputStream(htmlFile);
+                save();
 
-						// TODO: ugly and risky cast
-						documentFile = new LocatedOpenDocumentFile(
-								((LocatedOpenDocumentFile) document
-										.getDocumentFile()).getFile());
+                break;
+            }
 
-						String extension = "unknown";
-						OpenDocument openDocument = documentFile
-								.getAsDocument();
-						if (openDocument instanceof OpenDocumentText) {
-							extension = "odt";
-						} else if (openDocument instanceof OpenDocumentSpreadsheet) {
-							extension = "ods";
-						} else if (openDocument instanceof OpenDocumentPresentation) {
-							extension = "odp";
-						}
+            default:
+                return false;
+        }
 
-						File modifiedFile = new File(Environment
-								.getExternalStorageDirectory(),
-								"modified-by-opendocument-reader." + extension);
-						modifiedStream = new FileOutputStream(modifiedFile);
+        return true;
+    }
 
-						Retranslator.retranslate(openDocument, htmlStream,
-								modifiedStream);
+    public void save() {
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_CODE);
+        } else {
+            final File htmlFile = new File(AndroidFileCache.getCacheDirectory(activity), "content.html");
+            pageView.requestHtml(htmlFile, new Runnable() {
 
-						modifiedStream.close();
+                @Override
+                public void run() {
+                    documentFragment.save(htmlFile);
 
-						fileUri = Uri.parse("file://"
-								+ modifiedFile.getAbsolutePath());
+                    pageView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            statusView.setText("Document saved to your SD card");
+                        }
+                    });
+                }
+            });
+        }
+    }
 
-						activity.loadUri(fileUri);
+    @Override
+    public void onDestroyActionMode(ActionMode mode) {
+        imm.toggleSoftInputFromWindow(activity.getWindow().getDecorView().getRootView().getWindowToken(), 0, 0);
 
-						activity.showSaveCroutonLater(modifiedFile, fileUri);
-					} catch (final Throwable e) {
-						e.printStackTrace();
-
-						final Uri cacheUri = AndroidFileCache.getCacheFileUri();
-						final Uri htmlUri = AndroidFileCache
-								.getHtmlCacheFileUri();
-
-						activity.onError(e, cacheUri);
-
-						activity.runOnUiThread(new Runnable() {
-
-							@Override
-							public void run() {
-								ReportUtil.submitFile(activity, e, cacheUri,
-										cacheUri, htmlUri, "Editing failed");
-							}
-						});
-					} finally {
-						if (documentFile != null) {
-							try {
-								documentFile.close();
-							} catch (IOException e) {
-							}
-						}
-
-						if (htmlStream != null) {
-							try {
-								htmlStream.close();
-							} catch (IOException e) {
-							}
-						}
-
-						if (modifiedStream != null) {
-							try {
-								modifiedStream.close();
-							} catch (IOException e) {
-							}
-						}
-					}
-				}
-			});
-
-			break;
-		}
-
-		default:
-			return false;
-		}
-
-		return true;
-	}
-
-	@Override
-	public void onDestroyActionMode(ActionMode mode) {
-		imm.toggleSoftInputFromWindow(activity.getWindow().getDecorView().getRootView().getWindowToken(), 0,0);
-	}
+        documentFragment.reloadUri(false, false);
+    }
 }

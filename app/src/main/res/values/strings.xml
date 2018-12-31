@@ -2,19 +2,13 @@
 <resources>
 
     <string name="toast_error_generic">Something bad happened. Couldn\'t open file.</string>
-    <string name="toast_error_access_file">Couldn\'t access file.</string>
     <string name="toast_error_find_file">Couldn\'t find file. Maybe it doesn\'t exist any longer?</string>
     <string name="toast_error_illegal_file">This doesn\'t seem to be a supported file format.</string>
-    <string name="toast_error_open_file">Couldn\'t open file. Only .odt and .ods documents are supported!</string>
     <string name="toast_error_out_of_memory">Phone out of memory! Too many pictures, or too big file.</string>
     <string name="toast_error_password_protected">Document is password-protected</string>
     <string name="toast_error_storage">External storage not available. Couldn\'t read file.</string>
     <string name="toast_info_limited">Only parts of the document are being displayed in order to improve performance. Click here if you want to see the whole document</string>
     <string name="dialog_recent_title">Recent documents</string>
-    <string name="dialog_submit_file_title">Choose an app to send us your file</string>
-    <string name="dialog_submit_file">Do you want to send us the file so we can take a look and probably make it work with the next update?</string>
-    <string name="dialog_error_send_error_only">Send only the error</string>
-    <string name="dialog_no_filemanager">No file explorer found. We recommend one of these:</string>
     <string name="dialog_choose_filemanager">Open document via:</string>
     <string name="dialog_loading_title">Loading...</string>
     <string name="dialog_uploading_title">Uploading...</string>
@@ -23,23 +17,16 @@
     <string name="dialog_upload_file">We aren\'t able to open this document, because we don\'t support its format. Do you want to upload it to our server temporarily, so we can display it for you anyway?</string>
     <string name="dialog_title_choose_file">Choose file from device</string>
     <string name="dialog_list_no_documents_found">No documents found</string>
-    <string name="dialog_list_searching_documents">Searching for documents on your device... This could take some time.</string>
     <string name="menu_recent">Recent documents</string>
     <string name="menu_search">Search</string>
     <string name="menu_open">Open</string>
     <string name="menu_edit">Edit</string>
-    <string name="menu_feedback">Feedback</string>
-    <string name="menu_about">About</string>
-    <string name="menu_remove_ads">Feature Store</string>
-    <string name="menu_reload">Reload without limit</string>
+    <string name="menu_remove_ads">Remove ads</string>
     <string name="menu_fullscreen">Fullscreen mode</string>
     <string name="menu_share">Share</string>
     <string name="menu_cloud_print">Print</string>
     <string name="menu_tts">Text-To-Speech</string>
-    <string name="menu_media_route">External Display</string>
-    <string name="crouton_error_billing">Failed to initialize Google Play In-App Billing</string>
     <string name="crouton_leave_fullscreen">Press Back to leave fullscreen mode</string>
-    <string name="crouton_chromecast_failed">Connection to Chromecast failed</string>
     <string name="crouton_error_open_app">Couldn\'t open this app.</string>
     <string name="crouton_remove_ads">Don\'t like advertisements? Click here to remove them!</string>
     <string name="action_find_previous">Previous</string>
@@ -52,10 +39,16 @@
     <string name="action_edit_save">Save</string>
     <string name="action_edit_help">Help!?</string>
     <string name="action_edit_banner">Edit your document below and press Save</string>
-    <string name="showcase_edit_title">Edit your documents on the go!</string>
-    <string name="showcase_edit_detail">We do now support editing of documents! Press the pen shown at the top to enter edit-mode. After you have finished modifying your document, press Save. The document is then saved on your sdcard and reloaded in read-only mode again.</string>
-    <string name="showcase_ad_title">Support the developers of this app!</string>
-    <string name="showcase_ad_detail">Every time you consume an ad (e.g. by clicking on it) you make two young boys in Austria smile. If you don\'t like ads, you can remove them for a small fee and make these boys even happier.</string>
+    <string name="landing_welcome_title">Welcome to \nOpenDocument Reader</string>
+    <string name="landing_intro_view">OpenDocument Reader allows you to view documents that are stored in OpenDocument format (.odt, .ods, .odp) wherever you are.</string>
+    <string name="landing_intro_search">With OpenDocument Reader you can read and search through your documents in a breeze.</string>
+    <string name="landing_intro_edit">Found one last typo left to fix in your document? It now supports modifications too!</string>
+    <string name="tts_status_reading">Reading...</string>
+    <string name="tts_status_initializing">Initializing TTS...</string>
+    <string name="tts_status_ready">Ready!</string>
+    <string name="tts_status_failed">TTS failed.</string>
+    <string name="tts_status_paused">Paused.</string>
+    <string name="tts_status_finished">Finished.</string>
 
     <string-array name="dialog_remove_ads_options">
         <item>remove ads for one year</item>
