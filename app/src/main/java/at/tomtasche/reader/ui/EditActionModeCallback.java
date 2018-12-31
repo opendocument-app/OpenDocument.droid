@@ -24,7 +24,7 @@ import at.tomtasche.reader.ui.widget.PageView;
 
 public class EditActionModeCallback implements ActionMode.Callback {
 
-    public static int PERMISSION_CODE = 21874033;
+    public static int PERMISSION_CODE = 21874;
 
     private MainActivity activity;
     private DocumentFragment documentFragment;

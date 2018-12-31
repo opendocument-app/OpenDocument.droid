@@ -183,6 +183,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         dismissProgress();
 
+        if (getActivity() == null || getActivity().isFinishing()) {
+            return;
+        }
+
         // TODO: we should load the first page here already
         // DocumentFragment should - basically - work out-of-the-box
         // (without any further logic)!
