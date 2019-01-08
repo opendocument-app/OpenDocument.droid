@@ -142,7 +142,9 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        listener.onSuccess(document);
+                        if (listener != null) {
+                            listener.onSuccess(document);
+                        }
                     }
                 });
 
@@ -186,7 +188,9 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        listener.onSuccess(document);
+                        if (listener != null) {
+                            listener.onSuccess(document);
+                        }
                     }
                 });
             } else {
@@ -198,7 +202,9 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onError(e);
+                    if (listener != null) {
+                        listener.onError(e);
+                    }
                 }
             });
         } finally {

@@ -368,7 +368,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (requestCode == EditActionModeCallback.PERMISSION_CODE) {
+        if (requestCode == EditActionModeCallback.PERMISSION_CODE && editActionMode != null) {
             editActionMode.save();
         }
     }

@@ -206,7 +206,9 @@ public class DocumentLoader implements FileLoader {
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onSuccess(document);
+                    if (listener != null) {
+                        listener.onSuccess(document);
+                    }
                 }
             });
         } catch (Throwable e) {
@@ -215,7 +217,9 @@ public class DocumentLoader implements FileLoader {
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onError(e);
+                    if (listener != null) {
+                        listener.onError(e);
+                    }
                 }
             });
         } finally {
