@@ -105,12 +105,29 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
         }
 
         String filename = null;
-        // https://stackoverflow.com/a/38304115/198996
-        Cursor fileCursor = context.getContentResolver().query(uri, null, null, null, null);
-        if (fileCursor != null && fileCursor.moveToFirst()) {
-            int nameIndex = fileCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-            filename = fileCursor.getString(nameIndex);
-            fileCursor.close();
+        try {
+            // https://stackoverflow.com/a/38304115/198996
+            Cursor fileCursor = context.getContentResolver().query(uri, null, null, null, null);
+            if (fileCursor != null && fileCursor.moveToFirst()) {
+                int nameIndex = fileCursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME);
+                filename = fileCursor.getString(nameIndex);
+                fileCursor.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            // "URI does not contain a valid access token." or
+            // "Couldn't read row 0, col -1 from CursorWindow. Make sure the Cursor is initialized correctly before accessing data from it."
+        }
+
+        if (filename == null) {
+            filename = uri.getLastPathSegment();
+        }
+
+        try {
+            RecentDocumentsUtil.addRecentDocument(context, filename, uri);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         String type = context.getContentResolver().getType(uri);
@@ -142,7 +159,9 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        listener.onSuccess(document);
+                        if (listener != null) {
+                            listener.onSuccess(document);
+                        }
                     }
                 });
 
@@ -186,7 +205,9 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        listener.onSuccess(document);
+                        if (listener != null) {
+                            listener.onSuccess(document);
+                        }
                     }
                 });
             } else {
@@ -198,7 +219,9 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onError(e);
+                    if (listener != null) {
+                        listener.onError(e);
+                    }
                 }
             });
         } finally {

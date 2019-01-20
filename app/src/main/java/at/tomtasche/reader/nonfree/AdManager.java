@@ -112,7 +112,13 @@ public class AdManager {
         }
 
         if (interstitial != null) {
-            interstitial.show();
+            try {
+                interstitial.show();
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                // very rarely crashes with "The ad unit ID must be set on InterstitialAd before show is called."
+            }
         }
 
         interstitial = null;

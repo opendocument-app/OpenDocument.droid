@@ -1,5 +1,6 @@
 package at.tomtasche.reader.ui.activity;
 
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,6 +18,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.zip.ZipException;
 
 import androidx.annotation.Nullable;
@@ -96,9 +102,16 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         lastUri = uri;
         lastPassword = password;
 
+        showProgress(documentLoader, false);
+
         documentLoader.loadAsync(uri, password, limit, translatable);
 
-        showProgress(documentLoader, false);
+        // workaround "java.lang.IllegalStateException: Can not perform this action after onSaveInstanceState"
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+            }
+        });
     }
 
     public void reloadUri(boolean limit, boolean translatable) {
@@ -126,9 +139,12 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 extension = "odp";
             }
 
-            File modifiedFile = new File(Environment
-                    .getExternalStorageDirectory(),
-                    "modified-by-opendocument-reader." + extension);
+            DateFormat dateFormat = new SimpleDateFormat("MMddyyyy-HHmmss", Locale.US);
+            Date nowDate = Calendar.getInstance().getTime();
+            String nowString = dateFormat.format(nowDate);
+
+            File modifiedFile = new File(Environment.getExternalStorageDirectory(),
+                    "modified-by-opendocument-reader-on-" + nowString + "." + extension);
             modifiedStream = new FileOutputStream(modifiedFile);
 
             Retranslator.retranslate(openDocument, htmlStream,
@@ -172,20 +188,20 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         lastUri = uri;
         lastPassword = null;
 
-        upLoader.loadAsync(uri, null, false, false);
-
         showProgress(upLoader, true);
+
+        upLoader.loadAsync(uri, null, false, false);
     }
 
     @Override
     public void onSuccess(Document document) {
         this.lastDocument = document;
 
-        dismissProgress();
-
         if (getActivity() == null || getActivity().isFinishing()) {
             return;
         }
+
+        dismissProgress();
 
         // TODO: we should load the first page here already
         // DocumentFragment should - basically - work out-of-the-box
@@ -231,7 +247,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     @Override
     public void onError(Throwable error) {
-        lastDocument = null;
+        Activity activity = getActivity();
+        if (activity == null || activity.isFinishing()) {
+            return;
+        }
 
         dismissProgress();
 
@@ -241,10 +260,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         if (error == null) {
             throw new RuntimeException("no error given");
         } else if (error instanceof EncryptedDocumentException) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.toast_error_password_protected);
 
-            final EditText input = new EditText(getActivity());
+            final EditText input = new EditText(activity);
             input.setInputType(InputType.TYPE_CLASS_TEXT
                     | InputType.TYPE_TEXT_VARIATION_PASSWORD);
             builder.setView(input);
@@ -274,7 +293,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 || error instanceof ZipException
                 || error instanceof ZipEntryNotFoundException
                 || error instanceof UnsupportedMimeTypeException) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.toast_error_illegal_file);
             builder.setMessage(R.string.dialog_upload_file);
             builder.setPositiveButton(getString(android.R.string.ok),
@@ -315,12 +334,12 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             errorDescription = R.string.toast_error_generic;
         }
 
-        CroutonHelper.showCrouton(getActivity(), errorDescription, null, Style.ALERT);
+        CroutonHelper.showCrouton(activity, errorDescription, null, Style.ALERT);
 
         Log.e("OpenDocument Reader", "Error opening file at " + lastUri.toString(),
                 error);
 
-        ((MainActivity) getActivity()).getCrashManager().log(error, lastUri);
+        ((MainActivity) activity).getCrashManager().log(error, lastUri);
     }
 
     private void showProgress(final FileLoader fileLoader,
@@ -372,6 +391,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         // dirty hack because committing isn't allowed right after
         // onLoadFinished:
         // "java.lang.IllegalStateException: Can not perform this action inside of onLoadFinished"
+
+        if (getFragmentManager() == null) {
+            return;
+        }
+
         if (progressDialog == null) {
             progressDialog = (ProgressDialogFragment) getFragmentManager()
                     .findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);

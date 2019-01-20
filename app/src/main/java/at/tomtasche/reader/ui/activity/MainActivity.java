@@ -206,6 +206,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+
         if (requestCode == BillingManager.PURCHASE_CODE) {
             billingManager.endPurchase(requestCode, resultCode, intent);
         } else if (requestCode == GOOGLE_REQUEST_CODE) {
@@ -218,8 +220,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 loadUri(uri);
             }
         }
-
-        super.onActivityResult(requestCode, resultCode, intent);
     }
 
     @Override
@@ -227,6 +227,15 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         isDocumentLoaded = true;
 
         if (uri != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                try {
+                    getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                } catch (Exception e) {
+                    // some providers dont support persisted permissions
+                    e.printStackTrace();
+                }
+            }
+
             documentFragment.loadUri(uri);
         } else {
             // null passed in case of orientation change
@@ -320,7 +329,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 break;
             }
             case R.id.menu_print: {
-                if (Build.VERSION.SDK_INT >= 19) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     KitKatPrinter.print(this, documentFragment.getPageView());
                 } else {
                     Toast.makeText(this, "Printing not available on your device. Please upgrade to a newer version of Android.", Toast.LENGTH_SHORT).show();
@@ -368,7 +377,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (requestCode == EditActionModeCallback.PERMISSION_CODE) {
+        if (requestCode == EditActionModeCallback.PERMISSION_CODE && editActionMode != null) {
             editActionMode.save();
         }
     }
@@ -466,10 +475,18 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     public void findDocument() {
         adManager.loadInterstitial();
 
-        final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        // remove mime-type because most apps don't support ODF mime-types
-        intent.setType("application/*");
+        final Intent intent;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            intent = new Intent(Intent.ACTION_GET_CONTENT);
+            // remove mime-type because most apps don't support ODF mime-types
+            intent.setType("application/*");
+        } else {
+            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.setType("*/*");
+            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        }
         intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
         PackageManager pm = getPackageManager();
         final List<ResolveInfo> targets = pm.queryIntentActivities(intent, 0);
