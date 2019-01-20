@@ -123,23 +123,27 @@ public class DocumentLoader implements FileLoader {
                 documentFile = new LocatedOpenDocumentFile(cachedFile);
             }
 
+            String filename = null;
             try {
-                String filename = null;
                 // https://stackoverflow.com/a/38304115/198996
                 Cursor fileCursor = context.getContentResolver().query(uri, null, null, null, null);
-                if (fileCursor != null) {
-                    int nameIndex = fileCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                    fileCursor.moveToFirst();
+                if (fileCursor != null && fileCursor.moveToFirst()) {
+                    int nameIndex = fileCursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME);
                     filename = fileCursor.getString(nameIndex);
                     fileCursor.close();
-                } else {
-                    filename = uri.getLastPathSegment();
                 }
-
-                RecentDocumentsUtil.addRecentDocument(context,
-                        filename, uri);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 // not a showstopper, so just continue
+                e.printStackTrace();
+            }
+
+            if (filename == null) {
+                filename = uri.getLastPathSegment();
+            }
+
+            try {
+                RecentDocumentsUtil.addRecentDocument(context, filename, uri);
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 

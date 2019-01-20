@@ -102,9 +102,16 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         lastUri = uri;
         lastPassword = password;
 
+        showProgress(documentLoader, false);
+
         documentLoader.loadAsync(uri, password, limit, translatable);
 
-        showProgress(documentLoader, false);
+        // workaround "java.lang.IllegalStateException: Can not perform this action after onSaveInstanceState"
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+            }
+        });
     }
 
     public void reloadUri(boolean limit, boolean translatable) {
@@ -181,9 +188,9 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         lastUri = uri;
         lastPassword = null;
 
-        upLoader.loadAsync(uri, null, false, false);
-
         showProgress(upLoader, true);
+
+        upLoader.loadAsync(uri, null, false, false);
     }
 
     @Override
