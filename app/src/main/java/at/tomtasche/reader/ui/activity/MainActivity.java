@@ -229,6 +229,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         if (uri != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 try {
+                    grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 } catch (Exception e) {
                     // some providers dont support persisted permissions
