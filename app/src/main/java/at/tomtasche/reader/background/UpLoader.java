@@ -132,7 +132,12 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
 
         String type = context.getContentResolver().getType(uri);
         if (type == null && filename != null) {
-            type = URLConnection.guessContentTypeFromName(filename);
+            try {
+                type = URLConnection.guessContentTypeFromName(filename);
+            } catch (Exception e) {
+                // Samsung S7 Edge crashes with java.lang.StringIndexOutOfBoundsException
+                e.printStackTrace();
+            }
         }
 
         if (type == null) {
