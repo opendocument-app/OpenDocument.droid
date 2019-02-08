@@ -67,32 +67,6 @@
                 <data android:mimeType="application/octet-stream"/>
             </intent-filter>
 
-            <!-- necessary for Samsung "My Files" - https://stackoverflow.com/a/52624829/198996 -->
-            <!-- Matches intents by file extension -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.BROWSABLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:scheme="content" />
-                <data android:scheme="file" />
-                <data android:host="*" />
-            </intent-filter>
-            <!-- Matches intents by file extension when an empty MIME type is set -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.BROWSABLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:mimeType="*/*" />
-
-                <data android:scheme="content" />
-                <data android:scheme="file" />
-                <data android:host="*" />
-            </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -200,6 +174,37 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <activity-alias
+                android:name=".ui.activity.MainActivity.CATCH_ALL"
+                android:label="OpenDocument Reader"
+                android:targetActivity=".ui.activity.MainActivity" >
+            <!-- necessary for Samsung "My Files" - https://stackoverflow.com/a/52624829/198996 -->
+            <!-- Matches intents by file extension -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+            </intent-filter>
+            <!-- Matches intents by file extension when an empty MIME type is set -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="*/*" />
+
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+            </intent-filter>
+        </activity-alias>
 
         <activity
                 android:name="com.nononsenseapps.filepicker.FilePickerActivity"

@@ -43,6 +43,7 @@
     <string name="landing_intro_view">OpenDocument Reader allows you to view documents that are stored in OpenDocument format (.odt, .ods, .odp) wherever you are.</string>
     <string name="landing_intro_search">With OpenDocument Reader you can read and search through your documents in a breeze.</string>
     <string name="landing_intro_edit">Found one last typo left to fix in your document? It now supports modifications too!</string>
+    <string name="landing_intro_open_all">This app registers to open all file types by default in order to support apps like \"Samsung My Files\". You may turn this feature off here if it causes problems for you.</string>
     <string name="tts_status_reading">Reading...</string>
     <string name="tts_status_initializing">Initializing TTS...</string>
     <string name="tts_status_ready">Ready!</string>
