@@ -43,49 +43,43 @@ public class BillingManager {
         billingPreferences = new BillingPreferences(context);
         billingHelper = new IabHelper(context, getPublicKey());
 
+        if (billingPreferences.hasPurchased()) {
+            adManager.removeAds();
+
+            return;
+        }
+
         try {
             billingHelper.startSetup(new OnIabSetupFinishedListener() {
 
                 @Override
                 public void onIabSetupFinished(IabResult result) {
-                    if (billingPreferences.hasPurchased()) {
-                        adManager.removeAds();
-
-                        return;
-                    }
-
                     if (result.isFailure()) {
                         enabled = false;
 
                         adManager.showGoogleAds();
                     } else if (result.isSuccess()) {
-                        // only query once per day
-                        if ((billingPreferences.getLastQueryTime() + 1000 * 60 * 60 * 24) < System
-                                .currentTimeMillis()) {
-                            billingHelper.queryInventoryAsync(new QueryInventoryFinishedListener() {
+                        billingHelper.queryInventoryAsync(new QueryInventoryFinishedListener() {
 
-                                @Override
-                                public void onQueryInventoryFinished(IabResult result, Inventory inv) {
-                                    if (result.isSuccess()) {
-                                        boolean purchased = inv.getPurchase(BILLING_PRODUCT_FOREVER) != null;
-                                        purchased |= inv.getPurchase(BILLING_PRODUCT_YEAR) != null;
-                                        purchased |= inv.getPurchase(BILLING_PRODUCT_LOVE) != null;
+                            @Override
+                            public void onQueryInventoryFinished(IabResult result, Inventory inv) {
+                                if (result.isSuccess()) {
+                                    boolean purchased = inv.getPurchase(BILLING_PRODUCT_FOREVER) != null;
+                                    purchased |= inv.getPurchase(BILLING_PRODUCT_YEAR) != null;
+                                    purchased |= inv.getPurchase(BILLING_PRODUCT_LOVE) != null;
 
-                                        if (purchased) {
-                                            adManager.removeAds();
-                                        } else {
-                                            adManager.showGoogleAds();
-                                        }
-
-                                        billingPreferences.setPurchased(purchased);
+                                    if (purchased) {
+                                        adManager.removeAds();
+                                    } else {
+                                        adManager.showGoogleAds();
                                     }
 
-                                    billingPreferences.setLastQueryTime(System.currentTimeMillis());
+                                    billingPreferences.setPurchased(purchased);
+                                } else {
+                                    adManager.showGoogleAds();
                                 }
-                            });
-                        } else if (!billingPreferences.hasPurchased()) {
-                            adManager.showGoogleAds();
-                        }
+                            }
+                        });
                     }
                 }
             });
@@ -112,7 +106,6 @@ public class BillingManager {
                     public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
                         if (result.isSuccess()) {
                             billingPreferences.setPurchased(true);
-                            billingPreferences.setLastQueryTime(System.currentTimeMillis());
 
                             adManager.removeAds();
                         } else {
