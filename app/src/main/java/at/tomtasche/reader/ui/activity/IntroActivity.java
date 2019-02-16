@@ -7,12 +7,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.github.paolorotolo.appintro.AppIntro;
-import com.github.paolorotolo.appintro.AppIntroFragment;
 import com.github.paolorotolo.appintro.model.SliderPage;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.ui.FailSafeAppIntroFragment;
 
 public class IntroActivity extends AppIntro {
 
@@ -28,14 +28,14 @@ public class IntroActivity extends AppIntro {
                 "These files are usually created using LibreOffice or OpenOffice. " +
                 "This app allows to open those files on your mobile device too, so you can read them on the go.");
         sliderPage.setImageDrawable(R.drawable.onboard1);
-        addSlide(AppIntroFragment.newInstance(sliderPage));
+        addSlide(FailSafeAppIntroFragment.newInstance(sliderPage));
 
         sliderPage = createStyledPage();
         sliderPage.setTitle("Found a typo in your document? Now supports modification!");
         sliderPage.setDescription("OpenDocument Reader not only allows to read documents on your mobile device, but also supports modifying them too. " +
                 "Typos are fixed in a breeze, even on the train!");
         sliderPage.setImageDrawable(R.drawable.onboard2);
-        addSlide(AppIntroFragment.newInstance(sliderPage));
+        addSlide(FailSafeAppIntroFragment.newInstance(sliderPage));
 
         sliderPage = createStyledPage();
         sliderPage.setTitle("Read your documents from within other apps");
@@ -43,7 +43,7 @@ public class IntroActivity extends AppIntro {
                 "A colleague sent a presentation via Gmail? " +
                 "Click the attachment and this app is going to open right away!");
         sliderPage.setImageDrawable(R.drawable.onboard3);
-        addSlide(AppIntroFragment.newInstance(sliderPage));
+        addSlide(FailSafeAppIntroFragment.newInstance(sliderPage));
 
         setBarColor(Color.parseColor("#ffffff"));
         setSeparatorColor(Color.parseColor("#ffffff"));

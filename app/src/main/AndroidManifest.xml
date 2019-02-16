@@ -3,8 +3,8 @@
           xmlns:tools="http://schemas.android.com/tools"
           package="at.tomtasche.reader"
           android:installLocation="auto"
-          android:versionCode="80"
-          android:versionName="3.0.13">
+          android:versionCode="82"
+          android:versionName="3.0.15">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -53,99 +53,158 @@
                 <action android:name="android.intent.action.VIEW"/>
 
                 <category android:name="android.intent.category.DEFAULT"/>
-
-                <data android:mimeType="application/vnd.oasis.opendocument.text"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
                 <category android:name="android.intent.category.BROWSABLE"/>
 
                 <data android:mimeType="application/vnd.oasis.opendocument.text"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="application/vnd.oasis.opendocument.text-template"/>
 
                 <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.BROWSABLE"/>
-
-                <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-
-                <data android:mimeType="application/vnd.oasis.opendocument.text-template"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.BROWSABLE"/>
-
-                <data android:mimeType="application/vnd.oasis.opendocument.text-template"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-
                 <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet-template"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.BROWSABLE"/>
-
-                <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet-template"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
 
                 <data android:mimeType="application/vnd.oasis.opendocument.presentation"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.BROWSABLE"/>
-
-                <data android:mimeType="application/vnd.oasis.opendocument.presentation"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-
                 <data android:mimeType="application/vnd.oasis.opendocument.presentation-template"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.BROWSABLE"/>
-
-                <data android:mimeType="application/vnd.oasis.opendocument.presentation-template"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
 
                 <data android:mimeType="application/octet-stream"/>
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="*" />
+
+                <data android:pathPattern=".*\\.odt" />
+                <data android:pathPattern=".*\\..*\\.odt" />
+                <data android:pathPattern=".*\\..*\\..*\\.odt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.odt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.odt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.odt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.odt" />
+
+                <data android:pathPattern=".*\\.ods" />
+                <data android:pathPattern=".*\\..*\\.ods" />
+                <data android:pathPattern=".*\\..*\\..*\\.ods" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.ods" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.ods" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.ods" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.ods" />
+
+                <data android:pathPattern=".*\\.odp" />
+                <data android:pathPattern=".*\\..*\\.odp" />
+                <data android:pathPattern=".*\\..*\\..*\\.odp" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.odp" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.odp" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.odp" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.odp" />
+
+                <data android:pathPattern=".*\\.odg" />
+                <data android:pathPattern=".*\\..*\\.odg" />
+                <data android:pathPattern=".*\\..*\\..*\\.odg" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.odg" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.odg" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.odg" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.odg" />
+
+                <data android:pathPattern=".*\\.odt" />
+                <data android:pathPattern=".*\\.ods" />
+                <data android:pathPattern=".*\\.odp" />
+                <data android:pathPattern=".*\\.odg" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="*/*" />
+
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+
+                <data android:pathPattern=".*\\.odt" />
+                <data android:pathPattern=".*\\..*\\.odt" />
+                <data android:pathPattern=".*\\..*\\..*\\.odt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.odt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.odt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.odt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.odt" />
+
+                <data android:pathPattern=".*\\.ods" />
+                <data android:pathPattern=".*\\..*\\.ods" />
+                <data android:pathPattern=".*\\..*\\..*\\.ods" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.ods" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.ods" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.ods" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.ods" />
+
+                <data android:pathPattern=".*\\.odp" />
+                <data android:pathPattern=".*\\..*\\.odp" />
+                <data android:pathPattern=".*\\..*\\..*\\.odp" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.odp" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.odp" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.odp" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.odp" />
+
+                <data android:pathPattern=".*\\.odg" />
+                <data android:pathPattern=".*\\..*\\.odg" />
+                <data android:pathPattern=".*\\..*\\..*\\.odg" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.odg" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.odg" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.odg" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.odg" />
+
+                <data android:pathPattern=".*\\.odt" />
+                <data android:pathPattern=".*\\.ods" />
+                <data android:pathPattern=".*\\.odp" />
+                <data android:pathPattern=".*\\.odg" />
+            </intent-filter>
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <activity-alias
+                android:name=".ui.activity.MainActivity.CATCH_ALL"
+                android:label="OpenDocument Reader"
+                android:targetActivity=".ui.activity.MainActivity" >
+            <!-- necessary for Samsung "My Files" - https://stackoverflow.com/a/52624829/198996 -->
+            <!-- Matches intents by file extension -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+            </intent-filter>
+            <!-- Matches intents by file extension when an empty MIME type is set -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="*/*" />
+
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+            </intent-filter>
+        </activity-alias>
 
         <activity
                 android:name="com.nononsenseapps.filepicker.FilePickerActivity"

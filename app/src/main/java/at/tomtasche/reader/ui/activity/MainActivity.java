@@ -18,8 +18,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -34,6 +36,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
+import at.tomtasche.reader.BuildConfig;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.KitKatPrinter;
 import at.tomtasche.reader.nonfree.AdManager;
@@ -101,6 +104,24 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         RateThisApp.showRateDialogIfNeeded(this);
 
         showIntroActivity();
+
+        initializeCatchAllSwitch();
+    }
+
+    private void initializeCatchAllSwitch() {
+        ComponentName componentName = new ComponentName(this, BuildConfig.APPLICATION_ID + ".ui.activity.MainActivity.CATCH_ALL");
+        boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(componentName) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+
+        Switch catchAllSwitch = findViewById(R.id.landing_catch_all);
+        catchAllSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                int newState = isChecked ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+                getPackageManager().setComponentEnabledSetting(componentName, newState, PackageManager.DONT_KILL_APP);
+            }
+        });
+
+        catchAllSwitch.setChecked(isCatchAllEnabled);
     }
 
     @Override
@@ -229,6 +250,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         if (uri != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 try {
+                    grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 } catch (Exception e) {
                     // some providers dont support persisted permissions
