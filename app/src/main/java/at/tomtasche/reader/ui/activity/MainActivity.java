@@ -1,5 +1,6 @@
 package at.tomtasche.reader.ui.activity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.DialogInterface;
@@ -34,6 +35,8 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
 import at.tomtasche.reader.BuildConfig;
@@ -55,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     private static final boolean USE_PROPRIETARY_LIBRARIES = true;
     private static final int GOOGLE_REQUEST_CODE = 1993;
     private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
+    public static int PERMISSION_CODE = 1353;
 
     private boolean isDocumentLoaded = false;
 
@@ -73,6 +77,9 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     private AnalyticsManager analyticsManager;
     private AdManager adManager;
     private BillingManager billingManager;
+
+    private int permissionDialogCount = 0;
+    private boolean isIntroOpen = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -100,10 +107,10 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         initializeProprietaryLibraries();
 
+        showIntroActivity();
+
         RateThisApp.onCreate(this);
         RateThisApp.showRateDialogIfNeeded(this);
-
-        showIntroActivity();
 
         initializeCatchAllSwitch();
     }
@@ -128,6 +135,11 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     protected void onStart() {
         super.onStart();
 
+        if (!isIntroOpen) {
+            requestPermission();
+        }
+        isIntroOpen = false;
+
         // app was started from another app, but make sure not to load it twice
         // (i.e. after bringing app back from background)
         if (!isDocumentLoaded) {
@@ -136,24 +148,34 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     }
 
     private void showIntroActivity() {
-        new Thread(new Runnable() {
+        SharedPreferences getPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-            @Override
-            public void run() {
-                SharedPreferences getPrefs = PreferenceManager
-                        .getDefaultSharedPreferences(getBaseContext());
+        boolean wasIntroShown = getPrefs.getBoolean("introShown", false);
+        if (!wasIntroShown) {
+            Intent intent = new Intent(MainActivity.this, IntroActivity.class);
+            startActivity(intent);
 
-                boolean wasIntroShown = getPrefs.getBoolean("introShown", false);
-                if (!wasIntroShown) {
-                    Intent intent = new Intent(MainActivity.this, IntroActivity.class);
-                    startActivity(intent);
+            SharedPreferences.Editor editor = getPrefs.edit();
+            editor.putBoolean("introShown", true);
+            editor.apply();
 
-                    SharedPreferences.Editor editor = getPrefs.edit();
-                    editor.putBoolean("introShown", true);
-                    editor.apply();
-                }
-            }
-        }).start();
+            isIntroOpen = true;
+        } else {
+            requestPermission();
+        }
+    }
+
+    private void requestPermission() {
+        if (permissionDialogCount > 3) {
+            // some users keep denying the permission
+            return;
+        }
+
+        permissionDialogCount++;
+
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_CODE);
+        }
     }
 
     private void initializeProprietaryLibraries() {
@@ -401,6 +423,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         if (requestCode == EditActionModeCallback.PERMISSION_CODE && editActionMode != null) {
             editActionMode.save();
+        } else if (requestCode == PERMISSION_CODE) {
+            requestPermission();
         }
     }
 
