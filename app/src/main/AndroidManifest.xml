@@ -3,8 +3,8 @@
           xmlns:tools="http://schemas.android.com/tools"
           package="at.tomtasche.reader"
           android:installLocation="auto"
-          android:versionCode="82"
-          android:versionName="3.0.15">
+          android:versionCode="83"
+          android:versionName="3.0.16">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -215,6 +215,14 @@
                 android:theme="@style/NNF_BaseTheme.Light">
             <intent-filter>
                 <action android:name="android.intent.action.GET_CONTENT"/>
+
+                <category android:name="android.intent.category.OPENABLE"/>
+
+                <data android:mimeType="application/vnd.oasis.opendocument.*"/>
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.OPEN_DOCUMENT"/>
 
                 <category android:name="android.intent.category.OPENABLE"/>
 

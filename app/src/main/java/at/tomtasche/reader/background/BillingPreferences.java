@@ -13,16 +13,6 @@ public class BillingPreferences {
                 "modifyMeIfYouWantToRemoveAdsIllegally", Context.MODE_PRIVATE);
     }
 
-    public long getLastQueryTime() {
-        return sharedPreferences.getLong("time", 0);
-    }
-
-    public void setLastQueryTime(long time) {
-        Editor editor = sharedPreferences.edit();
-        editor.putLong("time", time);
-        editor.commit();
-    }
-
     public boolean hasPurchased() {
         return sharedPreferences.getBoolean("purchased", false);
     }
