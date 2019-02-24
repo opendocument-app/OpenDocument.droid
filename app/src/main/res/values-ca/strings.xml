@@ -37,7 +37,6 @@
     <string name="menu_about">Quant a</string>
     <string name="menu_reload">Torna a carregar sense límit</string>
     <string name="menu_fullscreen">Mode de pantalla completa</string>
-    <string name="menu_share">Comparteix</string>
     <string name="menu_cloud_print">Google Cloud Print</string>
     <string name="crouton_error_billing">No s\'ha pogut iniciar el Google Play In-App Billing</string>
     <string name="crouton_leave_fullscreen">Premeu Enrere per abandonar el mode de pantalla completa</string>

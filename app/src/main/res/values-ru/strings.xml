@@ -31,7 +31,6 @@
     <string name="menu_about">О приложении</string>
     <string name="menu_reload">Перезагрузка без ограничений</string>
     <string name="menu_fullscreen">Полноэкранный режим</string>
-    <string name="menu_share">Поделиться</string>
     <string name="menu_cloud_print">Печать</string>
     <string name="menu_tts">Текст в речь</string>
     <string name="menu_media_route">Внешний дисплей</string>

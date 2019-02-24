@@ -23,7 +23,6 @@
     <string name="menu_edit">Edit</string>
     <string name="menu_remove_ads">Remove ads</string>
     <string name="menu_fullscreen">Fullscreen mode</string>
-    <string name="menu_share">Share</string>
     <string name="menu_cloud_print">Print</string>
     <string name="menu_tts">Text-To-Speech</string>
     <string name="crouton_leave_fullscreen">Press Back to leave fullscreen mode</string>

@@ -32,7 +32,6 @@
     <string name="menu_about">Über</string>
     <string name="menu_reload">Ohne Limit neu laden</string>
     <string name="menu_fullscreen">Vollbild-Modus</string>
-    <string name="menu_share">Teilen</string>
     <string name="menu_cloud_print">Drucken</string>
     <string name="menu_tts">Text-To-Speech</string>
     <string name="menu_media_route">Externer Bildschirm</string>

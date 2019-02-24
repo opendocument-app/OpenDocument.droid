@@ -31,7 +31,6 @@
     <string name="menu_about">Informacje</string>
     <string name="menu_reload">Ładowanie bez limitów</string>
     <string name="menu_fullscreen">Tryb pełnoekranowy</string>
-    <string name="menu_share">Udostępnij</string>
     <string name="menu_cloud_print">Drukuj</string>
     <string name="menu_tts">Tekst-Na-Mowę</string>
     <string name="menu_media_route">Podgląd zewnętrzny</string>

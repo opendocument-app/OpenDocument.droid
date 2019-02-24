@@ -27,10 +27,6 @@
             android:title="@string/menu_fullscreen"
             app:showAsAction="ifRoom" />
         <item
-            android:id="@+id/menu_share"
-            android:title="@string/menu_share"
-            app:showAsAction="never" />
-        <item
             android:id="@+id/menu_print"
             android:title="@string/menu_cloud_print"
             app:showAsAction="never" />

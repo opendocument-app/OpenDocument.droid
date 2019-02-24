@@ -37,7 +37,6 @@
     <string name="menu_about">O aplikaci</string>
     <string name="menu_reload">Znovu načíst bez omezení</string>
     <string name="menu_fullscreen">Celá obrazovka</string>
-    <string name="menu_share">Sdílet</string>
     <string name="menu_cloud_print">Google Cloud Print</string>
     <string name="crouton_error_billing">Nepodařilo se inicializovat platbu Google Play In-App</string>
     <string name="crouton_leave_fullscreen">Pro opuštění režimu celé obrazovky stiskněte tlačítko Zpět</string>

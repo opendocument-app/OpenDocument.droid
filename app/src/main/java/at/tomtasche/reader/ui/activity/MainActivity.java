@@ -367,11 +367,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
                 break;
             }
-            case R.id.menu_share: {
-                share(Uri.parse("content://at.tomtasche.reader/document.odt"));
-
-                break;
-            }
             case R.id.menu_print: {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     KitKatPrinter.print(this, documentFragment.getPageView());

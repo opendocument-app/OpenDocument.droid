@@ -31,7 +31,6 @@
     <string name="menu_about">Info</string>
     <string name="menu_reload">Ricarica senza limiti</string>
     <string name="menu_fullscreen">Modalità schermo intero</string>
-    <string name="menu_share">Condividi</string>
     <string name="menu_cloud_print">Stampa</string>
     <string name="menu_tts">Text-To-Speech</string>
     <string name="menu_media_route">Visualizzazione esterna</string>
