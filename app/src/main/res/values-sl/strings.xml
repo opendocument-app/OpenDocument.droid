@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="toast_error_generic">Nekaj je šlo narobe. Datoteke ni bilo mogoče odpreti.</string>
+    <string name="toast_error_find_file">Datoteke ni bilo mogoče najti. Morda ne obstaja več?</string>
+    <string name="toast_error_illegal_file">Videti je, da ta oblika datoteke ni podprta.</string>
+    <string name="toast_error_out_of_memory">Telefonu je zmanjkalo pomnilnika! Preveč slik ali prevelika datoteka.</string>
+    <string name="toast_error_password_protected">Dokument je zaščiten z geslom</string>
+    <string name="toast_error_storage">Zunanja pomnilniška naprava ni na voljo. Datoteke ni bilo mogoče brati.</string>
+    <string name="toast_info_limited">Zaradi izboljšanja zmogljivosti so prikazani samo deli dokumenta. Kliknite tukaj, če želite videti cel dokument.</string>
+    <string name="dialog_recent_title">Nedavni dokumenti</string>
+    <string name="dialog_choose_filemanager">Odpri dokument preko:</string>
+    <string name="dialog_loading_title">Nalaganje ...</string>
+    <string name="dialog_uploading_title">Pošiljanje ...</string>
+    <string name="dialog_loading_message">To lahko traja nekaj minut, odvisno od zgradbe dokumenta in zmogljivoasti telefona.</string>
+    <string name="dialog_remove_ads_title">Kupite nove značilnosti:</string>
+    <string name="dialog_upload_file">We aren\'t able to open this document, because we don\'t support its format. Do you want to upload it to our server temporarily, so we can display it for you anyway?</string>
+    <string name="dialog_title_choose_file">Choose file from device</string>
+    <string name="dialog_list_no_documents_found">No documents found</string>
+    <string name="menu_recent">Recent documents</string>
+    <string name="menu_search">Search</string>
+    <string name="menu_open">Open</string>
+    <string name="menu_edit">Edit</string>
+    <string name="menu_remove_ads">Remove ads</string>
+    <string name="menu_fullscreen">Fullscreen mode</string>
+    <string name="menu_share">Share</string>
+    <string name="menu_cloud_print">Print</string>
+    <string name="menu_tts">Text-To-Speech</string>
+    <string name="crouton_leave_fullscreen">Press Back to leave fullscreen mode</string>
+    <string name="crouton_error_open_app">Couldn\'t open this app.</string>
+    <string name="crouton_remove_ads">Don\'t like advertisements? Click here to remove them!</string>
+    <string name="action_find_previous">Previous</string>
+    <string name="action_find_next">Next</string>
+    <string name="action_find_on_page">Find on page</string>
+    <string name="action_tts_play">Play</string>
+    <string name="action_tts_pause">Pause</string>
+    <string name="action_tts_next">Next</string>
+    <string name="action_tts_previous">Previous</string>
+    <string name="action_edit_save">Save</string>
+    <string name="action_edit_help">Help!?</string>
+    <string name="action_edit_banner">Edit your document below and press Save</string>
+    <string name="landing_welcome_title">Welcome to \nOpenDocument Reader</string>
+    <string name="landing_intro_view">OpenDocument Reader allows you to view documents that are stored in OpenDocument format (.odt, .ods, .odp) wherever you are.</string>
+    <string name="landing_intro_search">With OpenDocument Reader you can read and search through your documents in a breeze.</string>
+    <string name="landing_intro_edit">Found one last typo left to fix in your document? It now supports modifications too!</string>
+    <string name="landing_intro_open_all">This app registers to open all file types by default in order to support apps like \"Samsung My Files\". You may turn this feature off here if it causes problems for you.</string>
+    <string name="tts_status_reading">Reading...</string>
+    <string name="tts_status_initializing">Initializing TTS...</string>
+    <string name="tts_status_ready">Ready!</string>
+    <string name="tts_status_failed">TTS failed.</string>
+    <string name="tts_status_paused">Paused.</string>
+    <string name="tts_status_finished">Finished.</string>
+
+    <string-array name="dialog_remove_ads_options">
+        <item>remove ads for one year</item>
+        <item>remove ads forever</item>
+        <item>deep love (+ remove ads forever)</item>
+        <item>remove ads temporarily</item>
+    </string-array>
+
+</resources>
