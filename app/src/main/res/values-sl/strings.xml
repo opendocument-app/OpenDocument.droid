@@ -28,7 +28,7 @@
     <string name="menu_tts">Besedilo v govor</string>
     <string name="crouton_leave_fullscreen">Pritisnite Nazaj za izhod iz celozaslonskega načina</string>
     <string name="crouton_error_open_app">Tega programa ni bilo mogoče odpreti.</string>
-    <string name="crouton_remove_ads">Ne marate oglasov? Kliknite tukaj, da jih odstranite!</string>
+    <string name="crouton_remove_ads">Ne marate oglasov? Če jih želite odstraniti, kliknite tukaj!</string>
     <string name="action_find_previous">Nazaj</string>
     <string name="action_find_next">Naprej</string>
     <string name="action_find_on_page">Najdi na strani</string>
@@ -39,7 +39,7 @@
     <string name="action_edit_save">Shrani</string>
     <string name="action_edit_help">Pomoč!?</string>
     <string name="action_edit_banner">Spodaj uredite dokument in prtisnite Shrani</string>
-    <string name="landing_welcome_title">Dobrodošči v \nOpenDocument Reader</string>
+    <string name="landing_welcome_title">Dobrodošli v \nOpenDocument Reader</string>
     <string name="landing_intro_view">OpenDocument Reader kjerkoli omogoča ogled dokumentov, ki so shranjeni v obliki OpenDocument (.odt, .ods, .odp).</string>
     <string name="landing_intro_search">S programom OpenDocument Reader lahko berete in hitro iščete po dokumentih.</string>
     <string name="landing_intro_edit">Ste našli še zadnjo napako v dokumentu, ki jo želite popraviti? Sedaj podpira tudi spreminjanje!</string>
