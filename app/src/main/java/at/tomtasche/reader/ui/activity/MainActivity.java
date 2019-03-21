@@ -116,19 +116,30 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     }
 
     private void initializeCatchAllSwitch() {
-        ComponentName componentName = new ComponentName(this, BuildConfig.APPLICATION_ID + ".ui.activity.MainActivity.CATCH_ALL");
-        boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(componentName) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        ComponentName catchAllComponent = new ComponentName(this, BuildConfig.APPLICATION_ID + ".ui.activity.MainActivity.CATCH_ALL");
+        ComponentName strictCatchComponent = new ComponentName(this, BuildConfig.APPLICATION_ID + ".ui.activity.MainActivity.STRICT_CATCH");
+
+        boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(catchAllComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+
+        // retoggle components for users upgrading to latest version of app
+        toggleComponent(catchAllComponent, isCatchAllEnabled);
+        toggleComponent(strictCatchComponent, !isCatchAllEnabled);
 
         Switch catchAllSwitch = findViewById(R.id.landing_catch_all);
         catchAllSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                int newState = isChecked ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-                getPackageManager().setComponentEnabledSetting(componentName, newState, PackageManager.DONT_KILL_APP);
+                toggleComponent(catchAllComponent, isChecked);
+                toggleComponent(strictCatchComponent, !isChecked);
             }
         });
 
         catchAllSwitch.setChecked(isCatchAllEnabled);
+    }
+
+    private void toggleComponent(ComponentName component, boolean enabled) {
+        int newState = enabled ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        getPackageManager().setComponentEnabledSetting(component, newState, PackageManager.DONT_KILL_APP);
     }
 
     @Override

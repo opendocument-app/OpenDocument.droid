@@ -105,13 +105,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         showProgress(documentLoader, false);
 
         documentLoader.loadAsync(uri, password, limit, translatable);
-
-        // workaround "java.lang.IllegalStateException: Can not perform this action after onSaveInstanceState"
-        mainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-            }
-        });
     }
 
     public void reloadUri(boolean limit, boolean translatable) {
@@ -284,6 +277,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    Activity activity = getActivity();
+                    if (activity == null || activity.isFinishing()) {
+                        return;
+                    }
+
                     builder.show();
                 }
             });
@@ -312,6 +310,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    Activity activity = getActivity();
+                    if (activity == null || activity.isFinishing()) {
+                        return;
+                    }
+
                     builder.show();
                 }
             });
@@ -368,6 +371,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
                     @Override
                     public void run() {
+                        Activity activity = getActivity();
+                        if (activity == null || activity.isFinishing()) {
+                            return;
+                        }
+
                         if (progressDialog == null) {
                             return;
                         }

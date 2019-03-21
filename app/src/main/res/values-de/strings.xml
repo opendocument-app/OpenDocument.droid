@@ -4,7 +4,7 @@
     <string name="toast_error_generic">Etwas schlimmes ist passiert. Datei konnte nicht geöffnet werden.</string>
     <string name="toast_error_access_file">Auf die Datei konnte nicht zugegriffen werden. Vielleicht ist die Datei nicht mehr vorhanden?</string>
     <string name="toast_error_find_file">Datei konnte nicht gefunden werden.</string>
-    <string name="toast_error_illegal_file">Diese Datei scheint nicht keines der unterstützten Formate zu haben.</string>
+    <string name="toast_error_illegal_file">Diese Datei scheint keines der unterstützten Formate zu haben.</string>
     <string name="toast_error_open_file">Datei konnte nicht geöffnet werden. Nur .odt, .ods und .odp-Dokumente werden unterstützt!</string>
     <string name="toast_error_out_of_memory">Speicher geht zur Neige! Zu viele Bilder oder eine zu große Datei.</string>
     <string name="toast_error_password_protected">Dokument ist passwort-geschützt</string>
