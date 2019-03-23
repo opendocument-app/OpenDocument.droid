@@ -113,7 +113,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
                     pageView.post(new Runnable() {
                         @Override
                         public void run() {
-                            statusView.setText("Document saved to your SD card");
+                            statusView.setText(R.string.edit_status_saved);
                         }
                     });
                 }

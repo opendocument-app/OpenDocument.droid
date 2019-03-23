@@ -20,6 +20,6 @@ public class BillingPreferences {
     public void setPurchased(boolean purchased) {
         Editor editor = sharedPreferences.edit();
         editor.putBoolean("purchased", purchased);
-        editor.commit();
+        editor.apply();
     }
 }

@@ -16,7 +16,6 @@ package at.tomtasche.reader.ui;
  * limitations under the License.
  */
 
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
@@ -133,7 +132,6 @@ public class FindActionModeCallback implements ActionMode.Callback,
     /*
      * Highlight all the instances of the string from mEditText in mWebView.
      */
-    @SuppressLint("NewApi")
     void findAll() {
         if (mWebView == null) {
             throw new AssertionError(
@@ -143,7 +141,7 @@ public class FindActionModeCallback implements ActionMode.Callback,
         if (0 == find.length()) {
             mWebView.clearMatches();
             mMatchesFound = false;
-            mWebView.findAll(null);
+            mWebView.findAllAsync(null);
         } else {
             mMatchesFound = true;
             mNumberOfMatches = 0;

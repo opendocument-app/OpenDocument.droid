@@ -10,8 +10,8 @@
     <string name="toast_info_limited">Only parts of the document are being displayed in order to improve performance. Click here if you want to see the whole document</string>
     <string name="dialog_recent_title">Recent documents</string>
     <string name="dialog_choose_filemanager">Open document via:</string>
-    <string name="dialog_loading_title">Loading...</string>
-    <string name="dialog_uploading_title">Uploading...</string>
+    <string name="dialog_loading_title">Loading…</string>
+    <string name="dialog_uploading_title">Uploading…</string>
     <string name="dialog_loading_message">This could take a few minutes, depending on the structure of your document and the processing power of your phone.</string>
     <string name="dialog_remove_ads_title">Purchase new features:</string>
     <string name="dialog_upload_file">We aren\'t able to open this document, because we don\'t support its format. Do you want to upload it to our server temporarily, so we can display it for you anyway?</string>
@@ -43,12 +43,13 @@
     <string name="landing_intro_search">With OpenDocument Reader you can read and search through your documents in a breeze.</string>
     <string name="landing_intro_edit">Found one last typo left to fix in your document? It now supports modifications too!</string>
     <string name="landing_intro_open_all">This app registers to open all file types by default in order to support apps like \"Samsung My Files\". You may turn this feature off here if it causes problems for you.</string>
-    <string name="tts_status_reading">Reading...</string>
-    <string name="tts_status_initializing">Initializing TTS...</string>
+    <string name="tts_status_reading">Reading…</string>
+    <string name="tts_status_initializing">Initializing TTS…</string>
     <string name="tts_status_ready">Ready!</string>
     <string name="tts_status_failed">TTS failed.</string>
     <string name="tts_status_paused">Paused.</string>
     <string name="tts_status_finished">Finished.</string>
+    <string name="edit_status_saved">Document saved to your SD card</string>
 
     <string-array name="dialog_remove_ads_options">
         <item>remove ads for one year</item>

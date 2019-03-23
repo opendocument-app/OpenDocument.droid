@@ -62,8 +62,8 @@ public class RecentDocumentsUtil {
         try {
             output = context.openFileOutput(FILENAME, Context.MODE_APPEND);
             writer = new OutputStreamWriter(output);
-            writer.append(System.getProperty("line.separator") + title + ";;;"
-                    + uri.toString());
+            writer.append(System.getProperty("line.separator")).append(title)
+                    .append(";;;").append(uri.toString());
             writer.flush();
         } finally {
             if (output != null)
@@ -96,7 +96,7 @@ public class RecentDocumentsUtil {
                 if (s.contains(title)) {
                     continue;
                 } else {
-                    writer.append(System.getProperty("line.separator") + s);
+                    writer.append(System.getProperty("line.separator")).append(s);
                 }
             }
         } finally {

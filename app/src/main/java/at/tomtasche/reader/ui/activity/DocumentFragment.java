@@ -443,11 +443,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         pageView.loadUrl(url);
     }
 
-    @SuppressWarnings("deprecation")
-    public void searchDocument(String query) {
-        pageView.findAll(query);
-    }
-
     public PageView getPageView() {
         return pageView;
     }

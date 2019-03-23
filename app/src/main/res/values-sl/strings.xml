@@ -10,8 +10,8 @@
     <string name="toast_info_limited">Zaradi izboljšanja zmogljivosti so prikazani samo deli dokumenta. Kliknite tukaj, če želite videti cel dokument.</string>
     <string name="dialog_recent_title">Nedavni dokumenti</string>
     <string name="dialog_choose_filemanager">Odpri dokument preko:</string>
-    <string name="dialog_loading_title">Nalaganje ...</string>
-    <string name="dialog_uploading_title">Pošiljanje ...</string>
+    <string name="dialog_loading_title">Nalaganje …</string>
+    <string name="dialog_uploading_title">Pošiljanje …</string>
     <string name="dialog_loading_message">To lahko traja nekaj minut, odvisno od zgradbe dokumenta in zmogljivoasti telefona.</string>
     <string name="dialog_remove_ads_title">Kupite nove značilnosti:</string>
     <string name="dialog_upload_file">Tega dokumenta ne moremo odpreti, ker ne podpiramo njegove oblike. Ali ga želite začasno poslati na naš strežnik, da ga lahko vseeno prikažemo?</string>
@@ -23,7 +23,6 @@
     <string name="menu_edit">Uredi</string>
     <string name="menu_remove_ads">Odstrani oglase</string>
     <string name="menu_fullscreen">Celozaslonski način</string>
-    <string name="menu_share">Deli</string>
     <string name="menu_cloud_print">Natisni</string>
     <string name="menu_tts">Besedilo v govor</string>
     <string name="crouton_leave_fullscreen">Pritisnite Nazaj za izhod iz celozaslonskega načina</string>
@@ -44,8 +43,8 @@
     <string name="landing_intro_search">S programom OpenDocument Reader lahko berete in hitro iščete po dokumentih.</string>
     <string name="landing_intro_edit">Ste našli še zadnjo napako v dokumentu, ki jo želite popraviti? Sedaj podpira tudi spreminjanje!</string>
     <string name="landing_intro_open_all">Ta program se registrira, da privzeto odpre vse vrste datotek, da lahko podpira programe, kot je \"Samsung My Files\". Če vam ta značilnost povzroča težave, jo lahko tukaj izklopite.</string>
-    <string name="tts_status_reading">Branje ...</string>
-    <string name="tts_status_initializing">Začenjanje TTS-a ...</string>
+    <string name="tts_status_reading">Branje …</string>
+    <string name="tts_status_initializing">Začenjanje TTS-a …</string>
     <string name="tts_status_ready">Pripravljen!</string>
     <string name="tts_status_failed">TTS je spodletel.</string>
     <string name="tts_status_paused">Premor.</string>

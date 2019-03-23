@@ -20,7 +20,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -312,28 +311,9 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_search: {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-                    // http://www.androidsnippets.org/snippets/20/
-                    final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-                    alert.setTitle(getString(R.string.menu_search));
-
-                    final EditText input = new EditText(this);
-                    alert.setView(input);
-
-                    alert.setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
-
-                        @Override
-                        public void onClick(DialogInterface dialog, int whichButton) {
-                            documentFragment.searchDocument(input.getText().toString());
-                        }
-                    });
-                    alert.setNegativeButton(getString(android.R.string.cancel), null);
-                    alert.show();
-                } else {
-                    FindActionModeCallback findActionModeCallback = new FindActionModeCallback(this);
-                    findActionModeCallback.setWebView(documentFragment.getPageView());
-                    startSupportActionMode(findActionModeCallback);
-                }
+                FindActionModeCallback findActionModeCallback = new FindActionModeCallback(this);
+                findActionModeCallback.setWebView(documentFragment.getPageView());
+                startSupportActionMode(findActionModeCallback);
 
                 analyticsManager.report(FirebaseAnalytics.Event.SEARCH);
 
@@ -467,7 +447,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String product = null;
+                String product;
 
                 switch (which) {
                     case 0:
