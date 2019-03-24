@@ -1,6 +1,9 @@
 package at.tomtasche.reader.nonfree;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.view.View;
 import android.widget.LinearLayout;
 
@@ -10,12 +13,15 @@ import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.reward.RewardItem;
+import com.google.android.gms.ads.reward.RewardedVideoAd;
+import com.google.android.gms.ads.reward.RewardedVideoAdListener;
 
-public class AdManager {
+public class AdManager implements RewardedVideoAdListener {
 
     private boolean enabled;
 
-    private Context applicationContext;
+    private Activity activity;
     private AnalyticsManager analyticsManager;
 
     private boolean showAds;
@@ -25,16 +31,18 @@ public class AdManager {
     private AdView madView;
     private InterstitialAd interstitial;
     private Runnable adFailedRunnable;
+    private RewardedVideoAd rewardedVideoAd;
+    private ProgressDialog progressDialog;
 
-    public void initialize(Context applicationContext, AnalyticsManager analyticsManager) {
+    public void initialize(Activity activity, AnalyticsManager analyticsManager) {
         if (!enabled) {
             return;
         }
 
-        this.applicationContext = applicationContext;
+        this.activity = activity;
         this.analyticsManager = analyticsManager;
 
-        MobileAds.initialize(applicationContext, "ca-app-pub-8161473686436957~9025061963");
+        MobileAds.initialize(activity, "ca-app-pub-8161473686436957~9025061963");
     }
 
     public void setEnabled(boolean enabled) {
@@ -70,14 +78,14 @@ public class AdManager {
         }
 
         showAds = true;
+        adFailed = false;
 
-        AdView adView = new AdView(applicationContext);
+        AdView adView = new AdView(activity);
         adView.setAdSize(AdSize.SMART_BANNER);
         adView.setAdUnitId("ca-app-pub-8161473686436957/5931994762");
-        adView.setAdListener(new MyAdListener());
+        adView.setAdListener(new MyAdListener(false));
 
         AdRequest adRequest = new AdRequest.Builder().build();
-
         adView.loadAd(adRequest);
 
         showAds(adView);
@@ -97,13 +105,13 @@ public class AdManager {
             return;
         }
 
-        interstitial = new InterstitialAd(applicationContext);
+        interstitial = new InterstitialAd(activity);
         interstitial.setAdUnitId("ca-app-pub-8161473686436957/2477707165");
+        interstitial.setAdListener(new MyAdListener(true));
 
         AdRequest adRequest = new AdRequest.Builder().build();
 
         interstitial.loadAd(adRequest);
-        interstitial.setAdListener(new MyAdListener());
     }
 
     public void showInterstitial() {
@@ -112,6 +120,19 @@ public class AdManager {
         }
 
         if (interstitial != null) {
+            if (!interstitial.isLoaded() && interstitial.isLoading()) {
+                progressDialog = new ProgressDialog(activity);
+                progressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        interstitial = null;
+                    }
+                });
+                progressDialog.show();
+
+                return;
+            }
+
             try {
                 interstitial.show();
             } catch (Exception e) {
@@ -122,8 +143,47 @@ public class AdManager {
         }
 
         interstitial = null;
+    }
 
-        loadInterstitial();
+    public void loadVideo() {
+        if (!enabled) {
+            return;
+        }
+
+        rewardedVideoAd = MobileAds.getRewardedVideoAdInstance(activity);
+        rewardedVideoAd.setRewardedVideoAdListener(this);
+
+        // real: ca-app-pub-8161473686436957~9025061963
+        rewardedVideoAd.loadAd("ca-app-pub-3940256099942544/5224354917", new AdRequest.Builder().build());
+    }
+
+    public void showVideo() {
+        if (!enabled) {
+            return;
+        }
+
+        if (rewardedVideoAd != null) {
+            if (!rewardedVideoAd.isLoaded()) {
+                progressDialog = new ProgressDialog(activity);
+                progressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        rewardedVideoAd = null;
+                    }
+                });
+                progressDialog.show();
+
+                return;
+            }
+
+            try {
+                rewardedVideoAd.show();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        rewardedVideoAd = null;
     }
 
     public void removeAds() {
@@ -149,40 +209,111 @@ public class AdManager {
         }
     }
 
+    @Override
+    public void onRewardedVideoAdLoaded() {
+        analyticsManager.report("ads_video_loaded");
+
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+            progressDialog = null;
+
+            showVideo();
+        }
+    }
+
+    @Override
+    public void onRewardedVideoAdOpened() {
+        analyticsManager.report("ads_video_opened");
+    }
+
+    @Override
+    public void onRewardedVideoStarted() {
+        analyticsManager.report("ads_video_started");
+    }
+
+    @Override
+    public void onRewardedVideoAdClosed() {
+        analyticsManager.report("ads_video_closed");
+    }
+
+    @Override
+    public void onRewarded(RewardItem rewardItem) {
+        analyticsManager.report("ads_video_rewarded");
+
+        removeAds();
+    }
+
+    @Override
+    public void onRewardedVideoAdLeftApplication() {
+        analyticsManager.report("ads_video_left");
+    }
+
+    @Override
+    public void onRewardedVideoAdFailedToLoad(int i) {
+        analyticsManager.report("ads_video_failed_" + i);
+
+        removeAds();
+    }
+
+    @Override
+    public void onRewardedVideoCompleted() {
+        analyticsManager.report("ads_video_completed");
+    }
+
     private class MyAdListener extends AdListener {
+
+        private boolean isInterstitial;
+        private String prefix;
+
+        MyAdListener(boolean isInterstitial) {
+            this.isInterstitial = isInterstitial;
+            this.prefix = isInterstitial ? "interstitial" : "banner";
+        }
 
         @Override
         public void onAdFailedToLoad(int arg0) {
-            adFailed = true;
-            toggleVisibility(false);
-            adFailedRunnable.run();
+            analyticsManager.report("ads_" + prefix + "failed_" + arg0);
 
-            analyticsManager.report("ads_failed_" + arg0);
+            if (!isInterstitial) {
+                adFailed = true;
+                toggleVisibility(false);
+                adFailedRunnable.run();
+            } else if (progressDialog != null) {
+                progressDialog.dismiss();
+                progressDialog = null;
+            }
         }
 
         @Override
         public void onAdLoaded() {
-            analyticsManager.report("ads_loaded");
+            analyticsManager.report("ads_\" + prefix + \"loaded");
+
+            if (isInterstitial && progressDialog != null) {
+                progressDialog.dismiss();
+                progressDialog = null;
+
+                showInterstitial();
+            }
         }
 
         @Override
         public void onAdClicked() {
-            analyticsManager.report("ads_clicked");
+            analyticsManager.report("ads_\" + prefix + \"clicked");
         }
 
         @Override
         public void onAdImpression() {
-            analyticsManager.report("ads_impression");
+            analyticsManager.report("ads_\" + prefix + \"impression");
         }
 
         @Override
         public void onAdClosed() {
-            analyticsManager.report("ads_closed");
+            analyticsManager.report("ads_\" + prefix + \"closed");
         }
 
         @Override
         public void onAdOpened() {
-            analyticsManager.report("ads_opened");
+            analyticsManager.report("ads_\" + prefix + \"opened");
         }
     }
 }

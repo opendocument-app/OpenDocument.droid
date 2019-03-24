@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 }, Style.CONFIRM);
             }
         });
-        adManager.initialize(getApplicationContext(), analyticsManager);
+        adManager.initialize(this, analyticsManager);
 
         billingManager = new BillingManager();
         billingManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
@@ -362,7 +362,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     KitKatPrinter.print(this, documentFragment.getPageView());
                 } else {
-                    Toast.makeText(this, "Printing not available on your device. Please upgrade to a newer version of Android.", Toast.LENGTH_SHORT).show();
+                    CroutonHelper.showCrouton(this, R.string.crouton_print_unavailable, null, Style.ALERT);
                 }
 
                 analyticsManager.report("print");
@@ -441,6 +441,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     }
 
     private void buyAdRemoval() {
+        adManager.loadVideo();
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dialog_remove_ads_title);
         builder.setItems(R.array.dialog_remove_ads_options, new OnClickListener() {
@@ -466,7 +468,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                         break;
 
                     default:
-                        adManager.removeAds();
+                        adManager.showVideo();
 
                         dialog.dismiss();
 

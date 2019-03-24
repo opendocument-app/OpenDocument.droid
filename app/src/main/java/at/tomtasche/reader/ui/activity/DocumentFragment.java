@@ -200,17 +200,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         // DocumentFragment should - basically - work out-of-the-box
         // (without any further logic)!
 
-        if (document.isLimited()) {
-            CroutonHelper.showCrouton(getActivity(), R.string.toast_info_limited, new Runnable() {
-
-                @Override
-                public void run() {
-                    loadUri(lastUri, lastPassword,
-                            false, false);
-                }
-            }, Style.INFO);
-        }
-
         ActionBar bar = ((MainActivity) getActivity()).getSupportActionBar();
         bar.removeAllTabs();
 
