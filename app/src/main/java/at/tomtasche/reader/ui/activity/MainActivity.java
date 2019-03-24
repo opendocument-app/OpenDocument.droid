@@ -280,6 +280,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         isDocumentLoaded = true;
 
         if (uri != null) {
+            crashManager.log("loading document at: " + uri.toString());
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 try {
                     grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -315,6 +317,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 findActionModeCallback.setWebView(documentFragment.getPageView());
                 startSupportActionMode(findActionModeCallback);
 
+                analyticsManager.report("menu_search");
                 analyticsManager.report(FirebaseAnalytics.Event.SEARCH);
 
                 break;
@@ -322,26 +325,31 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             case R.id.menu_open: {
                 findDocument();
 
+                analyticsManager.report("menu_open");
                 analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "choose");
 
                 break;
             }
             case R.id.menu_remove_ads: {
+                analyticsManager.report("menu_remove_ads");
+
                 buyAdRemoval();
 
                 break;
             }
             case R.id.menu_fullscreen: {
                 if (fullscreen) {
+                    analyticsManager.report("menu_fullscreen_leave");
+
                     leaveFullscreen();
                 } else {
+                    analyticsManager.report("menu_fullscreen_enter");
+
                     getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                             WindowManager.LayoutParams.FLAG_FULLSCREEN);
                     getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 
                     getSupportActionBar().hide();
-
-                    adManager.removeAds();
 
                     CroutonHelper.showCrouton(this, R.string.crouton_leave_fullscreen, new Runnable() {
 
@@ -351,7 +359,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                         }
                     }, Style.INFO);
 
-                    analyticsManager.report("fullscreen_start");
+                    // TODO: post ad removal
                 }
 
                 fullscreen = !fullscreen;
@@ -359,31 +367,31 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 break;
             }
             case R.id.menu_print: {
+                analyticsManager.report("menu_print");
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     KitKatPrinter.print(this, documentFragment.getPageView());
                 } else {
                     CroutonHelper.showCrouton(this, R.string.crouton_print_unavailable, null, Style.ALERT);
                 }
 
-                analyticsManager.report("print");
-
                 break;
             }
             case R.id.menu_tts: {
+                analyticsManager.report("menu_tts");
+
                 ttsActionMode = new TtsActionModeCallback(this, documentFragment.getPageView());
                 startSupportActionMode(ttsActionMode);
-
-                analyticsManager.report("tts");
 
                 break;
             }
             case R.id.menu_edit: {
+                analyticsManager.report("menu_edit");
+
                 adManager.loadInterstitial();
 
                 editActionMode = new EditActionModeCallback(this, documentFragment, adManager);
                 startSupportActionMode(editActionMode);
-
-                analyticsManager.report("edit");
 
                 break;
             }
@@ -423,23 +431,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "recent");
     }
 
-    public void share(Uri uri) {
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.setDataAndType(uri, "application/*");
-        intent.putExtra(Intent.EXTRA_STREAM, uri);
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-        try {
-            startActivity(intent);
-
-            analyticsManager.report(FirebaseAnalytics.Event.SHARE);
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            CroutonHelper.showCrouton(this, R.string.crouton_error_open_app, null, Style.ALERT);
-        }
-    }
-
     private void buyAdRemoval() {
         adManager.loadVideo();
 
@@ -468,9 +459,9 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                         break;
 
                     default:
-                        adManager.showVideo();
-
                         dialog.dismiss();
+
+                        adManager.showVideo();
 
                         return;
                 }
@@ -608,5 +599,9 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
     public CrashManager getCrashManager() {
         return crashManager;
+    }
+
+    public AnalyticsManager getAnalyticsManager() {
+        return analyticsManager;
     }
 }

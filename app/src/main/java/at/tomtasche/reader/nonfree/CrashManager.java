@@ -16,6 +16,14 @@ public class CrashManager {
         this.enabled = enabled;
     }
 
+    public void log(String message) {
+        if (!enabled) {
+            return;
+        }
+
+        Crashlytics.log(Log.INFO, "MainActivity", message);
+    }
+
     public void log(Throwable error, Uri uri) {
         if (!enabled) {
             return;

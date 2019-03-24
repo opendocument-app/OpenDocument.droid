@@ -194,6 +194,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             return;
         }
 
+        ((MainActivity) getActivity()).getAnalyticsManager().report("load_success");
+
         dismissProgress();
 
         // TODO: we should load the first page here already
@@ -233,6 +235,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         if (activity == null || activity.isFinishing()) {
             return;
         }
+
+        ((MainActivity) activity).getAnalyticsManager().report("load_error");
 
         dismissProgress();
 
@@ -280,6 +284,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 || error instanceof ZipException
                 || error instanceof ZipEntryNotFoundException
                 || error instanceof UnsupportedMimeTypeException) {
+            ((MainActivity) activity).getAnalyticsManager().report("load_error_unknown_format");
+
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.toast_error_illegal_file);
             builder.setMessage(R.string.dialog_upload_file);
@@ -289,6 +295,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                         @Override
                         public void onClick(DialogInterface dialog,
                                             int whichButton) {
+                            ((MainActivity) activity).getAnalyticsManager().report("load_upload");
+
                             uploadUri(lastUri);
 
                             dialog.dismiss();

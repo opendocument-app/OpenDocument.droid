@@ -251,6 +251,13 @@ public class AdManager implements RewardedVideoAdListener {
     public void onRewardedVideoAdFailedToLoad(int i) {
         analyticsManager.report("ads_video_failed_" + i);
 
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+            progressDialog = null;
+        }
+
+        rewardedVideoAd = null;
+
         removeAds();
     }
 
@@ -280,6 +287,8 @@ public class AdManager implements RewardedVideoAdListener {
             } else if (progressDialog != null) {
                 progressDialog.dismiss();
                 progressDialog = null;
+
+                interstitial = null;
             }
         }
 
