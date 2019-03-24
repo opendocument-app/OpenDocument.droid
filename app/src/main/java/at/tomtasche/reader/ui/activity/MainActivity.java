@@ -12,6 +12,7 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.ActionMode;
 import android.view.KeyEvent;
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     private boolean isDocumentLoaded = false;
 
     private Menu menu;
+    private Handler handler;
 
     private View landingContainer;
     private View documentContainer;
@@ -87,6 +89,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         setContentView(R.layout.main);
 
         setTitle("");
+
+        handler = new Handler();
 
         adContainer = findViewById(R.id.ad_container);
         landingContainer = findViewById(R.id.landing_container);
@@ -359,7 +363,23 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                         }
                     }, Style.INFO);
 
-                    // TODO: post ad removal
+                    handler.postDelayed(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            if (isFinishing()) {
+                                return;
+                            }
+
+                            CroutonHelper.showCrouton(MainActivity.this, R.string.crouton_remove_ads, new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    buyAdRemoval();
+                                }
+                            }, Style.INFO);
+                        }
+                    }, 10000);
                 }
 
                 fullscreen = !fullscreen;
