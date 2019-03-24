@@ -50,9 +50,11 @@
     <string name="crouton_printing">Impression en cours …</string>
     <string name="crouton_print_unavailable">L\'impression n\'est pas disponible sur votre appareil. Veuillez mettre à jour votre version d\'Android.</string>
     <string name="intro_title_open">Ouvrez et lisez votre fichier ODF à la demande !</string>
+    <string name="intro_description_open">OpenDocument Reader vous permet de visualiser, sur votre appareil mobile, les documents enregistrés au format OpenDocument (.odt, .ods, .odp et .odg). Ces fichiers sont généralement créés avec LibreOffice ou OpenOffice.</string>
     <string name="intro_title_edit">Vous avez trouvé une faute de frappe dans votre document ? Il est désormais possible de la corriger !</string>
     <string name="intro_description_edit">OpenDocument Reader permet non seulement de lire des documents sur votre appareil mobile mais aussi de les modifier. Vous pouvez corriger les fautes de frappe y compris dans le train !</string>
     <string name="intro_title_apps">Lisez vos documents depuis d\'autres applications</string>
+    <string name="intro_description_apps">OpenDocument Reader permet d\'ouvrir les documents depuis un grand nombre d\'applications. Un collègue vous a envoyé une présentation via Gmail ? Cliquez sur la pièce jointe et visualiser la immédiatement.</string>
     <string name="intro_button_start">DÉMARRER</string>
     <string name="crouton_remove_ads">Vous manquez de place pour une bonne lecture ? Retirez les publicités gratuitement via le menu.</string>
     <string-array name="dialog_remove_ads_options">
