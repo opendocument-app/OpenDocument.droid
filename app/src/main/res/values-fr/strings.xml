@@ -15,9 +15,11 @@
     <string name="dialog_remove_ads_title">Acheter de nouvelles fonctions :</string>
     <string name="dialog_title_choose_file">Choisir un fichier à partir de l\'appareil</string>
     <string name="dialog_list_no_documents_found">Aucun document trouvé</string>
+    <string name="menu_recent">Documents ouverts récemment</string>
     <string name="menu_search">Rechercher</string>
     <string name="menu_open">Ouvrir</string>
     <string name="menu_edit">Editer / Modifier</string>
+    <string name="menu_remove_ads">Retirer les publicités</string>
     <string name="menu_fullscreen">Mode plein écran</string>
     <string name="menu_cloud_print">Imprimer</string>
     <string name="menu_tts">Synthèse vocale</string>
@@ -27,11 +29,24 @@
     <string name="action_find_next">Suivant</string>
     <string name="action_find_on_page">Trouver sur la page</string>
     <string name="action_tts_play">Lecture</string>
+    <string name="action_tts_pause">Pause</string>
     <string name="action_tts_next">Suivant</string>
     <string name="action_tts_previous">Précédent</string>
     <string name="action_edit_save">Enregistrer</string>
     <string name="action_edit_help">Aide !?</string>
     <string name="action_edit_banner">Modifiez votre document ci-dessous et appuyez sur Sauvegarder</string>
+    <string name="landing_welcome_title">Bienvenue dans le \nlecteur OpenDocument</string>
+    <string name="landing_intro_search">Grâce à OpenDocument Reader, vous pouvez lire et rechercher dans vos documents facilement et rapidement.</string>
+    <string name="tts_status_reading">Lecture en cours ...</string>
+    <string name="tts_status_initializing">Initialisation de la synthèse vocale …</string>
+    <string name="tts_status_ready">Prêt !</string>
+    <string name="tts_status_failed">Erreur de synthèse vocale.</string>
+    <string name="tts_status_paused">En pause.</string>
+    <string name="tts_status_finished">Terminé.</string>
+    <string name="edit_status_saved">Document enregistré sur votre carte SD</string>
+    <string name="crouton_printing">Impression en cours …</string>
+    <string name="intro_title_apps">Lisez vos documents depuis d\'autres applications</string>
+    <string name="intro_button_start">DÉMARRER</string>
     <string-array name="dialog_remove_ads_options">
         <item>enlever les pubs pour un an</item>
         <item>enlever les pubs pour toujours</item>
