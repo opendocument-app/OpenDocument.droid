@@ -153,8 +153,7 @@ public class AdManager implements RewardedVideoAdListener {
         rewardedVideoAd = MobileAds.getRewardedVideoAdInstance(activity);
         rewardedVideoAd.setRewardedVideoAdListener(this);
 
-        // real: ca-app-pub-8161473686436957~9025061963
-        rewardedVideoAd.loadAd("ca-app-pub-3940256099942544/5224354917", new AdRequest.Builder().build());
+        rewardedVideoAd.loadAd("ca-app-pub-8161473686436957~9025061963", new AdRequest.Builder().build());
     }
 
     public void showVideo() {
