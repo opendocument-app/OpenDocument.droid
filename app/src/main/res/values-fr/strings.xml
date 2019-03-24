@@ -36,7 +36,9 @@
     <string name="action_edit_help">Aide !?</string>
     <string name="action_edit_banner">Modifiez votre document ci-dessous et appuyez sur Sauvegarder</string>
     <string name="landing_welcome_title">Bienvenue dans le \nlecteur OpenDocument</string>
+    <string name="landing_intro_view">OpenDocument Reader vous permet de visualiser les documents enregistrés au format OpenDocument (.odt, .ods, .odp et .odg) où que vous soyez.</string>
     <string name="landing_intro_search">Grâce à OpenDocument Reader, vous pouvez lire et rechercher dans vos documents facilement et rapidement.</string>
+    <string name="landing_intro_edit">Vous avez trouvé une faute de frappe dans votre présentation ? Il est désormais possible de la corriger !</string>
     <string name="tts_status_reading">Lecture en cours ...</string>
     <string name="tts_status_initializing">Initialisation de la synthèse vocale …</string>
     <string name="tts_status_ready">Prêt !</string>
@@ -45,6 +47,10 @@
     <string name="tts_status_finished">Terminé.</string>
     <string name="edit_status_saved">Document enregistré sur votre carte SD</string>
     <string name="crouton_printing">Impression en cours …</string>
+    <string name="crouton_print_unavailable">L\'impression n\'est pas disponible sur votre appareil. Veuillez mettre à jour votre version d\'Android.</string>
+    <string name="intro_title_open">Ouvrez et lisez votre fichier ODF à la demande !</string>
+    <string name="intro_title_edit">Vous avez trouvé une faute de frappe dans votre document ? Il est désormais possible de la corriger !</string>
+    <string name="intro_description_edit">OpenDocument Reader permet non seulement de lire des documents sur votre appareil mobile mais aussi de les modifier. Vous pouvez corriger les fautes de frappe y compris dans le train !</string>
     <string name="intro_title_apps">Lisez vos documents depuis d\'autres applications</string>
     <string name="intro_button_start">DÉMARRER</string>
     <string name="crouton_remove_ads">Vous manquez de place pour une bonne lecture ? Retirez les publicités gratuitement via le menu.</string>
