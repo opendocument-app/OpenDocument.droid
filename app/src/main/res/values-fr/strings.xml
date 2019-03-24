@@ -13,7 +13,6 @@
     <string name="dialog_uploading_title">Téléchargement en cours…</string>
     <string name="dialog_loading_message">L\'opération peut prendre quelques minutes, selon la structure de votre document et la puissance de traitement de votre téléphone.</string>
     <string name="dialog_remove_ads_title">Acheter de nouvelles fonctions :</string>
-    <string name="dialog_upload_file">Nous n\'avons pas pu ouvrir ce document, car ce format n\'est pas supporté. Voulez-vous le télécharger temporairement sur notre serveur, pour que nous puissions vous l\'afficher?</string>
     <string name="dialog_title_choose_file">Choisir un fichier à partir de l\'appareil</string>
     <string name="dialog_list_no_documents_found">Aucun document trouvé</string>
     <string name="menu_search">Rechercher</string>
@@ -36,7 +35,7 @@
     <string-array name="dialog_remove_ads_options">
         <item>enlever les pubs pour un an</item>
         <item>enlever les pubs pour toujours</item>
-        <item>amour profond (+ enlever les pubs pour toujours)</item>
-        <item>enlever les pubs temporairement</item>
+        <item>remove ads forever and donate an extra amount</item>
+        <item>remove ads temporarily by watching a short video</item>
     </string-array>
 </resources>
