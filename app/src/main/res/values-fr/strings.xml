@@ -2,42 +2,28 @@
 <resources>
 
     <string name="toast_error_generic">Une erreur est survenue. Impossible d\'ouvrir le fichier.</string>
-    <string name="toast_error_access_file">Impossible d\'accéder au fichier.</string>
     <string name="toast_error_find_file">Impossible de trouver le fichier. Il n\'existe peut-être plus?</string>
     <string name="toast_error_illegal_file">Ce format de fichier ne semble pas être supporté.</string>
-    <string name="toast_error_open_file">Impossible d\'ouvrir le fichier. Seuls les documents .odt et .ods sont supportés!</string>
     <string name="toast_error_out_of_memory">La mémoire du téléphone est pleine! Trop d\'images ou fichiers trop gros.</string>
     <string name="toast_error_password_protected">Le document est protégé par un mot de passe.</string>
     <string name="toast_error_storage">Le stockage externe n\'est pas disponible. Impossible de lire le fichier.</string>
     <string name="toast_info_limited">Seules certaines parties du document sont affichées afin d\'améliorer les performances. Cliquez ici pour voir l\'intégralité du document.</string>
     <string name="dialog_recent_title">Documents récents</string>
-    <string name="dialog_submit_file_title">Choisissez une appli pour nous envoyer vos fichiers</string>
-    <string name="dialog_submit_file">Voulez-vous nous envoyer vos fichiers pour que nous puissions les regarder et probablement les faire fonctionner avec la prochaine mise à jour?</string>
-    <string name="dialog_error_send_error_only">N\'envoyer que les erreurs</string>
-    <string name="dialog_no_filemanager">Aucun explorateur de fichier trouvé. Nous vous recommandons l\'un de ceux-ci :</string>
     <string name="dialog_choose_filemanager">Ouvrir les documents via :</string>
-    <string name="dialog_loading_title">Chargement en cours...</string>
-    <string name="dialog_uploading_title">Téléchargement en cours...</string>
+    <string name="dialog_loading_title">Chargement en cours…</string>
+    <string name="dialog_uploading_title">Téléchargement en cours…</string>
     <string name="dialog_loading_message">L\'opération peut prendre quelques minutes, selon la structure de votre document et la puissance de traitement de votre téléphone.</string>
     <string name="dialog_remove_ads_title">Acheter de nouvelles fonctions :</string>
     <string name="dialog_upload_file">Nous n\'avons pas pu ouvrir ce document, car ce format n\'est pas supporté. Voulez-vous le télécharger temporairement sur notre serveur, pour que nous puissions vous l\'afficher?</string>
     <string name="dialog_title_choose_file">Choisir un fichier à partir de l\'appareil</string>
     <string name="dialog_list_no_documents_found">Aucun document trouvé</string>
-    <string name="dialog_list_searching_documents">Recherche de documents sur votre appareil... L\'opération peut prendre un peu de temps.</string>
     <string name="menu_search">Rechercher</string>
     <string name="menu_open">Ouvrir</string>
     <string name="menu_edit">Editer / Modifier</string>
-    <string name="menu_feedback">Avis</string>
-    <string name="menu_about">A Propos De</string>
-    <string name="menu_reload">Recharger sans limite</string>
     <string name="menu_fullscreen">Mode plein écran</string>
-    <string name="menu_share">Partager</string>
     <string name="menu_cloud_print">Imprimer</string>
     <string name="menu_tts">Synthèse vocale</string>
-    <string name="menu_media_route">Affichage externe</string>
-    <string name="crouton_error_billing">Echec de l\'initialisation de l\'affichage In-App de Google Play </string>
     <string name="crouton_leave_fullscreen">Appuyez sur précédent pour quitter le mode plein écran</string>
-    <string name="crouton_chromecast_failed">Echec de la connexion à Chromecast</string>
     <string name="crouton_error_open_app">Impossible d\'ouvrir cette appli.</string>
     <string name="action_find_previous">Précédent</string>
     <string name="action_find_next">Suivant</string>
@@ -49,10 +35,6 @@
     <string name="action_edit_save">Enregistrer</string>
     <string name="action_edit_help">Aide !?</string>
     <string name="action_edit_banner">Modifiez votre document ci-dessous et appuyez sur Sauvegarder</string>
-    <string name="showcase_edit_title">Modifiez vos documents n\'importe où !</string>
-    <string name="showcase_edit_detail">Nous supportons désormais la modification des documents ! Appuyez sur le crayon affiché en haut pour entrer dans le mode modifier. Après avoir fini de modifier votre document, appuyez sur Enregistrer. Le document est alors sauvegardé sur notre carte SD et à nouveau chargé dans le mode lecture seule.</string>
-    <string name="showcase_ad_title">Soutenez les développeurs de cette appli !</string>
-    <string name="showcase_ad_detail">Chaque fois que vous utilisez une pub (par ex. en cliquant dessus), vous faites sourire deux garçons en Autriche. Si vous n\'aimez pas les pubs, vous pouvez les enlever à faible coût et rendre ces garçons encore plus heureux. </string>
 
     <string-array name="dialog_remove_ads_options">
         <item>enlever les pubs pour un an</item>

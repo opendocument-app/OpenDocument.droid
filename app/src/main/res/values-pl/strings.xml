@@ -2,42 +2,28 @@
 <resources>
 
     <string name="toast_error_generic">Coś poszło nie tak. Nie można otworzyć pliku.</string>
-    <string name="toast_error_access_file">Brak dostępu do pliku.</string>
     <string name="toast_error_find_file">Nie można odnaleźć pliku. Czy plik na pewno istnieje?</string>
     <string name="toast_error_illegal_file">Format pliku nie jest obsługiwany.</string>
-    <string name="toast_error_open_file">Nie można otworzyć pliku. Obsługiwane są tylko dokumenty .odt i .ods!</string>
     <string name="toast_error_out_of_memory">Brak pamięci w telefonie! Za dużo zdjęć lub zbyt duży plik.</string>
     <string name="toast_error_password_protected">Dokument jest chroniony hasłem.</string>
     <string name="toast_error_storage">Pamięć zewnętrzna niedostępna. Nie można odczytać pliku.</string>
     <string name="toast_info_limited">Aby zwiększyć wydajność, wyświetlana jest tylko część dokumentu. Jeśli chcesz zobaczyć cały dokument, naciśnij tutaj.</string>
     <string name="dialog_recent_title">Ostatnio otwierane dokumenty</string>
-    <string name="dialog_submit_file_title">Wybierz aplikację, aby przesłać plik.</string>
-    <string name="dialog_submit_file">Czy chcesz przesłać nam plik do analizy? Postaramy się, aby wszystko działało przy następnej aktualizacji.</string>
-    <string name="dialog_error_send_error_only">Wyślij tylko informacje o błędzie.</string>
-    <string name="dialog_no_filemanager">Nie znaleziono eksploratora plików. Polecamy jeden z tych:</string>
     <string name="dialog_choose_filemanager">Otwórz dokument w:</string>
-    <string name="dialog_loading_title">Wczytywanie...</string>
-    <string name="dialog_uploading_title">Ładowanie...</string>
+    <string name="dialog_loading_title">Wczytywanie…</string>
+    <string name="dialog_uploading_title">Ładowanie…</string>
     <string name="dialog_loading_message">To może zająć kilka minut, w zależności od struktury dokumentu i mocy procesora w Twoim telefonie.</string>
     <string name="dialog_remove_ads_title">Kup nowe funkcje:</string>
     <string name="dialog_upload_file">Nie można otworzyć tego dokumentu, gdyż jego format nie jest obsługiwany. Czy chcesz załadować go tymczasowo na nasz serwer, żebyśmy mogli go otworzyć?</string>
     <string name="dialog_title_choose_file">Wybierz plik z urządzenia.</string>
     <string name="dialog_list_no_documents_found">Nie znaleziono dokumentu.</string>
-    <string name="dialog_list_searching_documents">Trwa wyszukiwanie dokumentu na Twoim urządzeniu... To może chwilę potrwać.</string>
     <string name="menu_search">Szukaj</string>
     <string name="menu_open">Otwórz</string>
     <string name="menu_edit">Edytuj</string>
-    <string name="menu_feedback">Opinie</string>
-    <string name="menu_about">Informacje</string>
-    <string name="menu_reload">Ładowanie bez limitów</string>
     <string name="menu_fullscreen">Tryb pełnoekranowy</string>
-    <string name="menu_share">Udostępnij</string>
     <string name="menu_cloud_print">Drukuj</string>
     <string name="menu_tts">Tekst-Na-Mowę</string>
-    <string name="menu_media_route">Podgląd zewnętrzny</string>
-    <string name="crouton_error_billing">Uruchamianie Google Play In-App Billing nie powiodło się.</string>
     <string name="crouton_leave_fullscreen">Aby opuścić tryb pełnoekranowy, naciśnij Wstecz.</string>
-    <string name="crouton_chromecast_failed">Połączenie z Chromecast nie powiodło się.</string>
     <string name="crouton_error_open_app">Nie udało się otworzyć aplikacji.</string>
     <string name="action_find_previous">Poprzedni</string>
     <string name="action_find_next">Następny</string>
@@ -49,10 +35,6 @@
     <string name="action_edit_save">Zapisz</string>
     <string name="action_edit_help">Pomoc!?</string>
     <string name="action_edit_banner">Edytuj dokument poniżej, po czym naciśnij Zapisz.</string>
-    <string name="showcase_edit_title">Edytuj dokumenty gdziekolwiek jesteś!</string>
-    <string name="showcase_edit_detail">Teraz możliwe jest też edytowanie dokumentu! Naciśnij ikonę długopisu widoczną na górze, aby otworzyć tryb edycji. Po zakończeniu edycji dokumentu naciśnij Zapisz. Dokument zostanie zapisany na Twojej karcie SD i załadowany ponownie w trybie odczytu.</string>
-    <string name="showcase_ad_title">Wesprzyj deweloperów tej aplikacji!</string>
-    <string name="showcase_ad_detail">Za każdym razem, gdy klikasz na wyświetlaną reklamę, sprawiasz, że na twarzach dwóch chłopaków w Austrii pojawia się uśmiech. Jeśli nie lubisz reklam, możesz się ich pozbyć za drobną opłatą i sprawić, że będziemy jeszcze szczęśliwsi.</string>
 
     <string-array name="dialog_remove_ads_options">
         <item>usuń reklamy na rok</item>

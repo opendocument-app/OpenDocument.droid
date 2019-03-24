@@ -32,6 +32,8 @@ public class CroutonHelper {
                             public void onClick(View v) {
                                 if (callback != null)
                                     callback.run();
+
+                                crouton.hide();
                             }
                         });
                 crouton.show();

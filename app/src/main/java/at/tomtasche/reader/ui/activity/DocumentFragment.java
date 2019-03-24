@@ -105,13 +105,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         showProgress(documentLoader, false);
 
         documentLoader.loadAsync(uri, password, limit, translatable);
-
-        // workaround "java.lang.IllegalStateException: Can not perform this action after onSaveInstanceState"
-        mainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-            }
-        });
     }
 
     public void reloadUri(boolean limit, boolean translatable) {
@@ -201,22 +194,13 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             return;
         }
 
+        ((MainActivity) getActivity()).getAnalyticsManager().report("load_success");
+
         dismissProgress();
 
         // TODO: we should load the first page here already
         // DocumentFragment should - basically - work out-of-the-box
         // (without any further logic)!
-
-        if (document.isLimited()) {
-            CroutonHelper.showCrouton(getActivity(), R.string.toast_info_limited, new Runnable() {
-
-                @Override
-                public void run() {
-                    loadUri(lastUri, lastPassword,
-                            false, false);
-                }
-            }, Style.INFO);
-        }
 
         ActionBar bar = ((MainActivity) getActivity()).getSupportActionBar();
         bar.removeAllTabs();
@@ -252,6 +236,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             return;
         }
 
+        ((MainActivity) activity).getAnalyticsManager().report("load_error");
+
         dismissProgress();
 
         final Uri cacheUri = AndroidFileCache.getCacheFileUri();
@@ -284,6 +270,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    Activity activity = getActivity();
+                    if (activity == null || activity.isFinishing()) {
+                        return;
+                    }
+
                     builder.show();
                 }
             });
@@ -293,6 +284,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 || error instanceof ZipException
                 || error instanceof ZipEntryNotFoundException
                 || error instanceof UnsupportedMimeTypeException) {
+            ((MainActivity) activity).getAnalyticsManager().report("load_error_unknown_format");
+
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.toast_error_illegal_file);
             builder.setMessage(R.string.dialog_upload_file);
@@ -302,6 +295,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                         @Override
                         public void onClick(DialogInterface dialog,
                                             int whichButton) {
+                            ((MainActivity) activity).getAnalyticsManager().report("load_upload");
+
                             uploadUri(lastUri);
 
                             dialog.dismiss();
@@ -312,6 +307,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    Activity activity = getActivity();
+                    if (activity == null || activity.isFinishing()) {
+                        return;
+                    }
+
                     builder.show();
                 }
             });
@@ -368,6 +368,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
                     @Override
                     public void run() {
+                        Activity activity = getActivity();
+                        if (activity == null || activity.isFinishing()) {
+                            return;
+                        }
+
                         if (progressDialog == null) {
                             return;
                         }
@@ -433,11 +438,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     private void loadData(String url) {
         pageView.loadUrl(url);
-    }
-
-    @SuppressWarnings("deprecation")
-    public void searchDocument(String query) {
-        pageView.findAll(query);
     }
 
     public PageView getPageView() {

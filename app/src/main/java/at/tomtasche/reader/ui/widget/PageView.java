@@ -3,9 +3,11 @@ package at.tomtasche.reader.ui.widget;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Build;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -32,6 +34,7 @@ public class PageView extends WebView implements ParagraphListener {
         this(context, 0);
     }
 
+    @SuppressLint("AddJavascriptInterface")
     public PageView(Context context, final int scroll) {
         super(context);
 
@@ -45,13 +48,12 @@ public class PageView extends WebView implements ParagraphListener {
         addJavascriptInterface(this, "paragraphListener");
 
         setKeepScreenOn(true);
-        if (Build.VERSION.SDK_INT >= 14)
-            try {
-                Method method = context.getClass().getMethod(
-                        "setSystemUiVisibility", Integer.class);
-                method.invoke(context, 1);
-            } catch (Exception e) {
-            }
+        try {
+            Method method = context.getClass().getMethod(
+                    "setSystemUiVisibility", Integer.class);
+            method.invoke(context, 1);
+        } catch (Exception e) {
+        }
 
         setWebViewClient(new WebViewClient() {
 

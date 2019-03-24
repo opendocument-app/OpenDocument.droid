@@ -2,42 +2,28 @@
 <resources>
 
     <string name="toast_error_generic">Si è verificato un errore. Impossibile aprire il file.</string>
-    <string name="toast_error_access_file">Impossibile accedere al file.</string>
     <string name="toast_error_find_file">Impossibile aprire il file. Forse non esiste più?</string>
     <string name="toast_error_illegal_file">Il formato di questo file potrebbe non essere supportato.</string>
-    <string name="toast_error_open_file">Impossibile aprire il file. Sono supportati solo i documenti .odt e .ods!</string>
     <string name="toast_error_out_of_memory">Memoria del telefono esaurita! Hai troppe foto oppure il file è troppo grande.</string>
     <string name="toast_error_password_protected">Il documento è protetto da una password.</string>
     <string name="toast_error_storage">Memoria esterna non disponibile. Impossibile leggere il file.</string>
     <string name="toast_info_limited">Sono visualizzate solo alcune parti del documento in modo da migliorare la prestazione. Fai clic qui se desideri visualizzare l\'intero documento.</string>
     <string name="dialog_recent_title">Documenti recenti</string>
-    <string name="dialog_submit_file_title">Scegli una app per inviarci il tuo file</string>
-    <string name="dialog_submit_file">Desideri inviarci il file in modo da poterlo visionare e farlo funzionare con il prossimo aggiornamento?</string>
-    <string name="dialog_error_send_error_only">Invia solo l\'errore</string>
-    <string name="dialog_no_filemanager">Non è stato trovato alcun file manager. Ti consigliamo uno di questi:</string>
     <string name="dialog_choose_filemanager">Apri documento con:</string>
-    <string name="dialog_loading_title">Caricamento...</string>
-    <string name="dialog_uploading_title">Invio in corso...</string>
+    <string name="dialog_loading_title">Caricamento…</string>
+    <string name="dialog_uploading_title">Invio in corso…</string>
     <string name="dialog_loading_message">Potrebbe impiegarci qualche minuto, dipendentemente dalla struttura del tuo documento e della potenza di elaborazione del tuo telefono.</string>
     <string name="dialog_remove_ads_title">Acquista nuove funzioni:</string>
     <string name="dialog_upload_file">Non siamo in grado di aprire questo documento perché non supportiamo il suo formato. Desideri inviarlo al nostro server temporaneamente in modo da poterlo visualizzare lo stesso?</string>
     <string name="dialog_title_choose_file">Scegli file dal dispositivo</string>
     <string name="dialog_list_no_documents_found">Nessun documento trovato</string>
-    <string name="dialog_list_searching_documents">Ricerca documenti sul tuo dispositivo... attendere.</string>
     <string name="menu_search">Cerca</string>
     <string name="menu_open">Apri</string>
     <string name="menu_edit">Modifica</string>
-    <string name="menu_feedback">Commenti</string>
-    <string name="menu_about">Info</string>
-    <string name="menu_reload">Ricarica senza limiti</string>
     <string name="menu_fullscreen">Modalità schermo intero</string>
-    <string name="menu_share">Condividi</string>
     <string name="menu_cloud_print">Stampa</string>
     <string name="menu_tts">Text-To-Speech</string>
-    <string name="menu_media_route">Visualizzazione esterna</string>
-    <string name="crouton_error_billing">Impossibile inizializzare Fatturazione In-App di Google Play</string>
     <string name="crouton_leave_fullscreen">Premi Indietro per lasciare la modalità schermo intero</string>
-    <string name="crouton_chromecast_failed">Connessione a Chromecast fallita</string>
     <string name="crouton_error_open_app">Impossibile aprire questa app.</string>
     <string name="action_find_previous">Indietro</string>
     <string name="action_find_next">Avanti</string>
@@ -49,10 +35,6 @@
     <string name="action_edit_save">Salva</string>
     <string name="action_edit_help">Guida!?</string>
     <string name="action_edit_banner">Modifica il tuo documento qui sotto e poi Salva</string>
-    <string name="showcase_edit_title">Modifica i tuoi documenti in movimento!</string>
-    <string name="showcase_edit_detail">Supportiamo ora la modifica dei documenti! Seleziona la penna visualizzata in alto per entrare nella modalità di modifica. Al termine delle modifiche, seleziona Salva. Il documento sarà salvato sulla tua scheda SD in modalità sola lettura.</string>
-    <string name="showcase_ad_title">Sostieni gli sviluppatori di questa app!</string>
-    <string name="showcase_ad_detail">Ogni volta che apri un annuncio (per esempio facendo clic su di esso), fai sorridere due ragazzini austriaci. Se non ti piacciono gli annunci, puoi rimuoverli per una piccola somma e rendere quei ragazzini ancora più felici.</string>
 
     <string-array name="dialog_remove_ads_options">
         <item>rimuovi annunci per un anno</item>

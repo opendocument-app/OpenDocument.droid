@@ -12,6 +12,7 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.ActionMode;
 import android.view.KeyEvent;
@@ -20,7 +21,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     private boolean isDocumentLoaded = false;
 
     private Menu menu;
+    private Handler handler;
 
     private View landingContainer;
     private View documentContainer;
@@ -88,6 +89,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         setContentView(R.layout.main);
 
         setTitle("");
+
+        handler = new Handler();
 
         adContainer = findViewById(R.id.ad_container);
         landingContainer = findViewById(R.id.landing_container);
@@ -116,19 +119,30 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     }
 
     private void initializeCatchAllSwitch() {
-        ComponentName componentName = new ComponentName(this, BuildConfig.APPLICATION_ID + ".ui.activity.MainActivity.CATCH_ALL");
-        boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(componentName) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        ComponentName catchAllComponent = new ComponentName(this, BuildConfig.APPLICATION_ID + ".ui.activity.MainActivity.CATCH_ALL");
+        ComponentName strictCatchComponent = new ComponentName(this, BuildConfig.APPLICATION_ID + ".ui.activity.MainActivity.STRICT_CATCH");
+
+        boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(catchAllComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+
+        // retoggle components for users upgrading to latest version of app
+        toggleComponent(catchAllComponent, isCatchAllEnabled);
+        toggleComponent(strictCatchComponent, !isCatchAllEnabled);
 
         Switch catchAllSwitch = findViewById(R.id.landing_catch_all);
         catchAllSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                int newState = isChecked ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-                getPackageManager().setComponentEnabledSetting(componentName, newState, PackageManager.DONT_KILL_APP);
+                toggleComponent(catchAllComponent, isChecked);
+                toggleComponent(strictCatchComponent, !isChecked);
             }
         });
 
         catchAllSwitch.setChecked(isCatchAllEnabled);
+    }
+
+    private void toggleComponent(ComponentName component, boolean enabled) {
+        int newState = enabled ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        getPackageManager().setComponentEnabledSetting(component, newState, PackageManager.DONT_KILL_APP);
     }
 
     @Override
@@ -211,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 }, Style.CONFIRM);
             }
         });
-        adManager.initialize(getApplicationContext(), analyticsManager);
+        adManager.initialize(this, analyticsManager);
 
         billingManager = new BillingManager();
         billingManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
@@ -270,6 +284,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         isDocumentLoaded = true;
 
         if (uri != null) {
+            crashManager.log("loading document at: " + uri.toString());
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 try {
                     grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -301,29 +317,11 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_search: {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-                    // http://www.androidsnippets.org/snippets/20/
-                    final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-                    alert.setTitle(getString(R.string.menu_search));
+                FindActionModeCallback findActionModeCallback = new FindActionModeCallback(this);
+                findActionModeCallback.setWebView(documentFragment.getPageView());
+                startSupportActionMode(findActionModeCallback);
 
-                    final EditText input = new EditText(this);
-                    alert.setView(input);
-
-                    alert.setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
-
-                        @Override
-                        public void onClick(DialogInterface dialog, int whichButton) {
-                            documentFragment.searchDocument(input.getText().toString());
-                        }
-                    });
-                    alert.setNegativeButton(getString(android.R.string.cancel), null);
-                    alert.show();
-                } else {
-                    FindActionModeCallback findActionModeCallback = new FindActionModeCallback(this);
-                    findActionModeCallback.setWebView(documentFragment.getPageView());
-                    startSupportActionMode(findActionModeCallback);
-                }
-
+                analyticsManager.report("menu_search");
                 analyticsManager.report(FirebaseAnalytics.Event.SEARCH);
 
                 break;
@@ -331,26 +329,31 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             case R.id.menu_open: {
                 findDocument();
 
+                analyticsManager.report("menu_open");
                 analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "choose");
 
                 break;
             }
             case R.id.menu_remove_ads: {
+                analyticsManager.report("menu_remove_ads");
+
                 buyAdRemoval();
 
                 break;
             }
             case R.id.menu_fullscreen: {
                 if (fullscreen) {
+                    analyticsManager.report("menu_fullscreen_leave");
+
                     leaveFullscreen();
                 } else {
+                    analyticsManager.report("menu_fullscreen_enter");
+
                     getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                             WindowManager.LayoutParams.FLAG_FULLSCREEN);
                     getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 
                     getSupportActionBar().hide();
-
-                    adManager.removeAds();
 
                     CroutonHelper.showCrouton(this, R.string.crouton_leave_fullscreen, new Runnable() {
 
@@ -360,44 +363,55 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                         }
                     }, Style.INFO);
 
-                    analyticsManager.report("fullscreen_start");
+                    handler.postDelayed(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            if (isFinishing()) {
+                                return;
+                            }
+
+                            CroutonHelper.showCrouton(MainActivity.this, R.string.crouton_remove_ads, new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    buyAdRemoval();
+                                }
+                            }, Style.INFO);
+                        }
+                    }, 10000);
                 }
 
                 fullscreen = !fullscreen;
 
                 break;
             }
-            case R.id.menu_share: {
-                share(Uri.parse("content://at.tomtasche.reader/document.odt"));
-
-                break;
-            }
             case R.id.menu_print: {
+                analyticsManager.report("menu_print");
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     KitKatPrinter.print(this, documentFragment.getPageView());
                 } else {
-                    Toast.makeText(this, "Printing not available on your device. Please upgrade to a newer version of Android.", Toast.LENGTH_SHORT).show();
+                    CroutonHelper.showCrouton(this, R.string.crouton_print_unavailable, null, Style.ALERT);
                 }
-
-                analyticsManager.report("print");
 
                 break;
             }
             case R.id.menu_tts: {
+                analyticsManager.report("menu_tts");
+
                 ttsActionMode = new TtsActionModeCallback(this, documentFragment.getPageView());
                 startSupportActionMode(ttsActionMode);
-
-                analyticsManager.report("tts");
 
                 break;
             }
             case R.id.menu_edit: {
+                analyticsManager.report("menu_edit");
+
                 adManager.loadInterstitial();
 
                 editActionMode = new EditActionModeCallback(this, documentFragment, adManager);
                 startSupportActionMode(editActionMode);
-
-                analyticsManager.report("edit");
 
                 break;
             }
@@ -437,31 +451,16 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "recent");
     }
 
-    public void share(Uri uri) {
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.setDataAndType(uri, "application/*");
-        intent.putExtra(Intent.EXTRA_STREAM, uri);
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-        try {
-            startActivity(intent);
-
-            analyticsManager.report(FirebaseAnalytics.Event.SHARE);
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            CroutonHelper.showCrouton(this, R.string.crouton_error_open_app, null, Style.ALERT);
-        }
-    }
-
     private void buyAdRemoval() {
+        adManager.loadVideo();
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dialog_remove_ads_title);
         builder.setItems(R.array.dialog_remove_ads_options, new OnClickListener() {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String product = null;
+                String product;
 
                 switch (which) {
                     case 0:
@@ -480,9 +479,9 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                         break;
 
                     default:
-                        adManager.removeAds();
-
                         dialog.dismiss();
+
+                        adManager.showVideo();
 
                         return;
                 }
@@ -620,5 +619,9 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
     public CrashManager getCrashManager() {
         return crashManager;
+    }
+
+    public AnalyticsManager getAnalyticsManager() {
+        return analyticsManager;
     }
 }

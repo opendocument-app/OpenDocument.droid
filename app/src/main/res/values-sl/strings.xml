@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="toast_error_generic">Nekaj je šlo narobe. Datoteke ni bilo mogoče odpreti.</string>
+    <string name="toast_error_find_file">Datoteke ni bilo mogoče najti. Morda ne obstaja več?</string>
+    <string name="toast_error_illegal_file">Videti je, da ta oblika datoteke ni podprta.</string>
+    <string name="toast_error_out_of_memory">Telefonu je zmanjkalo pomnilnika! Preveč slik ali prevelika datoteka.</string>
+    <string name="toast_error_password_protected">Dokument je zaščiten z geslom</string>
+    <string name="toast_error_storage">Zunanja pomnilniška naprava ni na voljo. Datoteke ni bilo mogoče brati.</string>
+    <string name="toast_info_limited">Zaradi izboljšanja zmogljivosti so prikazani samo deli dokumenta. Kliknite tukaj, če želite videti cel dokument.</string>
+    <string name="dialog_recent_title">Nedavni dokumenti</string>
+    <string name="dialog_choose_filemanager">Odpri dokument preko:</string>
+    <string name="dialog_loading_title">Nalaganje …</string>
+    <string name="dialog_uploading_title">Pošiljanje …</string>
+    <string name="dialog_loading_message">To lahko traja nekaj minut, odvisno od zgradbe dokumenta in zmogljivoasti telefona.</string>
+    <string name="dialog_remove_ads_title">Kupite nove značilnosti:</string>
+    <string name="dialog_upload_file">Tega dokumenta ne moremo odpreti, ker ne podpiramo njegove oblike. Ali ga želite začasno poslati na naš strežnik, da ga lahko vseeno prikažemo?</string>
+    <string name="dialog_title_choose_file">Izberi datoteko z naprave</string>
+    <string name="dialog_list_no_documents_found">Nobenih dokumentov ni bilo najdenih</string>
+    <string name="menu_recent">Nedavni dokumenti</string>
+    <string name="menu_search">Išči</string>
+    <string name="menu_open">Odpri</string>
+    <string name="menu_edit">Uredi</string>
+    <string name="menu_remove_ads">Odstrani oglase</string>
+    <string name="menu_fullscreen">Celozaslonski način</string>
+    <string name="menu_cloud_print">Natisni</string>
+    <string name="menu_tts">Besedilo v govor</string>
+    <string name="crouton_leave_fullscreen">Pritisnite Nazaj za izhod iz celozaslonskega načina</string>
+    <string name="crouton_error_open_app">Tega programa ni bilo mogoče odpreti.</string>
+    <string name="crouton_remove_ads">Ne marate oglasov? Če jih želite odstraniti, kliknite tukaj!</string>
+    <string name="action_find_previous">Nazaj</string>
+    <string name="action_find_next">Naprej</string>
+    <string name="action_find_on_page">Najdi na strani</string>
+    <string name="action_tts_play">Predvajaj</string>
+    <string name="action_tts_pause">Premor</string>
+    <string name="action_tts_next">Naprej</string>
+    <string name="action_tts_previous">Nazaj</string>
+    <string name="action_edit_save">Shrani</string>
+    <string name="action_edit_help">Pomoč!?</string>
+    <string name="action_edit_banner">Spodaj uredite dokument in prtisnite Shrani</string>
+    <string name="landing_welcome_title">Dobrodošli v \nOpenDocument Reader</string>
+    <string name="landing_intro_view">OpenDocument Reader kjerkoli omogoča ogled dokumentov, ki so shranjeni v obliki OpenDocument (.odt, .ods, .odp).</string>
+    <string name="landing_intro_search">S programom OpenDocument Reader lahko berete in hitro iščete po dokumentih.</string>
+    <string name="landing_intro_edit">Ste našli še zadnjo napako v dokumentu, ki jo želite popraviti? Sedaj podpira tudi spreminjanje!</string>
+    <string name="landing_intro_open_all">Ta program se registrira, da privzeto odpre vse vrste datotek, da lahko podpira programe, kot je \"Samsung My Files\". Če vam ta značilnost povzroča težave, jo lahko tukaj izklopite.</string>
+    <string name="tts_status_reading">Branje …</string>
+    <string name="tts_status_initializing">Začenjanje TTS-a …</string>
+    <string name="tts_status_ready">Pripravljen!</string>
+    <string name="tts_status_failed">TTS je spodletel.</string>
+    <string name="tts_status_paused">Premor.</string>
+    <string name="tts_status_finished">Končano.</string>
+
+    <string-array name="dialog_remove_ads_options">
+        <item>odstrani oglase za eno leto</item>
+        <item>odstrani oglase za vedno</item>
+        <item>globoka ljubezen (+ odstrani oglase za vedno)</item>
+        <item>začasno odstrani oglase</item>
+    </string-array>
+
+</resources>

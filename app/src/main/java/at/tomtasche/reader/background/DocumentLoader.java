@@ -14,6 +14,7 @@ import java.io.InputStream;
 import at.stefl.commons.math.vector.Vector2i;
 import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
 import at.stefl.opendocument.java.odf.OpenDocument;
+import at.stefl.opendocument.java.odf.OpenDocumentGraphics;
 import at.stefl.opendocument.java.odf.OpenDocumentPresentation;
 import at.stefl.opendocument.java.odf.OpenDocumentSpreadsheet;
 import at.stefl.opendocument.java.odf.OpenDocumentText;
@@ -21,6 +22,7 @@ import at.stefl.opendocument.java.translator.document.BulkPresentationTranslator
 import at.stefl.opendocument.java.translator.document.BulkSpreadsheetTranslator;
 import at.stefl.opendocument.java.translator.document.DocumentTranslator;
 import at.stefl.opendocument.java.translator.document.DocumentTranslatorUtil;
+import at.stefl.opendocument.java.translator.document.GraphicsTranslator;
 import at.stefl.opendocument.java.translator.document.PresentationTranslator;
 import at.stefl.opendocument.java.translator.document.SpreadsheetTranslator;
 import at.stefl.opendocument.java.translator.document.TextTranslator;
@@ -170,13 +172,15 @@ public class DocumentLoader implements FileLoader {
             }
 
             // https://github.com/andiwand/OpenDocument.java/blob/7f13222f77fabd62ee6a9d52cd6ed3e512532a9b/src/at/stefl/opendocument/java/translator/document/DocumentTranslatorUtil.java#L131
-            if (!settings.isSplitPages() || (openDocument instanceof OpenDocumentText)) {
+            if (!settings.isSplitPages() || (openDocument instanceof OpenDocumentText || openDocument instanceof OpenDocumentGraphics)) {
                 if (openDocument instanceof OpenDocumentText) {
                     lastTranslator = new TextTranslator();
                 } else if (openDocument instanceof OpenDocumentSpreadsheet) {
                     lastTranslator = new SpreadsheetTranslator();
                 } else if (openDocument instanceof OpenDocumentPresentation) {
                     lastTranslator = new PresentationTranslator();
+                } else if (openDocument instanceof OpenDocumentGraphics) {
+                    lastTranslator = new GraphicsTranslator();
                 } else {
                     throw new IllegalStateException("unsupported document");
                 }

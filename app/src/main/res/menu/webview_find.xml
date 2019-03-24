@@ -15,17 +15,17 @@
 -->
 
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+      xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/find_prev"
-        android:icon="@drawable/ic_keyboard_arrow_up"
-        app:showAsAction="always"
-        android:title="@string/action_find_previous" />
+            android:id="@+id/find_prev"
+            android:icon="@drawable/ic_keyboard_arrow_up"
+            app:showAsAction="ifRoom"
+            android:title="@string/action_find_previous"/>
     <item
-        android:id="@+id/find_next"
-        android:icon="@drawable/ic_keyboard_arrow_down"
-        app:showAsAction="always"
-        android:title="@string/action_find_next" />
+            android:id="@+id/find_next"
+            android:icon="@drawable/ic_keyboard_arrow_down"
+            app:showAsAction="ifRoom"
+            android:title="@string/action_find_next"/>
 
 </menu>

@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_gravity="start|top"
-    android:orientation="vertical">
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="start|top"
+                android:orientation="vertical">
 
     <LinearLayout
-        android:id="@+id/ad_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_gravity="center_horizontal"
-        android:orientation="horizontal"
-        android:visibility="gone" />
+            android:id="@+id/ad_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:visibility="gone"/>
 
     <LinearLayout
             android:id="@+id/landing_container"
@@ -23,7 +23,8 @@
             android:layout_below="@id/ad_container"
             android:orientation="vertical"
             android:layout_alignParentStart="true"
-            android:layout_marginTop="0dp">
+            android:layout_marginTop="0dp"
+            android:layout_alignParentLeft="true">
 
         <LinearLayout
                 style="@style/landing_intro_title_container"
@@ -35,7 +36,8 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="0.3"
-                    app:srcCompat="@mipmap/ic_launcher_foreground"/>
+                    app:srcCompat="@mipmap/ic_launcher_foreground"
+                    tools:ignore="ContentDescription"/>
 
             <TextView
                     style="@style/landing_intro_title"
@@ -60,7 +62,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_weight="0.2"
-                    app:srcCompat="@drawable/ic_folder_open"/>
+                    app:srcCompat="@drawable/ic_folder_open"
+                    tools:ignore="ContentDescription"/>
 
             <TextView
                     android:layout_width="0dp"
@@ -83,7 +86,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_weight="0.2"
-                    app:srcCompat="@drawable/ic_search"/>
+                    app:srcCompat="@drawable/ic_search"
+                    tools:ignore="ContentDescription"/>
 
             <TextView
                     android:layout_width="0dp"
@@ -106,7 +110,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_weight="0.2"
-                    app:srcCompat="@drawable/ic_edit"/>
+                    app:srcCompat="@drawable/ic_edit"
+                    tools:ignore="ContentDescription"/>
 
             <TextView
                     android:layout_width="0dp"
@@ -132,7 +137,9 @@
                     android:layout_marginLeft="-20dp"
                     android:layout_marginRight="20dp"
                     android:layout_weight="0.2"
-                    android:theme="@style/Theme.AppCompat.Light" />
+                    android:theme="@style/Theme.AppCompat.Light"
+                    android:layout_marginStart="-20dp"
+                    android:layout_marginEnd="20dp"/>
 
             <TextView
                     android:layout_width="0dp"
@@ -146,9 +153,9 @@
     </LinearLayout>
 
     <FrameLayout
-        android:id="@+id/document_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/ad_container"
-        android:visibility="gone" />
+            android:id="@+id/document_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/ad_container"
+            android:visibility="gone"/>
 </RelativeLayout>
