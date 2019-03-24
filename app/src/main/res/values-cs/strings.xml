@@ -17,6 +17,7 @@
     <string name="dialog_list_no_documents_found">Nebyly nalezeny žádné dokunety</string>
     <string name="menu_search">Vyhledat</string>
     <string name="menu_open">Otevřít</string>
+    <string name="menu_edit">Upravit dokument</string>
     <string name="menu_fullscreen">Celá obrazovka</string>
     <string name="menu_cloud_print">Google Cloud Print</string>
     <string name="menu_tts">Převést text na řeč</string>
@@ -28,4 +29,9 @@
     <string name="action_tts_pause">Pozastavit</string>
     <string name="action_tts_next">Následující</string>
     <string name="action_tts_previous">Předchozí</string>
+    <string name="action_edit_save">Uložit</string>
+    <string name="tts_status_reading">Čtení…</string>
+    <string name="tts_status_initializing">Inicializuji TTS…</string>
+    <string name="tts_status_failed">TTS selhal.</string>
+    <string name="crouton_printing">Probíhá tisk…</string>
 </resources>
