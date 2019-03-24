@@ -40,6 +40,7 @@
     <string name="landing_intro_view">OpenDocument Reader vous permet de visualiser les documents enregistrés au format OpenDocument (.odt, .ods, .odp et .odg) où que vous soyez.</string>
     <string name="landing_intro_search">Grâce à OpenDocument Reader, vous pouvez lire et rechercher dans vos documents facilement et rapidement.</string>
     <string name="landing_intro_edit">Vous avez trouvé une faute de frappe dans votre présentation ? Il est désormais possible de la corriger !</string>
+    <string name="landing_intro_open_all">Par défaut cette application est associée à tous les types de fichiers afin de fonctionner depuis des applications comme \"Samsung My Files\". Vous pouvez désactiver cette fonctionnalité ici si cela vous pose problème.</string>
     <string name="tts_status_reading">Lecture en cours ...</string>
     <string name="tts_status_initializing">Initialisation de la synthèse vocale …</string>
     <string name="tts_status_ready">Prêt !</string>
