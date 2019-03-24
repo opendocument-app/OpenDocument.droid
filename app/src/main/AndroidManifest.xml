@@ -89,8 +89,6 @@
 
                 <data android:scheme="content"/>
                 <data android:scheme="file"/>
-                <data android:scheme="http"/>
-                <data android:scheme="https"/>
                 <data android:host="*"/>
 
                 <data android:pathPattern=".*\\.odt"/>
@@ -138,8 +136,6 @@
 
                 <data android:mimeType="*/*"/>
 
-                <data android:scheme="http"/>
-                <data android:scheme="https"/>
                 <data android:scheme="content"/>
                 <data android:scheme="file"/>
                 <data android:host="*"/>
@@ -240,8 +236,6 @@
 
                 <data android:scheme="content"/>
                 <data android:scheme="file"/>
-                <data android:scheme="http"/>
-                <data android:scheme="https"/>
                 <data android:host="*"/>
 
                 <data android:pathPattern=".*\\.odt"/>
@@ -289,8 +283,6 @@
 
                 <data android:mimeType="*/*"/>
 
-                <data android:scheme="http"/>
-                <data android:scheme="https"/>
                 <data android:scheme="content"/>
                 <data android:scheme="file"/>
                 <data android:host="*"/>
