@@ -13,6 +13,7 @@
     <string name="dialog_uploading_title">Subiendo…</string>
     <string name="dialog_loading_message">Este proceso podría tardar unos minutos, en función de la estructura del documento y de la potencia de procesamiento del teléfono.</string>
     <string name="dialog_remove_ads_title">Compra nuevas funciones:</string>
+    <string name="dialog_upload_file">No podemos abrir este documento porque no admitimos su formato. ¿Desea subirlo temporalmente a nuestro servidor para que podamos mostrarlo igualmente? Los archivos subidos son privados y se eliminan automáticamente después de 24 horas.</string>
     <string name="dialog_title_choose_file">Elige el archivo del dispositivo.</string>
     <string name="dialog_list_no_documents_found">No se ha encontrado ningún documento.</string>
     <string name="menu_recent">Documentos abiertos recientemente</string>
@@ -60,7 +61,7 @@
     <string-array name="dialog_remove_ads_options">
         <item>elimina los anuncios durante un año</item>
         <item>elimina los anuncios definitivamente</item>
-        <item>remove ads forever and donate an extra amount</item>
-        <item>remove ads temporarily by watching a short video</item>
+        <item>eliminar los anuncios para siempre y donar una cantidad extra</item>
+        <item>eliminar los anuncios temporalmente viendo un vídeo corto</item>
     </string-array>
 </resources>
