@@ -5,9 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Handler;
 import android.webkit.JavascriptInterface;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -17,6 +16,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
+import androidx.annotation.Nullable;
 import at.tomtasche.reader.ui.ParagraphListener;
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -30,6 +30,15 @@ public class PageView extends WebView implements ParagraphListener {
     private File writeTo;
     private Runnable writtenCallback;
 
+    /**
+     * sometimes the page stays invisible after reporting progress 100: https://stackoverflow.com/q/48082474/198996
+     *
+     * this seems to happen if progress 100 is reported before finish is called.
+     * therefore we set a timer in finish that checks if commit was ever called and reload if not.
+     */
+    private Handler buggyWebViewHandler;
+    private boolean wasCommitCalled = false;
+
     public PageView(Context context) {
         this(context, 0);
     }
@@ -37,6 +46,8 @@ public class PageView extends WebView implements ParagraphListener {
     @SuppressLint("AddJavascriptInterface")
     public PageView(Context context, final int scroll) {
         super(context);
+
+        buggyWebViewHandler = new Handler();
 
         WebSettings settings = getSettings();
         settings.setBuiltInZoomControls(true);
@@ -61,6 +72,16 @@ public class PageView extends WebView implements ParagraphListener {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
 
+                buggyWebViewHandler.postDelayed(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        if (!wasCommitCalled) {
+                            loadUrl(url);
+                        }
+                    }
+                }, 2500);
+
                 if (!scrolled) {
                     postDelayed(new Runnable() {
 
@@ -72,6 +93,16 @@ public class PageView extends WebView implements ParagraphListener {
 
                     scrolled = true;
                 }
+            }
+
+            @Override
+            public void onPageCommitVisible(WebView view, String url) {
+                wasCommitCalled = true;
+            }
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                wasCommitCalled = false;
             }
 
             @Override
