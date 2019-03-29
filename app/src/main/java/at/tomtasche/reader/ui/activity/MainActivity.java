@@ -57,7 +57,7 @@ import de.keyboardsurfer.android.widget.crouton.Style;
 public class MainActivity extends AppCompatActivity implements DocumentLoadingActivity {
 
     private static final boolean USE_PROPRIETARY_LIBRARIES = true;
-    private static final boolean IS_GOOGLE_ECOSYSTEM = true;
+    protected static boolean IS_GOOGLE_ECOSYSTEM = true;
     private static final int GOOGLE_REQUEST_CODE = 1993;
     private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
     public static int PERMISSION_CODE = 1353;
@@ -124,13 +124,18 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         ComponentName catchAllComponent = new ComponentName(this, BuildConfig.APPLICATION_ID + ".ui.activity.MainActivity.CATCH_ALL");
         ComponentName strictCatchComponent = new ComponentName(this, BuildConfig.APPLICATION_ID + ".ui.activity.MainActivity.STRICT_CATCH");
 
-        boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(catchAllComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(catchAllComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED && IS_GOOGLE_ECOSYSTEM;
 
         // retoggle components for users upgrading to latest version of app
         toggleComponent(catchAllComponent, isCatchAllEnabled);
         toggleComponent(strictCatchComponent, !isCatchAllEnabled);
 
         Switch catchAllSwitch = findViewById(R.id.landing_catch_all);
+        if (!IS_GOOGLE_ECOSYSTEM) {
+            LinearLayout parent = (LinearLayout) catchAllSwitch.getParent();
+            parent.setVisibility(View.GONE);
+        }
+
         catchAllSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -195,10 +200,11 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     }
 
     private void initializeProprietaryLibraries() {
-        if (USE_PROPRIETARY_LIBRARIES) {
+        if (USE_PROPRIETARY_LIBRARIES && IS_GOOGLE_ECOSYSTEM) {
             GoogleApiAvailability googleApi = GoogleApiAvailability.getInstance();
             int googleAvailability = googleApi.isGooglePlayServicesAvailable(this);
             if (googleAvailability != ConnectionResult.SUCCESS) {
+                IS_GOOGLE_ECOSYSTEM = false;
                 googleApi.getErrorDialog(this, googleAvailability, GOOGLE_REQUEST_CODE).show();
             }
         }

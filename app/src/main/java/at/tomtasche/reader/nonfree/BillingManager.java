@@ -35,6 +35,8 @@ public class BillingManager {
         this.adManager = adManager;
 
         if (!enabled) {
+            adManager.showGoogleAds();
+
             return;
         }
 

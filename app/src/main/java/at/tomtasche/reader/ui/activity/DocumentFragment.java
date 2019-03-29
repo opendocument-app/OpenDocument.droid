@@ -85,8 +85,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         pageView = new PageView(getActivity());
-        pageView.loadData("", "text/plain", PageView.ENCODING);
-
         return pageView;
     }
 
@@ -290,20 +288,25 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.toast_error_illegal_file);
-            builder.setMessage(R.string.dialog_upload_file);
-            builder.setPositiveButton(getString(android.R.string.ok),
-                    new DialogInterface.OnClickListener() {
 
-                        @Override
-                        public void onClick(DialogInterface dialog,
-                                            int whichButton) {
-                            ((MainActivity) activity).getAnalyticsManager().report("load_upload");
+            if (MainActivity.IS_GOOGLE_ECOSYSTEM) {
+                builder.setMessage(R.string.dialog_upload_file);
 
-                            uploadUri(lastUri);
+                builder.setPositiveButton(getString(android.R.string.ok),
+                        new DialogInterface.OnClickListener() {
 
-                            dialog.dismiss();
-                        }
-                    });
+                            @Override
+                            public void onClick(DialogInterface dialog,
+                                                int whichButton) {
+                                ((MainActivity) activity).getAnalyticsManager().report("load_upload");
+
+                                uploadUri(lastUri);
+
+                                dialog.dismiss();
+                            }
+                        });
+            }
+
             builder.setNegativeButton(getString(android.R.string.cancel), null);
 
             mainHandler.post(new Runnable() {
