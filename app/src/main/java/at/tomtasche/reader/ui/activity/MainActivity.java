@@ -30,6 +30,7 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.kobakei.ratethisapp.RateThisApp;
 
+import java.util.Arrays;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -56,6 +57,7 @@ import de.keyboardsurfer.android.widget.crouton.Style;
 public class MainActivity extends AppCompatActivity implements DocumentLoadingActivity {
 
     private static final boolean USE_PROPRIETARY_LIBRARIES = true;
+    private static final boolean IS_GOOGLE_ECOSYSTEM = true;
     private static final int GOOGLE_REQUEST_CODE = 1993;
     private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
     public static int PERMISSION_CODE = 1353;
@@ -187,8 +189,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         permissionDialogCount++;
 
-        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_CODE);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_CODE);
         }
     }
 
@@ -228,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         adManager.initialize(this, analyticsManager);
 
         billingManager = new BillingManager();
-        billingManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+        billingManager.setEnabled(USE_PROPRIETARY_LIBRARIES && IS_GOOGLE_ECOSYSTEM);
         billingManager.initialize(this, analyticsManager, adManager, crashManager);
     }
 
@@ -456,11 +458,21 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dialog_remove_ads_title);
-        builder.setItems(R.array.dialog_remove_ads_options, new OnClickListener() {
+
+        String[] optionStrings = getResources().getStringArray(R.array.dialog_remove_ads_options);
+        if (!IS_GOOGLE_ECOSYSTEM) {
+            optionStrings = new String[] { optionStrings[3] };
+        }
+
+        builder.setItems(optionStrings, new OnClickListener() {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String product;
+
+                if (!IS_GOOGLE_ECOSYSTEM) {
+                    which = 3;
+                }
 
                 switch (which) {
                     case 0:
