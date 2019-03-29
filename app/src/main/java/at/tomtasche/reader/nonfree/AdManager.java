@@ -153,7 +153,7 @@ public class AdManager implements RewardedVideoAdListener {
         rewardedVideoAd = MobileAds.getRewardedVideoAdInstance(activity);
         rewardedVideoAd.setRewardedVideoAdListener(this);
 
-        rewardedVideoAd.loadAd("ca-app-pub-8161473686436957~9025061963", new AdRequest.Builder().build());
+        rewardedVideoAd.loadAd("ca-app-pub-8161473686436957/7215347444", new AdRequest.Builder().build());
     }
 
     public void showVideo() {
@@ -189,8 +189,6 @@ public class AdManager implements RewardedVideoAdListener {
         showAds = false;
 
         adContainer.setVisibility(View.GONE);
-
-        analyticsManager.report("remove_ads");
     }
 
     public void destroyAds() {
@@ -278,7 +276,7 @@ public class AdManager implements RewardedVideoAdListener {
 
         @Override
         public void onAdFailedToLoad(int arg0) {
-            analyticsManager.report("ads_" + prefix + "failed_" + arg0);
+            analyticsManager.report("ads_" + prefix + "_failed_" + arg0);
 
             if (!isInterstitial) {
                 adFailed = true;
@@ -294,7 +292,7 @@ public class AdManager implements RewardedVideoAdListener {
 
         @Override
         public void onAdLoaded() {
-            analyticsManager.report("ads_\" + prefix + \"loaded");
+            analyticsManager.report("ads_" + prefix + "_loaded");
 
             if (isInterstitial && progressDialog != null) {
                 progressDialog.dismiss();
@@ -306,22 +304,22 @@ public class AdManager implements RewardedVideoAdListener {
 
         @Override
         public void onAdClicked() {
-            analyticsManager.report("ads_\" + prefix + \"clicked");
+            analyticsManager.report("ads_" + prefix + "clicked");
         }
 
         @Override
         public void onAdImpression() {
-            analyticsManager.report("ads_\" + prefix + \"impression");
+            analyticsManager.report("ads_" + prefix + "impression");
         }
 
         @Override
         public void onAdClosed() {
-            analyticsManager.report("ads_\" + prefix + \"closed");
+            analyticsManager.report("ads_" + prefix + "closed");
         }
 
         @Override
         public void onAdOpened() {
-            analyticsManager.report("ads_\" + prefix + \"opened");
+            analyticsManager.report("ads_" + prefix + "opened");
         }
     }
 }

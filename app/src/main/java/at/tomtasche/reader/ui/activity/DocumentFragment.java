@@ -246,6 +246,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         if (error == null) {
             throw new RuntimeException("no error given");
         } else if (error instanceof EncryptedDocumentException) {
+            ((MainActivity) activity).getAnalyticsManager().report("load_error_encrypted");
+
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.toast_error_password_protected);
 
@@ -318,6 +320,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             return;
         } else if (error instanceof FileNotFoundException) {
+            ((MainActivity) activity).getAnalyticsManager().report("load_error_file_not_found");
+
             if (Environment.getExternalStorageState().equals(
                     Environment.MEDIA_MOUNTED_READ_ONLY)
                     || Environment.getExternalStorageState().equals(
@@ -327,10 +331,16 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 errorDescription = R.string.toast_error_storage;
             }
         } else if (error instanceof IllegalArgumentException) {
+            ((MainActivity) activity).getAnalyticsManager().report("load_error_illegal_file");
+
             errorDescription = R.string.toast_error_illegal_file;
         } else if (error instanceof OutOfMemoryError) {
+            ((MainActivity) activity).getAnalyticsManager().report("load_error_memory");
+
             errorDescription = R.string.toast_error_out_of_memory;
         } else {
+            ((MainActivity) activity).getAnalyticsManager().report("load_error_generic");
+
             errorDescription = R.string.toast_error_generic;
         }
 
