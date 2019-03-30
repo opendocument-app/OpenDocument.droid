@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
@@ -72,15 +73,17 @@ public class PageView extends WebView implements ParagraphListener {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
 
-                buggyWebViewHandler.postDelayed(new Runnable() {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    buggyWebViewHandler.postDelayed(new Runnable() {
 
-                    @Override
-                    public void run() {
-                        if (!wasCommitCalled) {
-                            loadUrl(url);
+                        @Override
+                        public void run() {
+                            if (!wasCommitCalled) {
+                                loadUrl(url);
+                            }
                         }
-                    }
-                }, 2500);
+                    }, 2500);
+                }
 
                 if (!scrolled) {
                     postDelayed(new Runnable() {
