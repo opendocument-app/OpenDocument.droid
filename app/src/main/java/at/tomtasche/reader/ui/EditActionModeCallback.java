@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.nonfree.AdManager;
+import at.tomtasche.reader.nonfree.HelpManager;
 import at.tomtasche.reader.ui.activity.DocumentFragment;
 import at.tomtasche.reader.ui.activity.MainActivity;
 import at.tomtasche.reader.ui.widget.PageView;
@@ -30,16 +31,18 @@ public class EditActionModeCallback implements ActionMode.Callback {
     private DocumentFragment documentFragment;
     private AdManager adManager;
     private PageView pageView;
+    private HelpManager helpManager;
     private TextView statusView;
 
     private InputMethodManager imm;
 
-    private int permissionDialogCount = 0;
+    private int permissionDialogCount;
 
-    public EditActionModeCallback(MainActivity activity, DocumentFragment documentFragment, AdManager adManager) {
+    public EditActionModeCallback(MainActivity activity, DocumentFragment documentFragment, AdManager adManager, HelpManager helpManager) {
         this.activity = activity;
         this.documentFragment = documentFragment;
         this.adManager = adManager;
+        this.helpManager = helpManager;
         this.pageView = documentFragment.getPageView();
     }
 
@@ -70,9 +73,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
         switch (item.getItemId()) {
             case R.id.edit_help: {
-                documentFragment.startActivity(new Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse("https://plus.google.com/communities/113494011673882132018")));
+                helpManager.show();
 
                 break;
             }

@@ -44,4 +44,9 @@
             android:id="@+id/menu_remove_ads"
             android:title="@string/menu_remove_ads"
             app:showAsAction="never"/>
+
+    <item
+            android:id="@+id/edit_help"
+            app:showAsAction="never"
+            android:title="@string/action_edit_help"/>
 </menu>

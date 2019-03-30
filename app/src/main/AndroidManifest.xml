@@ -7,6 +7,17 @@
           android:versionName="3.0.18"
           tools:ignore="GoogleAppIndexingWarning">
 
+    <!-- added by HelpCrunch SDK otherwise -->
+    <uses-feature
+            android:name="android.hardware.camera.autofocus"
+            tools:node="remove" />
+    <uses-feature
+            android:name="android.hardware.camera.any"
+            tools:node="remove" />
+    <uses-permission
+            android:name="android.permission.CAMERA"
+            tools:node="remove" />
+
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>

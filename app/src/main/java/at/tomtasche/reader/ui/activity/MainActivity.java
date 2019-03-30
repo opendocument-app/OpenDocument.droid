@@ -28,6 +28,7 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.helpcrunch.library.core.HelpCrunch;
 import com.kobakei.ratethisapp.RateThisApp;
 
 import java.util.Arrays;
@@ -47,6 +48,7 @@ import at.tomtasche.reader.nonfree.AdManager;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.BillingManager;
 import at.tomtasche.reader.nonfree.CrashManager;
+import at.tomtasche.reader.nonfree.HelpManager;
 import at.tomtasche.reader.ui.CroutonHelper;
 import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.FindActionModeCallback;
@@ -80,9 +82,10 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     private AnalyticsManager analyticsManager;
     private AdManager adManager;
     private BillingManager billingManager;
+    private HelpManager helpManager;
 
-    private int permissionDialogCount = 0;
-    private boolean isIntroOpen = false;
+    private int permissionDialogCount;
+    private boolean isIntroOpen;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -238,6 +241,10 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         billingManager = new BillingManager();
         billingManager.setEnabled(USE_PROPRIETARY_LIBRARIES && IS_GOOGLE_ECOSYSTEM);
         billingManager.initialize(this, analyticsManager, adManager, crashManager);
+
+        helpManager = new HelpManager();
+        helpManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+        helpManager.initialize(this);
     }
 
     @Override
@@ -418,8 +425,13 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
                 adManager.loadInterstitial();
 
-                editActionMode = new EditActionModeCallback(this, documentFragment, adManager);
+                editActionMode = new EditActionModeCallback(this, documentFragment, adManager, helpManager);
                 startSupportActionMode(editActionMode);
+
+                break;
+            }
+            case R.id.edit_help: {
+                helpManager.show();
 
                 break;
             }
