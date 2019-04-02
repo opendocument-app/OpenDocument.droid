@@ -28,7 +28,6 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.helpcrunch.library.core.HelpCrunch;
 import com.kobakei.ratethisapp.RateThisApp;
 
 import java.util.Arrays;
