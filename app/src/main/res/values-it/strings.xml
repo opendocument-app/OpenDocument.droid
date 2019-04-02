@@ -36,7 +36,7 @@
     <string name="action_edit_save">Salva</string>
     <string name="action_edit_help">Aiuto!?</string>
     <string name="action_edit_banner">Modifica il tuo documento qui sotto e premi Salva</string>
-    <string name="landing_welcome_title">Benvenuto in \ nOpenDocument Reader</string>
+    <string name="landing_welcome_title">Benvenuto in \nOpenDocument Reader</string>
     <string name="landing_intro_view">OpenDocument Reader ti consente di visualizzare i documenti che sono archiviati in formato OpenDocument (.odt, .ods, .odp e .odg) ovunque tu sia.</string>
     <string name="landing_intro_search">Con OpenDocument Reader puoi leggere e cercare tra i tuoi documenti in un attimo.</string>
     <string name="landing_intro_edit">Trovato un ultimo errore di battitura da correggere prima della tua grande presentazione? Ora anche le modifiche sono supportate!</string>

@@ -4,7 +4,7 @@
     <string name="toast_error_generic">Une erreur est survenue. Impossible d\'ouvrir le fichier.</string>
     <string name="toast_error_find_file">Impossible de trouver le fichier. Il n\'existe peut-être plus?</string>
     <string name="toast_error_illegal_file">Ce format de fichier ne semble pas être supporté.</string>
-    <string name="toast_error_out_of_memory">La mémoire du téléphone est pleine! Trop d\'images ou fichiers trop gros.</string>
+    <string name="toast_error_out_of_memory">Plus de place sur la mémoire de l\'appareil ! Il y a trop d\'images ou les fichiers sont trop volumineux.</string>
     <string name="toast_error_password_protected">Le document est protégé par un mot de passe.</string>
     <string name="toast_error_storage">Le stockage externe n\'est pas disponible. Impossible de lire le fichier.</string>
     <string name="dialog_recent_title">Documents récents</string>
@@ -36,7 +36,7 @@
     <string name="action_edit_save">Enregistrer</string>
     <string name="action_edit_help">Aide !?</string>
     <string name="action_edit_banner">Modifiez votre document ci-dessous et appuyez sur Sauvegarder</string>
-    <string name="landing_welcome_title">Bienvenue sur \nOpenDocument Reader</string>
+    <string name="landing_welcome_title">Bienvenue dans le \nlecteur OpenDocument</string>
     <string name="landing_intro_view">OpenDocument Reader vous permet de visualiser les documents stockés au format OpenDocument (.odt, .ods, .odp et .odg) où que vous soyez.</string>
     <string name="landing_intro_search">Avec OpenDocument Reader, vous pouvez lire et effectuer des recherches facilement dans vos documents.</string>
     <string name="landing_intro_edit">Vous avez trouvé une dernière faute de frappe à corriger avant votre grande présentation ? Les modifications sont maintenant aussi supportées !</string>
