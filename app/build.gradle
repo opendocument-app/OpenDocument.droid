@@ -68,9 +68,9 @@ dependencies {
 
     implementation 'com.github.paolorotolo:appintro:v5.1.0'
 
-    implementation ('com.helpcrunch:helpcrunch-sdk:1.5.1@aar') {
+    /*implementation ('com.helpcrunch:helpcrunch-sdk:1.5.1@aar') {
         transitive=true
-    }
+    }*/
 }
 
 apply plugin: 'com.google.gms.google-services'
