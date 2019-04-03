@@ -14,13 +14,13 @@
     <string name="dialog_loading_message">L\'opération peut prendre quelques minutes, selon la structure de votre document et la puissance de traitement de votre téléphone.</string>
     <string name="dialog_remove_ads_title">Acheter de nouvelles fonctions :</string>
     <string name="dialog_upload_file">Impossible d\'ouvrir ce document car son format n\'est pas supporté. Voulez-vous l\'héberger temporairement sur notre serveur pour le visualiser ? Les fichiers téléchargés sont privés et automatiquement supprimés après 24 heures.</string>
-    <string name="dialog_title_choose_file">Choisir un fichier à partir de l\'appareil</string>
+    <string name="dialog_title_choose_file">Fichier de l\'appareil</string>
     <string name="dialog_list_no_documents_found">Aucun document trouvé</string>
     <string name="menu_recent">Documents récemment ouverts</string>
     <string name="menu_search">Rechercher</string>
     <string name="menu_open">Ouvrir</string>
-    <string name="menu_edit">Editer / Modifier</string>
-    <string name="menu_remove_ads">Retirer les publicités</string>
+    <string name="menu_edit">Modifier</string>
+    <string name="menu_remove_ads">Supprimer les publicités</string>
     <string name="menu_fullscreen">Mode plein écran</string>
     <string name="menu_cloud_print">Imprimer</string>
     <string name="menu_tts">Synthèse vocale</string>
@@ -59,9 +59,9 @@
     <string name="intro_button_start">DÉMARRER</string>
     <string name="crouton_remove_ads">Besoin d’espace pour mieux lire ? Supprimez les publicités gratuitement depuis le menu.</string>
     <string-array name="dialog_remove_ads_options">
-        <item>retirer les pubs pour un an</item>
-        <item>retirer les pubs définitivement</item>
-        <item>supprimer définitivement les publicités et faites un don supplémentaire</item>
-        <item>supprimer temporairement les publicités en regardant une courte vidéo</item>
+        <item>Supprimer les pubs pour un an</item>
+        <item>Supprimer définitivement les pubs</item>
+        <item>Supprimer définitivement les pubs et faites un don supplémentaire</item>
+        <item>Supprimer temporairement les pubs en visionnant une courte vidéo</item>
     </string-array>
 </resources>
