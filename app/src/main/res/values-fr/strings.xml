@@ -20,7 +20,7 @@
     <string name="menu_search">Rechercher</string>
     <string name="menu_open">Ouvrir</string>
     <string name="menu_edit">Editer / Modifier</string>
-    <string name="menu_remove_ads">Enlever les publicités</string>
+    <string name="menu_remove_ads">Retirer les publicités</string>
     <string name="menu_fullscreen">Mode plein écran</string>
     <string name="menu_cloud_print">Imprimer</string>
     <string name="menu_tts">Synthèse vocale</string>
@@ -34,10 +34,10 @@
     <string name="action_tts_next">Suivant</string>
     <string name="action_tts_previous">Précédent</string>
     <string name="action_edit_save">Enregistrer</string>
-    <string name="action_edit_help">Aide !?</string>
+    <string name="action_edit_help">Aide</string>
     <string name="action_edit_banner">Modifiez votre document ci-dessous et appuyez sur Sauvegarder</string>
     <string name="landing_welcome_title">Bienvenue dans le \nlecteur OpenDocument</string>
-    <string name="landing_intro_view">OpenDocument Reader vous permet de visualiser les documents stockés au format OpenDocument (.odt, .ods, .odp et .odg) où que vous soyez.</string>
+    <string name="landing_intro_view">OpenDocument Reader vous permet de visualiser les documents enregistrés au format OpenDocument (.odt, .ods, .odp et .odg) où que vous soyez.</string>
     <string name="landing_intro_search">Avec OpenDocument Reader, vous pouvez lire et effectuer des recherches facilement dans vos documents.</string>
     <string name="landing_intro_edit">Vous avez trouvé une faute de frappe dans votre présentation ? Il est désormais possible de la corriger !</string>
     <string name="landing_intro_open_all">Par défaut cette application est associée à tous les types de fichiers pour fonctionner depuis les applications comme \"Samsung My Files\". Vous pouvez désactiver cette fonctionnalité ici si besoin.</string>
@@ -51,16 +51,16 @@
     <string name="crouton_printing">Impression…</string>
     <string name="crouton_print_unavailable">L’impression n’est pas disponible sur votre appareil. Veuillez mettre à niveau Android vers une version plus récente.</string>
     <string name="intro_title_open">Ouvrez et lisez votre fichier ODF n’importe où !</string>
-    <string name="intro_description_open">OpenDocument Reader vous permet de visualiser les documents stockés au format OpenDocument (.odt, .ods, .odp et .odg). Ces fichiers sont généralement créés avec LibreOffice ou OpenOffice. Cette application permet également d’ouvrir de tels fichiers sur votre appareil mobile afin que vous puissiez les lire n’importe où.</string>
+    <string name="intro_description_open">OpenDocument Reader vous permet de visualiser, sur votre appareil mobile, les documents enregistrés au format OpenDocument (.odt, .ods, .odp et .odg). Ces fichiers sont généralement créés avec LibreOffice ou OpenOffice.</string>
     <string name="intro_title_edit">Vous avez trouvé une faute de frappe dans votre document ? Il est désormais possible de la corriger !</string>
-    <string name="intro_description_edit">OpenDocument Reader permet non seulement de lire des documents sur votre appareil mobile, mais prend également en charge leur modification. Les fautes de frappe sont corrigées en un instant, même dans le train !</string>
+    <string name="intro_description_edit">OpenDocument Reader permet non seulement de lire des documents mais aussi de les modifier sur votre appareil mobile. Vous pouvez corriger les fautes de frappe y compris dans le train !</string>
     <string name="intro_title_apps">Lisez vos documents depuis d’autres applications</string>
     <string name="intro_description_apps">OpenDocument Reader prend en charge un grand nombre d’autres applications depuis lesquelles il est possible d’ouvrir des documents. Un collègue a envoyé une présentation via Gmail ? Cliquez sur la pièce jointe et cette application s’ouvrira instantanément !</string>
     <string name="intro_button_start">DÉMARRER</string>
     <string name="crouton_remove_ads">Besoin de plus d’espace pour lire ? Supprimez les publicités gratuitement via le menu.</string>
     <string-array name="dialog_remove_ads_options">
-        <item>enlever les pubs pour un an</item>
-        <item>enlever les pubs pour toujours</item>
+        <item>retirer les pubs pour un an</item>
+        <item>retirer les pubs définitivement</item>
         <item>supprimer définitivement les publicités et faites un don supplémentaire</item>
         <item>supprimer temporairement les publicités en regardant une courte vidéo</item>
     </string-array>
