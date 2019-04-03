@@ -39,8 +39,8 @@
     <string name="landing_welcome_title">Bienvenue dans le \nlecteur OpenDocument</string>
     <string name="landing_intro_view">OpenDocument Reader vous permet de visualiser les documents stockés au format OpenDocument (.odt, .ods, .odp et .odg) où que vous soyez.</string>
     <string name="landing_intro_search">Avec OpenDocument Reader, vous pouvez lire et effectuer des recherches facilement dans vos documents.</string>
-    <string name="landing_intro_edit">Vous avez trouvé une dernière faute de frappe à corriger avant votre grande présentation ? Les modifications sont maintenant aussi supportées !</string>
-    <string name="landing_intro_open_all">Cette application s’enregistre pour ouvrir tous les types de fichiers par défaut afin de prendre en charge des applications telles que « Samsung My Files ». Vous pouvez désactiver cette fonctionnalité ici si elle vous pose problème.</string>
+    <string name="landing_intro_edit">Vous avez trouvé une faute de frappe dans votre présentation ? Il est désormais possible de la corriger !</string>
+    <string name="landing_intro_open_all">Par défaut cette application est associée à tous les types de fichiers pour fonctionner depuis les applications comme \"Samsung My Files\". Vous pouvez désactiver cette fonctionnalité ici si besoin.</string>
     <string name="tts_status_reading">Lecture…</string>
     <string name="tts_status_initializing">Initialisation du TTS…</string>
     <string name="tts_status_ready">Prêt !</string>
@@ -52,7 +52,7 @@
     <string name="crouton_print_unavailable">L’impression n’est pas disponible sur votre appareil. Veuillez mettre à niveau Android vers une version plus récente.</string>
     <string name="intro_title_open">Ouvrez et lisez votre fichier ODF n’importe où !</string>
     <string name="intro_description_open">OpenDocument Reader vous permet de visualiser les documents stockés au format OpenDocument (.odt, .ods, .odp et .odg). Ces fichiers sont généralement créés avec LibreOffice ou OpenOffice. Cette application permet également d’ouvrir de tels fichiers sur votre appareil mobile afin que vous puissiez les lire n’importe où.</string>
-    <string name="intro_title_edit">Vous avez trouvé une faute de frappe dans votre document ? Les modifications sont maintenant supportées !</string>
+    <string name="intro_title_edit">Vous avez trouvé une faute de frappe dans votre document ? Il est désormais possible de la corriger !</string>
     <string name="intro_description_edit">OpenDocument Reader permet non seulement de lire des documents sur votre appareil mobile, mais prend également en charge leur modification. Les fautes de frappe sont corrigées en un instant, même dans le train !</string>
     <string name="intro_title_apps">Lisez vos documents depuis d’autres applications</string>
     <string name="intro_description_apps">OpenDocument Reader prend en charge un grand nombre d’autres applications depuis lesquelles il est possible d’ouvrir des documents. Un collègue a envoyé une présentation via Gmail ? Cliquez sur la pièce jointe et cette application s’ouvrira instantanément !</string>
