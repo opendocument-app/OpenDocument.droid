@@ -5,7 +5,6 @@
     <string name="toast_error_find_file">Не удалось найти файл. Возможно, его больше не существует?</string>
     <string name="toast_error_illegal_file">Возможно, этот формат файла не поддерживается.</string>
     <string name="toast_error_out_of_memory">Недостаточно памяти на телефоне! Слишком много изображений, или файл слишком большой.</string>
-    <string name="toast_error_password_protected">Документ защищён паролем</string>
     <string name="toast_error_storage">Внешняя память недоступна. Не удалось прочитать файл.</string>
     <string name="dialog_recent_title">Последние документы</string>
     <string name="dialog_choose_filemanager">Открыть документ с помощью:</string>
@@ -62,6 +61,6 @@
         <item>убрать рекламу на один год</item>
         <item>убрать рекламу навсегда</item>
         <item>убрать рекламу навсегда и пожертвовать дополнительную сумму</item>
-        <item>временно убрать рекламу, посмотрев короткое видео</item>
+        <item>remove ads temporarily for free by watching a short video</item>
     </string-array>
 </resources>
