@@ -491,7 +491,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
                 switch (which) {
                     case 0:
-                        product = BillingManager.BILLING_PRODUCT_LOVE;
+                        product = BillingManager.BILLING_PRODUCT_FOREVER;
 
                         break;
 
