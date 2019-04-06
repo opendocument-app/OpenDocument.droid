@@ -1,10 +1,8 @@
 package at.tomtasche.reader.nonfree;
 
 import android.content.Context;
-
-import com.helpcrunch.library.core.HelpCrunch;
-import com.helpcrunch.library.core.HelpCrunchOptions;
-import com.helpcrunch.library.ui.design.HelpCrunchDesign;
+import android.content.Intent;
+import android.net.Uri;
 
 public class HelpManager {
 
@@ -18,7 +16,7 @@ public class HelpManager {
             return;
         }
 
-        HelpCrunchOptions options = new HelpCrunchOptions()
+        /*HelpCrunchOptions options = new HelpCrunchOptions()
                 .setRequestName(false).setNotificationsChannelTitle("Support");
 
         HelpCrunch.initializeWithOptions(
@@ -27,7 +25,7 @@ public class HelpManager {
                 1,
                 "Fs5HNI5XBRXjgr4dfc7fFd7aVGElLznF3p9hLUAD/2DPpLefIQ5+IZgQlBYgCfQ8bG/xBUx8nQsaAQCqOy3wuA==",
                 options
-        );
+        );*/
     }
 
     public void setEnabled(boolean enabled) {
@@ -39,6 +37,9 @@ public class HelpManager {
             return;
         }
 
-        HelpCrunch.showChatScreen(context);
+        context.startActivity(new Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("https://reader.tomtasche.at/")));
+        //HelpCrunch.showChatScreen(context);
     }
 }
