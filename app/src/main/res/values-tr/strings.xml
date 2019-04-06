@@ -29,9 +29,7 @@
     <string name="tts_status_paused">Duraklatıldı.</string>
     <string name="tts_status_finished">Bitti.</string>
     <string-array name="dialog_remove_ads_options">
-        <item>reklamları bir yıllığına kaldır</item>
         <item>reklamları sürekli kaldır</item>
-        <item>remove ads forever and donate an extra amount</item>
-        <item>remove ads temporarily by watching a short video</item>
+        <item>remove ads for free temporarily by watching a short video</item>
     </string-array>
 </resources>

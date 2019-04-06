@@ -59,9 +59,7 @@
     <string name="intro_button_start">LOS</string>
     <string name="crouton_remove_ads">Brauchen Sie mehr Platz zum Lesen? Entfernen Sie Werbung kostenlos über das Menü.</string>
     <string-array name="dialog_remove_ads_options">
-        <item>Werbung für ein Jahr entfernen</item>
         <item>Werbung für immer entfernen</item>
-        <item>Werbung für immer entfernen und eine großzügige Spende</item>
         <item>Werbung gratis entfernen durch Ansehen eines kurzen Videos</item>
     </string-array>
 </resources>

@@ -37,9 +37,7 @@
     <string name="action_edit_banner">Edite seu documento abaixo e pressione Salvar</string>
 
     <string-array name="dialog_remove_ads_options">
-        <item>remover anúncios por uma ano</item>
         <item>remover anúncios para sempre</item>
-        <item>amor profundo (além de remover anúncios para sempre)</item>
         <item>remover anúncios temporariamente</item>
     </string-array>
 
