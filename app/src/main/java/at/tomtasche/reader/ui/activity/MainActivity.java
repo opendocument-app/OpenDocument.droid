@@ -23,14 +23,12 @@ import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.Switch;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.kobakei.ratethisapp.RateThisApp;
 
-import java.util.Arrays;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -478,7 +476,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         String[] optionStrings = getResources().getStringArray(R.array.dialog_remove_ads_options);
         if (!IS_GOOGLE_ECOSYSTEM) {
-            optionStrings = new String[] { optionStrings[3] };
+            optionStrings = new String[] { optionStrings[1] };
         }
 
         builder.setItems(optionStrings, new OnClickListener() {
@@ -488,21 +486,11 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 String product;
 
                 if (!IS_GOOGLE_ECOSYSTEM) {
-                    which = 3;
+                    which = 99;
                 }
 
                 switch (which) {
                     case 0:
-                        product = BillingManager.BILLING_PRODUCT_YEAR;
-
-                        break;
-
-                    case 1:
-                        product = BillingManager.BILLING_PRODUCT_FOREVER;
-
-                        break;
-
-                    case 2:
                         product = BillingManager.BILLING_PRODUCT_LOVE;
 
                         break;
