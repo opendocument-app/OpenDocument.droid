@@ -51,9 +51,7 @@
     <string name="tts_status_finished">Končano.</string>
 
     <string-array name="dialog_remove_ads_options">
-        <item>odstrani oglase za eno leto</item>
         <item>odstrani oglase za vedno</item>
-        <item>globoka ljubezen (+ odstrani oglase za vedno)</item>
         <item>začasno odstrani oglase</item>
     </string-array>
 

@@ -9,6 +9,8 @@ import android.os.Handler;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -61,6 +63,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     private ProgressDialogFragment progressDialog;
     private PageView pageView;
+    private Menu menu;
 
     private Uri lastUri;
     private String lastPassword;
@@ -79,6 +82,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         upLoader.initialize(this);
 
         setRetainInstance(true);
+        setHasOptionsMenu(true);
     }
 
     @Nullable
@@ -86,6 +90,13 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         pageView = new PageView(getActivity());
         return pageView;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        this.menu = menu;
+
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     public void loadUri(Uri uri) {
@@ -101,6 +112,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         lastPassword = password;
 
         showProgress(documentLoader, false);
+
+        toggleEditMenu(true);
 
         documentLoader.loadAsync(uri, password, limit, translatable);
     }
@@ -181,7 +194,17 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         showProgress(upLoader, true);
 
+        toggleEditMenu(false);
+
         upLoader.loadAsync(uri, null, false, false);
+    }
+
+    private void toggleEditMenu(boolean enabled) {
+        if (menu == null) {
+            return;
+        }
+
+        menu.findItem(R.id.menu_edit).setVisible(enabled);
     }
 
     @Override
