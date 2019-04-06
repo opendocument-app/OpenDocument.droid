@@ -5,7 +5,6 @@
     <string name="toast_error_find_file">Impossible de trouver le fichier. Il n\'existe peut-être plus?</string>
     <string name="toast_error_illegal_file">Ce format de fichier ne semble pas être supporté.</string>
     <string name="toast_error_out_of_memory">Plus de place sur la mémoire de l\'appareil ! Il y a trop d\'images ou les fichiers sont trop volumineux.</string>
-    <string name="toast_error_password_protected">Le document est protégé par un mot de passe.</string>
     <string name="toast_error_storage">Le stockage externe n\'est pas disponible. Impossible de lire le fichier.</string>
     <string name="dialog_recent_title">Documents récents</string>
     <string name="dialog_choose_filemanager">Ouvrir les documents via :</string>
@@ -62,6 +61,6 @@
         <item>retirer les pubs pour un an</item>
         <item>retirer les pubs définitivement</item>
         <item>supprimer définitivement les publicités et faites un don supplémentaire</item>
-        <item>supprimer temporairement les publicités en regardant une courte vidéo</item>
+        <item>remove ads temporarily for free by watching a short video</item>
     </string-array>
 </resources>
