@@ -58,4 +58,8 @@
     <string name="intro_description_apps">OpenDocument Reader prend en charge un grand nombre d’autres applications depuis lesquelles il est possible d’ouvrir des documents. Un collègue a envoyé une présentation via Gmail ? Cliquez sur la pièce jointe et cette application s’ouvrira instantanément !</string>
     <string name="intro_button_start">DÉMARRER</string>
     <string name="crouton_remove_ads">Besoin d’espace pour mieux lire ? Supprimez les publicités gratuitement depuis le menu.</string>
+    <string-array name="dialog_remove_ads_options">
+        <item>retirer les pubs définitivement</item>
+        <item>remove ads temporarily for free by watching a short video</item>
+    </string-array>
 </resources>
