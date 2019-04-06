@@ -5,7 +5,6 @@
     <string name="toast_error_find_file">Ha sido imposible encontrar el archivo. ¿Seguro que no se ha eliminado?</string>
     <string name="toast_error_illegal_file">Parece que este formato de archivo no es compatible.</string>
     <string name="toast_error_out_of_memory">¡El teléfono se ha quedado sin memoria! Hay demasiadas imágenes o el archivo es demasiado grande.</string>
-    <string name="toast_error_password_protected">El documento está protegido con contraseña.</string>
     <string name="toast_error_storage">No hay disponible ningún dispositivo de almacenamiento externo. Ha sido imposible leer el archivo.</string>
     <string name="dialog_recent_title">Documentos recientes</string>
     <string name="dialog_choose_filemanager">Abrir el documento con:</string>
@@ -62,6 +61,6 @@
         <item>elimina los anuncios durante un año</item>
         <item>elimina los anuncios definitivamente</item>
         <item>eliminar los anuncios para siempre y donar una cantidad extra</item>
-        <item>eliminar los anuncios temporalmente viendo un vídeo corto</item>
+        <item>remove ads temporarily for free by watching a short video</item>
     </string-array>
 </resources>
