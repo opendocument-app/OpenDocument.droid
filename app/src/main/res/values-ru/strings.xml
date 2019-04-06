@@ -58,4 +58,8 @@
     <string name="intro_description_apps">OpenDocument Reader поддерживает возможность открывать документы из многих других приложений. Коллега отправил вам презентацию через Gmail? Нажмите на вложение, и приложение немедленно откроется!</string>
     <string name="intro_button_start">НАЧАТЬ</string>
     <string name="crouton_remove_ads">Мало места для чтения? Уберите рекламу бесплатно с помощью меню.</string>
+    <string-array name="dialog_remove_ads_options">
+        <item>убрать рекламу навсегда</item>
+        <item>временно убрать рекламу, посмотрев короткое видео</item>
+    </string-array>
 </resources>
