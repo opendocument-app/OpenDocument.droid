@@ -5,7 +5,7 @@
     <string name="toast_error_find_file">Couldn\'t find file. Maybe it doesn\'t exist any longer?</string>
     <string name="toast_error_illegal_file">This doesn\'t seem to be a supported file format.</string>
     <string name="toast_error_out_of_memory">Phone out of memory! Too many pictures, or file too big.</string>
-    <string name="toast_error_password_protected">Document is password-protected</string>
+    <string name="toast_error_password_protected">This document is password-protected</string>
     <string name="toast_error_storage">External storage not available. Couldn\'t read file.</string>
     <string name="dialog_recent_title">Recent documents</string>
     <string name="dialog_choose_filemanager">Open document via:</string>
