@@ -3,7 +3,6 @@
 <resources>
     <string name="toast_error_generic">何か問題が発生しました。ファイルを開くことができませんでした。</string>
     <string name="toast_error_illegal_file">これはサポートされているファイル形式ではないようです。</string>
-    <string name="toast_error_password_protected">ドキュメントがパスワードで保護されています</string>
     <string name="toast_error_storage">外部ストレージが使用できません。ファイルを読み取りできませんでした。</string>
     <string name="dialog_recent_title">最近使用したドキュメント</string>
     <string name="dialog_choose_filemanager">ドキュメントを次で開く:</string>
@@ -32,6 +31,6 @@
         <item>1 年間広告を削除する</item>
         <item>永久に広告を削除する</item>
         <item>remove ads forever and donate an extra amount</item>
-        <item>remove ads temporarily by watching a short video</item>
+        <item>remove ads temporarily for free by watching a short video</item>
     </string-array>
 </resources>
