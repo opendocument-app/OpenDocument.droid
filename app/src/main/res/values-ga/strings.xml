@@ -5,7 +5,6 @@
     <string name="toast_error_find_file">Níorbh fhéidir an comhad a fháil. B\'fhéidir nach ann dó a thuilleadh?</string>
     <string name="toast_error_illegal_file">Tá an dealramh air nach dtugtar tacaíocht den chineál comhad sin.</string>
     <string name="toast_error_out_of_memory">Níl cuimhne fágtha sa ghuthán! Tá an iomarca grianghraif ann nó tá an comhad rómhór.</string>
-    <string name="toast_error_password_protected">Tá an cháipéis faoi chosaint focal faire</string>
     <string name="toast_error_storage">Níl stóras seachtrach ar fáil. Níorbh fhéidir an comhad a léamh.</string>
     <string name="dialog_recent_title">Comhaid le déanaí</string>
     <string name="dialog_choose_filemanager">Oscail an cháipéis trí:</string>
