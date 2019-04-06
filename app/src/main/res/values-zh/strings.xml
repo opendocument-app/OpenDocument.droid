@@ -54,9 +54,7 @@
     <string name="intro_button_start">开始</string>
     <string name="crouton_remove_ads">需要更多空间以便阅读？通过菜单购买删除广告。</string>
     <string-array name="dialog_remove_ads_options">
-        <item>移除广告一年</item>
         <item>永久移除广告</item>
-        <item>永久移除广告并捐赠额外金额</item>
         <item>通过观看短视频并暂时免费移除广告</item>
     </string-array>
 </resources>
