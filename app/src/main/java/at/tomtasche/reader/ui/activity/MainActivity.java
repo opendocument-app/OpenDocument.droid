@@ -224,13 +224,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
             @Override
             public void run() {
-                CroutonHelper.showCrouton(MainActivity.this, R.string.crouton_remove_ads, new Runnable() {
-
-                    @Override
-                    public void run() {
-                        buyAdRemoval();
-                    }
-                }, Style.CONFIRM);
+                offerPurchase();
             }
         });
         adManager.initialize(this, analyticsManager);
@@ -297,6 +291,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         if (uri != null) {
             crashManager.log("loading document at: " + uri.toString());
+            analyticsManager.report(FirebaseAnalytics.Event.VIEW_ITEM, FirebaseAnalytics.Param.ITEM_NAME, uri.toString());
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 try {
@@ -383,13 +378,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                                 return;
                             }
 
-                            CroutonHelper.showCrouton(MainActivity.this, R.string.crouton_remove_ads, new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    buyAdRemoval();
-                                }
-                            }, Style.INFO);
+                            offerPurchase();
                         }
                     }, 10000);
                 }
@@ -440,6 +429,17 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         return true;
     }
 
+    private void offerPurchase() {
+        analyticsManager.report(FirebaseAnalytics.Event.PRESENT_OFFER);
+        CroutonHelper.showCrouton(this, R.string.crouton_remove_ads, new Runnable() {
+
+            @Override
+            public void run() {
+                buyAdRemoval();
+            }
+        }, Style.INFO);
+    }
+
     @Override
     public void onActionModeFinished(ActionMode mode) {
         super.onActionModeFinished(mode);
@@ -471,6 +471,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     private void buyAdRemoval() {
         adManager.loadVideo();
 
+        analyticsManager.report(FirebaseAnalytics.Event.BEGIN_CHECKOUT);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dialog_remove_ads_title);
 
@@ -488,6 +490,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 if (!IS_GOOGLE_ECOSYSTEM) {
                     which = 99;
                 }
+
+                analyticsManager.report(FirebaseAnalytics.Event.ADD_TO_CART);
 
                 switch (which) {
                     case 0:

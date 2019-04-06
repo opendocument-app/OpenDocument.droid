@@ -11,6 +11,7 @@ import com.github.jberkel.pay.me.listener.QueryInventoryFinishedListener;
 import com.github.jberkel.pay.me.model.Inventory;
 import com.github.jberkel.pay.me.model.ItemType;
 import com.github.jberkel.pay.me.model.Purchase;
+import com.google.firebase.analytics.FirebaseAnalytics;
 
 import androidx.appcompat.app.AppCompatActivity;
 import at.tomtasche.reader.background.BillingPreferences;
@@ -111,6 +112,7 @@ public class BillingManager {
 
                             adManager.removeAds();
                         } else {
+                            analyticsManager.report(FirebaseAnalytics.Event.REMOVE_FROM_CART);
                             analyticsManager.report("purchase_abort");
                         }
                     }
