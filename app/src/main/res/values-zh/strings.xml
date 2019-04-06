@@ -53,4 +53,8 @@
     <string name="intro_title_open">随时随地打开并阅读您的 ODF 文件！</string>
     <string name="intro_button_start">开始</string>
     <string name="crouton_remove_ads">需要更多空间以便阅读？通过菜单购买删除广告。</string>
+    <string-array name="dialog_remove_ads_options">
+        <item>永久移除广告</item>
+        <item>remove ads temporarily for free by watching a short video</item>
+    </string-array>
 </resources>
