@@ -5,7 +5,6 @@
     <string name="toast_error_find_file">Datei konnte nicht gefunden werden.</string>
     <string name="toast_error_illegal_file">Diese Datei scheint keines der unterstützten Formate zu haben.</string>
     <string name="toast_error_out_of_memory">Speicher geht zur Neige! Zu viele Bilder oder eine zu große Datei.</string>
-    <string name="toast_error_password_protected">Dokument ist passwort-geschützt</string>
     <string name="toast_error_storage">Externer Speicher nicht verfügbar. Datei konnte nicht gelesen werden.</string>
     <string name="dialog_recent_title">Kürzlich geöffnete Dokumente</string>
     <string name="dialog_choose_filemanager">Öffne Dokument mittels:</string>
@@ -62,6 +61,6 @@
         <item>Werbung für ein Jahr entfernen</item>
         <item>Werbung für immer entfernen</item>
         <item>Werbung für immer entfernen und eine großzügige Spende</item>
-        <item>Werbung gratis entfernen durch Ansehen eines kurzen Videos</item>
+        <item>remove ads temporarily for free by watching a short video</item>
     </string-array>
 </resources>
