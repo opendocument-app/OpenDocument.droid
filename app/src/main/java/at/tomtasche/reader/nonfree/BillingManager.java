@@ -95,6 +95,14 @@ public class BillingManager {
         }
     }
 
+    public boolean hasPurchased() {
+        if (!enabled) {
+            return false;
+        }
+
+        return billingPreferences.hasPurchased();
+    }
+
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }

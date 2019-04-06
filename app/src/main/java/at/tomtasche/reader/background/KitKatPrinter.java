@@ -9,9 +9,8 @@ import android.print.PrintManager;
 import android.webkit.WebView;
 
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.ui.CroutonHelper;
+import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.activity.MainActivity;
-import de.keyboardsurfer.android.widget.crouton.Style;
 
 @TargetApi(19)
 public class KitKatPrinter {
@@ -27,6 +26,6 @@ public class KitKatPrinter {
         PrintJob printJob = printManager.print(jobName, printAdapter,
                 new PrintAttributes.Builder().build());
 
-        CroutonHelper.showCrouton(activity, R.string.crouton_printing, null, Style.INFO);
+        SnackbarHelper.show(activity, R.string.crouton_printing, null, false, false);
     }
 }
