@@ -3,7 +3,6 @@
 <resources>
     <string name="toast_error_generic">Kötü bir şey oldu. Dosya açılamadı.</string>
     <string name="toast_error_illegal_file">Bu, desteklenen bir dosya biçimi gibi görünmüyor.</string>
-    <string name="toast_error_password_protected">Belge parola korumalı</string>
     <string name="toast_error_storage">Harici depolama mevcut değil. Dosya okunamadı.</string>
     <string name="dialog_recent_title">Son kullanılan belgeler</string>
     <string name="dialog_choose_filemanager">Belgeyi şununla aç:</string>
@@ -32,6 +31,6 @@
         <item>reklamları bir yıllığına kaldır</item>
         <item>reklamları sürekli kaldır</item>
         <item>remove ads forever and donate an extra amount</item>
-        <item>remove ads temporarily by watching a short video</item>
+        <item>remove ads temporarily for free by watching a short video</item>
     </string-array>
 </resources>
