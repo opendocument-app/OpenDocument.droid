@@ -28,8 +28,4 @@
     <string name="tts_status_failed">テキスト読み上げできませんでした。</string>
     <string name="tts_status_paused">一時停止しました。</string>
     <string name="tts_status_finished">完了しました。</string>
-    <string-array name="dialog_remove_ads_options">
-        <item>永久に広告を削除する</item>
-        <item>remove ads temporarily fore free by watching a short video</item>
-    </string-array>
 </resources>
