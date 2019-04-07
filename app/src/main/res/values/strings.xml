@@ -60,8 +60,8 @@
     <string name="crouton_remove_ads">Need more space to read? Remove ads for free via the menu.</string>
 
     <string-array name="dialog_remove_ads_options">
-        <item>remove ads forever</item>
-        <item>remove ads temporarily for free by watching a short video</item>
+        <item>Remove ads forever</item>
+        <item>Remove ads temporarily for free by watching a short video</item>
     </string-array>
 
 </resources>

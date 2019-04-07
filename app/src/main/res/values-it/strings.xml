@@ -60,6 +60,6 @@
     <string name="crouton_remove_ads">Hai bisogno di più spazio da leggere? Rimuovi gli annunci gratuitamente tramite il menu.</string>
     <string-array name="dialog_remove_ads_options">
         <item>rimuovere gli annunci per sempre</item>
-        <item>rimuovere temporaneamente gli annunci guardando un breve video</item>
+        <item>rimuovere temporaneamente gli annunci gratuitamente guardando un breve video</item>
     </string-array>
 </resources>

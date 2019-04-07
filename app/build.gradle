@@ -50,19 +50,15 @@ dependencies {
         exclude group: 'com.google.android'
         exclude group: 'com.android.support'
     }
-    implementation('de.keyboardsurfer.android.widget:crouton:1.8.5@aar') {
-        exclude group: 'com.google.android'
-        exclude group: 'com.android.support'
-    }
 
-    implementation('com.nononsenseapps:filepicker:4.1.0', {
+    implementation('com.nononsenseapps:filepicker:4.2.1', {
         exclude group: 'com.android.support'
     })
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation 'com.google.firebase:firebase-storage:16.1.0'
-    implementation 'com.google.firebase:firebase-auth:16.2.0'
+    implementation 'com.google.firebase:firebase-auth:16.2.1'
     implementation 'com.google.firebase:firebase-ads:17.2.0'
     implementation 'com.crashlytics.sdk.android:crashlytics:2.9.9'
     implementation 'com.google.firebase:firebase-core:16.0.8'
@@ -71,6 +67,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'androidx.core:core:1.0.1'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'com.google.android.material:material:1.0.0'
 
     implementation 'com.github.paolorotolo:appintro:v5.1.0'
 

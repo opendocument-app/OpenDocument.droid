@@ -49,10 +49,9 @@ import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.FileLoader;
 import at.tomtasche.reader.background.UpLoader;
-import at.tomtasche.reader.ui.CroutonHelper;
+import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.widget.PageView;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
-import de.keyboardsurfer.android.widget.crouton.Style;
 
 public class DocumentFragment extends Fragment implements FileLoader.FileLoaderListener, ActionBar.TabListener {
 
@@ -370,7 +369,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             errorDescription = R.string.toast_error_generic;
         }
 
-        CroutonHelper.showCrouton(activity, errorDescription, null, Style.ALERT);
+        SnackbarHelper.show(activity, errorDescription, null, true, true);
 
         Log.e("OpenDocument Reader", "Error opening file at " + lastUri.toString(),
                 error);
