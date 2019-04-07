@@ -58,4 +58,8 @@
     <string name="intro_description_apps">Przeglądarka OpenDocument Reader obsługuje wiele różnych aplikacji, umożliwiając otwieranie w nich dokumentów. Kolega wysłał prezentację za pośrednictwem poczty Gmail? Kliknij załącznik i aplikacja ta natychmiast się otworzy!</string>
     <string name="intro_button_start">ROZPOCZNIJ</string>
     <string name="crouton_remove_ads">Potrzebujesz więcej miejsca do czytania? Usuń bezpłatnie reklamy, używając menu.</string>
+    <string-array name="dialog_remove_ads_options">
+        <item>Usuń reklamy na trwałe</item>
+        <item>Usuń reklamy na pewien czas i obejrzyj krótki film</item>
+    </string-array>
 </resources>
