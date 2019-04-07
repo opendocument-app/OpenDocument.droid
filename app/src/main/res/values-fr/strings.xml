@@ -4,14 +4,14 @@
     <string name="toast_error_generic">Une erreur est survenue. Impossible d\'ouvrir le fichier.</string>
     <string name="toast_error_find_file">Impossible de trouver le fichier. Il n\'existe peut-être plus ?</string>
     <string name="toast_error_illegal_file">Ce format de fichier ne semble pas être supporté.</string>
-    <string name="toast_error_out_of_memory">Plus de place sur la mémoire de l\'appareil ! Il y a trop d\'images ou les fichiers sont trop volumineux.</string>
-    <string name="toast_error_password_protected">Le document est protégé par un mot de passe.</string>
+    <string name="toast_error_out_of_memory">Place insuffisante dans la mémoire de l\'appareil ! Il y a trop d\'images ou les fichiers sont trop volumineux.</string>
+    <string name="toast_error_password_protected">Ce document est protégé par mot de passe</string>
     <string name="toast_error_storage">Le stockage externe n\'est pas disponible. Impossible de lire le fichier.</string>
     <string name="dialog_recent_title">Documents récents</string>
     <string name="dialog_choose_filemanager">Ouvrir les documents via :</string>
     <string name="dialog_loading_title">Chargement en cours…</string>
     <string name="dialog_uploading_title">Téléchargement en cours…</string>
-    <string name="dialog_loading_message">L\'opération peut prendre quelques minutes, selon la structure de votre document et la puissance de traitement de votre téléphone.</string>
+    <string name="dialog_loading_message">Ce traitement peut durer quelques minutes selon la nature de votre document et la puissance de votre appareil.</string>
     <string name="dialog_remove_ads_title">Acheter de nouvelles fonctions :</string>
     <string name="dialog_upload_file">Impossible d\'ouvrir ce document car son format n\'est pas supporté. Voulez-vous l\'héberger temporairement sur notre serveur pour le visualiser ? Les fichiers téléchargés sont privés et automatiquement supprimés après 24 heures.</string>
     <string name="dialog_title_choose_file">Fichier de l\'appareil</string>
@@ -58,8 +58,4 @@
     <string name="intro_description_apps">OpenDocument Reader prend en charge un grand nombre d’autres applications depuis lesquelles il est possible d’ouvrir des documents. Un collègue a envoyé une présentation via Gmail ? Cliquez sur la pièce jointe et cette application s’ouvrira instantanément !</string>
     <string name="intro_button_start">DÉMARRER</string>
     <string name="crouton_remove_ads">Besoin d’espace pour mieux lire ? Supprimez les publicités gratuitement depuis le menu.</string>
-    <string-array name="dialog_remove_ads_options">
-        <item>Supprimer définitivement les pubs</item>
-        <item>supprimer temporairement les publicités en regardant une courte vidéo</item>
-    </string-array>
 </resources>
