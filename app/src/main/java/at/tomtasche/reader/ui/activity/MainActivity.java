@@ -46,12 +46,11 @@ import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.BillingManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.nonfree.HelpManager;
-import at.tomtasche.reader.ui.CroutonHelper;
+import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
-import de.keyboardsurfer.android.widget.crouton.Style;
 
 public class MainActivity extends AppCompatActivity implements DocumentLoadingActivity {
 
@@ -114,10 +113,37 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         showIntroActivity();
 
-        RateThisApp.onCreate(this);
-        RateThisApp.showRateDialogIfNeeded(this);
+        initializeRatingDialog();
 
         initializeCatchAllSwitch();
+    }
+
+    private void initializeRatingDialog() {
+        // TODO: replace with something smarter like https://github.com/Angtrim/Android-Five-Stars-Library
+
+        RateThisApp.onCreate(this);
+        RateThisApp.setCallback(new RateThisApp.Callback() {
+
+            @Override
+            public void onYesClicked() {
+                analyticsManager.report("rating_yes");
+            }
+
+            @Override
+            public void onNoClicked() {
+                analyticsManager.report("rating_no");
+            }
+
+            @Override
+            public void onCancelClicked() {
+                analyticsManager.report("rating_cancel");
+            }
+        });
+
+        if (RateThisApp.shouldShowRateDialog()) {
+            analyticsManager.report("rating_show");
+            RateThisApp.showRateDialog(this);
+        }
     }
 
     private void initializeCatchAllSwitch() {
@@ -224,13 +250,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
             @Override
             public void run() {
-                CroutonHelper.showCrouton(MainActivity.this, R.string.crouton_remove_ads, new Runnable() {
-
-                    @Override
-                    public void run() {
-                        buyAdRemoval();
-                    }
-                }, Style.CONFIRM);
+                offerPurchase();
             }
         });
         adManager.initialize(this, analyticsManager);
@@ -297,6 +317,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         if (uri != null) {
             crashManager.log("loading document at: " + uri.toString());
+            analyticsManager.report(FirebaseAnalytics.Event.VIEW_ITEM, FirebaseAnalytics.Param.ITEM_NAME, uri.toString());
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 try {
@@ -367,31 +388,20 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
                     getSupportActionBar().hide();
 
-                    CroutonHelper.showCrouton(this, R.string.crouton_leave_fullscreen, new Runnable() {
+                    if (!billingManager.hasPurchased()) {
+                        // delay offer to wait for fullscreen animation to finish
+                        handler.postDelayed(new Runnable() {
 
-                        @Override
-                        public void run() {
-                            leaveFullscreen();
-                        }
-                    }, Style.INFO);
-
-                    handler.postDelayed(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            if (isFinishing()) {
-                                return;
-                            }
-
-                            CroutonHelper.showCrouton(MainActivity.this, R.string.crouton_remove_ads, new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    buyAdRemoval();
+                            @Override
+                            public void run() {
+                                if (isFinishing()) {
+                                    return;
                                 }
-                            }, Style.INFO);
-                        }
-                    }, 10000);
+
+                                offerPurchase();
+                            }
+                        }, 1000);
+                    }
                 }
 
                 fullscreen = !fullscreen;
@@ -404,7 +414,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     KitKatPrinter.print(this, documentFragment.getPageView());
                 } else {
-                    CroutonHelper.showCrouton(this, R.string.crouton_print_unavailable, null, Style.ALERT);
+                    SnackbarHelper.show(this, R.string.crouton_print_unavailable, null, true, true);
                 }
 
                 break;
@@ -440,6 +450,17 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         return true;
     }
 
+    private void offerPurchase() {
+        analyticsManager.report(FirebaseAnalytics.Event.PRESENT_OFFER);
+        SnackbarHelper.show(this, R.string.crouton_remove_ads, new Runnable() {
+
+            @Override
+            public void run() {
+                buyAdRemoval();
+            }
+        }, true, false);
+    }
+
     @Override
     public void onActionModeFinished(ActionMode mode) {
         super.onActionModeFinished(mode);
@@ -471,6 +492,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     private void buyAdRemoval() {
         adManager.loadVideo();
 
+        analyticsManager.report(FirebaseAnalytics.Event.BEGIN_CHECKOUT);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dialog_remove_ads_title);
 
@@ -488,6 +511,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 if (!IS_GOOGLE_ECOSYSTEM) {
                     which = 99;
                 }
+
+                analyticsManager.report(FirebaseAnalytics.Event.ADD_TO_CART);
 
                 switch (which) {
                     case 0:
@@ -584,13 +609,13 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 } catch (Exception e) {
                     e.printStackTrace();
 
-                    CroutonHelper.showCrouton(MainActivity.this, R.string.crouton_error_open_app, new Runnable() {
+                    SnackbarHelper.show(MainActivity.this, R.string.crouton_error_open_app, new Runnable() {
 
                         @Override
                         public void run() {
                             findDocument();
                         }
-                    }, Style.ALERT);
+                    }, true, true);
                 }
 
                 analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, target.activityInfo.packageName);
