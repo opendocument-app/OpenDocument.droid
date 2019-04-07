@@ -28,7 +28,7 @@
     <string name="crouton_error_open_app">Impossible d\'ouvrir cette appli.</string>
     <string name="action_find_previous">Précédent</string>
     <string name="action_find_next">Suivant</string>
-    <string name="action_find_on_page">Rechercher dans la page</string>
+    <string name="action_find_on_page">Rechercher dans ce document</string>
     <string name="action_tts_play">Lecture</string>
     <string name="action_tts_pause">Pause</string>
     <string name="action_tts_next">Suivant</string>
