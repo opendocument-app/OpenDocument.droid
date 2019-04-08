@@ -3,8 +3,8 @@
           xmlns:tools="http://schemas.android.com/tools"
           package="at.tomtasche.reader"
           android:installLocation="auto"
-          android:versionCode="89"
-          android:versionName="3.0.22"
+          android:versionCode="90"
+          android:versionName="3.0.23"
           tools:ignore="GoogleAppIndexingWarning">
 
     <!-- added by HelpCrunch SDK otherwise -->
