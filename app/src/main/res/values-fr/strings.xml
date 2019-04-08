@@ -28,7 +28,7 @@
     <string name="crouton_error_open_app">Impossible d\'ouvrir cette appli.</string>
     <string name="action_find_previous">Précédent</string>
     <string name="action_find_next">Suivant</string>
-    <string name="action_find_on_page">Rechercher dans la page</string>
+    <string name="action_find_on_page">Rechercher dans ce document</string>
     <string name="action_tts_play">Lecture</string>
     <string name="action_tts_pause">Pause</string>
     <string name="action_tts_next">Suivant</string>
@@ -40,7 +40,7 @@
     <string name="landing_intro_view">OpenDocument Reader vous permet de visualiser les documents enregistrés au format OpenDocument (.odt, .ods, .odp et .odg) où que vous soyez.</string>
     <string name="landing_intro_search">Grâce à OpenDocument Reader, vous pouvez lire et rechercher dans vos documents facilement et rapidement.</string>
     <string name="landing_intro_edit">Vous avez trouvé une faute de frappe dans votre présentation ? Il est désormais possible de la corriger !</string>
-    <string name="landing_intro_open_all">Par défaut cette application est associée à tous les types de fichiers pour fonctionner depuis les applications comme \"Samsung My Files\". Vous pouvez désactiver cette fonctionnalité ici si besoin.</string>
+    <string name="landing_intro_open_all">Par défaut OpenDocument Reader est associé à tous les types de fichiers afin de pouvoir les ouvrir facilement depuis les applications comme \"Samsung My Files\". Si besoin, ce comportement peut être désactivé ici.</string>
     <string name="tts_status_reading">Lecture…</string>
     <string name="tts_status_initializing">Initialisation du TTS…</string>
     <string name="tts_status_ready">Prêt !</string>
@@ -59,7 +59,7 @@
     <string name="intro_button_start">DÉMARRER</string>
     <string name="crouton_remove_ads">Besoin d’espace pour mieux lire ? Supprimez les publicités gratuitement depuis le menu.</string>
     <string-array name="dialog_remove_ads_options">
-        <item>Retirer les pubs définitivement</item>
+        <item>Supprimer les pubs définitivement</item>
         <item>Supprimer temporairement et gratuitement les pubs en regardant une courte vidéo</item>
     </string-array>
 </resources>
