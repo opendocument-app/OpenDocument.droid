@@ -51,10 +51,15 @@
     <string name="crouton_printing">正在打印…</string>
     <string name="crouton_print_unavailable">您的设备不支持打印。请将 Android 系统升级至更加新的版本（Android 4.4 以上）。</string>
     <string name="intro_title_open">随时随地打开并阅读您的 ODF 文件！</string>
+    <string name="intro_description_open">您可以使用超级文件管理大师阅读器查看以超级文件管理大师的格式（.odt, .ods, .odp 和 .odg）保存的文件。通常利用LibreOffice或OpenOffice创建该等文件。该款app允许用户在移动设备上打开和阅读该等文件。</string>
+    <string name="intro_title_edit">发现文件存在一处文稿错误？支持修改！</string>
+    <string name="intro_description_edit">超级文件管理大师不仅允许用户在移动设备上阅读文件，同时还支持文件修改。用户即使在火车上也可轻松修改文稿错误。</string>
+    <string name="intro_title_apps">通过其他app阅读文件</string>
+    <string name="intro_description_apps">超级文件管理大师支持通过大量其他的app打开文件。一位同事通过Gmail发来一份演示文稿？只需点击附件，立刻将其打开！</string>
     <string name="intro_button_start">开始</string>
     <string name="crouton_remove_ads">需要更多空间以便阅读？通过菜单购买删除广告。</string>
     <string-array name="dialog_remove_ads_options">
         <item>永久移除广告</item>
-        <item>remove ads temporarily for free by watching a short video</item>
+        <item>通过观看短视频并暂时免费移除广告</item>
     </string-array>
 </resources>

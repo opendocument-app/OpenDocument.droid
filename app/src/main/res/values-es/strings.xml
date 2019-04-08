@@ -59,7 +59,7 @@
     <string name="intro_button_start">COMENZAR</string>
     <string name="crouton_remove_ads">¿Necesita más espacio para leer? Elimine los anuncios de forma gratuita a través del menú.</string>
     <string-array name="dialog_remove_ads_options">
-        <item>elimina los anuncios definitivamente</item>
-        <item>eliminar los anuncios temporalmente gratis viendo un vídeo corto</item>
+        <item>Elimina los anuncios definitivamente</item>
+        <item>Eliminar los anuncios temporalmente gratis viendo un vídeo corto</item>
     </string-array>
 </resources>

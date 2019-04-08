@@ -119,6 +119,10 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     }
 
     private void initializeRatingDialog() {
+        if (!IS_GOOGLE_ECOSYSTEM) {
+            return;
+        }
+
         // TODO: replace with something smarter like https://github.com/Angtrim/Android-Five-Stars-Library
 
         RateThisApp.onCreate(this);
