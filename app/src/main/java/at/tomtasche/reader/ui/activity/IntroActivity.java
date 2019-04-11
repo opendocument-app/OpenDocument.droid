@@ -23,25 +23,20 @@ public class IntroActivity extends AppIntro {
         super.onCreate(savedInstanceState);
 
         SliderPage sliderPage = createStyledPage();
-        sliderPage.setTitle("Open and read your ODF file on the go!");
-        sliderPage.setDescription("OpenDocument Reader allows you to view documents that are stored in OpenDocument format (.odt, .ods, .odp). " +
-                "These files are usually created using LibreOffice or OpenOffice. " +
-                "This app allows to open those files on your mobile device too, so you can read them on the go.");
+        sliderPage.setTitle(getString(R.string.intro_title_open));
+        sliderPage.setDescription(getString(R.string.intro_description_open));
         sliderPage.setImageDrawable(R.drawable.onboard1);
         addSlide(FailSafeAppIntroFragment.newInstance(sliderPage));
 
         sliderPage = createStyledPage();
-        sliderPage.setTitle("Found a typo in your document? Now supports modification!");
-        sliderPage.setDescription("OpenDocument Reader not only allows to read documents on your mobile device, but also supports modifying them too. " +
-                "Typos are fixed in a breeze, even on the train!");
+        sliderPage.setTitle(getString(R.string.intro_title_edit));
+        sliderPage.setDescription(getString(R.string.intro_description_edit));
         sliderPage.setImageDrawable(R.drawable.onboard2);
         addSlide(FailSafeAppIntroFragment.newInstance(sliderPage));
 
         sliderPage = createStyledPage();
-        sliderPage.setTitle("Read your documents from within other apps");
-        sliderPage.setDescription("OpenDocument Reader supports a huge range of other apps to open documents from. " +
-                "A colleague sent a presentation via Gmail? " +
-                "Click the attachment and this app is going to open right away!");
+        sliderPage.setTitle(getString(R.string.intro_title_apps));
+        sliderPage.setDescription(getString(R.string.intro_description_apps));
         sliderPage.setImageDrawable(R.drawable.onboard3);
         addSlide(FailSafeAppIntroFragment.newInstance(sliderPage));
 
@@ -52,7 +47,7 @@ public class IntroActivity extends AppIntro {
         setNextArrowColor(Color.parseColor("#6b6b6b"));
         setIndicatorColor(Color.parseColor("#b5b5b5"), Color.parseColor("#dadada"));
 
-        setDoneText("START");
+        setDoneText(getString(R.string.intro_button_start));
 
         showSkipButton(true);
         setProgressButtonEnabled(true);

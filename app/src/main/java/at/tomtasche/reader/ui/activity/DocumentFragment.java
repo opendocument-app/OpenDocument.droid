@@ -9,6 +9,8 @@ import android.os.Handler;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -47,10 +49,9 @@ import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.FileLoader;
 import at.tomtasche.reader.background.UpLoader;
-import at.tomtasche.reader.ui.CroutonHelper;
+import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.widget.PageView;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
-import de.keyboardsurfer.android.widget.crouton.Style;
 
 public class DocumentFragment extends Fragment implements FileLoader.FileLoaderListener, ActionBar.TabListener {
 
@@ -61,6 +62,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     private ProgressDialogFragment progressDialog;
     private PageView pageView;
+    private Menu menu;
 
     private Uri lastUri;
     private String lastPassword;
@@ -79,15 +81,21 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         upLoader.initialize(this);
 
         setRetainInstance(true);
+        setHasOptionsMenu(true);
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         pageView = new PageView(getActivity());
-        pageView.loadData("", "text/plain", PageView.ENCODING);
-
         return pageView;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        this.menu = menu;
+
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     public void loadUri(Uri uri) {
@@ -104,14 +112,9 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         showProgress(documentLoader, false);
 
-        documentLoader.loadAsync(uri, password, limit, translatable);
+        toggleEditMenu(true);
 
-        // workaround "java.lang.IllegalStateException: Can not perform this action after onSaveInstanceState"
-        mainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-            }
-        });
+        documentLoader.loadAsync(uri, password, limit, translatable);
     }
 
     public void reloadUri(boolean limit, boolean translatable) {
@@ -190,7 +193,17 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         showProgress(upLoader, true);
 
+        toggleEditMenu(false);
+
         upLoader.loadAsync(uri, null, false, false);
+    }
+
+    private void toggleEditMenu(boolean enabled) {
+        if (menu == null) {
+            return;
+        }
+
+        menu.findItem(R.id.menu_edit).setVisible(enabled);
     }
 
     @Override
@@ -201,22 +214,13 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             return;
         }
 
+        ((MainActivity) getActivity()).getAnalyticsManager().report("load_success");
+
         dismissProgress();
 
         // TODO: we should load the first page here already
         // DocumentFragment should - basically - work out-of-the-box
         // (without any further logic)!
-
-        if (document.isLimited()) {
-            CroutonHelper.showCrouton(getActivity(), R.string.toast_info_limited, new Runnable() {
-
-                @Override
-                public void run() {
-                    loadUri(lastUri, lastPassword,
-                            false, false);
-                }
-            }, Style.INFO);
-        }
 
         ActionBar bar = ((MainActivity) getActivity()).getSupportActionBar();
         bar.removeAllTabs();
@@ -252,6 +256,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             return;
         }
 
+        ((MainActivity) activity).getAnalyticsManager().report("load_error");
+
         dismissProgress();
 
         final Uri cacheUri = AndroidFileCache.getCacheFileUri();
@@ -260,6 +266,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         if (error == null) {
             throw new RuntimeException("no error given");
         } else if (error instanceof EncryptedDocumentException) {
+            ((MainActivity) activity).getAnalyticsManager().report("load_error_encrypted");
+
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.toast_error_password_protected);
 
@@ -284,6 +292,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    Activity activity = getActivity();
+                    if (activity == null || activity.isFinishing()) {
+                        return;
+                    }
+
                     builder.show();
                 }
             });
@@ -293,31 +306,47 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 || error instanceof ZipException
                 || error instanceof ZipEntryNotFoundException
                 || error instanceof UnsupportedMimeTypeException) {
+            ((MainActivity) activity).getAnalyticsManager().report("load_error_unknown_format");
+
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.toast_error_illegal_file);
-            builder.setMessage(R.string.dialog_upload_file);
-            builder.setPositiveButton(getString(android.R.string.ok),
-                    new DialogInterface.OnClickListener() {
 
-                        @Override
-                        public void onClick(DialogInterface dialog,
-                                            int whichButton) {
-                            uploadUri(lastUri);
+            if (MainActivity.IS_GOOGLE_ECOSYSTEM) {
+                builder.setMessage(R.string.dialog_upload_file);
 
-                            dialog.dismiss();
-                        }
-                    });
+                builder.setPositiveButton(getString(android.R.string.ok),
+                        new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog,
+                                                int whichButton) {
+                                ((MainActivity) activity).getAnalyticsManager().report("load_upload");
+
+                                uploadUri(lastUri);
+
+                                dialog.dismiss();
+                            }
+                        });
+            }
+
             builder.setNegativeButton(getString(android.R.string.cancel), null);
 
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    Activity activity = getActivity();
+                    if (activity == null || activity.isFinishing()) {
+                        return;
+                    }
+
                     builder.show();
                 }
             });
 
             return;
         } else if (error instanceof FileNotFoundException) {
+            ((MainActivity) activity).getAnalyticsManager().report("load_error_file_not_found");
+
             if (Environment.getExternalStorageState().equals(
                     Environment.MEDIA_MOUNTED_READ_ONLY)
                     || Environment.getExternalStorageState().equals(
@@ -327,14 +356,20 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 errorDescription = R.string.toast_error_storage;
             }
         } else if (error instanceof IllegalArgumentException) {
+            ((MainActivity) activity).getAnalyticsManager().report("load_error_illegal_file");
+
             errorDescription = R.string.toast_error_illegal_file;
         } else if (error instanceof OutOfMemoryError) {
+            ((MainActivity) activity).getAnalyticsManager().report("load_error_memory");
+
             errorDescription = R.string.toast_error_out_of_memory;
         } else {
+            ((MainActivity) activity).getAnalyticsManager().report("load_error_generic");
+
             errorDescription = R.string.toast_error_generic;
         }
 
-        CroutonHelper.showCrouton(activity, errorDescription, null, Style.ALERT);
+        SnackbarHelper.show(activity, errorDescription, null, true, true);
 
         Log.e("OpenDocument Reader", "Error opening file at " + lastUri.toString(),
                 error);
@@ -368,6 +403,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
                     @Override
                     public void run() {
+                        Activity activity = getActivity();
+                        if (activity == null || activity.isFinishing()) {
+                            return;
+                        }
+
                         if (progressDialog == null) {
                             return;
                         }
@@ -433,11 +473,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     private void loadData(String url) {
         pageView.loadUrl(url);
-    }
-
-    @SuppressWarnings("deprecation")
-    public void searchDocument(String query) {
-        pageView.findAll(query);
     }
 
     public PageView getPageView() {

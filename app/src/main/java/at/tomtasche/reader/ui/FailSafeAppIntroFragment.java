@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.github.paolorotolo.appintro.AppIntroBaseFragment;
-import com.github.paolorotolo.appintro.AppIntroFragment;
 import com.github.paolorotolo.appintro.model.SliderPage;
 
 import androidx.annotation.ColorInt;
@@ -14,7 +13,6 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.FontRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import at.tomtasche.reader.R;
 
 // copied from AppIntroFragment
@@ -25,9 +23,9 @@ public class FailSafeAppIntroFragment extends AppIntroBaseFragment {
      */
     @Deprecated
     public static AppIntroBaseFragment newInstance(CharSequence title,
-                                               CharSequence description,
-                                               @DrawableRes int imageDrawable,
-                                               @ColorInt int bgColor) {
+                                                   CharSequence description,
+                                                   @DrawableRes int imageDrawable,
+                                                   @ColorInt int bgColor) {
         return newInstance(title, null, description, null,
                 imageDrawable, bgColor, 0, 0);
     }
@@ -37,11 +35,11 @@ public class FailSafeAppIntroFragment extends AppIntroBaseFragment {
      */
     @Deprecated
     public static AppIntroBaseFragment newInstance(CharSequence title,
-                                               String titleTypeface,
-                                               CharSequence description,
-                                               String descTypeface,
-                                               @DrawableRes int imageDrawable,
-                                               @ColorInt int bgColor) {
+                                                   String titleTypeface,
+                                                   CharSequence description,
+                                                   String descTypeface,
+                                                   @DrawableRes int imageDrawable,
+                                                   @ColorInt int bgColor) {
         return newInstance(title, titleTypeface, description, descTypeface,
                 imageDrawable, bgColor, 0, 0);
     }
@@ -62,11 +60,11 @@ public class FailSafeAppIntroFragment extends AppIntroBaseFragment {
      */
     @Deprecated
     public static AppIntroBaseFragment newInstance(CharSequence title,
-                                               @FontRes int titleTypeface,
-                                               CharSequence description,
-                                               @FontRes int descTypeface,
-                                               @DrawableRes int imageDrawable,
-                                               @ColorInt int bgColor) {
+                                                   @FontRes int titleTypeface,
+                                                   CharSequence description,
+                                                   @FontRes int descTypeface,
+                                                   @DrawableRes int imageDrawable,
+                                                   @ColorInt int bgColor) {
         return newInstance(title, titleTypeface, description, descTypeface,
                 imageDrawable, bgColor, 0, 0);
     }
@@ -86,13 +84,13 @@ public class FailSafeAppIntroFragment extends AppIntroBaseFragment {
      * @return AppIntroFragment created instance
      */
     public static AppIntroBaseFragment newInstance(CharSequence title,
-                                               String titleTypefaceUrl,
-                                               CharSequence description,
-                                               String descTypefaceUrl,
-                                               @DrawableRes int imageDrawable,
-                                               @ColorInt int bgColor,
-                                               @ColorInt int titleColor,
-                                               @ColorInt int descColor) {
+                                                   String titleTypefaceUrl,
+                                                   CharSequence description,
+                                                   String descTypefaceUrl,
+                                                   @DrawableRes int imageDrawable,
+                                                   @ColorInt int bgColor,
+                                                   @ColorInt int titleColor,
+                                                   @ColorInt int descColor) {
         SliderPage sliderPage = new SliderPage();
         sliderPage.setTitle(title);
         sliderPage.setTitleTypeface(titleTypefaceUrl);
@@ -122,13 +120,13 @@ public class FailSafeAppIntroFragment extends AppIntroBaseFragment {
      * @return AppIntroFragment created instance
      */
     public static AppIntroBaseFragment newInstance(CharSequence title,
-                                               @FontRes int titleTypefaceRes,
-                                               CharSequence description,
-                                               @FontRes int descTypefaceRes,
-                                               @DrawableRes int imageDrawable,
-                                               @ColorInt int bgColor,
-                                               @ColorInt int titleColor,
-                                               @ColorInt int descColor) {
+                                                   @FontRes int titleTypefaceRes,
+                                                   CharSequence description,
+                                                   @FontRes int descTypefaceRes,
+                                                   @DrawableRes int imageDrawable,
+                                                   @ColorInt int bgColor,
+                                                   @ColorInt int titleColor,
+                                                   @ColorInt int descColor) {
         SliderPage sliderPage = new SliderPage();
         sliderPage.setTitle(title);
         sliderPage.setTitleTypefaceFontRes(titleTypefaceRes);

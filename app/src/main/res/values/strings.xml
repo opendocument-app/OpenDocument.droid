@@ -4,31 +4,28 @@
     <string name="toast_error_generic">Something bad happened. Couldn\'t open file.</string>
     <string name="toast_error_find_file">Couldn\'t find file. Maybe it doesn\'t exist any longer?</string>
     <string name="toast_error_illegal_file">This doesn\'t seem to be a supported file format.</string>
-    <string name="toast_error_out_of_memory">Phone out of memory! Too many pictures, or too big file.</string>
-    <string name="toast_error_password_protected">Document is password-protected</string>
+    <string name="toast_error_out_of_memory">Device out of memory! Too many pictures, or file too big.</string>
+    <string name="toast_error_password_protected">This document is password-protected</string>
     <string name="toast_error_storage">External storage not available. Couldn\'t read file.</string>
-    <string name="toast_info_limited">Only parts of the document are being displayed in order to improve performance. Click here if you want to see the whole document</string>
     <string name="dialog_recent_title">Recent documents</string>
     <string name="dialog_choose_filemanager">Open document via:</string>
-    <string name="dialog_loading_title">Loading...</string>
-    <string name="dialog_uploading_title">Uploading...</string>
-    <string name="dialog_loading_message">This could take a few minutes, depending on the structure of your document and the processing power of your phone.</string>
-    <string name="dialog_remove_ads_title">Purchase new features:</string>
-    <string name="dialog_upload_file">We aren\'t able to open this document, because we don\'t support its format. Do you want to upload it to our server temporarily, so we can display it for you anyway?</string>
+    <string name="dialog_loading_title">Loading…</string>
+    <string name="dialog_uploading_title">Uploading…</string>
+    <string name="dialog_loading_message">This could take a few minutes, depending on the structure of your document and the processing power of your device.</string>
+    <string name="dialog_remove_ads_title">Remove advertisements for a small fee:</string>
+    <string name="dialog_upload_file">We aren\'t able to open this document, because we don\'t support its format. Do you want to upload it to our server temporarily, so we can display it for you anyway? Uploaded files are private and automatically deleted after 24 hours.</string>
     <string name="dialog_title_choose_file">Choose file from device</string>
     <string name="dialog_list_no_documents_found">No documents found</string>
-    <string name="menu_recent">Recent documents</string>
-    <string name="menu_search">Search</string>
-    <string name="menu_open">Open</string>
-    <string name="menu_edit">Edit</string>
-    <string name="menu_remove_ads">Remove ads</string>
-    <string name="menu_fullscreen">Fullscreen mode</string>
-    <string name="menu_share">Share</string>
-    <string name="menu_cloud_print">Print</string>
+    <string name="menu_recent">Recently opened documents</string>
+    <string name="menu_search">Search in document</string>
+    <string name="menu_open">Open document</string>
+    <string name="menu_edit">Edit document</string>
+    <string name="menu_remove_ads">Remove advertisements</string>
+    <string name="menu_fullscreen">Open fullscreen mode</string>
+    <string name="menu_cloud_print">Print document</string>
     <string name="menu_tts">Text-To-Speech</string>
     <string name="crouton_leave_fullscreen">Press Back to leave fullscreen mode</string>
-    <string name="crouton_error_open_app">Couldn\'t open this app.</string>
-    <string name="crouton_remove_ads">Don\'t like advertisements? Click here to remove them!</string>
+    <string name="crouton_error_open_app">Couldn\'t open selected app.</string>
     <string name="action_find_previous">Previous</string>
     <string name="action_find_next">Next</string>
     <string name="action_find_on_page">Find on page</string>
@@ -40,22 +37,31 @@
     <string name="action_edit_help">Help!?</string>
     <string name="action_edit_banner">Edit your document below and press Save</string>
     <string name="landing_welcome_title">Welcome to \nOpenDocument Reader</string>
-    <string name="landing_intro_view">OpenDocument Reader allows you to view documents that are stored in OpenDocument format (.odt, .ods, .odp) wherever you are.</string>
+    <string name="landing_intro_view">OpenDocument Reader allows you to view documents that are stored in OpenDocument format (.odt, .ods, .odp and .odg) wherever you are.</string>
     <string name="landing_intro_search">With OpenDocument Reader you can read and search through your documents in a breeze.</string>
-    <string name="landing_intro_edit">Found one last typo left to fix in your document? It now supports modifications too!</string>
+    <string name="landing_intro_edit">Found one last typo left to fix ahead of your big presentation? It now supports modifications too!</string>
     <string name="landing_intro_open_all">This app registers to open all file types by default in order to support apps like \"Samsung My Files\". You may turn this feature off here if it causes problems for you.</string>
-    <string name="tts_status_reading">Reading...</string>
-    <string name="tts_status_initializing">Initializing TTS...</string>
+    <string name="tts_status_reading">Reading…</string>
+    <string name="tts_status_initializing">Initializing TTS…</string>
     <string name="tts_status_ready">Ready!</string>
     <string name="tts_status_failed">TTS failed.</string>
     <string name="tts_status_paused">Paused.</string>
     <string name="tts_status_finished">Finished.</string>
+    <string name="edit_status_saved">Document saved to your SD card</string>
+    <string name="crouton_printing">Printing…</string>
+    <string name="crouton_print_unavailable">Printing not available on your device. Please upgrade to a newer version of Android.</string>
+    <string name="intro_title_open">Open and read your ODF file on the go!</string>
+    <string name="intro_description_open">OpenDocument Reader allows you to view documents that are stored in OpenDocument format (.odt, .ods, .odp and .odg). These files are usually created using LibreOffice or OpenOffice. This app allows to open such files on your mobile device too, so you can read them on the go.</string>
+    <string name="intro_title_edit">Found a typo in your document? Now supports modification!</string>
+    <string name="intro_description_edit">OpenDocument Reader not only allows to read documents on your mobile device, but also supports modifying them too. Typos are fixed in a breeze, even on the train!</string>
+    <string name="intro_title_apps">Read your documents from within other apps</string>
+    <string name="intro_description_apps">OpenDocument Reader supports a huge range of other apps to open documents from. A colleague sent a presentation via Gmail? Click the attachment and this app is going to open right away!</string>
+    <string name="intro_button_start">START</string>
+    <string name="crouton_remove_ads">Need more space to read? Remove ads for free via the menu.</string>
 
     <string-array name="dialog_remove_ads_options">
-        <item>remove ads for one year</item>
-        <item>remove ads forever</item>
-        <item>deep love (+ remove ads forever)</item>
-        <item>remove ads temporarily</item>
+        <item>Remove ads forever</item>
+        <item>Remove ads temporarily for free by watching a short video</item>
     </string-array>
 
 </resources>

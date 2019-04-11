@@ -121,3 +121,6 @@
 
 -dontwarn at.stefl.**
 -dontwarn com.google.android.gms.**
+
+-dontwarn org.xmlpull.v1.**
+-dontwarn java.beans.**

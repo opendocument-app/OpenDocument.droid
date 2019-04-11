@@ -9,8 +9,6 @@
         <item name="android:textColorSecondary">#b5b5b5</item>
     </style>
 
-    <style name="Theme.Light.Dialog" parent="android:Theme.Dialog"></style>
-
     <style name="IntroTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">#ffffff</item>
         <item name="colorPrimaryDark">#6b6b6b</item>

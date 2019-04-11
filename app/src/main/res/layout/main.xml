@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_gravity="start|top"
-    android:orientation="vertical">
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="start|top"
+                android:orientation="vertical">
 
     <LinearLayout
-        android:id="@+id/ad_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_gravity="center_horizontal"
-        android:orientation="horizontal"
-        android:visibility="gone" />
+            android:id="@+id/ad_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:visibility="gone"/>
 
     <LinearLayout
             android:id="@+id/landing_container"
@@ -23,11 +23,15 @@
             android:layout_below="@id/ad_container"
             android:orientation="vertical"
             android:layout_alignParentStart="true"
-            android:layout_marginTop="0dp">
+            android:layout_marginTop="0dp"
+            android:layout_alignParentLeft="true"
+            android:weightSum="1">
 
         <LinearLayout
                 style="@style/landing_intro_title_container"
                 android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.2"
                 android:orientation="horizontal"
                 android:weightSum="1">
 
@@ -35,7 +39,8 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="0.3"
-                    app:srcCompat="@mipmap/ic_launcher_foreground"/>
+                    app:srcCompat="@mipmap/ic_launcher_foreground"
+                    tools:ignore="ContentDescription,NestedWeights"/>
 
             <TextView
                     style="@style/landing_intro_title"
@@ -51,7 +56,9 @@
         <LinearLayout
                 style="@style/landing_intro_margin"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
+                android:layout_height="0dp"
+                android:layout_weight="0.23"
+
                 android:orientation="horizontal"
                 android:weightSum="1">
 
@@ -60,7 +67,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_weight="0.2"
-                    app:srcCompat="@drawable/ic_folder_open"/>
+                    app:srcCompat="@drawable/ic_folder_open"
+                    tools:ignore="ContentDescription,NestedWeights"/>
 
             <TextView
                     android:layout_width="0dp"
@@ -74,7 +82,9 @@
         <LinearLayout
                 style="@style/landing_intro_margin"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
+                android:layout_height="0dp"
+                android:layout_weight="0.15"
+
                 android:orientation="horizontal"
                 android:weightSum="1">
 
@@ -83,7 +93,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_weight="0.2"
-                    app:srcCompat="@drawable/ic_search"/>
+                    app:srcCompat="@drawable/ic_search"
+                    tools:ignore="ContentDescription,NestedWeights"/>
 
             <TextView
                     android:layout_width="0dp"
@@ -97,7 +108,9 @@
         <LinearLayout
                 style="@style/landing_intro_margin"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
+                android:layout_height="0dp"
+                android:layout_weight="0.18"
+
                 android:orientation="horizontal"
                 android:weightSum="1">
 
@@ -106,7 +119,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_weight="0.2"
-                    app:srcCompat="@drawable/ic_edit"/>
+                    app:srcCompat="@drawable/ic_edit"
+                    tools:ignore="ContentDescription,NestedWeights"/>
 
             <TextView
                     android:layout_width="0dp"
@@ -120,7 +134,9 @@
         <LinearLayout
                 style="@style/landing_intro_margin"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
+                android:layout_height="0dp"
+                android:layout_weight="0.18"
+
                 android:orientation="horizontal"
                 android:weightSum="1">
 
@@ -132,7 +148,10 @@
                     android:layout_marginLeft="-20dp"
                     android:layout_marginRight="20dp"
                     android:layout_weight="0.2"
-                    android:theme="@style/Theme.AppCompat.Light" />
+                    android:theme="@style/Theme.AppCompat.Light"
+                    android:layout_marginStart="-20dp"
+                    android:layout_marginEnd="20dp"
+                    tools:ignore="NestedWeights" />
 
             <TextView
                     android:layout_width="0dp"
@@ -141,14 +160,16 @@
                     android:gravity="center_vertical"
                     android:lineSpacingMultiplier="1.0"
                     android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textSize="12sp"
                     android:text="@string/landing_intro_open_all"/>
         </LinearLayout>
     </LinearLayout>
 
     <FrameLayout
-        android:id="@+id/document_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/ad_container"
-        android:visibility="gone" />
+            android:id="@+id/document_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/ad_container"
+            android:background="@android:color/white"
+            android:visibility="gone"/>
 </RelativeLayout>

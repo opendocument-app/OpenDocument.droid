@@ -23,7 +23,6 @@
     <string name="menu_edit">Uredi</string>
     <string name="menu_remove_ads">Odstrani oglase</string>
     <string name="menu_fullscreen">Celozaslonski način</string>
-    <string name="menu_share">Deli</string>
     <string name="menu_cloud_print">Natisni</string>
     <string name="menu_tts">Besedilo v govor</string>
     <string name="crouton_leave_fullscreen">Pritisnite Nazaj za izhod iz celozaslonskega načina</string>
@@ -52,9 +51,7 @@
     <string name="tts_status_finished">Končano.</string>
 
     <string-array name="dialog_remove_ads_options">
-        <item>Odstrani oglase za eno leto</item>
         <item>Odstrani oglase za vedno</item>
-        <item>Globoka ljubezen (+ odstrani oglase za vedno)</item>
         <item>Začasno odstrani oglase</item>
     </string-array>
 
