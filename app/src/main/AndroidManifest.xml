@@ -43,7 +43,7 @@
             android:hardwareAccelerated="true"
             android:icon="@mipmap/icon"
             android:roundIcon="@mipmap/icon_round"
-            android:label="OpenDocument Reader"
+            android:label="@string/app_title"
             android:theme="@style/MainTheme"
             android:name="androidx.multidex.MultiDexApplication">
 

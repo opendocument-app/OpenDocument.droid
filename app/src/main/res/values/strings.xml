@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_title">OpenDocument Reader</string>
 
     <string name="toast_error_generic">Something bad happened. Couldn\'t open file.</string>
     <string name="toast_error_find_file">Couldn\'t find file. Maybe it doesn\'t exist any longer?</string>
