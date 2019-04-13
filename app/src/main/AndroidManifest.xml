@@ -45,7 +45,8 @@
             android:roundIcon="@mipmap/icon_round"
             android:label="@string/app_title"
             android:theme="@style/MainTheme"
-            android:name="androidx.multidex.MultiDexApplication">
+            android:name="androidx.multidex.MultiDexApplication"
+            tools:replace="android:label">
 
         <meta-data
                 android:name="com.google.android.gms.version"

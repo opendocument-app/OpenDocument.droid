@@ -14,6 +14,7 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,6 +53,8 @@ import at.tomtasche.reader.background.UpLoader;
 import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.widget.PageView;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
+import es.voghdev.pdfviewpager.library.PDFViewPager;
+import es.voghdev.pdfviewpager.library.adapter.PDFPagerAdapter;
 
 public class DocumentFragment extends Fragment implements FileLoader.FileLoaderListener, ActionBar.TabListener {
 
@@ -61,7 +64,12 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private UpLoader upLoader;
 
     private ProgressDialogFragment progressDialog;
+
     private PageView pageView;
+
+    private PDFViewPager pdfView;
+    private PDFPagerAdapter pdfAdapter;
+
     private Menu menu;
 
     private Uri lastUri;
@@ -87,8 +95,12 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        pageView = new PageView(getActivity());
-        return pageView;
+        LinearLayout inflatedView = (LinearLayout) inflater.inflate(R.layout.fragment_document, container, false);
+
+        pageView = inflatedView.findViewById(R.id.page_view);
+        pdfView = inflatedView.findViewById(R.id.pdf_view);
+
+        return inflatedView;
     }
 
     @Override
@@ -113,8 +125,28 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         showProgress(documentLoader, false);
 
         toggleEditMenu(true);
+        togglePageView(true);
 
         documentLoader.loadAsync(uri, password, limit, translatable);
+    }
+
+    private void loadPdf(Uri uri) {
+        toggleEditMenu(false);
+        togglePageView(false);
+
+        pdfAdapter = new PDFPagerAdapter(getContext(), new File(AndroidFileCache.getCacheDirectory(getContext()),
+                uri.getLastPathSegment()).getPath());
+        pdfView.setAdapter(pdfAdapter);
+    }
+
+    private void togglePageView(boolean enabled) {
+        pageView.setVisibility(enabled ? View.VISIBLE : View.INVISIBLE);
+        pdfView.setVisibility(enabled ? View.INVISIBLE : View.VISIBLE);
+
+        if (!enabled && pdfAdapter != null) {
+            pdfAdapter.close();
+            pdfAdapter = null;
+        }
     }
 
     public void reloadUri(boolean limit, boolean translatable) {
@@ -187,7 +219,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         }
     }
 
-    public void uploadUri(Uri uri) {
+    private void uploadUri(Uri uri) {
         lastUri = uri;
         lastPassword = null;
 
@@ -306,6 +338,13 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 || error instanceof ZipException
                 || error instanceof ZipEntryNotFoundException
                 || error instanceof UnsupportedMimeTypeException) {
+
+            if (true) {
+                loadPdf(cacheUri);
+
+                return;
+            }
+
             ((MainActivity) activity).getAnalyticsManager().report("load_error_unknown_format");
 
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
@@ -322,7 +361,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                                                 int whichButton) {
                                 ((MainActivity) activity).getAnalyticsManager().report("load_upload");
 
-                                uploadUri(lastUri);
+                                uploadUri(cacheUri);
 
                                 dialog.dismiss();
                             }
@@ -489,6 +528,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         if (upLoader != null) {
             upLoader.close();
+        }
+
+        if (pdfAdapter != null) {
+            pdfAdapter.close();
         }
     }
 }
