@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="100dp"
+    android:layout_height="100dp"
+    android:background="@drawable/mintegral_loading_bg">
+
+    <com.mintegral.msdk.interactiveads.view.MTGCircleView
+        android:id="@+id/mintegral_left"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_marginRight="15dp"
+        android:layout_gravity="center" />
+
+    <com.mintegral.msdk.interactiveads.view.MTGCircleView
+        android:id="@+id/mintegral_middle"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_gravity="center" />
+
+    <com.mintegral.msdk.interactiveads.view.MTGCircleView
+        android:id="@+id/mintegral_right"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_marginLeft="15dp"
+        android:layout_gravity="center" />
+
+</FrameLayout>

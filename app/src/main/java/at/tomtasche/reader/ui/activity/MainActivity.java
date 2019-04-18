@@ -55,7 +55,7 @@ import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
 public class MainActivity extends AppCompatActivity implements DocumentLoadingActivity {
 
     private static final boolean USE_PROPRIETARY_LIBRARIES = true;
-    protected static boolean IS_GOOGLE_ECOSYSTEM = true;
+    protected static boolean IS_GOOGLE_ECOSYSTEM = false;
     private static final int GOOGLE_REQUEST_CODE = 1993;
     private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
     public static int PERMISSION_CODE = 1353;
@@ -196,6 +196,13 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         if (!isDocumentLoaded) {
             handleIntent(getIntent());
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        adManager.onResume();
     }
 
     private void showIntroActivity() {
@@ -637,6 +644,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         if (ttsActionMode != null) {
             ttsActionMode.stop();
         }
+
+        adManager.onPause();
     }
 
     @Override

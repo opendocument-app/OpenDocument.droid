@@ -23,6 +23,34 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="com.android.vending.BILLING"/>
 
+    <!--CSJ-->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+    <uses-permission android:name="android.permission.GET_TASKS"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!--TalkingData-->
+    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"></uses-permission>
+    <!--Dataeye-->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
+    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"></uses-permission>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"></uses-permission>
+    <!--Mintegral-->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <uses-feature
             android:name="android.hardware.touchscreen"
             android:required="false"/>
@@ -45,7 +73,7 @@
             android:roundIcon="@mipmap/icon_round"
             android:label="@string/app_title"
             android:theme="@style/MainTheme"
-            android:name="androidx.multidex.MultiDexApplication">
+            android:name="at.tomtasche.reader.nonfree.ChinaApplication">
 
         <meta-data
                 android:name="com.google.android.gms.version"
@@ -383,13 +411,121 @@
 
         <provider
                 android:name="androidx.core.content.FileProvider"
-                android:authorities="${applicationId}.provider"
+                android:authorities="at.tomtasche.reader.provider"
                 android:exported="false"
                 android:grantUriPermissions="true">
             <meta-data
                     android:name="android.support.FILE_PROVIDER_PATHS"
                     android:resource="@xml/nnf_provider_paths"/>
         </provider>
+
+        <!-- Mintegral  start-->
+        <activity
+                android:name="com.mintegral.msdk.activity.MTGCommonActivity"
+                android:configChanges="keyboard|orientation"
+                android:screenOrientation="portrait"
+                android:exported="true"
+                android:theme="@android:style/Theme.Translucent.NoTitleBar"
+                >
+        </activity>
+
+        <receiver android:name="com.mintegral.msdk.click.AppReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+        <service android:name="com.mintegral.msdk.shell.MTGService" >
+            <intent-filter>
+                <action android:name="com.mintegral.msdk.download.action" />
+            </intent-filter>
+        </service>
+
+        <activity
+                android:name="com.mintegral.msdk.reward.player.MTGRewardVideoActivity"
+                android:configChanges="orientation|keyboardHidden|screenSize"
+                android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+        <!-- Mintegral  end-->
+
+        <!---CSJ Start-->
+
+        <provider
+                android:name="com.bytedance.sdk.openadsdk.TTFileProvider"
+                android:authorities="at.tomtasche.reader.TTFileProvider"
+                android:exported="false"
+                android:grantUriPermissions="true">
+            <meta-data
+                    android:name="android.support.FILE_PROVIDER_PATHS"
+                    android:resource="@xml/file_paths" />
+        </provider>
+
+        <provider
+                android:name="com.bytedance.sdk.openadsdk.multipro.TTMultiProvider"
+                android:authorities="at.tomtasche.reader.TTMultiProvider"
+                android:exported="false" />
+
+        <activity
+                android:name="com.bytedance.sdk.openadsdk.activity.TTLandingPageActivity"
+                android:configChanges="keyboardHidden|orientation|screenSize"
+                android:launchMode="singleTask" />
+        <activity
+                android:name="com.bytedance.sdk.openadsdk.activity.TTVideoLandingPageActivity"
+                android:configChanges="keyboardHidden|orientation|screenSize"
+                android:launchMode="singleTask" />
+        <activity
+                android:name="com.bytedance.sdk.openadsdk.activity.TTRewardVideoActivity"
+                android:configChanges="keyboardHidden|orientation|screenSize"
+                android:launchMode="singleTask" />
+        <activity
+                android:name="com.bytedance.sdk.openadsdk.activity.TTFullScreenVideoActivity"
+                android:configChanges="keyboardHidden|orientation|screenSize"
+                android:launchMode="singleTask" />
+        <activity
+                android:name="com.bytedance.sdk.openadsdk.activity.TTDelegateActivity"
+                android:launchMode="singleTask"
+                android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <service android:name="com.bytedance.sdk.openadsdk.multipro.aidl.BinderPoolService" />
+        <service android:name="com.ss.android.socialbase.downloader.notification.DownloadNotificationService" />
+        <service android:name="com.ss.android.socialbase.downloader.downloader.DownloadService" />
+        <service
+                android:name="com.ss.android.socialbase.downloader.downloader.IndependentProcessDownloadService"
+                android:process=":downloader" >
+            <intent-filter>
+                <action android:name="com.ss.android.socialbase.downloader.remote" />
+            </intent-filter>
+        </service>
+        <service android:name="com.ss.android.socialbase.downloader.impls.DownloadHandleService" />
+        <service android:name="com.ss.android.socialbase.appdownloader.AppDownloadHandleService" />
+
+        <activity
+                android:name="com.ss.android.socialbase.appdownloader.view.DownloadSizeLimitActivity"
+                android:launchMode="singleTask"
+                android:theme="@android:style/Theme.Dialog" />
+        <activity
+                android:name="com.ss.android.socialbase.appdownloader.view.DownloadTaskDeleteActivity"
+                android:launchMode="singleTask"
+                android:theme="@android:style/Theme.Dialog" />
+        <activity
+                android:name="com.ss.android.downloadlib.activity.InteractionMiddleActivity"
+                android:launchMode="standard" />
+
+        <receiver android:name="com.ss.android.downloadlib.core.download.DownloadReceiver" />
+
+        <!-- CSJ End-->
+
+        <!-- CSJ-->
+        <meta-data android:name="CSJ_APPID" android:value="5011625"/>
+        <meta-data android:name="CSJ_INSID" android:value="911625431"/>
+        <meta-data android:name="CSJ_VIDEOID" android:value="911625070"/>
+        <!-- mintegral-->
+        <meta-data android:name="Mintegral_APPID" android:value="113500"/>
+        <meta-data android:name="Mintegral_INSID" android:value="85191"/>
+        <meta-data android:name="Mintegral_VIDEOID" android:value="85190"/>
+        <!--Dataeye -->
+        <meta-data android:name="DATAEYE_APPID" android:value="D245369EF68DA4225DBBBF7E8A16BEB2"/>
+        <!--talkingdata -->
+        <meta-data android:name="APPTUTTI_TALK_APPID" android:value="F3A91682C2CF4F8AA02AAC28CA69D468" />
     </application>
 
 </manifest>

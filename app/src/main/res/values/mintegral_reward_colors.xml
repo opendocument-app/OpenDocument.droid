@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <!-- endcard native -->
+    <color name="mintegral_reward_endcard_land_bg">#f1f1f1</color>
+    <color name="mintegral_reward_endcard_hor_bg">#ffffff</color>
+    <color name="mintegral_reward_endcard_line_bg">#d8d8d8</color>
+
+    <color name="mintegral_reward_title_textcolor">#282828</color>
+    <color name="mintegral_reward_desc_textcolor">#5f5f5f</color>
+
+    <!-- endcard vast -->
+    <color name="mintegral_reward_endcard_vast_bg">#aa000000</color>
+
+    <!-- minicard -->
+    <color name="mintegral_reward_minicard_bg">#7f000000</color>
+
+    <!-- playable cta -->
+    <color name="mintegral_reward_cta_bg">@color/mintegral_reward_minicard_bg</color>
+
+
+    <!--mobview_video_view-->
+    <color name="mintegral_reward_black">#ff000000</color>
+    <color name="mintegral_reward_white">#FFFFFF</color>
+    <color name="mintegral_reward_six_black_transparent">#60000000</color>
+
+</resources>

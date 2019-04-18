@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppDownloader_NotificationText" parent="@android:style/TextAppearance.Material.Notification"/>
+    <style name="AppDownloader_NotificationTitle" parent="@android:style/TextAppearance.Material.Notification.Title"/>
+</resources>

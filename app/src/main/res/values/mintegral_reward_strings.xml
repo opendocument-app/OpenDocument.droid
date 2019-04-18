@@ -1,0 +1,17 @@
+<resources>
+
+    <!--<string name="mintegral_offerwall_title">Mintegral Offer</string>-->
+    <!-- endcard native -->
+    <string name="mintegral_reward_endcard_ad">AD</string>
+    <string name="mintegral_reward_apptitle">app title</string>
+    <string name="mintegral_reward_appdesc">app desc</string>
+
+    <string name="mintegral_reward_install">Install Now</string>
+
+    <!-- endcard vast -->
+    <string name="mintegral_reward_endcard_vast_notice">Do you want to learn more?</string>
+
+    <!-- cta -->
+    <string name="mintegral_reward_clickable_cta_btntext">Play Game</string>
+
+</resources>

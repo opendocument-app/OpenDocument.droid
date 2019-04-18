@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <paths>
+        <root-path
+            name="root"
+            path="" />
+        <files-path
+            name="files"
+            path="" />
+        <external-path
+            name="sdcard"
+            path="" />
+        <cache-path
+            name="cache"
+            path="" />
+        <external-files-path
+            name="exFiles"
+            path="" />
+        <external-cache-path
+            name="exCache"
+            path="" />
+    </paths>
+</resources>

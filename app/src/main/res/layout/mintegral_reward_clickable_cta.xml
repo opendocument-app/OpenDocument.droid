@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mintegral_viewgroup_ctaroot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/mintegral_reward_cta_bg"
+    android:orientation="horizontal"
+    android:paddingBottom="10dp"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp"
+    android:paddingTop="10dp">
+
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_weight="1"
+        android:visibility="visible">
+
+        <com.mintegral.msdk.videocommon.view.MyImageView
+            android:id="@+id/mintegral_iv_appicon"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_centerVertical="true"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/mintegral_tv_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="7dp"
+            android:layout_toRightOf="@id/mintegral_iv_appicon"
+            android:ellipsize="end"
+            android:gravity="center_vertical|left"
+            android:textColor="@color/mintegral_reward_white"
+            android:textSize="14sp" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/mintegral_tv_install"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|right"
+        android:background="@drawable/mintegral_reward_shape_end_pager"
+        android:gravity="center"
+        android:paddingBottom="5dp"
+        android:paddingLeft="25dp"
+        android:paddingRight="25dp"
+        android:paddingTop="5dp"
+        android:text="@string/mintegral_reward_clickable_cta_btntext"
+        android:textColor="#ffffff"
+        android:textSize="18sp" />
+</LinearLayout>
+
+
+
