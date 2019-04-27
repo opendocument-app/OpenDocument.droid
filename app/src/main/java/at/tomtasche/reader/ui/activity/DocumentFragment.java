@@ -3,6 +3,7 @@ package at.tomtasche.reader.ui.activity;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -50,7 +51,9 @@ import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.FileLoader;
 import at.tomtasche.reader.background.UpLoader;
+import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.ui.SnackbarHelper;
+import at.tomtasche.reader.ui.widget.FailsafePDFPagerAdapter;
 import at.tomtasche.reader.ui.widget.PageView;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 import at.tomtasche.reader.ui.widget.VerticalViewPager;
@@ -68,8 +71,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     private PageView pageView;
 
-    private PDFViewPager pdfView;
-    private PDFPagerAdapter pdfAdapter;
+    private VerticalViewPager pdfView;
+    private FailsafePDFPagerAdapter pdfAdapter;
 
     private Menu menu;
 
@@ -131,18 +134,31 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         documentLoader.loadAsync(uri, password, limit, translatable);
     }
 
-    private void loadPdf(Uri uri) {
+    private boolean loadPdf(Uri uri) {
         toggleDocumentMenu(false);
         togglePageView(false);
 
-        pdfAdapter = new PDFPagerAdapter(getContext(), new File(AndroidFileCache.getCacheDirectory(getContext()),
+        pdfAdapter = new FailsafePDFPagerAdapter(getContext(), new File(AndroidFileCache.getCacheDirectory(getContext()),
                 uri.getLastPathSegment()).getPath());
+
+        if (!pdfAdapter.isInitialized()) {
+            pdfAdapter.close();
+            pdfAdapter = null;
+
+            togglePageView(false);
+
+            return false;
+        }
+
         pdfView.setAdapter(pdfAdapter);
+
+        return true;
     }
 
     private void togglePageView(boolean enabled) {
         pageView.setVisibility(enabled ? View.VISIBLE : View.GONE);
         pdfView.setVisibility(enabled ? View.GONE : View.VISIBLE);
+        pdfView.setAdapter(null);
 
         if (!enabled && pdfAdapter != null) {
             pdfAdapter.close();
@@ -226,6 +242,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         showProgress(upLoader, true);
 
+        togglePageView(true);
         toggleDocumentMenu(true, false);
 
         upLoader.loadAsync(uri, null, false, false);
@@ -297,7 +314,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             return;
         }
 
-        ((MainActivity) activity).getAnalyticsManager().report("load_error");
+        final AnalyticsManager analyticsManager = ((MainActivity) activity).getAnalyticsManager();
+        analyticsManager.report("load_error");
 
         dismissProgress();
 
@@ -307,7 +325,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         if (error == null) {
             throw new RuntimeException("no error given");
         } else if (error instanceof EncryptedDocumentException) {
-            ((MainActivity) activity).getAnalyticsManager().report("load_error_encrypted");
+            analyticsManager.report("load_error_encrypted");
 
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.toast_error_password_protected);
@@ -347,14 +365,17 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 || error instanceof ZipException
                 || error instanceof ZipEntryNotFoundException
                 || error instanceof UnsupportedMimeTypeException) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                boolean pdfSuccess = loadPdf(cacheUri);
 
-            if (true) {
-                loadPdf(cacheUri);
+                if (pdfSuccess) {
+                    analyticsManager.report("load_pdf");
 
-                return;
+                    return;
+                }
             }
 
-            ((MainActivity) activity).getAnalyticsManager().report("load_error_unknown_format");
+            analyticsManager.report("load_error_unknown_format");
 
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.toast_error_illegal_file);
@@ -368,7 +389,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                             @Override
                             public void onClick(DialogInterface dialog,
                                                 int whichButton) {
-                                ((MainActivity) activity).getAnalyticsManager().report("load_upload");
+                                analyticsManager.report("load_upload");
 
                                 uploadUri(cacheUri);
 
@@ -393,7 +414,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             return;
         } else if (error instanceof FileNotFoundException) {
-            ((MainActivity) activity).getAnalyticsManager().report("load_error_file_not_found");
+            analyticsManager.report("load_error_file_not_found");
 
             if (Environment.getExternalStorageState().equals(
                     Environment.MEDIA_MOUNTED_READ_ONLY)
@@ -404,15 +425,15 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 errorDescription = R.string.toast_error_storage;
             }
         } else if (error instanceof IllegalArgumentException) {
-            ((MainActivity) activity).getAnalyticsManager().report("load_error_illegal_file");
+            analyticsManager.report("load_error_illegal_file");
 
             errorDescription = R.string.toast_error_illegal_file;
         } else if (error instanceof OutOfMemoryError) {
-            ((MainActivity) activity).getAnalyticsManager().report("load_error_memory");
+            analyticsManager.report("load_error_memory");
 
             errorDescription = R.string.toast_error_out_of_memory;
         } else {
-            ((MainActivity) activity).getAnalyticsManager().report("load_error_generic");
+            analyticsManager.report("load_error_generic");
 
             errorDescription = R.string.toast_error_generic;
         }
