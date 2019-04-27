@@ -53,6 +53,7 @@ import at.tomtasche.reader.background.UpLoader;
 import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.widget.PageView;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
+import at.tomtasche.reader.ui.widget.VerticalViewPager;
 import es.voghdev.pdfviewpager.library.PDFViewPager;
 import es.voghdev.pdfviewpager.library.adapter.PDFPagerAdapter;
 
@@ -124,14 +125,14 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         showProgress(documentLoader, false);
 
-        toggleEditMenu(true);
+        toggleDocumentMenu(true);
         togglePageView(true);
 
         documentLoader.loadAsync(uri, password, limit, translatable);
     }
 
     private void loadPdf(Uri uri) {
-        toggleEditMenu(false);
+        toggleDocumentMenu(false);
         togglePageView(false);
 
         pdfAdapter = new PDFPagerAdapter(getContext(), new File(AndroidFileCache.getCacheDirectory(getContext()),
@@ -140,8 +141,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     private void togglePageView(boolean enabled) {
-        pageView.setVisibility(enabled ? View.VISIBLE : View.INVISIBLE);
-        pdfView.setVisibility(enabled ? View.INVISIBLE : View.VISIBLE);
+        pageView.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        pdfView.setVisibility(enabled ? View.GONE : View.VISIBLE);
 
         if (!enabled && pdfAdapter != null) {
             pdfAdapter.close();
@@ -225,17 +226,25 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         showProgress(upLoader, true);
 
-        toggleEditMenu(false);
+        toggleDocumentMenu(true, false);
 
         upLoader.loadAsync(uri, null, false, false);
     }
 
-    private void toggleEditMenu(boolean enabled) {
+    private void toggleDocumentMenu(boolean enabled) {
+        toggleDocumentMenu(enabled, true);
+    }
+
+    private void toggleDocumentMenu(boolean enabled, boolean editEnabled) {
         if (menu == null) {
             return;
         }
 
-        menu.findItem(R.id.menu_edit).setVisible(enabled);
+        menu.findItem(R.id.menu_edit).setVisible(editEnabled);
+
+        menu.findItem(R.id.menu_search).setVisible(enabled);
+        menu.findItem(R.id.menu_tts).setVisible(enabled);
+        menu.findItem(R.id.menu_print).setVisible(enabled);
     }
 
     @Override
