@@ -39,7 +39,7 @@ public class HelpManager {
 
         context.startActivity(new Intent(
                 Intent.ACTION_VIEW,
-                Uri.parse("https://reader.tomtasche.at/")));
+                Uri.parse("https://opendocument.app/")));
         //HelpCrunch.showChatScreen(context);
     }
 }

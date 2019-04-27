@@ -61,7 +61,7 @@
 
         <activity
                 android:name=".ui.activity.MainActivity"
-                android:label="OpenDocument Reader"
+                android:label="@string/app_title"
                 android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -72,7 +72,7 @@
 
         <activity-alias
                 android:name=".ui.activity.MainActivity.STRICT_CATCH"
-                android:label="OpenDocument Reader"
+                android:label="@string/app_title"
                 android:targetActivity=".ui.activity.MainActivity"
                 tools:ignore="AppLinkUrlError">
             <intent-filter>
@@ -193,7 +193,7 @@
 
         <activity-alias
                 android:name=".ui.activity.MainActivity.CATCH_ALL"
-                android:label="OpenDocument Reader"
+                android:label="@string/app_title"
                 android:targetActivity=".ui.activity.MainActivity"
                 tools:ignore="AppLinkUrlError">
             <!-- necessary for Samsung "My Files" - https://stackoverflow.com/a/52624829/198996 -->
@@ -369,7 +369,7 @@
                 android:roundIcon="@mipmap/icon_round"
                 android:excludeFromRecents="true"
                 android:exported="false"
-                android:label="OpenDocument Reader"
+                android:label="@string/app_title"
                 android:theme="@style/IntroTheme"/>
 
         <provider
