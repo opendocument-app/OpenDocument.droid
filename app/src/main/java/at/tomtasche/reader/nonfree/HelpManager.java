@@ -33,13 +33,13 @@ public class HelpManager {
     }
 
     public void show() {
-        if (!enabled) {
-            return;
-        }
+        //if (!enabled) {
+        //    return;
+        //}
 
         context.startActivity(new Intent(
                 Intent.ACTION_VIEW,
-                Uri.parse("https://reader.tomtasche.at/")));
+                Uri.parse("https://opendocument.app/")));
         //HelpCrunch.showChatScreen(context);
     }
 }
