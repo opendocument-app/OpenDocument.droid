@@ -4,10 +4,14 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.CancellationSignal;
 import android.os.ParcelFileDescriptor;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class FileProvider extends ContentProvider {
 
@@ -21,6 +25,12 @@ public class FileProvider extends ContentProvider {
         final ParcelFileDescriptor parcel = ParcelFileDescriptor.open(file,
                 ParcelFileDescriptor.MODE_READ_ONLY);
         return parcel;
+    }
+
+    @Nullable
+    @Override
+    public ParcelFileDescriptor openFile(@NonNull Uri uri, @NonNull String mode, @Nullable CancellationSignal signal) throws FileNotFoundException {
+        return openFile(uri, mode);
     }
 
     @Override
