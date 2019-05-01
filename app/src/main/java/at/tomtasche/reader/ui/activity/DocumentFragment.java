@@ -1,27 +1,40 @@
 package at.tomtasche.reader.ui.activity;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.text.InputType;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.firebase.analytics.FirebaseAnalytics;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLConnection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -99,12 +112,32 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        LinearLayout inflatedView = (LinearLayout) inflater.inflate(R.layout.fragment_document, container, false);
+        try {
+            LinearLayout inflatedView = (LinearLayout) inflater.inflate(R.layout.fragment_document, container, false);
 
-        pageView = inflatedView.findViewById(R.id.page_view);
-        pdfView = inflatedView.findViewById(R.id.pdf_view);
+            pageView = inflatedView.findViewById(R.id.page_view);
+            pdfView = inflatedView.findViewById(R.id.pdf_view);
 
-        return inflatedView;
+            return inflatedView;
+        } catch (Throwable t) {
+            String errorString = "Please install \"Android System WebView\" and restart the app afterwards.";
+
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.webview"));
+            startActivity(intent);
+
+            Toast.makeText(getContext(), errorString, Toast.LENGTH_LONG).show();
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                getActivity().finishAffinity();
+            } else{
+                getActivity().finish();
+                System.exit( 0 );
+            }
+
+            TextView textView = new TextView(getContext());
+            textView.setText(errorString);
+            return textView;
+        }
     }
 
     @Override
@@ -131,7 +164,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         toggleDocumentMenu(true);
         togglePageView(true);
 
-        documentLoader.loadAsync(uri, password, limit, translatable);
+        documentLoader.loadAsync(uri, null, password, limit, translatable);
     }
 
     private boolean loadPdf(Uri uri) {
@@ -211,7 +244,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         } catch (final Throwable e) {
             e.printStackTrace();
 
-            onError(e);
+            onError(e, null);
         } finally {
             if (documentFile != null) {
                 try {
@@ -236,7 +269,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         }
     }
 
-    private void uploadUri(Uri uri) {
+    private void uploadUri(Uri uri, String fileType) {
         lastUri = uri;
         lastPassword = null;
 
@@ -245,7 +278,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         togglePageView(true);
         toggleDocumentMenu(true, false);
 
-        upLoader.loadAsync(uri, null, false, false);
+        upLoader.loadAsync(uri, fileType, null, false, false);
     }
 
     private void toggleDocumentMenu(boolean enabled) {
@@ -265,14 +298,17 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     @Override
-    public void onSuccess(Document document) {
+    public void onSuccess(Document document, String fileType) {
         this.lastDocument = document;
 
-        if (getActivity() == null || getActivity().isFinishing()) {
+        Activity activity = getActivity();
+        if (activity == null || activity.isFinishing()) {
             return;
         }
 
-        ((MainActivity) getActivity()).getAnalyticsManager().report("load_success");
+        MainActivity mainActivity = (MainActivity) activity;
+
+        mainActivity.getAnalyticsManager().report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
 
         dismissProgress();
 
@@ -280,7 +316,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         // DocumentFragment should - basically - work out-of-the-box
         // (without any further logic)!
 
-        ActionBar bar = ((MainActivity) getActivity()).getSupportActionBar();
+        ActionBar bar = mainActivity.getSupportActionBar();
         bar.removeAllTabs();
 
         int pages = document.getPages().size();
@@ -308,16 +344,31 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     @Override
-    public void onError(Throwable error) {
+    public void onError(Throwable error, String fileType) {
         Activity activity = getActivity();
         if (activity == null || activity.isFinishing()) {
             return;
         }
 
-        final AnalyticsManager analyticsManager = ((MainActivity) activity).getAnalyticsManager();
-        analyticsManager.report("load_error");
-
         dismissProgress();
+
+        if (fileType != null
+                && (fileType.startsWith("text/") || fileType.startsWith("image/") || fileType.startsWith("video/"))) {
+            try {
+                Document document = new Document(null);
+                document.addPage(new Document.Page("Document", new URI(lastUri.toString()),
+                        0));
+
+                onSuccess(document, fileType);
+
+                return;
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
+        }
+
+        final AnalyticsManager analyticsManager = ((MainActivity) activity).getAnalyticsManager();
+        analyticsManager.report("load_error", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
 
         final Uri cacheUri = AndroidFileCache.getCacheFileUri();
 
@@ -391,7 +442,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                                                 int whichButton) {
                                 analyticsManager.report("load_upload");
 
-                                uploadUri(cacheUri);
+                                uploadUri(cacheUri, fileType);
 
                                 dialog.dismiss();
                             }
