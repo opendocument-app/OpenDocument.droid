@@ -1,7 +1,6 @@
 package at.tomtasche.reader.ui.activity;
 
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -10,14 +9,12 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.text.InputType;
-import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.MimeTypeMap;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -25,16 +22,13 @@ import android.widget.Toast;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLConnection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -70,10 +64,11 @@ import at.tomtasche.reader.ui.widget.FailsafePDFPagerAdapter;
 import at.tomtasche.reader.ui.widget.PageView;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 import at.tomtasche.reader.ui.widget.VerticalViewPager;
-import es.voghdev.pdfviewpager.library.PDFViewPager;
-import es.voghdev.pdfviewpager.library.adapter.PDFPagerAdapter;
 
 public class DocumentFragment extends Fragment implements FileLoader.FileLoaderListener, ActionBar.TabListener {
+
+    private static final String[] MIME_WHITELIST = {"text/", "image/", "video/", "audio/", "application/json", "application/xml"};
+    private static final String[] MIME_BLACKLIST = {};
 
     private Handler mainHandler;
 
@@ -244,7 +239,12 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         } catch (final Throwable e) {
             e.printStackTrace();
 
-            onError(e, null);
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    onError(e, null);
+                }
+            });
         } finally {
             if (documentFile != null) {
                 try {
@@ -352,21 +352,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         dismissProgress();
 
-        if (fileType != null
-                && (fileType.startsWith("text/") || fileType.startsWith("image/") || fileType.startsWith("video/"))) {
-            try {
-                Document document = new Document(null);
-                document.addPage(new Document.Page("Document", new URI(lastUri.toString()),
-                        0));
-
-                onSuccess(document, fileType);
-
-                return;
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            }
-        }
-
         final AnalyticsManager analyticsManager = ((MainActivity) activity).getAnalyticsManager();
         analyticsManager.report("load_error", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
 
@@ -398,24 +383,43 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                         }
                     });
             builder.setNegativeButton(getString(android.R.string.cancel), null);
-
-            mainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    Activity activity = getActivity();
-                    if (activity == null || activity.isFinishing()) {
-                        return;
-                    }
-
-                    builder.show();
-                }
-            });
+            builder.show();
 
             return;
         } else if (error instanceof IllegalMimeTypeException
                 || error instanceof ZipException
                 || error instanceof ZipEntryNotFoundException
                 || error instanceof UnsupportedMimeTypeException) {
+            if (fileType != null) {
+                for (String mime : MIME_WHITELIST) {
+                    if (!fileType.startsWith(mime)) {
+                        continue;
+                    }
+
+                    boolean blacklisted = false;
+                    for (String blackMime : MIME_BLACKLIST) {
+                        if (fileType.startsWith(blackMime)) {
+                            blacklisted = true;
+                            break;
+                        }
+                    }
+
+                    if (!blacklisted) {
+                        try {
+                            Document document = new Document(null);
+                            document.addPage(new Document.Page("Document", new URI(lastUri.toString()),
+                                    0));
+
+                            onSuccess(document, fileType);
+
+                            return;
+                        } catch (URISyntaxException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 boolean pdfSuccess = loadPdf(cacheUri);
 
@@ -450,18 +454,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             }
 
             builder.setNegativeButton(getString(android.R.string.cancel), null);
-
-            mainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    Activity activity = getActivity();
-                    if (activity == null || activity.isFinishing()) {
-                        return;
-                    }
-
-                    builder.show();
-                }
-            });
+            builder.show();
 
             return;
         } else if (error instanceof FileNotFoundException) {
