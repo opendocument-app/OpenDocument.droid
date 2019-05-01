@@ -68,7 +68,7 @@ import at.tomtasche.reader.ui.widget.VerticalViewPager;
 public class DocumentFragment extends Fragment implements FileLoader.FileLoaderListener, ActionBar.TabListener {
 
     private static final String[] MIME_WHITELIST = {"text/", "image/", "video/", "audio/", "application/json", "application/xml"};
-    private static final String[] MIME_BLACKLIST = {};
+    private static final String[] MIME_BLACKLIST = {"text/csv"};
 
     private Handler mainHandler;
 
