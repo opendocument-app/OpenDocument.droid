@@ -10,6 +10,7 @@ import android.provider.OpenableColumns;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLConnection;
 
 import at.stefl.commons.math.vector.Vector2i;
 import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
@@ -79,17 +80,17 @@ public class DocumentLoader implements FileLoader {
     }
 
     @Override
-    public void loadAsync(Uri uri, String password, boolean limit, boolean translatable) {
+    public void loadAsync(Uri uri, String ignoreType, String password, boolean limit, boolean translatable) {
         backgroundHandler.post(new Runnable() {
             @Override
             public void run() {
-                loadSync(uri, password, limit, translatable);
+                loadSync(uri, ignoreType, password, limit, translatable);
             }
         });
     }
 
     @Override
-    public void loadSync(Uri uri, String password, boolean limit, boolean translatable) {
+    public void loadSync(Uri uri, String ignoreType, String password, boolean limit, boolean translatable) {
         if (!initialized) {
             throw new RuntimeException("not initialized");
         }
@@ -98,6 +99,7 @@ public class DocumentLoader implements FileLoader {
         lastTranslator = null;
 
         InputStream stream = null;
+        String type = null;
 
         LocatedOpenDocumentFile documentFile = null;
         try {
@@ -113,16 +115,14 @@ public class DocumentLoader implements FileLoader {
             // this must not delete document.odt!
             AndroidFileCache.cleanup(context);
 
+            File cachedFile;
             if (uri.equals(AndroidFileCache.getCacheFileUri())) {
-                documentFile = new LocatedOpenDocumentFile(new File(
-                        AndroidFileCache.getCacheDirectory(context),
-                        "document.odt"));
+                cachedFile = new File(AndroidFileCache.getCacheDirectory(context),"document.odt");
             } else {
                 stream = context.getContentResolver().openInputStream(
                         uri);
 
-                File cachedFile = cache.create("document.odt", stream);
-                documentFile = new LocatedOpenDocumentFile(cachedFile);
+                cachedFile = cache.create("document.odt", stream);
             }
 
             String filename = null;
@@ -135,12 +135,37 @@ public class DocumentLoader implements FileLoader {
                     fileCursor.close();
                 }
             } catch (Exception e) {
-                // not a showstopper, so just continue
                 e.printStackTrace();
+
+                // "URI does not contain a valid access token." or
+                // "Couldn't read row 0, col -1 from CursorWindow. Make sure the Cursor is initialized correctly before accessing data from it."
             }
 
             if (filename == null) {
                 filename = uri.getLastPathSegment();
+            }
+
+            type = context.getContentResolver().getType(uri);
+            if (type == null && filename != null) {
+                try {
+                    type = URLConnection.guessContentTypeFromName(filename);
+                } catch (Exception e) {
+                    // Samsung S7 Edge crashes with java.lang.StringIndexOutOfBoundsException
+                    e.printStackTrace();
+                }
+            }
+
+            if (type == null) {
+                try {
+                    InputStream tempStream = context.getContentResolver().openInputStream(uri);
+                    try {
+                        type = URLConnection.guessContentTypeFromStream(tempStream);
+                    } finally {
+                        tempStream.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             try {
@@ -148,6 +173,8 @@ public class DocumentLoader implements FileLoader {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            documentFile = new LocatedOpenDocumentFile(cachedFile);
 
             if (documentFile.isEncrypted()) {
                 if (password == null)
@@ -211,22 +238,24 @@ public class DocumentLoader implements FileLoader {
 
             document.setLimited(lastTranslator.isCurrentOutputTruncated());
 
+            final String fileType = type;
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     if (listener != null) {
-                        listener.onSuccess(document);
+                        listener.onSuccess(document, fileType);
                     }
                 }
             });
         } catch (Throwable e) {
             e.printStackTrace();
 
+            final String fileType = type;
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     if (listener != null) {
-                        listener.onError(e);
+                        listener.onError(e, fileType);
                     }
                 }
             });

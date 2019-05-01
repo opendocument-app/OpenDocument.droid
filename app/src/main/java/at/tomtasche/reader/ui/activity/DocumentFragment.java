@@ -2,7 +2,9 @@ package at.tomtasche.reader.ui.activity;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -14,12 +16,19 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -49,11 +58,17 @@ import at.tomtasche.reader.background.DocumentLoader;
 import at.tomtasche.reader.background.DocumentLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.FileLoader;
 import at.tomtasche.reader.background.UpLoader;
+import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.ui.SnackbarHelper;
+import at.tomtasche.reader.ui.widget.FailsafePDFPagerAdapter;
 import at.tomtasche.reader.ui.widget.PageView;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
+import at.tomtasche.reader.ui.widget.VerticalViewPager;
 
 public class DocumentFragment extends Fragment implements FileLoader.FileLoaderListener, ActionBar.TabListener {
+
+    private static final String[] MIME_WHITELIST = {"text/", "image/", "video/", "audio/", "application/json", "application/xml"};
+    private static final String[] MIME_BLACKLIST = {"text/csv"};
 
     private Handler mainHandler;
 
@@ -61,7 +76,12 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private UpLoader upLoader;
 
     private ProgressDialogFragment progressDialog;
+
     private PageView pageView;
+
+    private VerticalViewPager pdfView;
+    private FailsafePDFPagerAdapter pdfAdapter;
+
     private Menu menu;
 
     private Uri lastUri;
@@ -87,8 +107,32 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        pageView = new PageView(getActivity());
-        return pageView;
+        try {
+            LinearLayout inflatedView = (LinearLayout) inflater.inflate(R.layout.fragment_document, container, false);
+
+            pageView = inflatedView.findViewById(R.id.page_view);
+            pdfView = inflatedView.findViewById(R.id.pdf_view);
+
+            return inflatedView;
+        } catch (Throwable t) {
+            String errorString = "Please install \"Android System WebView\" and restart the app afterwards.";
+
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.webview"));
+            startActivity(intent);
+
+            Toast.makeText(getContext(), errorString, Toast.LENGTH_LONG).show();
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                getActivity().finishAffinity();
+            } else{
+                getActivity().finish();
+                System.exit( 0 );
+            }
+
+            TextView textView = new TextView(getContext());
+            textView.setText(errorString);
+            return textView;
+        }
     }
 
     @Override
@@ -112,9 +156,42 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         showProgress(documentLoader, false);
 
-        toggleEditMenu(true);
+        toggleDocumentMenu(true);
+        togglePageView(true);
 
-        documentLoader.loadAsync(uri, password, limit, translatable);
+        documentLoader.loadAsync(uri, null, password, limit, translatable);
+    }
+
+    private boolean loadPdf(Uri uri) {
+        toggleDocumentMenu(false);
+        togglePageView(false);
+
+        pdfAdapter = new FailsafePDFPagerAdapter(getContext(), new File(AndroidFileCache.getCacheDirectory(getContext()),
+                uri.getLastPathSegment()).getPath());
+
+        if (!pdfAdapter.isInitialized()) {
+            pdfAdapter.close();
+            pdfAdapter = null;
+
+            togglePageView(false);
+
+            return false;
+        }
+
+        pdfView.setAdapter(pdfAdapter);
+
+        return true;
+    }
+
+    private void togglePageView(boolean enabled) {
+        pageView.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        pdfView.setVisibility(enabled ? View.GONE : View.VISIBLE);
+        pdfView.setAdapter(null);
+
+        if (!enabled && pdfAdapter != null) {
+            pdfAdapter.close();
+            pdfAdapter = null;
+        }
     }
 
     public void reloadUri(boolean limit, boolean translatable) {
@@ -162,7 +239,12 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         } catch (final Throwable e) {
             e.printStackTrace();
 
-            onError(e);
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    onError(e, null);
+                }
+            });
         } finally {
             if (documentFile != null) {
                 try {
@@ -187,34 +269,46 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         }
     }
 
-    public void uploadUri(Uri uri) {
+    private void uploadUri(Uri uri, String fileType) {
         lastUri = uri;
         lastPassword = null;
 
         showProgress(upLoader, true);
 
-        toggleEditMenu(false);
+        togglePageView(true);
+        toggleDocumentMenu(true, false);
 
-        upLoader.loadAsync(uri, null, false, false);
+        upLoader.loadAsync(uri, fileType, null, false, false);
     }
 
-    private void toggleEditMenu(boolean enabled) {
+    private void toggleDocumentMenu(boolean enabled) {
+        toggleDocumentMenu(enabled, true);
+    }
+
+    private void toggleDocumentMenu(boolean enabled, boolean editEnabled) {
         if (menu == null) {
             return;
         }
 
-        menu.findItem(R.id.menu_edit).setVisible(enabled);
+        menu.findItem(R.id.menu_edit).setVisible(editEnabled);
+
+        menu.findItem(R.id.menu_search).setVisible(enabled);
+        menu.findItem(R.id.menu_tts).setVisible(enabled);
+        menu.findItem(R.id.menu_print).setVisible(enabled);
     }
 
     @Override
-    public void onSuccess(Document document) {
+    public void onSuccess(Document document, String fileType) {
         this.lastDocument = document;
 
-        if (getActivity() == null || getActivity().isFinishing()) {
+        Activity activity = getActivity();
+        if (activity == null || activity.isFinishing()) {
             return;
         }
 
-        ((MainActivity) getActivity()).getAnalyticsManager().report("load_success");
+        MainActivity mainActivity = (MainActivity) activity;
+
+        mainActivity.getAnalyticsManager().report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
 
         dismissProgress();
 
@@ -222,7 +316,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         // DocumentFragment should - basically - work out-of-the-box
         // (without any further logic)!
 
-        ActionBar bar = ((MainActivity) getActivity()).getSupportActionBar();
+        ActionBar bar = mainActivity.getSupportActionBar();
         bar.removeAllTabs();
 
         int pages = document.getPages().size();
@@ -250,15 +344,16 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     @Override
-    public void onError(Throwable error) {
+    public void onError(Throwable error, String fileType) {
         Activity activity = getActivity();
         if (activity == null || activity.isFinishing()) {
             return;
         }
 
-        ((MainActivity) activity).getAnalyticsManager().report("load_error");
-
         dismissProgress();
+
+        final AnalyticsManager analyticsManager = ((MainActivity) activity).getAnalyticsManager();
+        analyticsManager.report("load_error", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
 
         final Uri cacheUri = AndroidFileCache.getCacheFileUri();
 
@@ -266,7 +361,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         if (error == null) {
             throw new RuntimeException("no error given");
         } else if (error instanceof EncryptedDocumentException) {
-            ((MainActivity) activity).getAnalyticsManager().report("load_error_encrypted");
+            analyticsManager.report("load_error_encrypted");
 
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.toast_error_password_protected);
@@ -288,25 +383,54 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                         }
                     });
             builder.setNegativeButton(getString(android.R.string.cancel), null);
-
-            mainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    Activity activity = getActivity();
-                    if (activity == null || activity.isFinishing()) {
-                        return;
-                    }
-
-                    builder.show();
-                }
-            });
+            builder.show();
 
             return;
         } else if (error instanceof IllegalMimeTypeException
                 || error instanceof ZipException
                 || error instanceof ZipEntryNotFoundException
                 || error instanceof UnsupportedMimeTypeException) {
-            ((MainActivity) activity).getAnalyticsManager().report("load_error_unknown_format");
+            if (fileType != null) {
+                for (String mime : MIME_WHITELIST) {
+                    if (!fileType.startsWith(mime)) {
+                        continue;
+                    }
+
+                    boolean blacklisted = false;
+                    for (String blackMime : MIME_BLACKLIST) {
+                        if (fileType.startsWith(blackMime)) {
+                            blacklisted = true;
+                            break;
+                        }
+                    }
+
+                    if (!blacklisted) {
+                        try {
+                            Document document = new Document(null);
+                            document.addPage(new Document.Page("Document", new URI(lastUri.toString()),
+                                    0));
+
+                            onSuccess(document, fileType);
+
+                            return;
+                        } catch (URISyntaxException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                boolean pdfSuccess = loadPdf(cacheUri);
+
+                if (pdfSuccess) {
+                    analyticsManager.report("load_pdf");
+
+                    return;
+                }
+            }
+
+            analyticsManager.report("load_error_unknown_format");
 
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.toast_error_illegal_file);
@@ -320,9 +444,9 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                             @Override
                             public void onClick(DialogInterface dialog,
                                                 int whichButton) {
-                                ((MainActivity) activity).getAnalyticsManager().report("load_upload");
+                                analyticsManager.report("load_upload");
 
-                                uploadUri(lastUri);
+                                uploadUri(cacheUri, fileType);
 
                                 dialog.dismiss();
                             }
@@ -330,22 +454,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             }
 
             builder.setNegativeButton(getString(android.R.string.cancel), null);
-
-            mainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    Activity activity = getActivity();
-                    if (activity == null || activity.isFinishing()) {
-                        return;
-                    }
-
-                    builder.show();
-                }
-            });
+            builder.show();
 
             return;
         } else if (error instanceof FileNotFoundException) {
-            ((MainActivity) activity).getAnalyticsManager().report("load_error_file_not_found");
+            analyticsManager.report("load_error_file_not_found");
 
             if (Environment.getExternalStorageState().equals(
                     Environment.MEDIA_MOUNTED_READ_ONLY)
@@ -356,15 +469,15 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 errorDescription = R.string.toast_error_storage;
             }
         } else if (error instanceof IllegalArgumentException) {
-            ((MainActivity) activity).getAnalyticsManager().report("load_error_illegal_file");
+            analyticsManager.report("load_error_illegal_file");
 
             errorDescription = R.string.toast_error_illegal_file;
         } else if (error instanceof OutOfMemoryError) {
-            ((MainActivity) activity).getAnalyticsManager().report("load_error_memory");
+            analyticsManager.report("load_error_memory");
 
             errorDescription = R.string.toast_error_out_of_memory;
         } else {
-            ((MainActivity) activity).getAnalyticsManager().report("load_error_generic");
+            analyticsManager.report("load_error_generic");
 
             errorDescription = R.string.toast_error_generic;
         }
@@ -489,6 +602,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         if (upLoader != null) {
             upLoader.close();
+        }
+
+        if (pdfAdapter != null) {
+            pdfAdapter.close();
         }
     }
 }

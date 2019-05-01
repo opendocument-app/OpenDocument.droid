@@ -3,8 +3,8 @@
           xmlns:tools="http://schemas.android.com/tools"
           package="at.tomtasche.reader"
           android:installLocation="auto"
-          android:versionCode="90"
-          android:versionName="3.0.23"
+          android:versionCode="92"
+          android:versionName="3.0.25"
           tools:ignore="GoogleAppIndexingWarning">
 
     <!-- added by HelpCrunch SDK otherwise -->
@@ -43,9 +43,10 @@
             android:hardwareAccelerated="true"
             android:icon="@mipmap/icon"
             android:roundIcon="@mipmap/icon_round"
-            android:label="OpenDocument Reader"
+            android:label="@string/app_title"
             android:theme="@style/MainTheme"
-            android:name="androidx.multidex.MultiDexApplication">
+            android:name="androidx.multidex.MultiDexApplication"
+            tools:replace="android:label">
 
         <meta-data
                 android:name="com.google.android.gms.version"
@@ -60,7 +61,7 @@
 
         <activity
                 android:name=".ui.activity.MainActivity"
-                android:label="OpenDocument Reader"
+                android:label="@string/app_title"
                 android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -71,7 +72,7 @@
 
         <activity-alias
                 android:name=".ui.activity.MainActivity.STRICT_CATCH"
-                android:label="OpenDocument Reader"
+                android:label="@string/app_title"
                 android:targetActivity=".ui.activity.MainActivity"
                 tools:ignore="AppLinkUrlError">
             <intent-filter>
@@ -192,7 +193,7 @@
 
         <activity-alias
                 android:name=".ui.activity.MainActivity.CATCH_ALL"
-                android:label="OpenDocument Reader"
+                android:label="@string/app_title"
                 android:targetActivity=".ui.activity.MainActivity"
                 tools:ignore="AppLinkUrlError">
             <!-- necessary for Samsung "My Files" - https://stackoverflow.com/a/52624829/198996 -->
@@ -368,7 +369,7 @@
                 android:roundIcon="@mipmap/icon_round"
                 android:excludeFromRecents="true"
                 android:exported="false"
-                android:label="OpenDocument Reader"
+                android:label="@string/app_title"
                 android:theme="@style/IntroTheme"/>
 
         <provider

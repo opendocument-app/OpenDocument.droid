@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
+import android.util.AttributeSet;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -26,7 +27,6 @@ public class PageView extends WebView implements ParagraphListener {
     public static final String ENCODING = "UTF-8";
 
     private ParagraphListener paragraphListener;
-    private boolean scrolled;
 
     private File writeTo;
     private Runnable writtenCallback;
@@ -40,13 +40,9 @@ public class PageView extends WebView implements ParagraphListener {
     private Handler buggyWebViewHandler;
     private boolean wasCommitCalled = false;
 
-    public PageView(Context context) {
-        this(context, 0);
-    }
-
     @SuppressLint("AddJavascriptInterface")
-    public PageView(Context context, final int scroll) {
-        super(context);
+    public PageView(Context context, AttributeSet attributeSet) {
+        super(context, attributeSet);
 
         buggyWebViewHandler = new Handler();
 
@@ -83,18 +79,6 @@ public class PageView extends WebView implements ParagraphListener {
                             }
                         }
                     }, 2500);
-                }
-
-                if (!scrolled) {
-                    postDelayed(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            scrollBy(0, scroll);
-                        }
-                    }, 250);
-
-                    scrolled = true;
                 }
             }
 

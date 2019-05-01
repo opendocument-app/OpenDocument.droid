@@ -37,11 +37,11 @@
     <string name="action_tts_previous">Nazaj</string>
     <string name="action_edit_save">Shrani</string>
     <string name="action_edit_help">Pomoč!?</string>
-    <string name="action_edit_banner">Spodaj uredite dokument in prtisnite Shrani</string>
+    <string name="action_edit_banner">Spodaj uredite dokument in pritisnite Shrani</string>
     <string name="landing_welcome_title">Dobrodošli v \nOpenDocument Reader</string>
-    <string name="landing_intro_view">OpenDocument Reader kjerkoli omogoča ogled dokumentov, ki so shranjeni v obliki OpenDocument (.odt, .ods, .odp).</string>
+    <string name="landing_intro_view">OpenDocument Reader povsod omogoča ogled dokumentov, ki so shranjeni v obliki OpenDocument (.odt, .ods, .odp).</string>
     <string name="landing_intro_search">S programom OpenDocument Reader lahko berete in hitro iščete po dokumentih.</string>
-    <string name="landing_intro_edit">Ste našli še zadnjo napako v dokumentu, ki jo želite popraviti? Sedaj podpira tudi spreminjanje!</string>
+    <string name="landing_intro_edit">Ste našli še zadnjo napako v dokumentu, ki jo želite popraviti? Sedaj podpira tudi urejanje!</string>
     <string name="landing_intro_open_all">Ta program se registrira, da privzeto odpre vse vrste datotek, da lahko podpira programe, kot je \"Samsung My Files\". Če vam ta značilnost povzroča težave, jo lahko tukaj izklopite.</string>
     <string name="tts_status_reading">Branje …</string>
     <string name="tts_status_initializing">Začenjanje TTS-a …</string>
@@ -51,8 +51,8 @@
     <string name="tts_status_finished">Končano.</string>
 
     <string-array name="dialog_remove_ads_options">
-        <item>odstrani oglase za vedno</item>
-        <item>začasno odstrani oglase</item>
+        <item>Odstrani oglase za vedno</item>
+        <item>Začasno odstrani oglase</item>
     </string-array>
 
 </resources>

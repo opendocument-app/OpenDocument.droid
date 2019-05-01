@@ -78,17 +78,17 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
     }
 
     @Override
-    public void loadAsync(Uri uri, String password, boolean limit, boolean translatable) {
+    public void loadAsync(Uri uri, String fileType, String password, boolean limit, boolean translatable) {
         backgroundHandler.post(new Runnable() {
             @Override
             public void run() {
-                loadSync(uri, password, limit, translatable);
+                loadSync(uri, fileType, password, limit, translatable);
             }
         });
     }
 
     @Override
-    public void loadSync(Uri uri, String password, boolean limit, boolean translatable) {
+    public void loadSync(Uri uri, String fileType, String password, boolean limit, boolean translatable) {
         if (!initialized) {
             throw new RuntimeException("not initialized");
         }
@@ -104,79 +104,6 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
             authenticationTask = auth.signInAnonymously();
         }
 
-        String filename = null;
-        try {
-            // https://stackoverflow.com/a/38304115/198996
-            Cursor fileCursor = context.getContentResolver().query(uri, null, null, null, null);
-            if (fileCursor != null && fileCursor.moveToFirst()) {
-                int nameIndex = fileCursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME);
-                filename = fileCursor.getString(nameIndex);
-                fileCursor.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            // "URI does not contain a valid access token." or
-            // "Couldn't read row 0, col -1 from CursorWindow. Make sure the Cursor is initialized correctly before accessing data from it."
-        }
-
-        if (filename == null) {
-            filename = uri.getLastPathSegment();
-        }
-
-        try {
-            RecentDocumentsUtil.addRecentDocument(context, filename, uri);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        String type = context.getContentResolver().getType(uri);
-        if (type == null && filename != null) {
-            try {
-                type = URLConnection.guessContentTypeFromName(filename);
-            } catch (Exception e) {
-                // Samsung S7 Edge crashes with java.lang.StringIndexOutOfBoundsException
-                e.printStackTrace();
-            }
-        }
-
-        if (type == null) {
-            try {
-                InputStream stream = context.getContentResolver().openInputStream(uri);
-                try {
-                    type = URLConnection.guessContentTypeFromStream(stream);
-                } finally {
-                    stream.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (type != null
-                && (type.equals("text/html") || type.equals("text/plain")
-                || type.equals("image/png") || type.equals("image/jpeg"))) {
-            try {
-                Document document = new Document(null);
-                document.addPage(new Page("Document", new URI(uri.toString()),
-                        0));
-
-                mainHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (listener != null) {
-                            listener.onSuccess(document);
-                        }
-                    }
-                });
-
-                loading = false;
-                return;
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            }
-        }
-
         InputStream stream = null;
         try {
             if (authenticationTask != null) {
@@ -187,7 +114,7 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
 
             stream = context.getContentResolver().openInputStream(uri);
 
-            String fileExtension = MimeTypeMap.getSingleton().getExtensionFromMimeType(type);
+            String fileExtension = MimeTypeMap.getSingleton().getExtensionFromMimeType(fileType);
             StorageReference reference = storage.child("uploads/" + currentUserId + "/" + UUID.randomUUID() + "." + fileExtension);
 
             UploadTask uploadTask = reference.putStream(stream);
@@ -211,7 +138,7 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
                     @Override
                     public void run() {
                         if (listener != null) {
-                            listener.onSuccess(document);
+                            listener.onSuccess(document, null);
                         }
                     }
                 });
@@ -225,7 +152,7 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
                 @Override
                 public void run() {
                     if (listener != null) {
-                        listener.onError(e);
+                        listener.onError(e, null);
                     }
                 }
             });

@@ -19,7 +19,7 @@ android {
     }
 
     dexOptions {
-        javaMaxHeapSize "2g"
+        javaMaxHeapSize "4g"
     }
 
     buildTypes {
@@ -74,6 +74,10 @@ dependencies {
     /*implementation ('com.helpcrunch:helpcrunch-sdk:1.5.1@aar') {
         transitive=true
     }*/
+
+    implementation 'es.voghdev.pdfviewpager:library:1.0.6'
+    // https://github.com/voghDev/PdfViewPager/issues/110
+    implementation 'com.davemorrissey.labs:subsampling-scale-image-view:3.10.0'
 }
 
 apply plugin: 'com.google.gms.google-services'
