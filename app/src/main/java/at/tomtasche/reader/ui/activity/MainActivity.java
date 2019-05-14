@@ -175,6 +175,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         });
 
         catchAllSwitch.setChecked(isCatchAllEnabled);
+
+        analyticsManager.report(isCatchAllEnabled ? "catch_all_enabled" : "catch_all_disabled");
     }
 
     private void toggleComponent(ComponentName component, boolean enabled) {
