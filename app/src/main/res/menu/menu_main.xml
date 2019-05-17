@@ -14,12 +14,6 @@
             android:id="@+id/menu_document_group"
             android:visible="false">
         <item
-                android:id="@+id/menu_edit"
-                android:icon="@drawable/ic_edit"
-                android:title="@string/menu_edit"
-                app:showAsAction="always"
-                tools:ignore="AlwaysShowAction"/>
-        <item
                 android:id="@+id/menu_search"
                 android:icon="@drawable/ic_search"
                 android:title="@string/menu_search"
@@ -44,9 +38,4 @@
             android:id="@+id/menu_remove_ads"
             android:title="@string/menu_remove_ads"
             app:showAsAction="never"/>
-
-    <item
-            android:id="@+id/edit_help"
-            app:showAsAction="never"
-            android:title="@string/action_edit_help"/>
 </menu>

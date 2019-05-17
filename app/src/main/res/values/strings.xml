@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_title">OpenDocument Reader</string>
+    <string name="app_title">OpenDocument Reader - PDF</string>
 
     <string name="toast_error_generic">Something bad happened. Couldn\'t open file.</string>
     <string name="toast_error_find_file">Couldn\'t find file. Maybe it doesn\'t exist any longer?</string>
@@ -20,7 +20,6 @@
     <string name="menu_recent">Recently opened documents</string>
     <string name="menu_search">Search in document</string>
     <string name="menu_open">Open document</string>
-    <string name="menu_edit">Edit document</string>
     <string name="menu_remove_ads">Remove advertisements</string>
     <string name="menu_fullscreen">Open fullscreen mode</string>
     <string name="menu_cloud_print">Print document</string>
@@ -34,13 +33,9 @@
     <string name="action_tts_pause">Pause</string>
     <string name="action_tts_next">Next</string>
     <string name="action_tts_previous">Previous</string>
-    <string name="action_edit_save">Save</string>
-    <string name="action_edit_help">Help!?</string>
-    <string name="action_edit_banner">Edit your document below and press Save</string>
     <string name="landing_welcome_title">Welcome to \nOpenDocument Reader</string>
-    <string name="landing_intro_view">OpenDocument Reader allows you to view documents that are stored in OpenDocument format (.odt, .ods, .odp and .odg) wherever you are.</string>
+    <string name="landing_intro_view">OpenDocument Reader allows you to view documents that are stored in PDF format (.pdf) wherever you are.</string>
     <string name="landing_intro_search">With OpenDocument Reader you can read and search through your documents in a breeze.</string>
-    <string name="landing_intro_edit">Found one last typo left to fix ahead of your big presentation? It now supports modifications too!</string>
     <string name="landing_intro_open_all">This app registers to open all file types by default in order to support apps like \"Samsung My Files\". You may turn this feature off here if it causes problems for you.</string>
     <string name="tts_status_reading">Reading…</string>
     <string name="tts_status_initializing">Initializing TTS…</string>
@@ -48,13 +43,10 @@
     <string name="tts_status_failed">TTS failed.</string>
     <string name="tts_status_paused">Paused.</string>
     <string name="tts_status_finished">Finished.</string>
-    <string name="edit_status_saved">Document saved to your SD card</string>
     <string name="crouton_printing">Printing…</string>
     <string name="crouton_print_unavailable">Printing not available on your device. Please upgrade to a newer version of Android.</string>
-    <string name="intro_title_open">Open and read your ODF file on the go!</string>
-    <string name="intro_description_open">OpenDocument Reader allows you to view documents that are stored in OpenDocument format (.odt, .ods, .odp and .odg). These files are usually created using LibreOffice or OpenOffice. This app allows to open such files on your mobile device too, so you can read them on the go.</string>
-    <string name="intro_title_edit">Found a typo in your document? Now supports modification!</string>
-    <string name="intro_description_edit">OpenDocument Reader not only allows to read documents on your mobile device, but also supports modifying them too. Typos are fixed in a breeze, even on the train!</string>
+    <string name="intro_title_open">Open and read your PDF file on the go!</string>
+    <string name="intro_description_open">OpenDocument Reader allows you to view documents that are stored in PDF format (.pdf). This app allows to open such files on your mobile device too, so you can read them on the go.</string>
     <string name="intro_title_apps">Read your documents from within other apps</string>
     <string name="intro_description_apps">OpenDocument Reader supports a huge range of other apps to open documents from. A colleague sent a presentation via Gmail? Click the attachment and this app is going to open right away!</string>
     <string name="intro_button_start">START</string>

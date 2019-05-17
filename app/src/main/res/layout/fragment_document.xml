@@ -3,13 +3,13 @@
         android:orientation="vertical" android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-    <at.tomtasche.reader.ui.widget.PageView
+    <at.tomtasche.readerpdf.ui.widget.PageView
             android:id="@+id/page_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"/>
 
-    <at.tomtasche.reader.ui.widget.VerticalViewPager
+    <com.github.barteksc.pdfviewer.PDFView
             android:id="@+id/pdf_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

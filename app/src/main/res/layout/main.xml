@@ -114,32 +114,6 @@
                 android:orientation="horizontal"
                 android:weightSum="1">
 
-            <ImageView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_weight="0.2"
-                    app:srcCompat="@drawable/ic_edit"
-                    tools:ignore="ContentDescription,NestedWeights"/>
-
-            <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.7"
-                    android:gravity="center_vertical"
-                    android:lineSpacingMultiplier="1.2"
-                    android:text="@string/landing_intro_edit"/>
-        </LinearLayout>
-
-        <LinearLayout
-                style="@style/landing_intro_margin"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="0.18"
-
-                android:orientation="horizontal"
-                android:weightSum="1">
-
             <Switch
                     android:id="@+id/landing_catch_all"
                     android:layout_width="0dp"

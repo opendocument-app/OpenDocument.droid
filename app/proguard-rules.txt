@@ -124,3 +124,6 @@
 
 -dontwarn org.xmlpull.v1.**
 -dontwarn java.beans.**
+
+# https://github.com/barteksc/AndroidPdfViewer
+-keep class com.shockwave.**
