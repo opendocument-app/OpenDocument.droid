@@ -148,7 +148,7 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
             }
         } catch (Throwable e) {
             e.printStackTrace();
-w
+
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
