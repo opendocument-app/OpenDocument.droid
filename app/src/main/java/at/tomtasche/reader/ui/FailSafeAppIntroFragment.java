@@ -177,7 +177,7 @@ public class FailSafeAppIntroFragment extends AppIntroBaseFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         try {
             return super.onCreateView(inflater, container, savedInstanceState);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             e.printStackTrace();
 
             getActivity().finish();
