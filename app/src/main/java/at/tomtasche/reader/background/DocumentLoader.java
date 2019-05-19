@@ -242,7 +242,8 @@ public class DocumentLoader implements FileLoader {
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    if (listener != null) {
+                    FileLoaderListener strongReferenceListener = listener;
+                    if (strongReferenceListener != null) {
                         listener.onSuccess(document, fileType);
                     }
                 }
@@ -254,7 +255,8 @@ public class DocumentLoader implements FileLoader {
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    if (listener != null) {
+                    FileLoaderListener strongReferenceListener = listener;
+                    if (strongReferenceListener != null) {
                         listener.onError(e, fileType);
                     }
                 }

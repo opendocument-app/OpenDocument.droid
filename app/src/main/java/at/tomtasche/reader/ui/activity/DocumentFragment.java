@@ -166,12 +166,19 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         toggleDocumentMenu(false);
         togglePageView(false);
 
-        pdfAdapter = new FailsafePDFPagerAdapter(getContext(), new File(AndroidFileCache.getCacheDirectory(getContext()),
-                uri.getLastPathSegment()).getPath());
+        try {
+            pdfAdapter = new FailsafePDFPagerAdapter(getContext(), new File(AndroidFileCache.getCacheDirectory(getContext()),
+                    uri.getLastPathSegment()).getPath());
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
 
-        if (!pdfAdapter.isInitialized()) {
-            pdfAdapter.close();
-            pdfAdapter = null;
+
+        if (pdfAdapter == null || !pdfAdapter.isInitialized()) {
+            if (pdfAdapter != null) {
+                pdfAdapter.close();
+                pdfAdapter = null;
+            }
 
             togglePageView(false);
 
