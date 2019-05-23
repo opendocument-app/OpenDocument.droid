@@ -59,6 +59,7 @@
     <string name="intro_description_apps">OpenDocument Reader supports a huge range of other apps to open documents from. A colleague sent a presentation via Gmail? Click the attachment and this app is going to open right away!</string>
     <string name="intro_button_start">START</string>
     <string name="crouton_remove_ads">Need more space to read? Remove ads for free via the menu.</string>
+    <string name="reopen_chooser_title">Open using another app installed on your device:</string>
 
     <string-array name="dialog_remove_ads_options">
         <item>Remove ads forever</item>

@@ -40,6 +40,7 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
 import at.tomtasche.reader.BuildConfig;
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.KitKatPrinter;
 import at.tomtasche.reader.nonfree.AdManager;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
@@ -82,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
     private int permissionDialogCount;
     private boolean isIntroOpen;
+    private Intent lastIntent;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -278,6 +280,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     }
 
     private void handleIntent(Intent intent) {
+        lastIntent = intent;
+
         if (intent.getData() != null) {
             loadUri(intent.getData());
 
@@ -418,7 +422,11 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 analyticsManager.report("menu_print");
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    KitKatPrinter.print(this, documentFragment.getPageView());
+                    if (documentFragment.getPdfView().getVisibility() == View.VISIBLE) {
+                        KitKatPrinter.print(this, AndroidFileCache.getCacheFile(this));
+                    } else {
+                        KitKatPrinter.print(this, documentFragment.getPageView());
+                    }
                 } else {
                     SnackbarHelper.show(this, R.string.crouton_print_unavailable, null, true, true);
                 }
@@ -671,5 +679,9 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
     public AnalyticsManager getAnalyticsManager() {
         return analyticsManager;
+    }
+
+    public Intent getLastIntent() {
+        return lastIntent;
     }
 }

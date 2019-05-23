@@ -9,10 +9,10 @@ public class SnackbarHelper {
 
     public static void show(Activity activity, int resId, final Runnable callback,
                             boolean isIndefinite, boolean isError) {
-        show(activity, activity.getString(resId), callback, isIndefinite, isError);
+        show(activity, activity.getString(android.R.string.ok), activity.getString(resId), callback, isIndefinite, isError);
     }
 
-    public static void show(Activity activity, final String message, final Runnable callback, boolean isIndefinite, boolean isError) {
+    private static void show(Activity activity, String buttonText, final String message, final Runnable callback, boolean isIndefinite, boolean isError) {
         activity.runOnUiThread(new Runnable() {
 
             @Override
@@ -21,7 +21,7 @@ public class SnackbarHelper {
 
                 Snackbar snackbar = Snackbar.make(activity.findViewById(android.R.id.content), message, duration);
                 if (callback != null) {
-                    snackbar.setAction(android.R.string.ok, new View.OnClickListener() {
+                    snackbar.setAction(buttonText, new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             callback.run();
