@@ -115,6 +115,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             return inflatedView;
         } catch (Throwable t) {
+            ((MainActivity) getActivity()).getCrashManager().log("no webview installed: " + t.getMessage());
+
             String errorString = "Please install \"Android System WebView\" and restart the app afterwards.";
 
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.webview"));
@@ -289,11 +291,18 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     private void toggleDocumentMenu(boolean enabled) {
-        toggleDocumentMenu(enabled, true);
+        toggleDocumentMenu(enabled, enabled);
     }
 
     private void toggleDocumentMenu(boolean enabled, boolean editEnabled) {
         if (menu == null) {
+            pageView.post(new Runnable() {
+                @Override
+                public void run() {
+                    toggleDocumentMenu(enabled, editEnabled);
+                }
+            });
+
             return;
         }
 
@@ -301,7 +310,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         menu.findItem(R.id.menu_search).setVisible(enabled);
         menu.findItem(R.id.menu_tts).setVisible(enabled);
-        menu.findItem(R.id.menu_print).setVisible(enabled);
     }
 
     @Override
@@ -432,6 +440,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
                 if (pdfSuccess) {
                     analyticsManager.report("load_pdf");
+
+                    ActionBar bar = ((MainActivity) activity).getSupportActionBar();
+                    bar.removeAllTabs();
+
+                    bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 
                     return;
                 }
@@ -597,6 +610,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     public PageView getPageView() {
         return pageView;
+    }
+
+    public VerticalViewPager getPdfView() {
+        return pdfView;
     }
 
     @Override

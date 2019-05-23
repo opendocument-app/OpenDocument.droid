@@ -117,7 +117,7 @@ public class DocumentLoader implements FileLoader {
 
             File cachedFile;
             if (uri.equals(AndroidFileCache.getCacheFileUri())) {
-                cachedFile = new File(AndroidFileCache.getCacheDirectory(context),"document.odt");
+                cachedFile = AndroidFileCache.getCacheFile(context);
             } else {
                 stream = context.getContentResolver().openInputStream(
                         uri);
