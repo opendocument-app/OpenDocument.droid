@@ -1,13 +1,17 @@
 package at.tomtasche.reader.ui.activity;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,8 +35,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.zip.ZipException;
 
@@ -365,9 +371,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             return;
         }
 
+        final MainActivity mainActivity = (MainActivity) activity;
+
         dismissProgress();
 
-        final AnalyticsManager analyticsManager = ((MainActivity) activity).getAnalyticsManager();
+        final AnalyticsManager analyticsManager = mainActivity.getAnalyticsManager();
         analyticsManager.report("load_error", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
 
         final Uri cacheUri = AndroidFileCache.getCacheFileUri();
@@ -502,7 +510,48 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             errorDescription = R.string.toast_error_generic;
         }
 
-        SnackbarHelper.show(activity, errorDescription, null, true, true);
+        SnackbarHelper.show(activity, errorDescription, new Runnable() {
+            @Override
+            public void run() {
+                Intent lastIntent = mainActivity.getLastIntent();
+                if (lastIntent == null) {
+                    analyticsManager.report("reopen_failed_nointent");
+
+                    return;
+                }
+
+                Intent intent = new Intent();
+                intent.setAction(lastIntent.getAction());
+                intent.setDataAndType(lastIntent.getData(), lastIntent.getType());
+
+                // taken from: https://stackoverflow.com/a/23268821/198996
+                PackageManager packageManager = activity.getPackageManager();
+                List<ResolveInfo> activities = packageManager.queryIntentActivities(intent, 0);
+                String packageNameToHide = activity.getPackageName();
+                ArrayList<Intent> targetIntents = new ArrayList<Intent>();
+                for (ResolveInfo currentInfo : activities) {
+                    String packageName = currentInfo.activityInfo.packageName;
+                    if (!packageNameToHide.equals(packageName)) {
+                        Intent targetIntent = new Intent();
+                        targetIntent.setAction(intent.getAction());
+                        targetIntent.setDataAndType(intent.getData(), intent.getAction());
+                        targetIntent.setPackage(packageName);
+                        targetIntent.setComponent(new ComponentName(packageName, currentInfo.activityInfo.name));
+                        targetIntents.add(targetIntent);
+                    }
+                }
+
+                if (targetIntents.size() > 0) {
+                    analyticsManager.report("reopen_success");
+
+                    Intent chooserIntent = Intent.createChooser(targetIntents.remove(0), activity.getString(R.string.reopen_chooser_title));
+                    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetIntents.toArray(new Parcelable[] {}));
+                    activity.startActivity(chooserIntent);
+                } else {
+                    analyticsManager.report("reopen_failed_noapp");
+                }
+            }
+        }, true, true);
 
         Log.e("OpenDocument Reader", "Error opening file at " + lastUri.toString(),
                 error);
