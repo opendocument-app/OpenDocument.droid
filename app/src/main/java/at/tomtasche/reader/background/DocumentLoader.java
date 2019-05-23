@@ -7,7 +7,10 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.provider.OpenableColumns;
 
+import com.hzy.libmagic.MagicApi;
+
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
@@ -63,6 +66,20 @@ public class DocumentLoader implements FileLoader {
         backgroundHandler = new Handler(backgroundThread.getLooper());
 
         initialized = true;
+    }
+
+    private boolean initMagicFromAssets() {
+        try {
+            InputStream inputStream = context.getAssets().open("magic.mgc");
+            int length = inputStream.available();
+            byte[] buffer = new byte[length];
+            if (inputStream.read(buffer) > 0) {
+                return MagicApi.loadFromBytes(buffer, MagicApi.MAGIC_MIME_TYPE) == 0;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     @Override
@@ -145,7 +162,18 @@ public class DocumentLoader implements FileLoader {
                 filename = uri.getLastPathSegment();
             }
 
-            type = context.getContentResolver().getType(uri);
+            if (initMagicFromAssets()) {
+                try {
+                    type = MagicApi.magicFile(cachedFile.getAbsolutePath());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (type == null) {
+                type = context.getContentResolver().getType(uri);
+            }
+
             if (type == null && filename != null) {
                 try {
                     type = URLConnection.guessContentTypeFromName(filename);
@@ -157,7 +185,7 @@ public class DocumentLoader implements FileLoader {
 
             if (type == null) {
                 try {
-                    InputStream tempStream = context.getContentResolver().openInputStream(uri);
+                    InputStream tempStream = new FileInputStream(cachedFile);
                     try {
                         type = URLConnection.guessContentTypeFromStream(tempStream);
                     } finally {

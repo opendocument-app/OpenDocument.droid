@@ -444,7 +444,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 }
             }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && fileType != null && fileType.equals("application/pdf")) {
                 boolean pdfSuccess = loadPdf(cacheUri);
 
                 if (pdfSuccess) {

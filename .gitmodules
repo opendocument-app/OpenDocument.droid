@@ -1,0 +1,3 @@
+[submodule "AndroidMagic"]
+	path = AndroidMagic
+	url = https://github.com/huzongyao/AndroidMagic.git
