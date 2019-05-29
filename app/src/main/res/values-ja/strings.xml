@@ -58,6 +58,7 @@
     <string name="intro_description_apps">OpenDocument リーダーは、ドキュメントを開く他のアプリを幅広くサポートしています。同僚が Gmail でプレゼンテーションを送信しましたか? 添付ファイルをクリックすると、このアプリがすぐに開くことができます!</string>
     <string name="intro_button_start">開始</string>
     <string name="crouton_remove_ads">読むためのスペースがもっと必要ですか? メニューから無料の広告を削除してください。</string>
+    <string name="reopen_chooser_title">お使いのデバイスにインストールされた別のアプリで開く:</string>
     <string-array name="dialog_remove_ads_options">
         <item>永久に広告を削除する</item>
         <item>無料の短いビデオを見て、一時的に広告を削除する</item>
