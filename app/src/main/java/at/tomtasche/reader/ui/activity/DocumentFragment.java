@@ -514,16 +514,9 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         SnackbarHelper.show(activity, errorDescription, new Runnable() {
             @Override
             public void run() {
-                Intent lastIntent = mainActivity.getLastIntent();
-                if (lastIntent == null) {
-                    analyticsManager.report("reopen_failed_nointent");
-
-                    return;
-                }
-
                 Intent intent = new Intent();
-                intent.setAction(lastIntent.getAction());
-                intent.setDataAndType(lastIntent.getData(), lastIntent.getType());
+                intent.setAction(Intent.ACTION_VIEW);
+                intent.setDataAndType(cacheUri, fileType);
 
                 // taken from: https://stackoverflow.com/a/23268821/198996
                 PackageManager packageManager = activity.getPackageManager();
@@ -538,6 +531,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                         targetIntent.setDataAndType(intent.getData(), intent.getAction());
                         targetIntent.setPackage(packageName);
                         targetIntent.setComponent(new ComponentName(packageName, currentInfo.activityInfo.name));
+                        targetIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         targetIntents.add(targetIntent);
                     }
                 }

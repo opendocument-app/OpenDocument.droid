@@ -372,11 +372,6 @@
                 android:label="@string/app_title"
                 android:theme="@style/IntroTheme"/>
 
-        <provider
-                android:name=".background.FileProvider"
-                android:authorities="at.tomtasche.reader"
-                android:exported="false"/>
-
         <activity
                 android:name="com.google.android.gms.ads.AdActivity"
                 android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
@@ -389,7 +384,7 @@
                 android:grantUriPermissions="true">
             <meta-data
                     android:name="android.support.FILE_PROVIDER_PATHS"
-                    android:resource="@xml/nnf_provider_paths"/>
+                    android:resource="@xml/cache_provider_paths"/>
         </provider>
     </application>
 
