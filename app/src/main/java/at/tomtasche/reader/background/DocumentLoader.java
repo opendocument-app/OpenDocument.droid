@@ -76,7 +76,7 @@ public class DocumentLoader implements FileLoader {
             if (inputStream.read(buffer) > 0) {
                 return MagicApi.loadFromBytes(buffer, MagicApi.MAGIC_MIME_TYPE) == 0;
             }
-        } catch (IOException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
         return false;
@@ -165,7 +165,7 @@ public class DocumentLoader implements FileLoader {
             if (initMagicFromAssets()) {
                 try {
                     type = MagicApi.magicFile(cachedFile.getAbsolutePath());
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                 }
             }
