@@ -16,25 +16,11 @@ public class AndroidFileCache extends DefaultFileCache {
     private static File cache;
 
     public static final File getCacheDirectory(Context context) {
-        if (cache != null && testDirectory(cache)) {
-            return cache;
-        } else {
-            File directory = context.getCacheDir();
-            if (!testDirectory(directory)) {
-                directory = context.getFilesDir();
-                if (!testDirectory(directory)) {
-                    directory = new File(
-                            Environment.getExternalStorageDirectory(),
-                            ".odf-reader");
-                    if (!testDirectory(directory)) {
-                        throw new IllegalStateException(
-                                "No writable cache available");
-                    }
-                }
-            }
+        File directory = context.getCacheDir();
+        directory = new File(directory, "cache");
+        directory.mkdirs();
 
-            return cache = directory;
-        }
+        return cache = directory;
     }
 
     private static final boolean testDirectory(File directory) {
@@ -53,7 +39,7 @@ public class AndroidFileCache extends DefaultFileCache {
             try {
                 result = new URI(
                         // use relative paths (important for chromecast-support)
-                        // "content://at.tomtasche.reader/" +
+                        // "content://at.tomtasche.reader.provider/" +
                         Uri.encode(imageFileName));
             } catch (URISyntaxException e) {
                 e.printStackTrace();
@@ -69,12 +55,12 @@ public class AndroidFileCache extends DefaultFileCache {
 
     public static Uri getCacheFileUri() {
         // hex hex!
-        return Uri.parse("content://at.tomtasche.reader/document.odt");
+        return Uri.parse("content://at.tomtasche.reader.provider/cache/document.odt");
     }
 
     public static Uri getHtmlCacheFileUri() {
         // hex hex!
-        return Uri.parse("content://at.tomtasche.reader/content.html");
+        return Uri.parse("content://at.tomtasche.reader.provider/cache/content.html");
     }
 
     public static File getCacheFile(Context context) {

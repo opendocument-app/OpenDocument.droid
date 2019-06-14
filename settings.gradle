@@ -1,2 +1,3 @@
-include ':payme'
+include ':payme', ':libmagic'
 include ':app'
+project(':libmagic').projectDir = new File('AndroidMagic/libmagic')

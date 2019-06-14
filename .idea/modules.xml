@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/OpenDocument.droid.iml" filepath="$PROJECT_DIR$/OpenDocument.droid.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/AndroidMagic/libmagic/libmagic.iml" filepath="$PROJECT_DIR$/AndroidMagic/libmagic/libmagic.iml" />
       <module fileurl="file://$PROJECT_DIR$/payme/payme.iml" filepath="$PROJECT_DIR$/payme/payme.iml" />
     </modules>
   </component>

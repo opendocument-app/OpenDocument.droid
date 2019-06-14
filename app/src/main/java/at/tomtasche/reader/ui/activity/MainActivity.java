@@ -83,7 +83,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
     private int permissionDialogCount;
     private boolean isIntroOpen;
-    private Intent lastIntent;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -280,8 +279,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     }
 
     private void handleIntent(Intent intent) {
-        lastIntent = intent;
-
         if (intent.getData() != null) {
             loadUri(intent.getData());
 
@@ -679,9 +676,5 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
     public AnalyticsManager getAnalyticsManager() {
         return analyticsManager;
-    }
-
-    public Intent getLastIntent() {
-        return lastIntent;
     }
 }
