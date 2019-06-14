@@ -12,9 +12,43 @@
     <string name="dialog_loading_title">Ag luchtú…</string>
     <string name="dialog_uploading_title">Á uasluchtú…</string>
     <string name="dialog_loading_message">D\'fhéadfadh go mairfidh sé seo tamall ag braith ar chomhdhéanamh na cáipéise agus cumhacht do ghuthán.</string>
+    <string name="dialog_remove_ads_title">Bain fógraí le táille bheag:</string>
     <string name="dialog_upload_file">Ní thig linn an cháipéis seo a oscailt mar ní thugtar tacaíocht don chineál comhad sin. An mian leat í a uasluchtú go sealadach chuig ár bhfreastalaí ionas gur féidir linn í a thaispeáint duit?</string>
     <string name="dialog_title_choose_file">Roghnaigh comhad ón ngléas</string>
     <string name="dialog_list_no_documents_found">Níor aimsíodh cáipéis ar bith</string>
+    <string name="menu_recent">Cáipéisí a osclaíodh le déanaí</string>
     <string name="menu_search">Cuardaigh</string>
     <string name="menu_open">Oscail</string>
+    <string name="menu_edit">Cuir an cháipéis in eagar</string>
+    <string name="menu_remove_ads">Bain na fógraí</string>
+    <string name="menu_fullscreen">Lánscáileán</string>
+    <string name="menu_cloud_print">Clóbhuail an cháipéis</string>
+    <string name="menu_tts">Téacs-Go-Glór</string>
+    <string name="crouton_leave_fullscreen">Brúigh Siar chun an lánscáileán a fhágáil</string>
+    <string name="crouton_error_open_app">Níorbh fhéidir an feidhmchláirín roghnaithe a oscailt.</string>
+    <string name="action_find_previous">Roimhe</string>
+    <string name="action_find_next">Ar aghaidh</string>
+    <string name="action_find_on_page">Aimsigh ar an leathanach</string>
+    <string name="action_tts_play">Seinn</string>
+    <string name="action_tts_pause">Cuir ar sos</string>
+    <string name="action_tts_next">Ar aghaidh</string>
+    <string name="action_tts_previous">Roimhe</string>
+    <string name="action_edit_save">Taisc</string>
+    <string name="action_edit_help">Cabhair!?</string>
+    <string name="action_edit_banner">Cuir do cháipéis in eagar thíos agus brúigh ar Taisc</string>
+    <string name="landing_welcome_title">Fáilte go \nOpenDocument Reader</string>
+    <string name="landing_intro_search">Le hOpenDocument Reader, is féidir leat do chuid cáipéisí a léamh agus a chuardach go héasca.</string>
+    <string name="tts_status_reading">Ag léamh…</string>
+    <string name="tts_status_ready">Réidh!</string>
+    <string name="tts_status_failed">Theip ar TTS.</string>
+    <string name="tts_status_paused">Curtha ar sos.</string>
+    <string name="tts_status_finished">Críochnaithe.</string>
+    <string name="crouton_printing">Ag clóbhualadh…</string>
+    <string name="intro_title_open">Oscail agus léigh do chomhad ODF agus tú ar shiúl!</string>
+    <string name="intro_title_apps">Léigh do chuid cáipéisí ó laistigh d\'fheidhmchláiríní eile</string>
+    <string name="intro_button_start">TOSAIGH</string>
+    <string-array name="dialog_remove_ads_options">
+        <item>Bain na fógraí go deo</item>
+        <item>Remove ads temporarily for free by watching a short video</item>
+    </string-array>
 </resources>
