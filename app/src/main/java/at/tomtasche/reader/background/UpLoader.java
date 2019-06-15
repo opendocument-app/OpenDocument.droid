@@ -1,11 +1,9 @@
 package at.tomtasche.reader.background;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.provider.OpenableColumns;
 import android.webkit.MimeTypeMap;
 
 import com.google.android.gms.tasks.Task;
@@ -20,8 +18,6 @@ import com.google.firebase.storage.UploadTask;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.UUID;
 

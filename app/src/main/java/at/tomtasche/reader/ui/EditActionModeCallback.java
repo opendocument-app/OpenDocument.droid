@@ -2,9 +2,7 @@ package at.tomtasche.reader.ui;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
@@ -79,9 +77,19 @@ public class EditActionModeCallback implements ActionMode.Callback {
             }
 
             case R.id.edit_save: {
-                adManager.showInterstitial();
+                Runnable onPermission = new Runnable() {
+                    @Override
+                    public void run() {
+                        adManager.showInterstitial();
 
-                save();
+                        save();
+                    }
+                };
+
+                boolean hasPermission = activity.requestPermission(onPermission);
+                if (hasPermission) {
+                    onPermission.run();
+                }
 
                 break;
             }

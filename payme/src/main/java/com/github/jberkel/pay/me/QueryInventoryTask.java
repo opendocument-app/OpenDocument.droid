@@ -1,6 +1,7 @@
 package com.github.jberkel.pay.me;
 
 import android.os.AsyncTask;
+
 import com.github.jberkel.pay.me.listener.QueryInventoryFinishedListener;
 import com.github.jberkel.pay.me.model.Inventory;
 

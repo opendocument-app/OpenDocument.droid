@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
-      xmlns:android="http://schemas.android.com/apk/res/android">
+        xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
             android:id="@+id/tts_previous"
             android:enabled="false"
             android:icon="@drawable/ic_skip_previous"
             app:showAsAction="ifRoom"
-            android:title="@string/action_tts_previous"/>
+            android:title="@string/action_tts_previous" />
     <item
             android:id="@+id/tts_play"
             android:enabled="false"
             android:icon="@drawable/ic_play_arrow"
             app:showAsAction="always"
-            android:title="@string/action_tts_play"/>
+            android:title="@string/action_tts_play" />
     <item
             android:id="@+id/tts_pause"
             android:enabled="false"
             android:icon="@drawable/ic_pause"
             app:showAsAction="always"
-            android:title="@string/action_tts_pause"/>
+            android:title="@string/action_tts_pause" />
     <item
             android:id="@+id/tts_next"
             android:enabled="false"
             android:icon="@drawable/ic_skip_next"
             app:showAsAction="ifRoom"
-            android:title="@string/action_tts_next"/>
+            android:title="@string/action_tts_next" />
 
 </menu>

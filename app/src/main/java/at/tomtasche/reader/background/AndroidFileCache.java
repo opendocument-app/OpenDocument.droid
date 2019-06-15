@@ -2,7 +2,6 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Environment;
 
 import java.io.File;
 import java.net.URI;
@@ -64,7 +63,7 @@ public class AndroidFileCache extends DefaultFileCache {
     }
 
     public static File getCacheFile(Context context) {
-        return new File(getCacheDirectory(context),"document.odt");
+        return new File(getCacheDirectory(context), "document.odt");
     }
 
     public static void cleanup(Context context) {
