@@ -6,7 +6,6 @@
     <string name="toast_error_illegal_file">No sembla que sigui un format de fitxer compatible.</string>
     <string name="toast_error_out_of_memory">S\'ha esgotat la memòria del telèfon. Massa imatges o fitxer massa gran.</string>
     <string name="toast_error_password_protected">El document està protegit per contrasenya</string>
-    <string name="toast_error_storage">L\'emmagatzematge extern no està disponible. No s\'ha pogut llegir el fitxer.</string>
     <string name="dialog_recent_title">Documents recents</string>
     <string name="dialog_choose_filemanager">Obre el document mitjançant:</string>
     <string name="dialog_loading_title">S\'està carregant…</string>
