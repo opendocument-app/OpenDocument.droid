@@ -79,9 +79,19 @@ public class EditActionModeCallback implements ActionMode.Callback {
             }
 
             case R.id.edit_save: {
-                adManager.showInterstitial();
+                Runnable onPermission = new Runnable() {
+                    @Override
+                    public void run() {
+                        adManager.showInterstitial();
 
-                save();
+                        save();
+                    }
+                };
+
+                boolean hasPermission = activity.requestPermission(onPermission);
+                if (hasPermission) {
+                    onPermission.run();
+                }
 
                 break;
             }

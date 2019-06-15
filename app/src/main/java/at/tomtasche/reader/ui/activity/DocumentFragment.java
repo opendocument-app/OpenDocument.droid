@@ -493,14 +493,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         } else if (error instanceof FileNotFoundException) {
             analyticsManager.report("load_error_file_not_found");
 
-            if (Environment.getExternalStorageState().equals(
-                    Environment.MEDIA_MOUNTED_READ_ONLY)
-                    || Environment.getExternalStorageState().equals(
-                    Environment.MEDIA_MOUNTED)) {
-                errorDescription = R.string.toast_error_find_file;
-            } else {
-                errorDescription = R.string.toast_error_storage;
-            }
+            errorDescription = R.string.toast_error_find_file;
         } else if (error instanceof IllegalArgumentException) {
             analyticsManager.report("load_error_illegal_file");
 

@@ -81,8 +81,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     private BillingManager billingManager;
     private HelpManager helpManager;
 
-    private int permissionDialogCount;
     private boolean isIntroOpen;
+    private Runnable onPermissionRunnable;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -189,9 +189,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     protected void onStart() {
         super.onStart();
 
-        if (!isIntroOpen) {
-            requestPermission();
-        }
         isIntroOpen = false;
 
         // app was started from another app, but make sure not to load it twice
@@ -214,22 +211,21 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             editor.apply();
 
             isIntroOpen = true;
-        } else {
-            requestPermission();
         }
     }
 
-    private void requestPermission() {
-        if (permissionDialogCount > 3) {
-            // some users keep denying the permission
-            return;
-        }
-
-        permissionDialogCount++;
-
+    public boolean requestPermission(Runnable onPermissionRunnable) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_CODE);
+
+            this.onPermissionRunnable = onPermissionRunnable;
+
+            return false;
         }
+
+        onPermissionRunnable = null;
+
+        return true;
     }
 
     private void initializeProprietaryLibraries() {
@@ -320,6 +316,21 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
     @Override
     public void loadUri(Uri uri) {
+        boolean needsPermission = uri.toString().startsWith("file://");
+        if (needsPermission) {
+            Runnable onPermission = new Runnable() {
+                @Override
+                public void run() {
+                    loadUri(uri);
+                }
+            };
+
+            boolean hasPermission = requestPermission(onPermission);
+            if (!hasPermission) {
+                return;
+            }
+        }
+
         isDocumentLoaded = true;
 
         if (uri != null) {
@@ -486,8 +497,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         if (requestCode == EditActionModeCallback.PERMISSION_CODE && editActionMode != null) {
             editActionMode.save();
-        } else if (requestCode == PERMISSION_CODE) {
-            requestPermission();
+        } else if (requestCode == PERMISSION_CODE && onPermissionRunnable != null) {
+            onPermissionRunnable.run();
         }
     }
 
