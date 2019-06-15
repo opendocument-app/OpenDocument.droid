@@ -16,6 +16,7 @@
 package com.github.jberkel.pay.me.model;
 
 import android.text.TextUtils;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 

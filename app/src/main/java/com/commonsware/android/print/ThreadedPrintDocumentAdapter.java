@@ -22,6 +22,7 @@ import android.os.ParcelFileDescriptor;
 import android.print.PageRange;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -42,11 +43,11 @@ abstract class ThreadedPrintDocumentAdapter extends
                                     WriteResultCallback callback,
                                     Context ctxt);
 
-    private Context ctxt=null;
-    private ExecutorService threadPool=Executors.newFixedThreadPool(1);
+    private Context ctxt = null;
+    private ExecutorService threadPool = Executors.newFixedThreadPool(1);
 
     ThreadedPrintDocumentAdapter(Context ctxt) {
-        this.ctxt=ctxt;
+        this.ctxt = ctxt;
     }
 
     @Override
@@ -86,11 +87,11 @@ abstract class ThreadedPrintDocumentAdapter extends
                   PrintAttributes newAttributes,
                   CancellationSignal cancellationSignal,
                   LayoutResultCallback callback, Bundle extras) {
-            this.oldAttributes=oldAttributes;
-            this.newAttributes=newAttributes;
-            this.cancellationSignal=cancellationSignal;
-            this.callback=callback;
-            this.extras=extras;
+            this.oldAttributes = oldAttributes;
+            this.newAttributes = newAttributes;
+            this.cancellationSignal = cancellationSignal;
+            this.callback = callback;
+            this.extras = extras;
         }
     }
 
@@ -104,11 +105,11 @@ abstract class ThreadedPrintDocumentAdapter extends
         WriteJob(PageRange[] pages, ParcelFileDescriptor destination,
                  CancellationSignal cancellationSignal,
                  WriteResultCallback callback, Context ctxt) {
-            this.pages=pages;
-            this.destination=destination;
-            this.cancellationSignal=cancellationSignal;
-            this.callback=callback;
-            this.ctxt=ctxt;
+            this.pages = pages;
+            this.destination = destination;
+            this.cancellationSignal = cancellationSignal;
+            this.callback = callback;
+            this.ctxt = ctxt;
         }
     }
 }

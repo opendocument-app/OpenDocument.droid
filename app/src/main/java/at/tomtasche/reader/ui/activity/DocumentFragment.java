@@ -132,9 +132,9 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 getActivity().finishAffinity();
-            } else{
+            } else {
                 getActivity().finish();
-                System.exit( 0 );
+                System.exit(0);
             }
 
             TextView textView = new TextView(getContext());
@@ -537,7 +537,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                     analyticsManager.report("reopen_success");
 
                     Intent chooserIntent = Intent.createChooser(targetIntents.remove(0), activity.getString(R.string.reopen_chooser_title));
-                    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetIntents.toArray(new Parcelable[] {}));
+                    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetIntents.toArray(new Parcelable[]{}));
                     activity.startActivity(chooserIntent);
                 } else {
                     analyticsManager.report("reopen_failed_noapp");

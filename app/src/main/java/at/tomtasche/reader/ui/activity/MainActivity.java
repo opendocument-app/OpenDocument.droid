@@ -47,9 +47,9 @@ import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.BillingManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.nonfree.HelpManager;
-import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.FindActionModeCallback;
+import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
 
@@ -521,7 +521,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         String[] optionStrings = getResources().getStringArray(R.array.dialog_remove_ads_options);
         if (!IS_GOOGLE_ECOSYSTEM) {
-            optionStrings = new String[] { optionStrings[1] };
+            optionStrings = new String[]{optionStrings[1]};
         }
 
         builder.setItems(optionStrings, new OnClickListener() {

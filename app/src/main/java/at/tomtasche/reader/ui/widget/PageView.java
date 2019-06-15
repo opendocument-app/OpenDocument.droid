@@ -18,7 +18,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
-import androidx.annotation.Nullable;
 import at.tomtasche.reader.ui.ParagraphListener;
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -33,7 +32,7 @@ public class PageView extends WebView implements ParagraphListener {
 
     /**
      * sometimes the page stays invisible after reporting progress 100: https://stackoverflow.com/q/48082474/198996
-     *
+     * <p>
      * this seems to happen if progress 100 is reported before finish is called.
      * therefore we set a timer in finish that checks if commit was ever called and reload if not.
      */

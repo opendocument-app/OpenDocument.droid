@@ -15,7 +15,6 @@
 package com.commonsware.android.print;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
@@ -53,7 +52,7 @@ public class PdfDocumentAdapter extends ThreadedPrintDocumentAdapter {
                              PrintAttributes newAttributes,
                              CancellationSignal cancellationSignal,
                              LayoutResultCallback callback, Bundle extras) {
-        return(new PdfLayoutJob(oldAttributes, newAttributes,
+        return (new PdfLayoutJob(oldAttributes, newAttributes,
                 cancellationSignal, callback, extras, title));
     }
 
@@ -62,7 +61,7 @@ public class PdfDocumentAdapter extends ThreadedPrintDocumentAdapter {
                            ParcelFileDescriptor destination,
                            CancellationSignal cancellationSignal,
                            WriteResultCallback callback, Context ctxt) {
-        return(new PdfWriteJob(pages, destination, cancellationSignal,
+        return (new PdfWriteJob(pages, destination, cancellationSignal,
                 callback, ctxt, file));
     }
 
@@ -84,9 +83,8 @@ public class PdfDocumentAdapter extends ThreadedPrintDocumentAdapter {
         public void run() {
             if (cancellationSignal.isCanceled()) {
                 callback.onLayoutCancelled();
-            }
-            else {
-                PrintDocumentInfo.Builder builder=
+            } else {
+                PrintDocumentInfo.Builder builder =
                         new PrintDocumentInfo.Builder(title);
 
                 builder.setContentType(PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
@@ -113,38 +111,34 @@ public class PdfDocumentAdapter extends ThreadedPrintDocumentAdapter {
 
         @Override
         public void run() {
-            InputStream in=null;
-            OutputStream out=null;
+            InputStream in = null;
+            OutputStream out = null;
 
             try {
-                in=new FileInputStream(file);
-                out=new FileOutputStream(destination.getFileDescriptor());
+                in = new FileInputStream(file);
+                out = new FileOutputStream(destination.getFileDescriptor());
 
-                byte[] buf=new byte[16384];
+                byte[] buf = new byte[16384];
                 int size;
 
-                while ((size=in.read(buf)) >= 0
+                while ((size = in.read(buf)) >= 0
                         && !cancellationSignal.isCanceled()) {
                     out.write(buf, 0, size);
                 }
 
                 if (cancellationSignal.isCanceled()) {
                     callback.onWriteCancelled();
+                } else {
+                    callback.onWriteFinished(new PageRange[]{PageRange.ALL_PAGES});
                 }
-                else {
-                    callback.onWriteFinished(new PageRange[] { PageRange.ALL_PAGES });
-                }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 callback.onWriteFailed(e.getMessage());
                 Log.e(getClass().getSimpleName(), "Exception printing PDF", e);
-            }
-            finally {
+            } finally {
                 try {
                     in.close();
                     out.close();
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     Log.e(getClass().getSimpleName(),
                             "Exception cleaning up from printing PDF", e);
                 }

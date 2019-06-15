@@ -1,9 +1,11 @@
 package com.github.jberkel.pay.me;
 
 import android.os.AsyncTask;
+
 import com.github.jberkel.pay.me.listener.OnConsumeFinishedListener;
 import com.github.jberkel.pay.me.listener.OnConsumeMultiFinishedListener;
 import com.github.jberkel.pay.me.model.Purchase;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

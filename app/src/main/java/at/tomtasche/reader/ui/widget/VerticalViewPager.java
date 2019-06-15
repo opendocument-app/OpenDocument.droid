@@ -14,6 +14,7 @@ public class VerticalViewPager extends PDFViewPager {
     public VerticalViewPager(Context context) {
         this(context, null);
     }
+
     public VerticalViewPager(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
@@ -26,6 +27,7 @@ public class VerticalViewPager extends PDFViewPager {
     public boolean canScrollHorizontally(int direction) {
         return false;
     }
+
     /**
      * @return {@code true} iff a normal view pager would support horizontal scrolling at this time
      */
@@ -33,12 +35,14 @@ public class VerticalViewPager extends PDFViewPager {
     public boolean canScrollVertically(int direction) {
         return super.canScrollHorizontally(direction);
     }
+
     private void init() {
         // Make page transit vertical
         setPageTransformer(true, new VerticalPageTransformer());
         // Get rid of the overscroll drawing that happens on the left and right (the ripple)
         setOverScrollMode(View.OVER_SCROLL_NEVER);
     }
+
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         final boolean toIntercept = super.onInterceptTouchEvent(flipXY(ev));
@@ -46,6 +50,7 @@ public class VerticalViewPager extends PDFViewPager {
         flipXY(ev);
         return toIntercept;
     }
+
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         final boolean toHandle = super.onTouchEvent(flipXY(ev));
@@ -53,6 +58,7 @@ public class VerticalViewPager extends PDFViewPager {
         flipXY(ev);
         return toHandle;
     }
+
     private MotionEvent flipXY(MotionEvent ev) {
         final float width = getWidth();
         final float height = getHeight();
@@ -61,6 +67,7 @@ public class VerticalViewPager extends PDFViewPager {
         ev.setLocation(x, y);
         return ev;
     }
+
     private static final class VerticalPageTransformer implements ViewPager.PageTransformer {
         @Override
         public void transformPage(View view, float position) {
