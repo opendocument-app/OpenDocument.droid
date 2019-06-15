@@ -81,7 +81,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     private BillingManager billingManager;
     private HelpManager helpManager;
 
-    private boolean isIntroOpen;
     private Runnable onPermissionRunnable;
 
     @Override
@@ -189,8 +188,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     protected void onStart() {
         super.onStart();
 
-        isIntroOpen = false;
-
         // app was started from another app, but make sure not to load it twice
         // (i.e. after bringing app back from background)
         if (!isDocumentLoaded) {
@@ -209,8 +206,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             SharedPreferences.Editor editor = getPrefs.edit();
             editor.putBoolean("introShown", true);
             editor.apply();
-
-            isIntroOpen = true;
         }
     }
 
@@ -316,7 +311,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
     @Override
     public void loadUri(Uri uri) {
-        boolean needsPermission = uri.toString().startsWith("file://");
+        boolean needsPermission = uri != null && uri.toString().startsWith("file://");
         if (needsPermission) {
             Runnable onPermission = new Runnable() {
                 @Override
@@ -499,6 +494,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             editActionMode.save();
         } else if (requestCode == PERMISSION_CODE && onPermissionRunnable != null) {
             onPermissionRunnable.run();
+
+            onPermissionRunnable = null;
         }
     }
 
