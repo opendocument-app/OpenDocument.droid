@@ -6,7 +6,6 @@
     <string name="toast_error_illegal_file">Questo non sembra essere un formato di file supportato.</string>
     <string name="toast_error_out_of_memory">Memoria del telefono esaurita! Troppe immagini o file troppo grandi.</string>
     <string name="toast_error_password_protected">Il documento è protetto da password.</string>
-    <string name="toast_error_storage">Memoria esterna non disponibile. Impossibile leggere il file.</string>
     <string name="dialog_recent_title">Documenti recenti</string>
     <string name="dialog_choose_filemanager">Apri documento tramite:</string>
     <string name="dialog_loading_title">Caricamento in corso…</string>
