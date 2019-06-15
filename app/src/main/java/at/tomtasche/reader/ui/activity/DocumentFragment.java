@@ -302,6 +302,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     private void toggleDocumentMenu(boolean enabled, boolean editEnabled) {
         if (menu == null) {
+            if (getActivity() == null || getActivity().isFinishing() || pageView == null) {
+                return;
+            }
+
             // menu is not set when loadUri is called via onStart, retry later
             pageView.post(new Runnable() {
                 @Override
