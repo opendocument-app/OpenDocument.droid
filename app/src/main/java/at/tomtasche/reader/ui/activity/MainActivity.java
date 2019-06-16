@@ -97,17 +97,11 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         landingContainer = findViewById(R.id.landing_container);
         documentContainer = findViewById(R.id.document_container);
 
-        documentFragment = (DocumentFragment) getSupportFragmentManager()
-                .findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
-        if (documentFragment == null) {
-            documentFragment = new DocumentFragment();
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.document_container, documentFragment,
-                            DOCUMENT_FRAGMENT_TAG).commit();
-        } else {
-            loadUri(null);
-        }
+        documentFragment = new DocumentFragment();
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.document_container, documentFragment,DOCUMENT_FRAGMENT_TAG)
+                .commit();
 
         initializeProprietaryLibraries();
 
