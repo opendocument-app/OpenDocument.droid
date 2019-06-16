@@ -7,14 +7,6 @@
         <item name="colorAccent">#b5b5b5</item>
         <item name="android:textColorPrimary">#6b6b6b</item>
         <item name="android:textColorSecondary">#b5b5b5</item>
+        <item name="android:forceDarkAllowed">true</item>
     </style>
-
-    <style name="IntroTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">#ffffff</item>
-        <item name="colorPrimaryDark">#6b6b6b</item>
-        <item name="colorAccent">#b5b5b5</item>
-        <item name="android:textColorPrimary">#6b6b6b</item>
-        <item name="android:textColorSecondary">#b5b5b5</item>
-    </style>
-
 </resources>

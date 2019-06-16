@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     buildToolsVersion '28.0.3'
 
     defaultConfig {
         applicationId "at.tomtasche.reader"
         minSdkVersion 16
-        targetSdkVersion 28
+        targetSdkVersion 29
 
         testApplicationId "at.tomtasche.reader.test"
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
@@ -71,10 +71,6 @@ dependencies {
     implementation 'com.google.android.material:material:1.0.0'
 
     implementation 'com.github.paolorotolo:appintro:v5.1.0'
-
-    /*implementation ('com.helpcrunch:helpcrunch-sdk:1.5.1@aar') {
-        transitive=true
-    }*/
 
     implementation 'es.voghdev.pdfviewpager:library:1.0.6'
     // https://github.com/voghDev/PdfViewPager/issues/110
