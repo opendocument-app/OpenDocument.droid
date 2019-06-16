@@ -19,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -30,9 +31,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -74,7 +81,7 @@ import at.tomtasche.reader.ui.widget.VerticalViewPager;
 public class DocumentFragment extends Fragment implements FileLoader.FileLoaderListener, ActionBar.TabListener {
 
     private static final String[] MIME_WHITELIST = {"text/", "image/", "video/", "audio/", "application/json", "application/xml"};
-    private static final String[] MIME_BLACKLIST = {"text/csv"};
+    private static final String[] MIME_BLACKLIST = {};
 
     private Handler mainHandler;
 
@@ -369,6 +376,27 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         }
     }
 
+    // taken from: https://stackoverflow.com/a/9293885/198996
+    private void copy(File src, File dst) throws IOException {
+        InputStream in = new FileInputStream(src);
+        try {
+            OutputStream out = new FileOutputStream(dst);
+            try {
+                // Transfer bytes from in to out
+                byte[] buf = new byte[1024];
+                int len;
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+            } finally {
+                out.close();
+            }
+        } finally {
+            in.close();
+        }
+    }
+
+
     @Override
     public void onError(Throwable error, String fileType) {
         Activity activity = getActivity();
@@ -433,17 +461,31 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                     }
 
                     if (!blacklisted) {
-                        try {
-                            Document document = new Document(null);
-                            document.addPage(new Document.Page("Document", new URI(lastUri.toString()),
-                                    0));
+                        Document document = new Document(null);
 
-                            onSuccess(document, fileType);
-
-                            return;
-                        } catch (URISyntaxException e) {
-                            e.printStackTrace();
+                        String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(fileType);
+                        if (extension == null || extension.equals("csv")) {
+                            // WebView doesn't display CSV if it has that extension
+                            extension = "txt";
                         }
+
+                        File cacheFile = AndroidFileCache.getCacheFile(activity);
+                        File renamedFile = new File(cacheFile.getParentFile(), "temp." + extension);
+
+                        try {
+                            copy(cacheFile, renamedFile);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+
+                            renamedFile = cacheFile;
+                        }
+
+                        document.addPage(new Document.Page("Document", renamedFile.toURI(),
+                                0));
+
+                        onSuccess(document, fileType);
+
+                        return;
                     }
                 }
             }
