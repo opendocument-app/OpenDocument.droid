@@ -18,6 +18,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
+import androidx.annotation.Keep;
 import at.tomtasche.reader.ui.ParagraphListener;
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -158,16 +159,19 @@ public class PageView extends WebView implements ParagraphListener {
     }
 
     @Override
+    @Keep
     public void paragraph(String text) {
         paragraphListener.paragraph(text);
     }
 
     @Override
+    @Keep
     public void increaseIndex() {
         paragraphListener.increaseIndex();
     }
 
     @Override
+    @Keep
     public void end() {
         paragraphListener.end();
     }

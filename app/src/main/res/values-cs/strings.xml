@@ -6,7 +6,6 @@
     <string name="toast_error_illegal_file">Pravděpodobně se nejedná o podporovaný formát souboru.</string>
     <string name="toast_error_out_of_memory">Nedostatek paměti v telefonu! Soubor je příliš velký, nebo obsahuje příliš mnoho obrázků.</string>
     <string name="toast_error_password_protected">Dokument je chráněn heslem</string>
-    <string name="toast_error_storage">Externí úložiště není k dispozici. Nelze načíst soubor.</string>
     <string name="dialog_recent_title">Nedávné dokumenty</string>
     <string name="dialog_choose_filemanager">Otevřít dokument pomocí:</string>
     <string name="dialog_loading_title">Probíhá načítání…</string>

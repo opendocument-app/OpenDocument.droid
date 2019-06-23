@@ -97,17 +97,11 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         landingContainer = findViewById(R.id.landing_container);
         documentContainer = findViewById(R.id.document_container);
 
-        documentFragment = (DocumentFragment) getSupportFragmentManager()
-                .findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
-        if (documentFragment == null) {
-            documentFragment = new DocumentFragment();
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.document_container, documentFragment,
-                            DOCUMENT_FRAGMENT_TAG).commit();
-        } else {
-            loadUri(null);
-        }
+        documentFragment = new DocumentFragment();
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.document_container, documentFragment,DOCUMENT_FRAGMENT_TAG)
+                .commit();
 
         initializeProprietaryLibraries();
 
@@ -271,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
     private void handleIntent(Intent intent) {
         if (intent.getData() != null) {
-            loadUri(intent.getData());
+            loadUri(intent.getData(), false);
 
             analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "other");
         }
@@ -300,23 +294,21 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         } else if (requestCode == GOOGLE_REQUEST_CODE) {
             initializeProprietaryLibraries();
         } else if (intent != null) {
-            adManager.showInterstitial();
-
             Uri uri = intent.getData();
             if (requestCode == 42 && resultCode == Activity.RESULT_OK && uri != null) {
-                loadUri(uri);
+                loadUri(uri, true);
             }
         }
     }
 
     @Override
-    public void loadUri(Uri uri) {
+    public void loadUri(Uri uri, boolean showAd) {
         boolean needsPermission = uri != null && uri.toString().startsWith("file://");
         if (needsPermission) {
             Runnable onPermission = new Runnable() {
                 @Override
                 public void run() {
-                    loadUri(uri);
+                    loadUri(uri, showAd);
                 }
             };
 
@@ -324,6 +316,10 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             if (!hasPermission) {
                 return;
             }
+        }
+
+        if (showAd) {
+            adManager.showInterstitial();
         }
 
         isDocumentLoaded = true;

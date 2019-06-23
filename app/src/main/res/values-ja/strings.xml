@@ -6,7 +6,6 @@
     <string name="toast_error_illegal_file">これはサポートされているファイル形式ではないようです。</string>
     <string name="toast_error_out_of_memory">デバイスのメモリ不足です! 写真が多すぎるかファイルが大きすぎます。</string>
     <string name="toast_error_password_protected">ドキュメントがパスワードで保護されています</string>
-    <string name="toast_error_storage">外部ストレージが使用できません。ファイルを読み取りできませんでした。</string>
     <string name="dialog_recent_title">最近使用したドキュメント</string>
     <string name="dialog_choose_filemanager">ドキュメントを次で開く:</string>
     <string name="dialog_loading_title">読み込んでいます…</string>

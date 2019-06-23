@@ -6,7 +6,6 @@
     <string name="toast_error_illegal_file">Det ser ikke ud til, at denne filtype kan bruges.</string>
     <string name="toast_error_out_of_memory">Enheden har ikke mere plads i hukommelsen. Filen er enten for stor eller indeholder for mange billeder.</string>
     <string name="toast_error_password_protected">Dokumentet er låst med et kodeord</string>
-    <string name="toast_error_storage">Den eksterne hukommelse er ikke tilgængelig. Filen kan ikke læses.</string>
     <string name="dialog_recent_title">Seneste dokumenter</string>
     <string name="dialog_choose_filemanager">Åbn dokument med:</string>
     <string name="dialog_loading_title">Indlæser …</string>

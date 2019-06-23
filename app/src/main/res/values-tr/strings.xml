@@ -4,7 +4,6 @@
     <string name="toast_error_generic">Kötü bir şey oldu. Dosya açılamadı.</string>
     <string name="toast_error_illegal_file">Bu, desteklenen bir dosya biçimi gibi görünmüyor.</string>
     <string name="toast_error_password_protected">Belge parola korumalı</string>
-    <string name="toast_error_storage">Harici depolama mevcut değil. Dosya okunamadı.</string>
     <string name="dialog_recent_title">Son kullanılan belgeler</string>
     <string name="dialog_choose_filemanager">Belgeyi şununla aç:</string>
     <string name="dialog_loading_message">Bu, belgenizin yapısına ve telefonunuzun işlem gücüne bağlı olarak birkaç dakika sürebilir.</string>
