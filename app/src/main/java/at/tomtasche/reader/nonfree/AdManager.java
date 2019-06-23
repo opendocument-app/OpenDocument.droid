@@ -140,8 +140,6 @@ public class AdManager implements RewardedVideoAdListener {
                 // very rarely crashes with "The ad unit ID must be set on InterstitialAd before show is called."
             }
         }
-
-        interstitial = null;
     }
 
     public void loadVideo() {
@@ -191,6 +189,8 @@ public class AdManager implements RewardedVideoAdListener {
     }
 
     public void destroyAds() {
+        interstitial = null;
+
         try {
             // keeps throwing exceptions for some users:
             // Caused by: java.lang.NullPointerException
@@ -314,6 +314,10 @@ public class AdManager implements RewardedVideoAdListener {
         @Override
         public void onAdClosed() {
             analyticsManager.report("ads_" + prefix + "closed");
+
+            if (isInterstitial) {
+                interstitial = null;
+            }
         }
 
         @Override

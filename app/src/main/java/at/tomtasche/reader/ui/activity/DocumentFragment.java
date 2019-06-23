@@ -206,6 +206,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     private void togglePageView(boolean enabled) {
+        if (pageView == null) {
+            // happens on devices with no WebView installed, ignore
+            return;
+        }
+
         pageView.setVisibility(enabled ? View.VISIBLE : View.GONE);
         pdfView.setVisibility(enabled ? View.GONE : View.VISIBLE);
         pdfView.setAdapter(null);
@@ -227,8 +232,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         try {
             htmlStream = new FileInputStream(htmlFile);
 
-            // TODO: ugly and risky cast
-            documentFile = new LocatedOpenDocumentFile(((LocatedOpenDocumentFile) lastDocument.getOrigin().getDocumentFile()).getFile());
+            documentFile = new LocatedOpenDocumentFile(AndroidFileCache.getCacheFile(getActivity()));
             documentFile.setPassword(lastPassword);
 
             String extension = "unknown";
@@ -494,6 +498,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 boolean pdfSuccess = loadPdf(cacheUri);
 
                 if (pdfSuccess) {
+                    analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
                     analyticsManager.report("load_pdf");
 
                     ActionBar bar = ((MainActivity) activity).getSupportActionBar();
