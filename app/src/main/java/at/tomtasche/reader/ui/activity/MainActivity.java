@@ -303,19 +303,16 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
     @Override
     public void loadUri(Uri uri, boolean showAd) {
-        boolean needsPermission = uri != null && uri.toString().startsWith("file://");
-        if (needsPermission) {
-            Runnable onPermission = new Runnable() {
-                @Override
-                public void run() {
-                    loadUri(uri, showAd);
-                }
-            };
-
-            boolean hasPermission = requestPermission(onPermission);
-            if (!hasPermission) {
-                return;
+        Runnable onPermission = new Runnable() {
+            @Override
+            public void run() {
+                loadUri(uri, showAd);
             }
+        };
+
+        boolean hasPermission = requestPermission(onPermission);
+        if (!hasPermission) {
+            return;
         }
 
         if (showAd) {
