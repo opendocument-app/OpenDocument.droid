@@ -21,3 +21,5 @@
 #-renamesourcefileattribute SourceFile
 
 -printusage build/proguard-usage.txt
+
+-keepnames class at.stefl.** { *; }

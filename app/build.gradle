@@ -24,8 +24,8 @@ android {
 
     buildTypes {
         release {
-            //minifyEnabled true
-            //shrinkResources true
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.txt'
         }
     }
@@ -75,6 +75,8 @@ dependencies {
     implementation 'es.voghdev.pdfviewpager:library:1.0.6'
     // https://github.com/voghDev/PdfViewPager/issues/110
     implementation 'com.davemorrissey.labs:subsampling-scale-image-view:3.10.0'
+
+    implementation 'com.google.ads.mediation:facebook:5.4.0.0'
 
     implementation project(':libmagic')
 }
