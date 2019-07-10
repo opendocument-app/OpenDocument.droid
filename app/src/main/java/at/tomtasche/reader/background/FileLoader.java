@@ -4,6 +4,14 @@ import android.net.Uri;
 
 public interface FileLoader {
 
+    enum LoaderType {
+        ODF,
+        PDF,
+        FIREBASE,
+        SAVE,
+        RAW
+    }
+
     public void initialize(FileLoaderListener listener);
 
     public void loadAsync(Uri uri, String fileType, String password, boolean limit, boolean translatable);
@@ -19,8 +27,8 @@ public interface FileLoader {
 
     public interface FileLoaderListener {
 
-        public void onSuccess(Document document, String fileType);
+        public void onSuccess(LoaderType loaderType, Document document, String fileType);
 
-        public void onError(Throwable throwable, String fileType);
+        public void onError(LoaderType loaderType, Throwable throwable, String fileType);
     }
 }

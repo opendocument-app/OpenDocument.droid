@@ -34,7 +34,7 @@ import at.stefl.opendocument.java.translator.settings.ImageStoreMode;
 import at.stefl.opendocument.java.translator.settings.TranslationSettings;
 import at.tomtasche.reader.background.Document.Page;
 
-public class DocumentLoader implements FileLoader {
+public class OdfLoader implements FileLoader {
 
     private Context context;
 
@@ -50,7 +50,7 @@ public class DocumentLoader implements FileLoader {
 
     private DocumentTranslator lastTranslator;
 
-    public DocumentLoader(Context context) {
+    public OdfLoader(Context context) {
         this.context = context;
     }
 
@@ -60,7 +60,7 @@ public class DocumentLoader implements FileLoader {
 
         mainHandler = new Handler();
 
-        backgroundThread = new HandlerThread(DocumentLoader.class.getSimpleName());
+        backgroundThread = new HandlerThread(OdfLoader.class.getSimpleName());
         backgroundThread.start();
 
         backgroundHandler = new Handler(backgroundThread.getLooper());
@@ -214,7 +214,7 @@ public class DocumentLoader implements FileLoader {
             }
 
             OpenDocument openDocument = documentFile.getAsDocument();
-            Document document = new Document(openDocument);
+            Document document = new Document();
 
             TranslationSettings settings = new TranslationSettings();
             settings.setCache(cache);
@@ -264,15 +264,13 @@ public class DocumentLoader implements FileLoader {
                         htmlFile.toURI(), i));
             }
 
-            document.setLimited(lastTranslator.isCurrentOutputTruncated());
-
             final String fileType = type;
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     FileLoaderListener strongReferenceListener = listener;
                     if (strongReferenceListener != null) {
-                        listener.onSuccess(document, fileType);
+                        listener.onSuccess(LoaderType.ODF, document, fileType);
                     }
                 }
             });
@@ -285,7 +283,7 @@ public class DocumentLoader implements FileLoader {
                 public void run() {
                     FileLoaderListener strongReferenceListener = listener;
                     if (strongReferenceListener != null) {
-                        listener.onError(e, fileType);
+                        listener.onError(LoaderType.ODF, e, fileType);
                     }
                 }
             });

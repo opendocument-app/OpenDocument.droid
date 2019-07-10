@@ -55,7 +55,7 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
 
         mainHandler = new Handler();
 
-        backgroundThread = new HandlerThread(DocumentLoader.class.getSimpleName());
+        backgroundThread = new HandlerThread(OdfLoader.class.getSimpleName());
         backgroundThread.start();
 
         backgroundHandler = new Handler(backgroundThread.getLooper());
@@ -127,7 +127,7 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
                         .create("https://docs.google.com/viewer?embedded=true&url="
                                 + URLEncoder.encode(downloadUrl, "UTF-8"));
 
-                Document document = new Document(null);
+                Document document = new Document();
                 document.addPage(new Page("Document", viewerUri, 0));
 
                 mainHandler.post(new Runnable() {
@@ -135,7 +135,7 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
                     public void run() {
                         FileLoaderListener strongReferenceListener = listener;
                         if (strongReferenceListener != null) {
-                            strongReferenceListener.onSuccess(document, null);
+                            strongReferenceListener.onSuccess(LoaderType.FIREBASE, document, null);
                         }
                     }
                 });
@@ -150,7 +150,7 @@ public class UpLoader implements FileLoader, OnProgressListener<UploadTask.TaskS
                 public void run() {
                     FileLoaderListener strongReferenceListener = listener;
                     if (strongReferenceListener != null) {
-                        strongReferenceListener.onError(e, null);
+                        strongReferenceListener.onError(LoaderType.FIREBASE, e, null);
                     }
                 }
             });

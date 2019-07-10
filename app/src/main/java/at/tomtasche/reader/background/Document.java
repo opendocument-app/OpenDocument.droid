@@ -10,23 +10,14 @@ import at.stefl.opendocument.java.odf.OpenDocument;
 
 public class Document {
 
-    private final OpenDocument origin;
-    private final List<Page> pages;
-    private boolean limited;
+    private List<Page> pages;
 
-    public Document(OpenDocument origin) {
-        this.origin = origin;
-
-        pages = new ArrayList<Page>();
+    public Document() {
+        this.pages = new ArrayList<>();
     }
 
-    public Document(OpenDocument origin, List<Page> pages) {
-        this.origin = origin;
+    public Document(List<Page> pages) {
         this.pages = pages;
-    }
-
-    public OpenDocument getOrigin() {
-        return origin;
     }
 
     public List<Page> getPages() {
@@ -41,15 +32,8 @@ public class Document {
         return pages.get(index);
     }
 
-    public boolean isLimited() {
-        return limited;
-    }
-
-    public void setLimited(boolean limited) {
-        this.limited = limited;
-    }
-
     public static class Page {
+
         private final String name;
         private final String url;
         private final int index;
