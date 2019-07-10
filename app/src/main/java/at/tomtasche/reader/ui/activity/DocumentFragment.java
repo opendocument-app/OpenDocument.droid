@@ -337,8 +337,12 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         }
 
         MainActivity mainActivity = (MainActivity) activity;
+        AnalyticsManager analyticsManager = mainActivity.getAnalyticsManager();
 
-        mainActivity.getAnalyticsManager().report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
+        if (loaderType == FileLoader.LoaderType.ODF) {
+            analyticsManager.report("load_odf_success");
+        }
+        analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
 
         dismissProgress();
 
