@@ -6,7 +6,6 @@
     <string name="toast_error_illegal_file">此文件格式似乎不受支持。</string>
     <string name="toast_error_out_of_memory">设备内存不足！可能是因为文件中的图片太多了，也可能是文件体积过大。</string>
     <string name="toast_error_password_protected">此文档受密码保护。</string>
-    <string name="toast_error_storage">外部存储不可用。无法读取文件。</string>
     <string name="dialog_recent_title">最近文档</string>
     <string name="dialog_choose_filemanager">通过…打开文档：</string>
     <string name="dialog_loading_title">正在加载…</string>
