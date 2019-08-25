@@ -58,10 +58,13 @@ public class BillingManager {
                 @Override
                 public void onIabSetupFinished(IabResult result) {
                     if (result.isFailure()) {
+                        analyticsManager.report("purchase_init_failed");
+
                         enabled = false;
 
                         adManager.showGoogleAds();
                     } else if (result.isSuccess()) {
+                        analyticsManager.report("purchase_init_success");
                         billingHelper.queryInventoryAsync(new QueryInventoryFinishedListener() {
 
                             @Override
@@ -105,6 +108,10 @@ public class BillingManager {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
     public void startPurchase(AppCompatActivity activity, String productSku) {

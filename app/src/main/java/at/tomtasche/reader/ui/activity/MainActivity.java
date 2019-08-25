@@ -509,8 +509,10 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dialog_remove_ads_title);
 
+        final boolean isBillingEnabled = billingManager.isEnabled();
+
         String[] optionStrings = getResources().getStringArray(R.array.dialog_remove_ads_options);
-        if (!IS_GOOGLE_ECOSYSTEM) {
+        if (!isBillingEnabled) {
             optionStrings = new String[]{optionStrings[1]};
         }
 
@@ -520,7 +522,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             public void onClick(DialogInterface dialog, int which) {
                 String product;
 
-                if (!IS_GOOGLE_ECOSYSTEM) {
+                if (!isBillingEnabled) {
                     which = 99;
                 }
 
