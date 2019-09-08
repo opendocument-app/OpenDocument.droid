@@ -55,6 +55,18 @@ import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
 
 public class MainActivity extends AppCompatActivity implements DocumentLoadingActivity {
 
+    // taken from: https://stackoverflow.com/a/36829889/198996
+    private static boolean isTesting() {
+        try {
+            Class.forName("at.tomtasche.reader.test.MainActivityTest");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    private static final boolean IS_TESTING = isTesting();
+
     private static final boolean USE_PROPRIETARY_LIBRARIES = true;
     protected static boolean IS_GOOGLE_ECOSYSTEM = true;
     private static final int GOOGLE_REQUEST_CODE = 1993;
@@ -105,9 +117,11 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         initializeProprietaryLibraries();
 
-        showIntroActivity();
+        if (!IS_TESTING) {
+            showIntroActivity();
 
-        initializeRatingDialog();
+            initializeRatingDialog();
+        }
 
         initializeCatchAllSwitch();
     }
@@ -236,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         analyticsManager.initialize(this);
 
         adManager = new AdManager();
-        adManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+        adManager.setEnabled(!IS_TESTING && USE_PROPRIETARY_LIBRARIES);
         adManager.setAdContainer(adContainer);
         adManager.setOnAdFailedCallback(new Runnable() {
 
