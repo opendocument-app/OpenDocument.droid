@@ -38,9 +38,7 @@ public class OdfLoader implements FileLoader {
 
     private Context context;
 
-    private HandlerThread backgroundThread;
     private Handler backgroundHandler;
-
     private Handler mainHandler;
 
     private FileLoaderListener listener;
@@ -55,15 +53,10 @@ public class OdfLoader implements FileLoader {
     }
 
     @Override
-    public void initialize(FileLoaderListener listener) {
+    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler) {
         this.listener = listener;
-
-        mainHandler = new Handler();
-
-        backgroundThread = new HandlerThread(OdfLoader.class.getSimpleName());
-        backgroundThread.start();
-
-        backgroundHandler = new Handler(backgroundThread.getLooper());
+        this.mainHandler = mainHandler;
+        this.backgroundHandler = backgroundHandler;
 
         initialized = true;
     }
@@ -313,10 +306,6 @@ public class OdfLoader implements FileLoader {
                 listener = null;
                 context = null;
                 lastTranslator = null;
-
-                backgroundThread.quit();
-                backgroundThread = null;
-                backgroundHandler = null;
             }
         });
     }

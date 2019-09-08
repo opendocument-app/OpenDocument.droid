@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Parcelable;
 import android.text.InputType;
 import android.util.Log;
@@ -64,7 +65,6 @@ import at.tomtasche.reader.background.Document;
 import at.tomtasche.reader.background.OdfLoader;
 import at.tomtasche.reader.background.OdfLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.FileLoader;
-import at.tomtasche.reader.background.UpLoader;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.widget.FailsafePDFPagerAdapter;
@@ -94,6 +94,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private Uri lastUri;
     private String lastPassword;
     private Document lastDocument;
+    private HandlerThread backgroundThread;
+    private Handler backgroundHandler;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -101,11 +103,16 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         mainHandler = new Handler();
 
+        backgroundThread = new HandlerThread(DocumentFragment.class.getSimpleName());
+        backgroundThread.start();
+
+        backgroundHandler = new Handler(backgroundThread.getLooper());
+
         odfLoader = new OdfLoader(getContext());
-        odfLoader.initialize(this);
+        odfLoader.initialize(this, mainHandler, backgroundHandler);
 
         upLoader = new UpLoader(getContext());
-        upLoader.initialize(this);
+        upLoader.initialize(this, mainHandler, backgroundHandler);
 
         setRetainInstance(true);
         setHasOptionsMenu(true);
@@ -455,47 +462,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 || error instanceof UnsupportedMimeTypeException
                 || error instanceof IllegalArgumentException) {
             if (fileType != null) {
-                for (String mime : MIME_WHITELIST) {
-                    if (!fileType.startsWith(mime)) {
-                        continue;
-                    }
 
-                    boolean blacklisted = false;
-                    for (String blackMime : MIME_BLACKLIST) {
-                        if (fileType.startsWith(blackMime)) {
-                            blacklisted = true;
-                            break;
-                        }
-                    }
-
-                    if (!blacklisted) {
-                        Document document = new Document();
-
-                        String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(fileType);
-                        if (extension == null || extension.equals("csv")) {
-                            // WebView doesn't display CSV if it has that extension
-                            extension = "txt";
-                        }
-
-                        File cacheFile = AndroidFileCache.getCacheFile(activity);
-                        File renamedFile = new File(cacheFile.getParentFile(), "temp." + extension);
-
-                        try {
-                            copy(cacheFile, renamedFile);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-
-                            renamedFile = cacheFile;
-                        }
-
-                        document.addPage(new Document.Page("Document", renamedFile.toURI(),
-                                0));
-
-                        onSuccess(FileLoader.LoaderType.RAW, document, fileType);
-
-                        return;
-                    }
-                }
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && fileType != null && fileType.equals("application/pdf")) {
@@ -741,5 +708,9 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         if (pdfAdapter != null) {
             pdfAdapter.close();
         }
+
+        backgroundThread.quit();
+        backgroundThread = null;
+        backgroundHandler = null;
     }
 }
