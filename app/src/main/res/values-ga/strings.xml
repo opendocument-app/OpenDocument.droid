@@ -36,18 +36,24 @@
     <string name="action_edit_help">Cabhair!?</string>
     <string name="action_edit_banner">Cuir do cháipéis in eagar thíos agus brúigh ar Taisc</string>
     <string name="landing_welcome_title">Fáilte go \nOpenDocument Reader</string>
+    <string name="landing_intro_view">Le OpenDocument Reader, tá tú in ann breathnú ar cháipéisí atá i bhformáid OpenDocument (.odt, .ods, .odp, agus .odg) pé áit ina bhfuil tú.</string>
     <string name="landing_intro_search">Le hOpenDocument Reader, is féidir leat do chuid cáipéisí a léamh agus a chuardach go héasca.</string>
     <string name="tts_status_reading">Ag léamh…</string>
     <string name="tts_status_ready">Réidh!</string>
     <string name="tts_status_failed">Theip ar TTS.</string>
     <string name="tts_status_paused">Curtha ar sos.</string>
     <string name="tts_status_finished">Críochnaithe.</string>
+    <string name="edit_status_saved">Taisceadh an cháipéis i do chárta SD</string>
     <string name="crouton_printing">Ag clóbhualadh…</string>
+    <string name="crouton_print_unavailable">Ní féidir clóbhualadh ó do ghaireas. Uasghrádaigh chuig leagan níos nuaí de Android.</string>
     <string name="intro_title_open">Oscail agus léigh do chomhad ODF agus tú ar shiúl!</string>
+    <string name="intro_title_edit">Ar aimsigh tú botún i do cháipéis? Anois is féidir athruithe a dhéanamh!</string>
     <string name="intro_title_apps">Léigh do chuid cáipéisí ó laistigh d\'fheidhmchláiríní eile</string>
     <string name="intro_button_start">TOSAIGH</string>
+    <string name="crouton_remove_ads">An bhfuil a thuilleadh slí de dhíth ort? Bain fógraí saor in aisce tríd an roghchlár.</string>
+    <string name="reopen_chooser_title">Oscail ag baint feidhm as feidhmchláirín eile atá suiteáilte ar do ghaireas:</string>
     <string-array name="dialog_remove_ads_options">
         <item>Bain na fógraí go deo</item>
-        <item>Remove ads temporarily for free by watching a short video</item>
+        <item>Bain fógraí go sealadach saor in aisce trí bhreathnú ar fhíseán gearr</item>
     </string-array>
 </resources>
