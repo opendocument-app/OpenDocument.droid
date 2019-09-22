@@ -27,6 +27,39 @@ import java.util.UUID;
 
 public class OnlineLoader extends FileLoader {
 
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types
+    private static final String[] MIME_WHITELIST = {"text/", "image/", "video/", "audio/",
+            // markup
+            "application/json", "application/xml", "text/css", "application/css-stylesheet", "application/xhtml",
+            "application/x-httpd-php", "text/php", "application/php", "application/x-php",
+            "application/x-javascript", "text/javascript",
+            "text/x-java-source", "text/java", "text/x-java", "application/ms-java",
+            "application/rtf",
+            // psd: https://filext.com/file-extension/PSD
+            "image/photoshop", "image/x-photoshop", "image/psd", "application/photoshop", "application/psd", "zz-application/zz-winassoc-psd",
+            // pdf: https://filext.com/file-extension/PDF
+            "application/pdf", "application/x-pdf", "application/acrobat", "applications/vnd.pdf", "text/pdf", "text/x-pdf",
+            // odf: https://filext.com/file-extension/ODT
+            "application/vnd.oasis.opendocument", "application/x-vnd.oasis.opendocument",
+            // ms
+            "application/vnd.openxmlformats-officedocument",
+            // doc: https://filext.com/file-extension/DOC
+            "application/msword", "application/doc", "appl/text", "application/vnd.msword", "application/vnd.ms-word", "application/winword", "application/word", "application/x-msw6", "application/x-msword",
+            // xls: https://filext.com/file-extension/XLS
+            "application/vnd.ms-excel", "application/msexcel", "application/x-msexcel", "application/x-ms-excel", "application/vnd.ms-excel", "application/x-excel", "application/x-dos_ms_excel", "application/xls",
+            // ppt: https://filext.com/file-extension/PPT
+            "application/vnd.ms-powerpoint", "application/mspowerpoint", "application/ms-powerpoint", "application/mspowerpnt", "application/vnd-mspowerpoint", "application/powerpoint", "application/x-powerpoint",
+            // apple
+            "application/x-iwork", "application/vnd.apple",
+            // postscript: https://filext.com/file-extension/EPS
+            "application/postscript", "application/eps", "application/x-eps", "image/eps", "image/x-eps",
+            // autocad: https://filext.com/file-extension/DXF
+            "application/dxf", "application/x-autocad", "application/x-dxf", "drawing/x-dxf", "image/vnd.dxf", "image/x-autocad", "image/x-dxf", "zz-application/zz-winassoc-dxf",
+            // zip: https://filext.com/file-extension/ZIP
+            "application/zip", "application/x-zip", "application/x-zip-compressed", "application/x-compress", "application/x-compressed", "multipart/x-zip"
+    };
+    private static final String[] MIME_BLACKLIST = {};
+
     private StorageReference storage;
     private FirebaseAuth auth;
 
@@ -43,13 +76,28 @@ public class OnlineLoader extends FileLoader {
     }
 
     @Override
-    public void loadSync(Options options) {
-        if (!initialized) {
-            throw new RuntimeException("not initialized");
+    public boolean isSupported(Options options) {
+        String fileType = options.fileType;
+
+        for (String mime : MIME_WHITELIST) {
+            if (!fileType.startsWith(mime)) {
+                continue;
+            }
+
+            for (String blackMime : MIME_BLACKLIST) {
+                if (fileType.startsWith(blackMime)) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
-        loading = true;
+        return false;
+    }
 
+    @Override
+    public void loadSync(Options options) {
         final Result result = new Result();
         result.options = options;
         result.loaderType = LoaderType.FIREBASE;
@@ -84,6 +132,7 @@ public class OnlineLoader extends FileLoader {
                 Uri viewerUri = Uri.parse("https://docs.google.com/viewer?embedded=true&url="
                         + URLEncoder.encode(downloadUrl, "UTF-8"));
 
+                result.partTitles.add(null);
                 result.partUris.add(viewerUri);
 
                 callOnSuccess(result);
@@ -95,15 +144,18 @@ public class OnlineLoader extends FileLoader {
 
             callOnError(result, e);
         }
-
-        loading = false;
     }
 
     @Override
     public void close() {
         super.close();
 
-        auth = null;
-        storage = null;
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                auth = null;
+                storage = null;
+            }
+        });
     }
 }

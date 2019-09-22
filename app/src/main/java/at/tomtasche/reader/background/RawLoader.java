@@ -32,13 +32,28 @@ public class RawLoader extends FileLoader {
     }
 
     @Override
-    public void loadSync(Options options) {
-        if (!initialized) {
-            throw new RuntimeException("not initialized");
+    public boolean isSupported(Options options) {
+        String fileType = options.fileType;
+
+        for (String mime : MIME_WHITELIST) {
+            if (!fileType.startsWith(mime)) {
+                continue;
+            }
+
+            for (String blackMime : MIME_BLACKLIST) {
+                if (fileType.startsWith(blackMime)) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
-        loading = true;
+        return false;
+    }
 
+    @Override
+    public void loadSync(Options options) {
         final Result result = new Result();
         result.options = options;
         result.loaderType = LoaderType.RAW;
@@ -69,6 +84,7 @@ public class RawLoader extends FileLoader {
                         extension = "txt";
                     }
 
+                    // TODO: use options.cacheUri instead
                     File cacheFile = AndroidFileCache.getCacheFile(context);
                     File renamedFile = new File(cacheFile.getParentFile(), "temp." + extension);
 
@@ -81,6 +97,7 @@ public class RawLoader extends FileLoader {
                         break;
                     }
 
+                    result.partTitles.add(null);
                     result.partUris.add(Uri.fromFile(renamedFile));
                     callOnSuccess(result);
 
@@ -97,8 +114,6 @@ public class RawLoader extends FileLoader {
 
             callOnError(result, e);
         }
-
-        loading = false;
     }
 
     // taken from: https://stackoverflow.com/a/9293885/198996

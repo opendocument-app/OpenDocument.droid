@@ -60,7 +60,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
     @Override
     public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
         // reload document with translation enabled
-        documentFragment.reloadUri(false, true);
+        documentFragment.reloadUri(true);
 
         imm.toggleSoftInputFromWindow(activity.getWindow().getDecorView().getRootView().getWindowToken(), InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
 
@@ -134,6 +134,6 @@ public class EditActionModeCallback implements ActionMode.Callback {
     public void onDestroyActionMode(ActionMode mode) {
         imm.toggleSoftInputFromWindow(activity.getWindow().getDecorView().getRootView().getWindowToken(), 0, 0);
 
-        documentFragment.reloadUri(false, false);
+        documentFragment.reloadUri(false);
     }
 }

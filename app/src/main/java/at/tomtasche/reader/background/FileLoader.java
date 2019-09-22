@@ -9,7 +9,7 @@ import java.util.List;
 
 public abstract class FileLoader {
 
-    enum LoaderType {
+    public enum LoaderType {
         ODF,
         PDF,
         FIREBASE,
@@ -40,11 +40,21 @@ public abstract class FileLoader {
         initialized = true;
     }
 
+    public abstract boolean isSupported(Options options);
+
     public void loadAsync(Options options) {
+        if (!initialized) {
+            throw new RuntimeException("not initialized");
+        }
+
+        loading = true;
+
         backgroundHandler.post(new Runnable() {
             @Override
             public void run() {
                 loadSync(options);
+
+                loading = false;
             }
         });
     }
@@ -90,25 +100,25 @@ public abstract class FileLoader {
         });
     }
 
-    public class Options {
-        Uri originalUri;
-        Uri cacheUri;
+    public static class Options {
+        public Uri originalUri;
+        public Uri cacheUri;
 
-        String filename;
-        String fileType;
+        public String filename;
+        public String fileType;
 
-        String password;
+        public String password;
 
-        boolean limit;
-        boolean translatable;
+        public boolean limit;
+        public boolean translatable;
     }
 
     public class Result {
-        LoaderType loaderType;
-        Options options;
+        public LoaderType loaderType;
+        public Options options;
 
-        List<String> partTitles = new LinkedList<>();
-        List<Uri> partUris = new LinkedList<>();
+        public List<String> partTitles = new LinkedList<>();
+        public List<Uri> partUris = new LinkedList<>();
     }
 
     public interface FileLoaderListener {

@@ -14,14 +14,14 @@ public class ProgressDialogFragment extends DialogFragment {
     public static final String FRAGMENT_TAG = "progress_dialog";
 
     private ProgressDialog progressDialog;
-    private boolean upload;
+    private boolean hasProgress;
 
     public ProgressDialogFragment() {
         this(false);
     }
 
-    public ProgressDialogFragment(boolean upload) {
-        this.upload = upload;
+    public ProgressDialogFragment(boolean hasProgress) {
+        this.hasProgress = hasProgress;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class ProgressDialogFragment extends DialogFragment {
         progressDialog = new ProgressDialog(getActivity());
 
         int title;
-        if (upload) {
+        if (hasProgress) {
             title = R.string.dialog_uploading_title;
         } else {
             title = R.string.dialog_loading_title;
@@ -38,8 +38,8 @@ public class ProgressDialogFragment extends DialogFragment {
         progressDialog.setTitle(getString(title));
         progressDialog.setMessage(getString(R.string.dialog_loading_message));
         progressDialog.setCancelable(false);
-        progressDialog.setIndeterminate(upload);
-        if (!upload) {
+        progressDialog.setIndeterminate(hasProgress);
+        if (!hasProgress) {
             progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             progressDialog.setMax(100);
             progressDialog.setProgress(0);

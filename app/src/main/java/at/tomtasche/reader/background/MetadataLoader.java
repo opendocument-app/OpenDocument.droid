@@ -37,13 +37,12 @@ public class MetadataLoader extends FileLoader {
     }
 
     @Override
+    public boolean isSupported(Options options) {
+        return true;
+    }
+
+    @Override
     public void loadSync(Options options) {
-        if (!initialized) {
-            throw new RuntimeException("not initialized");
-        }
-
-        loading = true;
-
         final Result result = new Result();
         result.options = options;
         result.loaderType = LoaderType.METADATA;
@@ -144,14 +143,17 @@ public class MetadataLoader extends FileLoader {
 
             callOnError(result, e);
         }
-
-        loading = false;
     }
 
     @Override
     public void close() {
         super.close();
 
-        MagicApi.close();
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                MagicApi.close();
+            }
+        });
     }
 }
