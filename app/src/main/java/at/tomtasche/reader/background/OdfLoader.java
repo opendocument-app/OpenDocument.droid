@@ -1,19 +1,11 @@
 package at.tomtasche.reader.background;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.provider.OpenableColumns;
-
-import com.hzy.libmagic.MagicApi;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLConnection;
 
 import at.stefl.commons.math.vector.Vector2i;
 import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
@@ -32,7 +24,6 @@ import at.stefl.opendocument.java.translator.document.SpreadsheetTranslator;
 import at.stefl.opendocument.java.translator.document.TextTranslator;
 import at.stefl.opendocument.java.translator.settings.ImageStoreMode;
 import at.stefl.opendocument.java.translator.settings.TranslationSettings;
-import at.tomtasche.reader.background.Document.Page;
 
 public class OdfLoader extends FileLoader {
 

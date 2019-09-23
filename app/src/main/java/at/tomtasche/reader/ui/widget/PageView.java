@@ -150,8 +150,7 @@ public class PageView extends WebView implements ParagraphListener {
             writer.write(html);
             writer.close();
 
-            // TODO: oh. my. god. stop it!
-            new Thread(writtenCallback).start();
+            writtenCallback.run();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

@@ -1,10 +1,8 @@
 package at.tomtasche.reader.background;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
-import android.provider.OpenableColumns;
 import android.webkit.MimeTypeMap;
 
 import com.google.android.gms.tasks.Task;
@@ -14,14 +12,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.hzy.libmagic.MagicApi;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.UUID;
 
@@ -100,7 +91,7 @@ public class OnlineLoader extends FileLoader {
     public void loadSync(Options options) {
         final Result result = new Result();
         result.options = options;
-        result.loaderType = LoaderType.FIREBASE;
+        result.loaderType = LoaderType.ONLINE;
 
         Task<AuthResult> authenticationTask = null;
         String currentUserId = null;

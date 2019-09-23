@@ -27,16 +27,23 @@ public class AnalyticsManager {
         report(event, null, null);
     }
 
-    public void report(String event, String key, String value) {
+    public void report(String event, String key1, String value1, String key2, String value2) {
         if (!enabled) {
             return;
         }
 
         Bundle bundle = new Bundle();
-        if (key != null) {
-            bundle.putString(key, value);
+        if (key1 != null) {
+            bundle.putString(key1, value1);
+        }
+        if (key2 != null) {
+            bundle.putString(key2, value2);
         }
 
         analytics.logEvent(event, bundle);
+    }
+
+    public void report(String event, String key, String value) {
+        report(event, key, value, null, null);
     }
 }

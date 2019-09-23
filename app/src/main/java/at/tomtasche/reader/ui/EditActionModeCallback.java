@@ -117,14 +117,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
 
                 @Override
                 public void run() {
-                    documentFragment.save(htmlFile);
-
-                    pageView.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            statusView.setText(R.string.edit_status_saved);
-                        }
-                    });
+                    documentFragment.saveAsync(htmlFile, statusView);
                 }
             });
         }

@@ -3,7 +3,6 @@ package at.tomtasche.reader.background;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Handler;
 import android.provider.OpenableColumns;
 
 import com.hzy.libmagic.MagicApi;
@@ -13,8 +12,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
-
-import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
 
 public class MetadataLoader extends FileLoader {
 
@@ -140,6 +137,8 @@ public class MetadataLoader extends FileLoader {
             callOnSuccess(result);
         } catch (Throwable e) {
             e.printStackTrace();
+
+            options.fileType = "N/A";
 
             callOnError(result, e);
         }

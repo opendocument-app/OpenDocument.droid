@@ -10,6 +10,7 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Parcelable;
@@ -27,9 +28,17 @@ import android.widget.Toast;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -39,12 +48,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
+import at.stefl.opendocument.java.odf.OpenDocument;
+import at.stefl.opendocument.java.odf.OpenDocumentPresentation;
+import at.stefl.opendocument.java.odf.OpenDocumentSpreadsheet;
+import at.stefl.opendocument.java.odf.OpenDocumentText;
+import at.stefl.opendocument.java.translator.Retranslator;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
+import at.tomtasche.reader.background.FileLoader;
 import at.tomtasche.reader.background.MetadataLoader;
 import at.tomtasche.reader.background.OdfLoader;
 import at.tomtasche.reader.background.OdfLoader.EncryptedDocumentException;
-import at.tomtasche.reader.background.FileLoader;
 import at.tomtasche.reader.background.OnlineLoader;
 import at.tomtasche.reader.background.PdfLoader;
 import at.tomtasche.reader.background.RawLoader;
@@ -247,8 +262,17 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         loadOdf(lastResult.options);
     }
 
-    public void save(File htmlFile) {
-        /*FileInputStream htmlStream = null;
+    public void saveAsync(File htmlFile, TextView statusView) {
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                saveSync(htmlFile, statusView);
+            }
+        });
+    }
+
+    private void saveSync(File htmlFile, TextView statusView) {
+        FileInputStream htmlStream = null;
         FileOutputStream modifiedStream = null;
         LocatedOpenDocumentFile documentFile = null;
         try {
@@ -286,13 +310,23 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                     + modifiedFile.getAbsolutePath());
 
             loadUri(fileUri, password, false, true);
-        } catch (final Throwable e) {
-            e.printStackTrace();
 
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    onError(FileLoader.LoaderType.SAVE, e, null);
+                    statusView.setText(R.string.edit_status_saved);
+                }
+            });
+        } catch (Throwable e) {
+            e.printStackTrace();
+
+            analyticsManager.report("save_error", FirebaseAnalytics.Param.CONTENT_TYPE, lastResult.options.fileType);
+            crashManager.log(e, lastResult.options.originalUri);
+
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    statusView.setText(R.string.toast_error_generic);
                 }
             });
         } finally {
@@ -316,7 +350,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 } catch (IOException e) {
                 }
             }
-        }*/
+        }
     }
 
     private void loadOnline(FileLoader.Options options) {
@@ -362,32 +396,24 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             return;
         }
 
-        FileLoader.Options options = result.options;
-
         dismissProgress();
 
+        FileLoader.Options options = result.options;
         if (result.loaderType == FileLoader.LoaderType.METADATA) {
-            if (options.fileType == null) {
-                offerReopen(getActivity(), options, R.string.toast_error_illegal_file);
-            } else if (odfLoader.isSupported(options)) {
-                loadOdf(options);
-            } else if (pdfLoader.isSupported(options)) {
-                boolean didLoad = loadPdf(result, (AppCompatActivity) activity);
-                if (!didLoad) {
-                    offerUpload(activity, options);
-                }
-            } else if (rawLoader.isSupported(options)) {
-                loadRaw(options);
-            } else if (onlineLoader.isSupported(options)) {
-                offerUpload(activity, options);
-            } else {
-                offerReopen(activity, options, R.string.toast_error_illegal_file);
+            String[] fileSplit = options.filename.split("\\.");
+            String fileExtension = fileSplit.length > 0 ? fileSplit[fileSplit.length - 1] : "N/A";
+            analyticsManager.report("load_metadata", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, fileExtension);
+
+            if (!odfLoader.isSupported(options)) {
+                crashManager.log("we do not expect this file to be an ODF: " + options.originalUri.toString());
             }
+
+            loadOdf(options);
         } else {
             if (result.loaderType == FileLoader.LoaderType.ODF) {
                 analyticsManager.report("load_odf_success");
             }
-            analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
+            analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
 
             lastResult = result;
 
@@ -427,11 +453,14 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             return;
         }
 
-        Uri cacheUri = result.options.cacheUri;
-
         dismissProgress();
 
+        FileLoader.Options options = result.options;
+        Uri cacheUri = options.cacheUri;
         if (result.loaderType == FileLoader.LoaderType.ODF) {
+            analyticsManager.report("load_odf_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
+            crashManager.log(error, options.originalUri);
+
             if (error instanceof EncryptedDocumentException) {
                 analyticsManager.report("load_error_encrypted");
 
@@ -459,12 +488,28 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
                 return;
             } else {
-                offerUpload(activity, result.options);
+                if (pdfLoader.isSupported(options)) {
+                    boolean didLoad = loadPdf(result, (AppCompatActivity) activity);
+                    if (!didLoad) {
+                        // we can assume at this point that the file is supported by the online viewer
+                        // because we already checked if it is supported by the PdfLoader
+                        offerUpload(activity, options);
+                    }
+                } else if (rawLoader.isSupported(options)) {
+                    loadRaw(options);
+                } else if (onlineLoader.isSupported(options)) {
+                    offerUpload(activity, options);
+                } else {
+                    offerReopen(activity, options, R.string.toast_error_illegal_file);
+                }
 
                 return;
             }
-        } else if (result.loaderType == FileLoader.LoaderType.FIREBASE) {
-            offerReopen(activity, result.options, R.string.toast_error_illegal_file);
+        } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
+            analyticsManager.report("load_online_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
+            crashManager.log(error, options.originalUri);
+
+            offerReopen(activity, options, R.string.toast_error_illegal_file);
 
             return;
         }
@@ -478,12 +523,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             errorDescription = R.string.toast_error_generic;
         }
 
-        if (result.loaderType != FileLoader.LoaderType.SAVE) {
-            offerReopen(activity, result.options, errorDescription);
-        }
+        offerReopen(activity, options, errorDescription);
 
-        analyticsManager.report("load_error", FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType);
-        crashManager.log(error, result.options.originalUri);
+        analyticsManager.report("load_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
+        crashManager.log(error, options.originalUri);
     }
 
     private boolean loadPdf(FileLoader.Result result, AppCompatActivity activity) {
