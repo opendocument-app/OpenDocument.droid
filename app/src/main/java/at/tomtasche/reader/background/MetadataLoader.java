@@ -126,6 +126,10 @@ public class MetadataLoader extends FileLoader {
                 }
             }
 
+            if (type == null) {
+                options.fileType = "N/A";
+            }
+
             options.fileType = type;
 
             try {

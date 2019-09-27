@@ -406,6 +406,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             if (!odfLoader.isSupported(options)) {
                 crashManager.log("we do not expect this file to be an ODF: " + options.originalUri.toString());
+                analyticsManager.report("load_odf_error_expected", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
             }
 
             loadOdf(options);
@@ -442,6 +443,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 if (pages == 1) {
                     loadData(result.partUris.get(0).toString());
                 }
+            }
+
+            if (result.loaderType == FileLoader.LoaderType.RAW || result.loaderType == FileLoader.LoaderType.ONLINE) {
+                offerReopen(activity, options, R.string.toast_hint_unsupported_file, false);
             }
         }
     }
@@ -500,7 +505,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 } else if (onlineLoader.isSupported(options)) {
                     offerUpload(activity, options);
                 } else {
-                    offerReopen(activity, options, R.string.toast_error_illegal_file);
+                    offerReopen(activity, options, R.string.toast_error_illegal_file, true);
                 }
 
                 return;
@@ -509,7 +514,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             analyticsManager.report("load_online_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
             crashManager.log(error, options.originalUri);
 
-            offerReopen(activity, options, R.string.toast_error_illegal_file);
+            offerReopen(activity, options, R.string.toast_error_illegal_file, true);
 
             return;
         }
@@ -523,7 +528,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             errorDescription = R.string.toast_error_generic;
         }
 
-        offerReopen(activity, options, errorDescription);
+        offerReopen(activity, options, errorDescription, true);
 
         analyticsManager.report("load_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
         crashManager.log(error, options.originalUri);
@@ -580,7 +585,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             public void onClick(DialogInterface dialog, int i) {
                 analyticsManager.report("load_upload_cancel", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
 
-                offerReopen(activity, options, R.string.toast_error_illegal_file);
+                offerReopen(activity, options, R.string.toast_error_illegal_file, true);
 
                 dialog.dismiss();
             }
@@ -589,13 +594,13 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         builder.show();
     }
 
-    private void offerReopen(Activity activity, FileLoader.Options options, int errorDescription) {
+    private void offerReopen(Activity activity, FileLoader.Options options, int description, boolean isError) {
         String fileType = options.fileType;
         Uri cacheUri = options.cacheUri;
 
         analyticsManager.report("reopen_offer", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
 
-        SnackbarHelper.show(activity, errorDescription, new Runnable() {
+        SnackbarHelper.show(activity, description, new Runnable() {
             @Override
             public void run() {
                 Intent intent = new Intent();
@@ -628,9 +633,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                     activity.startActivity(chooserIntent);
                 } else {
                     analyticsManager.report("reopen_failed_noapp", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
+
+                    Toast.makeText(activity, R.string.toast_error_reopen_noapp, Toast.LENGTH_LONG).show();
                 }
             }
-        }, true, true);
+        }, isError, isError);
     }
 
     private void showProgress() {
@@ -638,10 +645,13 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     private void showProgress(final FileLoader fileLoader,
-                          final boolean hasProgress) {
+                          boolean hasProgress) {
         if (progressDialog != null) {
             return;
         }
+
+        // TODO: fix progress
+        hasProgress = false;
 
         try {
             progressDialog = new ProgressDialogFragment(hasProgress);
@@ -743,12 +753,24 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     public void onDestroy() {
         super.onDestroy();
 
+        if (metadataLoader != null) {
+            metadataLoader.close();
+        }
+
         if (odfLoader != null) {
             odfLoader.close();
         }
 
+        if (pdfLoader != null) {
+            pdfLoader.close();
+        }
+
         if (rawLoader != null) {
             rawLoader.close();
+        }
+
+        if (onlineLoader != null) {
+            onlineLoader.close();
         }
 
         if (pdfAdapter != null) {

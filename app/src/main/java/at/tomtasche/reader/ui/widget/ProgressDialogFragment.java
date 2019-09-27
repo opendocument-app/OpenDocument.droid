@@ -38,8 +38,8 @@ public class ProgressDialogFragment extends DialogFragment {
         progressDialog.setTitle(getString(title));
         progressDialog.setMessage(getString(R.string.dialog_loading_message));
         progressDialog.setCancelable(false);
-        progressDialog.setIndeterminate(hasProgress);
-        if (!hasProgress) {
+        progressDialog.setIndeterminate(!hasProgress);
+        if (hasProgress) {
             progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             progressDialog.setMax(100);
             progressDialog.setProgress(0);
