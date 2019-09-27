@@ -206,7 +206,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private void loadRaw(FileLoader.Options options) {
         showProgress();
 
-        toggleDocumentMenu(true);
+        toggleDocumentMenu(true, false);
         togglePageView(true);
 
         rawLoader.loadAsync(options);

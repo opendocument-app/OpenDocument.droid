@@ -25,7 +25,7 @@ public class MetadataLoader extends FileLoader {
             int length = inputStream.available();
             byte[] buffer = new byte[length];
             if (inputStream.read(buffer) > 0) {
-                return MagicApi.loadFromBytes(buffer, MagicApi.MAGIC_MIME_TYPE) == 0;
+                return MagicApi.loadFromBytes(buffer, MagicApi.MAGIC_MIME_TYPE | MagicApi.MAGIC_COMPRESS_TRANSP) == 0;
             }
         } catch (Throwable e) {
             e.printStackTrace();

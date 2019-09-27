@@ -7,6 +7,7 @@ import android.webkit.MimeTypeMap;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -14,7 +15,7 @@ import java.io.OutputStream;
 public class RawLoader extends FileLoader {
 
     private static final String[] MIME_WHITELIST = {"text/", "image/", "video/", "audio/", "application/json", "application/xml"};
-    private static final String[] MIME_BLACKLIST = {};
+    private static final String[] MIME_BLACKLIST = {"image/vnd.dwg", "image/g3fax", "image/tiff", "image/vnd.djvu", "image/x-eps", "image/x-tga", "image/x-tga"};
 
     public RawLoader(Context context) {
         super(context);
@@ -58,20 +59,34 @@ public class RawLoader extends FileLoader {
 
             // TODO: use options.cacheUri instead
             File cacheFile = AndroidFileCache.getCacheFile(context);
-            File renamedFile = new File(cacheFile.getParentFile(), "temp." + extension);
+            File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
 
-            try {
+            Uri finalUri;
+            if (fileType.startsWith("image/")) {
+                File htmlFile = new File(cacheDirectory, "image.html");
+                InputStream htmlStream = context.getAssets().open("image.html");
+                copy(htmlStream, htmlFile);
+
+                // use jpg as a workaround for most images
+                extension = "jpg";
+                if (fileType.contains("svg")) {
+                    // browser does not recognize SVG if it's not called ".svg"
+                    extension = "svg";
+                }
+
+                File imageFile = new File(cacheDirectory, "image." + extension);
+                copy(cacheFile, imageFile);
+
+                finalUri = Uri.fromFile(htmlFile).buildUpon().appendQueryParameter("ext", extension).build();
+            } else {
+                File renamedFile = new File(cacheDirectory, "temp." + extension);
                 copy(cacheFile, renamedFile);
-            } catch (IOException e) {
-                e.printStackTrace();
 
-                // there's no point in trying to open a file called "document.odt" in the browser
-                callOnError(result, e);
-                return;
+                finalUri = Uri.fromFile(renamedFile);
             }
 
             result.partTitles.add(null);
-            result.partUris.add(Uri.fromFile(renamedFile));
+            result.partUris.add(finalUri);
             callOnSuccess(result);
         } catch (Throwable e) {
             e.printStackTrace();
@@ -80,9 +95,13 @@ public class RawLoader extends FileLoader {
         }
     }
 
-    // taken from: https://stackoverflow.com/a/9293885/198996
     private void copy(File src, File dst) throws IOException {
         InputStream in = new FileInputStream(src);
+        copy(in, dst);
+    }
+
+    // taken from: https://stackoverflow.com/a/9293885/198996
+    private void copy(InputStream in, File dst) throws IOException {
         try {
             OutputStream out = new FileOutputStream(dst);
             try {
