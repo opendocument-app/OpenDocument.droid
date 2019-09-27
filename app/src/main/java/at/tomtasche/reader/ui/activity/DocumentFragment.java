@@ -777,6 +777,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             pdfAdapter.close();
         }
 
+        if (pageView != null) {
+            pageView.destroy();
+        }
+
         backgroundThread.quit();
         backgroundThread = null;
         backgroundHandler = null;

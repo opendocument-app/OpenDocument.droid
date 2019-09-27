@@ -15,7 +15,7 @@ import java.io.OutputStream;
 public class RawLoader extends FileLoader {
 
     private static final String[] MIME_WHITELIST = {"text/", "image/", "video/", "audio/", "application/json", "application/xml"};
-    private static final String[] MIME_BLACKLIST = {"image/vnd.dwg", "image/g3fax", "image/tiff", "image/vnd.djvu", "image/x-eps", "image/x-tga", "image/x-tga"};
+    private static final String[] MIME_BLACKLIST = {"image/vnd.dwg", "image/g3fax", "image/tiff", "image/vnd.djvu", "image/x-eps", "image/x-tga", "image/x-tga", "audio/amr", "video/3gpp", "video/quicktime"};
 
     public RawLoader(Context context) {
         super(context);
@@ -78,6 +78,31 @@ public class RawLoader extends FileLoader {
                 copy(cacheFile, imageFile);
 
                 finalUri = Uri.fromFile(htmlFile).buildUpon().appendQueryParameter("ext", extension).build();
+            } else if (fileType.startsWith("audio/")) {
+                File htmlFile = new File(cacheDirectory, "audio.html");
+                InputStream htmlStream = context.getAssets().open("audio.html");
+                copy(htmlStream, htmlFile);
+
+                // use mp3 as a workaround for most images
+                extension = "mp3";
+
+                File audioFile = new File(cacheDirectory, "audio." + extension);
+                copy(cacheFile, audioFile);
+
+                finalUri = Uri.fromFile(htmlFile).buildUpon().appendQueryParameter("ext", extension).build();
+            } else if (fileType.startsWith("video/")) {
+                File htmlFile = new File(cacheDirectory, "video.html");
+                InputStream htmlStream = context.getAssets().open("video.html");
+                copy(htmlStream, htmlFile);
+
+                // use mp4 as a workaround for most images
+                extension = "mp4";
+
+                File videoFile = new File(cacheDirectory, "video." + extension);
+                copy(cacheFile, videoFile);
+
+                finalUri = Uri.fromFile(htmlFile).buildUpon().appendQueryParameter("ext", extension).build();
+
             } else {
                 File renamedFile = new File(cacheDirectory, "temp." + extension);
                 copy(cacheFile, renamedFile);

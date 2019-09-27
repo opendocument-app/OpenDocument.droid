@@ -18,6 +18,7 @@ import java.util.UUID;
 
 public class OnlineLoader extends FileLoader {
 
+    // https://help.joomlatools.com/article/169-google-viewer
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types
     private static final String[] MIME_WHITELIST = {"text/", "image/", "video/", "audio/",
             // markup
@@ -49,7 +50,7 @@ public class OnlineLoader extends FileLoader {
             // zip: https://filext.com/file-extension/ZIP
             "application/zip", "application/x-zip", "application/x-zip-compressed", "application/x-compress", "application/x-compressed", "multipart/x-zip"
     };
-    private static final String[] MIME_BLACKLIST = {"image/x-tga", "image/vnd.djvu", "image/g3fax"};
+    private static final String[] MIME_BLACKLIST = {"image/x-tga", "image/vnd.djvu", "image/g3fax", "audio/amr"};
 
     private StorageReference storage;
     private FirebaseAuth auth;
