@@ -26,9 +26,11 @@
                     datatables_options: {"paging": false},
                 });
             } catch (e) {
+                text.style["white-space"] = "pre-line"
                 text.innerHTML = textString;
             }
         } else {
+            text.style["white-space"] = "pre-line"
             text.innerHTML = textString;
         }
     </script>
