@@ -4,18 +4,23 @@ import android.content.Context;
 import android.net.Uri;
 import android.webkit.MimeTypeMap;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URLEncoder;
 
 public class RawLoader extends FileLoader {
 
     private static final String[] MIME_WHITELIST = {"text/", "image/", "video/", "audio/", "application/json", "application/xml"};
-    private static final String[] MIME_BLACKLIST = {"image/vnd.dwg", "image/g3fax", "image/tiff", "image/vnd.djvu", "image/x-eps", "image/x-tga", "image/x-tga", "audio/amr", "video/3gpp", "video/quicktime"};
+    private static final String[] MIME_BLACKLIST = {"image/vnd.dwg", "image/g3fax", "image/tiff", "image/vnd.djvu", "image/x-eps", "image/x-tga", "image/x-tga", "audio/amr", "video/3gpp", "video/quicktime", "text/calendar", "text/vcard"};
 
     public RawLoader(Context context) {
         super(context);
@@ -102,7 +107,31 @@ public class RawLoader extends FileLoader {
                 copy(cacheFile, videoFile);
 
                 finalUri = Uri.fromFile(htmlFile).buildUpon().appendQueryParameter("ext", extension).build();
+            } else if (fileType.startsWith("text/")) {
+                File htmlFile = new File(cacheDirectory, "text.html");
+                InputStream htmlPrefixStream = context.getAssets().open("text-prefix.html");
+                InputStream htmlSuffixStream = context.getAssets().open("text-suffix.html");
 
+                OutputStream outputStream = new FileOutputStream(htmlFile);
+                try {
+                    copy(htmlPrefixStream, outputStream);
+
+                    FileReader fileReader = new FileReader(cacheFile);
+                    BufferedReader bufferedReader = new BufferedReader(fileReader);
+                    for (String s = bufferedReader.readLine(); s != null; s = bufferedReader.readLine()) {
+                        outputStream.write((s + "XODRX").getBytes("UTF-8"));
+                    }
+
+                    copy(htmlSuffixStream, outputStream);
+                } finally {
+                    outputStream.close();
+                }
+
+                File fontFile = new File(cacheDirectory, "text.ttf");
+                InputStream fontStream = context.getAssets().open("text.ttf");
+                copy(fontStream, fontFile);
+
+                finalUri = Uri.fromFile(htmlFile);
             } else {
                 File renamedFile = new File(cacheDirectory, "temp." + extension);
                 copy(cacheFile, renamedFile);
@@ -125,19 +154,23 @@ public class RawLoader extends FileLoader {
         copy(in, dst);
     }
 
-    // taken from: https://stackoverflow.com/a/9293885/198996
     private void copy(InputStream in, File dst) throws IOException {
+        OutputStream out = new FileOutputStream(dst);
         try {
-            OutputStream out = new FileOutputStream(dst);
-            try {
-                // Transfer bytes from in to out
-                byte[] buf = new byte[1024];
-                int len;
-                while ((len = in.read(buf)) > 0) {
-                    out.write(buf, 0, len);
-                }
-            } finally {
-                out.close();
+            copy(in, out);
+        } finally {
+            out.close();
+        }
+    }
+
+    // taken from: https://stackoverflow.com/a/9293885/198996
+    private void copy(InputStream in, OutputStream out) throws IOException {
+        try {
+            // Transfer bytes from in to out
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
             }
         } finally {
             in.close();

@@ -50,7 +50,7 @@ public class OnlineLoader extends FileLoader {
             // zip: https://filext.com/file-extension/ZIP
             "application/zip", "application/x-zip", "application/x-zip-compressed", "application/x-compress", "application/x-compressed", "multipart/x-zip"
     };
-    private static final String[] MIME_BLACKLIST = {"image/x-tga", "image/vnd.djvu", "image/g3fax", "audio/amr"};
+    private static final String[] MIME_BLACKLIST = {"image/x-tga", "image/vnd.djvu", "image/g3fax", "audio/amr", "text/calendar", "text/vcard", "video/3gpp"};
 
     private StorageReference storage;
     private FirebaseAuth auth;

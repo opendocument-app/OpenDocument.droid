@@ -1,0 +1,36 @@
+</div>
+
+    <script>
+        var text = document.getElementById('text');
+
+        var textString = text.innerText;
+        textString = textString.replace(/XODRX/g, '\n');
+
+        var csv = detectCSV(textString);
+        if (csv && csv.newline && csv.lines < 5001) {
+            text.innerHTML = '';
+
+            var options = {};
+            if (csv.delimiter) {
+                options.separator = csv.delimiter;
+            }
+            if (csv.newline) {
+                options.delimiter = csv.newline;
+            }
+
+            try {
+                CsvToHtmlTable.init({
+                    data: textString,
+                    element: 'text',
+                    csv_options: options,
+                    datatables_options: {"paging": false},
+                });
+            } catch (e) {
+                text.innerHTML = textString;
+            }
+        } else {
+            text.innerHTML = textString;
+        }
+    </script>
+</body>
+</html>
