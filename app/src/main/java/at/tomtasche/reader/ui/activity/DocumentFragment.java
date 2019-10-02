@@ -646,55 +646,61 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     private void showProgress(final FileLoader fileLoader,
                           boolean hasProgress) {
-        if (progressDialog != null) {
-            return;
-        }
+        boolean reallyHasProgress = false;
 
-        // TODO: fix progress
-        hasProgress = false;
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (progressDialog != null) {
+                    return;
+                }
 
-        try {
-            progressDialog = new ProgressDialogFragment(hasProgress);
+                // TODO: fix progress
 
-            FragmentManager fragmentManager = getFragmentManager();
-            if (fragmentManager == null) {
-                // TODO: use crashmanager
-                progressDialog = null;
+                try {
+                    progressDialog = new ProgressDialogFragment(reallyHasProgress);
 
-                return;
-            }
+                    FragmentManager fragmentManager = getFragmentManager();
+                    if (fragmentManager == null) {
+                        // TODO: use crashmanager
+                        progressDialog = null;
 
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
-            progressDialog.show(transaction,
-                    ProgressDialogFragment.FRAGMENT_TAG);
-
-            if (hasProgress) {
-                mainHandler.postDelayed(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        Activity activity = getActivity();
-                        if (activity == null || activity.isFinishing()) {
-                            return;
-                        }
-
-                        if (progressDialog == null) {
-                            return;
-                        }
-
-                        // TODO: progressDialog.setProgress(fileLoader.getProgress());
-
-                        if (fileLoader.isLoading()) {
-                            mainHandler.postDelayed(this, 1000);
-                        }
+                        return;
                     }
-                }, 1000);
-            }
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
 
-            progressDialog = null;
-        }
+                    FragmentTransaction transaction = fragmentManager.beginTransaction();
+                    progressDialog.show(transaction,
+                            ProgressDialogFragment.FRAGMENT_TAG);
+
+                    if (reallyHasProgress) {
+                        mainHandler.postDelayed(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                Activity activity = getActivity();
+                                if (activity == null || activity.isFinishing()) {
+                                    return;
+                                }
+
+                                if (progressDialog == null) {
+                                    return;
+                                }
+
+                                // TODO: progressDialog.setProgress(fileLoader.getProgress());
+
+                                if (fileLoader.isLoading()) {
+                                    mainHandler.postDelayed(this, 1000);
+                                }
+                            }
+                        }, 1000);
+                    }
+                } catch (IllegalStateException e) {
+                    e.printStackTrace();
+
+                    progressDialog = null;
+                }
+            }
+        });
     }
 
     private void dismissProgress() {
@@ -702,25 +708,30 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         // onLoadFinished:
         // "java.lang.IllegalStateException: Can not perform this action inside of onLoadFinished"
 
-        if (getFragmentManager() == null) {
-            return;
-        }
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (getFragmentManager() == null) {
+                    return;
+                }
 
-        if (progressDialog == null) {
-            progressDialog = (ProgressDialogFragment) getFragmentManager()
-                    .findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
-        }
+                if (progressDialog == null) {
+                    progressDialog = (ProgressDialogFragment) getFragmentManager()
+                            .findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
+                }
 
-        if (progressDialog != null && progressDialog.getShowsDialog()
-                && progressDialog.isNotNull()) {
-            try {
-                progressDialog.dismissAllowingStateLoss();
-            } catch (NullPointerException e) {
-                e.printStackTrace();
+                if (progressDialog != null && progressDialog.getShowsDialog()
+                        && progressDialog.isNotNull()) {
+                    try {
+                        progressDialog.dismissAllowingStateLoss();
+                    } catch (NullPointerException e) {
+                        e.printStackTrace();
+                    }
+
+                    progressDialog = null;
+                }
             }
-
-            progressDialog = null;
-        }
+        });
     }
 
     @Override
