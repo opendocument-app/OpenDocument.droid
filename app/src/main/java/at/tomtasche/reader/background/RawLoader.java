@@ -2,10 +2,13 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Base64;
+import android.util.Base64OutputStream;
 import android.webkit.MimeTypeMap;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -19,7 +22,7 @@ import java.net.URLEncoder;
 
 public class RawLoader extends FileLoader {
 
-    private static final String[] MIME_WHITELIST = {"text/", "image/", "video/", "audio/", "application/json", "application/xml"};
+    private static final String[] MIME_WHITELIST = {"text/", "image/", "video/", "audio/", "application/json", "application/xml", "application/zip"};
     private static final String[] MIME_BLACKLIST = {"image/vnd.dwg", "image/g3fax", "image/tiff", "image/vnd.djvu", "image/x-eps", "image/x-tga", "image/x-tga", "audio/amr", "video/3gpp", "video/quicktime", "text/calendar", "text/vcard"};
 
     public RawLoader(Context context) {
@@ -70,7 +73,7 @@ public class RawLoader extends FileLoader {
             if (fileType.startsWith("image/")) {
                 File htmlFile = new File(cacheDirectory, "image.html");
                 InputStream htmlStream = context.getAssets().open("image.html");
-                copy(htmlStream, htmlFile);
+                StreamUtil.copy(htmlStream, htmlFile);
 
                 // use jpg as a workaround for most images
                 extension = "jpg";
@@ -80,31 +83,31 @@ public class RawLoader extends FileLoader {
                 }
 
                 File imageFile = new File(cacheDirectory, "image." + extension);
-                copy(cacheFile, imageFile);
+                StreamUtil.copy(cacheFile, imageFile);
 
                 finalUri = Uri.fromFile(htmlFile).buildUpon().appendQueryParameter("ext", extension).build();
             } else if (fileType.startsWith("audio/")) {
                 File htmlFile = new File(cacheDirectory, "audio.html");
                 InputStream htmlStream = context.getAssets().open("audio.html");
-                copy(htmlStream, htmlFile);
+                StreamUtil.copy(htmlStream, htmlFile);
 
                 // use mp3 as a workaround for most images
                 extension = "mp3";
 
                 File audioFile = new File(cacheDirectory, "audio." + extension);
-                copy(cacheFile, audioFile);
+                StreamUtil.copy(cacheFile, audioFile);
 
                 finalUri = Uri.fromFile(htmlFile).buildUpon().appendQueryParameter("ext", extension).build();
             } else if (fileType.startsWith("video/")) {
                 File htmlFile = new File(cacheDirectory, "video.html");
                 InputStream htmlStream = context.getAssets().open("video.html");
-                copy(htmlStream, htmlFile);
+                StreamUtil.copy(htmlStream, htmlFile);
 
                 // use mp4 as a workaround for most images
                 extension = "mp4";
 
                 File videoFile = new File(cacheDirectory, "video." + extension);
-                copy(cacheFile, videoFile);
+                StreamUtil.copy(cacheFile, videoFile);
 
                 finalUri = Uri.fromFile(htmlFile).buildUpon().appendQueryParameter("ext", extension).build();
             } else if (fileType.startsWith("text/")) {
@@ -114,27 +117,56 @@ public class RawLoader extends FileLoader {
 
                 OutputStream outputStream = new FileOutputStream(htmlFile);
                 try {
-                    copy(htmlPrefixStream, outputStream);
+                    StreamUtil.copy(htmlPrefixStream, outputStream);
 
                     FileReader fileReader = new FileReader(cacheFile);
                     BufferedReader bufferedReader = new BufferedReader(fileReader);
                     for (String s = bufferedReader.readLine(); s != null; s = bufferedReader.readLine()) {
-                        outputStream.write((s + "XODRX").getBytes("UTF-8"));
+                        outputStream.write((s + "XODRX").getBytes(StreamUtil.ENCODING));
                     }
 
-                    copy(htmlSuffixStream, outputStream);
+                    StreamUtil.copy(htmlSuffixStream, outputStream);
                 } finally {
                     outputStream.close();
                 }
 
                 File fontFile = new File(cacheDirectory, "text.ttf");
                 InputStream fontStream = context.getAssets().open("text.ttf");
-                copy(fontStream, fontFile);
+                StreamUtil.copy(fontStream, fontFile);
+
+                finalUri = Uri.fromFile(htmlFile);
+            } else if (fileType.startsWith("application/zip")) {
+                File htmlFile = new File(cacheDirectory, "zip.html");
+                InputStream htmlPrefixStream = context.getAssets().open("zip-prefix.html");
+                InputStream htmlSuffixStream = context.getAssets().open("zip-suffix.html");
+
+                OutputStream outputStream = new FileOutputStream(htmlFile);
+                try {
+                    StreamUtil.copy(htmlPrefixStream, outputStream);
+
+                    // need to store it in a separate file first because BaseStream writes characters on close
+                    FileInputStream fileInputStream = new FileInputStream(cacheFile);
+                    File baseFile = new File(cacheDirectory, "tmp");
+                    OutputStream baseFileOutputStream = new FileOutputStream(baseFile);
+                    Base64OutputStream baseOutputStream = new Base64OutputStream(baseFileOutputStream, Base64.NO_WRAP);
+                    try {
+                        StreamUtil.copy(fileInputStream, baseOutputStream);
+                    } finally {
+                        baseOutputStream.close();
+                    }
+
+                    InputStream baseFileInputStream = new FileInputStream(baseFile);
+                    StreamUtil.copy(baseFileInputStream, outputStream);
+
+                    StreamUtil.copy(htmlSuffixStream, outputStream);
+                } finally {
+                    outputStream.close();
+                }
 
                 finalUri = Uri.fromFile(htmlFile);
             } else {
                 File renamedFile = new File(cacheDirectory, "temp." + extension);
-                copy(cacheFile, renamedFile);
+                StreamUtil.copy(cacheFile, renamedFile);
 
                 finalUri = Uri.fromFile(renamedFile);
             }
@@ -146,34 +178,6 @@ public class RawLoader extends FileLoader {
             e.printStackTrace();
 
             callOnError(result, e);
-        }
-    }
-
-    private void copy(File src, File dst) throws IOException {
-        InputStream in = new FileInputStream(src);
-        copy(in, dst);
-    }
-
-    private void copy(InputStream in, File dst) throws IOException {
-        OutputStream out = new FileOutputStream(dst);
-        try {
-            copy(in, out);
-        } finally {
-            out.close();
-        }
-    }
-
-    // taken from: https://stackoverflow.com/a/9293885/198996
-    private void copy(InputStream in, OutputStream out) throws IOException {
-        try {
-            // Transfer bytes from in to out
-            byte[] buf = new byte[1024];
-            int len;
-            while ((len = in.read(buf)) > 0) {
-                out.write(buf, 0, len);
-            }
-        } finally {
-            in.close();
         }
     }
 }

@@ -141,6 +141,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             LinearLayout inflatedView = (LinearLayout) inflater.inflate(R.layout.fragment_document, container, false);
 
             pageView = inflatedView.findViewById(R.id.page_view);
+            pageView.setDocumentFragment(this);
+
             pdfView = inflatedView.findViewById(R.id.pdf_view);
 
             return inflatedView;

@@ -122,7 +122,7 @@ public class OnlineLoader extends FileLoader {
 
                 String downloadUrl = urlTask.getResult().toString();
                 Uri viewerUri = Uri.parse("https://docs.google.com/viewer?embedded=true&url="
-                        + URLEncoder.encode(downloadUrl, "UTF-8"));
+                        + URLEncoder.encode(downloadUrl, StreamUtil.ENCODING));
 
                 result.partTitles.add(null);
                 result.partUris.add(viewerUri);
