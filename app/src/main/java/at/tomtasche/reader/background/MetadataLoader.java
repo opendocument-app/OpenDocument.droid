@@ -44,9 +44,10 @@ public class MetadataLoader extends FileLoader {
         result.options = options;
         result.loaderType = LoaderType.METADATA;
 
+        options.fileType = "N/A";
+
         Uri uri = options.originalUri;
 
-        String type = null;
         try {
             // cleanup uri
             if ("/./".equals(uri.toString().substring(0, 2))) {
@@ -92,6 +93,7 @@ public class MetadataLoader extends FileLoader {
 
             options.filename = filename;
 
+            String type = null;
             if (initMagicFromAssets()) {
                 try {
                     type = MagicApi.magicFile(cachedFile.getAbsolutePath());
@@ -126,11 +128,9 @@ public class MetadataLoader extends FileLoader {
                 }
             }
 
-            if (type == null) {
-                options.fileType = "N/A";
+            if (type != null) {
+                options.fileType = type;
             }
-
-            options.fileType = type;
 
             try {
                 RecentDocumentsUtil.addRecentDocument(context, filename, uri);
