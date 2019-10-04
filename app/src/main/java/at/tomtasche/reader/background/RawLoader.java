@@ -119,11 +119,7 @@ public class RawLoader extends FileLoader {
                 try {
                     StreamUtil.copy(htmlPrefixStream, outputStream);
 
-                    FileReader fileReader = new FileReader(cacheFile);
-                    BufferedReader bufferedReader = new BufferedReader(fileReader);
-                    for (String s = bufferedReader.readLine(); s != null; s = bufferedReader.readLine()) {
-                        outputStream.write((s + "XODRX").getBytes(StreamUtil.ENCODING));
-                    }
+                    writeBase64(cacheFile, cacheDirectory, outputStream);
 
                     StreamUtil.copy(htmlSuffixStream, outputStream);
                 } finally {
@@ -144,19 +140,7 @@ public class RawLoader extends FileLoader {
                 try {
                     StreamUtil.copy(htmlPrefixStream, outputStream);
 
-                    // need to store it in a separate file first because BaseStream writes characters on close
-                    FileInputStream fileInputStream = new FileInputStream(cacheFile);
-                    File baseFile = new File(cacheDirectory, "tmp");
-                    OutputStream baseFileOutputStream = new FileOutputStream(baseFile);
-                    Base64OutputStream baseOutputStream = new Base64OutputStream(baseFileOutputStream, Base64.NO_WRAP);
-                    try {
-                        StreamUtil.copy(fileInputStream, baseOutputStream);
-                    } finally {
-                        baseOutputStream.close();
-                    }
-
-                    InputStream baseFileInputStream = new FileInputStream(baseFile);
-                    StreamUtil.copy(baseFileInputStream, outputStream);
+                    writeBase64(cacheFile, cacheDirectory, outputStream);
 
                     StreamUtil.copy(htmlSuffixStream, outputStream);
                 } finally {
@@ -179,5 +163,21 @@ public class RawLoader extends FileLoader {
 
             callOnError(result, e);
         }
+    }
+
+    private void writeBase64(File cacheFile, File cacheDirectory, OutputStream outputStream) throws IOException {
+        // need to store it in a separate file first because BaseStream writes characters on close
+        FileInputStream fileInputStream = new FileInputStream(cacheFile);
+        File baseFile = new File(cacheDirectory, "tmp");
+        OutputStream baseFileOutputStream = new FileOutputStream(baseFile);
+        Base64OutputStream baseOutputStream = new Base64OutputStream(baseFileOutputStream, Base64.NO_WRAP);
+        try {
+            StreamUtil.copy(fileInputStream, baseOutputStream);
+        } finally {
+            baseOutputStream.close();
+        }
+
+        InputStream baseFileInputStream = new FileInputStream(baseFile);
+        StreamUtil.copy(baseFileInputStream, outputStream);
     }
 }

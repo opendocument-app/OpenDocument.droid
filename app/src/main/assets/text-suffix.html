@@ -1,15 +1,11 @@
-</div>
+        ";
 
-    <script>
         var text = document.getElementById('text');
 
-        var textString = text.innerText;
-        textString = textString.replace(/XODRX/g, '\n');
+        var textString = atob(base);
 
         var csv = detectCSV(textString);
-        if (csv && csv.newline && csv.lines < 5001) {
-            text.innerHTML = '';
-
+        if (csv && csv.newline && csv.lines < 10001) {
             var options = {};
             if (csv.delimiter) {
                 options.separator = csv.delimiter;
