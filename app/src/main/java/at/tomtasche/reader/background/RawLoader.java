@@ -4,21 +4,13 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Base64;
 import android.util.Base64OutputStream;
-import android.webkit.MimeTypeMap;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
-import java.net.URLEncoder;
 
 public class RawLoader extends FileLoader {
 
@@ -26,7 +18,7 @@ public class RawLoader extends FileLoader {
     private static final String[] MIME_BLACKLIST = {"image/vnd.dwg", "image/g3fax", "image/tiff", "image/vnd.djvu", "image/x-eps", "image/x-tga", "image/x-tga", "audio/amr", "video/3gpp", "video/quicktime", "text/calendar", "text/vcard"};
 
     public RawLoader(Context context) {
-        super(context);
+        super(context, LoaderType.RAW);
     }
 
     @Override
@@ -54,12 +46,12 @@ public class RawLoader extends FileLoader {
     public void loadSync(Options options) {
         final Result result = new Result();
         result.options = options;
-        result.loaderType = LoaderType.RAW;
+        result.loaderType = type;
 
         try {
             String fileType = options.fileType;
 
-            String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(fileType);
+            String extension = options.fileExtension;
             if (extension == null || extension.equals("csv")) {
                 // WebView doesn't display CSV if it has that extension
                 extension = "txt";

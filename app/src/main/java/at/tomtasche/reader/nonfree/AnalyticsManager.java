@@ -1,9 +1,12 @@
 package at.tomtasche.reader.nonfree;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.perf.FirebasePerformance;
+import com.google.firebase.perf.metrics.Trace;
 
 public class AnalyticsManager {
 
@@ -45,5 +48,31 @@ public class AnalyticsManager {
 
     public void report(String event, String key, String value) {
         report(event, key, value, null, null);
+    }
+
+    public Trace startTrace(String name) {
+        if (!enabled) {
+            return null;
+        }
+
+        Trace trace = FirebasePerformance.getInstance().newTrace("test_trace");
+        trace.start();
+
+        return trace;
+    }
+
+    public void stopTrace(Trace trace) {
+        if (trace != null) {
+            trace.stop();
+        }
+    }
+
+    public void setCurrentScreen(Activity activity, String name) {
+        if (!enabled) {
+            return;
+        }
+
+        analytics.setCurrentScreen(activity, name, null);
+
     }
 }

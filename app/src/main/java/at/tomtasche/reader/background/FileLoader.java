@@ -4,8 +4,13 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
 
+import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.perf.metrics.Trace;
+
 import java.util.LinkedList;
 import java.util.List;
+
+import at.tomtasche.reader.nonfree.AnalyticsManager;
 
 public abstract class FileLoader {
 
@@ -18,23 +23,28 @@ public abstract class FileLoader {
     }
 
     Context context;
+    LoaderType type;
 
     Handler backgroundHandler;
     Handler mainHandler;
 
     FileLoaderListener listener;
 
+    AnalyticsManager analyticsManager;
+
     boolean initialized;
     boolean loading;
 
-    public FileLoader(Context context) {
+    public FileLoader(Context context, LoaderType type) {
         this.context = context;
+        this.type = type;
     }
 
-    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler) {
+    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager) {
         this.listener = listener;
         this.mainHandler = mainHandler;
         this.backgroundHandler = backgroundHandler;
+        this.analyticsManager = analyticsManager;
 
         initialized = true;
     }
@@ -51,7 +61,11 @@ public abstract class FileLoader {
         backgroundHandler.post(new Runnable() {
             @Override
             public void run() {
+                Trace trace = analyticsManager.startTrace("sync_" + type.toString());
+
                 loadSync(options);
+
+                analyticsManager.stopTrace(trace);
 
                 loading = false;
             }
@@ -72,6 +86,8 @@ public abstract class FileLoader {
                 if (strongReferenceListener != null) {
                     listener.onSuccess(result);
                 }
+
+                analyticsManager.report("loader_success_" + type, FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType, FirebaseAnalytics.Param.CONTENT, result.options.fileExtension);
             }
         });
     }
@@ -84,6 +100,8 @@ public abstract class FileLoader {
                 if (strongReferenceListener != null) {
                     listener.onError(result, t);
                 }
+
+                analyticsManager.report("loader_error_" + type, FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType, FirebaseAnalytics.Param.CONTENT, result.options.fileExtension);
             }
         });
     }
@@ -105,6 +123,7 @@ public abstract class FileLoader {
 
         public String filename;
         public String fileType;
+        public String fileExtension;
 
         public String password;
 

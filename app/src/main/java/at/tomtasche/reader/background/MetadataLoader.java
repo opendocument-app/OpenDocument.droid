@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
+import android.webkit.MimeTypeMap;
 
 import com.hzy.libmagic.MagicApi;
 
@@ -16,7 +17,7 @@ import java.net.URLConnection;
 public class MetadataLoader extends FileLoader {
 
     public MetadataLoader(Context context) {
-        super(context);
+        super(context, LoaderType.METADATA);
     }
 
     private boolean initMagicFromAssets() {
@@ -42,7 +43,7 @@ public class MetadataLoader extends FileLoader {
     public void loadSync(Options options) {
         final Result result = new Result();
         result.options = options;
-        result.loaderType = LoaderType.METADATA;
+        result.loaderType = type;
 
         options.fileType = "N/A";
 
@@ -91,7 +92,14 @@ public class MetadataLoader extends FileLoader {
                 filename = uri.getLastPathSegment();
             }
 
+            if (filename == null) {
+                filename = "N/A";
+            }
+
             options.filename = filename;
+
+            String[] fileSplit = options.filename.split("\\.");
+            options.fileExtension = fileSplit.length > 0 ? fileSplit[fileSplit.length - 1] : "N/A";
 
             String type = null;
             if (initMagicFromAssets()) {
@@ -128,8 +136,18 @@ public class MetadataLoader extends FileLoader {
                 }
             }
 
+            if (type == null) {
+                type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(options.fileExtension);
+            }
+
             if (type != null) {
                 options.fileType = type;
+            }
+
+            String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(options.fileType);
+            if (extension != null) {
+                // override extension parsed from filename
+                options.fileExtension = extension;
             }
 
             try {

@@ -12,18 +12,20 @@ import android.util.Base64;
 import android.util.Base64InputStream;
 import android.webkit.DownloadListener;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
 import androidx.annotation.Keep;
+import androidx.annotation.RequiresApi;
 import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.StreamUtil;
 import at.tomtasche.reader.ui.ParagraphListener;
@@ -169,6 +171,7 @@ public class PageView extends WebView implements ParagraphListener {
     }
 
     @JavascriptInterface
+    @Keep
     public void sendHtml(String html) {
         FileWriter writer;
         try {
@@ -184,6 +187,7 @@ public class PageView extends WebView implements ParagraphListener {
     }
 
     @JavascriptInterface
+    @Keep
     public void sendFile(String base64) {
         try {
             File tmpFile = AndroidFileCache.getCacheFile(getContext());

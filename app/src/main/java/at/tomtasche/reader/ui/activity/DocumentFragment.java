@@ -110,28 +110,27 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         backgroundHandler = new Handler(backgroundThread.getLooper());
 
         Context context = getContext();
-
-        metadataLoader = new MetadataLoader(context);
-        metadataLoader.initialize(this, mainHandler, backgroundHandler);
-
-        odfLoader = new OdfLoader(context);
-        odfLoader.initialize(this, mainHandler, backgroundHandler);
-
-        pdfLoader = new PdfLoader(context);
-        pdfLoader.initialize(this, mainHandler, backgroundHandler);
-
-        rawLoader = new RawLoader(context);
-        rawLoader.initialize(this, mainHandler, backgroundHandler);
-
-        onlineLoader = new OnlineLoader(context);
-        onlineLoader.initialize(this, mainHandler, backgroundHandler);
-
-        setRetainInstance(true);
-        setHasOptionsMenu(true);
-
         MainActivity mainActivity = (MainActivity) getActivity();
         analyticsManager = mainActivity.getAnalyticsManager();
         crashManager = mainActivity.getCrashManager();
+
+        metadataLoader = new MetadataLoader(context);
+        metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager);
+
+        odfLoader = new OdfLoader(context);
+        odfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager);
+
+        pdfLoader = new PdfLoader(context);
+        pdfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager);
+
+        rawLoader = new RawLoader(context);
+        rawLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager);
+
+        onlineLoader = new OnlineLoader(context);
+        onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager);
+
+        setRetainInstance(true);
+        setHasOptionsMenu(true);
     }
 
     @Nullable
@@ -402,10 +401,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         FileLoader.Options options = result.options;
         if (result.loaderType == FileLoader.LoaderType.METADATA) {
-            String[] fileSplit = options.filename.split("\\.");
-            String fileExtension = fileSplit.length > 0 ? fileSplit[fileSplit.length - 1] : "N/A";
-            analyticsManager.report("load_metadata", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, fileExtension);
-
             if (!odfLoader.isSupported(options)) {
                 crashManager.log("we do not expect this file to be an ODF: " + options.originalUri.toString());
                 analyticsManager.report("load_odf_error_expected", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
@@ -413,9 +408,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             loadOdf(options);
         } else {
-            if (result.loaderType == FileLoader.LoaderType.ODF) {
-                analyticsManager.report("load_odf_success");
-            }
+            analyticsManager.setCurrentScreen(activity, "screen_" + result.loaderType.toString() + "_" + result.options.fileType);
+
             analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
 
             lastResult = result;
@@ -513,7 +507,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 return;
             }
         } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
-            analyticsManager.report("load_online_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
             crashManager.log(error, options.originalUri);
 
             offerReopen(activity, options, R.string.toast_error_illegal_file, true);
@@ -542,6 +535,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             if (pdfSuccess) {
                 analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType);
+                analyticsManager.report("loader_success_" + FileLoader.LoaderType.PDF, FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType, FirebaseAnalytics.Param.CONTENT, result.options.fileExtension);
 
                 result.loaderType = FileLoader.LoaderType.PDF;
                 lastResult = result;
@@ -600,7 +594,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         String fileType = options.fileType;
         Uri cacheUri = options.cacheUri;
 
-        analyticsManager.report("reopen_offer", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
+        analyticsManager.report("reopen_offer", FirebaseAnalytics.Param.CONTENT_TYPE, fileType, FirebaseAnalytics.Param.CONTENT, cacheUri.toString());
 
         SnackbarHelper.show(activity, description, new Runnable() {
             @Override

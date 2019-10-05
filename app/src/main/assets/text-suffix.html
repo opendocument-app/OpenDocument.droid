@@ -24,6 +24,8 @@
             } catch (e) {
                 text.style["white-space"] = "pre-line"
                 text.innerHTML = textString;
+
+                throw e;
             }
         } else {
             text.style["white-space"] = "pre-line"

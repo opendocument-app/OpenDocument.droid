@@ -28,7 +28,7 @@ import at.stefl.opendocument.java.translator.settings.TranslationSettings;
 public class OdfLoader extends FileLoader {
 
     public OdfLoader(Context context) {
-        super(context);
+        super(context, LoaderType.ODF);
     }
 
     @Override
@@ -40,7 +40,7 @@ public class OdfLoader extends FileLoader {
     public void loadSync(Options options) {
         final Result result = new Result();
         result.options = options;
-        result.loaderType = LoaderType.ODF;
+        result.loaderType = type;
 
         DocumentTranslator lastTranslator;
 

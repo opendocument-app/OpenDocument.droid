@@ -3,7 +3,6 @@ package at.tomtasche.reader.background;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
-import android.webkit.MimeTypeMap;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
@@ -15,6 +14,8 @@ import com.google.firebase.storage.UploadTask;
 
 import java.net.URLEncoder;
 import java.util.UUID;
+
+import at.tomtasche.reader.nonfree.AnalyticsManager;
 
 public class OnlineLoader extends FileLoader {
 
@@ -56,12 +57,12 @@ public class OnlineLoader extends FileLoader {
     private FirebaseAuth auth;
 
     public OnlineLoader(Context context) {
-        super(context);
+        super(context, LoaderType.ONLINE);
     }
 
     @Override
-    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler) {
-        super.initialize(listener, mainHandler, backgroundHandler);
+    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager) {
+        super.initialize(listener, mainHandler, backgroundHandler, analyticsManager);
 
         storage = FirebaseStorage.getInstance().getReference();
         auth = FirebaseAuth.getInstance();
@@ -92,7 +93,7 @@ public class OnlineLoader extends FileLoader {
     public void loadSync(Options options) {
         final Result result = new Result();
         result.options = options;
-        result.loaderType = LoaderType.ONLINE;
+        result.loaderType = type;
 
         Task<AuthResult> authenticationTask = null;
         String currentUserId = null;
@@ -109,9 +110,7 @@ public class OnlineLoader extends FileLoader {
                 currentUserId = authenticationTask.getResult().getUser().getUid();
             }
 
-            String fileExtension = MimeTypeMap.getSingleton().getExtensionFromMimeType(options.fileType);
-            StorageReference reference = storage.child("uploads/" + currentUserId + "/" + UUID.randomUUID() + "." + fileExtension);
-
+            StorageReference reference = storage.child("uploads/" + currentUserId + "/" + UUID.randomUUID() + "." + options.fileExtension);
             UploadTask uploadTask = reference.putFile(options.cacheUri);
             //uploadTask.addOnProgressListener(this);
             Tasks.await(uploadTask);

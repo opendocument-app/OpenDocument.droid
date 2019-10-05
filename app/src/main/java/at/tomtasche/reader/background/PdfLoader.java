@@ -10,7 +10,7 @@ public class PdfLoader extends FileLoader {
     };
 
     public PdfLoader(Context context) {
-        super(context);
+        super(context, LoaderType.PDF);
     }
 
     @Override
