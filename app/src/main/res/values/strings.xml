@@ -5,6 +5,9 @@
     <string name="toast_error_generic">Something bad happened. Couldn\'t open file.</string>
     <string name="toast_error_find_file">Couldn\'t find file. Maybe it doesn\'t exist any longer?</string>
     <string name="toast_error_illegal_file">This doesn\'t seem to be a supported file format.</string>
+    <string name="toast_error_illegal_file_reopen">This doesn\'t seem to be a supported file format. Open it in another app instead.</string>
+    <string name="toast_hint_unsupported_file">Not happy with how the file is displayed? Open it in another app instead.</string>
+    <string name="toast_error_reopen_noapp">No app found on device that supports this type of file.</string>
     <string name="toast_error_out_of_memory">Device out of memory! Too many pictures, or file too big.</string>
     <string name="toast_error_password_protected">This document is password-protected</string>
     <string name="dialog_recent_title">Recent documents</string>

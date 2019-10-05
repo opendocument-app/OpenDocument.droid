@@ -6,8 +6,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import at.stefl.opendocument.java.odf.OpenDocument;
-
 public class Document {
 
     private List<Page> pages;

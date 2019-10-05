@@ -1,0 +1,36 @@
+        ";
+
+        var text = document.getElementById('text');
+
+        var textString = atob(base);
+
+        var csv = detectCSV(textString);
+        if (csv && csv.newline && csv.lines < 10001) {
+            var options = {};
+            if (csv.delimiter) {
+                options.separator = csv.delimiter;
+            }
+            if (csv.newline) {
+                options.delimiter = csv.newline;
+            }
+
+            try {
+                CsvToHtmlTable.init({
+                    data: textString,
+                    element: 'text',
+                    csv_options: options,
+                    datatables_options: {"paging": false},
+                });
+            } catch (e) {
+                text.style["white-space"] = "pre-line"
+                text.innerHTML = textString;
+
+                throw e;
+            }
+        } else {
+            text.style["white-space"] = "pre-line"
+            text.innerHTML = textString;
+        }
+    </script>
+</body>
+</html>
