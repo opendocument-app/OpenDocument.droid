@@ -501,7 +501,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 } else if (onlineLoader.isSupported(options)) {
                     offerUpload(activity, options);
                 } else {
-                    offerReopen(activity, options, R.string.toast_error_illegal_file, true);
+                    offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
                 }
 
                 return;
@@ -509,7 +509,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
             crashManager.log(error, options.originalUri);
 
-            offerReopen(activity, options, R.string.toast_error_illegal_file, true);
+            offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
 
             return;
         }
@@ -581,7 +581,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             public void onClick(DialogInterface dialog, int i) {
                 analyticsManager.report("load_upload_cancel", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
 
-                offerReopen(activity, options, R.string.toast_error_illegal_file, true);
+                offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
 
                 dialog.dismiss();
             }
@@ -590,7 +590,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         builder.show();
     }
 
-    private void offerReopen(Activity activity, FileLoader.Options options, int description, boolean isError) {
+    private void offerReopen(Activity activity, FileLoader.Options options, int description, boolean isIndefinite) {
         String fileType = options.fileType;
         Uri cacheUri = options.cacheUri;
 
@@ -633,7 +633,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                     Toast.makeText(activity, R.string.toast_error_reopen_noapp, Toast.LENGTH_LONG).show();
                 }
             }
-        }, isError, isError);
+        }, isIndefinite, false);
     }
 
     private void showProgress() {
