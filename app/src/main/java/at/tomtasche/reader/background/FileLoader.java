@@ -32,8 +32,8 @@ public abstract class FileLoader {
 
     AnalyticsManager analyticsManager;
 
-    boolean initialized;
-    boolean loading;
+    private boolean initialized;
+    private boolean loading;
 
     public FileLoader(Context context, LoaderType type) {
         this.context = context;
@@ -82,12 +82,12 @@ public abstract class FileLoader {
         mainHandler.post(new Runnable() {
             @Override
             public void run() {
+                analyticsManager.report("loader_success_" + type, FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType, FirebaseAnalytics.Param.CONTENT, result.options.fileExtension);
+
                 FileLoaderListener strongReferenceListener = listener;
                 if (strongReferenceListener != null) {
                     listener.onSuccess(result);
                 }
-
-                analyticsManager.report("loader_success_" + type, FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType, FirebaseAnalytics.Param.CONTENT, result.options.fileExtension);
             }
         });
     }
@@ -96,12 +96,12 @@ public abstract class FileLoader {
         mainHandler.post(new Runnable() {
             @Override
             public void run() {
+                analyticsManager.report("loader_error_" + type, FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType, FirebaseAnalytics.Param.CONTENT, result.options.fileExtension);
+
                 FileLoaderListener strongReferenceListener = listener;
                 if (strongReferenceListener != null) {
                     listener.onError(result, t);
                 }
-
-                analyticsManager.report("loader_error_" + type, FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType, FirebaseAnalytics.Param.CONTENT, result.options.fileExtension);
             }
         });
     }

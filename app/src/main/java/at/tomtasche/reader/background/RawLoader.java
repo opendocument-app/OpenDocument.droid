@@ -122,7 +122,7 @@ public class RawLoader extends FileLoader {
                 InputStream fontStream = context.getAssets().open("text.ttf");
                 StreamUtil.copy(fontStream, fontFile);
 
-                finalUri = Uri.fromFile(htmlFile);
+                finalUri = Uri.fromFile(htmlFile).buildUpon().appendQueryParameter("ext", extension).build();
             } else if (fileType.startsWith("application/zip")) {
                 File htmlFile = new File(cacheDirectory, "zip.html");
                 InputStream htmlPrefixStream = context.getAssets().open("zip-prefix.html");

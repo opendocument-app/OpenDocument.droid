@@ -534,7 +534,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             boolean pdfSuccess = loadPdf(result.options.cacheUri);
 
             if (pdfSuccess) {
-                analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType);
+                analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
                 analyticsManager.report("loader_success_" + FileLoader.LoaderType.PDF, FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType, FirebaseAnalytics.Param.CONTENT, result.options.fileExtension);
 
                 result.loaderType = FileLoader.LoaderType.PDF;
@@ -594,7 +594,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         String fileType = options.fileType;
         Uri cacheUri = options.cacheUri;
 
-        analyticsManager.report("reopen_offer", FirebaseAnalytics.Param.CONTENT_TYPE, fileType, FirebaseAnalytics.Param.CONTENT, cacheUri.toString());
+        analyticsManager.report("reopen_offer", FirebaseAnalytics.Param.CONTENT_TYPE, fileType, FirebaseAnalytics.Param.CONTENT, options.originalUri);
 
         SnackbarHelper.show(activity, description, new Runnable() {
             @Override

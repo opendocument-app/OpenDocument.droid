@@ -30,17 +30,17 @@ public class AnalyticsManager {
         report(event, null, null);
     }
 
-    public void report(String event, String key1, String value1, String key2, String value2) {
+    public void report(String event, String key1, Object value1, String key2, Object value2) {
         if (!enabled) {
             return;
         }
 
         Bundle bundle = new Bundle();
         if (key1 != null) {
-            bundle.putString(key1, value1);
+            bundle.putString(key1, value1.toString());
         }
         if (key2 != null) {
-            bundle.putString(key2, value2);
+            bundle.putString(key2, value2.toString());
         }
 
         analytics.logEvent(event, bundle);
@@ -55,7 +55,7 @@ public class AnalyticsManager {
             return null;
         }
 
-        Trace trace = FirebasePerformance.getInstance().newTrace("test_trace");
+        Trace trace = FirebasePerformance.getInstance().newTrace(name);
         trace.start();
 
         return trace;

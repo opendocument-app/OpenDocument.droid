@@ -10,6 +10,7 @@ import com.hzy.libmagic.MagicApi;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
@@ -142,6 +143,10 @@ public class MetadataLoader extends FileLoader {
 
             if (type != null) {
                 options.fileType = type;
+            }
+
+            if ("inode/x-empty".equals(type)) {
+                throw new FileNotFoundException();
             }
 
             String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(options.fileType);
