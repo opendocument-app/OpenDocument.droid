@@ -1,39 +1,44 @@
 package at.tomtasche.reader.nonfree;
 
 import android.content.Context;
-import android.content.Intent;
 
-import com.github.jberkel.pay.me.IabHelper;
-import com.github.jberkel.pay.me.IabResult;
-import com.github.jberkel.pay.me.listener.OnIabPurchaseFinishedListener;
-import com.github.jberkel.pay.me.listener.OnIabSetupFinishedListener;
-import com.github.jberkel.pay.me.listener.QueryInventoryFinishedListener;
-import com.github.jberkel.pay.me.model.Inventory;
-import com.github.jberkel.pay.me.model.ItemType;
-import com.github.jberkel.pay.me.model.Purchase;
+import com.android.billingclient.api.BillingClient;
+import com.android.billingclient.api.BillingClientStateListener;
+import com.android.billingclient.api.BillingFlowParams;
+import com.android.billingclient.api.BillingResult;
+import com.android.billingclient.api.Purchase;
+import com.android.billingclient.api.PurchasesUpdatedListener;
+import com.android.billingclient.api.SkuDetails;
+import com.android.billingclient.api.SkuDetailsParams;
+import com.android.billingclient.api.SkuDetailsResponseListener;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
+import java.util.Collections;
+import java.util.List;
+
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import at.tomtasche.reader.background.BillingPreferences;
 
-public class BillingManager {
+public class BillingManager implements PurchasesUpdatedListener {
 
-    public static final int PURCHASE_CODE = 1337;
-
-    public static final String BILLING_PRODUCT_YEAR = "remove_ads_for_1y";
     public static final String BILLING_PRODUCT_FOREVER = "remove_ads_for_eva";
-    public static final String BILLING_PRODUCT_LOVE = "love_and_everything";
 
     private boolean enabled;
 
     private AnalyticsManager analyticsManager;
+    private CrashManager crashManager;
     private AdManager adManager;
 
-    private IabHelper billingHelper;
     private BillingPreferences billingPreferences;
+    private BillingClient billingClient;
+
+    private SkuDetails resolvedSku;
 
     public void initialize(Context context, AnalyticsManager analyticsManager, AdManager adManager, CrashManager crashManager) {
         this.adManager = adManager;
+        this.crashManager = crashManager;
+        this.analyticsManager = analyticsManager;
 
         if (!enabled) {
             adManager.showGoogleAds();
@@ -41,68 +46,83 @@ public class BillingManager {
             return;
         }
 
-        this.analyticsManager = analyticsManager;
-
         billingPreferences = new BillingPreferences(context);
-        billingHelper = new IabHelper(context, getPublicKey());
 
         if (billingPreferences.hasPurchased()) {
             adManager.removeAds();
 
+            enabled = false;
+
             return;
         }
 
-        try {
-            billingHelper.startSetup(new OnIabSetupFinishedListener() {
-
-                @Override
-                public void onIabSetupFinished(IabResult result) {
-                    if (result.isFailure()) {
-                        analyticsManager.report("purchase_init_failed");
-
-                        enabled = false;
-
-                        adManager.showGoogleAds();
-                    } else if (result.isSuccess()) {
-                        analyticsManager.report("purchase_init_success");
-                        billingHelper.queryInventoryAsync(new QueryInventoryFinishedListener() {
-
+        billingClient = BillingClient.newBuilder(context).setListener(this).enablePendingPurchases().build();
+        connectAndRun(new Runnable() {
+            @Override
+            public void run() {
+                List<String> skuList = Collections.singletonList(BILLING_PRODUCT_FOREVER);
+                SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
+                params.setSkusList(skuList).setType(BillingClient.SkuType.INAPP);
+                billingClient.querySkuDetailsAsync(params.build(),
+                        new SkuDetailsResponseListener() {
                             @Override
-                            public void onQueryInventoryFinished(IabResult result, Inventory inv) {
-                                if (result.isSuccess()) {
-                                    boolean purchased = inv.getPurchase(BILLING_PRODUCT_FOREVER) != null;
-                                    purchased |= inv.getPurchase(BILLING_PRODUCT_YEAR) != null;
-                                    purchased |= inv.getPurchase(BILLING_PRODUCT_LOVE) != null;
+                            public void onSkuDetailsResponse(BillingResult billingResult,
+                                                             List<SkuDetails> skuDetailsList) {
+                                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && !skuDetailsList.isEmpty()) {
+                                    resolvedSku = skuDetailsList.get(0);
 
-                                    if (purchased) {
+                                    refreshPurchased();
+                                    if (hasPurchased()) {
                                         adManager.removeAds();
+                                        enabled = false;
                                     } else {
                                         adManager.showGoogleAds();
                                     }
-
-                                    billingPreferences.setPurchased(purchased);
                                 } else {
+                                    analyticsManager.report("purchase_init_query_failed", "code", billingResult.getResponseCode());
+
+                                    enabled = false;
                                     adManager.showGoogleAds();
                                 }
                             }
                         });
-                    }
+            }
+        });
+    }
+
+    private void connectAndRun(Runnable runnable) {
+        billingClient.startConnection(new BillingClientStateListener() {
+            @Override
+            public void onBillingSetupFinished(BillingResult billingResult) {
+                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                    analyticsManager.report("purchase_init_success");
+
+                    runnable.run();
+                } else {
+                    analyticsManager.report("purchase_init_failed", "code", billingResult.getResponseCode());
+
+                    enabled = false;
+                    adManager.showGoogleAds();
                 }
-            });
-        } catch (Exception e) {
-            crashManager.log(e);
+            }
 
-            enabled = false;
+            @Override
+            public void onBillingServiceDisconnected() {
+                // TODO: retry?
+            }
+        });
+    }
 
-            adManager.showGoogleAds();
+    private void refreshPurchased() {
+        if (!enabled) {
+            return;
         }
+
+        Purchase.PurchasesResult purchasesResult = billingClient.queryPurchases(BillingClient.SkuType.INAPP);
+        billingPreferences.setPurchased(!purchasesResult.getPurchasesList().isEmpty());
     }
 
     public boolean hasPurchased() {
-        if (!enabled) {
-            return false;
-        }
-
         return billingPreferences.hasPurchased();
     }
 
@@ -114,30 +134,33 @@ public class BillingManager {
         return enabled;
     }
 
-    public void startPurchase(AppCompatActivity activity, String productSku) {
+    public void startPurchase(AppCompatActivity activity) {
         if (!enabled) {
             return;
         }
 
-        billingHelper.launchPurchaseFlow(activity, productSku, ItemType.INAPP, PURCHASE_CODE,
-                new OnIabPurchaseFinishedListener() {
-                    public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
-                        if (result.isSuccess()) {
-                            billingPreferences.setPurchased(true);
+        if (resolvedSku == null) {
+            crashManager.log("SKU not resolved");
+        }
 
-                            adManager.removeAds();
-                        } else {
-                            analyticsManager.report(FirebaseAnalytics.Event.REMOVE_FROM_CART);
-                            analyticsManager.report("purchase_abort");
-                        }
+        BillingFlowParams flowParams = BillingFlowParams.newBuilder()
+                .setSkuDetails(resolvedSku).build();
+        BillingResult result = billingClient.launchBillingFlow(activity, flowParams);
+
+        analyticsManager.report("purchase_attempt", "code", result.getResponseCode());
+
+        if (result.getResponseCode() == BillingClient.BillingResponseCode.SERVICE_DISCONNECTED) {
+            connectAndRun(new Runnable() {
+                @Override
+                public void run() {
+                    if (activity == null || activity.isFinishing()) {
+                        return;
                     }
-                }, null);
 
-        analyticsManager.report("purchase_attempt");
-    }
-
-    public void endPurchase(int requestCode, int resultCode, Intent intent) {
-        billingHelper.handleActivityResult(requestCode, resultCode, intent);
+                    startPurchase(activity);
+                }
+            });
+        }
     }
 
     public void close() {
@@ -145,14 +168,26 @@ public class BillingManager {
             return;
         }
 
-        if (billingHelper == null) {
+        if (billingClient == null || !billingClient.isReady()) {
             return;
         }
 
-        billingHelper.dispose();
+        billingClient.endConnection();
     }
 
-    private String getPublicKey() {
-        return "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDsdGybFkj9/26Fpu2mNASpAC8xQDRYocvVkxbpN6mF8k4a9L5ocnyUAY7sfKb0wjEc5e+vxL21kFKvvW0zEZX8a5wSXUfD5oiaXaiMPrp7cC1YbPPAelZvFEAzriA6pyk7PPKuqtAN2tcTiJED+kpiVAyEVU42lDUqE70xlRE6dQIDAQAB";
+    @Override
+    public void onPurchasesUpdated(BillingResult billingResult, @Nullable List<Purchase> purchases) {
+        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+            billingPreferences.setPurchased(true);
+
+            adManager.removeAds();
+            enabled = false;
+
+            analyticsManager.report("purchase_success");
+            analyticsManager.report(FirebaseAnalytics.Event.ECOMMERCE_PURCHASE);
+        } else {
+            analyticsManager.report(FirebaseAnalytics.Event.REMOVE_FROM_CART);
+            analyticsManager.report("purchase_abort", "code", billingResult.getResponseCode());
+        }
     }
 }

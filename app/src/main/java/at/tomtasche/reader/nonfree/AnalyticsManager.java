@@ -46,7 +46,7 @@ public class AnalyticsManager {
         analytics.logEvent(event, bundle);
     }
 
-    public void report(String event, String key, String value) {
+    public void report(String event, String key, Object value) {
         report(event, key, value, null, null);
     }
 

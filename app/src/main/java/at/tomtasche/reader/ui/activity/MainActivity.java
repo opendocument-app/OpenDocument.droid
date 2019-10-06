@@ -303,9 +303,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
 
-        if (requestCode == BillingManager.PURCHASE_CODE) {
-            billingManager.endPurchase(requestCode, resultCode, intent);
-        } else if (requestCode == GOOGLE_REQUEST_CODE) {
+        if (requestCode == GOOGLE_REQUEST_CODE) {
             initializeProprietaryLibraries();
         } else if (intent != null) {
             Uri uri = intent.getData();
@@ -475,6 +473,10 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     }
 
     private void offerPurchase() {
+        if (billingManager.hasPurchased() || !billingManager.isEnabled()) {
+            return;
+        }
+
         analyticsManager.report(FirebaseAnalytics.Event.PRESENT_OFFER);
         SnackbarHelper.show(this, R.string.crouton_remove_ads, new Runnable() {
 
@@ -556,7 +558,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                         return;
                 }
 
-                billingManager.startPurchase(MainActivity.this, product);
+                billingManager.startPurchase(MainActivity.this);
 
                 dialog.dismiss();
             }

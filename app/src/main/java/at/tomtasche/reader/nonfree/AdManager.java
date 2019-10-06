@@ -253,7 +253,7 @@ public class AdManager implements RewardedVideoAdListener {
 
     @Override
     public void onRewardedVideoAdFailedToLoad(int i) {
-        analyticsManager.report("ads_video_failed_" + i);
+        analyticsManager.report("ads_video_failed", "code", i);
 
         if (progressDialog != null) {
             progressDialog.dismiss();
@@ -282,7 +282,7 @@ public class AdManager implements RewardedVideoAdListener {
 
         @Override
         public void onAdFailedToLoad(int arg0) {
-            analyticsManager.report("ads_" + prefix + "_failed_" + arg0);
+            analyticsManager.report("ads_" + prefix + "_failed", "code", arg0);
 
             if (!isInterstitial) {
                 adFailed = true;

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<lint>
-    <issue id="UnusedResources" severity="ignore"/>
-    <issue id="AllowBackup" severity="ignore"/>
-    <issue id="OldTargetApi" severity="ignore"/>
-    <issue id="MissingApplicationIcon" severity="ignore"/>
-</lint>
