@@ -601,7 +601,13 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             public void run() {
                 Intent intent = new Intent();
                 intent.setAction(Intent.ACTION_VIEW);
-                intent.setDataAndType(cacheUri, fileType);
+                if (!"N/A".equals(fileType)) {
+                    intent.setDataAndType(cacheUri, fileType);
+                } else if (cacheUri != null) {
+                    intent.setData(cacheUri);
+                } else {
+                    intent.setData(options.originalUri);
+                }
 
                 // taken from: https://stackoverflow.com/a/23268821/198996
                 PackageManager packageManager = activity.getPackageManager();

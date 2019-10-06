@@ -41,7 +41,14 @@ public class AdManager implements RewardedVideoAdListener {
         this.activity = activity;
         this.analyticsManager = analyticsManager;
 
-        MobileAds.initialize(activity, "ca-app-pub-8161473686436957~9025061963");
+        try {
+            MobileAds.initialize(activity, "ca-app-pub-8161473686436957~9025061963");
+        } catch (Throwable e) {
+            // java.lang.VerifyError: com/google/android/gms/ads/internal/ClientApi
+            e.printStackTrace();
+
+            enabled = false;
+        }
     }
 
     public void setEnabled(boolean enabled) {

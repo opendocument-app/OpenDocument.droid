@@ -37,10 +37,10 @@ public class AnalyticsManager {
 
         Bundle bundle = new Bundle();
         if (key1 != null) {
-            bundle.putString(key1, value1.toString());
+            bundle.putString(key1, String.valueOf(value1));
         }
         if (key2 != null) {
-            bundle.putString(key2, value2.toString());
+            bundle.putString(key2, String.valueOf(value2));
         }
 
         analytics.logEvent(event, bundle);
