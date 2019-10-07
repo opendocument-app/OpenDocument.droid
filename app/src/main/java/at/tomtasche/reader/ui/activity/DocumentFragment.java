@@ -367,6 +367,9 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         lastResult = null;
 
         toggleDocumentMenu(false);
+
+        ActionBar bar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        bar.removeAllTabs();
     }
 
     private void toggleDocumentMenu(boolean enabled) {
@@ -607,47 +610,65 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         SnackbarHelper.show(activity, description, new Runnable() {
             @Override
             public void run() {
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_VIEW);
-                if (!"N/A".equals(fileType)) {
-                    intent.setDataAndType(cacheUri, fileType);
-                } else if (cacheUri != null) {
-                    intent.setData(cacheUri);
-                } else {
-                    intent.setData(options.originalUri);
-                }
-
-                // taken from: https://stackoverflow.com/a/23268821/198996
-                PackageManager packageManager = activity.getPackageManager();
-                List<ResolveInfo> activities = packageManager.queryIntentActivities(intent, 0);
-                String packageNameToHide = activity.getPackageName();
-                ArrayList<Intent> targetIntents = new ArrayList<Intent>();
-                for (ResolveInfo currentInfo : activities) {
-                    String packageName = currentInfo.activityInfo.packageName;
-                    if (!packageNameToHide.equals(packageName)) {
-                        Intent targetIntent = new Intent();
-                        targetIntent.setAction(intent.getAction());
-                        targetIntent.setDataAndType(intent.getData(), intent.getAction());
-                        targetIntent.setPackage(packageName);
-                        targetIntent.setComponent(new ComponentName(packageName, currentInfo.activityInfo.name));
-                        targetIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                        targetIntents.add(targetIntent);
-                    }
-                }
-
-                if (targetIntents.size() > 0) {
-                    analyticsManager.report("reopen_success", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
-
-                    Intent chooserIntent = Intent.createChooser(targetIntents.remove(0), activity.getString(R.string.reopen_chooser_title));
-                    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetIntents.toArray(new Parcelable[]{}));
-                    activity.startActivity(chooserIntent);
-                } else {
-                    analyticsManager.report("reopen_failed_noapp", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
-
-                    Toast.makeText(activity, R.string.toast_error_reopen_noapp, Toast.LENGTH_LONG).show();
-                }
+                loadReopen(fileType, cacheUri, options, activity, true);
             }
         }, isIndefinite, false);
+    }
+
+    private void loadReopen(String fileType, Uri cacheUri, FileLoader.Options options, Activity activity, boolean grantPermission) {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_VIEW);
+        if (!"N/A".equals(fileType)) {
+            intent.setDataAndType(cacheUri, fileType);
+        } else if (cacheUri != null) {
+            intent.setData(cacheUri);
+        } else {
+            intent.setData(options.originalUri);
+        }
+
+        // taken from: https://stackoverflow.com/a/23268821/198996
+        PackageManager packageManager = activity.getPackageManager();
+        List<ResolveInfo> activities = packageManager.queryIntentActivities(intent, 0);
+        String packageNameToHide = activity.getPackageName();
+        ArrayList<Intent> targetIntents = new ArrayList<Intent>();
+        for (ResolveInfo currentInfo : activities) {
+            String packageName = currentInfo.activityInfo.packageName;
+            if (!packageNameToHide.equals(packageName)) {
+                Intent targetIntent = new Intent();
+                targetIntent.setAction(intent.getAction());
+                targetIntent.setDataAndType(intent.getData(), intent.getAction());
+                targetIntent.setPackage(packageName);
+                targetIntent.setComponent(new ComponentName(packageName, currentInfo.activityInfo.name));
+
+                if (grantPermission) {
+                    targetIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                }
+
+                targetIntents.add(targetIntent);
+            }
+        }
+
+        Intent initialIntent;
+        if (targetIntents.size() > 0) {
+            initialIntent = targetIntents.remove(0);
+            analyticsManager.report("reopen_success", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
+        } else {
+            initialIntent = intent;
+            analyticsManager.report("reopen_failed_noapp", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
+        }
+
+        Intent chooserIntent = Intent.createChooser(initialIntent, activity.getString(R.string.reopen_chooser_title));
+        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetIntents.toArray(new Parcelable[]{}));
+
+        try {
+            activity.startActivity(chooserIntent);
+        } catch (Throwable e) {
+            e.printStackTrace();
+
+            if (grantPermission) {
+                loadReopen(fileType, cacheUri, options, activity, false);
+            }
+        }
     }
 
     private void showProgress() {
