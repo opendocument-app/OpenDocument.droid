@@ -10,6 +10,7 @@
     <string name="toast_error_reopen_noapp">No app found on device that supports this type of file.</string>
     <string name="toast_error_out_of_memory">Device out of memory! Too many pictures, or file too big.</string>
     <string name="toast_error_password_protected">This document is password-protected</string>
+    <string name="toast_error_permission_required">Permission required to read and save documents</string>
     <string name="dialog_recent_title">Recent documents</string>
     <string name="dialog_choose_filemanager">Open document via:</string>
     <string name="dialog_loading_title">Loading…</string>

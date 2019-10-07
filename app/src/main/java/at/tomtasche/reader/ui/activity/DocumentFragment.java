@@ -363,6 +363,12 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         onlineLoader.loadAsync(options);
     }
 
+    private void unload() {
+        lastResult = null;
+
+        toggleDocumentMenu(false);
+    }
+
     private void toggleDocumentMenu(boolean enabled) {
         toggleDocumentMenu(enabled, enabled);
     }
@@ -453,6 +459,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         if (activity == null || activity.isFinishing()) {
             return;
         }
+
+        unload();
 
         dismissProgress();
 

@@ -119,7 +119,8 @@ public class BillingManager implements PurchasesUpdatedListener {
         }
 
         Purchase.PurchasesResult purchasesResult = billingClient.queryPurchases(BillingClient.SkuType.INAPP);
-        billingPreferences.setPurchased(!purchasesResult.getPurchasesList().isEmpty());
+        boolean hasPurchased = purchasesResult != null && purchasesResult.getPurchasesList() != null && !purchasesResult.getPurchasesList().isEmpty();
+        billingPreferences.setPurchased(hasPurchased);
     }
 
     public boolean hasPurchased() {

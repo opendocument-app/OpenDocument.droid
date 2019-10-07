@@ -86,7 +86,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
                     }
                 };
 
-                boolean hasPermission = activity.requestPermission(onPermission);
+                boolean hasPermission = activity.requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, onPermission);
                 if (hasPermission) {
                     onPermission.run();
                 }
@@ -102,25 +102,14 @@ public class EditActionModeCallback implements ActionMode.Callback {
     }
 
     public void save() {
-        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            if (permissionDialogCount > 1) {
-                // some users keep denying the permission
-                return;
+        final File htmlFile = new File(AndroidFileCache.getCacheDirectory(activity), "content.html");
+        pageView.requestHtml(htmlFile, new Runnable() {
+
+            @Override
+            public void run() {
+                documentFragment.saveAsync(htmlFile, statusView);
             }
-
-            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_CODE);
-
-            permissionDialogCount++;
-        } else {
-            final File htmlFile = new File(AndroidFileCache.getCacheDirectory(activity), "content.html");
-            pageView.requestHtml(htmlFile, new Runnable() {
-
-                @Override
-                public void run() {
-                    documentFragment.saveAsync(htmlFile, statusView);
-                }
-            });
-        }
+        });
     }
 
     @Override

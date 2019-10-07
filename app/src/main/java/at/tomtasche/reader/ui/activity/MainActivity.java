@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     public static int PERMISSION_CODE = 1353;
 
     private boolean isDocumentLoaded = false;
+    private boolean didTriggerPermissionDialogAgain = false;
 
     private Menu menu;
     private Handler handler;
@@ -217,9 +218,9 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         }
     }
 
-    public boolean requestPermission(Runnable onPermissionRunnable) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_CODE);
+    public boolean requestPermission(String permission, Runnable onPermissionRunnable) {
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{permission}, PERMISSION_CODE);
 
             this.onPermissionRunnable = onPermissionRunnable;
 
@@ -322,7 +323,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             }
         };
 
-        boolean hasPermission = requestPermission(onPermission);
+        boolean hasPermission = requestPermission(Manifest.permission.READ_EXTERNAL_STORAGE, onPermission);
         if (!hasPermission) {
             return;
         }
@@ -499,12 +500,22 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (requestCode == EditActionModeCallback.PERMISSION_CODE && editActionMode != null) {
-            editActionMode.save();
-        } else if (requestCode == PERMISSION_CODE && onPermissionRunnable != null) {
-            onPermissionRunnable.run();
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (requestCode == PERMISSION_CODE && onPermissionRunnable != null) {
+                onPermissionRunnable.run();
+                onPermissionRunnable = null;
+            }
+        } else if (!didTriggerPermissionDialogAgain) {
+            requestPermission(permissions[0], onPermissionRunnable);
 
-            onPermissionRunnable = null;
+            didTriggerPermissionDialogAgain = true;
+        } else {
+            SnackbarHelper.show(this, R.string.toast_error_permission_required, new Runnable() {
+                @Override
+                public void run() {
+                    requestPermission(permissions[0], onPermissionRunnable);
+                }
+            }, true, true);
         }
     }
 
