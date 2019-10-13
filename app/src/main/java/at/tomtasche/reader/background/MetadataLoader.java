@@ -103,12 +103,12 @@ public class MetadataLoader extends FileLoader {
             options.fileExtension = fileSplit.length > 0 ? fileSplit[fileSplit.length - 1] : "N/A";
 
             String type = null;
-            if (initMagicFromAssets()) {
-                try {
+            try {
+                if (initMagicFromAssets()) {
                     type = MagicApi.magicFile(cachedFile.getAbsolutePath());
-                } catch (Throwable e) {
-                    e.printStackTrace();
                 }
+            } catch (Throwable e) {
+                e.printStackTrace();
             }
 
             if (type == null) {

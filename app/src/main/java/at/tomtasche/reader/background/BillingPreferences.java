@@ -14,10 +14,18 @@ public class BillingPreferences {
     }
 
     public boolean hasPurchased() {
+        if (sharedPreferences == null) {
+            return false;
+        }
+
         return sharedPreferences.getBoolean("purchased", false);
     }
 
     public void setPurchased(boolean purchased) {
+        if (sharedPreferences == null) {
+            return;
+        }
+
         Editor editor = sharedPreferences.edit();
         editor.putBoolean("purchased", purchased);
         editor.apply();

@@ -110,13 +110,13 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         landingContainer = findViewById(R.id.landing_container);
         documentContainer = findViewById(R.id.document_container);
 
+        initializeProprietaryLibraries();
+
         documentFragment = new DocumentFragment();
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.document_container, documentFragment,DOCUMENT_FRAGMENT_TAG)
                 .commit();
-
-        initializeProprietaryLibraries();
 
         if (!IS_TESTING) {
             showIntroActivity();
@@ -505,15 +505,25 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 onPermissionRunnable.run();
                 onPermissionRunnable = null;
             }
-        } else if (!didTriggerPermissionDialogAgain) {
-            requestPermission(permissions[0], onPermissionRunnable);
+        }
+
+        String permission;
+        if (permissions.length > 0) {
+            permission = permissions[0];
+        } else {
+            // https://stackoverflow.com/q/50770955/198996
+            permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+        }
+
+        if (!didTriggerPermissionDialogAgain) {
+            requestPermission(permission, onPermissionRunnable);
 
             didTriggerPermissionDialogAgain = true;
         } else {
             SnackbarHelper.show(this, R.string.toast_error_permission_required, new Runnable() {
                 @Override
                 public void run() {
-                    requestPermission(permissions[0], onPermissionRunnable);
+                    requestPermission(permission, onPermissionRunnable);
                 }
             }, true, true);
         }

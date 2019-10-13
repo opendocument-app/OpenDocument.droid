@@ -310,17 +310,17 @@ public class AdManager implements RewardedVideoAdListener {
 
         @Override
         public void onAdClicked() {
-            analyticsManager.report("ads_" + prefix + "clicked");
+            analyticsManager.report("ads_" + prefix + "_clicked");
         }
 
         @Override
         public void onAdImpression() {
-            analyticsManager.report("ads_" + prefix + "impression");
+            analyticsManager.report("ads_" + prefix + "_impression");
         }
 
         @Override
         public void onAdClosed() {
-            analyticsManager.report("ads_" + prefix + "closed");
+            analyticsManager.report("ads_" + prefix + "_closed");
 
             if (isInterstitial) {
                 interstitial = null;
@@ -329,7 +329,7 @@ public class AdManager implements RewardedVideoAdListener {
 
         @Override
         public void onAdOpened() {
-            analyticsManager.report("ads_" + prefix + "opened");
+            analyticsManager.report("ads_" + prefix + "_opened");
         }
     }
 }

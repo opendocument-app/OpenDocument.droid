@@ -64,8 +64,13 @@ public class OnlineLoader extends FileLoader {
     public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager) {
         super.initialize(listener, mainHandler, backgroundHandler, analyticsManager);
 
-        storage = FirebaseStorage.getInstance().getReference();
-        auth = FirebaseAuth.getInstance();
+        try {
+            storage = FirebaseStorage.getInstance().getReference();
+            auth = FirebaseAuth.getInstance();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
@@ -94,6 +99,12 @@ public class OnlineLoader extends FileLoader {
         final Result result = new Result();
         result.options = options;
         result.loaderType = type;
+
+        if (auth == null || storage == null) {
+            callOnError(result, new RuntimeException("firebase not initialized"));
+
+            return;
+        }
 
         Task<AuthResult> authenticationTask = null;
         String currentUserId = null;
