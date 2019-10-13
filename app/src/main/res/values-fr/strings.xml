@@ -5,7 +5,7 @@
     <string name="toast_error_generic">Une erreur est survenue. Impossible d\'ouvrir le fichier.</string>
     <string name="toast_error_find_file">Impossible de trouver le fichier. Il n\'existe peut-être plus ?</string>
     <string name="toast_error_illegal_file">Ce format de fichier ne semble pas être supporté.</string>
-    <string name="toast_error_illegal_file_reopen">Ce format ne semble pas être pris en charge, ouvrez-le avec une autre application.</string>
+    <string name="toast_error_illegal_file_reopen">Ce format de fichier ne semble pas être pris en charge, ouvrez-le avec une autre application.</string>
     <string name="toast_hint_unsupported_file">Vous n\'êtes pas satisfaits de l\'affichage du fichier ? Ouvrez-le avec une autre application.</string>
     <string name="toast_error_reopen_noapp">Aucune application sur l\'appareil ne gère ce type de fichier.</string>
     <string name="toast_error_out_of_memory">Place insuffisante dans la mémoire de l\'appareil ! Il y a trop d\'images ou les fichiers sont trop volumineux.</string>
