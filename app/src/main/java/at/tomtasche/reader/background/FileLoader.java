@@ -1,26 +1,148 @@
 package at.tomtasche.reader.background;
 
+import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
 
-public interface FileLoader {
+import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.perf.metrics.Trace;
 
-    public void initialize(FileLoaderListener listener);
+import java.util.LinkedList;
+import java.util.List;
 
-    public void loadAsync(Uri uri, String fileType, String password, boolean limit, boolean translatable);
+import at.tomtasche.reader.nonfree.AnalyticsManager;
 
-    public void loadSync(Uri uri, String fileType, String password, boolean limit, boolean translatable);
+public abstract class FileLoader {
 
-    public boolean isLoading();
+    public enum LoaderType {
+        ODF,
+        PDF,
+        ONLINE,
+        RAW,
+        METADATA
+    }
 
-    public double getProgress();
+    Context context;
+    LoaderType type;
 
-    public void close();
+    Handler backgroundHandler;
+    Handler mainHandler;
 
+    FileLoaderListener listener;
+
+    AnalyticsManager analyticsManager;
+
+    private boolean initialized;
+    private boolean loading;
+
+    public FileLoader(Context context, LoaderType type) {
+        this.context = context;
+        this.type = type;
+    }
+
+    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager) {
+        this.listener = listener;
+        this.mainHandler = mainHandler;
+        this.backgroundHandler = backgroundHandler;
+        this.analyticsManager = analyticsManager;
+
+        initialized = true;
+    }
+
+    public abstract boolean isSupported(Options options);
+
+    public void loadAsync(Options options) {
+        if (!initialized) {
+            throw new RuntimeException("not initialized");
+        }
+
+        loading = true;
+
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                Trace trace = analyticsManager.startTrace("sync_" + type.toString());
+
+                loadSync(options);
+
+                analyticsManager.stopTrace(trace);
+
+                loading = false;
+            }
+        });
+    }
+
+    abstract void loadSync(Options options);
+
+    public boolean isLoading() {
+        return loading;
+    }
+
+    void callOnSuccess(Result result) {
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                analyticsManager.report("loader_success_" + type, FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType, FirebaseAnalytics.Param.CONTENT, result.options.fileExtension);
+
+                FileLoaderListener strongReferenceListener = listener;
+                if (strongReferenceListener != null) {
+                    listener.onSuccess(result);
+                }
+            }
+        });
+    }
+
+    void callOnError(Result result, Throwable t) {
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                analyticsManager.report("loader_error_" + type, FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType, FirebaseAnalytics.Param.CONTENT, result.options.fileExtension);
+
+                FileLoaderListener strongReferenceListener = listener;
+                if (strongReferenceListener != null) {
+                    listener.onError(result, t);
+                }
+            }
+        });
+    }
+
+    public void close() {
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                initialized = false;
+                listener = null;
+                context = null;
+            }
+        });
+    }
+
+    public static class Options {
+        public Uri originalUri;
+        public Uri cacheUri;
+
+        public String filename;
+        public String fileType;
+        public String fileExtension;
+
+        public String password;
+
+        public boolean limit;
+        public boolean translatable;
+    }
+
+    public class Result {
+        public LoaderType loaderType;
+        public Options options;
+
+        public List<String> partTitles = new LinkedList<>();
+        public List<Uri> partUris = new LinkedList<>();
+    }
 
     public interface FileLoaderListener {
 
-        public void onSuccess(Document document, String fileType);
+        public void onSuccess(Result result);
 
-        public void onError(Throwable throwable, String fileType);
+        public void onError(Result result, Throwable throwable);
     }
 }

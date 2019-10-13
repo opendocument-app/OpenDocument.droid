@@ -57,6 +57,10 @@ public class RecentDocumentsUtil {
         if (title == null)
             return;
 
+        if (AndroidFileCache.getCacheFileUri().equals(uri)) {
+            return;
+        }
+
         FileOutputStream output = null;
         OutputStreamWriter writer = null;
         try {
