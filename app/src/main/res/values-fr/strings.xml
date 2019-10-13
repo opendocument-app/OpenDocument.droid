@@ -5,8 +5,10 @@
     <string name="toast_error_generic">Une erreur est survenue. Impossible d\'ouvrir le fichier.</string>
     <string name="toast_error_find_file">Impossible de trouver le fichier. Il n\'existe peut-être plus ?</string>
     <string name="toast_error_illegal_file">Ce format de fichier ne semble pas être supporté.</string>
+    <string name="toast_error_reopen_noapp">Aucune application sur l\'appareil ne gère ce type de fichier.</string>
     <string name="toast_error_out_of_memory">Place insuffisante dans la mémoire de l\'appareil ! Il y a trop d\'images ou les fichiers sont trop volumineux.</string>
     <string name="toast_error_password_protected">Ce document est protégé par mot de passe</string>
+    <string name="toast_error_permission_required">Autorisation requise pour lire et enregistrer les documents</string>
     <string name="dialog_recent_title">Documents récents</string>
     <string name="dialog_choose_filemanager">Ouvrir les documents via :</string>
     <string name="dialog_loading_title">Chargement en cours…</string>
