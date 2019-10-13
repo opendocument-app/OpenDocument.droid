@@ -4,6 +4,8 @@
     <string name="toast_error_generic">何か問題が発生しました。ファイルを開くことができませんでした。</string>
     <string name="toast_error_find_file">ファイルが見つかりません。もう存在しないかもしれません?</string>
     <string name="toast_error_illegal_file">これはサポートされているファイル形式ではないようです。</string>
+    <string name="toast_error_illegal_file_reopen">このファイル形式はサポートされてないようです。 代わりに別のアプリで開きます。</string>
+    <string name="toast_hint_unsupported_file">ファイルの表示方法に満足できませんか？ 代わりに別のアプリで開きます。</string>
     <string name="toast_error_out_of_memory">デバイスのメモリ不足です! 写真が多すぎるかファイルが大きすぎます。</string>
     <string name="toast_error_password_protected">ドキュメントがパスワードで保護されています</string>
     <string name="dialog_recent_title">最近使用したドキュメント</string>
