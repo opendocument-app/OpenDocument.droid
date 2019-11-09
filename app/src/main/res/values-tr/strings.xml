@@ -31,7 +31,7 @@
     <string name="action_edit_save">Kaydet</string>
     <string name="action_edit_help">Yardım!?</string>
     <string name="action_edit_banner">Aşağıdaki belgenizi düzenleyip kaydete tıklayın </string>
-    <string name="landing_welcome_title">\nOpenDocument Reader\'e Hoşgeldiniz</string>
+    <string name="landing_welcome_title">OpenDocument Reader\'e \nHoşgeldiniz</string>
     <string name="landing_intro_search">OpenDocument Reader ile belgelerinizi rahatça okuyabilir ve arayabilirsiniz.</string>
     <string name="tts_status_reading">Okunuyor…</string>
     <string name="tts_status_initializing">TTS başlatılıyor…</string>
