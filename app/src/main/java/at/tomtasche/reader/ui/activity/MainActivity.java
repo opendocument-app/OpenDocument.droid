@@ -55,6 +55,18 @@ import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
 
 public class MainActivity extends AppCompatActivity implements DocumentLoadingActivity {
 
+    // taken from: https://stackoverflow.com/a/36829889/198996
+    private static boolean isTesting() {
+        try {
+            Class.forName("at.tomtasche.reader.test.MainActivityTest");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    private static final boolean IS_TESTING = isTesting();
+
     private static final boolean USE_PROPRIETARY_LIBRARIES = true;
     protected static boolean IS_GOOGLE_ECOSYSTEM = true;
     private static final int GOOGLE_REQUEST_CODE = 1993;
@@ -62,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     public static int PERMISSION_CODE = 1353;
 
     private boolean isDocumentLoaded = false;
+    private boolean didTriggerPermissionDialogAgain = false;
 
     private Menu menu;
     private Handler handler;
@@ -97,17 +110,19 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         landingContainer = findViewById(R.id.landing_container);
         documentContainer = findViewById(R.id.document_container);
 
+        initializeProprietaryLibraries();
+
         documentFragment = new DocumentFragment();
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.document_container, documentFragment,DOCUMENT_FRAGMENT_TAG)
                 .commit();
 
-        initializeProprietaryLibraries();
+        if (!IS_TESTING) {
+            showIntroActivity();
 
-        showIntroActivity();
-
-        initializeRatingDialog();
+            initializeRatingDialog();
+        }
 
         initializeCatchAllSwitch();
     }
@@ -203,9 +218,9 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         }
     }
 
-    public boolean requestPermission(Runnable onPermissionRunnable) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_CODE);
+    public boolean requestPermission(String permission, Runnable onPermissionRunnable) {
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{permission}, PERMISSION_CODE);
 
             this.onPermissionRunnable = onPermissionRunnable;
 
@@ -236,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         analyticsManager.initialize(this);
 
         adManager = new AdManager();
-        adManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+        adManager.setEnabled(!IS_TESTING && USE_PROPRIETARY_LIBRARIES);
         adManager.setAdContainer(adContainer);
         adManager.setOnAdFailedCallback(new Runnable() {
 
@@ -289,9 +304,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
 
-        if (requestCode == BillingManager.PURCHASE_CODE) {
-            billingManager.endPurchase(requestCode, resultCode, intent);
-        } else if (requestCode == GOOGLE_REQUEST_CODE) {
+        if (requestCode == GOOGLE_REQUEST_CODE) {
             initializeProprietaryLibraries();
         } else if (intent != null) {
             Uri uri = intent.getData();
@@ -310,7 +323,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             }
         };
 
-        boolean hasPermission = requestPermission(onPermission);
+        boolean hasPermission = requestPermission(Manifest.permission.READ_EXTERNAL_STORAGE, onPermission);
         if (!hasPermission) {
             return;
         }
@@ -461,6 +474,10 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     }
 
     private void offerPurchase() {
+        if (billingManager.hasPurchased() || !billingManager.isEnabled()) {
+            return;
+        }
+
         analyticsManager.report(FirebaseAnalytics.Event.PRESENT_OFFER);
         SnackbarHelper.show(this, R.string.crouton_remove_ads, new Runnable() {
 
@@ -483,12 +500,32 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (requestCode == EditActionModeCallback.PERMISSION_CODE && editActionMode != null) {
-            editActionMode.save();
-        } else if (requestCode == PERMISSION_CODE && onPermissionRunnable != null) {
-            onPermissionRunnable.run();
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (requestCode == PERMISSION_CODE && onPermissionRunnable != null) {
+                onPermissionRunnable.run();
+                onPermissionRunnable = null;
+            }
+        }
 
-            onPermissionRunnable = null;
+        String permission;
+        if (permissions.length > 0) {
+            permission = permissions[0];
+        } else {
+            // https://stackoverflow.com/q/50770955/198996
+            permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+        }
+
+        if (!didTriggerPermissionDialogAgain) {
+            requestPermission(permission, onPermissionRunnable);
+
+            didTriggerPermissionDialogAgain = true;
+        } else {
+            SnackbarHelper.show(this, R.string.toast_error_permission_required, new Runnable() {
+                @Override
+                public void run() {
+                    requestPermission(permission, onPermissionRunnable);
+                }
+            }, true, true);
         }
     }
 
@@ -509,8 +546,10 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dialog_remove_ads_title);
 
+        final boolean isBillingEnabled = billingManager.isEnabled();
+
         String[] optionStrings = getResources().getStringArray(R.array.dialog_remove_ads_options);
-        if (!IS_GOOGLE_ECOSYSTEM) {
+        if (!isBillingEnabled) {
             optionStrings = new String[]{optionStrings[1]};
         }
 
@@ -520,7 +559,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             public void onClick(DialogInterface dialog, int which) {
                 String product;
 
-                if (!IS_GOOGLE_ECOSYSTEM) {
+                if (!isBillingEnabled) {
                     which = 99;
                 }
 
@@ -540,7 +579,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                         return;
                 }
 
-                billingManager.startPurchase(MainActivity.this, product);
+                billingManager.startPurchase(MainActivity.this);
 
                 dialog.dismiss();
             }

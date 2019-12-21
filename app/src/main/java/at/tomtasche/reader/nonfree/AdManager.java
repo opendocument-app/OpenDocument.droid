@@ -41,7 +41,14 @@ public class AdManager implements RewardedVideoAdListener {
         this.activity = activity;
         this.analyticsManager = analyticsManager;
 
-        MobileAds.initialize(activity, "ca-app-pub-8161473686436957~9025061963");
+        try {
+            MobileAds.initialize(activity, "ca-app-pub-8161473686436957~9025061963");
+        } catch (Throwable e) {
+            // java.lang.VerifyError: com/google/android/gms/ads/internal/ClientApi
+            e.printStackTrace();
+
+            enabled = false;
+        }
     }
 
     public void setEnabled(boolean enabled) {
@@ -246,7 +253,7 @@ public class AdManager implements RewardedVideoAdListener {
 
     @Override
     public void onRewardedVideoAdFailedToLoad(int i) {
-        analyticsManager.report("ads_video_failed_" + i);
+        analyticsManager.report("ads_video_failed", "code", i);
 
         if (progressDialog != null) {
             progressDialog.dismiss();
@@ -275,7 +282,7 @@ public class AdManager implements RewardedVideoAdListener {
 
         @Override
         public void onAdFailedToLoad(int arg0) {
-            analyticsManager.report("ads_" + prefix + "_failed_" + arg0);
+            analyticsManager.report("ads_" + prefix + "_failed", "code", arg0);
 
             if (!isInterstitial) {
                 adFailed = true;
@@ -303,17 +310,17 @@ public class AdManager implements RewardedVideoAdListener {
 
         @Override
         public void onAdClicked() {
-            analyticsManager.report("ads_" + prefix + "clicked");
+            analyticsManager.report("ads_" + prefix + "_clicked");
         }
 
         @Override
         public void onAdImpression() {
-            analyticsManager.report("ads_" + prefix + "impression");
+            analyticsManager.report("ads_" + prefix + "_impression");
         }
 
         @Override
         public void onAdClosed() {
-            analyticsManager.report("ads_" + prefix + "closed");
+            analyticsManager.report("ads_" + prefix + "_closed");
 
             if (isInterstitial) {
                 interstitial = null;
@@ -322,7 +329,7 @@ public class AdManager implements RewardedVideoAdListener {
 
         @Override
         public void onAdOpened() {
-            analyticsManager.report("ads_" + prefix + "opened");
+            analyticsManager.report("ads_" + prefix + "_opened");
         }
     }
 }

@@ -8,25 +8,32 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.util.AttributeSet;
+import android.util.Base64;
+import android.util.Base64InputStream;
+import android.webkit.DownloadListener;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
 import androidx.annotation.Keep;
+import at.tomtasche.reader.background.AndroidFileCache;
+import at.tomtasche.reader.background.StreamUtil;
 import at.tomtasche.reader.ui.ParagraphListener;
+import at.tomtasche.reader.ui.activity.DocumentFragment;
 
 @SuppressLint("SetJavaScriptEnabled")
 public class PageView extends WebView implements ParagraphListener {
 
-    public static final String ENCODING = "UTF-8";
-
     private ParagraphListener paragraphListener;
+
+    private DocumentFragment documentFragment;
 
     private File writeTo;
     private Runnable writtenCallback;
@@ -50,7 +57,7 @@ public class PageView extends WebView implements ParagraphListener {
         settings.setBuiltInZoomControls(true);
         settings.setDisplayZoomControls(false);
         settings.setSupportZoom(true);
-        settings.setDefaultTextEncodingName(ENCODING);
+        settings.setDefaultTextEncodingName(StreamUtil.ENCODING);
         settings.setJavaScriptEnabled(true);
 
         addJavascriptInterface(this, "paragraphListener");
@@ -110,6 +117,24 @@ public class PageView extends WebView implements ParagraphListener {
                 }
             }
         });
+
+        // taken from: https://stackoverflow.com/a/10069265/198996
+        setDownloadListener(new DownloadListener() {
+            public void onDownloadStart(String url, String userAgent,
+                                        String contentDisposition, String mimetype,
+                                        long contentLength) {
+                try {
+                    getContext().startActivity(
+                            new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public void setDocumentFragment(DocumentFragment documentFragment) {
+        this.documentFragment = documentFragment;
     }
 
     public void setParagraphListener(ParagraphListener paragraphListener) {
@@ -143,6 +168,7 @@ public class PageView extends WebView implements ParagraphListener {
     }
 
     @JavascriptInterface
+    @Keep
     public void sendHtml(String html) {
         FileWriter writer;
         try {
@@ -150,8 +176,28 @@ public class PageView extends WebView implements ParagraphListener {
             writer.write(html);
             writer.close();
 
-            // TODO: oh. my. god. stop it!
-            new Thread(writtenCallback).start();
+            writtenCallback.run();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    @JavascriptInterface
+    @Keep
+    public void sendFile(String base64) {
+        try {
+            File tmpFile = AndroidFileCache.getCacheFile(getContext());
+
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(base64.getBytes(StreamUtil.ENCODING));
+            Base64InputStream baseInputStream = new Base64InputStream(inputStream, Base64.NO_WRAP);
+            try {
+                StreamUtil.copy(baseInputStream, tmpFile);
+            } finally {
+                inputStream.close();
+            }
+
+            documentFragment.loadUri(AndroidFileCache.getCacheFileUri());
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

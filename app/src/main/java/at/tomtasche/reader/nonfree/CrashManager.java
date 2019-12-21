@@ -29,7 +29,12 @@ public class CrashManager {
             return;
         }
 
-        Crashlytics.log(Log.ERROR, "MainActivity", "could not load document at: " + uri.toString());
+        String uriString = "null";
+        if (uri != null) {
+            uriString = uri.toString();
+        }
+
+        Crashlytics.log(Log.ERROR, "MainActivity", "could not load document at: " + uriString);
         log(error);
     }
 
