@@ -42,6 +42,13 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    externalNativeBuild {
+        cmake {
+            version "3.12.4+"
+            path file('../CMakeLists.txt')
+        }
+    }
+
     // https://stackoverflow.com/a/57893960/198996
     bundle {
         density {

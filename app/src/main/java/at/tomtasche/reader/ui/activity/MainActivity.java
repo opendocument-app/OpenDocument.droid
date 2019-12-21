@@ -55,6 +55,10 @@ import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
 
 public class MainActivity extends AppCompatActivity implements DocumentLoadingActivity {
 
+    static {
+        System.loadLibrary("odr-core");
+    }
+
     // taken from: https://stackoverflow.com/a/36829889/198996
     private static boolean isTesting() {
         try {

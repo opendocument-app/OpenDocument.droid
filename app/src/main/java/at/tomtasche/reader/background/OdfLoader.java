@@ -2,6 +2,7 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +25,7 @@ import at.stefl.opendocument.java.translator.document.SpreadsheetTranslator;
 import at.stefl.opendocument.java.translator.document.TextTranslator;
 import at.stefl.opendocument.java.translator.settings.ImageStoreMode;
 import at.stefl.opendocument.java.translator.settings.TranslationSettings;
+import at.tomtasche.reader.nonfree.AnalyticsManager;
 
 public class OdfLoader extends FileLoader {
 
@@ -32,12 +34,23 @@ public class OdfLoader extends FileLoader {
     }
 
     @Override
+    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager) {
+        super.initialize(listener, mainHandler, backgroundHandler, analyticsManager);
+
+        System.loadLibrary("odr-core");
+    }
+
+    private native boolean init();
+
+    @Override
     public boolean isSupported(Options options) {
         return options.fileType.startsWith("application/vnd.oasis.opendocument") || options.fileType.startsWith("application/x-vnd.oasis.opendocument");
     }
 
     @Override
     public void loadSync(Options options) {
+        init();
+
         final Result result = new Result();
         result.options = options;
         result.loaderType = type;
