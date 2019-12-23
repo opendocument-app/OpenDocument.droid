@@ -12,7 +12,7 @@ jobs:
     - name: Checkout submodule
       run: git submodule update --init --recursive
     - name: Decrypt large secret
-      run: ./.github/scripts/decrypt_secret.sh
+      run: ./.github/scripts/decrypt.sh
       env:
           PASSPHRASE: ${{secrets.PASSPHRASE}}
     - name: set up JDK 1.8
