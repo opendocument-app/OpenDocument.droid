@@ -16,5 +16,5 @@ jobs:
       with:
         java-version: 1.8
     - name: Build with Gradle
-      run: cd app/ && ./gradlew clean assembleDebug
+      run: ./gradlew clean assembleDebug
 
