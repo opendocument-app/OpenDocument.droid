@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Decrypt large secret
+    - name: Decrypt secret
       run: ./.github/workflows/decrypt.sh
       env:
           PASSPHRASE: ${{secrets.PASSPHRASE}}
