@@ -9,10 +9,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-      with: 
-        google_services: ${{ secrets.google_services }}
     - name: Checkout submodule
       run: git submodule update --init --recursive
+    - name: Create File
+      run: echo ${{ secrets.google_services }} > app/google-services.json
     - name: set up JDK 1.8
       uses: actions/setup-java@v1
       with:
