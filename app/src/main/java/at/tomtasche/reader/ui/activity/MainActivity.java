@@ -431,11 +431,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 analyticsManager.report("menu_print");
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    if (documentFragment.getPdfView().getVisibility() == View.VISIBLE) {
-                        KitKatPrinter.print(this, AndroidFileCache.getCacheFile(this));
-                    } else {
-                        KitKatPrinter.print(this, documentFragment.getPageView());
-                    }
+                    KitKatPrinter.print(this, documentFragment.getPageView());
                 } else {
                     SnackbarHelper.show(this, R.string.crouton_print_unavailable, null, true, true);
                 }

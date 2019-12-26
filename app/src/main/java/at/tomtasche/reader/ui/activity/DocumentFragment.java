@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Locale;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -66,10 +65,8 @@ import at.tomtasche.reader.background.RawLoader;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.SnackbarHelper;
-import at.tomtasche.reader.ui.widget.FailsafePDFPagerAdapter;
 import at.tomtasche.reader.ui.widget.PageView;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
-import at.tomtasche.reader.ui.widget.VerticalViewPager;
 
 public class DocumentFragment extends Fragment implements FileLoader.FileLoaderListener, ActionBar.TabListener {
 
@@ -87,9 +84,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private ProgressDialogFragment progressDialog;
 
     private PageView pageView;
-
-    private VerticalViewPager pdfView;
-    private FailsafePDFPagerAdapter pdfAdapter;
 
     private Menu menu;
 
@@ -141,8 +135,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             pageView = inflatedView.findViewById(R.id.page_view);
             pageView.setDocumentFragment(this);
-
-            pdfView = inflatedView.findViewById(R.id.pdf_view);
 
             return inflatedView;
         } catch (Throwable t) {
@@ -213,32 +205,13 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         rawLoader.loadAsync(options);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private boolean loadPdf(Uri uri) {
-        toggleDocumentMenu(false);
-        togglePageView(false);
+    private void loadPdf(FileLoader.Options options) {
+        showProgress();
 
-        try {
-            pdfAdapter = new FailsafePDFPagerAdapter(getContext(), new File(AndroidFileCache.getCacheDirectory(getContext()),
-                    uri.getLastPathSegment()).getPath());
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
+        toggleDocumentMenu(true, false);
+        togglePageView(true);
 
-        if (pdfAdapter == null || !pdfAdapter.isInitialized()) {
-            if (pdfAdapter != null) {
-                pdfAdapter.close();
-                pdfAdapter = null;
-            }
-
-            togglePageView(false);
-
-            return false;
-        }
-
-        pdfView.setAdapter(pdfAdapter);
-
-        return true;
+        pdfLoader.loadAsync(options);
     }
 
     private void togglePageView(boolean enabled) {
@@ -248,13 +221,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         }
 
         pageView.setVisibility(enabled ? View.VISIBLE : View.GONE);
-        pdfView.setVisibility(enabled ? View.GONE : View.VISIBLE);
-        pdfView.setAdapter(null);
-
-        if (!enabled && pdfAdapter != null) {
-            pdfAdapter.close();
-            pdfAdapter = null;
-        }
     }
 
     public void reloadUri(boolean translatable) {
@@ -452,6 +418,9 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             if (result.loaderType == FileLoader.LoaderType.RAW || result.loaderType == FileLoader.LoaderType.ONLINE) {
                 offerReopen(activity, options, R.string.toast_hint_unsupported_file, false);
+            } else {
+                // TODO: offer upload for all documents using snackbar
+                // offerUpload(activity, options);
             }
         }
     }
@@ -501,12 +470,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 return;
             } else {
                 if (pdfLoader.isSupported(options)) {
-                    boolean didLoad = loadPdf(result, (AppCompatActivity) activity);
-                    if (!didLoad) {
-                        // we can assume at this point that the file is supported by the online viewer
-                        // because we already checked if it is supported by the PdfLoader
-                        offerUpload(activity, options);
-                    }
+                    loadPdf(options);
                 } else if (rawLoader.isSupported(options)) {
                     loadRaw(options);
                 } else if (onlineLoader.isSupported(options)) {
@@ -517,6 +481,12 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
                 return;
             }
+        } else if (result.loaderType == FileLoader.LoaderType.PDF) {
+            crashManager.log(error, options.originalUri);
+
+            offerUpload(activity, options);
+
+            return;
         } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
             crashManager.log(error, options.originalUri);
 
@@ -538,29 +508,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         analyticsManager.report("load_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
         crashManager.log(error, options.originalUri);
-    }
-
-    private boolean loadPdf(FileLoader.Result result, AppCompatActivity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            boolean pdfSuccess = loadPdf(result.options.cacheUri);
-
-            if (pdfSuccess) {
-                analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
-                analyticsManager.report("loader_success_" + FileLoader.LoaderType.PDF, FirebaseAnalytics.Param.CONTENT_TYPE, result.options.fileType, FirebaseAnalytics.Param.CONTENT, result.options.fileExtension);
-
-                result.loaderType = FileLoader.LoaderType.PDF;
-                lastResult = result;
-
-                ActionBar bar = activity.getSupportActionBar();
-                bar.removeAllTabs();
-
-                bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private void offerUpload(Activity activity, FileLoader.Options options) {
@@ -787,10 +734,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         return pageView;
     }
 
-    public VerticalViewPager getPdfView() {
-        return pdfView;
-    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -813,10 +756,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         if (onlineLoader != null) {
             onlineLoader.close();
-        }
-
-        if (pdfAdapter != null) {
-            pdfAdapter.close();
         }
 
         if (pageView != null) {
