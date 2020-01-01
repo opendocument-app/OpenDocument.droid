@@ -341,6 +341,7 @@
 
         <activity
                 android:name="com.nononsenseapps.filepicker.FilePickerActivity"
+                android:enabled="@bool/filepicker_enabled"
                 android:icon="@mipmap/icon"
                 android:roundIcon="@mipmap/icon_round"
                 android:excludeFromRecents="true"
@@ -380,6 +381,7 @@
 
         <provider
                 android:name="androidx.core.content.FileProvider"
+                android:enabled="@bool/filepicker_enabled"
                 android:authorities="${applicationId}.provider"
                 android:exported="false"
                 android:grantUriPermissions="true">
