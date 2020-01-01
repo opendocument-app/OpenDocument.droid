@@ -155,10 +155,12 @@ public class MetadataLoader extends FileLoader {
                 options.fileExtension = extension;
             }
 
-            try {
-                RecentDocumentsUtil.addRecentDocument(context, filename, uri);
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (options.persistentUri) {
+                try {
+                    RecentDocumentsUtil.addRecentDocument(context, filename, uri);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
             callOnSuccess(result);
