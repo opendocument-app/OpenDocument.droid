@@ -175,17 +175,18 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-    public void loadUri(Uri uri) {
-        loadUri(uri, null, false, false);
+    public void loadUri(Uri uri, boolean persistentUri) {
+        loadUri(uri, persistentUri, null, false, false);
     }
 
-    public void loadUri(Uri uri, String password) {
-        loadUri(uri, password, false, false);
+    public void loadUri(Uri uri, boolean persistentUri, String password) {
+        loadUri(uri, persistentUri, password, false, false);
     }
 
-    public void loadUri(Uri uri, String password, boolean limit, boolean translatable) {
+    public void loadUri(Uri uri, boolean persistentUri, String password, boolean limit, boolean translatable) {
         FileLoader.Options options = new FileLoader.Options();
         options.originalUri = uri;
+        options.persistentUri = persistentUri;
         options.password = password;
         options.limit = limit;
         options.translatable = translatable;
@@ -310,7 +311,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             Uri fileUri = Uri.parse("file://"
                     + modifiedFile.getAbsolutePath());
 
-            loadUri(fileUri, password, false, true);
+            loadUri(fileUri, false, password, false, true);
 
             mainHandler.post(new Runnable() {
                 @Override
@@ -490,7 +491,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                             @Override
                             public void onClick(DialogInterface dialog,
                                                 int whichButton) {
-                                loadUri(cacheUri, input.getText().toString());
+                                loadUri(cacheUri, false, input.getText().toString());
 
                                 dialog.dismiss();
                             }

@@ -335,6 +335,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         isDocumentLoaded = true;
 
         if (uri != null) {
+            boolean isPersistentUri = true;
+
             crashManager.log("loading document at: " + uri.toString());
             analyticsManager.report(FirebaseAnalytics.Event.VIEW_ITEM, FirebaseAnalytics.Param.ITEM_NAME, uri.toString());
 
@@ -345,10 +347,14 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 } catch (Exception e) {
                     // some providers dont support persisted permissions
                     e.printStackTrace();
+
+                    if (!uri.toString().startsWith("content://at.tomtasche.reader")) {
+                        isPersistentUri = false;
+                    }
                 }
             }
 
-            documentFragment.loadUri(uri);
+            documentFragment.loadUri(uri, isPersistentUri);
         } else {
             // null passed in case of orientation change
         }
