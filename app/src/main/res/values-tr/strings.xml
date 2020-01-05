@@ -5,7 +5,11 @@
     <string name="toast_error_find_file">Dosya bulunamadı. Belki artık mevcut değil?</string>
     <string name="toast_error_illegal_file">Bu, desteklenen bir dosya biçimi gibi görünmüyor.</string>
     <string name="toast_error_illegal_file_reopen">Bu desteklenen bir dosya biçimi gibi görünmüyor. Bunun yerine başka bir uygulamada açın.</string>
+    <string name="toast_hint_unsupported_file">Dosyanın görüntüsünden memnun değil misiniz? Bunun yerine başka bir uygulamada açın.</string>
+    <string name="toast_error_reopen_noapp">Aygıtda bu tür dosyaları destekleyen uygulama bulunamadı.</string>
+    <string name="toast_error_out_of_memory">Aygıt belleği yetersiz! Çok fazla resim var veya dosya çok büyük.</string>
     <string name="toast_error_password_protected">Belge parola korumalı</string>
+    <string name="toast_error_permission_required">Belgeleri okumak ve kaydetmek için izin gerekli</string>
     <string name="dialog_recent_title">Son kullanılan belgeler</string>
     <string name="dialog_choose_filemanager">Belgeyi şununla aç:</string>
     <string name="dialog_loading_title">Yükleniyor…</string>
