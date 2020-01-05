@@ -79,9 +79,8 @@ public class MetadataLoader extends FileLoader {
             } else {
                 InputStream stream = context.getContentResolver().openInputStream(uri);
                 cachedFile = cache.create("document.odt", stream);
-
-                options.cacheUri = AndroidFileCache.getCacheFileUri();
             }
+            options.cacheUri = AndroidFileCache.getCacheFileUri();
 
             String filename = null;
             try {
