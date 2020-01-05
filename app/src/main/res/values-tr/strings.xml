@@ -49,9 +49,12 @@
     <string name="tts_status_finished">Bitti.</string>
     <string name="edit_status_saved">Belge SD kartınıza kaydedildi</string>
     <string name="crouton_printing">Yazdırılıyor…</string>
+    <string name="crouton_print_unavailable">Aygıtınızda yazdırma özelliği yok. Lütfen Androidi daha yeni bir sürüme yükseltin.</string>
+    <string name="intro_title_open">ODF dosyanızı hareketliyken açın ve okuyun!</string>
+    <string name="intro_title_edit">Belgenizde bir yazım hatası mı buldunuz? Şimdi değiştirmeyi destekliyor!</string>
     <string name="intro_button_start">BAŞLAT</string>
     <string-array name="dialog_remove_ads_options">
         <item>Reklamları sürekli kaldır</item>
-        <item>Remove ads temporarily for free by watching a short video</item>
+        <item>Kısa bir video izleyerek reklamları geçici özgürlük için kaldırın</item>
     </string-array>
 </resources>
