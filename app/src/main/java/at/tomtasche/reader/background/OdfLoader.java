@@ -8,6 +8,8 @@ import android.util.Log;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.List;
 
 import at.stefl.commons.math.vector.Vector2i;
 import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
@@ -30,6 +32,8 @@ import at.tomtasche.reader.nonfree.AnalyticsManager;
 
 public class OdfLoader extends FileLoader {
 
+    private static boolean USE_CPP = true;
+
     public OdfLoader(Context context) {
         super(context, LoaderType.ODF);
     }
@@ -38,14 +42,13 @@ public class OdfLoader extends FileLoader {
     public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager) {
         super.initialize(listener, mainHandler, backgroundHandler, analyticsManager);
 
-        // TODO: fallback on error
-        System.loadLibrary("odr-core");
-
-        boolean awesome = init();
-        Log.e("smn", awesome + "ye");
+        if (USE_CPP) {
+            // TODO: fallback on error
+            System.loadLibrary("odr-core");
+        }
     }
 
-    private native boolean init();
+    private native int parse(String inputPath, String outputPath, String password, boolean editable, List<String> pageNames);
 
     @Override
     public boolean isSupported(Options options) {
@@ -54,19 +57,42 @@ public class OdfLoader extends FileLoader {
 
     @Override
     public void loadSync(Options options) {
-        init();
-
         final Result result = new Result();
         result.options = options;
         result.loaderType = type;
 
         DocumentTranslator lastTranslator;
 
-        InputStream stream = null;
-
         LocatedOpenDocumentFile documentFile = null;
         try {
             File cachedFile = AndroidFileCache.getCacheFile(context);
+
+            if (USE_CPP) {
+                File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
+
+                File fakeHtmlFile = new File(cacheDirectory, "odf");
+                List<String> pageNames = new LinkedList<>();
+
+                int errorCode = parse(cachedFile.getPath(), fakeHtmlFile.getPath(), options.password, options.translatable, pageNames);
+                if (errorCode == 0) {
+                    for (int i = 0; i < pageNames.size(); i++) {
+                        File entryFile = new File(fakeHtmlFile.getPath() + i + ".html");
+
+                        result.partTitles.add(pageNames.get(i));
+                        result.partUris.add(Uri.fromFile(entryFile));
+                    }
+
+                    callOnSuccess(result);
+                } else {
+                    if (errorCode == -2) {
+                        throw new EncryptedDocumentException();
+                    } else {
+                        throw new RuntimeException("failed with code " + errorCode);
+                    }
+                }
+
+                return;
+            }
 
             documentFile = new LocatedOpenDocumentFile(cachedFile);
 
@@ -138,12 +164,6 @@ public class OdfLoader extends FileLoader {
 
             callOnError(result, e);
         } finally {
-            try {
-                if (stream != null)
-                    stream.close();
-            } catch (IOException e) {
-            }
-
             try {
                 if (documentFile != null)
                     documentFile.close();
