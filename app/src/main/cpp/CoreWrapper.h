@@ -6,7 +6,7 @@
 extern "C" {
 
     JNIEXPORT bool JNICALL
-    Java_at_tomtasche_reader_background_CoreWrapper_init(JNIEnv *env, jobject instance);
+    Java_at_tomtasche_reader_background_OdfLoader_init(JNIEnv *env, jobject instance);
 }
 
 #endif //ANDROID_CORE_WRAPPER_H

@@ -3,6 +3,7 @@ package at.tomtasche.reader.background;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
+import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +38,11 @@ public class OdfLoader extends FileLoader {
     public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager) {
         super.initialize(listener, mainHandler, backgroundHandler, analyticsManager);
 
+        // TODO: fallback on error
         System.loadLibrary("odr-core");
+
+        boolean awesome = init();
+        Log.e("smn", awesome + "ye");
     }
 
     private native boolean init();
