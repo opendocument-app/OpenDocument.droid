@@ -102,12 +102,11 @@ public class EditActionModeCallback implements ActionMode.Callback {
     }
 
     public void save() {
-        final File htmlFile = new File(AndroidFileCache.getCacheDirectory(activity), "content.html");
-        pageView.requestHtml(htmlFile, new Runnable() {
+        pageView.requestHtml(new PageView.HtmlCallback() {
 
             @Override
-            public void run() {
-                documentFragment.saveAsync(htmlFile, statusView);
+            public void onHtml(String htmlDiff) {
+                documentFragment.saveAsync(htmlDiff, statusView);
             }
         });
     }

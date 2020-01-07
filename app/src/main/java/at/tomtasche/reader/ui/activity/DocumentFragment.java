@@ -263,26 +263,18 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         loadOdf(lastResult.options);
     }
 
-    public void saveAsync(File htmlFile, TextView statusView) {
+    public void saveAsync(String htmlDiff, TextView statusView) {
         backgroundHandler.post(new Runnable() {
             @Override
             public void run() {
-                saveSync(htmlFile, statusView);
+                saveSync(htmlDiff, statusView);
             }
         });
     }
 
-    private void saveSync(File htmlFile, TextView statusView) {
-        FileInputStream htmlStream = null;
-        FileOutputStream modifiedStream = null;
-        LocatedOpenDocumentFile documentFile = null;
+    private void saveSync(String htmlDiff, TextView statusView) {
         try {
-            htmlStream = new FileInputStream(htmlFile);
-
             String password = lastResult.options.password;
-
-            documentFile = new LocatedOpenDocumentFile(AndroidFileCache.getCacheFile(getActivity()));
-            documentFile.setPassword(password);
 
             String extension = "unknown";
             OpenDocument openDocument = documentFile.getAsDocument();
@@ -300,12 +292,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             File modifiedFile = new File(Environment.getExternalStorageDirectory(),
                     "modified-by-opendocument-reader-on-" + nowString + "." + extension);
-            modifiedStream = new FileOutputStream(modifiedFile);
 
-            Retranslator.retranslate(openDocument, htmlStream,
-                    modifiedStream);
-
-            modifiedStream.close();
+            odfLoader.retranslate(htmlDiff, modifiedFile);
 
             Uri fileUri = Uri.parse("file://"
                     + modifiedFile.getAbsolutePath());
@@ -330,27 +318,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                     statusView.setText(R.string.toast_error_generic);
                 }
             });
-        } finally {
-            if (documentFile != null) {
-                try {
-                    documentFile.close();
-                } catch (IOException e) {
-                }
-            }
-
-            if (htmlStream != null) {
-                try {
-                    htmlStream.close();
-                } catch (IOException e) {
-                }
-            }
-
-            if (modifiedStream != null) {
-                try {
-                    modifiedStream.close();
-                } catch (IOException e) {
-                }
-            }
         }
     }
 

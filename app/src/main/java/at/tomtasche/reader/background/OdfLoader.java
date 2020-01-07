@@ -50,6 +50,8 @@ public class OdfLoader extends FileLoader {
 
     private native int parse(String inputPath, String outputPath, String password, boolean editable, List<String> pageNames);
 
+    private native int backtranslate(String htmlDiff, String outputPath);
+
     @Override
     public boolean isSupported(Options options) {
         return options.fileType.startsWith("application/vnd.oasis.opendocument") || options.fileType.startsWith("application/x-vnd.oasis.opendocument");
@@ -170,6 +172,10 @@ public class OdfLoader extends FileLoader {
             } catch (IOException e) {
             }
         }
+    }
+
+    public void retranslate(String htmlDiff, File outputFile) {
+
     }
 
     @SuppressWarnings("serial")
