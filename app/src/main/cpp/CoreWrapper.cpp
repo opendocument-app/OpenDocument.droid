@@ -4,22 +4,52 @@
 #include <odr/TranslationConfig.h>
 #include <odr/FileMeta.h>
 
-JNIEXPORT int JNICALL
-Java_at_tomtasche_reader_background_OdfLoader_parse(JNIEnv *env, jobject instance, jstring inputPath, jstring outputPath, jstring password, jboolean editable, jobject pageNames)
+JNIEXPORT jobject JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject instance, jobject options)
 {
     jboolean isCopy;
+
+    jclass optionsClass = env->GetObjectClass(options);
+    jfieldID pointerField = env->GetFieldID(optionsClass, "nativePointer", "J");
+
+    //env->DeleteLocalRef(optionsClass);
+
+    odr::TranslationHelper *translator;
+
+    long pointer = env->GetLongField(options, pointerField);
+    if (pointer == 0) {
+        translator = new odr::TranslationHelper();
+    } else {
+        translator = (odr::TranslationHelper *) pointer;
+    }
+
+    jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
+    jmethodID resultConstructor = env->GetMethodID(resultClass, "<init>", "()V");
+    jobject result = env->NewObject(resultClass, resultConstructor);
+
+    jfieldID pointerResultField = env->GetFieldID(resultClass, "nativePointer", "J");
+    env->SetLongField(result, pointerResultField, reinterpret_cast<jlong>(translator));
+
+    jfieldID errorField = env->GetFieldID(resultClass, "errorCode", "I");
+
+    jfieldID inputPathField = env->GetFieldID(optionsClass, "inputPath", "Ljava/lang/String;");
+    jstring inputPath = (jstring) env->GetObjectField(options, inputPathField);
+
     const char *inputPathC = env->GetStringUTFChars(inputPath, &isCopy);
     std::string inputPathCpp = std::string(inputPathC, env->GetStringUTFLength(inputPath));
     env->ReleaseStringUTFChars(inputPath, inputPathC);
 
     try {
-        odr::TranslationHelper translator;
-        bool opened = translator.openOpenDocument(inputPathCpp);
+        bool opened = translator->openOpenDocument(inputPathCpp);
         if (!opened) {
-            return -1;
+            env->SetIntField(result, errorField, -1);
+            return result;
         }
 
-        const auto meta = translator.getMeta();
+        const auto meta = translator->getMeta();
+
+        jfieldID passwordField = env->GetFieldID(optionsClass, "password", "Ljava/lang/String;");
+        jstring password = (jstring) env->GetObjectField(options, passwordField);
 
         bool decrypted = !meta->encrypted;
         if (password != NULL) {
@@ -27,17 +57,24 @@ Java_at_tomtasche_reader_background_OdfLoader_parse(JNIEnv *env, jobject instanc
             std::string passwordCpp = std::string(passwordC, env->GetStringUTFLength(password));
             env->ReleaseStringUTFChars(password, passwordC);
 
-            decrypted = translator.decrypt(passwordCpp);
+            decrypted = translator->decrypt(passwordCpp);
         }
 
         if (!decrypted) {
-            return -2;
+            env->SetIntField(result, errorField, -2);
+            return result;
         }
+
+        jfieldID editableField = env->GetFieldID(optionsClass, "editable", "Z");
+        jboolean editable = env->GetBooleanField(options, editableField);
 
         odr::TranslationConfig config = {};
         config.editable = editable;
         config.entryCount = 1;
         config.tableLimitRows = 10000;
+
+        jfieldID outputPathField = env->GetFieldID(optionsClass, "outputPath", "Ljava/lang/String;");
+        jstring outputPath = (jstring) env->GetObjectField(options, outputPathField);
 
         const char *outputPathC = env->GetStringUTFChars(outputPath, &isCopy);
         std::string outputPathCpp = std::string(outputPathC, env->GetStringUTFLength(outputPath));
@@ -46,15 +83,19 @@ Java_at_tomtasche_reader_background_OdfLoader_parse(JNIEnv *env, jobject instanc
         jclass listClass = env->FindClass("java/util/List");
         jmethodID addMethod = env->GetMethodID(listClass, "add", "(Ljava/lang/Object;)Z");
 
+        jfieldID pageNamesField = env->GetFieldID(resultClass, "pageNames", "Ljava/util/List;");
+        jstring pageNames = (jstring) env->GetObjectField(result, pageNamesField);
+
         if (meta->type == odr::FileType::OPENDOCUMENT_TEXT) {
             jstring pageName = env->NewStringUTF("Text document");
             env->CallBooleanMethod(pageNames, addMethod, pageName);
 
             outputPathCpp = outputPathCpp + "0.html";
 
-            bool translated = translator.translate(outputPathCpp, config);
+            bool translated = translator->translate(outputPathCpp, config);
             if (!translated) {
-                return -4;
+                env->SetIntField(result, errorField, -4);
+                return result;
             }
         } else {
             int i = 0;
@@ -65,17 +106,32 @@ Java_at_tomtasche_reader_background_OdfLoader_parse(JNIEnv *env, jobject instanc
                 std::string entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
                 config.entryOffset = i;
 
-                bool translated = translator.translate(entryOutputPath, config);
+                bool translated = translator->translate(entryOutputPath, config);
                 if (!translated) {
-                    return -4;
+                    env->SetIntField(result, errorField, -4);
+                    return result;
                 }
 
                 i++;
             }
         }
     } catch (...) {
-        return -3;
+        env->SetIntField(result, errorField, -3);
+        return result;
     }
 
-    return 0;
+    env->SetIntField(result, errorField, 0);
+    return result;
+}
+
+JNIEXPORT void JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jobject instance, jobject options)
+{
+    jclass optionsClass = env->GetObjectClass(options);
+    jfieldID pointerField = env->GetFieldID(optionsClass, "nativePointer", "J");
+
+    long pointer = env->GetLongField(options, pointerField);
+    odr::TranslationHelper *translator = (odr::TranslationHelper *) pointer;
+
+    delete translator;
 }

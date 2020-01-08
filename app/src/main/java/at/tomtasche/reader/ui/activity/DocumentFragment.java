@@ -276,7 +276,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         try {
             String password = lastResult.options.password;
 
-            String extension = "unknown";
+            /*String extension = "unknown";
             OpenDocument openDocument = documentFile.getAsDocument();
             if (openDocument instanceof OpenDocumentText) {
                 extension = "odt";
@@ -298,7 +298,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             Uri fileUri = Uri.parse("file://"
                     + modifiedFile.getAbsolutePath());
 
-            loadUri(fileUri, password, false, true);
+            loadUri(fileUri, password, false, true);*/
 
             mainHandler.post(new Runnable() {
                 @Override

@@ -32,25 +32,12 @@ import at.tomtasche.reader.nonfree.AnalyticsManager;
 
 public class OdfLoader extends FileLoader {
 
-    private static boolean USE_CPP = true;
+    private static final boolean USE_CPP = true;
+    private CoreWrapper lastCore;
 
     public OdfLoader(Context context) {
         super(context, LoaderType.ODF);
     }
-
-    @Override
-    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager) {
-        super.initialize(listener, mainHandler, backgroundHandler, analyticsManager);
-
-        if (USE_CPP) {
-            // TODO: fallback on error
-            System.loadLibrary("odr-core");
-        }
-    }
-
-    private native int parse(String inputPath, String outputPath, String password, boolean editable, List<String> pageNames);
-
-    private native int backtranslate(String htmlDiff, String outputPath);
 
     @Override
     public boolean isSupported(Options options) {
@@ -70,26 +57,36 @@ public class OdfLoader extends FileLoader {
             File cachedFile = AndroidFileCache.getCacheFile(context);
 
             if (USE_CPP) {
+                if (lastCore != null) {
+                    // lastCore.close();
+                }
+                lastCore = new CoreWrapper();
+
                 File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
 
                 File fakeHtmlFile = new File(cacheDirectory, "odf");
-                List<String> pageNames = new LinkedList<>();
 
-                int errorCode = parse(cachedFile.getPath(), fakeHtmlFile.getPath(), options.password, options.translatable, pageNames);
-                if (errorCode == 0) {
-                    for (int i = 0; i < pageNames.size(); i++) {
+                CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
+                coreOptions.inputPath = cachedFile.getPath();
+                coreOptions.outputPath = fakeHtmlFile.getPath();
+                coreOptions.password = options.password;
+                coreOptions.editable = options.translatable;
+
+                CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
+                if (coreResult.errorCode == 0) {
+                    for (int i = 0; i < coreResult.pageNames.size(); i++) {
                         File entryFile = new File(fakeHtmlFile.getPath() + i + ".html");
 
-                        result.partTitles.add(pageNames.get(i));
+                        result.partTitles.add(coreResult.pageNames.get(i));
                         result.partUris.add(Uri.fromFile(entryFile));
                     }
 
                     callOnSuccess(result);
                 } else {
-                    if (errorCode == -2) {
+                    if (coreResult.errorCode == -2) {
                         throw new EncryptedDocumentException();
                     } else {
-                        throw new RuntimeException("failed with code " + errorCode);
+                        throw new RuntimeException("failed with code " + coreResult.errorCode);
                     }
                 }
 
@@ -175,7 +172,18 @@ public class OdfLoader extends FileLoader {
     }
 
     public void retranslate(String htmlDiff, File outputFile) {
+        // TODO
+        //int errorCode = lastCore.backtranslate(htmlDiff, outputFile.getPath());
+    }
 
+    @Override
+    public void close() {
+        super.close();
+
+        if (lastCore != null) {
+            lastCore.close();
+            lastCore = null;
+        }
     }
 
     @SuppressWarnings("serial")
