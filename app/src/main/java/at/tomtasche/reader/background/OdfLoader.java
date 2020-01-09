@@ -3,18 +3,13 @@ package at.tomtasche.reader.background;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
-import android.os.Handler;
-import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 
 import at.stefl.commons.math.vector.Vector2i;
@@ -34,11 +29,11 @@ import at.stefl.opendocument.java.translator.document.SpreadsheetTranslator;
 import at.stefl.opendocument.java.translator.document.TextTranslator;
 import at.stefl.opendocument.java.translator.settings.ImageStoreMode;
 import at.stefl.opendocument.java.translator.settings.TranslationSettings;
-import at.tomtasche.reader.nonfree.AnalyticsManager;
 
 public class OdfLoader extends FileLoader {
 
     private static final boolean USE_CPP = true;
+
     private CoreWrapper lastCore;
     private CoreWrapper.CoreOptions lastCoreOptions;
 
@@ -67,8 +62,20 @@ public class OdfLoader extends FileLoader {
                 if (lastCore != null) {
                     lastCore.close();
                 }
-                lastCore = new CoreWrapper();
 
+                CoreWrapper core = new CoreWrapper();
+                try {
+                    core.initialize();
+
+                    lastCore = core;
+                } catch (Throwable e) {
+                    e.printStackTrace();
+
+                    crashManager.log(e);
+                }
+            }
+
+            if (lastCore != null && lastCore.initialized) {
                 File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
 
                 File fakeHtmlFile = new File(cacheDirectory, "odf");
@@ -101,6 +108,9 @@ public class OdfLoader extends FileLoader {
 
                 return;
             }
+
+            // hardcode translatable for java because we are using the new editing approach already
+            options.translatable = false;
 
             documentFile = new LocatedOpenDocumentFile(cachedFile);
 

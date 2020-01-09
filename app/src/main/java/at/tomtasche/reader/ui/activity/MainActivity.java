@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
     private static final boolean IS_TESTING = isTesting();
 
-    private static final boolean USE_PROPRIETARY_LIBRARIES = false;
+    private static final boolean USE_PROPRIETARY_LIBRARIES = true;
     protected static boolean IS_GOOGLE_ECOSYSTEM = true;
     private static final int GOOGLE_REQUEST_CODE = 1993;
     private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         documentFragment = new DocumentFragment();
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.document_container, documentFragment,DOCUMENT_FRAGMENT_TAG)
+                .replace(R.id.document_container, documentFragment, DOCUMENT_FRAGMENT_TAG)
                 .commit();
 
         if (!IS_TESTING) {

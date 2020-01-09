@@ -10,7 +10,6 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Parcelable;
@@ -28,17 +27,9 @@ import android.widget.Toast;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -48,12 +39,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
-import at.stefl.opendocument.java.odf.OpenDocument;
-import at.stefl.opendocument.java.odf.OpenDocumentPresentation;
-import at.stefl.opendocument.java.odf.OpenDocumentSpreadsheet;
-import at.stefl.opendocument.java.odf.OpenDocumentText;
-import at.stefl.opendocument.java.translator.Retranslator;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.FileLoader;
@@ -115,19 +100,19 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         crashManager = mainActivity.getCrashManager();
 
         metadataLoader = new MetadataLoader(context);
-        metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager);
+        metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         odfLoader = new OdfLoader(context);
-        odfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager);
+        odfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         pdfLoader = new PdfLoader(context);
-        pdfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager);
+        pdfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         rawLoader = new RawLoader(context);
-        rawLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager);
+        rawLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         onlineLoader = new OnlineLoader(context);
-        onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager);
+        onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         setRetainInstance(true);
         setHasOptionsMenu(true);
@@ -625,7 +610,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     private void showProgress(final FileLoader fileLoader,
-                          boolean hasProgress) {
+                              boolean hasProgress) {
         boolean reallyHasProgress = false;
 
         mainHandler.post(new Runnable() {

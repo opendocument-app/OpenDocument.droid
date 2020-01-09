@@ -5,12 +5,16 @@ import java.util.List;
 
 public class CoreWrapper {
 
-    static {
-        // TODO: fallback on error
-        System.loadLibrary("odr-core");
-    }
+    public boolean initialized = false;
 
     private long lastNativePointer;
+
+    public boolean initialize() {
+        System.loadLibrary("odr-core");
+
+        initialized = true;
+        return initialized;
+    }
 
     public CoreResult parse(CoreOptions options) {
         options.nativePointer = lastNativePointer;
