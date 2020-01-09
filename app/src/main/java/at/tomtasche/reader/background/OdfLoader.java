@@ -34,6 +34,7 @@ public class OdfLoader extends FileLoader {
 
     private static final boolean USE_CPP = true;
     private CoreWrapper lastCore;
+    private CoreWrapper.CoreOptions lastCoreOptions;
 
     public OdfLoader(Context context) {
         super(context, LoaderType.ODF);
@@ -58,7 +59,7 @@ public class OdfLoader extends FileLoader {
 
             if (USE_CPP) {
                 if (lastCore != null) {
-                    // lastCore.close();
+                    lastCore.close();
                 }
                 lastCore = new CoreWrapper();
 
@@ -71,6 +72,8 @@ public class OdfLoader extends FileLoader {
                 coreOptions.outputPath = fakeHtmlFile.getPath();
                 coreOptions.password = options.password;
                 coreOptions.editable = options.translatable;
+
+                lastCoreOptions = coreOptions;
 
                 CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
                 if (coreResult.errorCode == 0) {
@@ -172,8 +175,9 @@ public class OdfLoader extends FileLoader {
     }
 
     public void retranslate(String htmlDiff, File outputFile) {
-        // TODO
-        //int errorCode = lastCore.backtranslate(htmlDiff, outputFile.getPath());
+        lastCoreOptions.outputPath = outputFile.getPath();
+
+        lastCore.backtranslate(lastCoreOptions, htmlDiff);
     }
 
     @Override

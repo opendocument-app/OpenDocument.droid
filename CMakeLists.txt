@@ -9,5 +9,8 @@ include_directories(app/src/main/cpp/)
 
 add_library(odr-core SHARED ${SRC})
 
+option (ODR_TEST "" OFF)
+set(ODR_TEST OFF)
+
 add_subdirectory(OpenDocument.core)
 target_link_libraries(odr-core odrlib)

@@ -16,7 +16,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
 
     odr::TranslationHelper *translator;
 
-    long pointer = env->GetLongField(options, pointerField);
+    jlong pointer = env->GetLongField(options, pointerField);
     if (pointer == 0) {
         translator = new odr::TranslationHelper();
     } else {
@@ -114,6 +114,49 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
 
                 i++;
             }
+        }
+    } catch (...) {
+        env->SetIntField(result, errorField, -3);
+        return result;
+    }
+
+    env->SetIntField(result, errorField, 0);
+    return result;
+}
+
+JNIEXPORT jobject JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env, jobject instance, jobject options, jstring htmlDiff)
+{
+    jboolean isCopy;
+
+    jclass optionsClass = env->GetObjectClass(options);
+    jfieldID pointerField = env->GetFieldID(optionsClass, "nativePointer", "J");
+
+    jlong pointer = env->GetLongField(options, pointerField);
+    odr::TranslationHelper *translator = (odr::TranslationHelper *) pointer;
+
+    jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
+    jmethodID resultConstructor = env->GetMethodID(resultClass, "<init>", "()V");
+    jobject result = env->NewObject(resultClass, resultConstructor);
+
+    jfieldID errorField = env->GetFieldID(resultClass, "errorCode", "I");
+
+    try {
+        jfieldID outputPathField = env->GetFieldID(optionsClass, "outputPath", "Ljava/lang/String;");
+        jstring outputPath = (jstring) env->GetObjectField(options, outputPathField);
+
+        const char *outputPathC = env->GetStringUTFChars(outputPath, &isCopy);
+        std::string outputPathCpp = std::string(outputPathC, env->GetStringUTFLength(outputPath));
+        env->ReleaseStringUTFChars(outputPath, outputPathC);
+
+        const char *htmlDiffC = env->GetStringUTFChars(htmlDiff, &isCopy);
+        std::string htmlDiffCpp = std::string(htmlDiffC, env->GetStringUTFLength(htmlDiff));
+        env->ReleaseStringUTFChars(htmlDiff, htmlDiffC);
+
+        bool translated = translator->backTranslate(htmlDiffCpp, outputPathCpp);
+        if (!translated) {
+            env->SetIntField(result, errorField, -4);
+            return result;
         }
     } catch (...) {
         env->SetIntField(result, errorField, -3);
