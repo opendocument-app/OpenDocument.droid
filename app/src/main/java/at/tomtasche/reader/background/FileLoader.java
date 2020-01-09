@@ -123,6 +123,7 @@ public abstract class FileLoader {
     public static class Options {
         public Uri originalUri;
         public Uri cacheUri;
+        public boolean persistentUri;
 
         public String filename;
         public String fileType;
