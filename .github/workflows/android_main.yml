@@ -9,10 +9,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Decrypt secret
-      run: ./.github/workflows/decrypt.sh
-      env:
-          PASSPHRASE: ${{secrets.PASSPHRASE}}
+    - name: Install ninja
+      run: sudo apt-get install -y ninja-build
     - name: Checkout submodule
       run: git submodule update --init --recursive
     - name: set up JDK 1.8
@@ -21,7 +19,3 @@ jobs:
         java-version: 1.8
     - name: Build with Gradle
       run: ./gradlew clean assembleDebug
-    - name: Delete secret
-      run: rm ./app/google-services.json
-      
-
