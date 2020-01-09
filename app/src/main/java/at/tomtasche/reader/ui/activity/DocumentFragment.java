@@ -276,25 +276,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         try {
             String password = lastResult.options.password;
 
-            String extension = "unknown";
-            /*OpenDocument openDocument = documentFile.getAsDocument();
-            if (openDocument instanceof OpenDocumentText) {
-                extension = "odt";
-            } else if (openDocument instanceof OpenDocumentSpreadsheet) {
-                extension = "ods";
-            } else if (openDocument instanceof OpenDocumentPresentation) {
-                extension = "odp";
-            }*/
-
-            DateFormat dateFormat = new SimpleDateFormat("MMddyyyy-HHmmss", Locale.US);
-            Date nowDate = Calendar.getInstance().getTime();
-            String nowString = dateFormat.format(nowDate);
-
-            File modifiedFile = new File(Environment.getExternalStorageDirectory(),
-                    "modified-by-opendocument-reader-on-" + nowString + "." + extension);
-
-            odfLoader.retranslate(htmlDiff, modifiedFile);
-
+            File modifiedFile = odfLoader.retranslate(htmlDiff);
             Uri fileUri = Uri.parse("file://"
                     + modifiedFile.getAbsolutePath());
 

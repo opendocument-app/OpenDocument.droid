@@ -61,5 +61,7 @@ public class CoreWrapper {
         int errorCode;
 
         List<String> pageNames = new LinkedList<>();
+
+        String outputPath;
     }
 }

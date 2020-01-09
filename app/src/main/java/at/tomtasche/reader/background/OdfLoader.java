@@ -2,14 +2,20 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import at.stefl.commons.math.vector.Vector2i;
 import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
@@ -174,10 +180,22 @@ public class OdfLoader extends FileLoader {
         }
     }
 
-    public void retranslate(String htmlDiff, File outputFile) {
-        lastCoreOptions.outputPath = outputFile.getPath();
+    public File retranslate(String htmlDiff) {
+        DateFormat dateFormat = new SimpleDateFormat("MMddyyyy-HHmmss", Locale.US);
+        Date nowDate = Calendar.getInstance().getTime();
+        String nowString = dateFormat.format(nowDate);
 
-        lastCore.backtranslate(lastCoreOptions, htmlDiff);
+        File modifiedFilePrefix = new File(Environment.getExternalStorageDirectory(),
+                "modified-by-opendocument-reader-on-" + nowString);
+
+        lastCoreOptions.outputPath = modifiedFilePrefix.getPath();
+
+        CoreWrapper.CoreResult result = lastCore.backtranslate(lastCoreOptions, htmlDiff);
+        if (result.errorCode != 0) {
+            throw new RuntimeException("could not retranslate file with error " + result.errorCode);
+        }
+
+        return new File(result.outputPath);
     }
 
     @Override

@@ -142,16 +142,37 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
     jfieldID errorField = env->GetFieldID(resultClass, "errorCode", "I");
 
     try {
-        jfieldID outputPathField = env->GetFieldID(optionsClass, "outputPath", "Ljava/lang/String;");
-        jstring outputPath = (jstring) env->GetObjectField(options, outputPathField);
+        jfieldID outputPathPrefixField = env->GetFieldID(optionsClass, "outputPath", "Ljava/lang/String;");
+        jstring outputPathPrefix = (jstring) env->GetObjectField(options, outputPathPrefixField);
 
-        const char *outputPathC = env->GetStringUTFChars(outputPath, &isCopy);
-        std::string outputPathCpp = std::string(outputPathC, env->GetStringUTFLength(outputPath));
-        env->ReleaseStringUTFChars(outputPath, outputPathC);
+        const char *outputPathPrefixC = env->GetStringUTFChars(outputPathPrefix, &isCopy);
+        std::string outputPathPrefixCpp = std::string(outputPathPrefixC, env->GetStringUTFLength(outputPathPrefix));
+        env->ReleaseStringUTFChars(outputPathPrefix, outputPathPrefixC);
 
         const char *htmlDiffC = env->GetStringUTFChars(htmlDiff, &isCopy);
         std::string htmlDiffCpp = std::string(htmlDiffC, env->GetStringUTFLength(htmlDiff));
         env->ReleaseStringUTFChars(htmlDiff, htmlDiffC);
+
+        const auto meta = translator->getMeta();
+        std::string extension;
+        if (meta->type == odr::FileType::OPENDOCUMENT_TEXT) {
+            extension = "odt";
+        } else if (meta->type == odr::FileType::OPENDOCUMENT_SPREADSHEET) {
+            extension = "ods";
+        } else if (meta->type == odr::FileType::OPENDOCUMENT_PRESENTATION) {
+            extension = "odp";
+        } else if (meta->type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
+            extension = "odg";
+        } else {
+            extension = "unknown";
+        }
+
+        std::string outputPathCpp = outputPathPrefixCpp + "." + extension;
+        const char *outputPathC = outputPathCpp.c_str();
+        jstring outputPath = env->NewStringUTF(outputPathC);
+
+        jfieldID outputPathField = env->GetFieldID(resultClass, "outputPath", "Ljava/lang/String;");
+        env->SetObjectField(result, outputPathField, outputPath);
 
         bool translated = translator->backTranslate(htmlDiffCpp, outputPathCpp);
         if (!translated) {
@@ -173,7 +194,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jobject
     jclass optionsClass = env->GetObjectClass(options);
     jfieldID pointerField = env->GetFieldID(optionsClass, "nativePointer", "J");
 
-    long pointer = env->GetLongField(options, pointerField);
+    jlong pointer = env->GetLongField(options, pointerField);
     odr::TranslationHelper *translator = (odr::TranslationHelper *) pointer;
 
     delete translator;
