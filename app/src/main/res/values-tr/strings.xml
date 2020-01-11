@@ -51,7 +51,9 @@
     <string name="crouton_printing">Yazdırılıyor…</string>
     <string name="crouton_print_unavailable">Aygıtınızda yazdırma özelliği yok. Lütfen Androidi daha yeni bir sürüme yükseltin.</string>
     <string name="intro_title_open">ODF dosyanızı hareketliyken açın ve okuyun!</string>
+    <string name="intro_description_open">OpenDocument Reader, OpenDocument biçiminde (.odt, .ods, .odp ve .odg) depolanan belgeleri görüntülemenize olanak tanır. Bu dosyalar genellikle LibreOffice veya OpenOffice kullanılarak oluşturulur. Bu uygulama bu tür dosyaları mobil aygıtınızda da açmanıza izin verir, böylece onları hareket halindeyken okuyabilirsiniz.</string>
     <string name="intro_title_edit">Belgenizde bir yazım hatası mı buldunuz? Şimdi değiştirmeyi destekliyor!</string>
+    <string name="intro_description_edit">OpenDocument Reader sadece mobil aygıtınızdaki belgeleri okumakla kalmaz, aynı zamanda onların değiştirilmesini de destekler. Yazı bir esitide hatta trende bile sabitdir!</string>
     <string name="intro_title_apps">Belgelerinizi diğer uygulamaların içinden okuyun</string>
     <string name="intro_description_apps">OpenDocument Reader, belgeleri açmak için diğer birçok uygulamayı destekler. Bir meslektaşınız Gmail aracılığıyla bir sunum mu gönderdi? Eki tıklayın bu uygulama hemen açılacak!</string>
     <string name="intro_button_start">BAŞLAT</string>
