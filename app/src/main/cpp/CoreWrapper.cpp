@@ -12,8 +12,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
     jclass optionsClass = env->GetObjectClass(options);
     jfieldID pointerField = env->GetFieldID(optionsClass, "nativePointer", "J");
 
-    //env->DeleteLocalRef(optionsClass);
-
     odr::TranslationHelper *translator;
 
     jlong pointer = env->GetLongField(options, pointerField);

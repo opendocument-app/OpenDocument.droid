@@ -200,7 +200,19 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         // app was started from another app, but make sure not to load it twice
         // (i.e. after bringing app back from background)
         if (!isDocumentLoaded) {
+            analyticsManager.setCurrentScreen(this, "screen_main");
+
             handleIntent(getIntent());
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (!isDocumentLoaded) {
+            // setCurrentScreen not ready to call before that
+            analyticsManager.setCurrentScreen(this, "screen_main");
         }
     }
 
@@ -249,7 +261,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         analyticsManager = new AnalyticsManager();
         analyticsManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
         analyticsManager.initialize(this);
-        analyticsManager.setCurrentScreen(this, "screen_main");
 
         adManager = new AdManager();
         adManager.setEnabled(!IS_TESTING && USE_PROPRIETARY_LIBRARIES);
