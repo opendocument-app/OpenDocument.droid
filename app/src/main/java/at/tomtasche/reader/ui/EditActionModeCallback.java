@@ -2,19 +2,13 @@ package at.tomtasche.reader.ui;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
-import java.io.File;
-
 import androidx.appcompat.view.ActionMode;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.nonfree.AdManager;
 import at.tomtasche.reader.nonfree.HelpManager;
 import at.tomtasche.reader.ui.activity.DocumentFragment;
@@ -102,12 +96,11 @@ public class EditActionModeCallback implements ActionMode.Callback {
     }
 
     public void save() {
-        final File htmlFile = new File(AndroidFileCache.getCacheDirectory(activity), "content.html");
-        pageView.requestHtml(htmlFile, new Runnable() {
+        pageView.requestHtml(new PageView.HtmlCallback() {
 
             @Override
-            public void run() {
-                documentFragment.saveAsync(htmlFile, statusView);
+            public void onHtml(String htmlDiff) {
+                documentFragment.saveAsync(htmlDiff, statusView);
             }
         });
     }
