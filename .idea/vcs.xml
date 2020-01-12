@@ -3,5 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/AndroidMagic" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/OpenDocument.core" vcs="Git" />
   </component>
 </project>

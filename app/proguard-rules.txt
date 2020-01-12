@@ -22,6 +22,9 @@
 
 -keepnames class at.stefl.** { *; }
 
+-keep class at.tomtasche.reader.background.CoreWrapper { *; }
+-keep class at.tomtasche.reader.background.CoreWrapper$* { *; }
+
 -keepattributes *Annotation*
 -keepattributes SourceFile,LineNumberTable
 -keep public class * extends java.lang.Exception

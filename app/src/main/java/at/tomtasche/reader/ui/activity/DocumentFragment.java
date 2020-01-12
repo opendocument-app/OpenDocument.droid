@@ -10,7 +10,6 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Parcelable;
@@ -28,17 +27,9 @@ import android.widget.Toast;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -48,12 +39,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
-import at.stefl.opendocument.java.odf.OpenDocument;
-import at.stefl.opendocument.java.odf.OpenDocumentPresentation;
-import at.stefl.opendocument.java.odf.OpenDocumentSpreadsheet;
-import at.stefl.opendocument.java.odf.OpenDocumentText;
-import at.stefl.opendocument.java.translator.Retranslator;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.FileLoader;
@@ -115,19 +100,19 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         crashManager = mainActivity.getCrashManager();
 
         metadataLoader = new MetadataLoader(context);
-        metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager);
+        metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         odfLoader = new OdfLoader(context);
-        odfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager);
+        odfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         pdfLoader = new PdfLoader(context);
-        pdfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager);
+        pdfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         rawLoader = new RawLoader(context);
-        rawLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager);
+        rawLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         onlineLoader = new OnlineLoader(context);
-        onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager);
+        onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         setRetainInstance(true);
         setHasOptionsMenu(true);
@@ -264,50 +249,20 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         loadOdf(lastResult.options);
     }
 
-    public void saveAsync(File htmlFile, TextView statusView) {
+    public void saveAsync(String htmlDiff, TextView statusView) {
         backgroundHandler.post(new Runnable() {
             @Override
             public void run() {
-                saveSync(htmlFile, statusView);
+                saveSync(htmlDiff, statusView);
             }
         });
     }
 
-    private void saveSync(File htmlFile, TextView statusView) {
-        FileInputStream htmlStream = null;
-        FileOutputStream modifiedStream = null;
-        LocatedOpenDocumentFile documentFile = null;
+    private void saveSync(String htmlDiff, TextView statusView) {
         try {
-            htmlStream = new FileInputStream(htmlFile);
-
             String password = lastResult.options.password;
 
-            documentFile = new LocatedOpenDocumentFile(AndroidFileCache.getCacheFile(getActivity()));
-            documentFile.setPassword(password);
-
-            String extension = "unknown";
-            OpenDocument openDocument = documentFile.getAsDocument();
-            if (openDocument instanceof OpenDocumentText) {
-                extension = "odt";
-            } else if (openDocument instanceof OpenDocumentSpreadsheet) {
-                extension = "ods";
-            } else if (openDocument instanceof OpenDocumentPresentation) {
-                extension = "odp";
-            }
-
-            DateFormat dateFormat = new SimpleDateFormat("MMddyyyy-HHmmss", Locale.US);
-            Date nowDate = Calendar.getInstance().getTime();
-            String nowString = dateFormat.format(nowDate);
-
-            File modifiedFile = new File(Environment.getExternalStorageDirectory(),
-                    "modified-by-opendocument-reader-on-" + nowString + "." + extension);
-            modifiedStream = new FileOutputStream(modifiedFile);
-
-            Retranslator.retranslate(openDocument, htmlStream,
-                    modifiedStream);
-
-            modifiedStream.close();
-
+            File modifiedFile = odfLoader.retranslate(htmlDiff);
             Uri fileUri = Uri.parse("file://"
                     + modifiedFile.getAbsolutePath());
 
@@ -320,8 +275,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 }
             });
         } catch (Throwable e) {
-            e.printStackTrace();
-
             analyticsManager.report("save_error", FirebaseAnalytics.Param.CONTENT_TYPE, lastResult.options.fileType);
             crashManager.log(e, lastResult.options.originalUri);
 
@@ -331,27 +284,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                     statusView.setText(R.string.toast_error_generic);
                 }
             });
-        } finally {
-            if (documentFile != null) {
-                try {
-                    documentFile.close();
-                } catch (IOException e) {
-                }
-            }
-
-            if (htmlStream != null) {
-                try {
-                    htmlStream.close();
-                } catch (IOException e) {
-                }
-            }
-
-            if (modifiedStream != null) {
-                try {
-                    modifiedStream.close();
-                } catch (IOException e) {
-                }
-            }
         }
     }
 
@@ -409,6 +341,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         dismissProgress();
 
+        analyticsManager.setCurrentScreen(activity, "screen_" + result.loaderType.toString() + "_" + result.options.fileType);
+
         FileLoader.Options options = result.options;
         if (result.loaderType == FileLoader.LoaderType.METADATA) {
             if (!odfLoader.isSupported(options)) {
@@ -418,8 +352,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             loadOdf(options);
         } else {
-            analyticsManager.setCurrentScreen(activity, "screen_" + result.loaderType.toString() + "_" + result.options.fileType);
-
             analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
 
             lastResult = result;
@@ -677,7 +609,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     private void showProgress(final FileLoader fileLoader,
-                          boolean hasProgress) {
+                              boolean hasProgress) {
         boolean reallyHasProgress = false;
 
         mainHandler.post(new Runnable() {
