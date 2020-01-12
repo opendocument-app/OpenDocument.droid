@@ -343,6 +343,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         dismissProgress();
 
+        analyticsManager.setCurrentScreen(activity, "screen_" + result.loaderType.toString() + "_" + result.options.fileType);
+
         FileLoader.Options options = result.options;
         if (result.loaderType == FileLoader.LoaderType.METADATA) {
             if (!odfLoader.isSupported(options)) {
@@ -352,8 +354,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             loadOdf(options);
         } else {
-            analyticsManager.setCurrentScreen(activity, "screen_" + result.loaderType.toString() + "_" + result.options.fileType);
-
             analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
 
             lastResult = result;

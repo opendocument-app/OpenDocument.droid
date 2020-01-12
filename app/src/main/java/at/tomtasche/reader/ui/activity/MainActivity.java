@@ -249,6 +249,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         analyticsManager = new AnalyticsManager();
         analyticsManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
         analyticsManager.initialize(this);
+        analyticsManager.setCurrentScreen(this, "screen_main");
 
         adManager = new AdManager();
         adManager.setEnabled(!IS_TESTING && USE_PROPRIETARY_LIBRARIES);

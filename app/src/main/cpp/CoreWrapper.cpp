@@ -99,6 +99,8 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
             }
         } else {
             int i = 0;
+            // TODO: this could fail for HUGE documents with hundreds of pages
+            // https://stackoverflow.com/a/24292867/198996
             for (auto page = meta->entries.begin(); page != meta->entries.end(); page++) {
                 jstring pageName = env->NewStringUTF(page->name.c_str());
                 env->CallBooleanMethod(pageNames, addMethod, pageName);
