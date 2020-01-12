@@ -41,6 +41,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
+import at.tomtasche.reader.background.DocLoader;
 import at.tomtasche.reader.background.FileLoader;
 import at.tomtasche.reader.background.MetadataLoader;
 import at.tomtasche.reader.background.OdfLoader;
@@ -63,6 +64,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private MetadataLoader metadataLoader;
     private OdfLoader odfLoader;
     private PdfLoader pdfLoader;
+    private DocLoader docLoader;
     private RawLoader rawLoader;
     private OnlineLoader onlineLoader;
 
@@ -107,6 +109,9 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         pdfLoader = new PdfLoader(context);
         pdfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+
+        docLoader = new DocLoader(context);
+        docLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         rawLoader = new RawLoader(context);
         rawLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
@@ -188,6 +193,15 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         togglePageView(true);
 
         odfLoader.loadAsync(options);
+    }
+
+    private void loadDoc(FileLoader.Options options) {
+        showProgress();
+
+        toggleDocumentMenu(true, false);
+        togglePageView(true);
+
+        docLoader.loadAsync(options);
     }
 
     private void loadRaw(FileLoader.Options options) {
@@ -440,6 +454,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                         // because we already checked if it is supported by the PdfLoader
                         offerUpload(activity, options);
                     }
+                } else if (docLoader.isSupported(options)) {
+                    loadDoc(options);
                 } else if (rawLoader.isSupported(options)) {
                     loadRaw(options);
                 } else if (onlineLoader.isSupported(options)) {
@@ -738,6 +754,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         if (pdfLoader != null) {
             pdfLoader.close();
+        }
+
+        if (docLoader != null) {
+            docLoader.close();
         }
 
         if (rawLoader != null) {

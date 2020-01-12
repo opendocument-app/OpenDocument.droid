@@ -17,6 +17,7 @@ public abstract class FileLoader {
 
     public enum LoaderType {
         ODF,
+        DOC,
         PDF,
         ONLINE,
         RAW,
