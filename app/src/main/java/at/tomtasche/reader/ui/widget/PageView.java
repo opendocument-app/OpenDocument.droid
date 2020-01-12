@@ -18,7 +18,6 @@ import android.webkit.WebViewClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
@@ -35,8 +34,7 @@ public class PageView extends WebView implements ParagraphListener {
 
     private DocumentFragment documentFragment;
 
-    private File writeTo;
-    private Runnable writtenCallback;
+    private HtmlCallback htmlCallback;
 
     /**
      * sometimes the page stays invisible after reporting progress 100: https://stackoverflow.com/q/48082474/198996
@@ -160,27 +158,16 @@ public class PageView extends WebView implements ParagraphListener {
         });
     }
 
-    public void requestHtml(File writeTo, Runnable callback) {
-        this.writeTo = writeTo;
-        this.writtenCallback = callback;
+    public void requestHtml(HtmlCallback callback) {
+        this.htmlCallback = callback;
 
-        loadUrl("javascript:window.paragraphListener.sendHtml('<html>' + document.getElementsByTagName('html')[0].innerHTML + '</html>');");
+        loadUrl("javascript:window.paragraphListener.sendHtml(generateDiff());");
     }
 
     @JavascriptInterface
     @Keep
-    public void sendHtml(String html) {
-        FileWriter writer;
-        try {
-            writer = new FileWriter(writeTo);
-            writer.write(html);
-            writer.close();
-
-            writtenCallback.run();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+    public void sendHtml(String htmlDiff) {
+        htmlCallback.onHtml(htmlDiff);
     }
 
     @JavascriptInterface
@@ -197,7 +184,7 @@ public class PageView extends WebView implements ParagraphListener {
                 inputStream.close();
             }
 
-            documentFragment.loadUri(AndroidFileCache.getCacheFileUri());
+            documentFragment.loadUri(AndroidFileCache.getCacheFileUri(), false);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -220,5 +207,10 @@ public class PageView extends WebView implements ParagraphListener {
     @Keep
     public void end() {
         paragraphListener.end();
+    }
+
+    public interface HtmlCallback {
+
+        public void onHtml(String htmlDiff);
     }
 }

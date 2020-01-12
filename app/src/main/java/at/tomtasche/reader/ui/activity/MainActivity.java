@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         documentFragment = new DocumentFragment();
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.document_container, documentFragment,DOCUMENT_FRAGMENT_TAG)
+                .replace(R.id.document_container, documentFragment, DOCUMENT_FRAGMENT_TAG)
                 .commit();
 
         if (!IS_TESTING) {
@@ -200,7 +200,19 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         // app was started from another app, but make sure not to load it twice
         // (i.e. after bringing app back from background)
         if (!isDocumentLoaded) {
+            analyticsManager.setCurrentScreen(this, "screen_main");
+
             handleIntent(getIntent());
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (!isDocumentLoaded) {
+            // setCurrentScreen not ready to call before that
+            analyticsManager.setCurrentScreen(this, "screen_main");
         }
     }
 
@@ -335,6 +347,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         isDocumentLoaded = true;
 
         if (uri != null) {
+            boolean isPersistentUri = true;
+
             crashManager.log("loading document at: " + uri.toString());
             analyticsManager.report(FirebaseAnalytics.Event.VIEW_ITEM, FirebaseAnalytics.Param.ITEM_NAME, uri.toString());
 
@@ -345,10 +359,14 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 } catch (Exception e) {
                     // some providers dont support persisted permissions
                     e.printStackTrace();
+
+                    if (!uri.toString().startsWith("content://at.tomtasche.reader")) {
+                        isPersistentUri = false;
+                    }
                 }
             }
 
-            documentFragment.loadUri(uri);
+            documentFragment.loadUri(uri, isPersistentUri);
         } else {
             // null passed in case of orientation change
         }

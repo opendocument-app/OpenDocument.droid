@@ -4,8 +4,12 @@
     <string name="toast_error_generic">Nekaj je šlo narobe. Datoteke ni bilo mogoče odpreti.</string>
     <string name="toast_error_find_file">Datoteke ni bilo mogoče najti. Morda ne obstaja več?</string>
     <string name="toast_error_illegal_file">Videti je, da ta oblika datoteke ni podprta.</string>
+    <string name="toast_error_illegal_file_reopen">Videti je, da ta oblika datoteke ni podprta. Odprite jo v drugem programu.</string>
+    <string name="toast_hint_unsupported_file">Niste zadovoljni z načinom prikaza datoteke? Odprite jo v drugem programu.</string>
+    <string name="toast_error_reopen_noapp">Na napravi ni bilo najdenega programa, ki podpira to vrsto datotek.</string>
     <string name="toast_error_out_of_memory">Telefonu je zmanjkalo pomnilnika! Preveč slik ali prevelika datoteka.</string>
     <string name="toast_error_password_protected">Dokument je zaščiten z geslom</string>
+    <string name="toast_error_permission_required">Za branje in shranjevanje dokumentov je zahtevano dovoljenje</string>
     <string name="dialog_recent_title">Nedavni dokumenti</string>
     <string name="dialog_choose_filemanager">Odpri dokument preko:</string>
     <string name="dialog_loading_title">Nalaganje …</string>

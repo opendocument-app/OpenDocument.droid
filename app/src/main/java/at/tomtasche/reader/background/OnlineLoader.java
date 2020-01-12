@@ -16,6 +16,7 @@ import java.net.URLEncoder;
 import java.util.UUID;
 
 import at.tomtasche.reader.nonfree.AnalyticsManager;
+import at.tomtasche.reader.nonfree.CrashManager;
 
 public class OnlineLoader extends FileLoader {
 
@@ -61,8 +62,8 @@ public class OnlineLoader extends FileLoader {
     }
 
     @Override
-    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager) {
-        super.initialize(listener, mainHandler, backgroundHandler, analyticsManager);
+    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager, CrashManager crashManager) {
+        super.initialize(listener, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         try {
             storage = FirebaseStorage.getInstance().getReference();
