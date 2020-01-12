@@ -3,6 +3,7 @@ package at.tomtasche.reader.background;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Handler;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.TimeoutException;
 
 import at.stefl.commons.math.vector.Vector2i;
 import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
@@ -29,6 +31,8 @@ import at.stefl.opendocument.java.translator.document.SpreadsheetTranslator;
 import at.stefl.opendocument.java.translator.document.TextTranslator;
 import at.stefl.opendocument.java.translator.settings.ImageStoreMode;
 import at.stefl.opendocument.java.translator.settings.TranslationSettings;
+import at.tomtasche.reader.nonfree.AnalyticsManager;
+import at.tomtasche.reader.nonfree.CrashManager;
 
 public class OdfLoader extends FileLoader {
 
@@ -39,6 +43,28 @@ public class OdfLoader extends FileLoader {
 
     public OdfLoader(Context context) {
         super(context, LoaderType.ODF);
+    }
+
+    @Override
+    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager, CrashManager crashManager) {
+        super.initialize(listener, mainHandler, backgroundHandler, analyticsManager, crashManager);
+
+        // mitigate TimeoutException on finalize
+        // https://stackoverflow.com/a/55999687/198996
+        final Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler =
+                Thread.getDefaultUncaughtExceptionHandler();
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                if (t.getName().equals("FinalizerWatchdogDaemon") && e instanceof TimeoutException) {
+                    if (crashManager != null) {
+                        crashManager.log(e);
+                    }
+                } else {
+                    defaultUncaughtExceptionHandler.uncaughtException(t, e);
+                }
+            }
+        });
     }
 
     @Override
@@ -69,8 +95,6 @@ public class OdfLoader extends FileLoader {
 
                     lastCore = core;
                 } catch (Throwable e) {
-                    e.printStackTrace();
-
                     crashManager.log(e);
                 }
             }

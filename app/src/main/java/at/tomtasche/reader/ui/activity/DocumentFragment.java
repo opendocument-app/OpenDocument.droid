@@ -275,8 +275,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 }
             });
         } catch (Throwable e) {
-            e.printStackTrace();
-
             analyticsManager.report("save_error", FirebaseAnalytics.Param.CONTENT_TYPE, lastResult.options.fileType);
             crashManager.log(e, lastResult.options.originalUri);
 
