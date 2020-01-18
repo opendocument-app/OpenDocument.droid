@@ -77,8 +77,6 @@ public class DocLoader extends FileLoader {
 
             callOnSuccess(result);
         } catch (Throwable e) {
-
-
             e.printStackTrace();
 
             callOnError(result, e);

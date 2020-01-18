@@ -28,6 +28,7 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,6 +49,7 @@ import at.tomtasche.reader.background.OdfLoader;
 import at.tomtasche.reader.background.OnlineLoader;
 import at.tomtasche.reader.background.PdfLoader;
 import at.tomtasche.reader.background.RawLoader;
+import at.tomtasche.reader.background.StreamUtil;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.SnackbarHelper;
@@ -399,6 +401,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             if (result.loaderType == FileLoader.LoaderType.RAW || result.loaderType == FileLoader.LoaderType.ONLINE) {
                 offerReopen(activity, options, R.string.toast_hint_unsupported_file, false);
             } else if (result.loaderType != FileLoader.LoaderType.ODF) {
+                // ODF does not seem to be supported by docs viewer
                 offerUpload(activity, options, false);
             }
         }
@@ -523,8 +526,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     private void offerUpload(Activity activity, FileLoader.Options options, boolean invasive) {
         String fileType = options.fileType;
-        Uri cacheUri = options.cacheUri;
-
         if (invasive) {
             analyticsManager.report("upload_offer_invasive", FirebaseAnalytics.Param.CONTENT_TYPE, fileType, FirebaseAnalytics.Param.CONTENT, options.originalUri);
 
@@ -588,12 +589,28 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     private void loadReopen(String fileType, Uri cacheUri, FileLoader.Options options, Activity activity, boolean grantPermission) {
+        File cacheDirectory = AndroidFileCache.getCacheDirectory(activity);
+        File cacheFile = AndroidFileCache.getCacheFile(activity);
+
+        String reopenFilename = "yourdocument." + options.fileExtension;
+        File reopenFile = new File(cacheDirectory, reopenFilename);
+        Uri reopenUri = null;
+        try {
+            StreamUtil.copy(cacheFile, reopenFile);
+
+            reopenUri = Uri.parse("content://at.tomtasche.reader.provider/cache/" + reopenFilename);
+        } catch (IOException e) {
+            e.printStackTrace();
+
+            reopenUri = cacheUri;
+        }
+
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_VIEW);
         if (!"N/A".equals(fileType)) {
-            intent.setDataAndType(cacheUri, fileType);
-        } else if (cacheUri != null) {
-            intent.setData(cacheUri);
+            intent.setDataAndType(reopenUri, fileType);
+        } else if (reopenUri != null) {
+            intent.setData(reopenUri);
         } else {
             intent.setData(options.originalUri);
         }
