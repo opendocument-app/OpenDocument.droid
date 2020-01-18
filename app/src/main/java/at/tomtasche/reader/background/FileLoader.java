@@ -17,6 +17,7 @@ public abstract class FileLoader {
 
     public enum LoaderType {
         ODF,
+        DOC,
         PDF,
         ONLINE,
         RAW,
@@ -148,5 +149,9 @@ public abstract class FileLoader {
         public void onSuccess(Result result);
 
         public void onError(Result result, Throwable throwable);
+    }
+
+    @SuppressWarnings("serial")
+    public static class EncryptedDocumentException extends Exception {
     }
 }
