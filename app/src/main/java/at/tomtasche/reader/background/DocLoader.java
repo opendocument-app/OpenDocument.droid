@@ -68,7 +68,7 @@ public class DocLoader extends FileLoader {
             StreamUtil.copy(output, htmlFile);
 
             // library does not delete output files automatically
-            //output.delete();
+            output.delete();
 
             Uri finalUri = Uri.fromFile(htmlFile);
 
@@ -77,13 +77,11 @@ public class DocLoader extends FileLoader {
 
             callOnSuccess(result);
         } catch (Throwable e) {
+
+
             e.printStackTrace();
 
             callOnError(result, e);
         }
-    }
-
-    @SuppressWarnings("serial")
-    public static class EncryptedDocumentException extends Exception {
     }
 }

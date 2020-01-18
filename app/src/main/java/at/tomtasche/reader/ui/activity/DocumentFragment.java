@@ -45,7 +45,6 @@ import at.tomtasche.reader.background.DocLoader;
 import at.tomtasche.reader.background.FileLoader;
 import at.tomtasche.reader.background.MetadataLoader;
 import at.tomtasche.reader.background.OdfLoader;
-import at.tomtasche.reader.background.OdfLoader.EncryptedDocumentException;
 import at.tomtasche.reader.background.OnlineLoader;
 import at.tomtasche.reader.background.PdfLoader;
 import at.tomtasche.reader.background.RawLoader;
@@ -420,7 +419,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             analyticsManager.report("load_odf_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
             crashManager.log(error, options.originalUri);
 
-            if (error instanceof EncryptedDocumentException) {
+            if (error instanceof FileLoader.EncryptedDocumentException) {
                 analyticsManager.report("load_error_encrypted");
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(activity);

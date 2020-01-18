@@ -150,4 +150,8 @@ public abstract class FileLoader {
 
         public void onError(Result result, Throwable throwable);
     }
+
+    @SuppressWarnings("serial")
+    public static class EncryptedDocumentException extends Exception {
+    }
 }
