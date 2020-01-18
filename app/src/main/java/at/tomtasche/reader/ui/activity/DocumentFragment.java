@@ -180,13 +180,13 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         options.limit = limit;
         options.translatable = translatable;
 
-        showProgress();
+        showProgress(false);
 
         metadataLoader.loadAsync(options);
     }
 
     private void loadOdf(FileLoader.Options options) {
-        showProgress();
+        showProgress(false);
 
         toggleDocumentMenu(true);
         togglePageView(true);
@@ -195,7 +195,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     private void loadDoc(FileLoader.Options options) {
-        showProgress();
+        showProgress(false);
 
         toggleDocumentMenu(true, false);
         togglePageView(true);
@@ -204,7 +204,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     private void loadRaw(FileLoader.Options options) {
-        showProgress();
+        showProgress(false);
 
         toggleDocumentMenu(true, false);
         togglePageView(true);
@@ -301,7 +301,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     private void loadOnline(FileLoader.Options options) {
-        showProgress(onlineLoader, true);
+        showProgress(true);
 
         togglePageView(true);
         toggleDocumentMenu(true, false);
@@ -398,6 +398,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             if (result.loaderType == FileLoader.LoaderType.RAW || result.loaderType == FileLoader.LoaderType.ONLINE) {
                 offerReopen(activity, options, R.string.toast_hint_unsupported_file, false);
+            } else if (result.loaderType != FileLoader.LoaderType.ODF) {
+                offerUpload(activity, options, false);
             }
         }
     }
@@ -414,57 +416,64 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         dismissProgress();
 
         FileLoader.Options options = result.options;
-        Uri cacheUri = options.cacheUri;
+        if (error instanceof FileLoader.EncryptedDocumentException) {
+            analyticsManager.report("load_error_encrypted");
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            builder.setTitle(R.string.toast_error_password_protected);
+
+            final EditText input = new EditText(activity);
+            input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            builder.setView(input);
+
+            builder.setPositiveButton(getString(android.R.string.ok),
+                    new DialogInterface.OnClickListener() {
+
+                        @Override
+                        public void onClick(DialogInterface dialog,
+                                            int whichButton) {
+                            options.password = input.getText().toString();
+
+                            // close dialog before progress is shown again
+                            dialog.dismiss();
+
+                            if (result.loaderType == FileLoader.LoaderType.ODF) {
+                                loadOdf(options);
+                            } else if (result.loaderType == FileLoader.LoaderType.DOC) {
+                                loadDoc(options);
+                            } else {
+                                throw new RuntimeException("encryption not supported for type: " + result.loaderType);
+                            }
+                        }
+                    });
+            builder.setNegativeButton(getString(android.R.string.cancel), null);
+            builder.show();
+
+            return;
+        }
+
         if (result.loaderType == FileLoader.LoaderType.ODF) {
             analyticsManager.report("load_odf_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
             crashManager.log(error, options.originalUri);
 
-            if (error instanceof FileLoader.EncryptedDocumentException) {
-                analyticsManager.report("load_error_encrypted");
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                builder.setTitle(R.string.toast_error_password_protected);
-
-                final EditText input = new EditText(activity);
-                input.setInputType(InputType.TYPE_CLASS_TEXT
-                        | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                builder.setView(input);
-
-                builder.setPositiveButton(getString(android.R.string.ok),
-                        new DialogInterface.OnClickListener() {
-
-                            @Override
-                            public void onClick(DialogInterface dialog,
-                                                int whichButton) {
-                                loadUri(cacheUri, false, input.getText().toString());
-
-                                dialog.dismiss();
-                            }
-                        });
-                builder.setNegativeButton(getString(android.R.string.cancel), null);
-                builder.show();
-
-                return;
-            } else {
-                if (pdfLoader.isSupported(options)) {
-                    boolean didLoad = loadPdf(result, (AppCompatActivity) activity);
-                    if (!didLoad) {
-                        // we can assume at this point that the file is supported by the online viewer
-                        // because we already checked if it is supported by the PdfLoader
-                        offerUpload(activity, options);
-                    }
-                } else if (docLoader.isSupported(options)) {
-                    loadDoc(options);
-                } else if (rawLoader.isSupported(options)) {
-                    loadRaw(options);
-                } else if (onlineLoader.isSupported(options)) {
-                    offerUpload(activity, options);
-                } else {
-                    offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
+            if (pdfLoader.isSupported(options)) {
+                boolean didLoad = loadPdf(result, (AppCompatActivity) activity);
+                if (!didLoad) {
+                    // we can assume at this point that the file is supported by the online viewer
+                    // because we already checked if it is supported by the PdfLoader
+                    offerUpload(activity, options, true);
                 }
-
-                return;
+            } else if (docLoader.isSupported(options)) {
+                loadDoc(options);
+            } else if (rawLoader.isSupported(options)) {
+                loadRaw(options);
+            } else if (onlineLoader.isSupported(options)) {
+                offerUpload(activity, options, true);
+            } else {
+                offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
             }
+
+            return;
         } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
             crashManager.log(error, options.originalUri);
 
@@ -482,6 +491,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             errorDescription = R.string.toast_error_generic;
         }
 
+        // MetadataLoader failed, so there's no point in trying to parse or upload the file
         offerReopen(activity, options, errorDescription, true);
 
         analyticsManager.report("load_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
@@ -511,42 +521,56 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         return false;
     }
 
-    private void offerUpload(Activity activity, FileLoader.Options options) {
+    private void offerUpload(Activity activity, FileLoader.Options options, boolean invasive) {
         String fileType = options.fileType;
+        Uri cacheUri = options.cacheUri;
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setTitle(R.string.toast_error_illegal_file);
+        if (invasive) {
+            analyticsManager.report("upload_offer_invasive", FirebaseAnalytics.Param.CONTENT_TYPE, fileType, FirebaseAnalytics.Param.CONTENT, options.originalUri);
 
-        if (MainActivity.IS_GOOGLE_ECOSYSTEM) {
-            builder.setMessage(R.string.dialog_upload_file);
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            builder.setTitle(R.string.toast_error_illegal_file);
 
-            builder.setPositiveButton(getString(android.R.string.ok),
-                    new DialogInterface.OnClickListener() {
+            if (MainActivity.IS_GOOGLE_ECOSYSTEM) {
+                builder.setMessage(R.string.dialog_upload_file);
 
-                        @Override
-                        public void onClick(DialogInterface dialog,
-                                            int whichButton) {
-                            analyticsManager.report("load_upload", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
+                builder.setPositiveButton(getString(android.R.string.ok),
+                        new DialogInterface.OnClickListener() {
 
-                            loadOnline(options);
+                            @Override
+                            public void onClick(DialogInterface dialog,
+                                                int whichButton) {
+                                analyticsManager.report("load_upload", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
 
-                            dialog.dismiss();
-                        }
-                    });
-        }
+                                loadOnline(options);
 
-        builder.setNegativeButton(getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int i) {
-                analyticsManager.report("load_upload_cancel", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
-
-                offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
-
-                dialog.dismiss();
+                                dialog.dismiss();
+                            }
+                        });
             }
-        });
 
-        builder.show();
+            builder.setNegativeButton(getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int i) {
+                    analyticsManager.report("load_upload_cancel", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
+
+                    offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
+
+                    dialog.dismiss();
+                }
+            });
+
+            builder.show();
+        } else {
+            analyticsManager.report("upload_offer_subtle", FirebaseAnalytics.Param.CONTENT_TYPE, fileType, FirebaseAnalytics.Param.CONTENT, options.originalUri);
+
+            SnackbarHelper.show(activity, R.string.toast_hint_upload_file, new Runnable() {
+                @Override
+                public void run() {
+                    loadOnline(options);
+                }
+            }, false, false);
+        }
     }
 
     private void offerReopen(Activity activity, FileLoader.Options options, int description, boolean isIndefinite) {
@@ -619,14 +643,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         }
     }
 
-    private void showProgress() {
-        showProgress(null, false);
-    }
-
-    private void showProgress(final FileLoader fileLoader,
-                              boolean hasProgress) {
-        boolean reallyHasProgress = false;
-
+    private void showProgress(boolean isUpload) {
         mainHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -634,10 +651,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                     return;
                 }
 
-                // TODO: fix progress
-
                 try {
-                    progressDialog = new ProgressDialogFragment(reallyHasProgress);
+                    progressDialog = new ProgressDialogFragment(isUpload);
 
                     FragmentManager fragmentManager = getFragmentManager();
                     if (fragmentManager == null) {
@@ -650,29 +665,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                     FragmentTransaction transaction = fragmentManager.beginTransaction();
                     progressDialog.show(transaction,
                             ProgressDialogFragment.FRAGMENT_TAG);
-
-                    if (reallyHasProgress) {
-                        mainHandler.postDelayed(new Runnable() {
-
-                            @Override
-                            public void run() {
-                                Activity activity = getActivity();
-                                if (activity == null || activity.isFinishing()) {
-                                    return;
-                                }
-
-                                if (progressDialog == null) {
-                                    return;
-                                }
-
-                                // TODO: progressDialog.setProgress(fileLoader.getProgress());
-
-                                if (fileLoader.isLoading()) {
-                                    mainHandler.postDelayed(this, 1000);
-                                }
-                            }
-                        }, 1000);
-                    }
                 } catch (IllegalStateException e) {
                     e.printStackTrace();
 
