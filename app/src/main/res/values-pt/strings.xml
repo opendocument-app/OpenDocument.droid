@@ -14,7 +14,6 @@
     <string name="dialog_choose_filemanager">Abrir documento via:</string>
     <string name="dialog_loading_title">Carregando…</string>
     <string name="dialog_uploading_title">Enviando…</string>
-    <string name="dialog_loading_message">Isto pode levar alguns minutos, dependendo da estrutura do seu documento e do poder de processamento do seu dispositivo.</string>
     <string name="dialog_remove_ads_title">Remover anúncios por uma pequena taxa:</string>
     <string name="dialog_upload_file">Não podemos abrir este documento, porque não apoiamos seu formato. Você quer enviá-lo para o nosso servidor temporariamente, para que possamos exibi-lo para você mesmo assim? Arquivos carregados são privados e automaticamente excluídos após 24 horas.</string>
     <string name="dialog_title_choose_file">Escolher arquivo do dispositivo</string>
