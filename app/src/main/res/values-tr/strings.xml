@@ -4,12 +4,16 @@
     <string name="toast_error_generic">Kötü bir şey oldu. Dosya açılamadı.</string>
     <string name="toast_error_find_file">Dosya bulunamadı. Belki artık mevcut değil?</string>
     <string name="toast_error_illegal_file">Bu, desteklenen bir dosya biçimi gibi görünmüyor.</string>
+    <string name="toast_error_illegal_file_reopen">Bu desteklenen bir dosya biçimi gibi görünmüyor. Bunun yerine başka bir uygulamada açın.</string>
+    <string name="toast_hint_unsupported_file">Dosyanın görüntüsünden memnun değil misiniz? Bunun yerine başka bir uygulamada açın.</string>
+    <string name="toast_error_reopen_noapp">Aygıtda bu tür dosyaları destekleyen uygulama bulunamadı.</string>
+    <string name="toast_error_out_of_memory">Aygıt belleği yetersiz! Çok fazla resim var veya dosya çok büyük.</string>
     <string name="toast_error_password_protected">Belge parola korumalı</string>
+    <string name="toast_error_permission_required">Belgeleri okumak ve kaydetmek için izin gerekli</string>
     <string name="dialog_recent_title">Son kullanılan belgeler</string>
     <string name="dialog_choose_filemanager">Belgeyi şununla aç:</string>
     <string name="dialog_loading_title">Yükleniyor…</string>
     <string name="dialog_uploading_title">Karşıya yükleniyor…</string>
-    <string name="dialog_loading_message">Bu, belgenizin yapısına ve telefonunuzun işlem gücüne bağlı olarak birkaç dakika sürebilir.</string>
     <string name="dialog_remove_ads_title">Reklamları küçük bir ücret karşılığında kaldırın:</string>
     <string name="dialog_title_choose_file">Aygıttan dosya seçin</string>
     <string name="dialog_list_no_documents_found">Belge nulunamadı</string>
@@ -22,6 +26,7 @@
     <string name="menu_cloud_print">Belgeyi yazdır</string>
     <string name="menu_tts">Konuşma metni</string>
     <string name="crouton_leave_fullscreen">Tam ekran modundan çıkmak için Geri tuşuna basın</string>
+    <string name="crouton_error_open_app">Seçilen uygulama açılamıyor.</string>
     <string name="action_find_previous">Önceki</string>
     <string name="action_find_next">Sonraki</string>
     <string name="action_find_on_page">Sayfada bul</string>
@@ -33,6 +38,7 @@
     <string name="action_edit_help">Yardım!?</string>
     <string name="action_edit_banner">Aşağıdaki belgenizi düzenleyip kaydete tıklayın </string>
     <string name="landing_welcome_title">OpenDocument Reader\'e \nHoşgeldiniz</string>
+    <string name="landing_intro_view">OpenDocument Reader, nerede olursanız olun OpenDocument biçiminde (.odt, .ods, .odp ve .odg) depolanan belgeleri görüntülemenizi sağlar.</string>
     <string name="landing_intro_search">OpenDocument Reader ile belgelerinizi rahatça okuyabilir ve arayabilirsiniz.</string>
     <string name="tts_status_reading">Okunuyor…</string>
     <string name="tts_status_initializing">TTS başlatılıyor…</string>
@@ -42,7 +48,16 @@
     <string name="tts_status_finished">Bitti.</string>
     <string name="edit_status_saved">Belge SD kartınıza kaydedildi</string>
     <string name="crouton_printing">Yazdırılıyor…</string>
+    <string name="crouton_print_unavailable">Aygıtınızda yazdırma özelliği yok. Lütfen Androidi daha yeni bir sürüme yükseltin.</string>
+    <string name="intro_title_open">ODF dosyanızı hareketliyken açın ve okuyun!</string>
+    <string name="intro_description_open">OpenDocument Reader, OpenDocument biçiminde (.odt, .ods, .odp ve .odg) depolanan belgeleri görüntülemenize olanak tanır. Bu dosyalar genellikle LibreOffice veya OpenOffice kullanılarak oluşturulur. Bu uygulama bu tür dosyaları mobil aygıtınızda da açmanıza izin verir, böylece onları hareket halindeyken okuyabilirsiniz.</string>
+    <string name="intro_title_edit">Belgenizde bir yazım hatası mı buldunuz? Şimdi değiştirmeyi destekliyor!</string>
+    <string name="intro_description_edit">OpenDocument Reader sadece mobil aygıtınızdaki belgeleri okumakla kalmaz, aynı zamanda onların değiştirilmesini de destekler. Yazı bir esitide hatta trende bile sabitdir!</string>
+    <string name="intro_title_apps">Belgelerinizi diğer uygulamaların içinden okuyun</string>
+    <string name="intro_description_apps">OpenDocument Reader, belgeleri açmak için diğer birçok uygulamayı destekler. Bir meslektaşınız Gmail aracılığıyla bir sunum mu gönderdi? Eki tıklayın bu uygulama hemen açılacak!</string>
     <string name="intro_button_start">BAŞLAT</string>
+    <string name="crouton_remove_ads">Okumak için daha fazla alana mı ihtiyacınız var? Menüden reklamları ücretsiz olarak kaldırın.</string>
+    <string name="reopen_chooser_title">Aygıtınızda kurulu başka bir uygulamayı kullanarak açın:</string>
     <string-array name="dialog_remove_ads_options">
         <item>Reklamları sürekli kaldır</item>
         <item>Remove ads temporarily for free by watching a short video</item>
