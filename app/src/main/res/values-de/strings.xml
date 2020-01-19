@@ -4,12 +4,15 @@
     <string name="toast_error_generic">Etwas schlimmes ist passiert. Datei konnte nicht geöffnet werden.</string>
     <string name="toast_error_find_file">Datei konnte nicht gefunden werden.</string>
     <string name="toast_error_illegal_file">Diese Datei scheint keines der unterstützten Formate zu haben.</string>
+    <string name="toast_hint_upload_file">Nicht zufrieden damit wie die Datei angezeigt wird? Lade sie vorübergehend hoch um die Formatierung zu verbessern.</string>
     <string name="toast_error_out_of_memory">Speicher geht zur Neige! Zu viele Bilder oder eine zu große Datei.</string>
     <string name="toast_error_password_protected">Dokument ist passwort-geschützt</string>
     <string name="dialog_recent_title">Kürzlich geöffnete Dokumente</string>
     <string name="dialog_choose_filemanager">Öffne Dokument mittels:</string>
     <string name="dialog_loading_title">Lädt…</string>
     <string name="dialog_uploading_title">Lädt hoch…</string>
+    <string name="dialog_generic_loading_message">Bitte warten. Dies kann einige Minuten dauern.</string>
+    <string name="dialog_uploading_message_appendix">Hochgeladene Dateien sind anonym und werden nach 24 Stunden automatisch gelöscht.</string>
     <string name="dialog_remove_ads_title">Werbung für eine kleine Gebühr entfernen:</string>
     <string name="dialog_upload_file">Dieses Dokument kann nicht geöffnet werden, weil wir dessen Format nicht unterstützen. Willst du es temporär auf unsere Server hochladen, damit wir es trotzdem für dich anzeigen können? Hochgeladene Dateien sind privat und werden automatisch nach 24 Stunden gelöscht.</string>
     <string name="dialog_title_choose_file">Wähle eine Datei von diesem Gerät</string>
