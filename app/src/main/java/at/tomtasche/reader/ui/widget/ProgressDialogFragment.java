@@ -14,14 +14,10 @@ public class ProgressDialogFragment extends DialogFragment {
     public static final String FRAGMENT_TAG = "progress_dialog";
 
     private ProgressDialog progressDialog;
-    private boolean hasProgress;
+    private boolean isUpload;
 
-    public ProgressDialogFragment() {
-        this(false);
-    }
-
-    public ProgressDialogFragment(boolean hasProgress) {
-        this.hasProgress = hasProgress;
+    public ProgressDialogFragment(boolean isUpload) {
+        this.isUpload = isUpload;
     }
 
     @Override
@@ -29,30 +25,26 @@ public class ProgressDialogFragment extends DialogFragment {
         progressDialog = new ProgressDialog(getActivity());
 
         int title;
-        if (hasProgress) {
+        if (isUpload) {
             title = R.string.dialog_uploading_title;
         } else {
             title = R.string.dialog_loading_title;
         }
 
         progressDialog.setTitle(getString(title));
-        progressDialog.setMessage(getString(R.string.dialog_loading_message));
-        progressDialog.setCancelable(false);
-        progressDialog.setIndeterminate(!hasProgress);
-        if (hasProgress) {
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            progressDialog.setMax(100);
-            progressDialog.setProgress(0);
+
+        String message = getString(R.string.dialog_generic_loading_message);
+        if (isUpload) {
+            message += " " + getString(R.string.dialog_uploading_message_appendix);
         }
+
+        progressDialog.setMessage(message);
+        progressDialog.setIndeterminate(true);
+        progressDialog.setCancelable(false);
 
         setCancelable(false);
 
         return progressDialog;
-    }
-
-    public void setProgress(double progress) {
-        if (progressDialog != null)
-            progressDialog.setProgress(((int) (progress * 100)));
     }
 
     // another dirty hack for a nullpointerexception thrown sometimes on dismiss()

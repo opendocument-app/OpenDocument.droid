@@ -241,8 +241,4 @@ public class OdfLoader extends FileLoader {
             lastCore = null;
         }
     }
-
-    @SuppressWarnings("serial")
-    public static class EncryptedDocumentException extends Exception {
-    }
 }
