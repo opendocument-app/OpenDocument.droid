@@ -79,6 +79,10 @@ public class DocLoader extends FileLoader {
         } catch (Throwable e) {
             e.printStackTrace();
 
+            if (e instanceof wvWare.PasswordRequiredException || e instanceof wvWare.WrongPasswordException) {
+                e = new EncryptedDocumentException();
+            }
+
             callOnError(result, e);
         }
     }
