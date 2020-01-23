@@ -82,7 +82,7 @@ dependencies {
 
     implementation 'com.github.paolorotolo:appintro:v5.1.0'
 
-    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.4'
+    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.7'
 
     implementation project(':libmagic')
 
