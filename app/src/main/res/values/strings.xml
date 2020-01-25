@@ -7,6 +7,7 @@
     <string name="toast_error_illegal_file">This doesn\'t seem to be a supported file format.</string>
     <string name="toast_error_illegal_file_reopen">This doesn\'t seem to be a supported file format. Open it in another app instead.</string>
     <string name="toast_hint_unsupported_file">Not happy with how the file is displayed? Open it in another app instead.</string>
+    <string name="toast_hint_upload_file">Not happy with how the file is displayed? Upload it temporarily to improve formatting.</string>
     <string name="toast_error_reopen_noapp">No app found on device that supports this type of file.</string>
     <string name="toast_error_out_of_memory">Device out of memory! Too many pictures, or file too big.</string>
     <string name="toast_error_password_protected">This document is password-protected</string>
@@ -15,7 +16,8 @@
     <string name="dialog_choose_filemanager">Open document via:</string>
     <string name="dialog_loading_title">Loading…</string>
     <string name="dialog_uploading_title">Uploading…</string>
-    <string name="dialog_loading_message">This could take a few minutes, depending on the structure of your document and the processing power of your device.</string>
+    <string name="dialog_generic_loading_message">Please wait, this could take a few minutes.</string>
+    <string name="dialog_uploading_message_appendix">Uploaded files are private and automatically deleted after 24 hours.</string>
     <string name="dialog_remove_ads_title">Remove advertisements for a small fee:</string>
     <string name="dialog_upload_file">We aren\'t able to open this document, because we don\'t support its format. Do you want to upload it to our server temporarily, so we can display it for you anyway? Uploaded files are private and automatically deleted after 24 hours.</string>
     <string name="dialog_title_choose_file">Choose file from device</string>

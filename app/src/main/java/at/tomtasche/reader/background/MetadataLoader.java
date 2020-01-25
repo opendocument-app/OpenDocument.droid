@@ -22,8 +22,9 @@ public class MetadataLoader extends FileLoader {
     }
 
     private boolean initMagicFromAssets() {
+        InputStream inputStream = null;
         try {
-            InputStream inputStream = context.getAssets().open("magic.mgc");
+            inputStream = context.getAssets().open("magic.mgc");
             int length = inputStream.available();
             byte[] buffer = new byte[length];
             if (inputStream.read(buffer) > 0) {
@@ -31,7 +32,16 @@ public class MetadataLoader extends FileLoader {
             }
         } catch (Throwable e) {
             e.printStackTrace();
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+
         return false;
     }
 
@@ -69,9 +79,8 @@ public class MetadataLoader extends FileLoader {
             } else {
                 InputStream stream = context.getContentResolver().openInputStream(uri);
                 cachedFile = cache.create("document.odt", stream);
-
-                options.cacheUri = AndroidFileCache.getCacheFileUri();
             }
+            options.cacheUri = AndroidFileCache.getCacheFileUri();
 
             String filename = null;
             try {
@@ -180,7 +189,11 @@ public class MetadataLoader extends FileLoader {
         backgroundHandler.post(new Runnable() {
             @Override
             public void run() {
-                MagicApi.close();
+                try {
+                    MagicApi.close();
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
             }
         });
     }

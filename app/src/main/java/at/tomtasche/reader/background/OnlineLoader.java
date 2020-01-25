@@ -9,6 +9,7 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
@@ -16,6 +17,7 @@ import java.net.URLEncoder;
 import java.util.UUID;
 
 import at.tomtasche.reader.nonfree.AnalyticsManager;
+import at.tomtasche.reader.nonfree.CrashManager;
 
 public class OnlineLoader extends FileLoader {
 
@@ -61,8 +63,8 @@ public class OnlineLoader extends FileLoader {
     }
 
     @Override
-    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager) {
-        super.initialize(listener, mainHandler, backgroundHandler, analyticsManager);
+    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager, CrashManager crashManager) {
+        super.initialize(listener, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         try {
             storage = FirebaseStorage.getInstance().getReference();
@@ -121,9 +123,13 @@ public class OnlineLoader extends FileLoader {
                 currentUserId = authenticationTask.getResult().getUser().getUid();
             }
 
+            StorageMetadata.Builder metadataBuilder = new StorageMetadata.Builder();
+            if (!"N/A".equals(options.fileType)) {
+                metadataBuilder.setContentType(options.fileType);
+            }
+
             StorageReference reference = storage.child("uploads/" + currentUserId + "/" + UUID.randomUUID() + "." + options.fileExtension);
-            UploadTask uploadTask = reference.putFile(options.cacheUri);
-            //uploadTask.addOnProgressListener(this);
+            UploadTask uploadTask = reference.putFile(options.cacheUri, metadataBuilder.build());
             Tasks.await(uploadTask);
 
             if (uploadTask.isSuccessful()) {

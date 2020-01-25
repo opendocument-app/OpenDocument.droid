@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         documentFragment = new DocumentFragment();
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.document_container, documentFragment,DOCUMENT_FRAGMENT_TAG)
+                .replace(R.id.document_container, documentFragment, DOCUMENT_FRAGMENT_TAG)
                 .commit();
 
         if (!IS_TESTING) {
@@ -207,7 +207,19 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         // app was started from another app, but make sure not to load it twice
         // (i.e. after bringing app back from background)
         if (!isDocumentLoaded) {
+            analyticsManager.setCurrentScreen(this, "screen_main");
+
             handleIntent(getIntent());
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (!isDocumentLoaded) {
+            // setCurrentScreen not ready to call before that
+            analyticsManager.setCurrentScreen(this, "screen_main");
         }
     }
 
