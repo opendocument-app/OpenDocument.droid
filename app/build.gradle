@@ -89,9 +89,7 @@ dependencies {
     implementation 'com.github.paolorotolo:appintro:v5.1.0'
 
     implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.7'
-
     implementation 'com.viliussutkus89:wvware-android:1.2.4'
-
     implementation project(':libmagic')
 
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0-alpha03'
