@@ -1,6 +1,7 @@
 package at.tomtasche.reader.test;
 
 
+import android.Manifest;
 import android.os.Environment;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,7 +42,7 @@ import static org.hamcrest.Matchers.allOf;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class MainActivityTest {
+public class OdtActivityTest {
 
     private boolean loadingDone;
 
@@ -51,7 +52,7 @@ public class MainActivityTest {
     @Rule
     public GrantPermissionRule mGrantPermissionRule =
             GrantPermissionRule.grant(
-                    "android.permission.WRITE_EXTERNAL_STORAGE");
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
     private static void copy(InputStream src, File dst) throws IOException {
         try (OutputStream out = new FileOutputStream(dst)) {
@@ -67,6 +68,8 @@ public class MainActivityTest {
 
     @Test
     public void mainActivityTest() {
+        // TODO: fix for Android 29+
+
         try {
             final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "test.odt");
             file.mkdirs();
@@ -77,7 +80,7 @@ public class MainActivityTest {
         } catch (IOException e) {
             e.printStackTrace();
 
-            assert false;
+            throw new RuntimeException(e);
         }
 
         ViewInteraction actionMenuItemView = onView(
@@ -141,24 +144,5 @@ public class MainActivityTest {
                 actionMenuItemView2.perform(click());
             }
         });
-    }
-
-    private static Matcher<View> childAtPosition(
-            final Matcher<View> parentMatcher, final int position) {
-
-        return new TypeSafeMatcher<View>() {
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("Child at position " + position + " in parent ");
-                parentMatcher.describeTo(description);
-            }
-
-            @Override
-            public boolean matchesSafely(View view) {
-                ViewParent parent = view.getParent();
-                return parent instanceof ViewGroup && parentMatcher.matches(parent)
-                        && view.equals(((ViewGroup) parent).getChildAt(position));
-            }
-        };
     }
 }

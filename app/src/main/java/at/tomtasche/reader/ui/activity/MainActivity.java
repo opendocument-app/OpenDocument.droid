@@ -58,11 +58,18 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     // taken from: https://stackoverflow.com/a/36829889/198996
     private static boolean isTesting() {
         try {
-            Class.forName("at.tomtasche.reader.test.MainActivityTest");
+            Class.forName("at.tomtasche.reader.test.PdfActivityTest");
             return true;
         } catch (ClassNotFoundException e) {
-            return false;
         }
+
+        try {
+            Class.forName("at.tomtasche.reader.test.OdfActivityTest");
+            return true;
+        } catch (ClassNotFoundException e) {
+        }
+
+        return false;
     }
 
     private static final boolean IS_TESTING = isTesting();
@@ -449,11 +456,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 analyticsManager.report("menu_print");
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    if (documentFragment.getPdfView().getVisibility() == View.VISIBLE) {
-                        KitKatPrinter.print(this, AndroidFileCache.getCacheFile(this));
-                    } else {
-                        KitKatPrinter.print(this, documentFragment.getPageView());
-                    }
+                    KitKatPrinter.print(this, documentFragment.getPageView());
                 } else {
                     SnackbarHelper.show(this, R.string.crouton_print_unavailable, null, true, true);
                 }

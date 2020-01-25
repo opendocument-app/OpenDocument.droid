@@ -67,7 +67,6 @@ public class MetadataLoader extends FileLoader {
                         uri.toString().length()));
             }
 
-            AndroidFileCache cache = new AndroidFileCache(context);
             // TODO: don't delete file being displayed at the moment, but
             // keep it until the new document has finished loading.
             // this must not delete document.odt!
@@ -77,8 +76,11 @@ public class MetadataLoader extends FileLoader {
             if (uri.equals(AndroidFileCache.getCacheFileUri())) {
                 cachedFile = AndroidFileCache.getCacheFile(context);
             } else {
+                File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
+                cachedFile = new File(cacheDirectory, "document.odt");
+
                 InputStream stream = context.getContentResolver().openInputStream(uri);
-                cachedFile = cache.create("document.odt", stream);
+                StreamUtil.copy(stream, cachedFile);
             }
             options.cacheUri = AndroidFileCache.getCacheFileUri();
 
