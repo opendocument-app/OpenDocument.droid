@@ -72,8 +72,6 @@ dependencies {
         exclude group: 'com.android.support'
     })
 
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-
     implementation 'com.google.firebase:firebase-storage:19.1.0'
     implementation 'com.google.firebase:firebase-auth:19.2.0'
     implementation 'com.google.firebase:firebase-ads:18.3.0'
