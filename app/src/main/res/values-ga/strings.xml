@@ -10,7 +10,6 @@
     <string name="dialog_choose_filemanager">Oscail an cháipéis trí:</string>
     <string name="dialog_loading_title">Ag luchtú…</string>
     <string name="dialog_uploading_title">Á uasluchtú…</string>
-    <string name="dialog_loading_message">D\'fhéadfadh go mairfidh sé seo tamall ag braith ar chomhdhéanamh na cáipéise agus cumhacht do ghuthán.</string>
     <string name="dialog_remove_ads_title">Bain fógraí le táille bheag:</string>
     <string name="dialog_upload_file">Ní thig linn an cháipéis seo a oscailt mar ní thugtar tacaíocht don chineál comhad sin. An mian leat í a uasluchtú go sealadach chuig ár bhfreastalaí ionas gur féidir linn í a thaispeáint duit?</string>
     <string name="dialog_title_choose_file">Roghnaigh comhad ón ngléas</string>
