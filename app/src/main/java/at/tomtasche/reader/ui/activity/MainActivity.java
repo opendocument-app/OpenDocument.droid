@@ -117,6 +117,13 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         landingContainer = findViewById(R.id.landing_container);
         documentContainer = findViewById(R.id.document_container);
 
+        findViewById(R.id.landing_intro_open).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                findDocument();
+            }
+        });
+
         initializeProprietaryLibraries();
 
         documentFragment = new DocumentFragment();
