@@ -11,11 +11,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 import at.tomtasche.reader.nonfree.AnalyticsManager;
+import at.tomtasche.reader.nonfree.CrashManager;
 
 public abstract class FileLoader {
 
     public enum LoaderType {
         ODF,
+        DOC,
         PDF,
         ONLINE,
         RAW,
@@ -31,6 +33,7 @@ public abstract class FileLoader {
     FileLoaderListener listener;
 
     AnalyticsManager analyticsManager;
+    CrashManager crashManager;
 
     private boolean initialized;
     private boolean loading;
@@ -40,11 +43,12 @@ public abstract class FileLoader {
         this.type = type;
     }
 
-    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager) {
+    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager, CrashManager crashManager) {
         this.listener = listener;
         this.mainHandler = mainHandler;
         this.backgroundHandler = backgroundHandler;
         this.analyticsManager = analyticsManager;
+        this.crashManager = crashManager;
 
         initialized = true;
     }
@@ -145,5 +149,9 @@ public abstract class FileLoader {
         public void onSuccess(Result result);
 
         public void onError(Result result, Throwable throwable);
+    }
+
+    @SuppressWarnings("serial")
+    public static class EncryptedDocumentException extends Exception {
     }
 }

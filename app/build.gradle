@@ -4,7 +4,6 @@ apply plugin: 'com.google.firebase.firebase-perf'
 
 android {
     compileSdkVersion 29
-    buildToolsVersion '28.0.3'
 
     defaultConfig {
         applicationId "at.tomtasche.reader"
@@ -40,6 +39,13 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    externalNativeBuild {
+        cmake {
+            version "3.12.4+"
+            path file('../CMakeLists.txt')
+        }
     }
 
     // https://stackoverflow.com/a/57893960/198996
@@ -82,7 +88,9 @@ dependencies {
 
     implementation 'com.github.paolorotolo:appintro:v5.1.0'
 
-    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.4'
+    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.7'
+
+    implementation 'com.viliussutkus89:wvware-android:1.2.4'
 
     implementation project(':libmagic')
 
