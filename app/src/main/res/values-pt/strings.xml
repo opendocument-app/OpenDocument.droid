@@ -6,6 +6,7 @@
     <string name="toast_error_illegal_file">Este não parece ser um formato de arquivo suportado.</string>
     <string name="toast_error_illegal_file_reopen">Este não parece ser um formato de arquivo suportado. Abra-o em outro aplicativo.</string>
     <string name="toast_hint_unsupported_file">Não está satisfeito com a forma como o arquivo é exibido? Abra em outro aplicativo.</string>
+    <string name="toast_hint_upload_file">Não está feliz com como o arquivo é exibido? Faça o upload temporariamente para melhorar a formatação.</string>
     <string name="toast_error_reopen_noapp">Nenhum app encontrado no dispositivo que suporta este tipo de arquivo.</string>
     <string name="toast_error_out_of_memory">Dispositivo sem memória! Muitas imagens ou arquivos muito grandes.</string>
     <string name="toast_error_password_protected">Este documento está protegido por senha</string>
@@ -14,7 +15,8 @@
     <string name="dialog_choose_filemanager">Abrir documento via:</string>
     <string name="dialog_loading_title">Carregando…</string>
     <string name="dialog_uploading_title">Enviando…</string>
-    <string name="dialog_loading_message">Isto pode levar alguns minutos, dependendo da estrutura do seu documento e do poder de processamento do seu dispositivo.</string>
+    <string name="dialog_generic_loading_message">Por favor, aguarde, isso pode levar alguns minutos.</string>
+    <string name="dialog_uploading_message_appendix">Os arquivos enviados são privados e automaticamente excluídos após 24 horas.</string>
     <string name="dialog_remove_ads_title">Remover anúncios por uma pequena taxa:</string>
     <string name="dialog_upload_file">Não podemos abrir este documento, porque não apoiamos seu formato. Você quer enviá-lo para o nosso servidor temporariamente, para que possamos exibi-lo para você mesmo assim? Arquivos carregados são privados e automaticamente excluídos após 24 horas.</string>
     <string name="dialog_title_choose_file">Escolher arquivo do dispositivo</string>
