@@ -46,6 +46,7 @@ public class PdfLoader extends FileLoader {
             File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
 
             pdf2htmlEX pdfConverter = new pdf2htmlEX(context).setInputPDF(cacheFile);
+            pdfConverter.setOutline(false);
             if (options.password != null) {
                 pdfConverter.setOwnerPassword(options.password).setUserPassword(options.password);
             }
