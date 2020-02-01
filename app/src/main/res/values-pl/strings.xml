@@ -10,7 +10,6 @@
     <string name="dialog_choose_filemanager">Otwórz dokument za pomocą:</string>
     <string name="dialog_loading_title">Pobieranie…</string>
     <string name="dialog_uploading_title">Wysyłanie...</string>
-    <string name="dialog_loading_message">Może to zająć kilka minut w zależności od struktury dokumentu i mocy przetwarzania telefonu.</string>
     <string name="dialog_remove_ads_title">Usuń reklamy za niewielką opłatą:</string>
     <string name="dialog_upload_file">Nie możemy otworzyć tego dokumentu, ponieważ nie obsługujemy jego formatu. Czy chcesz tymczasowo przesłać go na nasz serwer, abyśmy mimo wszystko mogli go wyświetlić? Przesłane pliki są prywatne i automatycznie usuwane są po 24 godzinach.</string>
     <string name="dialog_title_choose_file">Wybierz plik z urządzenia</string>
@@ -33,7 +32,6 @@
     <string name="action_tts_next">Następny</string>
     <string name="action_tts_previous">Poprzedni</string>
     <string name="action_edit_save">Zapisz</string>
-    <string name="action_edit_help">Potrzebujesz pomocy?</string>
     <string name="action_edit_banner">Edytuj swój dokument poniżej i naciśnij Zapisz</string>
     <string name="landing_welcome_title">Witamy w \n przeglądarce OpenDocument Reader</string>
     <string name="landing_intro_view">Dzięki czytnikowi OpenDocument Reader możesz w dowolnym miejscu wyświetlać dokumenty zapisane w formacie OpenDocument (.odt, .ods, .odp i .odg).</string>
