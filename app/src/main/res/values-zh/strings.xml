@@ -41,7 +41,7 @@
     <string name="tts_status_reading">正在读取…</string>
     <string name="tts_status_initializing">正在初始化 TTS 引擎…</string>
     <string name="tts_status_ready">准备就绪！</string>
-    <string name="tts_status_failed">TTS 调用失败。</string>
+    <string name="tts_status_failed">TTS 引擎调用失败。</string>
     <string name="tts_status_paused">已暂停。</string>
     <string name="tts_status_finished">播放结束。</string>
     <string name="edit_status_saved">文档已保存至您的 SD 卡。</string>
