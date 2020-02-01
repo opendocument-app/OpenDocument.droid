@@ -40,6 +40,7 @@
     <string name="action_tts_next">Suivant</string>
     <string name="action_tts_previous">Précédent</string>
     <string name="action_edit_save">Enregistrer</string>
+    <string name="action_edit_help">Aide</string>
     <string name="action_edit_banner">Modifiez votre document ci-dessous et appuyez sur Enregistrer</string>
     <string name="landing_welcome_title">Bienvenue dans OpenDocument Reader</string>
     <string name="landing_intro_view">OpenDocument Reader vous permet de visualiser les documents enregistrés au format OpenDocument (.odt, .ods, .odp et .odg) où que vous soyez.</string>
