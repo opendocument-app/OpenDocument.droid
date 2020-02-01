@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.viliussutkus89.android.pdf2htmlex.pdf2htmlEX;
+import com.viliussutkus89.android.wvware.wvWare;
 
 import java.io.File;
 import java.io.InputStream;
@@ -67,6 +68,10 @@ public class PdfLoader extends FileLoader {
             callOnSuccess(result);
         } catch (Throwable e) {
             e.printStackTrace();
+
+            if (e instanceof pdf2htmlEX.PasswordRequiredException || e instanceof pdf2htmlEX.WrongPasswordException) {
+                e = new EncryptedDocumentException();
+            }
 
             callOnError(result, e);
         }

@@ -410,6 +410,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                                 loadOdf(options);
                             } else if (result.loaderType == FileLoader.LoaderType.DOC) {
                                 loadDoc(options);
+                            } else if (result.loaderType == FileLoader.LoaderType.PDF) {
+                                loadPdf(options);
                             } else {
                                 throw new RuntimeException("encryption not supported for type: " + result.loaderType);
                             }
@@ -441,7 +443,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         } else if (result.loaderType == FileLoader.LoaderType.PDF) {
             crashManager.log(error, options.originalUri);
 
-            offerUpload(activity, options, false);
+            offerUpload(activity, options, true);
 
             return;
         } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
