@@ -14,7 +14,6 @@
     <string name="dialog_choose_filemanager">Odpri dokument preko:</string>
     <string name="dialog_loading_title">Nalaganje …</string>
     <string name="dialog_uploading_title">Pošiljanje …</string>
-    <string name="dialog_loading_message">To lahko traja nekaj minut, odvisno od zgradbe dokumenta in zmogljivoasti telefona.</string>
     <string name="dialog_remove_ads_title">Kupite nove značilnosti:</string>
     <string name="dialog_upload_file">Tega dokumenta ne moremo odpreti, ker ne podpiramo njegove oblike. Ali ga želite začasno poslati na naš strežnik, da ga lahko vseeno prikažemo?</string>
     <string name="dialog_title_choose_file">Izberi datoteko z naprave</string>
@@ -37,7 +36,6 @@
     <string name="action_tts_next">Naprej</string>
     <string name="action_tts_previous">Nazaj</string>
     <string name="action_edit_save">Shrani</string>
-    <string name="action_edit_help">Pomoč!?</string>
     <string name="action_edit_banner">Spodaj uredite dokument in pritisnite Shrani</string>
     <string name="landing_welcome_title">Dobrodošli v \nOpenDocument Reader</string>
     <string name="landing_intro_view">OpenDocument Reader povsod omogoča ogled dokumentov, ki so shranjeni v obliki OpenDocument (.odt, .ods, .odp).</string>
