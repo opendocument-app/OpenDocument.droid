@@ -39,7 +39,6 @@
     <string name="action_tts_next">Ar aghaidh</string>
     <string name="action_tts_previous">Roimhe</string>
     <string name="action_edit_save">Taisc</string>
-    <string name="action_edit_help">Cabhair!?</string>
     <string name="action_edit_banner">Cuir do cháipéis in eagar thíos agus brúigh ar Taisc</string>
     <string name="landing_welcome_title">Fáilte go \nOpenDocument Reader</string>
     <string name="landing_intro_view">Le OpenDocument Reader, tá tú in ann breathnú ar cháipéisí atá i bhformáid OpenDocument (.odt, .ods, .odp, agus .odg) pé áit ina bhfuil tú.</string>
