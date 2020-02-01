@@ -40,7 +40,7 @@
     <string name="action_tts_next">Next</string>
     <string name="action_tts_previous">Previous</string>
     <string name="action_edit_save">Save</string>
-    <string name="action_edit_help">Help!?</string>
+    <string name="action_edit_help">Help</string>
     <string name="action_edit_banner">Edit your document below and press Save</string>
     <string name="landing_welcome_title">Welcome to \nOpenDocument Reader</string>
     <string name="landing_intro_view">OpenDocument Reader allows you to view documents that are stored in OpenDocument format (.odt, .ods, .odp and .odg) wherever you are.</string>
