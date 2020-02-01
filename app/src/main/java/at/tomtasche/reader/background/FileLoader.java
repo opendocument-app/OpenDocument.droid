@@ -126,6 +126,7 @@ public abstract class FileLoader {
         public Uri cacheUri;
         public boolean persistentUri;
 
+        public boolean fileExists;
         public String filename;
         public String fileType;
         public String fileExtension;

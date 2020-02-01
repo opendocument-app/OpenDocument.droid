@@ -82,6 +82,10 @@ public class MetadataLoader extends FileLoader {
                 InputStream stream = context.getContentResolver().openInputStream(uri);
                 StreamUtil.copy(stream, cachedFile);
             }
+
+            // if file didn't exist an exception would have been thrown by now
+            options.fileExists = true;
+
             options.cacheUri = AndroidFileCache.getCacheFileUri();
 
             String filename = null;

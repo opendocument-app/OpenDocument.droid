@@ -522,32 +522,38 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     private void offerReopen(Activity activity, FileLoader.Options options, int description, boolean isIndefinite) {
         String fileType = options.fileType;
-        Uri cacheUri = options.cacheUri;
 
         analyticsManager.report("reopen_offer", FirebaseAnalytics.Param.CONTENT_TYPE, fileType, FirebaseAnalytics.Param.CONTENT, options.originalUri);
 
         SnackbarHelper.show(activity, description, new Runnable() {
             @Override
             public void run() {
-                loadReopen(fileType, cacheUri, options, activity, true);
+                loadReopen(options, activity, true);
             }
         }, isIndefinite, false);
     }
 
-    private void loadReopen(String fileType, Uri cacheUri, FileLoader.Options options, Activity activity, boolean grantPermission) {
-        File cacheDirectory = AndroidFileCache.getCacheDirectory(activity);
-        File cacheFile = AndroidFileCache.getCacheFile(activity);
-
-        String reopenFilename = "yourdocument." + options.fileExtension;
-        File reopenFile = new File(cacheDirectory, reopenFilename);
+    private void loadReopen(FileLoader.Options options, Activity activity, boolean grantPermission) {
         Uri reopenUri = null;
-        try {
-            StreamUtil.copy(cacheFile, reopenFile);
+        Uri cacheUri = options.cacheUri;
+        String fileType = options.fileType;
 
-            reopenUri = Uri.parse("content://at.tomtasche.reader.provider/cache/" + reopenFilename);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (options.fileExists) {
+            File cacheDirectory = AndroidFileCache.getCacheDirectory(activity);
+            File cacheFile = AndroidFileCache.getCacheFile(activity);
 
+            String reopenFilename = "yourdocument." + options.fileExtension;
+            File reopenFile = new File(cacheDirectory, reopenFilename);
+            try {
+                StreamUtil.copy(cacheFile, reopenFile);
+
+                reopenUri = Uri.parse("content://at.tomtasche.reader.provider/cache/" + reopenFilename);
+            } catch (IOException e) {
+                e.printStackTrace();
+
+                reopenUri = cacheUri;
+            }
+        } else {
             reopenUri = cacheUri;
         }
 
@@ -601,7 +607,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             e.printStackTrace();
 
             if (grantPermission) {
-                loadReopen(fileType, cacheUri, options, activity, false);
+                loadReopen(options, activity, false);
             }
         }
     }
