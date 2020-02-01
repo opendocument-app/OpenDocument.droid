@@ -4,6 +4,10 @@
     <string name="toast_error_generic">出现了一些错误，无法打开文件。</string>
     <string name="toast_error_find_file">找不到此文件。或许它已经不在那里了？</string>
     <string name="toast_error_illegal_file">此文件格式似乎不受支持。</string>
+    <string name="toast_error_illegal_file_reopen">该文件格式似乎不受支持。请尝试在另一个应用中打开它。</string>
+    <string name="toast_hint_unsupported_file">对文件的显示效果不满意？在另一个应用中打开它。</string>
+    <string name="toast_hint_upload_file">对文件的显示效果不满意？将其临时上传到云端服务器中，以改善其格式。</string>
+    <string name="toast_error_reopen_noapp">在本设备上找不到支持此类型的文件的应用。</string>
     <string name="toast_error_out_of_memory">设备内存不足！可能是因为文件中的图片太多了，也可能是文件体积过大。</string>
     <string name="toast_error_password_protected">此文档受密码保护。</string>
     <string name="toast_error_permission_required">需要权限以便存取文档</string>
@@ -12,6 +16,7 @@
     <string name="dialog_loading_title">正在加载…</string>
     <string name="dialog_uploading_title">正在上传…</string>
     <string name="dialog_generic_loading_message">请稍候，可能需要几分钟。</string>
+    <string name="dialog_uploading_message_appendix">被上传的文件是私密的，24 小时后文件会被自动删除。</string>
     <string name="dialog_remove_ads_title">支付一点小费以移除广告：</string>
     <string name="dialog_upload_file">我们无法打开此文档，因为本应用不支持其格式。是否要暂时将其上传到我们的服务器, 以便我们设法在未来的版本中允许本应用显示它？上传的文件依然归您所有，并在会在24小时后自动删除。</string>
     <string name="dialog_title_choose_file">从设备中选择文件</string>
