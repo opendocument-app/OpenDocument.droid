@@ -10,7 +10,6 @@
     <string name="dialog_choose_filemanager">通过…打开文档：</string>
     <string name="dialog_loading_title">正在加载…</string>
     <string name="dialog_uploading_title">正在上传…</string>
-    <string name="dialog_loading_message">这可能需要几分钟时间，具体取决于文档的结构复杂程度和设备性能。</string>
     <string name="dialog_remove_ads_title">支付一点小费以移除广告：</string>
     <string name="dialog_upload_file">我们无法打开此文档，因为本应用不支持其格式。是否要暂时将其上传到我们的服务器, 以便我们设法在未来的版本中允许本应用显示它？上传的文件依然归您所有，并在会在24小时后自动删除。</string>
     <string name="dialog_title_choose_file">从设备中选择文件</string>
@@ -33,7 +32,6 @@
     <string name="action_tts_next">下一个</string>
     <string name="action_tts_previous">上一个</string>
     <string name="action_edit_save">保存</string>
-    <string name="action_edit_help">帮助⁉</string>
     <string name="action_edit_banner">编辑您的文档，然后点击保存</string>
     <string name="landing_welcome_title">欢迎使用\nOpenDocument 阅读器</string>
     <string name="landing_intro_view">OpenDocument Reader 允许您查看存储为 OpenDocument 格式（.odt、.ods、.ods、.odp 和 .odg）的文档。</string>
