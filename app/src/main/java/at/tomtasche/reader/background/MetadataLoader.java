@@ -79,6 +79,9 @@ public class MetadataLoader extends FileLoader {
                 File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
                 cachedFile = new File(cacheDirectory, "document.odt");
 
+                // delete before creating it again
+                cachedFile.delete();
+
                 InputStream stream = context.getContentResolver().openInputStream(uri);
                 StreamUtil.copy(stream, cachedFile);
             }
