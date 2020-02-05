@@ -35,6 +35,7 @@
     <string name="action_tts_next">Sonraki</string>
     <string name="action_tts_previous">Önceki</string>
     <string name="action_edit_save">Kaydet</string>
+    <string name="action_edit_help">Yardım</string>
     <string name="action_edit_banner">Aşağıdaki belgenizi düzenleyip kaydete tıklayın </string>
     <string name="landing_welcome_title">OpenDocument Reader\'e \nHoşgeldiniz</string>
     <string name="landing_intro_view">OpenDocument Reader, nerede olursanız olun OpenDocument biçiminde (.odt, .ods, .odp ve .odg) depolanan belgeleri görüntülemenizi sağlar.</string>
