@@ -6,6 +6,7 @@
     <string name="toast_error_illegal_file">Bu, desteklenen bir dosya biçimi gibi görünmüyor.</string>
     <string name="toast_error_illegal_file_reopen">Bu desteklenen bir dosya biçimi gibi görünmüyor. Bunun yerine başka bir uygulamada açın.</string>
     <string name="toast_hint_unsupported_file">Dosyanın görüntüsünden memnun değil misiniz? Bunun yerine başka bir uygulamada açın.</string>
+    <string name="toast_hint_upload_file">Dosyanın görüntülenme biçiminden memnun değil misiniz? Biçimi iyileştirmek için geçici olarak yükleyin.</string>
     <string name="toast_error_reopen_noapp">Aygıtda bu tür dosyaları destekleyen uygulama bulunamadı.</string>
     <string name="toast_error_out_of_memory">Aygıt belleği yetersiz! Çok fazla resim var veya dosya çok büyük.</string>
     <string name="toast_error_password_protected">Belge parola korumalı</string>
@@ -14,6 +15,8 @@
     <string name="dialog_choose_filemanager">Belgeyi şununla aç:</string>
     <string name="dialog_loading_title">Yükleniyor…</string>
     <string name="dialog_uploading_title">Karşıya yükleniyor…</string>
+    <string name="dialog_generic_loading_message">Lütfen bekleyin, bu birkaç dakika sürebilir.</string>
+    <string name="dialog_uploading_message_appendix">Karşıya yüklenen dosyalar özeldir ve 24 saat sonra otomatik olarak silinir.</string>
     <string name="dialog_remove_ads_title">Reklamları küçük bir ücret karşılığında kaldırın:</string>
     <string name="dialog_title_choose_file">Aygıttan dosya seçin</string>
     <string name="dialog_list_no_documents_found">Belge nulunamadı</string>
