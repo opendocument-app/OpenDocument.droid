@@ -4,7 +4,6 @@
     <string name="toast_error_generic">Tharla taisme. Níorbh fhéidir an comhad a oscailt.</string>
     <string name="toast_error_find_file">Níorbh fhéidir an comhad a fháil. B\'fhéidir nach ann dó a thuilleadh?</string>
     <string name="toast_error_illegal_file">Tá an dealramh air nach dtugtar tacaíocht den chineál comhad sin.</string>
-    <string name="toast_error_illegal_file_reopen">Tá an dealramh ar fhormáid an chomhaid nach dtugtar tacaíocht di. Oscail le feidhmchlár eile í ina ionad sin.</string>
     <string name="toast_hint_unsupported_file">An é nach bhfuil tú sásta leis an mbealach ina thaispeántar an comhad? Oscail le feidhmchlár eile é ina ionad sin.</string>
     <string name="toast_hint_upload_file">An é nach bhfuil tú sásta leis an mbealach ina thaispeántar an comhad? Uasluchtaigh go sealadach é chun an formáidiú a fheabhsú.</string>
     <string name="toast_error_reopen_noapp">Níor aimsíodh aon fheidhmchlár ar an ngléas a thugann tacaíocht don chineál comhad sin.</string>
