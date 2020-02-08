@@ -4,7 +4,6 @@
     <string name="toast_error_generic">Kötü bir şey oldu. Dosya açılamadı.</string>
     <string name="toast_error_find_file">Dosya bulunamadı. Belki artık mevcut değil?</string>
     <string name="toast_error_illegal_file">Bu, desteklenen bir dosya biçimi gibi görünmüyor.</string>
-    <string name="toast_error_illegal_file_reopen">Bu desteklenen bir dosya biçimi gibi görünmüyor. Bunun yerine başka bir uygulamada açın.</string>
     <string name="toast_hint_unsupported_file">Dosyanın görüntüsünden memnun değil misiniz? Bunun yerine başka bir uygulamada açın.</string>
     <string name="toast_hint_upload_file">Dosyanın görüntülenme biçiminden memnun değil misiniz? Biçimi iyileştirmek için geçici olarak yükleyin.</string>
     <string name="toast_error_reopen_noapp">Aygıtda bu tür dosyaları destekleyen uygulama bulunamadı.</string>
