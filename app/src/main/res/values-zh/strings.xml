@@ -4,7 +4,6 @@
     <string name="toast_error_generic">出现了一些错误，无法打开文件。</string>
     <string name="toast_error_find_file">找不到此文件。或许它已经不在那里了？</string>
     <string name="toast_error_illegal_file">此文件格式似乎不受支持。</string>
-    <string name="toast_error_illegal_file_reopen">该文件格式似乎不受支持。请尝试在另一个应用中打开它。</string>
     <string name="toast_hint_unsupported_file">对文件的显示效果不满意？在另一个应用中打开它。</string>
     <string name="toast_hint_upload_file">对文件的显示效果不满意？将其临时上传到云端服务器中，以改善其格式。</string>
     <string name="toast_error_reopen_noapp">在本设备上找不到支持此类型的文件的应用。</string>
