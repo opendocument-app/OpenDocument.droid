@@ -5,7 +5,7 @@
     <string name="toast_error_generic">Something bad happened. Couldn\'t open file.</string>
     <string name="toast_error_find_file">Couldn\'t find file. Maybe it doesn\'t exist any longer?</string>
     <string name="toast_error_illegal_file">This doesn\'t seem to be a supported file format.</string>
-    <string name="toast_error_illegal_file_reopen">Unsupported file format. Try opening in another app.</string>
+    <string name="toast_error_illegal_file_reopen">Unsupported file format. Try opening it in another app.</string>
     <string name="toast_hint_unsupported_file">Not happy with how the file is displayed? Open it in another app instead.</string>
     <string name="toast_hint_upload_file">Not happy with how the file is displayed? Upload it temporarily to improve formatting.</string>
     <string name="toast_error_reopen_noapp">No app found on device that supports this type of file.</string>
