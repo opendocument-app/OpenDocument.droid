@@ -16,7 +16,8 @@
 
         var text = document.getElementById('text');
 
-        var textString = atob(base);
+        // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/btoa#Unicode_strings
+        var textString = decodeURIComponent(escape(atob(base)));
 
         var csv = detectCSV(textString);
         if (csv && csv.newline && csv.lines < 10001) {
