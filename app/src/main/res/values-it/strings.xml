@@ -32,7 +32,6 @@
     <string name="action_tts_next">Successivo</string>
     <string name="action_tts_previous">Precedente</string>
     <string name="action_edit_save">Salva</string>
-    <string name="action_edit_help">Aiuto!?</string>
     <string name="action_edit_banner">Modifica il tuo documento qui sotto e premi Salva</string>
     <string name="landing_welcome_title">Benvenuto in \nOpenDocument Reader</string>
     <string name="landing_intro_view">OpenDocument Reader ti consente di visualizzare i documenti che sono archiviati in formato OpenDocument (.odt, .ods, .odp e .odg) ovunque tu sia.</string>

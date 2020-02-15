@@ -31,7 +31,6 @@
     <string name="action_tts_next">Næste</string>
     <string name="action_tts_previous">Forrige</string>
     <string name="action_edit_save">Gem</string>
-    <string name="action_edit_help">Hjælp!?</string>
     <string name="action_edit_banner">Rediger dit dokument herunder og tryk Gem</string>
     <string name="tts_status_paused">Sat på pause.</string>
     <string name="tts_status_finished">Færdig.</string>

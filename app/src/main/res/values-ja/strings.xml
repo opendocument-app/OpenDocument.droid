@@ -4,7 +4,6 @@
     <string name="toast_error_generic">何か問題が発生しました。ファイルを開くことができませんでした。</string>
     <string name="toast_error_find_file">ファイルが見つかりません。もう存在しないかもしれません?</string>
     <string name="toast_error_illegal_file">これはサポートされているファイル形式ではないようです。</string>
-    <string name="toast_error_illegal_file_reopen">このファイル形式はサポートされてないようです。 代わりに別のアプリで開きます。</string>
     <string name="toast_hint_unsupported_file">ファイルの表示方法に満足できませんか？ 代わりに別のアプリで開きます。</string>
     <string name="toast_hint_upload_file">ファイルの表示方法に満足できませんか? 一時的にアップロードして、形式を改善します。</string>
     <string name="toast_error_reopen_noapp">お使いのデバイスで、このファイル形式をサポートするアプリが見つかりませんでした。</string>
@@ -39,7 +38,6 @@
     <string name="action_tts_next">次へ</string>
     <string name="action_tts_previous">前へ</string>
     <string name="action_edit_save">保存</string>
-    <string name="action_edit_help">ヘルプ!?</string>
     <string name="action_edit_banner">下の文書の編集して、保存を押してください</string>
     <string name="landing_welcome_title">OpenDocument リーダー \nへようこそ</string>
     <string name="landing_intro_view">OpenDocument リーダーは、どこにいても OpenDocument 形式で格納されているドキュメント (.odt、.ods、.odp、odg) を表示することができます。</string>
