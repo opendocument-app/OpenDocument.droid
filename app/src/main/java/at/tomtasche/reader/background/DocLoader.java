@@ -2,39 +2,10 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Environment;
-import android.os.Handler;
 
 import com.viliussutkus89.android.wvware.wvWare;
 
 import java.io.File;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-import java.util.concurrent.TimeoutException;
-
-import at.stefl.commons.math.vector.Vector2i;
-import at.stefl.opendocument.java.odf.LocatedOpenDocumentFile;
-import at.stefl.opendocument.java.odf.OpenDocument;
-import at.stefl.opendocument.java.odf.OpenDocumentGraphics;
-import at.stefl.opendocument.java.odf.OpenDocumentPresentation;
-import at.stefl.opendocument.java.odf.OpenDocumentSpreadsheet;
-import at.stefl.opendocument.java.odf.OpenDocumentText;
-import at.stefl.opendocument.java.translator.document.BulkPresentationTranslator;
-import at.stefl.opendocument.java.translator.document.BulkSpreadsheetTranslator;
-import at.stefl.opendocument.java.translator.document.DocumentTranslator;
-import at.stefl.opendocument.java.translator.document.DocumentTranslatorUtil;
-import at.stefl.opendocument.java.translator.document.GraphicsTranslator;
-import at.stefl.opendocument.java.translator.document.PresentationTranslator;
-import at.stefl.opendocument.java.translator.document.SpreadsheetTranslator;
-import at.stefl.opendocument.java.translator.document.TextTranslator;
-import at.stefl.opendocument.java.translator.settings.ImageStoreMode;
-import at.stefl.opendocument.java.translator.settings.TranslationSettings;
-import at.tomtasche.reader.nonfree.AnalyticsManager;
-import at.tomtasche.reader.nonfree.CrashManager;
 
 public class DocLoader extends FileLoader {
 

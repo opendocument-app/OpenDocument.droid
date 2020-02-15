@@ -3,8 +3,8 @@
         xmlns:tools="http://schemas.android.com/tools"
         package="at.tomtasche.reader"
         android:installLocation="auto"
-        android:versionCode="118"
-        android:versionName="3.2.0"
+        android:versionCode="119"
+        android:versionName="3.2.1"
         tools:ignore="GoogleAppIndexingWarning">
 
     <!-- added by HelpCrunch SDK otherwise -->
@@ -342,6 +342,7 @@
 
         <activity
                 android:name="com.nononsenseapps.filepicker.FilePickerActivity"
+                android:enabled="@bool/filepicker_enabled"
                 android:icon="@mipmap/icon"
                 android:roundIcon="@mipmap/icon_round"
                 android:excludeFromRecents="true"
@@ -381,6 +382,7 @@
 
         <provider
                 android:name="androidx.core.content.FileProvider"
+                android:enabled="@bool/filepicker_enabled"
                 android:authorities="${applicationId}.provider"
                 android:exported="false"
                 android:grantUriPermissions="true">
