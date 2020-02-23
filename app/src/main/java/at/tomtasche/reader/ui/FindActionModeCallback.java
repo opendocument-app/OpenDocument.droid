@@ -39,8 +39,7 @@ import androidx.appcompat.view.ActionMode;
 import at.tomtasche.reader.R;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class FindActionModeCallback implements ActionMode.Callback,
-        TextWatcher, View.OnClickListener {
+public class FindActionModeCallback implements ActionMode.Callback, TextWatcher {
     private View mCustomView;
     private EditText mEditText;
     private WebView mWebView;
@@ -56,7 +55,6 @@ public class FindActionModeCallback implements ActionMode.Callback,
                 R.layout.webview_find, null);
         mEditText = (EditText) mCustomView.findViewById(R.id.edit);
         // mEditText.setCustomSelectionActionModeCallback(new NoAction());
-        mEditText.setOnClickListener(this);
         setText("");
         mInput = (InputMethodManager) context
                 .getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -138,7 +136,7 @@ public class FindActionModeCallback implements ActionMode.Callback,
                     "No WebView for FindActionModeCallback::findAll");
         }
         CharSequence find = mEditText.getText();
-        if (0 == find.length()) {
+        if (find == null || 0 == find.length()) {
             mWebView.clearMatches();
             mMatchesFound = false;
             mWebView.findAllAsync(null);
@@ -163,13 +161,6 @@ public class FindActionModeCallback implements ActionMode.Callback,
         } else {
             mNumberOfMatches = 0;
         }
-    }
-
-    // OnClickListener implementation
-
-    @Override
-    public void onClick(View v) {
-        findNext(true);
     }
 
     // ActionMode.Callback implementation

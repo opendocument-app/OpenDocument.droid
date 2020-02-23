@@ -4,13 +4,18 @@
     <string name="toast_error_generic">Tharla taisme. Níorbh fhéidir an comhad a oscailt.</string>
     <string name="toast_error_find_file">Níorbh fhéidir an comhad a fháil. B\'fhéidir nach ann dó a thuilleadh?</string>
     <string name="toast_error_illegal_file">Tá an dealramh air nach dtugtar tacaíocht den chineál comhad sin.</string>
+    <string name="toast_hint_unsupported_file">An é nach bhfuil tú sásta leis an mbealach ina thaispeántar an comhad? Oscail le feidhmchlár eile é ina ionad sin.</string>
+    <string name="toast_hint_upload_file">An é nach bhfuil tú sásta leis an mbealach ina thaispeántar an comhad? Uasluchtaigh go sealadach é chun an formáidiú a fheabhsú.</string>
+    <string name="toast_error_reopen_noapp">Níor aimsíodh aon fheidhmchlár ar an ngléas a thugann tacaíocht don chineál comhad sin.</string>
     <string name="toast_error_out_of_memory">Níl cuimhne fágtha sa ghuthán! Tá an iomarca grianghraif ann nó tá an comhad rómhór.</string>
     <string name="toast_error_password_protected">Tá an cháipéis faoi chosaint focal faire</string>
+    <string name="toast_error_permission_required">Tá cead de dhíth chun cáipéisí a léamh agus chun iad a chur i dtaisce</string>
     <string name="dialog_recent_title">Comhaid le déanaí</string>
     <string name="dialog_choose_filemanager">Oscail an cháipéis trí:</string>
     <string name="dialog_loading_title">Ag luchtú…</string>
     <string name="dialog_uploading_title">Á uasluchtú…</string>
-    <string name="dialog_loading_message">D\'fhéadfadh go mairfidh sé seo tamall ag braith ar chomhdhéanamh na cáipéise agus cumhacht do ghuthán.</string>
+    <string name="dialog_generic_loading_message">Fan. B\'fhéidir go dtógfaidh sé seo roinnt nóiméid.</string>
+    <string name="dialog_uploading_message_appendix">Bíonn comhaid uasluchtaithe príobháideach agus scriostar iad tar éis 24 uair an chloig.</string>
     <string name="dialog_remove_ads_title">Bain fógraí le táille bheag:</string>
     <string name="dialog_upload_file">Ní thig linn an cháipéis seo a oscailt mar ní thugtar tacaíocht don chineál comhad sin. An mian leat í a uasluchtú go sealadach chuig ár bhfreastalaí ionas gur féidir linn í a thaispeáint duit?</string>
     <string name="dialog_title_choose_file">Roghnaigh comhad ón ngléas</string>
@@ -33,7 +38,6 @@
     <string name="action_tts_next">Ar aghaidh</string>
     <string name="action_tts_previous">Roimhe</string>
     <string name="action_edit_save">Taisc</string>
-    <string name="action_edit_help">Cabhair!?</string>
     <string name="action_edit_banner">Cuir do cháipéis in eagar thíos agus brúigh ar Taisc</string>
     <string name="landing_welcome_title">Fáilte go \nOpenDocument Reader</string>
     <string name="landing_intro_view">Le OpenDocument Reader, tá tú in ann breathnú ar cháipéisí atá i bhformáid OpenDocument (.odt, .ods, .odp, agus .odg) pé áit ina bhfuil tú.</string>

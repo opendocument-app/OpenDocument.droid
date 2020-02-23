@@ -72,33 +72,26 @@ dependencies {
         exclude group: 'com.android.support'
     })
 
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-
     implementation 'com.google.firebase:firebase-storage:19.1.0'
     implementation 'com.google.firebase:firebase-auth:19.2.0'
     implementation 'com.google.firebase:firebase-ads:18.3.0'
     implementation 'com.crashlytics.sdk.android:crashlytics:2.10.1'
-    implementation 'com.google.firebase:firebase-core:17.2.1'
-    implementation 'com.google.firebase:firebase-perf:19.0.4'
+    implementation 'com.google.firebase:firebase-core:17.2.2'
+    implementation 'com.google.firebase:firebase-perf:19.0.5'
 
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.core:core:1.1.0'
-    implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'com.google.android.material:material:1.0.0'
 
     implementation 'com.github.paolorotolo:appintro:v5.1.0'
 
-    implementation 'es.voghdev.pdfviewpager:library:1.0.6'
-    // https://github.com/voghDev/PdfViewPager/issues/110
-    implementation 'com.davemorrissey.labs:subsampling-scale-image-view:3.10.0'
-
+    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.8'
     implementation 'com.viliussutkus89:wvware-android:1.2.4'
-
     implementation project(':libmagic')
 
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0-alpha02'
-    androidTestImplementation 'androidx.test:rules:1.3.0-alpha02'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0-alpha03'
+    androidTestImplementation 'androidx.test:rules:1.3.0-alpha03'
 
     implementation 'com.android.billingclient:billing:2.1.0'
 }
