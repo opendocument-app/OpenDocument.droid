@@ -42,6 +42,7 @@
     <string name="landing_welcome_title">OpenDocument Reader\'e \nHoşgeldiniz</string>
     <string name="landing_intro_view">OpenDocument Reader, nerede olursanız olun OpenDocument biçiminde (.odt, .ods, .odp ve .odg) depolanan belgeleri görüntülemenizi sağlar.</string>
     <string name="landing_intro_search">OpenDocument Reader ile belgelerinizi rahatça okuyabilir ve arayabilirsiniz.</string>
+    <string name="landing_intro_edit">Büyük sunumunuzdan önce düzeltilecek bir yazım hatası mı buldunuz? Artık değiştirmeyi de destekliyor!</string>
     <string name="landing_intro_open_all">Bu uygulama \"Samsung My Files\"gibi uygulamaları desteklemek için varsayılan olarak tüm dosya türlerini açmak için kaydeder. Sizin için sorunlara neden olursa, bu özelliği buradan kapatabilirsiniz.</string>
     <string name="tts_status_reading">Okunuyor…</string>
     <string name="tts_status_initializing">TTS başlatılıyor…</string>
@@ -63,6 +64,6 @@
     <string name="reopen_chooser_title">Aygıtınızda kurulu başka bir uygulamayı kullanarak açın:</string>
     <string-array name="dialog_remove_ads_options">
         <item>Reklamları sürekli kaldır</item>
-        <item>Remove ads temporarily for free by watching a short video</item>
+        <item>Kısa bir video izleyerek reklamları geçici olarak ücretsiz kaldırın</item>
     </string-array>
 </resources>
