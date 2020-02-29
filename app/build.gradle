@@ -73,7 +73,7 @@ dependencies {
         exclude group: 'com.android.support'
     })
 
-    implementation 'com.google.firebase:firebase-storage:19.1.0'
+    implementation 'com.google.firebase:firebase-storage:19.1.1'
     implementation 'com.google.firebase:firebase-auth:19.2.0'
     implementation 'com.google.firebase:firebase-ads:18.3.0'
     implementation 'com.crashlytics.sdk.android:crashlytics:2.10.1'
@@ -82,8 +82,8 @@ dependencies {
 
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'androidx.core:core:1.1.0'
-    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'androidx.core:core:1.2.0'
+    implementation 'com.google.android.material:material:1.1.0'
 
     implementation 'com.github.paolorotolo:appintro:v5.1.0'
 
