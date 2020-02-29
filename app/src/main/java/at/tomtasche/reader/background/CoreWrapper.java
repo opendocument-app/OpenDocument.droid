@@ -5,15 +5,10 @@ import java.util.List;
 
 public class CoreWrapper {
 
-    public boolean initialized = false;
-
     private long lastNativePointer;
 
-    public boolean initialize() {
+    public void initialize() {
         System.loadLibrary("odr-core");
-
-        initialized = true;
-        return initialized;
     }
 
     public CoreResult parse(CoreOptions options) {

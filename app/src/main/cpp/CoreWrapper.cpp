@@ -95,7 +95,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 env->SetIntField(result, errorField, -4);
                 return result;
             }
-        } else {
+        } else if (meta.type == odr::FileType::OPENDOCUMENT_SPREADSHEET || meta.type == odr::FileType::OPENDOCUMENT_PRESENTATION || meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
             int i = 0;
             // TODO: this could fail for HUGE documents with hundreds of pages
             // https://stackoverflow.com/a/24292867/198996
@@ -114,6 +114,9 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
 
                 i++;
             }
+        } else {
+            env->SetIntField(result, errorField, -5);
+            return result;
         }
     } catch (...) {
         env->SetIntField(result, errorField, -3);
