@@ -46,6 +46,7 @@ import at.tomtasche.reader.background.FileLoader;
 import at.tomtasche.reader.background.MetadataLoader;
 import at.tomtasche.reader.background.OdfLoader;
 import at.tomtasche.reader.background.OnlineLoader;
+import at.tomtasche.reader.background.OoxmlLoader;
 import at.tomtasche.reader.background.PdfLoader;
 import at.tomtasche.reader.background.RawLoader;
 import at.tomtasche.reader.background.StreamUtil;
@@ -62,6 +63,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private MetadataLoader metadataLoader;
     private OdfLoader odfLoader;
     private PdfLoader pdfLoader;
+    private OoxmlLoader ooxmlLoader;
     private DocLoader docLoader;
     private RawLoader rawLoader;
     private OnlineLoader onlineLoader;
@@ -104,6 +106,9 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         pdfLoader = new PdfLoader(context);
         pdfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+
+        ooxmlLoader = new OoxmlLoader(context);
+        ooxmlLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         docLoader = new DocLoader(context);
         docLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
@@ -186,6 +191,15 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         togglePageView(true);
 
         odfLoader.loadAsync(options);
+    }
+
+    private void loadOoxml(FileLoader.Options options) {
+        showProgress(false);
+
+        toggleDocumentMenu(true, false);
+        togglePageView(true);
+
+        ooxmlLoader.loadAsync(options);
     }
 
     private void loadDoc(FileLoader.Options options) {
@@ -429,6 +443,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             if (pdfLoader.isSupported(options)) {
                 loadPdf(options);
+            } else if (ooxmlLoader.isSupported(options)) {
+                loadOoxml(options);
             } else if (docLoader.isSupported(options)) {
                 loadDoc(options);
             } else if (rawLoader.isSupported(options)) {
@@ -710,6 +726,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         if (pdfLoader != null) {
             pdfLoader.close();
+        }
+
+        if (ooxmlLoader != null) {
+            ooxmlLoader.close();
         }
 
         if (docLoader != null) {

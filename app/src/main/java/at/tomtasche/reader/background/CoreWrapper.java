@@ -45,6 +45,8 @@ public class CoreWrapper {
 
         long nativePointer;
 
+        boolean ooxml;
+
         boolean editable;
 
         String password;

@@ -84,39 +84,78 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jfieldID pageNamesField = env->GetFieldID(resultClass, "pageNames", "Ljava/util/List;");
         jstring pageNames = (jstring) env->GetObjectField(result, pageNamesField);
 
-        if (meta.type == odr::FileType::OPENDOCUMENT_TEXT) {
-            jstring pageName = env->NewStringUTF("Text document");
-            env->CallBooleanMethod(pageNames, addMethod, pageName);
-
-            outputPathCpp = outputPathCpp + "0.html";
-
-            bool translated = translator->translate(outputPathCpp, config);
-            if (!translated) {
-                env->SetIntField(result, errorField, -4);
-                return result;
-            }
-        } else if (meta.type == odr::FileType::OPENDOCUMENT_SPREADSHEET || meta.type == odr::FileType::OPENDOCUMENT_PRESENTATION || meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
-            int i = 0;
-            // TODO: this could fail for HUGE documents with hundreds of pages
-            // https://stackoverflow.com/a/24292867/198996
-            for (auto page = meta.entries.begin(); page != meta.entries.end(); page++) {
-                jstring pageName = env->NewStringUTF(page->name.c_str());
+        jfieldID ooxmlField = env->GetFieldID(optionsClass, "ooxml", "Z");
+        jboolean ooxml = env->GetBooleanField(options, ooxmlField);
+        if (!ooxml) {
+            if (meta.type == odr::FileType::OPENDOCUMENT_TEXT) {
+                jstring pageName = env->NewStringUTF("Text document");
                 env->CallBooleanMethod(pageNames, addMethod, pageName);
 
-                std::string entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
-                config.entryOffset = i;
+                outputPathCpp = outputPathCpp + "0.html";
 
-                bool translated = translator->translate(entryOutputPath, config);
+                bool translated = translator->translate(outputPathCpp, config);
                 if (!translated) {
                     env->SetIntField(result, errorField, -4);
                     return result;
                 }
+            } else if (meta.type == odr::FileType::OPENDOCUMENT_SPREADSHEET || meta.type == odr::FileType::OPENDOCUMENT_PRESENTATION || meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
+                int i = 0;
+                // TODO: this could fail for HUGE documents with hundreds of pages
+                // https://stackoverflow.com/a/24292867/198996
+                for (auto page = meta.entries.begin(); page != meta.entries.end(); page++) {
+                    jstring pageName = env->NewStringUTF(page->name.c_str());
+                    env->CallBooleanMethod(pageNames, addMethod, pageName);
 
-                i++;
+                    std::string entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
+                    config.entryOffset = i;
+
+                    bool translated = translator->translate(entryOutputPath, config);
+                    if (!translated) {
+                        env->SetIntField(result, errorField, -4);
+                        return result;
+                    }
+
+                    i++;
+                }
+            } else {
+                env->SetIntField(result, errorField, -5);
+                return result;
             }
         } else {
-            env->SetIntField(result, errorField, -5);
-            return result;
+            if (meta.type == odr::FileType::OFFICE_OPEN_XML_DOCUMENT) {
+                jstring pageName = env->NewStringUTF("Text document");
+                env->CallBooleanMethod(pageNames, addMethod, pageName);
+
+                outputPathCpp = outputPathCpp + "0.html";
+
+                bool translated = translator->translate(outputPathCpp, config);
+                if (!translated) {
+                    env->SetIntField(result, errorField, -4);
+                    return result;
+                }
+            } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_WORKBOOK || meta.type == odr::FileType::OFFICE_OPEN_XML_PRESENTATION) {
+                int i = 0;
+                // TODO: this could fail for HUGE documents with hundreds of pages
+                // https://stackoverflow.com/a/24292867/198996
+                for (auto page = meta.entries.begin(); page != meta.entries.end(); page++) {
+                    jstring pageName = env->NewStringUTF(page->name.c_str());
+                    env->CallBooleanMethod(pageNames, addMethod, pageName);
+
+                    std::string entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
+                    config.entryOffset = i;
+
+                    bool translated = translator->translate(entryOutputPath, config);
+                    if (!translated) {
+                        env->SetIntField(result, errorField, -4);
+                        return result;
+                    }
+
+                    i++;
+                }
+            } else {
+                env->SetIntField(result, errorField, -5);
+                return result;
+            }
         }
     } catch (...) {
         env->SetIntField(result, errorField, -3);

@@ -16,19 +16,22 @@ import java.util.concurrent.TimeoutException;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 
-public class OdfLoader extends FileLoader {
+public class OoxmlLoader extends FileLoader {
 
     private CoreWrapper lastCore;
-    private CoreWrapper.CoreOptions lastCoreOptions;
 
-    public OdfLoader(Context context) {
-        super(context, LoaderType.ODF);
+    public OoxmlLoader(Context context) {
+        super(context, LoaderType.OOXML);
     }
-
 
     @Override
     public boolean isSupported(Options options) {
-        return options.fileType.startsWith("application/vnd.oasis.opendocument") || options.fileType.startsWith("application/x-vnd.oasis.opendocument");
+        if (true) {
+            // TODO: not stable enough at the moment
+            return false;
+        }
+
+        return options.fileType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document") || options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") || options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.presentation");
     }
 
     @Override
@@ -55,16 +58,13 @@ public class OdfLoader extends FileLoader {
 
             File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
 
-            File fakeHtmlFile = new File(cacheDirectory, "odf");
+            File fakeHtmlFile = new File(cacheDirectory, "ooxml");
 
             CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
             coreOptions.inputPath = cachedFile.getPath();
             coreOptions.outputPath = fakeHtmlFile.getPath();
             coreOptions.password = options.password;
-            coreOptions.editable = options.translatable;
-            coreOptions.ooxml = false;
-
-            lastCoreOptions = coreOptions;
+            coreOptions.ooxml = true;
 
             CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
             if (coreResult.errorCode == 0) {
@@ -88,24 +88,6 @@ public class OdfLoader extends FileLoader {
 
             callOnError(result, e);
         }
-    }
-
-    public File retranslate(String htmlDiff) {
-        DateFormat dateFormat = new SimpleDateFormat("MMddyyyy-HHmmss", Locale.US);
-        Date nowDate = Calendar.getInstance().getTime();
-        String nowString = dateFormat.format(nowDate);
-
-        File modifiedFilePrefix = new File(Environment.getExternalStorageDirectory(),
-                "modified-by-opendocument-reader-on-" + nowString);
-
-        lastCoreOptions.outputPath = modifiedFilePrefix.getPath();
-
-        CoreWrapper.CoreResult result = lastCore.backtranslate(lastCoreOptions, htmlDiff);
-        if (result.errorCode != 0) {
-            throw new RuntimeException("could not retranslate file with error " + result.errorCode);
-        }
-
-        return new File(result.outputPath);
     }
 
     @Override

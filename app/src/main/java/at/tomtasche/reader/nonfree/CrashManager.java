@@ -5,11 +5,27 @@ import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 
+import java.util.concurrent.TimeoutException;
+
 public class CrashManager {
 
     private boolean enabled;
 
     public void initialize() {
+        // mitigate TimeoutException on finalize
+        // https://stackoverflow.com/a/55999687/198996
+        final Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler =
+                Thread.getDefaultUncaughtExceptionHandler();
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                if (t.getName().equals("FinalizerWatchdogDaemon") && e instanceof TimeoutException) {
+                    log(e);
+                } else {
+                    defaultUncaughtExceptionHandler.uncaughtException(t, e);
+                }
+            }
+        });
     }
 
     public void setEnabled(boolean enabled) {
