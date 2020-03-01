@@ -105,7 +105,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     private HelpManager helpManager;
 
     private Runnable onPermissionRunnable;
-    private Runnable onCreateRunnable;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

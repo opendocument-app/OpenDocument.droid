@@ -3,7 +3,6 @@ package at.tomtasche.reader.ui.widget;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -82,6 +81,8 @@ public class PageView extends WebView implements ParagraphListener {
                         @Override
                         public void run() {
                             if (!wasCommitCalled) {
+                                documentFragment.getCrashManager().log(new RuntimeException("commit was not called"));
+
                                 loadUrl(url);
                             }
                         }
@@ -92,11 +93,6 @@ public class PageView extends WebView implements ParagraphListener {
             @Override
             public void onPageCommitVisible(WebView view, String url) {
                 wasCommitCalled = true;
-            }
-
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                wasCommitCalled = false;
             }
 
             @Override
@@ -131,6 +127,13 @@ public class PageView extends WebView implements ParagraphListener {
                 }
             }
         });
+    }
+
+    @Override
+    public void loadUrl(String url) {
+        wasCommitCalled = false;
+
+        super.loadUrl(url);
     }
 
     public void setDocumentFragment(DocumentFragment documentFragment) {

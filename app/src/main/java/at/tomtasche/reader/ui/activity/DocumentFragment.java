@@ -735,6 +735,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         return lastResult;
     }
 
+    public CrashManager getCrashManager() {
+        return crashManager;
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
