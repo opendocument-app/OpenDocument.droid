@@ -157,6 +157,31 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 return result;
             }
         }
+
+        std::string extensionCpp;
+        if (meta.type == odr::FileType::OPENDOCUMENT_TEXT) {
+            extensionCpp = "odt";
+        } else if (meta.type == odr::FileType::OPENDOCUMENT_SPREADSHEET) {
+            extensionCpp = "ods";
+        } else if (meta.type == odr::FileType::OPENDOCUMENT_PRESENTATION) {
+            extensionCpp = "odp";
+        } else if (meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
+            extensionCpp = "odg";
+        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_DOCUMENT) {
+            extensionCpp = "docx";
+        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_WORKBOOK) {
+            extensionCpp = "xlsx";
+        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_PRESENTATION) {
+            extensionCpp = "pptx";
+        } else {
+            extensionCpp = "unknown";
+        }
+
+        const char *extensionC = extensionCpp.c_str();
+        jstring extension = env->NewStringUTF(extensionC);
+
+        jfieldID extensionField = env->GetFieldID(resultClass, "extension", "Ljava/lang/String;");
+        env->SetObjectField(result, extensionField, extension);
     } catch (...) {
         env->SetIntField(result, errorField, -3);
         return result;
@@ -205,6 +230,12 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
             extension = "odp";
         } else if (meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
             extension = "odg";
+        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_DOCUMENT) {
+            extension = "docx";
+        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_WORKBOOK) {
+            extension = "xlsx";
+        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_PRESENTATION) {
+            extension = "pptx";
         } else {
             extension = "unknown";
         }

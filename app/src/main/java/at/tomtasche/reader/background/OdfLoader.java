@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
+import android.webkit.MimeTypeMap;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -68,6 +69,8 @@ public class OdfLoader extends FileLoader {
 
             CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
             if (coreResult.errorCode == 0) {
+                options.fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreResult.extension);
+
                 for (int i = 0; i < coreResult.pageNames.size(); i++) {
                     File entryFile = new File(fakeHtmlFile.getPath() + i + ".html");
 
@@ -90,6 +93,7 @@ public class OdfLoader extends FileLoader {
         }
     }
 
+    @Override
     public File retranslate(String htmlDiff) {
         File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
         File tempFilePrefix = new File(cacheDirectory, "retranslate");

@@ -203,7 +203,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private void loadOoxml(FileLoader.Options options) {
         showProgress(false);
 
-        toggleDocumentMenu(true, false);
+        toggleDocumentMenu(true, true);
         togglePageView(true);
 
         ooxmlLoader.loadAsync(options);

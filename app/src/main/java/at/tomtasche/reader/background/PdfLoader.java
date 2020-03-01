@@ -62,6 +62,8 @@ public class PdfLoader extends FileLoader {
 
             Uri finalUri = Uri.fromFile(htmlFile);
 
+            options.fileType = "application/pdf";
+
             result.partTitles.add(null);
             result.partUris.add(finalUri);
 

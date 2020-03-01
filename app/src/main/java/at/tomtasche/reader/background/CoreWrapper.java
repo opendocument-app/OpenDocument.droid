@@ -64,5 +64,7 @@ public class CoreWrapper {
         List<String> pageNames = new LinkedList<>();
 
         String outputPath;
+
+        String extension;
     }
 }

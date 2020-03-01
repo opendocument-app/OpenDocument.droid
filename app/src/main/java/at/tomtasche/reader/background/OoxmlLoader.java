@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
+import android.webkit.MimeTypeMap;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -19,6 +20,7 @@ import at.tomtasche.reader.nonfree.CrashManager;
 public class OoxmlLoader extends FileLoader {
 
     private CoreWrapper lastCore;
+    private CoreWrapper.CoreOptions lastCoreOptions;
 
     public OoxmlLoader(Context context) {
         super(context, LoaderType.OOXML);
@@ -27,11 +29,12 @@ public class OoxmlLoader extends FileLoader {
     @Override
     public boolean isSupported(Options options) {
         if (true) {
-            // TODO: not stable enough at the moment
+            // TODO: not stable enough yet
             return false;
         }
 
-        return options.fileType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document") || options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") || options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.presentation");
+        // TODO: enable xlsx and pptx too
+        return options.fileType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document") /*|| options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") || options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.presentation")*/;
     }
 
     @Override
@@ -64,10 +67,15 @@ public class OoxmlLoader extends FileLoader {
             coreOptions.inputPath = cachedFile.getPath();
             coreOptions.outputPath = fakeHtmlFile.getPath();
             coreOptions.password = options.password;
+            coreOptions.editable = options.translatable;
             coreOptions.ooxml = true;
+
+            lastCoreOptions = coreOptions;
 
             CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
             if (coreResult.errorCode == 0) {
+                options.fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreResult.extension);
+
                 for (int i = 0; i < coreResult.pageNames.size(); i++) {
                     File entryFile = new File(fakeHtmlFile.getPath() + i + ".html");
 
@@ -88,6 +96,22 @@ public class OoxmlLoader extends FileLoader {
 
             callOnError(result, e);
         }
+    }
+
+    @Override
+    public File retranslate(String htmlDiff) {
+        File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
+        File tempFilePrefix = new File(cacheDirectory, "retranslate");
+
+        lastCoreOptions.outputPath = tempFilePrefix.getPath();
+
+        CoreWrapper.CoreResult result = lastCore.backtranslate(lastCoreOptions, htmlDiff);
+        if (result.errorCode != 0) {
+            crashManager.log(new RuntimeException("could not retranslate file with error " + result.errorCode));
+            return null;
+        }
+
+        return new File(result.outputPath);
     }
 
     @Override

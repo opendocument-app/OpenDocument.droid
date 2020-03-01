@@ -7,6 +7,7 @@ import android.os.Handler;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.perf.metrics.Trace;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -78,6 +79,10 @@ public abstract class FileLoader {
     }
 
     abstract void loadSync(Options options);
+
+    public File retranslate(String htmlDiff) {
+        throw new RuntimeException("not implemented");
+    }
 
     public boolean isLoading() {
         return loading;
