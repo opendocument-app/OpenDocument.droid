@@ -150,12 +150,12 @@ public class PageView extends WebView implements ParagraphListener {
                         // document.body.firstChild.childNodes in the desktop
                         // version of Google Chrome
                         + "if (children.length <= " + index + ") { "
-                        + "paragraphListener.end();" + " return; " + "}"
+                        + "paragraphListener.end();" + "} else {"
                         + "var child = children[" + index + "]; "
-                        + "if (child) { "
+                        + "if (child && child.nodeName.toLowerCase() != 'script' && child.innerText) { "
                         + "paragraphListener.paragraph(child.innerText); "
                         + "} else { " + "paragraphListener.increaseIndex(); "
-                        + "}");
+                        + "} }");
             }
         });
     }
@@ -195,18 +195,21 @@ public class PageView extends WebView implements ParagraphListener {
 
     @Override
     @Keep
+    @JavascriptInterface
     public void paragraph(String text) {
         paragraphListener.paragraph(text);
     }
 
     @Override
     @Keep
+    @JavascriptInterface
     public void increaseIndex() {
         paragraphListener.increaseIndex();
     }
 
     @Override
     @Keep
+    @JavascriptInterface
     public void end() {
         paragraphListener.end();
     }
