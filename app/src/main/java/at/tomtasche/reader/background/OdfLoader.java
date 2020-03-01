@@ -91,18 +91,15 @@ public class OdfLoader extends FileLoader {
     }
 
     public File retranslate(String htmlDiff) {
-        DateFormat dateFormat = new SimpleDateFormat("MMddyyyy-HHmmss", Locale.US);
-        Date nowDate = Calendar.getInstance().getTime();
-        String nowString = dateFormat.format(nowDate);
+        File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
+        File tempFilePrefix = new File(cacheDirectory, "retranslate");
 
-        File modifiedFilePrefix = new File(Environment.getExternalStorageDirectory(),
-                "modified-by-opendocument-reader-on-" + nowString);
-
-        lastCoreOptions.outputPath = modifiedFilePrefix.getPath();
+        lastCoreOptions.outputPath = tempFilePrefix.getPath();
 
         CoreWrapper.CoreResult result = lastCore.backtranslate(lastCoreOptions, htmlDiff);
         if (result.errorCode != 0) {
-            throw new RuntimeException("could not retranslate file with error " + result.errorCode);
+            crashManager.log(new RuntimeException("could not retranslate file with error " + result.errorCode));
+            return null;
         }
 
         return new File(result.outputPath);

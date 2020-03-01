@@ -10,6 +10,7 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Parcelable;
@@ -29,8 +30,14 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -244,41 +251,53 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         loadOdf(lastResult.options);
     }
 
-    public void saveAsync(String htmlDiff, TextView statusView) {
-        backgroundHandler.post(new Runnable() {
+    public void save(Uri outFile) {
+        if (outFile == null) {
+            SnackbarHelper.show(getActivity(), R.string.toast_error_save_nofile, null, true, true);
+
+            return;
+        }
+
+        pageView.requestHtml(new PageView.HtmlCallback() {
+
             @Override
-            public void run() {
-                saveSync(htmlDiff, statusView);
+            public void onHtml(String htmlDiff) {
+                saveAsync(outFile, htmlDiff);
             }
         });
     }
 
-    private void saveSync(String htmlDiff, TextView statusView) {
+    private void saveAsync(Uri outFile, String htmlDiff) {
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                saveSync(outFile, htmlDiff);
+            }
+        });
+    }
+
+    private void saveSync(Uri outFile, String htmlDiff) {
         try {
-            String password = lastResult.options.password;
-
             File modifiedFile = odfLoader.retranslate(htmlDiff);
-            Uri fileUri = Uri.parse("file://"
-                    + modifiedFile.getAbsolutePath());
+            if (modifiedFile == null) {
+                SnackbarHelper.show(getActivity(), R.string.toast_error_save_nofile, null, true, true);
 
-            loadUri(fileUri, false, password, false, true);
+                return;
+            }
 
-            mainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    statusView.setText(R.string.edit_status_saved);
-                }
-            });
+            OutputStream outputStream = getContext().getContentResolver().openOutputStream(outFile);
+            StreamUtil.copy(modifiedFile, outputStream);
+
+            modifiedFile.delete();
+
+            loadUri(outFile, false, null, false, true);
+
+            SnackbarHelper.show(getActivity(), R.string.toast_edit_status_saved, null, false, false);
         } catch (Throwable e) {
             analyticsManager.report("save_error", FirebaseAnalytics.Param.CONTENT_TYPE, lastResult.options.fileType);
             crashManager.log(e, lastResult.options.originalUri);
 
-            mainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    statusView.setText(R.string.toast_error_generic);
-                }
-            });
+            SnackbarHelper.show(getActivity(), R.string.toast_error_save_failed, null, true, true);
         }
     }
 
@@ -710,6 +729,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     public PageView getPageView() {
         return pageView;
+    }
+
+    public FileLoader.Result getLastResult() {
+        return lastResult;
     }
 
     @Override

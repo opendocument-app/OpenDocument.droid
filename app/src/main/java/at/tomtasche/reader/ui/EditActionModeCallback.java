@@ -2,10 +2,20 @@ package at.tomtasche.reader.ui;
 
 import android.Manifest;
 import android.content.Context;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
+
+import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 import androidx.appcompat.view.ActionMode;
 import at.tomtasche.reader.R;
@@ -71,18 +81,29 @@ public class EditActionModeCallback implements ActionMode.Callback {
             }
 
             case R.id.edit_save: {
-                Runnable onPermission = new Runnable() {
-                    @Override
-                    public void run() {
-                        adManager.showInterstitial();
+                if (Build.VERSION.SDK_INT >= 19) {
+                    activity.requestSave();
+                } else {
+                    Runnable onPermission = new Runnable() {
+                        @Override
+                        public void run() {
+                            DateFormat dateFormat = new SimpleDateFormat("MMddyyyy-HHmmss", Locale.US);
+                            Date nowDate = Calendar.getInstance().getTime();
+                            String nowString = dateFormat.format(nowDate);
 
-                        save();
+                            File modifiedFile = new File(Environment.getExternalStorageDirectory(),
+                                    "modified-by-opendocument-reader-on-" + nowString);
+                            Uri fileUri = Uri.parse("file://"
+                                    + modifiedFile.getAbsolutePath());
+
+                            documentFragment.save(fileUri);
+                        }
+                    };
+
+                    boolean hasPermission = activity.requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, onPermission);
+                    if (hasPermission) {
+                        onPermission.run();
                     }
-                };
-
-                boolean hasPermission = activity.requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, onPermission);
-                if (hasPermission) {
-                    onPermission.run();
                 }
 
                 break;
@@ -93,16 +114,6 @@ public class EditActionModeCallback implements ActionMode.Callback {
         }
 
         return true;
-    }
-
-    public void save() {
-        pageView.requestHtml(new PageView.HtmlCallback() {
-
-            @Override
-            public void onHtml(String htmlDiff) {
-                documentFragment.saveAsync(htmlDiff, statusView);
-            }
-        });
     }
 
     @Override

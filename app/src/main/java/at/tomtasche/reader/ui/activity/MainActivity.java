@@ -33,6 +33,7 @@ import com.kobakei.ratethisapp.RateThisApp;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -80,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     private static final int GOOGLE_REQUEST_CODE = 1993;
     private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
     public static int PERMISSION_CODE = 1353;
+    public static int CREATE_CODE = 4213;
 
     private boolean isDocumentLoaded = false;
     private boolean didTriggerPermissionDialogAgain = false;
@@ -103,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     private HelpManager helpManager;
 
     private Runnable onPermissionRunnable;
+    private Runnable onCreateRunnable;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -266,6 +269,16 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         return true;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public void requestSave() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        intent.setType(documentFragment.getLastResult().options.fileType);
+
+        startActivityForResult(intent, CREATE_CODE);
+    }
+
     private void initializeProprietaryLibraries() {
         if (USE_PROPRIETARY_LIBRARIES && IS_GOOGLE_ECOSYSTEM) {
             GoogleApiAvailability googleApi = GoogleApiAvailability.getInstance();
@@ -340,6 +353,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         if (requestCode == GOOGLE_REQUEST_CODE) {
             initializeProprietaryLibraries();
+        } else if (requestCode == CREATE_CODE) {
+            documentFragment.save(intent.getData());
         } else if (intent != null) {
             Uri uri = intent.getData();
             if (requestCode == 42 && resultCode == Activity.RESULT_OK && uri != null) {

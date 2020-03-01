@@ -16,13 +16,14 @@ public class StreamUtil {
         copy(in, dst);
     }
 
+    public static void copy(File src, OutputStream out) throws IOException {
+        InputStream in = new FileInputStream(src);
+        copy(in, out);
+    }
+
     public static void copy(InputStream in, File dst) throws IOException {
         OutputStream out = new FileOutputStream(dst);
-        try {
-            copy(in, out);
-        } finally {
-            out.close();
-        }
+        copy(in, out);
     }
 
     // taken from: https://stackoverflow.com/a/9293885/198996
@@ -38,6 +39,7 @@ public class StreamUtil {
             out.flush();
         } finally {
             in.close();
+            out.close();
         }
     }
 }
