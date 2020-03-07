@@ -8,6 +8,7 @@
     <string name="toast_hint_unsupported_file">Vous n\'êtes pas satisfaits de l\'affichage du fichier ? Ouvrez-le avec une autre application.</string>
     <string name="toast_hint_upload_file">Vous n\'êtes pas satisfait de la façon dont le fichier est affiché ? Téléchargez-le pour améliorer son rendu.</string>
     <string name="toast_error_reopen_noapp">Aucune application sur l\'appareil ne gère ce type de fichier.</string>
+    <string name="toast_error_save_nofile">Aucun dossier pour enregistrer le fichier sélectionné.</string>
     <string name="toast_error_save_failed">Le fichier n\'a pas pu être enregistré. Veuillez contacter support@opendocument.app</string>
     <string name="toast_error_out_of_memory">Place insuffisante dans la mémoire de l\'appareil ! Il y a trop d\'images ou les fichiers sont trop volumineux.</string>
     <string name="toast_error_password_protected">Ce document est protégé par mot de passe</string>
