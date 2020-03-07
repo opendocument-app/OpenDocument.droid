@@ -352,7 +352,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         if (requestCode == GOOGLE_REQUEST_CODE) {
             initializeProprietaryLibraries();
-        } else if (requestCode == CREATE_CODE) {
+        } else if (requestCode == CREATE_CODE && intent != null) {
             documentFragment.save(intent.getData());
         } else if (intent != null) {
             Uri uri = intent.getData();

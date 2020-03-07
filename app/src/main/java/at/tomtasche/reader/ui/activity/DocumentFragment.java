@@ -287,6 +287,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             OutputStream outputStream = getContext().getContentResolver().openOutputStream(outFile);
             StreamUtil.copy(modifiedFile, outputStream);
+            outputStream.close();
 
             modifiedFile.delete();
 
