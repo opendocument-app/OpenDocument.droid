@@ -4,5 +4,12 @@
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/AndroidMagic" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/OpenDocument.core" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/OpenDocument.core/cmake-build-debug/_deps/cryptopp-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/OpenDocument.core/cmake-build-debug/_deps/cryptopp_cmake-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/OpenDocument.core/cmake-build-debug/_deps/glog-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/OpenDocument.core/cmake-build-debug/_deps/googletest-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/OpenDocument.core/cmake-build-debug/_deps/json-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/OpenDocument.core/cmake-build-debug/_deps/miniz-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/OpenDocument.core/cmake-build-debug/_deps/tinyxml2-src" vcs="Git" />
   </component>
 </project>

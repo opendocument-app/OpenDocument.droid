@@ -5,15 +5,10 @@ import java.util.List;
 
 public class CoreWrapper {
 
-    public boolean initialized = false;
-
     private long lastNativePointer;
 
-    public boolean initialize() {
+    public void initialize() {
         System.loadLibrary("odr-core");
-
-        initialized = true;
-        return initialized;
     }
 
     public CoreResult parse(CoreOptions options) {
@@ -50,6 +45,8 @@ public class CoreWrapper {
 
         long nativePointer;
 
+        boolean ooxml;
+
         boolean editable;
 
         String password;
@@ -67,5 +64,7 @@ public class CoreWrapper {
         List<String> pageNames = new LinkedList<>();
 
         String outputPath;
+
+        String extension;
     }
 }

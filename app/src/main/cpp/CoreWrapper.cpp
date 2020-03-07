@@ -1,6 +1,6 @@
 #include "CoreWrapper.h"
 
-#include <odr/TranslationHelper.h>
+#include <odr/OpenDocumentReader.h>
 #include <odr/TranslationConfig.h>
 #include <odr/FileMeta.h>
 
@@ -12,13 +12,13 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
     jclass optionsClass = env->GetObjectClass(options);
     jfieldID pointerField = env->GetFieldID(optionsClass, "nativePointer", "J");
 
-    odr::TranslationHelper *translator;
+    odr::OpenDocumentReader *translator;
 
     jlong pointer = env->GetLongField(options, pointerField);
     if (pointer == 0) {
-        translator = new odr::TranslationHelper();
+        translator = new odr::OpenDocumentReader();
     } else {
-        translator = (odr::TranslationHelper *) pointer;
+        translator = (odr::OpenDocumentReader *) pointer;
     }
 
     jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
@@ -38,7 +38,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
     env->ReleaseStringUTFChars(inputPath, inputPathC);
 
     try {
-        bool opened = translator->openOpenDocument(inputPathCpp);
+        bool opened = translator->open(inputPathCpp);
         if (!opened) {
             env->SetIntField(result, errorField, -1);
             return result;
@@ -49,7 +49,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jfieldID passwordField = env->GetFieldID(optionsClass, "password", "Ljava/lang/String;");
         jstring password = (jstring) env->GetObjectField(options, passwordField);
 
-        bool decrypted = !meta->encrypted;
+        bool decrypted = !meta.encrypted;
         if (password != NULL) {
             const char *passwordC = env->GetStringUTFChars(password, &isCopy);
             std::string passwordCpp = std::string(passwordC, env->GetStringUTFLength(password));
@@ -84,37 +84,104 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jfieldID pageNamesField = env->GetFieldID(resultClass, "pageNames", "Ljava/util/List;");
         jstring pageNames = (jstring) env->GetObjectField(result, pageNamesField);
 
-        if (meta->type == odr::FileType::OPENDOCUMENT_TEXT) {
-            jstring pageName = env->NewStringUTF("Text document");
-            env->CallBooleanMethod(pageNames, addMethod, pageName);
-
-            outputPathCpp = outputPathCpp + "0.html";
-
-            bool translated = translator->translate(outputPathCpp, config);
-            if (!translated) {
-                env->SetIntField(result, errorField, -4);
-                return result;
-            }
-        } else {
-            int i = 0;
-            // TODO: this could fail for HUGE documents with hundreds of pages
-            // https://stackoverflow.com/a/24292867/198996
-            for (auto page = meta->entries.begin(); page != meta->entries.end(); page++) {
-                jstring pageName = env->NewStringUTF(page->name.c_str());
+        jfieldID ooxmlField = env->GetFieldID(optionsClass, "ooxml", "Z");
+        jboolean ooxml = env->GetBooleanField(options, ooxmlField);
+        if (!ooxml) {
+            if (meta.type == odr::FileType::OPENDOCUMENT_TEXT) {
+                jstring pageName = env->NewStringUTF("Text document");
                 env->CallBooleanMethod(pageNames, addMethod, pageName);
 
-                std::string entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
-                config.entryOffset = i;
+                outputPathCpp = outputPathCpp + "0.html";
 
-                bool translated = translator->translate(entryOutputPath, config);
+                bool translated = translator->translate(outputPathCpp, config);
                 if (!translated) {
                     env->SetIntField(result, errorField, -4);
                     return result;
                 }
+            } else if (meta.type == odr::FileType::OPENDOCUMENT_SPREADSHEET || meta.type == odr::FileType::OPENDOCUMENT_PRESENTATION || meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
+                int i = 0;
+                // TODO: this could fail for HUGE documents with hundreds of pages
+                // https://stackoverflow.com/a/24292867/198996
+                for (auto page = meta.entries.begin(); page != meta.entries.end(); page++) {
+                    jstring pageName = env->NewStringUTF(page->name.c_str());
+                    env->CallBooleanMethod(pageNames, addMethod, pageName);
 
-                i++;
+                    std::string entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
+                    config.entryOffset = i;
+
+                    bool translated = translator->translate(entryOutputPath, config);
+                    if (!translated) {
+                        env->SetIntField(result, errorField, -4);
+                        return result;
+                    }
+
+                    i++;
+                }
+            } else {
+                env->SetIntField(result, errorField, -5);
+                return result;
+            }
+        } else {
+            if (meta.type == odr::FileType::OFFICE_OPEN_XML_DOCUMENT) {
+                jstring pageName = env->NewStringUTF("Text document");
+                env->CallBooleanMethod(pageNames, addMethod, pageName);
+
+                outputPathCpp = outputPathCpp + "0.html";
+
+                bool translated = translator->translate(outputPathCpp, config);
+                if (!translated) {
+                    env->SetIntField(result, errorField, -4);
+                    return result;
+                }
+            } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_WORKBOOK || meta.type == odr::FileType::OFFICE_OPEN_XML_PRESENTATION) {
+                int i = 0;
+                // TODO: this could fail for HUGE documents with hundreds of pages
+                // https://stackoverflow.com/a/24292867/198996
+                for (auto page = meta.entries.begin(); page != meta.entries.end(); page++) {
+                    jstring pageName = env->NewStringUTF(page->name.c_str());
+                    env->CallBooleanMethod(pageNames, addMethod, pageName);
+
+                    std::string entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
+                    config.entryOffset = i;
+
+                    bool translated = translator->translate(entryOutputPath, config);
+                    if (!translated) {
+                        env->SetIntField(result, errorField, -4);
+                        return result;
+                    }
+
+                    i++;
+                }
+            } else {
+                env->SetIntField(result, errorField, -5);
+                return result;
             }
         }
+
+        std::string extensionCpp;
+        if (meta.type == odr::FileType::OPENDOCUMENT_TEXT) {
+            extensionCpp = "odt";
+        } else if (meta.type == odr::FileType::OPENDOCUMENT_SPREADSHEET) {
+            extensionCpp = "ods";
+        } else if (meta.type == odr::FileType::OPENDOCUMENT_PRESENTATION) {
+            extensionCpp = "odp";
+        } else if (meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
+            extensionCpp = "odg";
+        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_DOCUMENT) {
+            extensionCpp = "docx";
+        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_WORKBOOK) {
+            extensionCpp = "xlsx";
+        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_PRESENTATION) {
+            extensionCpp = "pptx";
+        } else {
+            extensionCpp = "unknown";
+        }
+
+        const char *extensionC = extensionCpp.c_str();
+        jstring extension = env->NewStringUTF(extensionC);
+
+        jfieldID extensionField = env->GetFieldID(resultClass, "extension", "Ljava/lang/String;");
+        env->SetObjectField(result, extensionField, extension);
     } catch (...) {
         env->SetIntField(result, errorField, -3);
         return result;
@@ -133,7 +200,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
     jfieldID pointerField = env->GetFieldID(optionsClass, "nativePointer", "J");
 
     jlong pointer = env->GetLongField(options, pointerField);
-    odr::TranslationHelper *translator = (odr::TranslationHelper *) pointer;
+    odr::OpenDocumentReader *translator = (odr::OpenDocumentReader *) pointer;
 
     jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
     jmethodID resultConstructor = env->GetMethodID(resultClass, "<init>", "()V");
@@ -155,14 +222,20 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
 
         const auto meta = translator->getMeta();
         std::string extension;
-        if (meta->type == odr::FileType::OPENDOCUMENT_TEXT) {
+        if (meta.type == odr::FileType::OPENDOCUMENT_TEXT) {
             extension = "odt";
-        } else if (meta->type == odr::FileType::OPENDOCUMENT_SPREADSHEET) {
+        } else if (meta.type == odr::FileType::OPENDOCUMENT_SPREADSHEET) {
             extension = "ods";
-        } else if (meta->type == odr::FileType::OPENDOCUMENT_PRESENTATION) {
+        } else if (meta.type == odr::FileType::OPENDOCUMENT_PRESENTATION) {
             extension = "odp";
-        } else if (meta->type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
+        } else if (meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
             extension = "odg";
+        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_DOCUMENT) {
+            extension = "docx";
+        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_WORKBOOK) {
+            extension = "xlsx";
+        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_PRESENTATION) {
+            extension = "pptx";
         } else {
             extension = "unknown";
         }
@@ -195,7 +268,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jobject
     jfieldID pointerField = env->GetFieldID(optionsClass, "nativePointer", "J");
 
     jlong pointer = env->GetLongField(options, pointerField);
-    odr::TranslationHelper *translator = (odr::TranslationHelper *) pointer;
+    odr::OpenDocumentReader *translator = (odr::OpenDocumentReader *) pointer;
 
     delete translator;
 }

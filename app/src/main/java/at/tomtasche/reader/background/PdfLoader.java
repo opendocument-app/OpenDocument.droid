@@ -47,7 +47,7 @@ public class PdfLoader extends FileLoader {
             File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
 
             pdf2htmlEX pdfConverter = new pdf2htmlEX(context).setInputPDF(cacheFile);
-            pdfConverter.setOutline(false);
+            pdfConverter.setOutline(false).setBackgroundFormat("jpg").setDRM(false);
             if (options.password != null) {
                 pdfConverter.setOwnerPassword(options.password).setUserPassword(options.password);
             }
@@ -61,6 +61,8 @@ public class PdfLoader extends FileLoader {
             output.delete();
 
             Uri finalUri = Uri.fromFile(htmlFile);
+
+            options.fileType = "application/pdf";
 
             result.partTitles.add(null);
             result.partUris.add(finalUri);

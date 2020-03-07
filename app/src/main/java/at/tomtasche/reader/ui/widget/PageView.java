@@ -3,7 +3,6 @@ package at.tomtasche.reader.ui.widget;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -82,6 +81,8 @@ public class PageView extends WebView implements ParagraphListener {
                         @Override
                         public void run() {
                             if (!wasCommitCalled) {
+                                documentFragment.getCrashManager().log(new RuntimeException("commit was not called"));
+
                                 loadUrl(url);
                             }
                         }
@@ -92,11 +93,6 @@ public class PageView extends WebView implements ParagraphListener {
             @Override
             public void onPageCommitVisible(WebView view, String url) {
                 wasCommitCalled = true;
-            }
-
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                wasCommitCalled = false;
             }
 
             @Override
@@ -133,6 +129,13 @@ public class PageView extends WebView implements ParagraphListener {
         });
     }
 
+    @Override
+    public void loadUrl(String url) {
+        wasCommitCalled = false;
+
+        super.loadUrl(url);
+    }
+
     public void setDocumentFragment(DocumentFragment documentFragment) {
         this.documentFragment = documentFragment;
     }
@@ -150,12 +153,12 @@ public class PageView extends WebView implements ParagraphListener {
                         // document.body.firstChild.childNodes in the desktop
                         // version of Google Chrome
                         + "if (children.length <= " + index + ") { "
-                        + "paragraphListener.end();" + " return; " + "}"
+                        + "paragraphListener.end();" + "} else {"
                         + "var child = children[" + index + "]; "
-                        + "if (child) { "
+                        + "if (child && child.nodeName.toLowerCase() != 'script' && child.innerText) { "
                         + "paragraphListener.paragraph(child.innerText); "
                         + "} else { " + "paragraphListener.increaseIndex(); "
-                        + "}");
+                        + "} }");
             }
         });
     }
@@ -195,18 +198,21 @@ public class PageView extends WebView implements ParagraphListener {
 
     @Override
     @Keep
+    @JavascriptInterface
     public void paragraph(String text) {
         paragraphListener.paragraph(text);
     }
 
     @Override
     @Keep
+    @JavascriptInterface
     public void increaseIndex() {
         paragraphListener.increaseIndex();
     }
 
     @Override
     @Keep
+    @JavascriptInterface
     public void end() {
         paragraphListener.end();
     }

@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -32,6 +33,7 @@ import com.kobakei.ratethisapp.RateThisApp;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -79,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     private static final int GOOGLE_REQUEST_CODE = 1993;
     private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
     public static int PERMISSION_CODE = 1353;
+    public static int CREATE_CODE = 4213;
 
     private boolean isDocumentLoaded = false;
     private boolean didTriggerPermissionDialogAgain = false;
@@ -221,6 +224,13 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     }
 
     @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        adManager.showGoogleAds();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
 
@@ -256,6 +266,16 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         onPermissionRunnable = null;
 
         return true;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public void requestSave() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        intent.setType(documentFragment.getLastResult().options.fileType);
+
+        startActivityForResult(intent, CREATE_CODE);
     }
 
     private void initializeProprietaryLibraries() {
@@ -332,6 +352,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         if (requestCode == GOOGLE_REQUEST_CODE) {
             initializeProprietaryLibraries();
+        } else if (requestCode == CREATE_CODE && intent != null) {
+            documentFragment.save(intent.getData());
         } else if (intent != null) {
             Uri uri = intent.getData();
             if (requestCode == 42 && resultCode == Activity.RESULT_OK && uri != null) {

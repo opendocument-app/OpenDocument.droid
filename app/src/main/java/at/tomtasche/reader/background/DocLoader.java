@@ -43,6 +43,8 @@ public class DocLoader extends FileLoader {
 
             Uri finalUri = Uri.fromFile(htmlFile);
 
+            options.fileType = "application/msword";
+
             result.partTitles.add(null);
             result.partUris.add(finalUri);
 

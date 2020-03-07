@@ -139,7 +139,6 @@ public class FindActionModeCallback implements ActionMode.Callback, TextWatcher 
         if (find == null || 0 == find.length()) {
             mWebView.clearMatches();
             mMatchesFound = false;
-            mWebView.findAllAsync(null);
         } else {
             mMatchesFound = true;
             mNumberOfMatches = 0;

@@ -17,19 +17,24 @@ import java.util.concurrent.TimeoutException;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 
-public class OdfLoader extends FileLoader {
+public class OoxmlLoader extends FileLoader {
 
     private CoreWrapper lastCore;
     private CoreWrapper.CoreOptions lastCoreOptions;
 
-    public OdfLoader(Context context) {
-        super(context, LoaderType.ODF);
+    public OoxmlLoader(Context context) {
+        super(context, LoaderType.OOXML);
     }
-
 
     @Override
     public boolean isSupported(Options options) {
-        return options.fileType.startsWith("application/vnd.oasis.opendocument") || options.fileType.startsWith("application/x-vnd.oasis.opendocument");
+        if (true) {
+            // TODO: not stable enough yet
+            return false;
+        }
+
+        // TODO: enable xlsx and pptx too
+        return options.fileType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document") /*|| options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") || options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.presentation")*/;
     }
 
     @Override
@@ -56,14 +61,14 @@ public class OdfLoader extends FileLoader {
 
             File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
 
-            File fakeHtmlFile = new File(cacheDirectory, "odf");
+            File fakeHtmlFile = new File(cacheDirectory, "ooxml");
 
             CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
             coreOptions.inputPath = cachedFile.getPath();
             coreOptions.outputPath = fakeHtmlFile.getPath();
             coreOptions.password = options.password;
             coreOptions.editable = options.translatable;
-            coreOptions.ooxml = false;
+            coreOptions.ooxml = true;
 
             lastCoreOptions = coreOptions;
 
