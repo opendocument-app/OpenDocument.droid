@@ -3,11 +3,14 @@ package at.tomtasche.reader.background;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.perf.metrics.Trace;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -103,6 +106,9 @@ public abstract class FileLoader {
     }
 
     void callOnError(Result result, Throwable t) {
+        crashManager.log(result.loaderType.name() + " failed");
+        crashManager.log(t);
+
         mainHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -127,7 +133,19 @@ public abstract class FileLoader {
         });
     }
 
-    public static class Options {
+    public static class Options implements Parcelable {
+
+        public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+
+            public Options createFromParcel(Parcel in) {
+                return new Options(in);
+            }
+
+            public Options[] newArray(int size) {
+                return new Options[size];
+            }
+        };
+
         public Uri originalUri;
         public Uri cacheUri;
         public boolean persistentUri;
@@ -141,14 +159,84 @@ public abstract class FileLoader {
 
         public boolean limit;
         public boolean translatable;
+
+        public Options() {
+        }
+
+        public Options(Parcel parcel) {
+            originalUri = parcel.readParcelable(null);
+            cacheUri = parcel.readParcelable(null);
+            persistentUri = ParcelUtil.readBoolean(parcel);
+            fileExists = ParcelUtil.readBoolean(parcel);
+            filename = parcel.readString();
+            fileType = parcel.readString();
+            fileExtension = parcel.readString();
+            password = parcel.readString();
+            limit = ParcelUtil.readBoolean(parcel);
+            translatable = ParcelUtil.readBoolean(parcel);
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel parcel, int i) {
+            parcel.writeParcelable(originalUri, 0);
+            parcel.writeParcelable(cacheUri, 0);
+            ParcelUtil.writeBoolean(parcel, persistentUri);
+            ParcelUtil.writeBoolean(parcel, fileExists);
+            parcel.writeString(filename);
+            parcel.writeString(fileType);
+            parcel.writeString(fileExtension);
+            parcel.writeString(password);
+            ParcelUtil.writeBoolean(parcel, limit);
+            ParcelUtil.writeBoolean(parcel, translatable);
+        }
     }
 
-    public class Result {
+    public static class Result implements Parcelable {
+
+        public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+
+            public Result createFromParcel(Parcel in) {
+                return new Result(in);
+            }
+
+            public Result[] newArray(int size) {
+                return new Result[size];
+            }
+        };
+
         public LoaderType loaderType;
         public Options options;
 
         public List<String> partTitles = new LinkedList<>();
         public List<Uri> partUris = new LinkedList<>();
+
+        public Result() {
+        }
+
+        public Result(Parcel parcel) {
+            loaderType = LoaderType.valueOf(parcel.readString());
+            options = parcel.readParcelable(getClass().getClassLoader());
+            parcel.readList(partTitles, null);
+            parcel.readList(partUris, null);
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel parcel, int i) {
+            parcel.writeString(loaderType.name());
+            parcel.writeParcelable(options, 0);
+            parcel.writeList(partTitles);
+            parcel.writeList(partUris);
+        }
     }
 
     public interface FileLoaderListener {

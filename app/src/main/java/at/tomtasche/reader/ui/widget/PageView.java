@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import androidx.annotation.Keep;
 import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.StreamUtil;
+import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.ParagraphListener;
 import at.tomtasche.reader.ui.activity.DocumentFragment;
 
@@ -32,6 +33,7 @@ public class PageView extends WebView implements ParagraphListener {
     private ParagraphListener paragraphListener;
 
     private DocumentFragment documentFragment;
+    private CrashManager crashManager;
 
     private HtmlCallback htmlCallback;
 
@@ -59,6 +61,8 @@ public class PageView extends WebView implements ParagraphListener {
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
 
+        setWebContentsDebuggingEnabled(true);
+
         addJavascriptInterface(this, "paragraphListener");
 
         setKeepScreenOn(true);
@@ -81,7 +85,7 @@ public class PageView extends WebView implements ParagraphListener {
                         @Override
                         public void run() {
                             if (!wasCommitCalled) {
-                                documentFragment.getCrashManager().log(new RuntimeException("commit was not called"));
+                                crashManager.log(new RuntimeException("commit was not called"));
 
                                 loadUrl(url);
                             }
@@ -106,7 +110,7 @@ public class PageView extends WebView implements ParagraphListener {
 
                         return true;
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        crashManager.log(e);
 
                         return false;
                     }
@@ -123,7 +127,7 @@ public class PageView extends WebView implements ParagraphListener {
                     getContext().startActivity(
                             new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    crashManager.log(e);
                 }
             }
         });
@@ -138,6 +142,7 @@ public class PageView extends WebView implements ParagraphListener {
 
     public void setDocumentFragment(DocumentFragment documentFragment) {
         this.documentFragment = documentFragment;
+        this.crashManager = documentFragment.getCrashManager();
     }
 
     public void setParagraphListener(ParagraphListener paragraphListener) {
@@ -150,8 +155,6 @@ public class PageView extends WebView implements ParagraphListener {
             @Override
             public void run() {
                 loadUrl("javascript:var children = document.body.childNodes; "
-                        // document.body.firstChild.childNodes in the desktop
-                        // version of Google Chrome
                         + "if (children.length <= " + index + ") { "
                         + "paragraphListener.end();" + "} else {"
                         + "var child = children[" + index + "]; "
@@ -191,8 +194,7 @@ public class PageView extends WebView implements ParagraphListener {
 
             documentFragment.loadUri(AndroidFileCache.getCacheFileUri(), false);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            crashManager.log(e);
         }
     }
 

@@ -2,20 +2,9 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Environment;
-import android.os.Handler;
 import android.webkit.MimeTypeMap;
 
 import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-import java.util.concurrent.TimeoutException;
-
-import at.tomtasche.reader.nonfree.AnalyticsManager;
-import at.tomtasche.reader.nonfree.CrashManager;
 
 public class OdfLoader extends FileLoader {
 
@@ -25,7 +14,6 @@ public class OdfLoader extends FileLoader {
     public OdfLoader(Context context) {
         super(context, LoaderType.ODF);
     }
-
 
     @Override
     public boolean isSupported(Options options) {
@@ -87,8 +75,6 @@ public class OdfLoader extends FileLoader {
                 }
             }
         } catch (Throwable e) {
-            e.printStackTrace();
-
             callOnError(result, e);
         }
     }

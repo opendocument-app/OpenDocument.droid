@@ -10,7 +10,6 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Parcelable;
@@ -31,14 +30,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
@@ -65,6 +60,8 @@ import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 
 public class DocumentFragment extends Fragment implements FileLoader.FileLoaderListener, ActionBar.TabListener {
 
+    private static final String SAVED_KEY_LAST_RESULT = "LAST_RESULT";
+
     private Handler mainHandler;
 
     private MetadataLoader metadataLoader;
@@ -90,8 +87,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private Handler backgroundHandler;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
         mainHandler = new Handler();
 
@@ -126,8 +123,20 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         onlineLoader = new OnlineLoader(context);
         onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
-        setRetainInstance(true);
+        pageView.setDocumentFragment(this);
+
         setHasOptionsMenu(true);
+
+        if (savedInstanceState != null) {
+            FileLoader.Result lastResult = savedInstanceState.getParcelable(SAVED_KEY_LAST_RESULT);
+            if (lastResult != null) {
+                loadWithType(lastResult.loaderType, lastResult.options);
+            }
+        }
+
+        // code is meant to work even without this setting, but things like scrollposition
+        // or editing would get lost on configuration change
+        setRetainInstance(false);
     }
 
     @Nullable
@@ -137,7 +146,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             LinearLayout inflatedView = (LinearLayout) inflater.inflate(R.layout.fragment_document, container, false);
 
             pageView = inflatedView.findViewById(R.id.page_view);
-            pageView.setDocumentFragment(this);
 
             return inflatedView;
         } catch (Throwable t) {
@@ -165,90 +173,76 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+
         this.menu = menu;
 
-        super.onCreateOptionsMenu(menu, inflater);
+        menu.setGroupVisible(R.id.menu_document_group, true);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putParcelable(SAVED_KEY_LAST_RESULT, lastResult);
+    }
+
+    private void loadWithType(FileLoader.LoaderType loaderType, FileLoader.Options options) {
+        boolean isUpload = false;
+        boolean isEditEnabled = false;
+
+        FileLoader loader;
+        switch (loaderType) {
+            case ODF:
+                loader = odfLoader;
+                isEditEnabled = true;
+                break;
+            case DOC:
+                loader = docLoader;
+                break;
+            case OOXML:
+                loader = ooxmlLoader;
+                break;
+            case PDF:
+                loader = pdfLoader;
+                break;
+            case ONLINE:
+                loader = onlineLoader;
+                isUpload = true;
+                break;
+            case RAW:
+                loader = rawLoader;
+                break;
+            case METADATA:
+                loader = metadataLoader;
+                break;
+            default:
+                loader = null;
+        }
+
+        showProgress(isUpload);
+
+        toggleDocumentMenu(true, isEditEnabled);
+
+        loader.loadAsync(options);
     }
 
     public void loadUri(Uri uri, boolean persistentUri) {
-        loadUri(uri, persistentUri, null, false, false);
+        loadUri(uri, persistentUri, false);
     }
 
-    public void loadUri(Uri uri, boolean persistentUri, String password) {
-        loadUri(uri, persistentUri, password, false, false);
-    }
-
-    public void loadUri(Uri uri, boolean persistentUri, String password, boolean limit, boolean translatable) {
+    private void loadUri(Uri uri, boolean persistentUri, boolean editable) {
         FileLoader.Options options = new FileLoader.Options();
         options.originalUri = uri;
         options.persistentUri = persistentUri;
-        options.password = password;
-        options.limit = limit;
-        options.translatable = translatable;
 
-        showProgress(false);
-
-        metadataLoader.loadAsync(options);
-    }
-
-    private void loadOdf(FileLoader.Options options) {
-        showProgress(false);
-
-        toggleDocumentMenu(true);
-        togglePageView(true);
-
-        odfLoader.loadAsync(options);
-    }
-
-    private void loadOoxml(FileLoader.Options options) {
-        showProgress(false);
-
-        toggleDocumentMenu(true, true);
-        togglePageView(true);
-
-        ooxmlLoader.loadAsync(options);
-    }
-
-    private void loadDoc(FileLoader.Options options) {
-        showProgress(false);
-
-        toggleDocumentMenu(true, false);
-        togglePageView(true);
-
-        docLoader.loadAsync(options);
-    }
-
-    private void loadRaw(FileLoader.Options options) {
-        showProgress(false);
-
-        toggleDocumentMenu(true, false);
-        togglePageView(true);
-
-        rawLoader.loadAsync(options);
-    }
-
-    private void loadPdf(FileLoader.Options options) {
-        showProgress(false);
-
-        toggleDocumentMenu(true, false);
-        togglePageView(true);
-
-        pdfLoader.loadAsync(options);
-    }
-
-    private void togglePageView(boolean enabled) {
-        if (pageView == null) {
-            // happens on devices with no WebView installed, ignore
-            return;
-        }
-
-        pageView.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        loadWithType(FileLoader.LoaderType.METADATA, options);
     }
 
     public void reloadUri(boolean translatable) {
         lastResult.options.translatable = translatable;
 
-        loadOdf(lastResult.options);
+        loadWithType(lastResult.loaderType, lastResult.options);
     }
 
     public void save(Uri outFile) {
@@ -291,7 +285,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             modifiedFile.delete();
 
-            loadUri(outFile, false, null, false, true);
+            loadUri(outFile, false, true);
 
             SnackbarHelper.show(getActivity(), R.string.toast_edit_status_saved, null, false, false);
         } catch (Throwable e) {
@@ -300,15 +294,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             SnackbarHelper.show(getActivity(), R.string.toast_error_save_failed, null, true, true);
         }
-    }
-
-    private void loadOnline(FileLoader.Options options) {
-        showProgress(true);
-
-        togglePageView(true);
-        toggleDocumentMenu(true, false);
-
-        onlineLoader.loadAsync(options);
     }
 
     private void unload() {
@@ -365,7 +350,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 analyticsManager.report("load_odf_error_expected", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
             }
 
-            loadOdf(options);
+            loadWithType(FileLoader.LoaderType.ODF, options);
         } else {
             analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
 
@@ -441,11 +426,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                             dialog.dismiss();
 
                             if (result.loaderType == FileLoader.LoaderType.ODF) {
-                                loadOdf(options);
+                                loadWithType(FileLoader.LoaderType.ODF, options);
                             } else if (result.loaderType == FileLoader.LoaderType.DOC) {
-                                loadDoc(options);
+                                loadWithType(FileLoader.LoaderType.DOC, options);
                             } else if (result.loaderType == FileLoader.LoaderType.PDF) {
-                                loadPdf(options);
+                                loadWithType(FileLoader.LoaderType.PDF, options);
                             } else {
                                 throw new RuntimeException("encryption not supported for type: " + result.loaderType);
                             }
@@ -462,13 +447,13 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             crashManager.log(error, options.originalUri);
 
             if (pdfLoader.isSupported(options)) {
-                loadPdf(options);
+                loadWithType(FileLoader.LoaderType.PDF, options);
             } else if (ooxmlLoader.isSupported(options)) {
-                loadOoxml(options);
+                loadWithType(FileLoader.LoaderType.OOXML, options);
             } else if (docLoader.isSupported(options)) {
-                loadDoc(options);
+                loadWithType(FileLoader.LoaderType.DOC, options);
             } else if (rawLoader.isSupported(options)) {
-                loadRaw(options);
+                loadWithType(FileLoader.LoaderType.RAW, options);
             } else if (onlineLoader.isSupported(options)) {
                 offerUpload(activity, options, true);
             } else {
@@ -525,7 +510,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                                                 int whichButton) {
                                 analyticsManager.report("load_upload", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
 
-                                loadOnline(options);
+                                loadWithType(FileLoader.LoaderType.ONLINE, options);
 
                                 dialog.dismiss();
                             }
@@ -550,7 +535,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             SnackbarHelper.show(activity, R.string.toast_hint_upload_file, new Runnable() {
                 @Override
                 public void run() {
-                    loadOnline(options);
+                    loadWithType(FileLoader.LoaderType.ONLINE, options);
                 }
             }, false, false);
         }
@@ -585,7 +570,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
                 reopenUri = Uri.parse("content://at.tomtasche.reader.provider/cache/" + reopenFilename);
             } catch (IOException e) {
-                e.printStackTrace();
+                crashManager.log(e);
 
                 reopenUri = cacheUri;
             }
@@ -640,7 +625,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         try {
             activity.startActivity(chooserIntent);
         } catch (Throwable e) {
-            e.printStackTrace();
+            crashManager.log(e);
 
             if (grantPermission) {
                 loadReopen(options, activity, false);
@@ -671,7 +656,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                     progressDialog.show(transaction,
                             ProgressDialogFragment.FRAGMENT_TAG);
                 } catch (IllegalStateException e) {
-                    e.printStackTrace();
+                    crashManager.log(e);
 
                     progressDialog = null;
                 }
@@ -701,11 +686,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                     try {
                         progressDialog.dismissAllowingStateLoss();
                     } catch (NullPointerException e) {
-                        e.printStackTrace();
+                        crashManager.log(e);
                     }
-
-                    progressDialog = null;
                 }
+
+                progressDialog = null;
             }
         });
     }
@@ -732,8 +717,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         return pageView;
     }
 
-    public FileLoader.Result getLastResult() {
-        return lastResult;
+    public String getLastFileType() {
+        return lastResult.options.fileType;
     }
 
     public CrashManager getCrashManager() {
@@ -777,7 +762,5 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         }
 
         backgroundThread.quit();
-        backgroundThread = null;
-        backgroundHandler = null;
     }
 }

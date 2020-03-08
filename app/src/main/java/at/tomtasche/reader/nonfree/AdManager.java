@@ -23,6 +23,7 @@ public class AdManager implements RewardedVideoAdListener {
     private boolean enabled;
 
     private Activity activity;
+    private CrashManager crashManager;
     private AnalyticsManager analyticsManager;
 
     private boolean adFailed;
@@ -34,19 +35,20 @@ public class AdManager implements RewardedVideoAdListener {
     private RewardedVideoAd rewardedVideoAd;
     private ProgressDialog progressDialog;
 
-    public void initialize(Activity activity, AnalyticsManager analyticsManager) {
+    public void initialize(Activity activity, AnalyticsManager analyticsManager, CrashManager crashManager) {
         if (!enabled) {
             return;
         }
 
         this.activity = activity;
+        this.crashManager = crashManager;
         this.analyticsManager = analyticsManager;
 
         try {
             MobileAds.initialize(activity, "ca-app-pub-8161473686436957~9025061963");
         } catch (Throwable e) {
             // java.lang.VerifyError: com/google/android/gms/ads/internal/ClientApi
-            e.printStackTrace();
+            crashManager.log(e);
 
             enabled = false;
         }
@@ -150,9 +152,9 @@ public class AdManager implements RewardedVideoAdListener {
             try {
                 interstitial.show();
             } catch (Exception e) {
-                e.printStackTrace();
-
                 // very rarely crashes with "The ad unit ID must be set on InterstitialAd before show is called."
+
+                crashManager.log(e);
             }
         }
     }
@@ -190,7 +192,7 @@ public class AdManager implements RewardedVideoAdListener {
             try {
                 rewardedVideoAd.show();
             } catch (Exception e) {
-                e.printStackTrace();
+                crashManager.log(e);
             }
         }
 
@@ -216,7 +218,7 @@ public class AdManager implements RewardedVideoAdListener {
                 madView.destroy();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            crashManager.log(e);
         }
     }
 

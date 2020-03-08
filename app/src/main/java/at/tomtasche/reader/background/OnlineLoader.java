@@ -70,7 +70,7 @@ public class OnlineLoader extends FileLoader {
             storage = FirebaseStorage.getInstance().getReference();
             auth = FirebaseAuth.getInstance();
         } catch (Throwable e) {
-            e.printStackTrace();
+            crashManager.log(e);
         }
 
     }
@@ -148,8 +148,6 @@ public class OnlineLoader extends FileLoader {
                 throw new RuntimeException("server couldn't handle request");
             }
         } catch (Throwable e) {
-            e.printStackTrace();
-
             callOnError(result, e);
         }
     }
