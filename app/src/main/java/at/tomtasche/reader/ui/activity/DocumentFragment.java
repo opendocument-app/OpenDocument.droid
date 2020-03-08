@@ -136,7 +136,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         // code is meant to work even without this setting, but things like scrollposition
         // or editing would get lost on configuration change
-        setRetainInstance(false);
+        setRetainInstance(true);
     }
 
     @Nullable
