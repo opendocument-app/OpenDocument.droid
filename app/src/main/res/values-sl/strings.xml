@@ -7,6 +7,7 @@
     <string name="toast_hint_unsupported_file">Niste zadovoljni z načinom prikaza datoteke? Odprite jo v drugem programu.</string>
     <string name="toast_hint_upload_file">Vam ni všeč, kako je datoteka prikazana? Začasno jo pošljite, da izboljšate oblikovanje.</string>
     <string name="toast_error_reopen_noapp">Na napravi ni bilo najdenega programa, ki podpira to vrsto datotek.</string>
+    <string name="toast_error_save_failed">Datoteke ni bilo mogoče shraniti. Prosimo, pišite na support@opendocument.app.</string>
     <string name="toast_error_out_of_memory">Telefonu je zmanjkalo pomnilnika! Preveč slik ali prevelika datoteka.</string>
     <string name="toast_error_password_protected">Dokument je zaščiten z geslom</string>
     <string name="toast_error_permission_required">Za branje in shranjevanje dokumentov je zahtevano dovoljenje</string>
