@@ -51,7 +51,6 @@
     <string name="tts_status_failed">テキスト読み上げできませんでした。</string>
     <string name="tts_status_paused">一時停止しました。</string>
     <string name="tts_status_finished">完了しました。</string>
-    <string name="edit_status_saved">ドキュメントを SD カードに保存しました</string>
     <string name="crouton_printing">印刷しています…</string>
     <string name="crouton_print_unavailable">お使いのデバイスで印刷は利用できません。Android の新しいバージョンにアップグレードしてください。</string>
     <string name="intro_title_open">外出先で ODF ファイルを開いたり読み込みます!</string>
