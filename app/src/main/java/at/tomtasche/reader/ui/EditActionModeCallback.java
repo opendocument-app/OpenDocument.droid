@@ -27,30 +27,21 @@ import at.tomtasche.reader.ui.widget.PageView;
 
 public class EditActionModeCallback implements ActionMode.Callback {
 
-    public static int PERMISSION_CODE = 21874;
-
     private MainActivity activity;
     private DocumentFragment documentFragment;
-    private AdManager adManager;
-    private PageView pageView;
     private HelpManager helpManager;
-    private TextView statusView;
 
     private InputMethodManager imm;
 
-    private int permissionDialogCount;
-
-    public EditActionModeCallback(MainActivity activity, DocumentFragment documentFragment, AdManager adManager, HelpManager helpManager) {
+    public EditActionModeCallback(MainActivity activity, DocumentFragment documentFragment, HelpManager helpManager) {
         this.activity = activity;
         this.documentFragment = documentFragment;
-        this.adManager = adManager;
         this.helpManager = helpManager;
-        this.pageView = documentFragment.getPageView();
     }
 
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-        statusView = new TextView(activity);
+        TextView statusView = new TextView(activity);
         statusView.setText(R.string.action_edit_banner);
         mode.setCustomView(statusView);
 
@@ -81,9 +72,12 @@ public class EditActionModeCallback implements ActionMode.Callback {
             }
 
             case R.id.edit_save: {
+                boolean isModernSaveAvailable = false;
                 if (Build.VERSION.SDK_INT >= 19) {
-                    activity.requestSave();
-                } else {
+                    isModernSaveAvailable = activity.requestSave();
+                }
+
+                if (!isModernSaveAvailable) {
                     Runnable onPermission = new Runnable() {
                         @Override
                         public void run() {

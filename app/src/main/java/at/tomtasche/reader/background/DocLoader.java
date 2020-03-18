@@ -50,8 +50,6 @@ public class DocLoader extends FileLoader {
 
             callOnSuccess(result);
         } catch (Throwable e) {
-            e.printStackTrace();
-
             if (e instanceof wvWare.PasswordRequiredException || e instanceof wvWare.WrongPasswordException) {
                 e = new EncryptedDocumentException();
             }

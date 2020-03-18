@@ -22,7 +22,7 @@ import androidx.appcompat.app.AlertDialog.Builder;
 import androidx.fragment.app.DialogFragment;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.RecentDocumentsUtil;
-import at.tomtasche.reader.ui.activity.DocumentLoadingActivity;
+import at.tomtasche.reader.ui.activity.MainActivity;
 
 public class RecentDocumentDialogFragment extends DialogFragment implements
         OnItemClickListener, OnItemLongClickListener {
@@ -101,7 +101,7 @@ public class RecentDocumentDialogFragment extends DialogFragment implements
 
         dismiss();
 
-        DocumentLoadingActivity activity = ((DocumentLoadingActivity) getActivity());
+        MainActivity activity = ((MainActivity) getActivity());
         activity.loadUri(Uri.parse(uri), true);
     }
 

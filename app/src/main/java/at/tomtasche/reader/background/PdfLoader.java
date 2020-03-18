@@ -69,8 +69,6 @@ public class PdfLoader extends FileLoader {
 
             callOnSuccess(result);
         } catch (Throwable e) {
-            e.printStackTrace();
-
             if (e instanceof pdf2htmlEX.PasswordRequiredException || e instanceof pdf2htmlEX.WrongPasswordException) {
                 e = new EncryptedDocumentException();
             }
