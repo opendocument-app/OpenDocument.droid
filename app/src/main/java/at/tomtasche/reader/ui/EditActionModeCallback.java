@@ -72,9 +72,12 @@ public class EditActionModeCallback implements ActionMode.Callback {
             }
 
             case R.id.edit_save: {
+                boolean isModernSaveAvailable = false;
                 if (Build.VERSION.SDK_INT >= 19) {
-                    activity.requestSave();
-                } else {
+                    isModernSaveAvailable = activity.requestSave();
+                }
+
+                if (!isModernSaveAvailable) {
                     Runnable onPermission = new Runnable() {
                         @Override
                         public void run() {

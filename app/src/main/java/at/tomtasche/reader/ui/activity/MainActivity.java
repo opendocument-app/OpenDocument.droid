@@ -2,6 +2,7 @@ package at.tomtasche.reader.ui.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -261,13 +262,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void requestSave() {
-        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
+    public boolean requestSave() {
+        try {
+            Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
 
-        intent.setType(documentFragment.getLastFileType());
+            intent.setType(documentFragment.getLastFileType());
 
-        startActivityForResult(intent, CREATE_CODE);
+            startActivityForResult(intent, CREATE_CODE);
+
+            return true;
+        } catch (ActivityNotFoundException e) {
+            // happens on a variety devices, e.g. Samsung Galaxy Tab4 7.0 with Android 4.4.2
+            crashManager.log(e);
+
+            return false;
+        }
     }
 
     private void initializeProprietaryLibraries() {
@@ -542,6 +552,8 @@ public class MainActivity extends AppCompatActivity {
             if (requestCode == PERMISSION_CODE && onPermissionRunnable != null) {
                 onPermissionRunnable.run();
                 onPermissionRunnable = null;
+
+                return;
             }
         }
 
