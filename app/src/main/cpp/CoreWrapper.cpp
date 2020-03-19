@@ -1,8 +1,8 @@
 #include "CoreWrapper.h"
 
 #include <odr/OpenDocumentReader.h>
-#include <odr/TranslationConfig.h>
-#include <odr/FileMeta.h>
+#include <odr/Config.h>
+#include <odr/Meta.h>
 
 JNIEXPORT jobject JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject instance, jobject options)
@@ -66,7 +66,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jfieldID editableField = env->GetFieldID(optionsClass, "editable", "Z");
         jboolean editable = env->GetBooleanField(options, editableField);
 
-        odr::TranslationConfig config = {};
+        odr::Config config = {};
         config.editable = editable;
         config.entryCount = 1;
         config.tableLimitRows = 10000;

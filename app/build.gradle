@@ -17,6 +17,13 @@ android {
         multiDexEnabled true
 
         vectorDrawables.useSupportLibrary = true
+
+        externalNativeBuild {
+            cmake {
+                targets "odr-core"
+            }
+        }
+
     }
 
     dexOptions {
