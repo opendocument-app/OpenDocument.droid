@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/OpenDocument.droid.iml" filepath="$PROJECT_DIR$/OpenDocument.droid.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/AndroidMagic/libmagic/libmagic.iml" filepath="$PROJECT_DIR$/AndroidMagic/libmagic/libmagic.iml" />
+      <module fileurl="file://$PROJECT_DIR$/OpenDocument.droid.iml" filepath="$PROJECT_DIR$/OpenDocument.droid.iml" group="OpenDocument.droid" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" group="OpenDocument.droid/app" />
+      <module fileurl="file://$PROJECT_DIR$/AndroidMagic/libmagic/libmagic.iml" filepath="$PROJECT_DIR$/AndroidMagic/libmagic/libmagic.iml" group="OpenDocument.droid/libmagic" />
     </modules>
   </component>
 </project>
