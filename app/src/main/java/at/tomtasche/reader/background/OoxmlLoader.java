@@ -92,8 +92,6 @@ public class OoxmlLoader extends FileLoader {
                 }
             }
         } catch (Throwable e) {
-            e.printStackTrace();
-
             callOnError(result, e);
         }
     }

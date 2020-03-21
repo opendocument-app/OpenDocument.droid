@@ -51,7 +51,6 @@
     <string name="tts_status_failed">TTS başarısız oldu.</string>
     <string name="tts_status_paused">Duraklatıldı.</string>
     <string name="tts_status_finished">Bitti.</string>
-    <string name="edit_status_saved">Belge SD kartınıza kaydedildi</string>
     <string name="crouton_printing">Yazdırılıyor…</string>
     <string name="crouton_print_unavailable">Aygıtınızda yazdırma özelliği yok. Lütfen Androidi daha yeni bir sürüme yükseltin.</string>
     <string name="intro_title_open">ODF dosyanızı hareketliyken açın ve okuyun!</string>
