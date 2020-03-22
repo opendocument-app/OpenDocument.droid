@@ -44,7 +44,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
             return result;
         }
 
-        const auto meta = translator->getMeta();
+        auto meta = translator->getMeta();
 
         jfieldID passwordField = env->GetFieldID(optionsClass, "password", "Ljava/lang/String;");
         jstring password = (jstring) env->GetObjectField(options, passwordField);
@@ -56,6 +56,8 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
             env->ReleaseStringUTFChars(password, passwordC);
 
             decrypted = translator->decrypt(passwordCpp);
+
+            meta = translator->getMeta();
         }
 
         if (!decrypted) {
@@ -82,7 +84,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jmethodID addMethod = env->GetMethodID(listClass, "add", "(Ljava/lang/Object;)Z");
 
         jfieldID pageNamesField = env->GetFieldID(resultClass, "pageNames", "Ljava/util/List;");
-        jstring pageNames = (jstring) env->GetObjectField(result, pageNamesField);
+        jobject pageNames = (jobject) env->GetObjectField(result, pageNamesField);
 
         jfieldID ooxmlField = env->GetFieldID(optionsClass, "ooxml", "Z");
         jboolean ooxml = env->GetBooleanField(options, ooxmlField);
