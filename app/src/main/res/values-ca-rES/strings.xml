@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="toast_error_generic">Hi ha hagut un problema. No s\'ha pogut obrir el fitxer.</string>
+    <string name="toast_error_find_file">No s\'ha pogut trobar el fitxer. És possible que ja no existeixi?</string>
+    <string name="toast_error_illegal_file">No sembla que sigui un format de fitxer compatible.</string>
+    <string name="toast_error_out_of_memory">S\'ha esgotat la memòria del telèfon. Massa imatges o fitxer massa gran.</string>
+    <string name="toast_error_password_protected">El document està protegit per contrasenya</string>
+    <string name="dialog_recent_title">Documents recents</string>
+    <string name="dialog_choose_filemanager">Obre el document mitjançant:</string>
+    <string name="dialog_loading_title">S\'està carregant…</string>
+    <string name="dialog_uploading_title">S\'està pujant…</string>
+    <string name="dialog_upload_file">No s\'ha pogut obrir el document perquè el seu format no és compatible. Voleu pujar-lo temporalment al nostre servidor per tal que us el puguem mostrar de totes maneres?</string>
+    <string name="dialog_title_choose_file">Trieu un fitxer del dispositiu</string>
+    <string name="dialog_list_no_documents_found">No s\'ha trobat cap document</string>
+    <string name="menu_search">Cerca</string>
+    <string name="menu_open">Obre</string>
+    <string name="menu_fullscreen">Mode de pantalla completa</string>
+    <string name="menu_cloud_print">Google Cloud Print</string>
+    <string name="menu_tts">Text-a-paraula</string>
+    <string name="crouton_leave_fullscreen">Premeu Enrere per abandonar el mode de pantalla completa</string>
+    <string name="action_find_previous">Anterior</string>
+    <string name="action_find_next">Següent</string>
+    <string name="action_find_on_page">Cerca a la pàgina</string>
+    <string name="action_tts_play">Reprodueix</string>
+    <string name="action_tts_pause">Pausa</string>
+    <string name="action_tts_next">Següent</string>
+    <string name="action_tts_previous">Anterior</string>
+</resources>
