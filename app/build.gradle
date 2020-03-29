@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
-apply plugin: 'io.fabric'
 apply plugin: 'com.google.firebase.firebase-perf'
+apply plugin: 'com.google.firebase.crashlytics'
 
 android {
     compileSdkVersion 29
@@ -38,9 +38,15 @@ android {
         }
     }
 
-    android {
-        lintOptions {
-            abortOnError false
+    lintOptions {
+        abortOnError false
+    }
+
+    buildTypes {
+        release {
+            firebaseCrashlytics {
+                nativeSymbolUploadEnabled true
+            }
         }
     }
 
@@ -83,9 +89,10 @@ dependencies {
     implementation 'com.google.firebase:firebase-storage:19.1.1'
     implementation 'com.google.firebase:firebase-auth:19.3.0'
     implementation 'com.google.firebase:firebase-ads:19.0.1'
-    implementation 'com.crashlytics.sdk.android:crashlytics:2.10.1'
     implementation 'com.google.firebase:firebase-core:17.2.3'
     implementation 'com.google.firebase:firebase-perf:19.0.5'
+    implementation 'com.google.firebase:firebase-crashlytics:17.0.0-beta02'
+    implementation 'com.google.firebase:firebase-crashlytics-ndk:17.0.0-beta01'
 
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'androidx.appcompat:appcompat:1.1.0'
