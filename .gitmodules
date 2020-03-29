@@ -1,6 +1,6 @@
 [submodule "AndroidMagic"]
 	path = AndroidMagic
-	url = https://github.com/huzongyao/AndroidMagic.git
+	url = https://github.com/TomTasche/AndroidMagic.git
 [submodule "OpenDocument.core"]
 	path = OpenDocument.core
 	url = https://github.com/andiwand/OpenDocument.core.git
