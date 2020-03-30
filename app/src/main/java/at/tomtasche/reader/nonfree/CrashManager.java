@@ -1,9 +1,8 @@
 package at.tomtasche.reader.nonfree;
 
 import android.net.Uri;
-import android.util.Log;
 
-import com.crashlytics.android.Crashlytics;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.util.concurrent.TimeoutException;
 
@@ -11,7 +10,15 @@ public class CrashManager {
 
     private boolean enabled;
 
+    private FirebaseCrashlytics crashlytics;
+
     public void initialize() {
+        if (!enabled) {
+            return;
+        }
+
+        crashlytics = FirebaseCrashlytics.getInstance();
+
         // mitigate TimeoutException on finalize
         // https://stackoverflow.com/a/55999687/198996
         final Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler =
@@ -37,7 +44,7 @@ public class CrashManager {
             return;
         }
 
-        Crashlytics.log(Log.INFO, "MainActivity", message);
+        crashlytics.log(message);
     }
 
     public void log(Throwable error, Uri uri) {
@@ -50,7 +57,7 @@ public class CrashManager {
             uriString = uri.toString();
         }
 
-        Crashlytics.log(Log.ERROR, "MainActivity", "could not load document at: " + uriString);
+        crashlytics.log("could not load document at: " + uriString);
         log(error);
     }
 
@@ -61,6 +68,6 @@ public class CrashManager {
             return;
         }
 
-        Crashlytics.logException(error);
+        crashlytics.recordException(error);
     }
 }

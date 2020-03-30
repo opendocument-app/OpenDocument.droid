@@ -50,6 +50,7 @@ public class PdfLoader extends FileLoader {
             pdfConverter.setOutline(false).setBackgroundFormat("jpg").setDRM(false);
             if (options.password != null) {
                 pdfConverter.setOwnerPassword(options.password).setUserPassword(options.password);
+                pdfConverter.setEmbedExternalFont(false).setEmbedFont(false);
             }
 
             File output = pdfConverter.convert();
