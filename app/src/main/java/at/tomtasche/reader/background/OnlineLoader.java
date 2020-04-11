@@ -55,6 +55,9 @@ public class OnlineLoader extends FileLoader {
     };
     private static final String[] MIME_BLACKLIST = {"image/x-tga", "image/vnd.djvu", "image/g3fax", "audio/amr", "text/calendar", "text/vcard", "video/3gpp"};
 
+    private static final String GOOGLE_VIEWER_URL = "https://docs.google.com/viewer?embedded=true&url=";
+    private static final String MICROSOFT_VIEWER_URL = "https://view.officeapps.live.com/op/view.aspx?src=";
+
     private StorageReference storage;
     private FirebaseAuth auth;
 
@@ -136,8 +139,16 @@ public class OnlineLoader extends FileLoader {
                 Task<Uri> urlTask = reference.getDownloadUrl();
                 Tasks.await(urlTask);
 
+                String viewerUrl;
+                if (options.fileType.contains("vnd.oasis.opendocument")) {
+                    viewerUrl = MICROSOFT_VIEWER_URL;
+                } else {
+                    // ODF does not seem to be supported by google docs viewer
+                    viewerUrl = GOOGLE_VIEWER_URL;
+                }
+
                 String downloadUrl = urlTask.getResult().toString();
-                Uri viewerUri = Uri.parse("https://docs.google.com/viewer?embedded=true&url="
+                Uri viewerUri = Uri.parse(viewerUrl
                         + URLEncoder.encode(downloadUrl, StreamUtil.ENCODING));
 
                 result.partTitles.add(null);

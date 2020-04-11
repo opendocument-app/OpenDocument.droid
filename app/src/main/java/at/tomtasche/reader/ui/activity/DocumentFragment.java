@@ -385,8 +385,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             if (result.loaderType == FileLoader.LoaderType.RAW || result.loaderType == FileLoader.LoaderType.ONLINE) {
                 offerReopen(activity, options, R.string.toast_hint_unsupported_file, false);
-            } else if (result.loaderType != FileLoader.LoaderType.ODF) {
-                // ODF does not seem to be supported by docs viewer
+            } else {
                 offerUpload(activity, options, false);
             }
         }
@@ -461,7 +460,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             }
 
             return;
-        } else if (result.loaderType == FileLoader.LoaderType.PDF) {
+        } else if (result.loaderType == FileLoader.LoaderType.PDF || result.loaderType == FileLoader.LoaderType.OOXML || result.loaderType == FileLoader.LoaderType.DOC) {
             crashManager.log(error, options.originalUri);
 
             offerUpload(activity, options, true);
