@@ -55,8 +55,8 @@ public class OnlineLoader extends FileLoader {
     };
     private static final String[] MIME_BLACKLIST = {"image/x-tga", "image/vnd.djvu", "image/g3fax", "audio/amr", "text/calendar", "text/vcard", "video/3gpp"};
 
-    private static final String GOOGLE_VIEWER_URL = "https://docs.google.com/viewer?embedded=true&url=";
-    private static final String MICROSOFT_VIEWER_URL = "https://view.officeapps.live.com/op/view.aspx?src=";
+    public static final String GOOGLE_VIEWER_URL = "https://docs.google.com/viewer?embedded=true&url=";
+    public static final String MICROSOFT_VIEWER_URL = "https://view.officeapps.live.com/op/view.aspx?src=";
 
     private StorageReference storage;
     private FirebaseAuth auth;

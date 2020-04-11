@@ -249,9 +249,15 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
         jfieldID outputPathField = env->GetFieldID(resultClass, "outputPath", "Ljava/lang/String;");
         env->SetObjectField(result, outputPathField, outputPath);
 
-        bool translated = translator->backTranslate(htmlDiffCpp, outputPathCpp);
-        if (!translated) {
+        bool success = translator->edit(htmlDiffCpp);
+        if (!success) {
             env->SetIntField(result, errorField, -4);
+            return result;
+        }
+
+        success = translator->save(outputPathCpp);
+        if (!success) {
+            env->SetIntField(result, errorField, -5);
             return result;
         }
     } catch (...) {
