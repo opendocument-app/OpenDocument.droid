@@ -440,6 +440,20 @@ public class MainActivity extends AppCompatActivity {
 
                 break;
             }
+            case R.id.menu_open_with: {
+                documentFragment.openWith(this);
+
+                analyticsManager.report("menu_open_with");
+
+                break;
+            }
+            case R.id.menu_share: {
+                documentFragment.share(this);
+
+                analyticsManager.report("menu_share");
+
+                break;
+            }
             case R.id.menu_remove_ads: {
                 analyticsManager.report("menu_remove_ads");
 
