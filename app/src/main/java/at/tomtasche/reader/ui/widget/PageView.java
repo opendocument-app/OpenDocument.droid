@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 
 import androidx.annotation.Keep;
 import at.tomtasche.reader.background.AndroidFileCache;
+import at.tomtasche.reader.background.OnlineLoader;
 import at.tomtasche.reader.background.StreamUtil;
 import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.ParagraphListener;
@@ -99,7 +100,7 @@ public class PageView extends WebView implements ParagraphListener {
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (url.startsWith("https://docs.google.com/viewer?embedded=true")) {
+                if (url.startsWith(OnlineLoader.GOOGLE_VIEWER_URL) || url.startsWith(OnlineLoader.MICROSOFT_VIEWER_URL) || url.contains("officeapps.live.com/")) {
                     return false;
                 } else {
                     try {

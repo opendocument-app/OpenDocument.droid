@@ -461,7 +461,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             }
 
             return;
-        } else if (result.loaderType == FileLoader.LoaderType.PDF) {
+        } else if (result.loaderType == FileLoader.LoaderType.PDF || result.loaderType == FileLoader.LoaderType.OOXML || result.loaderType == FileLoader.LoaderType.DOC) {
             crashManager.log(error, options.originalUri);
 
             offerUpload(activity, options, true);
@@ -549,12 +549,20 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         SnackbarHelper.show(activity, description, new Runnable() {
             @Override
             public void run() {
-                loadReopen(options, activity, true);
+                doReopen(options, activity, true, false);
             }
         }, isIndefinite, false);
     }
 
-    private void loadReopen(FileLoader.Options options, Activity activity, boolean grantPermission) {
+    public void openWith(Activity activity) {
+        doReopen(lastResult.options, activity, true, false);
+    }
+
+    public void share(Activity activity) {
+        doReopen(lastResult.options, activity, true, true);
+    }
+
+    private void doReopen(FileLoader.Options options, Activity activity, boolean grantPermission, boolean share) {
         Uri reopenUri = null;
         Uri cacheUri = options.cacheUri;
         String fileType = options.fileType;
@@ -579,13 +587,23 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         }
 
         Intent intent = new Intent();
-        intent.setAction(Intent.ACTION_VIEW);
+
+        String action = share ? Intent.ACTION_SEND : Intent.ACTION_VIEW;
+        intent.setAction(action);
+
+        Uri streamUri;
         if (!"N/A".equals(fileType)) {
             intent.setDataAndType(reopenUri, fileType);
-        } else if (reopenUri != null) {
-            intent.setData(reopenUri);
+
+            streamUri = reopenUri;
         } else {
-            intent.setData(options.originalUri);
+            if (reopenUri != null) {
+                streamUri = reopenUri;
+            } else {
+                streamUri = options.originalUri;
+            }
+
+            intent.setData(streamUri);
         }
 
         // taken from: https://stackoverflow.com/a/23268821/198996
@@ -602,6 +620,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 targetIntent.setPackage(packageName);
                 targetIntent.setComponent(new ComponentName(packageName, currentInfo.activityInfo.name));
 
+                if (share) {
+                    targetIntent.putExtra(Intent.EXTRA_STREAM, streamUri);
+                }
+
                 if (grantPermission) {
                     targetIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 }
@@ -610,13 +632,15 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             }
         }
 
+        String logPrefix = share ? "share" : "reopen";
+
         Intent initialIntent;
         if (targetIntents.size() > 0) {
             initialIntent = targetIntents.remove(0);
-            analyticsManager.report("reopen_success", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
+            analyticsManager.report(logPrefix + "_success", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
         } else {
             initialIntent = intent;
-            analyticsManager.report("reopen_failed_noapp", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
+            analyticsManager.report(logPrefix + "_failed_noapp", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
         }
 
         Intent chooserIntent = Intent.createChooser(initialIntent, activity.getString(R.string.reopen_chooser_title));
@@ -628,7 +652,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             crashManager.log(e);
 
             if (grantPermission) {
-                loadReopen(options, activity, false);
+                // if we're trying to reopen the originalUri, the provider might decline the request
+                doReopen(options, activity, false, share);
             }
         }
     }

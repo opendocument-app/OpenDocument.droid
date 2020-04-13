@@ -28,11 +28,6 @@ public class OoxmlLoader extends FileLoader {
 
     @Override
     public boolean isSupported(Options options) {
-        if (true) {
-            // TODO: not stable enough yet
-            return false;
-        }
-
         // TODO: enable xlsx and pptx too
         return options.fileType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document") /*|| options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") || options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.presentation")*/;
     }
