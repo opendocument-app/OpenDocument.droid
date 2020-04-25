@@ -3,17 +3,9 @@
         xmlns:tools="http://schemas.android.com/tools"
         package="at.tomtasche.reader"
         android:installLocation="auto"
-        android:versionCode="127"
-        android:versionName="3.2.9"
+        android:versionCode="128"
+        android:versionName="3.2.10"
         tools:ignore="GoogleAppIndexingWarning">
-
-    <!-- added by HelpCrunch SDK otherwise -->
-    <uses-feature
-            android:name="android.hardware.camera.autofocus"
-            tools:node="remove" />
-    <uses-feature
-            android:name="android.hardware.camera.any"
-            tools:node="remove" />
 
     <uses-permission
             android:name="android.permission.CAMERA"
