@@ -65,6 +65,13 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
             return result;
         }
 
+        std::string extensionCpp = meta.typeAsString();
+        const char *extensionC = extensionCpp.c_str();
+        jstring extension = env->NewStringUTF(extensionC);
+
+        jfieldID extensionField = env->GetFieldID(resultClass, "extension", "Ljava/lang/String;");
+        env->SetObjectField(result, extensionField, extension);
+
         jfieldID editableField = env->GetFieldID(optionsClass, "editable", "Z");
         jboolean editable = env->GetBooleanField(options, editableField);
 
@@ -89,8 +96,8 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jfieldID ooxmlField = env->GetFieldID(optionsClass, "ooxml", "Z");
         jboolean ooxml = env->GetBooleanField(options, ooxmlField);
         if (!ooxml) {
-            if (meta.type == odr::FileType::OPENDOCUMENT_TEXT) {
-                jstring pageName = env->NewStringUTF("Text document");
+            if (meta.type == odr::FileType::OPENDOCUMENT_TEXT || meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
+                jstring pageName = env->NewStringUTF("Document");
                 env->CallBooleanMethod(pageNames, addMethod, pageName);
 
                 outputPathCpp = outputPathCpp + "0.html";
@@ -100,7 +107,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                     env->SetIntField(result, errorField, -4);
                     return result;
                 }
-            } else if (meta.type == odr::FileType::OPENDOCUMENT_SPREADSHEET || meta.type == odr::FileType::OPENDOCUMENT_PRESENTATION || meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
+            } else if (meta.type == odr::FileType::OPENDOCUMENT_SPREADSHEET || meta.type == odr::FileType::OPENDOCUMENT_PRESENTATION) {
                 int i = 0;
                 // TODO: this could fail for HUGE documents with hundreds of pages
                 // https://stackoverflow.com/a/24292867/198996
@@ -159,31 +166,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 return result;
             }
         }
-
-        std::string extensionCpp;
-        if (meta.type == odr::FileType::OPENDOCUMENT_TEXT) {
-            extensionCpp = "odt";
-        } else if (meta.type == odr::FileType::OPENDOCUMENT_SPREADSHEET) {
-            extensionCpp = "ods";
-        } else if (meta.type == odr::FileType::OPENDOCUMENT_PRESENTATION) {
-            extensionCpp = "odp";
-        } else if (meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
-            extensionCpp = "odg";
-        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_DOCUMENT) {
-            extensionCpp = "docx";
-        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_WORKBOOK) {
-            extensionCpp = "xlsx";
-        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_PRESENTATION) {
-            extensionCpp = "pptx";
-        } else {
-            extensionCpp = "unknown";
-        }
-
-        const char *extensionC = extensionCpp.c_str();
-        jstring extension = env->NewStringUTF(extensionC);
-
-        jfieldID extensionField = env->GetFieldID(resultClass, "extension", "Ljava/lang/String;");
-        env->SetObjectField(result, extensionField, extension);
     } catch (...) {
         env->SetIntField(result, errorField, -3);
         return result;

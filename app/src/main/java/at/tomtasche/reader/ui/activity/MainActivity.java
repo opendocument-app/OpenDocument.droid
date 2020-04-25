@@ -227,6 +227,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+        documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
+
         if (getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG) == null) {
             // setCurrentScreen not ready to call before that
             analyticsManager.setCurrentScreen(this, "screen_main");
@@ -411,12 +413,12 @@ public class MainActivity extends AppCompatActivity {
 
         // delay loadUri to allow for DocumentFragment.onActivityCreated to be called
         boolean finalIsPersistentUri = isPersistentUri;
-        handler.post(new Runnable() {
+        handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 documentFragment.loadUri(uri, finalIsPersistentUri);
             }
-        });
+        }, 250);
     }
 
     @Override

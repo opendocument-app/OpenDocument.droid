@@ -56,9 +56,13 @@ public class OdfLoader extends FileLoader {
             lastCoreOptions = coreOptions;
 
             CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
-            if (coreResult.errorCode == 0) {
-                options.fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreResult.extension);
 
+            String coreExtension = coreResult.extension;
+            if (coreExtension != null && !coreExtension.equals("unnamed")) {
+                options.fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreExtension);
+            }
+
+            if (coreResult.errorCode == 0) {
                 for (int i = 0; i < coreResult.pageNames.size(); i++) {
                     File entryFile = new File(fakeHtmlFile.getPath() + i + ".html");
 
