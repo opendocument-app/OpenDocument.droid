@@ -3,9 +3,12 @@
     <string name="toast_error_generic">Houve um problema. Não foi possível abrir o arquivo.</string>
     <string name="toast_error_find_file">Não foi possível encontrar o arquivo. Talvez ele não exista mais.</string>
     <string name="toast_error_illegal_file">Parece que este formato de arquivo não é suportado.</string>
+    <string name="toast_error_illegal_file_reopen">Formato de arquivo não suportado. Tente abri-lo em outro aplicativo.</string>
     <string name="toast_hint_unsupported_file">Não está satisfeito com a forma como o arquivo é exibido? Abra em outro aplicativo.</string>
     <string name="toast_hint_upload_file">Não está feliz com como o arquivo é exibido? Faça o upload temporariamente para melhorar a formatação.</string>
     <string name="toast_error_reopen_noapp">Nenhum app encontrado no dispositivo que suporta este tipo de arquivo.</string>
+    <string name="toast_error_save_nofile">Não há lugar para salvar o arquivo a escolher.</string>
+    <string name="toast_error_save_failed">Arquivo não pôde ser salvo. Por favor, contate support@opendocument.app</string>
     <string name="toast_error_out_of_memory">Telefone sem memória! Muitas fotos ou arquivo muito grande.</string>
     <string name="toast_error_password_protected">O documento está protegido por senha</string>
     <string name="toast_error_permission_required">Permissão necessária para ler e salvar documentos</string>
@@ -50,6 +53,7 @@
     <string name="tts_status_failed">TTS falhou.</string>
     <string name="tts_status_paused">Pausado.</string>
     <string name="tts_status_finished">Concluído.</string>
+    <string name="toast_edit_status_saved">Documento salvo.</string>
     <string name="crouton_printing">Imprimindo…</string>
     <string name="crouton_print_unavailable">Impressão não disponível no seu dispositivo. Por favor, atualize para uma versão mais recente do Android.</string>
     <string name="intro_title_open">Abra e leia seu arquivo ODF em qualquer lugar!</string>

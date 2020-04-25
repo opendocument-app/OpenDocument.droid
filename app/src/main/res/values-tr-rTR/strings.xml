@@ -25,6 +25,8 @@
     <string name="menu_recent">En son açılmış belgeler</string>
     <string name="menu_search">Belgelerde ara</string>
     <string name="menu_open">Belgeyi Aç</string>
+    <string name="menu_open_with">Birlikte aç...</string>
+    <string name="menu_share">Belgeyi Paylaş</string>
     <string name="menu_edit">Belgeyi düzenle</string>
     <string name="menu_remove_ads">Reklamları kaldır</string>
     <string name="menu_fullscreen">Tam ekran görünümünü aç</string>

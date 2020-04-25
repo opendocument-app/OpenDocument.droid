@@ -25,6 +25,8 @@
     <string name="menu_recent">Nedavni dokumenti</string>
     <string name="menu_search">Išči</string>
     <string name="menu_open">Odpri</string>
+    <string name="menu_open_with">Odpri s/z …</string>
+    <string name="menu_share">Deli dokument</string>
     <string name="menu_edit">Uredi</string>
     <string name="menu_remove_ads">Odstrani oglase</string>
     <string name="menu_fullscreen">Celozaslonski način</string>
