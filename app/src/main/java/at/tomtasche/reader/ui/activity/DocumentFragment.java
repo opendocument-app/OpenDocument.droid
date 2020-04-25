@@ -285,7 +285,12 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             modifiedFile.delete();
 
-            loadUri(outFile, false, true);
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    loadUri(outFile, false, true);
+                }
+            });
 
             SnackbarHelper.show(getActivity(), R.string.toast_edit_status_saved, null, false, false);
         } catch (Throwable e) {

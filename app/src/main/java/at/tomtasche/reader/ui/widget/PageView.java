@@ -168,7 +168,7 @@ public class PageView extends WebView implements ParagraphListener {
     public void requestHtml(HtmlCallback callback) {
         this.htmlCallback = callback;
 
-        loadUrl("javascript:window.paragraphListener.sendHtml(generateDiff());");
+        loadUrl("javascript:window.paragraphListener.sendHtml(odr.generateDiff());");
     }
 
     @JavascriptInterface
