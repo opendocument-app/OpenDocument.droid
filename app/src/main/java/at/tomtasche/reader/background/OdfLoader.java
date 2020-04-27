@@ -59,7 +59,10 @@ public class OdfLoader extends FileLoader {
 
             String coreExtension = coreResult.extension;
             if (coreExtension != null && !coreExtension.equals("unnamed")) {
-                options.fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreExtension);
+                String fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreExtension);
+                if (fileType != null) {
+                    options.fileType = fileType;
+                }
             }
 
             if (coreResult.errorCode == 0) {
