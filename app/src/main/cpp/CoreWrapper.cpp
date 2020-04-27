@@ -205,25 +205,8 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
         env->ReleaseStringUTFChars(htmlDiff, htmlDiffC);
 
         const auto meta = translator->getMeta();
-        std::string extension;
-        if (meta.type == odr::FileType::OPENDOCUMENT_TEXT) {
-            extension = "odt";
-        } else if (meta.type == odr::FileType::OPENDOCUMENT_SPREADSHEET) {
-            extension = "ods";
-        } else if (meta.type == odr::FileType::OPENDOCUMENT_PRESENTATION) {
-            extension = "odp";
-        } else if (meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
-            extension = "odg";
-        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_DOCUMENT) {
-            extension = "docx";
-        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_WORKBOOK) {
-            extension = "xlsx";
-        } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_PRESENTATION) {
-            extension = "pptx";
-        } else {
-            extension = "unknown";
-        }
 
+        std::string extension = meta.typeAsString();
         std::string outputPathCpp = outputPathPrefixCpp + "." + extension;
         const char *outputPathC = outputPathCpp.c_str();
         jstring outputPath = env->NewStringUTF(outputPathC);
