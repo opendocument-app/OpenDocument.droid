@@ -216,13 +216,13 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
 
         bool success = translator->edit(htmlDiffCpp);
         if (!success) {
-            env->SetIntField(result, errorField, -4);
+            env->SetIntField(result, errorField, -6);
             return result;
         }
 
         success = translator->save(outputPathCpp);
         if (!success) {
-            env->SetIntField(result, errorField, -5);
+            env->SetIntField(result, errorField, -7);
             return result;
         }
     } catch (...) {

@@ -58,6 +58,7 @@ public class OdfLoader extends FileLoader {
             CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
 
             String coreExtension = coreResult.extension;
+            // "unnamed" refers to default of Meta::typeToString
             if (coreExtension != null && !coreExtension.equals("unnamed")) {
                 String fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreExtension);
                 if (fileType != null) {
@@ -65,23 +66,23 @@ public class OdfLoader extends FileLoader {
                 }
             }
 
-            if (coreResult.errorCode == 0) {
-                for (int i = 0; i < coreResult.pageNames.size(); i++) {
-                    File entryFile = new File(fakeHtmlFile.getPath() + i + ".html");
-
-                    result.partTitles.add(coreResult.pageNames.get(i));
-                    result.partUris.add(Uri.fromFile(entryFile));
-                }
-
-                callOnSuccess(result);
-            } else {
-                if (coreResult.errorCode == -2) {
-                    throw new EncryptedDocumentException();
-                } else {
-                    throw new RuntimeException("failed with code " + coreResult.errorCode);
-                }
+            if (coreResult.exception != null) {
+                throw coreResult.exception;
             }
+
+            for (int i = 0; i < coreResult.pageNames.size(); i++) {
+                File entryFile = new File(fakeHtmlFile.getPath() + i + ".html");
+
+                result.partTitles.add(coreResult.pageNames.get(i));
+                result.partUris.add(Uri.fromFile(entryFile));
+            }
+
+            callOnSuccess(result);
         } catch (Throwable e) {
+            if (e instanceof CoreWrapper.CoreEncryptedException) {
+                e = new EncryptedDocumentException();
+            }
+
             callOnError(result, e);
         }
     }
@@ -93,13 +94,15 @@ public class OdfLoader extends FileLoader {
 
         lastCoreOptions.outputPath = tempFilePrefix.getPath();
 
-        CoreWrapper.CoreResult result = lastCore.backtranslate(lastCoreOptions, htmlDiff);
-        if (result.errorCode != 0) {
-            crashManager.log(new RuntimeException("could not retranslate file with error " + result.errorCode));
+        try {
+            CoreWrapper.CoreResult result = lastCore.backtranslate(lastCoreOptions, htmlDiff);
+
+            return new File(result.outputPath);
+        } catch (Throwable e) {
+            crashManager.log(e);
+
             return null;
         }
-
-        return new File(result.outputPath);
     }
 
     @Override
