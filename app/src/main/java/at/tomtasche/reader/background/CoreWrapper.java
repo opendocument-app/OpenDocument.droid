@@ -12,7 +12,9 @@ public class CoreWrapper {
     }
 
     public CoreResult parse(CoreOptions options) {
-        options.nativePointer = lastNativePointer;
+        if (lastNativePointer != 0) {
+            throw new RuntimeException("do not reuse native pointers for repeated parsing");
+        }
 
         CoreResult result = parseNative(options);
         lastNativePointer = result.nativePointer;
