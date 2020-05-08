@@ -68,25 +68,27 @@ public class OoxmlLoader extends FileLoader {
             lastCoreOptions = coreOptions;
 
             CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
-            if (coreResult.errorCode == 0) {
-                options.fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreResult.extension);
-
-                for (int i = 0; i < coreResult.pageNames.size(); i++) {
-                    File entryFile = new File(fakeHtmlFile.getPath() + i + ".html");
-
-                    result.partTitles.add(coreResult.pageNames.get(i));
-                    result.partUris.add(Uri.fromFile(entryFile));
-                }
-
-                callOnSuccess(result);
-            } else {
-                if (coreResult.errorCode == -2) {
-                    throw new EncryptedDocumentException();
-                } else {
-                    throw new RuntimeException("failed with code " + coreResult.errorCode);
-                }
+            if (coreResult.exception != null) {
+                throw coreResult.exception;
             }
+
+            // fileType could potentially change after decrypting DOCX successfully for the first time
+            //  (not reported as DOCX prior)
+            options.fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreResult.extension);
+
+            for (int i = 0; i < coreResult.pageNames.size(); i++) {
+                File entryFile = new File(fakeHtmlFile.getPath() + i + ".html");
+
+                result.partTitles.add(coreResult.pageNames.get(i));
+                result.partUris.add(Uri.fromFile(entryFile));
+            }
+
+            callOnSuccess(result);
         } catch (Throwable e) {
+            if (e instanceof CoreWrapper.CoreEncryptedException) {
+                e = new EncryptedDocumentException();
+            }
+
             callOnError(result, e);
         }
     }

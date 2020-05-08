@@ -2,7 +2,6 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/AndroidMagic" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/OpenDocument.core" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/OpenDocument.core/cmake-build-debug/_deps/cryptopp-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/OpenDocument.core/cmake-build-debug/_deps/cryptopp_cmake-src" vcs="Git" />
