@@ -686,6 +686,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                     progressDialog.show(transaction,
                             ProgressDialogFragment.FRAGMENT_TAG);
                 } catch (IllegalStateException e) {
+                    // "Can not perform this action after onSaveInstanceState"
                     crashManager.log(e);
 
                     progressDialog = null;

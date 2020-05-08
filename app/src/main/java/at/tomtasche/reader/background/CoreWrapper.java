@@ -25,18 +25,23 @@ public class CoreWrapper {
 
             case -1:
                 result.exception = new CoreCouldNotOpenException();
+                break;
 
             case -2:
                 result.exception = new CoreEncryptedException();
+                break;
 
             case -3:
                 result.exception = new CoreUnknownErrorException();
+                break;
 
             case -4:
                 result.exception = new CoreCouldNotTranslateException();
+                break;
 
             case -5:
                 result.exception = new CoreUnexpectedFormatException();
+                break;
 
             default:
                 result.exception = new CoreUnexpectedErrorCodeException();
