@@ -25,6 +25,8 @@
     <string name="menu_recent">Documentos abertos recentemente</string>
     <string name="menu_search">Pesquisa</string>
     <string name="menu_open">Abrir</string>
+    <string name="menu_open_with">Abrir com...</string>
+    <string name="menu_share">Compartilhar documento</string>
     <string name="menu_edit">Editar</string>
     <string name="menu_remove_ads">Remover anúncios</string>
     <string name="menu_fullscreen">Modo de tela inteira</string>
