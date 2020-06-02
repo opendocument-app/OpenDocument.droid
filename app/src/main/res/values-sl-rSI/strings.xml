@@ -48,7 +48,7 @@
     <string name="landing_intro_view">OpenDocument Reader povsod omogoča ogled dokumentov, ki so shranjeni v obliki OpenDocument (.odt, .ods, .odp).</string>
     <string name="landing_intro_search">S programom OpenDocument Reader lahko berete in hitro iščete po dokumentih.</string>
     <string name="landing_intro_edit">Ste našli še zadnjo napako v dokumentu, ki jo želite popraviti? Sedaj podpira tudi urejanje!</string>
-    <string name="landing_intro_open_all">Ta program se registrira, da privzeto odpre vse vrste datotek, da lahko podpira programe, kot je \"Samsung My Files\". Če vam ta značilnost povzroča težave, jo lahko tukaj izklopite.</string>
+    <string name="landing_intro_open_all">Ta program se registrira, da privzeto odpre vse vrste datotek, da lahko podpira programe, kot je \"Samsung Moje datoteke\". Če vam ta značilnost povzroča težave, jo lahko tukaj izklopite.</string>
     <string name="tts_status_reading">Branje …</string>
     <string name="tts_status_initializing">Začenjanje TTS-a …</string>
     <string name="tts_status_ready">Pripravljen!</string>
