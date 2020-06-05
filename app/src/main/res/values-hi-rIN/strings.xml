@@ -1,2 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="toast_error_generic">कुछ गलत हो गया है।फ़ाइल नहीं खोल सका।</string>
+    <string name="toast_error_find_file">फ़ाइल नहीं मिली। शायद यह अब मौजूद नहीं है?</string>
+</resources>
