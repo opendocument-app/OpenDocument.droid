@@ -9,4 +9,11 @@
     <string name="toast_error_reopen_noapp">इस प्रकार की फ़ाइल का समर्थन करने वाले कोई app इस device पर नहीं मिला।</string>
     <string name="toast_error_save_nofile">फ़ाइल को save करने के लिए कोई स्थान नहीं चुना गया है।</string>
     <string name="toast_error_save_failed">फ़ाइल save नहीं हो पाया। कृपया support@opendocument.app पर संपर्क करें</string>
+    <string name="toast_error_out_of_memory">फ़ोन मे मेमोरी नही है। फ़ोन में बहुत अधिक चित्र हैं, या फ़ाइल बहुत बड़ी है।</string>
+    <string name="toast_error_password_protected">यह फ़ाइल पासवर्ड द्वारा सुरक्षित है।</string>
+    <string name="toast_error_permission_required">पढ़ने और save करने के लिए अनुमति की आवश्यकता है।</string>
+    <string name="dialog_recent_title">ताज़ा दस्तावेज़</string>
+    <string name="dialog_choose_filemanager">दस्तावेज़ खोलें via:</string>
+    <string name="dialog_loading_title">लोड हो रहा है…</string>
+    <string name="dialog_uploading_title">अपलोड हो रहा है...</string>
 </resources>
