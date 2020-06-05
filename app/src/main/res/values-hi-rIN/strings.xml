@@ -16,4 +16,21 @@
     <string name="dialog_choose_filemanager">दस्तावेज़ खोलें via:</string>
     <string name="dialog_loading_title">लोड हो रहा है…</string>
     <string name="dialog_uploading_title">अपलोड हो रहा है...</string>
+    <string name="dialog_generic_loading_message">कृपया प्रतीक्षा करें, इसमें कुछ सेकंड लग सकते हैं</string>
+    <string name="menu_open_with">के साथ ओपन करें...</string>
+    <string name="menu_share">दस्तावेज़ साझा करें</string>
+    <string name="menu_edit">दस्तावेज़ संपादित करें</string>
+    <string name="menu_remove_ads">विज्ञापन निकालें</string>
+    <string name="menu_fullscreen">फुलस्क्रीन मोड खोलें</string>
+    <string name="menu_cloud_print">दस्तावेज़ छापें</string>
+    <string name="crouton_leave_fullscreen">फुलस्क्रीन मोड से बाहर निकलने के लिए Back दबाएं।</string>
+    <string name="action_find_previous">पिछला</string>
+    <string name="action_find_next">अगला</string>
+    <string name="action_find_on_page">पृष्ठ में खोजें</string>
+    <string name="action_tts_play">चलाएँ</string>
+    <string name="action_tts_pause">थोड़ा रुकें</string>
+    <string name="action_tts_next">अगला</string>
+    <string name="action_tts_previous">पिछला</string>
+    <string name="action_edit_save">Save</string>
+    <string name="action_edit_help">सहायता</string>
 </resources>
