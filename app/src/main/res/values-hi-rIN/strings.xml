@@ -2,4 +2,7 @@
 <resources>
     <string name="toast_error_generic">कुछ गलत हो गया है।फ़ाइल नहीं खोल सका।</string>
     <string name="toast_error_find_file">फ़ाइल नहीं मिली। शायद यह अब मौजूद नहीं है?</string>
+    <string name="toast_error_illegal_file">यह एक समर्थित file format नहीं है।</string>
+    <string name="toast_error_illegal_file_reopen">असमर्थित फ़ाइल format। इसे किसी अन्य app में खोलने का प्रयास करें।</string>
+    <string name="toast_hint_unsupported_file">आप इसे प्रदर्शित किए जाने के तरीके से खुश नहीं हैं। इसे किसी दूसरे एप्प में खोले।</string>
 </resources>
