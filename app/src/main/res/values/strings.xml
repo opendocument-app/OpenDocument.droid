@@ -82,7 +82,6 @@
     <string name="yes">Yes</string>
     <string name="discard_changes">Discard changes</string>
     <string name="cancel">Cancel</string>
-    <string name="enter_password">Please enter the password to decrypt this document</string>
     <string name="error">Error</string>
     <string name="back_to_documents">Back to documents</string>
 
