@@ -151,8 +151,6 @@ public class RawLoader extends FileLoader {
             result.partUris.add(finalUri);
             callOnSuccess(result);
         } catch (Throwable e) {
-            e.printStackTrace();
-
             callOnError(result, e);
         }
     }

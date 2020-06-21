@@ -43,13 +43,13 @@ public class DocLoader extends FileLoader {
 
             Uri finalUri = Uri.fromFile(htmlFile);
 
+            options.fileType = "application/msword";
+
             result.partTitles.add(null);
             result.partUris.add(finalUri);
 
             callOnSuccess(result);
         } catch (Throwable e) {
-            e.printStackTrace();
-
             if (e instanceof wvWare.PasswordRequiredException || e instanceof wvWare.WrongPasswordException) {
                 e = new EncryptedDocumentException();
             }

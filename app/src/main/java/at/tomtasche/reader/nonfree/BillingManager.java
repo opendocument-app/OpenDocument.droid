@@ -2,6 +2,8 @@ package at.tomtasche.reader.nonfree;
 
 import android.content.Context;
 
+import com.android.billingclient.api.AcknowledgePurchaseParams;
+import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.BillingFlowParams;
@@ -118,12 +120,37 @@ public class BillingManager implements PurchasesUpdatedListener {
             return;
         }
 
+        boolean hasPurchased = false;
+
         Purchase.PurchasesResult purchasesResult = billingClient.queryPurchases(BillingClient.SkuType.INAPP);
-        boolean hasPurchased = purchasesResult != null && purchasesResult.getPurchasesList() != null && !purchasesResult.getPurchasesList().isEmpty();
+        if (purchasesResult.getPurchasesList() != null) {
+            for (Purchase purchase : purchasesResult.getPurchasesList()) {
+                if (!purchase.isAcknowledged()) {
+                    AcknowledgePurchaseParams.Builder builder = AcknowledgePurchaseParams.newBuilder();
+                    builder.setPurchaseToken(purchase.getPurchaseToken());
+
+                    billingClient.acknowledgePurchase(builder.build(), new AcknowledgePurchaseResponseListener() {
+                        @Override
+                        public void onAcknowledgePurchaseResponse(BillingResult billingResult) {
+                            // TODO: in the best case we would set hasPurchased to true only now. not worth the effort in my opinion
+                        }
+                    });
+                }
+
+                hasPurchased = true;
+
+                break;
+            }
+        }
+
         billingPreferences.setPurchased(hasPurchased);
     }
 
     public boolean hasPurchased() {
+        if (billingPreferences == null) {
+            return false;
+        }
+
         return billingPreferences.hasPurchased();
     }
 

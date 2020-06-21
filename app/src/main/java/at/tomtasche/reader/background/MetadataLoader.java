@@ -31,13 +31,13 @@ public class MetadataLoader extends FileLoader {
                 return MagicApi.loadFromBytes(buffer, MagicApi.MAGIC_MIME_TYPE | MagicApi.MAGIC_COMPRESS_TRANSP) == 0;
             }
         } catch (Throwable e) {
-            e.printStackTrace();
+            crashManager.log(e);
         } finally {
             if (inputStream != null) {
                 try {
                     inputStream.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    crashManager.log(e);
                 }
             }
         }
@@ -79,9 +79,16 @@ public class MetadataLoader extends FileLoader {
                 File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
                 cachedFile = new File(cacheDirectory, "document.odt");
 
+                // delete before creating it again
+                cachedFile.delete();
+
                 InputStream stream = context.getContentResolver().openInputStream(uri);
                 StreamUtil.copy(stream, cachedFile);
             }
+
+            // if file didn't exist an exception would have been thrown by now
+            options.fileExists = true;
+
             options.cacheUri = AndroidFileCache.getCacheFileUri();
 
             String filename = null;
@@ -94,10 +101,10 @@ public class MetadataLoader extends FileLoader {
                     fileCursor.close();
                 }
             } catch (Exception e) {
-                e.printStackTrace();
-
                 // "URI does not contain a valid access token." or
                 // "Couldn't read row 0, col -1 from CursorWindow. Make sure the Cursor is initialized correctly before accessing data from it."
+
+                crashManager.log(e);
             }
 
             if (filename == null) {
@@ -119,7 +126,7 @@ public class MetadataLoader extends FileLoader {
                     type = MagicApi.magicFile(cachedFile.getAbsolutePath());
                 }
             } catch (Throwable e) {
-                e.printStackTrace();
+                crashManager.log(e);
             }
 
             if (type == null) {
@@ -131,7 +138,7 @@ public class MetadataLoader extends FileLoader {
                     type = URLConnection.guessContentTypeFromName(filename);
                 } catch (Exception e) {
                     // Samsung S7 Edge crashes with java.lang.StringIndexOutOfBoundsException
-                    e.printStackTrace();
+                    crashManager.log(e);
                 }
             }
 
@@ -144,7 +151,7 @@ public class MetadataLoader extends FileLoader {
                         tempStream.close();
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    crashManager.log(e);
                 }
             }
 
@@ -170,14 +177,12 @@ public class MetadataLoader extends FileLoader {
                 try {
                     RecentDocumentsUtil.addRecentDocument(context, filename, uri);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    crashManager.log(e);
                 }
             }
 
             callOnSuccess(result);
         } catch (Throwable e) {
-            e.printStackTrace();
-
             options.fileType = "N/A";
 
             callOnError(result, e);
@@ -194,7 +199,7 @@ public class MetadataLoader extends FileLoader {
                 try {
                     MagicApi.close();
                 } catch (Throwable e) {
-                    e.printStackTrace();
+                    crashManager.log(e);
                 }
             }
         });

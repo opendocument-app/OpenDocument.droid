@@ -2,6 +2,7 @@ package at.tomtasche.reader.ui.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -9,6 +10,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -32,6 +34,7 @@ import com.kobakei.ratethisapp.RateThisApp;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -53,7 +56,7 @@ import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
 
-public class MainActivity extends AppCompatActivity implements DocumentLoadingActivity {
+public class MainActivity extends AppCompatActivity {
 
     // taken from: https://stackoverflow.com/a/36829889/198996
     private static boolean isTesting() {
@@ -72,18 +75,17 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         return false;
     }
 
-    private static final boolean IS_TESTING = isTesting();
-
-    private static final boolean USE_PROPRIETARY_LIBRARIES = true;
     protected static boolean IS_GOOGLE_ECOSYSTEM = true;
+
+    private static final boolean IS_TESTING = isTesting();
+    private static final boolean USE_PROPRIETARY_LIBRARIES = true;
     private static final int GOOGLE_REQUEST_CODE = 1993;
     private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
-    public static int PERMISSION_CODE = 1353;
+    private static int PERMISSION_CODE = 1353;
+    private static int CREATE_CODE = 4213;
 
-    private boolean isDocumentLoaded = false;
     private boolean didTriggerPermissionDialogAgain = false;
 
-    private Menu menu;
     private Handler handler;
 
     private View landingContainer;
@@ -125,12 +127,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         });
 
         initializeProprietaryLibraries();
-
-        documentFragment = new DocumentFragment();
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.document_container, documentFragment, DOCUMENT_FRAGMENT_TAG)
-                .commit();
 
         if (!IS_TESTING) {
             showIntroActivity();
@@ -213,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         // app was started from another app, but make sure not to load it twice
         // (i.e. after bringing app back from background)
-        if (!isDocumentLoaded) {
+        if (getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG) == null) {
             analyticsManager.setCurrentScreen(this, "screen_main");
 
             handleIntent(getIntent());
@@ -221,10 +217,19 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
     }
 
     @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        adManager.showGoogleAds();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
 
-        if (!isDocumentLoaded) {
+        documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
+
+        if (getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG) == null) {
             // setCurrentScreen not ready to call before that
             analyticsManager.setCurrentScreen(this, "screen_main");
         }
@@ -253,9 +258,28 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             return false;
         }
 
-        onPermissionRunnable = null;
+        this.onPermissionRunnable = null;
 
         return true;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public boolean requestSave() {
+        try {
+            Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+            intent.setType(documentFragment.getLastFileType());
+
+            startActivityForResult(intent, CREATE_CODE);
+
+            return true;
+        } catch (ActivityNotFoundException e) {
+            // happens on a variety devices, e.g. Samsung Galaxy Tab4 7.0 with Android 4.4.2
+            crashManager.log(e);
+
+            return false;
+        }
     }
 
     private void initializeProprietaryLibraries() {
@@ -286,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 offerPurchase();
             }
         });
-        adManager.initialize(this, analyticsManager);
+        adManager.initialize(this, analyticsManager, crashManager);
 
         billingManager = new BillingManager();
         billingManager.setEnabled(USE_PROPRIETARY_LIBRARIES && IS_GOOGLE_ECOSYSTEM);
@@ -317,11 +341,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         super.onCreateOptionsMenu(menu);
 
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        this.menu = menu;
-
-        if (isDocumentLoaded) {
-            showDocumentMenu();
-        }
 
         return true;
     }
@@ -332,6 +351,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
         if (requestCode == GOOGLE_REQUEST_CODE) {
             initializeProprietaryLibraries();
+        } else if (requestCode == CREATE_CODE && intent != null) {
+            documentFragment.save(intent.getData());
         } else if (intent != null) {
             Uri uri = intent.getData();
             if (requestCode == 42 && resultCode == Activity.RESULT_OK && uri != null) {
@@ -340,7 +361,6 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
         }
     }
 
-    @Override
     public void loadUri(Uri uri, boolean showAd) {
         Runnable onPermission = new Runnable() {
             @Override
@@ -358,43 +378,47 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             adManager.showInterstitial();
         }
 
-        isDocumentLoaded = true;
+        if (documentFragment == null) {
+            documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
 
-        if (uri != null) {
-            boolean isPersistentUri = true;
+            landingContainer.setVisibility(View.GONE);
+            documentContainer.setVisibility(View.VISIBLE);
 
-            crashManager.log("loading document at: " + uri.toString());
-            analyticsManager.report(FirebaseAnalytics.Event.VIEW_ITEM, FirebaseAnalytics.Param.ITEM_NAME, uri.toString());
+            if (documentFragment == null) {
+                documentFragment = new DocumentFragment();
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.document_container, documentFragment, DOCUMENT_FRAGMENT_TAG)
+                        .commit();
+            }
+        }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                try {
-                    grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                } catch (Exception e) {
-                    // some providers dont support persisted permissions
-                    e.printStackTrace();
+        crashManager.log("loading document at: " + uri.toString());
+        analyticsManager.report(FirebaseAnalytics.Event.VIEW_ITEM, FirebaseAnalytics.Param.ITEM_NAME, uri.toString());
 
-                    if (!uri.toString().startsWith("content://at.tomtasche.reader")) {
-                        isPersistentUri = false;
-                    }
+        boolean isPersistentUri = true;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            try {
+                grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            } catch (Exception e) {
+                // some providers dont support persisted permissions
+                crashManager.log(e);
+
+                if (!uri.toString().startsWith("content://at.tomtasche.reader")) {
+                    isPersistentUri = false;
                 }
             }
-
-            documentFragment.loadUri(uri, isPersistentUri);
-        } else {
-            // null passed in case of orientation change
         }
 
-        landingContainer.setVisibility(View.GONE);
-        documentContainer.setVisibility(View.VISIBLE);
-
-        showDocumentMenu();
-    }
-
-    private void showDocumentMenu() {
-        if (menu != null) {
-            menu.setGroupVisible(R.id.menu_document_group, true);
-        }
+        // delay loadUri to allow for DocumentFragment.onActivityCreated to be called
+        boolean finalIsPersistentUri = isPersistentUri;
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                documentFragment.loadUri(uri, finalIsPersistentUri);
+            }
+        }, 250);
     }
 
     @Override
@@ -415,6 +439,20 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
                 analyticsManager.report("menu_open");
                 analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "choose");
+
+                break;
+            }
+            case R.id.menu_open_with: {
+                documentFragment.openWith(this);
+
+                analyticsManager.report("menu_open_with");
+
+                break;
+            }
+            case R.id.menu_share: {
+                documentFragment.share(this);
+
+                analyticsManager.report("menu_share");
 
                 break;
             }
@@ -481,9 +519,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             case R.id.menu_edit: {
                 analyticsManager.report("menu_edit");
 
-                adManager.loadInterstitial();
-
-                editActionMode = new EditActionModeCallback(this, documentFragment, adManager, helpManager);
+                editActionMode = new EditActionModeCallback(this, documentFragment, helpManager);
                 startSupportActionMode(editActionMode);
 
                 break;
@@ -532,6 +568,8 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
             if (requestCode == PERMISSION_CODE && onPermissionRunnable != null) {
                 onPermissionRunnable.run();
                 onPermissionRunnable = null;
+
+                return;
             }
         }
 
@@ -686,7 +724,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
                 try {
                     startActivityForResult(intent, 42);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    crashManager.log(e);
 
                     SnackbarHelper.show(MainActivity.this, R.string.crouton_error_open_app, new Runnable() {
 
@@ -734,7 +772,7 @@ public class MainActivity extends AppCompatActivity implements DocumentLoadingAc
 
             super.onDestroy();
         } catch (Exception e) {
-            e.printStackTrace();
+            crashManager.log(e);
         }
     }
 

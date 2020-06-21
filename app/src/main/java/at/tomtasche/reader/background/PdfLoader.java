@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.viliussutkus89.android.pdf2htmlex.pdf2htmlEX;
+import com.viliussutkus89.android.wvware.wvWare;
 
 import java.io.File;
 import java.io.InputStream;
@@ -46,9 +47,10 @@ public class PdfLoader extends FileLoader {
             File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
 
             pdf2htmlEX pdfConverter = new pdf2htmlEX(context).setInputPDF(cacheFile);
-            pdfConverter.setOutline(false);
+            pdfConverter.setOutline(false).setBackgroundFormat("jpg").setDRM(false);
             if (options.password != null) {
                 pdfConverter.setOwnerPassword(options.password).setUserPassword(options.password);
+                pdfConverter.setEmbedExternalFont(false).setEmbedFont(false);
             }
 
             File output = pdfConverter.convert();
@@ -61,12 +63,16 @@ public class PdfLoader extends FileLoader {
 
             Uri finalUri = Uri.fromFile(htmlFile);
 
+            options.fileType = "application/pdf";
+
             result.partTitles.add(null);
             result.partUris.add(finalUri);
 
             callOnSuccess(result);
         } catch (Throwable e) {
-            e.printStackTrace();
+            if (e instanceof pdf2htmlEX.PasswordRequiredException || e instanceof pdf2htmlEX.WrongPasswordException) {
+                e = new EncryptedDocumentException();
+            }
 
             callOnError(result, e);
         }

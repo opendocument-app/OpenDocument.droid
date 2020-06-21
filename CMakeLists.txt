@@ -13,4 +13,4 @@ option (ODR_TEST "" OFF)
 set(ODR_TEST OFF)
 
 add_subdirectory(OpenDocument.core)
-target_link_libraries(odr-core odrlib)
+target_link_libraries(odr-core odr-shared)

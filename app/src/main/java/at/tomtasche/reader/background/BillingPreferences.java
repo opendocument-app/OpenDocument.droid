@@ -18,7 +18,7 @@ public class BillingPreferences {
             return false;
         }
 
-        return sharedPreferences.getBoolean("purchased", false);
+        return sharedPreferences.getBoolean("purchaseAcknowledged", false);
     }
 
     public void setPurchased(boolean purchased) {
@@ -27,7 +27,7 @@ public class BillingPreferences {
         }
 
         Editor editor = sharedPreferences.edit();
-        editor.putBoolean("purchased", purchased);
+        editor.putBoolean("purchaseAcknowledged", purchased);
         editor.apply();
     }
 }

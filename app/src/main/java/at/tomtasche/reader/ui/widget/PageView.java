@@ -3,7 +3,6 @@ package at.tomtasche.reader.ui.widget;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -23,7 +22,9 @@ import java.lang.reflect.Method;
 
 import androidx.annotation.Keep;
 import at.tomtasche.reader.background.AndroidFileCache;
+import at.tomtasche.reader.background.OnlineLoader;
 import at.tomtasche.reader.background.StreamUtil;
+import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.ParagraphListener;
 import at.tomtasche.reader.ui.activity.DocumentFragment;
 
@@ -33,6 +34,7 @@ public class PageView extends WebView implements ParagraphListener {
     private ParagraphListener paragraphListener;
 
     private DocumentFragment documentFragment;
+    private CrashManager crashManager;
 
     private HtmlCallback htmlCallback;
 
@@ -82,6 +84,8 @@ public class PageView extends WebView implements ParagraphListener {
                         @Override
                         public void run() {
                             if (!wasCommitCalled) {
+                                crashManager.log(new RuntimeException("commit was not called"));
+
                                 loadUrl(url);
                             }
                         }
@@ -95,13 +99,8 @@ public class PageView extends WebView implements ParagraphListener {
             }
 
             @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                wasCommitCalled = false;
-            }
-
-            @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (url.startsWith("https://docs.google.com/viewer?embedded=true")) {
+                if (url.startsWith(OnlineLoader.GOOGLE_VIEWER_URL) || url.startsWith(OnlineLoader.MICROSOFT_VIEWER_URL) || url.contains("officeapps.live.com/")) {
                     return false;
                 } else {
                     try {
@@ -110,7 +109,7 @@ public class PageView extends WebView implements ParagraphListener {
 
                         return true;
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        crashManager.log(e);
 
                         return false;
                     }
@@ -127,14 +126,22 @@ public class PageView extends WebView implements ParagraphListener {
                     getContext().startActivity(
                             new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    crashManager.log(e);
                 }
             }
         });
     }
 
+    @Override
+    public void loadUrl(String url) {
+        wasCommitCalled = false;
+
+        super.loadUrl(url);
+    }
+
     public void setDocumentFragment(DocumentFragment documentFragment) {
         this.documentFragment = documentFragment;
+        this.crashManager = documentFragment.getCrashManager();
     }
 
     public void setParagraphListener(ParagraphListener paragraphListener) {
@@ -147,15 +154,13 @@ public class PageView extends WebView implements ParagraphListener {
             @Override
             public void run() {
                 loadUrl("javascript:var children = document.body.childNodes; "
-                        // document.body.firstChild.childNodes in the desktop
-                        // version of Google Chrome
                         + "if (children.length <= " + index + ") { "
-                        + "paragraphListener.end();" + " return; " + "}"
+                        + "paragraphListener.end();" + "} else {"
                         + "var child = children[" + index + "]; "
-                        + "if (child) { "
+                        + "if (child && child.nodeName.toLowerCase() != 'script' && child.innerText) { "
                         + "paragraphListener.paragraph(child.innerText); "
                         + "} else { " + "paragraphListener.increaseIndex(); "
-                        + "}");
+                        + "} }");
             }
         });
     }
@@ -163,7 +168,7 @@ public class PageView extends WebView implements ParagraphListener {
     public void requestHtml(HtmlCallback callback) {
         this.htmlCallback = callback;
 
-        loadUrl("javascript:window.paragraphListener.sendHtml(generateDiff());");
+        loadUrl("javascript:window.paragraphListener.sendHtml(odr.generateDiff());");
     }
 
     @JavascriptInterface
@@ -188,25 +193,27 @@ public class PageView extends WebView implements ParagraphListener {
 
             documentFragment.loadUri(AndroidFileCache.getCacheFileUri(), false);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            crashManager.log(e);
         }
     }
 
     @Override
     @Keep
+    @JavascriptInterface
     public void paragraph(String text) {
         paragraphListener.paragraph(text);
     }
 
     @Override
     @Keep
+    @JavascriptInterface
     public void increaseIndex() {
         paragraphListener.increaseIndex();
     }
 
     @Override
     @Keep
+    @JavascriptInterface
     public void end() {
         paragraphListener.end();
     }

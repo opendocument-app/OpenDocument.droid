@@ -16,7 +16,13 @@ public class ProgressDialogFragment extends DialogFragment {
     private ProgressDialog progressDialog;
     private boolean isUpload;
 
+    public ProgressDialogFragment() {
+        super();
+    }
+
     public ProgressDialogFragment(boolean isUpload) {
+        this();
+
         this.isUpload = isUpload;
     }
 
