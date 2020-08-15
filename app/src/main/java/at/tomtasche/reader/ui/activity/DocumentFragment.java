@@ -190,6 +190,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private void loadWithType(FileLoader.LoaderType loaderType, FileLoader.Options options) {
         boolean isUpload = false;
         boolean isEditEnabled = false;
+        boolean isDarkModeSupported = true;
 
         FileLoader loader;
         switch (loaderType) {
@@ -205,6 +206,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 break;
             case PDF:
                 loader = pdfLoader;
+                isDarkModeSupported = false;
                 break;
             case ONLINE:
                 loader = onlineLoader;
@@ -221,8 +223,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         }
 
         showProgress(isUpload);
-
         toggleDocumentMenu(true, isEditEnabled);
+        pageView.toggleDarkMode(isDarkModeSupported);
 
         loader.loadAsync(options);
     }
