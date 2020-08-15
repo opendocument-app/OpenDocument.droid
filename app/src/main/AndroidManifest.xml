@@ -3,8 +3,8 @@
         xmlns:tools="http://schemas.android.com/tools"
         package="at.tomtasche.reader"
         android:installLocation="auto"
-        android:versionCode="132"
-        android:versionName="3.3.2"
+        android:versionCode="133"
+        android:versionName="3.3.3"
         tools:ignore="GoogleAppIndexingWarning">
 
     <uses-permission
