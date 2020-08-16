@@ -58,11 +58,14 @@ public class OnlineLoader extends FileLoader {
     public static final String GOOGLE_VIEWER_URL = "https://docs.google.com/viewer?embedded=true&url=";
     public static final String MICROSOFT_VIEWER_URL = "https://view.officeapps.live.com/op/view.aspx?src=";
 
+    private OdfLoader odfLoader;
+
     private StorageReference storage;
     private FirebaseAuth auth;
 
-    public OnlineLoader(Context context) {
+    public OnlineLoader(Context context, OdfLoader odfLoader) {
         super(context, LoaderType.ONLINE);
+        this.odfLoader = odfLoader;
     }
 
     @Override
@@ -131,25 +134,22 @@ public class OnlineLoader extends FileLoader {
                 metadataBuilder.setContentType(options.fileType);
             }
 
-            StorageReference reference = storage.child("uploads/" + currentUserId + "/" + UUID.randomUUID() + "." + options.fileExtension);
+            String filePath = currentUserId + "/" + UUID.randomUUID() + "." + options.fileExtension;
+            StorageReference reference = storage.child("uploads/" + filePath);
             UploadTask uploadTask = reference.putFile(options.cacheUri, metadataBuilder.build());
             Tasks.await(uploadTask);
 
             if (uploadTask.isSuccessful()) {
-                Task<Uri> urlTask = reference.getDownloadUrl();
-                Tasks.await(urlTask);
-
                 String viewerUrl;
-                if (options.fileType.contains("vnd.oasis.opendocument")) {
+                if (odfLoader.isSupported(options)) {
+                    // ODF does not seem to be supported by google docs viewer
                     viewerUrl = MICROSOFT_VIEWER_URL;
                 } else {
-                    // ODF does not seem to be supported by google docs viewer
                     viewerUrl = GOOGLE_VIEWER_URL;
                 }
 
-                String downloadUrl = urlTask.getResult().toString();
-                Uri viewerUri = Uri.parse(viewerUrl
-                        + URLEncoder.encode(downloadUrl, StreamUtil.ENCODING));
+                String downloadUrl = "https://us-central1-admob-app-id-9025061963.cloudfunctions.net/download?filePath=" + filePath;
+                Uri viewerUri = Uri.parse(viewerUrl + downloadUrl);
 
                 result.partTitles.add(null);
                 result.partUris.add(viewerUri);
