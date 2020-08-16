@@ -140,16 +140,19 @@ public class OnlineLoader extends FileLoader {
             Tasks.await(uploadTask);
 
             if (uploadTask.isSuccessful()) {
-                String viewerUrl;
+                Uri viewerUri;
                 if (odfLoader.isSupported(options)) {
                     // ODF does not seem to be supported by google docs viewer
-                    viewerUrl = MICROSOFT_VIEWER_URL;
-                } else {
-                    viewerUrl = GOOGLE_VIEWER_URL;
-                }
+                    String downloadUrl = "https://us-central1-admob-app-id-9025061963.cloudfunctions.net/download?filePath=" + filePath;
 
-                String downloadUrl = "https://us-central1-admob-app-id-9025061963.cloudfunctions.net/download?filePath=" + filePath;
-                Uri viewerUri = Uri.parse(viewerUrl + downloadUrl);
+                    viewerUri = Uri.parse(MICROSOFT_VIEWER_URL + downloadUrl);
+                } else {
+                    Task<Uri> urlTask = reference.getDownloadUrl();
+                    Tasks.await(urlTask);
+                    String downloadUrl = urlTask.getResult().toString();
+
+                    viewerUri = Uri.parse(GOOGLE_VIEWER_URL + URLEncoder.encode(downloadUrl, StreamUtil.ENCODING));
+                }
 
                 result.partTitles.add(null);
                 result.partUris.add(viewerUri);
