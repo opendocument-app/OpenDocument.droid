@@ -120,7 +120,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         rawLoader = new RawLoader(context);
         rawLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
-        onlineLoader = new OnlineLoader(context);
+        onlineLoader = new OnlineLoader(context, odfLoader);
         onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         pageView.setDocumentFragment(this);
@@ -190,6 +190,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private void loadWithType(FileLoader.LoaderType loaderType, FileLoader.Options options) {
         boolean isUpload = false;
         boolean isEditEnabled = false;
+        boolean isDarkModeSupported = true;
 
         FileLoader loader;
         switch (loaderType) {
@@ -205,6 +206,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 break;
             case PDF:
                 loader = pdfLoader;
+                isDarkModeSupported = false;
                 break;
             case ONLINE:
                 loader = onlineLoader;
@@ -221,8 +223,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         }
 
         showProgress(isUpload);
-
         toggleDocumentMenu(true, isEditEnabled);
+        pageView.toggleDarkMode(isDarkModeSupported);
 
         loader.loadAsync(options);
     }
@@ -390,8 +392,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             if (result.loaderType == FileLoader.LoaderType.RAW || result.loaderType == FileLoader.LoaderType.ONLINE) {
                 offerReopen(activity, options, R.string.toast_hint_unsupported_file, false);
-            } else if (result.loaderType != FileLoader.LoaderType.ODF) {
-                // ODF does not seem to be supported by docs viewer
+            } else {
                 offerUpload(activity, options, false);
             }
         }

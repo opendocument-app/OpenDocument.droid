@@ -1,6 +1,5 @@
 package at.tomtasche.reader.test;
 
-
 import android.Manifest;
 import android.os.Environment;
 import android.view.View;
@@ -10,6 +9,7 @@ import android.view.ViewParent;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +24,7 @@ import java.net.URL;
 import androidx.test.espresso.FailureHandler;
 import androidx.test.espresso.ViewInteraction;
 import androidx.test.filters.LargeTest;
+import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner;
 import androidx.test.rule.ActivityTestRule;
 import androidx.test.rule.GrantPermissionRule;
 import androidx.test.runner.AndroidJUnit4;
@@ -41,7 +42,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 
 @LargeTest
-@RunWith(AndroidJUnit4.class)
+@RunWith(AndroidJUnit4ClassRunner.class)
 public class OdtActivityTest {
 
     private boolean loadingDone;
@@ -66,13 +67,16 @@ public class OdtActivityTest {
         }
     }
 
-    @Test
-    public void mainActivityTest() {
+    private void setup() {
         // TODO: fix for Android 29+
 
         try {
-            final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "test.odt");
-            file.mkdirs();
+            File folder = new File(Environment.getExternalStorageDirectory(), "AAA_ODRTEST");
+            folder.mkdirs();
+
+            File file = new File(folder, "test.odt");
+
+            file.delete();
             file.createNewFile();
 
             InputStream inputStream = new URL("https://api.libreoffice.org/examples/cpp/DocumentLoader/test.odt").openStream();
@@ -82,6 +86,11 @@ public class OdtActivityTest {
 
             throw new RuntimeException(e);
         }
+    }
+
+    @Test
+    public void mainActivityTest() {
+        setup();
 
         ViewInteraction actionMenuItemView = onView(
                 allOf(withId(R.id.menu_open), withContentDescription("Open document"),
@@ -94,7 +103,7 @@ public class OdtActivityTest {
         appCompatTextView.perform(click());
 
         ViewInteraction textView = onView(
-                allOf(withId(android.R.id.text1), withText("Download"),
+                allOf(withId(android.R.id.text1), withText("AAA_ODRTEST"),
                         isDisplayed()));
         textView.perform(click());
 
@@ -124,6 +133,12 @@ public class OdtActivityTest {
             });
             loadingDialog.check(matches(withText("This could take a few minutes, depending on the structure of your document and the processing power of your device.")));
         } while (!loadingDone);
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         ViewInteraction actionMenuItemView2 = onView(
                 allOf(withId(R.id.menu_edit), withContentDescription("Edit document"),
