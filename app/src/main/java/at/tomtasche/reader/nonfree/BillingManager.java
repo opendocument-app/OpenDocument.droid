@@ -72,6 +72,8 @@ public class BillingManager implements PurchasesUpdatedListener {
                             public void onSkuDetailsResponse(BillingResult billingResult,
                                                              List<SkuDetails> skuDetailsList) {
                                 if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && !skuDetailsList.isEmpty()) {
+                                    analyticsManager.report("purchase_init_query_success", "code", billingResult.getResponseCode());
+
                                     resolvedSku = skuDetailsList.get(0);
 
                                     refreshPurchased();
@@ -112,6 +114,8 @@ public class BillingManager implements PurchasesUpdatedListener {
             @Override
             public void onBillingServiceDisconnected() {
                 // TODO: retry?
+
+                analyticsManager.report("purchase_init_disconnected");
             }
         });
     }
