@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        package="at.tomtasche.reader"
         android:installLocation="auto"
         android:versionCode="135"
         android:versionName="3.3.5"
+        package="at.tomtasche.reader"
         tools:ignore="GoogleAppIndexingWarning">
 
     <uses-permission
@@ -54,7 +54,7 @@
                 android:required="false" />
 
         <activity
-                android:name=".ui.activity.MainActivity"
+                android:name="at.tomtasche.reader.ui.activity.MainActivity"
                 android:label="@string/app_title"
                 android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize">
             <intent-filter>
@@ -65,9 +65,9 @@
         </activity>
 
         <activity-alias
-                android:name=".ui.activity.MainActivity.STRICT_CATCH"
+                android:name="at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH"
                 android:label="@string/app_title"
-                android:targetActivity=".ui.activity.MainActivity"
+                android:targetActivity="at.tomtasche.reader.ui.activity.MainActivity"
                 tools:ignore="AppLinkUrlError">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -186,9 +186,9 @@
         </activity-alias>
 
         <activity-alias
-                android:name=".ui.activity.MainActivity.CATCH_ALL"
+                android:name="at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL"
                 android:label="@string/app_title"
-                android:targetActivity=".ui.activity.MainActivity"
+                android:targetActivity="at.tomtasche.reader.ui.activity.MainActivity"
                 tools:ignore="AppLinkUrlError">
             <!-- necessary for Samsung "My Files" - https://stackoverflow.com/a/52624829/198996 -->
             <!-- Matches intents by file extension -->
@@ -359,7 +359,7 @@
         </activity>
 
         <activity
-                android:name=".ui.activity.IntroActivity"
+                android:name="at.tomtasche.reader.ui.activity.IntroActivity"
                 android:icon="@mipmap/icon"
                 android:roundIcon="@mipmap/icon_round"
                 android:excludeFromRecents="true"

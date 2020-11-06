@@ -20,6 +20,7 @@ import java.util.List;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import at.tomtasche.reader.BuildConfig;
 import at.tomtasche.reader.background.BillingPreferences;
 
 public class BillingManager implements PurchasesUpdatedListener {
@@ -50,6 +51,10 @@ public class BillingManager implements PurchasesUpdatedListener {
         }
 
         billingPreferences = new BillingPreferences(context);
+
+        if (BuildConfig.FLAVOR.equals("pro")) {
+            billingPreferences.setPurchased(true);
+        }
 
         if (billingPreferences.hasPurchased()) {
             adManager.removeAds();
