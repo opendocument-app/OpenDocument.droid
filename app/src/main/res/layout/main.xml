@@ -141,7 +141,7 @@
                 android:orientation="horizontal"
                 android:weightSum="1">
 
-            <SwitchCompat
+            <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/landing_catch_all"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -171,7 +171,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end|bottom"
                 app:srcCompat="@drawable/ic_folder_open"
-                android:layout_margin="16dp" />
+                android:layout_margin="16dp"
+                tools:ignore="ContentDescription" />
     </LinearLayout>
 
     <FrameLayout
