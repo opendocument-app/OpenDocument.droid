@@ -37,6 +37,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
@@ -81,8 +82,8 @@ public class MainActivity extends AppCompatActivity {
     private static final boolean USE_PROPRIETARY_LIBRARIES = true;
     private static final int GOOGLE_REQUEST_CODE = 1993;
     private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
-    private static int PERMISSION_CODE = 1353;
-    private static int CREATE_CODE = 4213;
+    private static final int PERMISSION_CODE = 1353;
+    private static final int CREATE_CODE = 4213;
 
     private boolean didTriggerPermissionDialogAgain = false;
 
@@ -179,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
         toggleComponent(catchAllComponent, isCatchAllEnabled);
         toggleComponent(strictCatchComponent, !isCatchAllEnabled);
 
-        Switch catchAllSwitch = findViewById(R.id.landing_catch_all);
+        SwitchCompat catchAllSwitch = findViewById(R.id.landing_catch_all);
         if (!IS_GOOGLE_ECOSYSTEM) {
             LinearLayout parent = (LinearLayout) catchAllSwitch.getParent();
             parent.setVisibility(View.GONE);
@@ -635,18 +636,14 @@ public class MainActivity extends AppCompatActivity {
 
                 analyticsManager.report(FirebaseAnalytics.Event.ADD_TO_CART);
 
-                switch (which) {
-                    case 0:
-                        product = BillingManager.BILLING_PRODUCT_FOREVER;
+                if (which == 0) {
+                    product = BillingManager.BILLING_PRODUCT_FOREVER;
+                } else {
+                    dialog.dismiss();
 
-                        break;
+                    adManager.showVideo();
 
-                    default:
-                        dialog.dismiss();
-
-                        adManager.showVideo();
-
-                        return;
+                    return;
                 }
 
                 billingManager.startPurchase(MainActivity.this);
