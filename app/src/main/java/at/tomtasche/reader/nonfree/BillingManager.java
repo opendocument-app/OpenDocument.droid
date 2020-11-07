@@ -20,10 +20,12 @@ import java.util.List;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import at.tomtasche.reader.BuildConfig;
 import at.tomtasche.reader.background.BillingPreferences;
 
 public class BillingManager implements PurchasesUpdatedListener {
 
+    // test SKU: android.test.purchased
     public static final String BILLING_PRODUCT_FOREVER = "remove_ads_for_eva";
 
     private boolean enabled;
@@ -50,6 +52,10 @@ public class BillingManager implements PurchasesUpdatedListener {
 
         billingPreferences = new BillingPreferences(context);
 
+        if (BuildConfig.FLAVOR.equals("pro")) {
+            billingPreferences.setPurchased(true);
+        }
+
         if (billingPreferences.hasPurchased()) {
             adManager.removeAds();
 
@@ -71,6 +77,8 @@ public class BillingManager implements PurchasesUpdatedListener {
                             public void onSkuDetailsResponse(BillingResult billingResult,
                                                              List<SkuDetails> skuDetailsList) {
                                 if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && !skuDetailsList.isEmpty()) {
+                                    analyticsManager.report("purchase_init_query_success", "code", billingResult.getResponseCode());
+
                                     resolvedSku = skuDetailsList.get(0);
 
                                     refreshPurchased();
@@ -111,6 +119,8 @@ public class BillingManager implements PurchasesUpdatedListener {
             @Override
             public void onBillingServiceDisconnected() {
                 // TODO: retry?
+
+                analyticsManager.report("purchase_init_disconnected");
             }
         });
     }
@@ -206,10 +216,12 @@ public class BillingManager implements PurchasesUpdatedListener {
     @Override
     public void onPurchasesUpdated(BillingResult billingResult, @Nullable List<Purchase> purchases) {
         if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-            billingPreferences.setPurchased(true);
+            refreshPurchased();
 
-            adManager.removeAds();
-            enabled = false;
+            if (hasPurchased()) {
+                adManager.removeAds();
+                enabled = false;
+            }
 
             analyticsManager.report("purchase_success");
             analyticsManager.report(FirebaseAnalytics.Event.ECOMMERCE_PURCHASE);

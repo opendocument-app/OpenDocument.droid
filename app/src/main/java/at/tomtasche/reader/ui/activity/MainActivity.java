@@ -170,8 +170,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeCatchAllSwitch() {
-        ComponentName catchAllComponent = new ComponentName(this, BuildConfig.APPLICATION_ID + ".ui.activity.MainActivity.CATCH_ALL");
-        ComponentName strictCatchComponent = new ComponentName(this, BuildConfig.APPLICATION_ID + ".ui.activity.MainActivity.STRICT_CATCH");
+        ComponentName catchAllComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL");
+        ComponentName strictCatchComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH");
 
         boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(catchAllComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED && IS_GOOGLE_ECOSYSTEM;
 
@@ -341,6 +341,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreateOptionsMenu(menu);
 
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        if (billingManager.hasPurchased()) {
+            menu.findItem(R.id.menu_remove_ads).setVisible(false);
+        }
 
         return true;
     }

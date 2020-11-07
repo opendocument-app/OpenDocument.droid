@@ -47,6 +47,12 @@ function loadZip(file) {
                 rowCounts[name] = rowCount;
             });
 
+            if (firstFolderName === null) {
+                // some zip files do not declare directories explicitly
+                rowCounts[''] = 0;
+                firstFolderName = '';
+            }
+
             for (var rowName in rowCounts) {
               var rowCount = rowCounts[rowName];
               tableList.append('<option value="' + rowName + '">' + rowName + ' (' + rowCount + ' files)</option>');
@@ -73,7 +79,7 @@ function resetTableList() {
     tables.empty();
     tables.append("<option></option>");
     tables.select2({
-        placeholder: "Select a table",
+        placeholder: "Select a folder",
         formatSelection: selectFormatter,
         formatResult: selectFormatter
     });
@@ -187,13 +193,25 @@ function registerFileClickListener(file, element) {
 
 function getFilesForRoot(zip) {
     return zip.filter(function(relativePath, file) {
-      return relativePath.indexOf('/') < 0;
+        return relativePath.indexOf('/') < 0;
     });
 }
 
 function getFilesForFolder(zip, folder) {
-    return zip.folder(folder).filter(function(relativePath, file) {
-      return relativePath.replace(folder, '').indexOf('/') < 0;
+    var isNoFolderZip = false;
+    if (folder !== '') {
+        // some zip files do not declare directories explicitly
+        zip = zip.folder(folder);
+    } else {
+        isNoFolderZip = true;
+    }
+
+    return zip.filter(function(relativePath, file) {
+        if (isNoFolderZip) {
+            return true;
+        } else {
+            return relativePath.replace(folder, '').indexOf('/') < 0;
+        }
     });
 }
 </script>

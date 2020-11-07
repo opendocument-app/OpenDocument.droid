@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 
 import androidx.annotation.Keep;
+import androidx.webkit.WebSettingsCompat;
+import androidx.webkit.WebViewFeature;
 import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.OnlineLoader;
 import at.tomtasche.reader.background.StreamUtil;
@@ -130,6 +132,12 @@ public class PageView extends WebView implements ParagraphListener {
                 }
             }
         });
+    }
+
+    public void toggleDarkMode(boolean isDarkEnabled) {
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+            WebSettingsCompat.setForceDark(getSettings(), isDarkEnabled ? WebSettingsCompat.FORCE_DARK_AUTO : WebSettingsCompat.FORCE_DARK_OFF);
+        }
     }
 
     @Override

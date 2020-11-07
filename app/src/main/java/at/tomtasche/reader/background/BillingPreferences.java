@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
+import at.tomtasche.reader.BuildConfig;
+
 public class BillingPreferences {
 
     private SharedPreferences sharedPreferences;
