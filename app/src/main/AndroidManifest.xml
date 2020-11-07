@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:installLocation="auto"
-        android:versionCode="135"
-        android:versionName="3.3.5"
+        android:versionCode="136"
+        android:versionName="3.3.6"
         package="at.tomtasche.reader"
         tools:ignore="GoogleAppIndexingWarning">
 
