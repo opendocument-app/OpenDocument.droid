@@ -25,4 +25,5 @@
     <string name="action_tts_pause">Pausa</string>
     <string name="action_tts_next">Següent</string>
     <string name="action_tts_previous">Anterior</string>
+    <!--  iOS -->
 </resources>

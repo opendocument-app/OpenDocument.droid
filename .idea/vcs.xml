@@ -3,5 +3,11 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/OpenDocument.core" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/app/.cxx/cmake/liteDebug/x86/_deps/cryptopp-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/app/.cxx/cmake/liteDebug/x86/_deps/cryptopp_cmake-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/app/.cxx/cmake/liteDebug/x86/_deps/glog-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/app/.cxx/cmake/liteDebug/x86/_deps/json-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/app/.cxx/cmake/liteDebug/x86/_deps/miniz-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/app/.cxx/cmake/liteDebug/x86/_deps/pugixml-src" vcs="Git" />
   </component>
 </project>

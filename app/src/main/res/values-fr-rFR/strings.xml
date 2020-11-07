@@ -72,4 +72,13 @@
         <item>Supprimer les pubs définitivement</item>
         <item>Supprimer temporairement et gratuitement les pubs en regardant une courte vidéo</item>
     </string-array>
+    <!--  iOS -->
+    <string name="ok">OK</string>
+    <string name="unsaved_changes">Vos modifications ne sont pas enregistrées</string>
+    <string name="save_now">Les enregistrer maintenant ?</string>
+    <string name="yes">Oui</string>
+    <string name="discard_changes">Ignorer les modifications</string>
+    <string name="cancel">Annuler</string>
+    <string name="error">Erreur</string>
+    <string name="back_to_documents">Retour aux documents</string>
 </resources>

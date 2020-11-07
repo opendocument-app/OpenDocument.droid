@@ -31,4 +31,5 @@
     <string name="tts_status_initializing">Inicializuji TTS…</string>
     <string name="tts_status_failed">TTS selhal.</string>
     <string name="crouton_printing">Probíhá tisk…</string>
+    <!--  iOS -->
 </resources>
