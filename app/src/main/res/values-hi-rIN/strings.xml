@@ -33,4 +33,5 @@
     <string name="action_tts_previous">पिछला</string>
     <string name="action_edit_save">Save</string>
     <string name="action_edit_help">सहायता</string>
+    <!--  iOS -->
 </resources>

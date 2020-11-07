@@ -3,9 +3,12 @@
     <string name="toast_error_generic">出现了一些错误，无法打开文件。</string>
     <string name="toast_error_find_file">找不到此文件。或许它已经不在那里了？</string>
     <string name="toast_error_illegal_file">此文件格式似乎不受支持。</string>
+    <string name="toast_error_illegal_file_reopen">不受支持的文件格式。请尝试在另一个应用程序中打开它。</string>
     <string name="toast_hint_unsupported_file">对文件的显示效果不满意？在另一个应用中打开它。</string>
     <string name="toast_hint_upload_file">对文件的显示效果不满意？将其临时上传到云端服务器中，以改善其格式。</string>
     <string name="toast_error_reopen_noapp">在本设备上找不到支持此类型的文件的应用。</string>
+    <string name="toast_error_save_nofile">没有地方保存选中的文件。</string>
+    <string name="toast_error_save_failed">无法保存文件。请联系 support@opendocument.app</string>
     <string name="toast_error_out_of_memory">设备内存不足！可能是因为文件中的图片太多了，也可能是文件体积过大。</string>
     <string name="toast_error_password_protected">此文档受密码保护。</string>
     <string name="toast_error_permission_required">需要权限以便存取文档</string>
@@ -22,6 +25,8 @@
     <string name="menu_recent">最近打开的文档</string>
     <string name="menu_search">在文档中搜索</string>
     <string name="menu_open">打开文档</string>
+    <string name="menu_open_with">打开方式...</string>
+    <string name="menu_share">分享文档</string>
     <string name="menu_edit">编辑文档</string>
     <string name="menu_remove_ads">移除广告</string>
     <string name="menu_fullscreen">打开全屏模式</string>
@@ -50,6 +55,7 @@
     <string name="tts_status_failed">TTS 引擎调用失败。</string>
     <string name="tts_status_paused">已暂停。</string>
     <string name="tts_status_finished">播放结束。</string>
+    <string name="toast_edit_status_saved">文档已保存.</string>
     <string name="crouton_printing">正在打印…</string>
     <string name="crouton_print_unavailable">您的设备不支持打印。请将 Android 系统升级至更加新的版本（Android 4.4 以上）。</string>
     <string name="intro_title_open">随时随地打开并阅读您的 ODF 文件！</string>
@@ -65,4 +71,13 @@
         <item>永久移除广告</item>
         <item>通过观看短视频并暂时免费移除广告</item>
     </string-array>
+    <!--  iOS -->
+    <string name="ok">确认</string>
+    <string name="unsaved_changes">你有未保存的更改</string>
+    <string name="save_now">现在保存它们吗？</string>
+    <string name="yes">是</string>
+    <string name="discard_changes">放弃更改</string>
+    <string name="cancel">取消</string>
+    <string name="error">出错</string>
+    <string name="back_to_documents">返回文档</string>
 </resources>

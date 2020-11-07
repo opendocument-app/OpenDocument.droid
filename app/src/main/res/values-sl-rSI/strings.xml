@@ -70,4 +70,13 @@
         <item>Odstrani oglase za vedno</item>
         <item>Začasno odstrani oglase</item>
     </string-array>
+    <!--  iOS -->
+    <string name="ok">V redu</string>
+    <string name="unsaved_changes">Spremembe niso shranjene!</string>
+    <string name="save_now">Shrani jih zdaj?</string>
+    <string name="yes">Da</string>
+    <string name="discard_changes">Zavrzi spremembe</string>
+    <string name="cancel">Prekliči</string>
+    <string name="error">Napaka</string>
+    <string name="back_to_documents">Nazaj v dokumente</string>
 </resources>
