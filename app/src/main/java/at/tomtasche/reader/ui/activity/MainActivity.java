@@ -126,6 +126,12 @@ public class MainActivity extends AppCompatActivity {
                 findDocument();
             }
         });
+        findViewById(R.id.landing_open_fab).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                findDocument();
+            }
+        });
 
         initializeProprietaryLibraries();
 
