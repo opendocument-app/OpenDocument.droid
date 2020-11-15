@@ -1,3 +1,4 @@
 #!/bin/bash
 
-./gradlew app:uploadCrashlyticsSymbolFileRelease
+./gradlew app:uploadCrashlyticsSymbolFileLiteRelease
+./gradlew app:uploadCrashlyticsSymbolFileProRelease
