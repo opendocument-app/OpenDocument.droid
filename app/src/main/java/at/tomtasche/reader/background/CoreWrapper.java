@@ -92,31 +92,31 @@ public class CoreWrapper {
 
     public static class CoreOptions {
 
-        long nativePointer;
+        public long nativePointer;
 
-        boolean ooxml;
+        public boolean ooxml;
 
-        boolean editable;
+        public boolean editable;
 
-        String password;
+        public String password;
 
-        String inputPath;
-        String outputPath;
+        public String inputPath;
+        public String outputPath;
     }
 
     public static class CoreResult {
 
-        long nativePointer;
+        public long nativePointer;
 
-        int errorCode;
+        public int errorCode;
 
-        Exception exception;
+        public Exception exception;
 
-        List<String> pageNames = new LinkedList<>();
+        public List<String> pageNames = new LinkedList<>();
 
-        String outputPath;
+        public String outputPath;
 
-        String extension;
+        public String extension;
     }
 
     public class CoreCouldNotOpenException extends RuntimeException {}

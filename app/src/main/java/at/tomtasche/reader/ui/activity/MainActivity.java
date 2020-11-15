@@ -123,6 +123,14 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.landing_intro_open).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                analyticsManager.report("intro_open");
+                findDocument();
+            }
+        });
+        findViewById(R.id.landing_open_fab).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                analyticsManager.report("fab_open");
                 findDocument();
             }
         });
