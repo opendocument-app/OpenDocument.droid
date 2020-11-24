@@ -1,0 +1,17 @@
+<h1><b>Prohlížejte a upravujte své dokumenty vytvořené pomocí OpenOffice nebo LibreOffice na cestách pomocí OpenDocument Reader! 📄🚶</b></h1>
+
+OpenDocument Reader Vám umožní číst Vaše soubory ve formátu ODF* (OpenDocument Format) kdekoli. Jste v autobusu na cestě do školy? Není problém! S OpenDocument Reader můžete ve svých dokumentech velmi snadno a jednoduše vyhledávat a číst si je. Je ve Vašem dokumentu ještě nějaká nevychytaná chyba? I úpravy dokumentů jsou už podporovány! Rychlé, jednoduché a velmi integrované.
+
+Své dokumenty můžete začít číst z ostatních aplikací. K podporovaným aplikacím patří GMail, Google Drive, Box.net, Dropbox a spousta dalších!
+
+<h1><b>Všechny funkce jediným pohledem:</b></h1>
+- bez problémové otevírání formátů .odt, .ods a .odp
+- tisk dokumentů pomocí Google Cloud Print
+- základní úpravy dokumentů za účelem opravy chyb, přidávání vět atd.
+- plná schopnost práce off-line
+- nepatrná velikost aplikace
+- čtěte své dokumenty nahlas pomocí funkce Text-To-Speech
+
+* ODF je formát používaný v kancelářských balících, jako například OpenOffice a LibreOffice. Podporovány jsou textové dokumenty (.odt), tabulkové sešity (.ods) a také prezentace (.odp), včetně podpory složitého formátování a vložených obrázků. Také grafy nejsou problémem. Jestliže chcete mít svá data zabezpečena, můžete dokonce otevírat dokumenty chráněné heslem.
+
+<small>Toto je aplikace s otevřeným zdrojovým kódem. Nejsme pobočkou společností OpenOffice, LibreOffice, ani jiné obdobné společnosti. Vyrobeno v Rakousku. Abychom měli na jídlo, jsou při používání této aplikace zobrazovány reklamy. Budeme velmi rádi, když je strpíte!</small>

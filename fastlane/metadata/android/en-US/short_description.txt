@@ -1,0 +1,1 @@
+Document reader & file editor for Libreoffice & OpenOffice | ODF: ODT, ODS +more
