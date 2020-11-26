@@ -32,17 +32,25 @@ platform :android do
       skip_upload_metadata: true,
       skip_upload_changelogs: true,
       skip_upload_images: true,
-      skip_upload_screenshots: true,
-      version_codes_to_retain: [93]
+      skip_upload_screenshots: true
     )
     gradle(task: "app:uploadCrashlyticsSymbolFileProRelease")
   end
 
   desc "Deploy a new version to the Google Play"
   lane :deployLite do
-    gradle(task: "clean assembleLiteRelease")
-    upload_to_play_store
+    gradle(
+      task: "app:bundleLiteRelease"
+    )
+    upload_to_play_store(
+      track: 'open_testing',
+      package_name: 'at.tomtasche.reader',
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      version_codes_to_retain: [93]
+    )
     gradle(task: "app:uploadCrashlyticsSymbolFileLiteRelease")
   end
-
 end
