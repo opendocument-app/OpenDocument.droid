@@ -24,7 +24,7 @@ platform :android do
   desc "Deploy a new version to the Google Play"
   lane :deployPro do
     gradle(
-      task: "app:bundleProRelease"
+      task: "clean app:bundleProRelease"
     )
     upload_to_play_store(
       track: 'open_testing',
@@ -40,7 +40,7 @@ platform :android do
   desc "Deploy a new version to the Google Play"
   lane :deployLite do
     gradle(
-      task: "app:bundleLiteRelease"
+      task: "clean app:bundleLiteRelease"
     )
     upload_to_play_store(
       track: 'open_testing',
