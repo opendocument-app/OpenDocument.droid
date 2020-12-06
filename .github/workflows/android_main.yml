@@ -30,10 +30,19 @@ jobs:
     - name: Checkout submodule
       run: git submodule update --init --recursive
 
+    - name: brew
+      run: ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null
+    - name: ninja
+      run: brew install ninja
+    - name: bundler
+      run: gem install bundler
+    - name: fastlane
+      run: bundle install
+
     - name: run tests
       uses: reactivecircus/android-emulator-runner@v2
       with:
         api-level: 29
         target: google_apis
         arch: x86_64
-        script: ./gradlew connectedCheck
+        script: bundle exec fastlane tests
