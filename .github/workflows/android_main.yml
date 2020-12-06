@@ -1,4 +1,4 @@
-name: build
+name: OpenDocument-Reader-Android
 
 on: [push]
 
@@ -19,3 +19,21 @@ jobs:
         java-version: 1.8
     - name: Build with Gradle
       run: ./gradlew clean assembleDebug
+
+  test:
+
+    runs-on: macos-latest
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: Checkout submodule
+      run: git submodule update --init --recursive
+
+    - name: run tests
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 29
+        target: google_apis
+        arch: x86_64
+        script: ./gradlew connectedCheck
