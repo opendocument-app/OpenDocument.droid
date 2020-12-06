@@ -375,7 +375,7 @@
         <provider
                 android:name="androidx.core.content.FileProvider"
                 android:enabled="@bool/filepicker_enabled"
-                android:authorities="at.tomtasche.reader.provider"
+                android:authorities="${applicationId}.provider"
                 android:exported="false"
                 android:grantUriPermissions="true">
             <meta-data

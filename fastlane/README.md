@@ -16,11 +16,6 @@ or alternatively using `brew install fastlane`
 
 # Available Actions
 ## Android
-### android test
-```
-fastlane android test
-```
-Runs all the tests
 ### android deployPro
 ```
 fastlane android deployPro
@@ -31,6 +26,11 @@ Deploy a new version to the Google Play
 fastlane android deployLite
 ```
 Deploy a new version to the Google Play
+### android tests
+```
+fastlane android tests
+```
+
 
 ----
 
