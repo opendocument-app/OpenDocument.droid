@@ -34,6 +34,7 @@ jobs:
       run: ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null
     - name: ninja
       run: brew install ninja
+    # https://stackoverflow.com/a/57758679/198996
     - name: bundler
       run: gem install bundler:1.17.3
     - name: fastlane
