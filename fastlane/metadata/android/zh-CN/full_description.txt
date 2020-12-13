@@ -1,0 +1,17 @@
+<h1><b>使用 OpenDocument 阅读器，随时随地查看或修改由 OpenOffice 或 LibreOffice 创建的文档！ 📄🚶</b></h1>
+
+OpenDocument 阅读器允许你随时随地阅读 ODF*（OpenDocument 格式，通常由 LibreOffice 或 OpenOffice 创建）文档。 正在开往学校的公交车上？ 没问题！ 通过 OpenDocument 阅读器，您可以简单利落地阅读、搜索您的文档。 你的文档中是否还剩下最后一个拼写错误需要修正？ OpenDocument 阅读器现已支持修改文档！ 快捷、简单、兼容。
+
+您可以直接从其他应用程序中打开文件，更快一步阅读您的文档。 支持的应用程序包括 GMail、Google Drive、Box.net、Dropbox 和其他许多应用！
+
+<h1><b>功能纵览：</b></h1>
+- 毫不费力地打开 .odt、.ods 和 .odp 文件
+- 使用 Google Cloud Print 打印文档
+- 基本的文档编辑功能：修正拼写错误，添加段落，等等
+- 支持完全离线使用
+- 应用体积小，不臃肿
+- 支持使用文字转语音服务阅读您的文档
+
+* ODF 是 OpenOffice 和 LibreOffice 等办公软件使用的格式。 支持文本文档（.odt），以及电子表格（.ods）和演示文档（.odp），支持复杂的格式和内嵌图像。 图表也不是问题。 如果你想要保证您的数据安全，本应用甚至支持密码保护的文件。
+
+<small>本应用是开源软件。 我们并不附属于 OpenOffice、LibreOffice 或类似组织。 由奥地利程序员手工打造。 为了给我们自己买一点食物，使用此应用程序时会显示广告。Bearing with them is highly appreciated!</small>

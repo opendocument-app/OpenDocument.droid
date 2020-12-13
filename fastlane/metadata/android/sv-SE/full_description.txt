@@ -1,0 +1,17 @@
+<h1><b>Visa och ändra dokument som skapats med OpenOffice eller LibreOffice omedelbart med OpenDocument Reader! 📄🚶</b></h1>
+
+Med OpenDocument Reader kan du läsa dina ODF * (OpenDocument Format) dokument var du än är. I bussen på väg till skolan? Inga problem! Med OpenDocument Reader kan du läsa och söka igenom dina dokument på ett mycket rent och enkelt sätt. Finns det bara ett sista stavfel kvar att fixa i ditt dokument? Det stöder nu ändring av dokument också! Snabb, enkel och väl integrerad.
+
+Du kan börja läsa dina dokument från andra appar. Stödda appar inkluderar GMail, Google Drive, Box.net, Dropbox och många andra!
+
+<h1><b>Alla funktioner i ett glimt:</b></h1>
+- open .odt, .ods och.odp utan krångel
+- Skriv ut dokument med hjälp av Google Cloud Print
+- basisk redigering av dokument för att fixa stavfel, lägga till meningar, etc.
+- helt offline duglig
+- liten appstorlek
+- läs högt dina dokument med Text-To-Speech
+
+* ODF är det format som används av kontorsvaror som OpenOffice och LibreOffice. Textdokument (.odt), samt kalkylblad (.ods) och även presentationer (.odp) stöds, inklusive stöd för komplex formatering och inbäddade bilder. Grafer är inga problem heller. Om du vill säkra dina uppgifter kan du även öppna lösenordsskyddade dokument.
+
+<small>Den här appen är öppen källkod. Vi är inte anslutna till OpenOffice, LibreOffice eller liknande. Tillverkad i Österrike. För att kunna köpa lite mat visas annonser när du använder den här appen. Stå ut med dem är mycket uppskattat!</small>

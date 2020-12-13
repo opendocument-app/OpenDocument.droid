@@ -1,0 +1,17 @@
+<h1><b>Vaadake ja muutke liikvel olles OpenDocument Readeri abil dokumente, mis on loodud OpenOffice'is või LibreOffice'is! 📄🚶</b></h1>
+
+OpenDocument Reader võimaldab lugeda ODF* (LibreOffice'i või OpenOffice'i abil loodud OpenDocument Format) dokumente kõikjal. Bussis teel kooli? Ei ole probleem! OpenDocument Readeri abil saate lugeda ja kasutada dokumentide otsingut puhtal ja lihtsalt viisil. Kas täiuslikust dokumendist on puudu vaid üks viimane parandamist vajav kirjaviga? Nüüd on võimalik ka dokumentide muutmine! Kiire, lihtne ja hästi integreeritud.
+
+Dokumentide lugemist saate alustada ka teistes rakendustes. Toetatud rakenduste hulgas on GMail, Google Drive, Box.net, Dropbox ja paljud teised!
+
+<h1><b>Kõik funktsioonid ülevaatlikult:</b></h1>
+- avage muretult .odt, .ods ja .odp faile
+- trükkige dokumente teenuses Google Cloud Print
+- dokumentide lihtsamad muudatused kirjavigade parandamiseks, lausete lisamiseks jne
+- täielik võrguvaba tugi
+- väikesemahuline rakendus
+- Tekst-kõneks funktsiooni abil saate dokumendid ette lugeda
+
+* ODF vormingut kasutab kontoritarkvara OpenOffice ja LibreOffice. Toetatud on tekstidokumendid (.odt), arvutustabelid (.ods) ja esitlused (.odp). Muu hulgas on olemas keeruka vormistuse ja manustatud piltide tugi. Samuti ei ole probleemiks ka graafikud. Kui soovite enda andmeid kaitsta, saate kasutada ka salasõnaga kaitstud dokumente.
+
+<small>Rakendus on avatud lähtekoodiga. Meil puudub igasugune seos OpenOffice'i, LibreOffice'i või sarnaste rakendustega. Toodetud Austrias. Leiva lauale saamiseks kuvame rakendused vahel mõnda reklaami. Täname kannatlikkuse eest!</small>

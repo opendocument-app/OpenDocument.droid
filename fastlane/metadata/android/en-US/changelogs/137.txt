@@ -1,0 +1,1 @@
+Fix potential crash while saving changes for a document.

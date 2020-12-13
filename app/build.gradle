@@ -23,6 +23,37 @@ android {
 
     dexOptions.javaMaxHeapSize "4g"
 
+    flavorDimensions "default"
+
+    signingConfigs {
+        releasePro {
+            storeFile file("../../google_play.keystore")
+            storePassword "releaseme"
+            keyAlias "reader-pro"
+            keyPassword "releaseme"
+        }
+
+        releaseLite {
+            storeFile file("../../google_play.keystore")
+            storePassword "releaseme"
+            keyAlias "reader"
+            keyPassword "releaseme"
+        }
+    }
+
+    productFlavors {
+        lite {
+            signingConfig signingConfigs.releaseLite
+        }
+
+        pro {
+            applicationIdSuffix ".pro"
+            versionNameSuffix "-pro"
+
+            signingConfig signingConfigs.releasePro
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled true
@@ -31,18 +62,6 @@ android {
 
             firebaseCrashlytics.nativeSymbolUploadEnabled true
             ndk.debugSymbolLevel = "full"
-        }
-    }
-
-    flavorDimensions "default"
-
-    productFlavors {
-        lite {
-        }
-
-        pro {
-            applicationIdSuffix ".pro"
-            versionNameSuffix "-pro"
         }
     }
 

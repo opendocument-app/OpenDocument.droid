@@ -31,6 +31,7 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.kobakei.ratethisapp.RateThisApp;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -702,14 +703,22 @@ public class MainActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
         PackageManager pm = getPackageManager();
-        final List<ResolveInfo> targets = pm.queryIntentActivities(intent, 0);
-        int size = targets.size() + 1;
-        String[] targetNames = new String[size];
-        for (int i = 0; i < targets.size(); i++) {
-            targetNames[i] = targets.get(i).loadLabel(pm).toString();
+        List<ResolveInfo> allTargets = pm.queryIntentActivities(intent, 0);
+        List<ResolveInfo> targetList = new LinkedList<>();
+        for (int i = 0; i < allTargets.size(); i++) {
+            ResolveInfo target = allTargets.get(i);
+            if (!target.activityInfo.packageName.equals(getPackageName()) && !target.activityInfo.exported) {
+                continue;
+            }
+
+            targetList.add(target);
         }
 
-        targetNames[size - 1] = getString(R.string.menu_recent);
+        String[] targetNames = new String[targetList.size() + 1];
+        for (int i = 0; i < targetList.size(); i++) {
+            targetNames[i] = targetList.get(i).loadLabel(pm).toString();
+        }
+        targetNames[targetNames.length - 1] = getString(R.string.menu_recent);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dialog_choose_filemanager);
@@ -717,13 +726,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (which == size - 1) {
+                if (which == targetNames.length - 1) {
                     showRecent();
 
                     return;
                 }
 
-                ResolveInfo target = targets.get(which);
+                ResolveInfo target = targetList.get(which);
                 if (target == null) {
                     return;
                 }
