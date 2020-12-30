@@ -27,8 +27,9 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v2
-    - name: Checkout submodule
-      run: git submodule update --init --recursive
+      with:
+        token: ${{ secrets.PAT_TOMTASCHE }}
+        submodules: true
 
     - name: brew
       run: ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null
