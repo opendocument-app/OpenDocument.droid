@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -14,20 +13,17 @@ jobs:
         token: ${{ secrets.PAT_TOMTASCHE }}
         submodules: true
 
-    - name: Install ninja
+    - name: ninja
       run: sudo apt-get install -y ninja-build
-    - name: Checkout submodule
-      run: git submodule update --init --recursive
-    - name: set up JDK 1.8
+    - name: java
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
 
-    - name: Build with Gradle
+    - name: build
       run: ./gradlew clean assembleDebug
 
   test:
-
     runs-on: macos-latest
 
     steps:
@@ -39,6 +35,8 @@ jobs:
 
     - name: brew
       run: ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null
+    - name: fix ninja install
+      run: rm '/usr/local/bin/2to3'
     - name: ninja
       run: brew install ninja
     # https://stackoverflow.com/a/57758679/198996
