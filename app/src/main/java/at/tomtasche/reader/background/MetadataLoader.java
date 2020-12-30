@@ -63,8 +63,7 @@ public class MetadataLoader extends FileLoader {
         try {
             // cleanup uri
             if ("/./".equals(uri.toString().substring(0, 2))) {
-                uri = Uri.parse(uri.toString().substring(2,
-                        uri.toString().length()));
+                uri = Uri.parse(uri.toString().substring(2));
             }
 
             // TODO: don't delete file being displayed at the moment, but

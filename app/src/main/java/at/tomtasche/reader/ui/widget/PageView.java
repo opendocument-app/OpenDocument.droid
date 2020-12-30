@@ -63,6 +63,7 @@ public class PageView extends WebView implements ParagraphListener {
         settings.setJavaScriptEnabled(true);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
+        settings.setAllowFileAccess(true);
 
         addJavascriptInterface(this, "paragraphListener");
 

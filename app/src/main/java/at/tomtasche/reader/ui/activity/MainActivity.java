@@ -30,6 +30,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.kobakei.ratethisapp.RateThisApp;
+import com.nononsenseapps.filepicker.FilePickerActivity;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -145,6 +146,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         initializeCatchAllSwitch();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            ComponentName filePickerActivity = new ComponentName(this, FilePickerActivity.class.getName());
+            toggleComponent(filePickerActivity, false);
+        }
     }
 
     private void initializeRatingDialog() {
