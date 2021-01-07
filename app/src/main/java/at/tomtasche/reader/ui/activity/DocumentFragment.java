@@ -1,18 +1,14 @@
 package at.tomtasche.reader.ui.activity;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Parcelable;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,7 +26,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -40,7 +35,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.DocLoader;
@@ -61,6 +55,7 @@ import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 public class DocumentFragment extends Fragment implements FileLoader.FileLoaderListener, ActionBar.TabListener {
 
     private static final String SAVED_KEY_LAST_RESULT = "LAST_RESULT";
+    private static final String SAVED_KEY_CURRENT_HTML_DIFF = "CURRENT_HTML_DIFF";
 
     private Handler mainHandler;
 
@@ -86,65 +81,16 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private HandlerThread backgroundThread;
     private Handler backgroundHandler;
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    private String currentHtmlDiff;
 
-        mainHandler = new Handler();
-
-        backgroundThread = new HandlerThread(DocumentFragment.class.getSimpleName());
-        backgroundThread.start();
-
-        backgroundHandler = new Handler(backgroundThread.getLooper());
-
-        Context context = getContext();
-        MainActivity mainActivity = (MainActivity) getActivity();
-        analyticsManager = mainActivity.getAnalyticsManager();
-        crashManager = mainActivity.getCrashManager();
-
-        metadataLoader = new MetadataLoader(context);
-        metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
-
-        odfLoader = new OdfLoader(context);
-        odfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
-
-        pdfLoader = new PdfLoader(context);
-        pdfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
-
-        ooxmlLoader = new OoxmlLoader(context);
-        ooxmlLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
-
-        docLoader = new DocLoader(context);
-        docLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
-
-        rawLoader = new RawLoader(context);
-        rawLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
-
-        onlineLoader = new OnlineLoader(context, odfLoader);
-        onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
-
-        pageView.setDocumentFragment(this);
-
-        setHasOptionsMenu(true);
-
-        if (savedInstanceState != null) {
-            FileLoader.Result lastResult = savedInstanceState.getParcelable(SAVED_KEY_LAST_RESULT);
-            if (lastResult != null) {
-                loadWithType(lastResult.loaderType, lastResult.options);
-            }
-        }
-
-        // code is meant to work even without this setting, but things like scrollposition
-        // or editing would get lost on configuration change
-        setRetainInstance(true);
-    }
+    private FileLoader.Result resultOnStart;
+    private Throwable errorOnStart;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         try {
             LinearLayout inflatedView = (LinearLayout) inflater.inflate(R.layout.fragment_document, container, false);
-
             pageView = inflatedView.findViewById(R.id.page_view);
 
             return inflatedView;
@@ -172,6 +118,64 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        Context context = getContext();
+
+        mainHandler = new Handler();
+
+        backgroundThread = new HandlerThread(DocumentFragment.class.getSimpleName());
+        backgroundThread.start();
+
+        backgroundHandler = new Handler(backgroundThread.getLooper());
+
+        setHasOptionsMenu(true);
+
+        MainActivity mainActivity = (MainActivity) getActivity();
+        analyticsManager = mainActivity.getAnalyticsManager();
+        crashManager = mainActivity.getCrashManager();
+
+        metadataLoader = new MetadataLoader(context);
+        metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+
+        odfLoader = new OdfLoader(context);
+        odfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+
+        pdfLoader = new PdfLoader(context);
+        pdfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+
+        ooxmlLoader = new OoxmlLoader(context);
+        ooxmlLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+
+        docLoader = new DocLoader(context);
+        docLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+
+        rawLoader = new RawLoader(context);
+        rawLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+
+        onlineLoader = new OnlineLoader(context, odfLoader);
+        onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+
+        pageView.setDocumentFragment(this);
+
+        if (savedInstanceState != null) {
+            lastResult = savedInstanceState.getParcelable(SAVED_KEY_LAST_RESULT);
+            if (lastResult != null) {
+                prepareLoad(lastResult.loaderType, false);
+            }
+
+            currentHtmlDiff = savedInstanceState.getString(SAVED_KEY_CURRENT_HTML_DIFF);
+
+            pageView.restoreState(savedInstanceState);
+        }
+
+        // the app is designed to work fine without this setting, however, it is enabled for performance reasons
+        // (avoids redundant reloads of documents) and usability (edits are not lost on orientation change)
+        setRetainInstance(true);
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
 
@@ -185,9 +189,28 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         super.onSaveInstanceState(outState);
 
         outState.putParcelable(SAVED_KEY_LAST_RESULT, lastResult);
+        outState.putString(SAVED_KEY_CURRENT_HTML_DIFF, currentHtmlDiff);
+
+        pageView.saveState(outState);
     }
 
-    private void loadWithType(FileLoader.LoaderType loaderType, FileLoader.Options options) {
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        if (resultOnStart != null) {
+            if (errorOnStart == null) {
+                onSuccess(resultOnStart);
+            } else {
+                onError(resultOnStart, errorOnStart);
+            }
+
+            resultOnStart = null;
+            errorOnStart = null;
+        }
+    }
+
+    private FileLoader prepareLoad(FileLoader.LoaderType loaderType, boolean showProgress) {
         boolean isUpload = false;
         boolean isEditEnabled = false;
         boolean isDarkModeSupported = true;
@@ -222,9 +245,18 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 loader = null;
         }
 
-        showProgress(isUpload);
         toggleDocumentMenu(true, isEditEnabled);
         pageView.toggleDarkMode(isDarkModeSupported);
+
+        if (showProgress) {
+            showProgress(isUpload);
+        }
+
+        return loader;
+    }
+
+    private void loadWithType(FileLoader.LoaderType loaderType, FileLoader.Options options) {
+        FileLoader loader = prepareLoad(loaderType, true);
 
         loader.loadAsync(options);
     }
@@ -238,6 +270,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         options.originalUri = uri;
         options.persistentUri = persistentUri;
 
+        pageView.loadUrl("about:blank");
+
         loadWithType(FileLoader.LoaderType.METADATA, options);
     }
 
@@ -247,6 +281,18 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         loadWithType(lastResult.loaderType, lastResult.options);
     }
 
+    public void prepareSave(Runnable callback) {
+        pageView.requestHtml(new PageView.HtmlCallback() {
+
+            @Override
+            public void onHtml(String htmlDiff) {
+                currentHtmlDiff = htmlDiff;
+
+                callback.run();
+            }
+        });
+    }
+
     public void save(Uri outFile) {
         if (outFile == null) {
             SnackbarHelper.show(getActivity(), R.string.toast_error_save_nofile, null, true, true);
@@ -254,13 +300,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             return;
         }
 
-        pageView.requestHtml(new PageView.HtmlCallback() {
-
-            @Override
-            public void onHtml(String htmlDiff) {
-                saveAsync(outFile, htmlDiff);
-            }
-        });
+        saveAsync(outFile, currentHtmlDiff);
     }
 
     private void saveAsync(Uri outFile, String htmlDiff) {
@@ -274,7 +314,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     private void saveSync(Uri outFile, String htmlDiff) {
         try {
-            File modifiedFile = odfLoader.retranslate(htmlDiff);
+            File modifiedFile = odfLoader.retranslate(lastResult.options, htmlDiff);
             if (modifiedFile == null) {
                 SnackbarHelper.show(getActivity(), R.string.toast_error_save_nofile, null, true, true);
 
@@ -301,6 +341,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             SnackbarHelper.show(getActivity(), R.string.toast_error_save_failed, null, true, true);
         }
+
+        currentHtmlDiff = null;
     }
 
     private void unload() {
@@ -342,11 +384,13 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     @Override
     public void onSuccess(FileLoader.Result result) {
         Activity activity = getActivity();
-        if (activity == null || activity.isFinishing()) {
+        if (activity == null || isStateSaved()) {
+            resultOnStart = result;
             return;
+        } else {
+            resultOnStart = null;
+            errorOnStart = null;
         }
-
-        dismissProgress();
 
         analyticsManager.setCurrentScreen(activity, "screen_" + result.loaderType.toString() + "_" + result.options.fileType);
 
@@ -390,6 +434,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 }
             }
 
+            dismissProgress();
+
             if (result.loaderType == FileLoader.LoaderType.RAW || result.loaderType == FileLoader.LoaderType.ONLINE) {
                 offerReopen(activity, options, R.string.toast_hint_unsupported_file, false);
             } else {
@@ -401,17 +447,21 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     @Override
     public void onError(FileLoader.Result result, Throwable error) {
         Activity activity = getActivity();
-        if (activity == null || activity.isFinishing()) {
+        if (activity == null || isStateSaved()) {
+            resultOnStart = result;
             return;
+        } else {
+            resultOnStart = null;
+            errorOnStart = null;
         }
 
         unload();
 
-        dismissProgress();
-
         FileLoader.Options options = result.options;
         if (error instanceof FileLoader.EncryptedDocumentException) {
             analyticsManager.report("load_error_encrypted");
+
+            dismissProgress();
 
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.toast_error_password_protected);
@@ -461,6 +511,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             } else if (rawLoader.isSupported(options)) {
                 loadWithType(FileLoader.LoaderType.RAW, options);
             } else if (onlineLoader.isSupported(options)) {
+                dismissProgress();
+
                 offerUpload(activity, options, true);
             } else {
                 offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
@@ -469,6 +521,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             return;
         } else if (result.loaderType == FileLoader.LoaderType.PDF || result.loaderType == FileLoader.LoaderType.OOXML || result.loaderType == FileLoader.LoaderType.DOC) {
             crashManager.log(error, options.originalUri);
+
+            dismissProgress();
 
             offerUpload(activity, options, true);
 
@@ -489,6 +543,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         } else {
             errorDescription = R.string.toast_error_generic;
         }
+
+        dismissProgress();
 
         // MetadataLoader failed, so there's no point in trying to parse or upload the file
         offerReopen(activity, options, errorDescription, true);
@@ -569,27 +625,27 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     private void doReopen(FileLoader.Options options, Activity activity, boolean grantPermission, boolean share) {
-        Uri reopenUri = null;
+        Uri reopenUri;
         Uri cacheUri = options.cacheUri;
         String fileType = options.fileType;
 
         if (options.fileExists) {
-            File cacheDirectory = AndroidFileCache.getCacheDirectory(activity);
-            File cacheFile = AndroidFileCache.getCacheFile(activity);
+            File cacheFile = AndroidFileCache.getCacheFile(activity, cacheUri);
+            File cacheDirectory = AndroidFileCache.getCacheDirectory(cacheFile);
 
             String reopenFilename = "yourdocument." + options.fileExtension;
             File reopenFile = new File(cacheDirectory, reopenFilename);
             try {
                 StreamUtil.copy(cacheFile, reopenFile);
 
-                reopenUri = Uri.parse("content://at.tomtasche.reader.provider/cache/" + reopenFilename);
+                reopenUri = AndroidFileCache.getCacheFileUri(activity, reopenFile);
             } catch (IOException e) {
                 crashManager.log(e);
 
-                reopenUri = cacheUri;
+                reopenUri = options.originalUri;
             }
         } else {
-            reopenUri = cacheUri;
+            reopenUri = options.originalUri;
         }
 
         Intent intent = new Intent();
@@ -597,65 +653,32 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         String action = share ? Intent.ACTION_SEND : Intent.ACTION_VIEW;
         intent.setAction(action);
 
-        Uri streamUri;
         if (!"N/A".equals(fileType)) {
             intent.setDataAndType(reopenUri, fileType);
-
-            streamUri = reopenUri;
         } else {
-            if (reopenUri != null) {
-                streamUri = reopenUri;
-            } else {
-                streamUri = options.originalUri;
-            }
-
-            intent.setData(streamUri);
+            intent.setData(reopenUri);
         }
 
-        // taken from: https://stackoverflow.com/a/23268821/198996
-        PackageManager packageManager = activity.getPackageManager();
-        List<ResolveInfo> activities = packageManager.queryIntentActivities(intent, 0);
-        String packageNameToHide = activity.getPackageName();
-        ArrayList<Intent> targetIntents = new ArrayList<Intent>();
-        for (ResolveInfo currentInfo : activities) {
-            String packageName = currentInfo.activityInfo.packageName;
-            if (!packageNameToHide.equals(packageName)) {
-                Intent targetIntent = new Intent();
-                targetIntent.setAction(intent.getAction());
-                targetIntent.setDataAndType(intent.getData(), intent.getAction());
-                targetIntent.setPackage(packageName);
-                targetIntent.setComponent(new ComponentName(packageName, currentInfo.activityInfo.name));
+        if (share) {
+            intent.putExtra(Intent.EXTRA_STREAM, reopenUri);
+        }
 
-                if (share) {
-                    targetIntent.putExtra(Intent.EXTRA_STREAM, streamUri);
-                }
-
-                if (grantPermission) {
-                    targetIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                }
-
-                targetIntents.add(targetIntent);
-            }
+        if (grantPermission) {
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         }
 
         String logPrefix = share ? "share" : "reopen";
 
-        Intent initialIntent;
-        if (targetIntents.size() > 0) {
-            initialIntent = targetIntents.remove(0);
-            analyticsManager.report(logPrefix + "_success", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
-        } else {
-            initialIntent = intent;
-            analyticsManager.report(logPrefix + "_failed_noapp", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
-        }
-
-        Intent chooserIntent = Intent.createChooser(initialIntent, activity.getString(R.string.reopen_chooser_title));
-        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetIntents.toArray(new Parcelable[]{}));
+        Intent chooserIntent = Intent.createChooser(intent, activity.getString(R.string.reopen_chooser_title));
 
         try {
             activity.startActivity(chooserIntent);
+
+            analyticsManager.report(logPrefix + "_success", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
         } catch (Throwable e) {
             crashManager.log(e);
+
+            analyticsManager.report(logPrefix + "_failed", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
 
             if (grantPermission) {
                 // if we're trying to reopen the originalUri, the provider might decline the request
@@ -665,66 +688,52 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     private void showProgress(boolean isUpload) {
-        mainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (progressDialog != null) {
-                    return;
-                }
+        if (progressDialog == null && getFragmentManager() != null) {
+            progressDialog = (ProgressDialogFragment) getFragmentManager()
+                    .findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
+        }
 
-                try {
-                    progressDialog = new ProgressDialogFragment(isUpload);
+        if (progressDialog != null) {
+            return;
+        }
 
-                    FragmentManager fragmentManager = getFragmentManager();
-                    if (fragmentManager == null) {
-                        // TODO: use crashmanager
-                        progressDialog = null;
+        try {
+            progressDialog = new ProgressDialogFragment(isUpload);
 
-                        return;
-                    }
+            FragmentManager fragmentManager = getFragmentManager();
+            if (fragmentManager == null) {
+                crashManager.log(new NullPointerException());
 
-                    FragmentTransaction transaction = fragmentManager.beginTransaction();
-                    progressDialog.show(transaction,
-                            ProgressDialogFragment.FRAGMENT_TAG);
-                } catch (IllegalStateException e) {
-                    // "Can not perform this action after onSaveInstanceState"
-                    crashManager.log(e);
+                progressDialog = null;
 
-                    progressDialog = null;
-                }
+                return;
             }
-        });
+
+            progressDialog.show(fragmentManager, ProgressDialogFragment.FRAGMENT_TAG);
+        } catch (IllegalStateException e) {
+            // sometimes called while activity is in background
+            crashManager.log(e);
+
+            progressDialog = null;
+        }
     }
 
     private void dismissProgress() {
-        // dirty hack because committing isn't allowed right after
-        // onLoadFinished:
-        // "java.lang.IllegalStateException: Can not perform this action inside of onLoadFinished"
+        if (progressDialog == null && getFragmentManager() != null) {
+            progressDialog = (ProgressDialogFragment) getFragmentManager()
+                    .findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
+        }
 
-        mainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (getFragmentManager() == null) {
-                    return;
-                }
-
-                if (progressDialog == null) {
-                    progressDialog = (ProgressDialogFragment) getFragmentManager()
-                            .findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
-                }
-
-                if (progressDialog != null && progressDialog.getShowsDialog()
-                        && progressDialog.isNotNull()) {
-                    try {
-                        progressDialog.dismissAllowingStateLoss();
-                    } catch (NullPointerException e) {
-                        crashManager.log(e);
-                    }
-                }
-
-                progressDialog = null;
+        if (progressDialog != null) {
+            try {
+                progressDialog.dismiss();
+            } catch (IllegalStateException e) {
+                // sometimes called while activity is in background
+                crashManager.log(e);
             }
-        });
+        }
+
+        progressDialog = null;
     }
 
     @Override
@@ -749,12 +758,25 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         return pageView;
     }
 
+    public boolean hasLastResult() {
+        return lastResult != null;
+    }
+
     public String getLastFileType() {
         return lastResult.options.fileType;
     }
 
     public CrashManager getCrashManager() {
         return crashManager;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        if (pageView != null) {
+            pageView.destroy();
+        }
     }
 
     @Override
@@ -787,10 +809,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         if (onlineLoader != null) {
             onlineLoader.close();
-        }
-
-        if (pageView != null) {
-            pageView.destroy();
         }
 
         backgroundThread.quit();

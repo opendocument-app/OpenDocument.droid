@@ -5,7 +5,6 @@
 #include <odr/Meta.h>
 
 std::optional<odr::DocumentNoExcept> document;
-bool initialized;
 
 JNIEXPORT jobject JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject instance, jobject options)
@@ -27,9 +26,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
     env->ReleaseStringUTFChars(inputPath, inputPathC);
 
     try {
-        jfieldID pointerField = env->GetFieldID(optionsClass, "nativePointer", "J");
-        jlong pointer = env->GetLongField(options, pointerField);
-
         document = odr::DocumentNoExcept::open(inputPathCpp);
         if (!document.has_value()) {
             env->SetIntField(result, errorField, -1);

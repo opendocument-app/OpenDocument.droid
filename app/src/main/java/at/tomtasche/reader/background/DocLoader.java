@@ -25,8 +25,8 @@ public class DocLoader extends FileLoader {
         result.loaderType = type;
 
         try {
-            File cacheFile = AndroidFileCache.getCacheFile(context);
-            File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
+            File cacheFile = AndroidFileCache.getCacheFile(context, options.cacheUri);
+            File cacheDirectory = AndroidFileCache.getCacheDirectory(cacheFile);
 
             wvWare docConverter = new wvWare(context).setInputDOC(cacheFile);
             if (options.password != null) {

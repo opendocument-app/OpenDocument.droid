@@ -57,7 +57,7 @@ public class RecentDocumentsUtil {
         if (title == null)
             return;
 
-        if (AndroidFileCache.getCacheFileUri().equals(uri)) {
+        if (AndroidFileCache.isCached(uri)) {
             return;
         }
 

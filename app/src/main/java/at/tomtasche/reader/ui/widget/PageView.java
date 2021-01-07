@@ -46,7 +46,7 @@ public class PageView extends WebView implements ParagraphListener {
      * this seems to happen if progress 100 is reported before finish is called.
      * therefore we set a timer in finish that checks if commit was ever called and reload if not.
      */
-    private Handler buggyWebViewHandler;
+    private final Handler buggyWebViewHandler;
     private boolean wasCommitCalled = false;
 
     @SuppressLint("AddJavascriptInterface")
@@ -64,6 +64,8 @@ public class PageView extends WebView implements ParagraphListener {
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
         settings.setAllowFileAccess(true);
+
+        //WebView.setWebContentsDebuggingEnabled(true);
 
         addJavascriptInterface(this, "paragraphListener");
 
@@ -190,7 +192,7 @@ public class PageView extends WebView implements ParagraphListener {
     @Keep
     public void sendFile(String base64) {
         try {
-            File tmpFile = AndroidFileCache.getCacheFile(getContext());
+            File tmpFile = AndroidFileCache.createCacheFile(getContext());
 
             ByteArrayInputStream inputStream = new ByteArrayInputStream(base64.getBytes(StreamUtil.ENCODING));
             Base64InputStream baseInputStream = new Base64InputStream(inputStream, Base64.NO_WRAP);
@@ -200,7 +202,7 @@ public class PageView extends WebView implements ParagraphListener {
                 inputStream.close();
             }
 
-            documentFragment.loadUri(AndroidFileCache.getCacheFileUri(), false);
+            documentFragment.loadUri(AndroidFileCache.getCacheFileUri(getContext(), tmpFile), false);
         } catch (IOException e) {
             crashManager.log(e);
         }

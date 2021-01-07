@@ -24,7 +24,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
-import android.widget.Switch;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -44,7 +43,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
-import at.tomtasche.reader.BuildConfig;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.KitKatPrinter;
@@ -80,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
 
     protected static boolean IS_GOOGLE_ECOSYSTEM = true;
 
+    private static final String SAVED_KEY_LAST_CACHE_URI = "LAST_CACHE_URI";
     private static final boolean IS_TESTING = isTesting();
     private static final boolean USE_PROPRIETARY_LIBRARIES = true;
     private static final int GOOGLE_REQUEST_CODE = 1993;
@@ -107,6 +106,9 @@ public class MainActivity extends AppCompatActivity {
     private HelpManager helpManager;
 
     private Runnable onPermissionRunnable;
+
+    private Uri lastUri;
+    private Uri loadOnStart;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -150,6 +152,44 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             ComponentName filePickerActivity = new ComponentName(this, FilePickerActivity.class.getName());
             toggleComponent(filePickerActivity, false);
+        }
+
+        documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
+
+        if (documentFragment != null && documentFragment.hasLastResult()) {
+            // nothing else to do
+        } else if (savedInstanceState != null && savedInstanceState.containsKey(SAVED_KEY_LAST_CACHE_URI)) {
+            loadOnStart = savedInstanceState.getParcelable(SAVED_KEY_LAST_CACHE_URI);
+        } else if (documentFragment == null) {
+            // app was started from another app, but make sure not to load it twice
+            // (i.e. after bringing app back from background)
+            if (getIntent().getData() != null) {
+                loadOnStart = getIntent().getData();
+
+                analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "other");
+            } else {
+                analyticsManager.setCurrentScreen(this, "screen_main");
+            }
+        } else {
+            analyticsManager.setCurrentScreen(this, "screen_main");
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
+
+        if (documentFragment != null) {
+            landingContainer.setVisibility(View.GONE);
+            documentContainer.setVisibility(View.VISIBLE);
+        }
+
+        if (loadOnStart != null) {
+            loadUri(loadOnStart, false);
+
+            loadOnStart = null;
         }
     }
 
@@ -220,16 +260,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
 
-        // app was started from another app, but make sure not to load it twice
-        // (i.e. after bringing app back from background)
-        if (getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG) == null) {
-            analyticsManager.setCurrentScreen(this, "screen_main");
-
-            handleIntent(getIntent());
-        }
+        outState.putParcelable(SAVED_KEY_LAST_CACHE_URI, lastUri);
     }
 
     @Override
@@ -237,18 +271,6 @@ public class MainActivity extends AppCompatActivity {
         super.onConfigurationChanged(newConfig);
 
         adManager.showGoogleAds();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
-
-        if (getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG) == null) {
-            // setCurrentScreen not ready to call before that
-            analyticsManager.setCurrentScreen(this, "screen_main");
-        }
     }
 
     private void showIntroActivity() {
@@ -341,10 +363,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
-        handleIntent(intent);
-    }
-
-    private void handleIntent(Intent intent) {
         if (intent.getData() != null) {
             loadUri(intent.getData(), false);
 
@@ -382,6 +400,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void loadUri(Uri uri, boolean showAd) {
+        lastUri = uri;
+
         Runnable onPermission = new Runnable() {
             @Override
             public void run() {
@@ -409,7 +429,7 @@ public class MainActivity extends AppCompatActivity {
                 getSupportFragmentManager()
                         .beginTransaction()
                         .replace(R.id.document_container, documentFragment, DOCUMENT_FRAGMENT_TAG)
-                        .commit();
+                        .commitNow();
             }
         }
 
@@ -425,20 +445,11 @@ public class MainActivity extends AppCompatActivity {
                 // some providers dont support persisted permissions
                 crashManager.log(e);
 
-                if (!uri.toString().startsWith("content://at.tomtasche.reader")) {
-                    isPersistentUri = false;
-                }
+                isPersistentUri = false;
             }
         }
 
-        // delay loadUri to allow for DocumentFragment.onActivityCreated to be called
-        boolean finalIsPersistentUri = isPersistentUri;
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                documentFragment.loadUri(uri, finalIsPersistentUri);
-            }
-        }, 250);
+        documentFragment.loadUri(uri, isPersistentUri);
     }
 
     @Override
@@ -518,6 +529,8 @@ public class MainActivity extends AppCompatActivity {
                 break;
             }
             case R.id.menu_print: {
+                // TODO: remove as printing is offered on share too!
+
                 analyticsManager.report("menu_print");
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -769,11 +782,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onPause() {
-        super.onPause();
-
         if (ttsActionMode != null) {
             ttsActionMode.stop();
         }
+
+        super.onPause();
     }
 
     @Override

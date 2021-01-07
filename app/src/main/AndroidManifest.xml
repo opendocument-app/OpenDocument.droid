@@ -46,17 +46,6 @@
             <action android:name="android.intent.action.OPEN_DOCUMENT" />
             <data android:mimeType="*/*" />
         </intent>
-
-        <!-- to support sharing / "reopening" files -->
-        <intent>
-            <action android:name="android.intent.action.SEND" />
-            <data android:mimeType="*/*" />
-        </intent>
-
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:mimeType="*/*" />
-        </intent>
     </queries>
 
     <application
@@ -402,8 +391,7 @@
 
         <provider
                 android:name="androidx.core.content.FileProvider"
-                android:enabled="@bool/filepicker_enabled"
-                android:authorities="${applicationId}.provider"
+                android:authorities="at.tomtasche.reader.provider"
                 android:exported="false"
                 android:grantUriPermissions="true">
             <meta-data
