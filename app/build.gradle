@@ -78,6 +78,7 @@ android {
         cmake {
             version "3.12.4+"
             path file('../CMakeLists.txt')
+            arguments "-DANDROID_STL=c++_shared"
         }
     }
 }
