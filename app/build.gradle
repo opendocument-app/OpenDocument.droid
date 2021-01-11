@@ -19,6 +19,7 @@ android {
         vectorDrawables.useSupportLibrary true
 
         externalNativeBuild.cmake.targets "odr-core"
+        externalNativeBuild.cmake.arguments "-DANDROID_STL=c++_shared"
     }
 
     dexOptions.javaMaxHeapSize "4g"
@@ -78,7 +79,6 @@ android {
         cmake {
             version "3.12.4+"
             path file('../CMakeLists.txt')
-            arguments "-DANDROID_STL=c++_shared"
         }
     }
 }
