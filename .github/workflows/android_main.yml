@@ -59,7 +59,7 @@ jobs:
       if: ${{ always() }}
       with:
         name: test-report
-        path: app/build/reports/androidTests/connected/flavors/*DebugAndroidTest/index.html
+        path: app/build/reports/androidTests/connected/flavors/*DebugAndroidTest
 
     - uses: actions/upload-artifact@v2
       if: ${{ failure() }}
