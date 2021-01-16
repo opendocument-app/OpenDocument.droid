@@ -69,7 +69,7 @@ public class MetadataLoader extends FileLoader {
             AndroidFileCache.cleanup(context);
 
             File cachedFile;
-            if (AndroidFileCache.isCached(uri)) {
+            if (AndroidFileCache.isCached(context, uri)) {
                 cachedFile = AndroidFileCache.getCacheFile(context, uri);
             } else {
                 cachedFile = AndroidFileCache.createCacheFile(context);

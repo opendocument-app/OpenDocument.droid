@@ -12,6 +12,16 @@ public class AndroidFileCache {
 
     private final static String CACHE_DIRECTORY_PREFIX = "cache.";
 
+    private static String providerAuthority;
+
+    private static String getProviderAuthority(Context context) {
+        if (providerAuthority == null) {
+            providerAuthority = context.getPackageName() + ".provider";
+        }
+
+        return providerAuthority;
+    }
+
     private static File getRootCacheDirectory(Context context) {
         File cache = new File(context.getCacheDir(), "cache");
         if (!cache.exists()) {
@@ -35,15 +45,15 @@ public class AndroidFileCache {
     }
 
     public static Uri getCacheFileUri(Context context, File file) {
-        return FileProvider.getUriForFile(context, "at.tomtasche.reader.provider", file);
+        return FileProvider.getUriForFile(context, getProviderAuthority(context), file);
     }
 
-    public static boolean isCached(Uri uri) {
-        return uri.getHost().equals("at.tomtasche.reader.provider");
+    public static boolean isCached(Context context, Uri uri) {
+        return uri.getHost().equals(getProviderAuthority(context)) && uri.toString().contains(CACHE_DIRECTORY_PREFIX);
     }
 
     public static File getCacheFile(Context context, Uri uri) {
-        if (!isCached(uri)) {
+        if (!isCached(context, uri)) {
             return null;
         }
 
