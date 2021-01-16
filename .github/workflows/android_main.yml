@@ -52,3 +52,9 @@ jobs:
         target: google_apis
         arch: x86_64
         script: bundle exec fastlane tests
+
+    - uses: actions/upload-artifact@v2
+      if: ${{ always() }}
+      with:
+        name: test-report
+        path: app/build/reports/androidTests/connected/flavors/*DebugAndroidTest/index.html
