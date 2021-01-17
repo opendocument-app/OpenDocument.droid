@@ -72,6 +72,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     private ProgressDialogFragment progressDialog;
 
+    private ViewGroup container;
     private PageView pageView;
 
     private Menu menu;
@@ -88,13 +89,27 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        this.container = container;
+
+        return super.onCreateView(inflater, container, savedInstanceState);
+    }
+
+    private void initializePageView() {
+        if (pageView != null) {
+            container.removeAllViews();
+            pageView.destroy();
+            pageView = null;
+        }
+
         try {
-            LinearLayout inflatedView = (LinearLayout) inflater.inflate(R.layout.fragment_document, container, false);
+            ViewGroup inflatedView = (ViewGroup) getLayoutInflater().inflate(R.layout.fragment_document, container, true);
             pageView = inflatedView.findViewById(R.id.page_view);
 
-            return inflatedView;
+            pageView.setDocumentFragment(this);
         } catch (Throwable t) {
+            crashManager.log(t);
+
             crashManager.log("no webview installed: " + t.getMessage());
 
             String errorString = "Please install \"Android System WebView\" and restart the app afterwards.";
@@ -110,10 +125,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 getActivity().finish();
                 System.exit(0);
             }
-
-            TextView textView = new TextView(getContext());
-            textView.setText(errorString);
-            return textView;
         }
     }
 
@@ -157,9 +168,9 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         onlineLoader = new OnlineLoader(context, odfLoader);
         onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
-        pageView.setDocumentFragment(this);
-
         if (savedInstanceState != null) {
+            initializePageView();
+
             lastResult = savedInstanceState.getParcelable(SAVED_KEY_LAST_RESULT);
             if (lastResult != null) {
                 prepareLoad(lastResult.loaderType, false);
@@ -270,7 +281,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         options.originalUri = uri;
         options.persistentUri = persistentUri;
 
-        pageView.loadUrl("about:blank");
+        initializePageView();
 
         loadWithType(FileLoader.LoaderType.METADATA, options);
     }
