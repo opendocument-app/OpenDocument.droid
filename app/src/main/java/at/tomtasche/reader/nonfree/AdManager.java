@@ -136,19 +136,6 @@ public class AdManager implements RewardedVideoAdListener {
         }
 
         if (interstitial != null) {
-            if (!interstitial.isLoaded() && interstitial.isLoading()) {
-                progressDialog = new ProgressDialog(activity);
-                progressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        interstitial = null;
-                    }
-                });
-                progressDialog.show();
-
-                return;
-            }
-
             try {
                 interstitial.show();
             } catch (Exception e) {

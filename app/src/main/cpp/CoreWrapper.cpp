@@ -4,6 +4,8 @@
 #include <odr/Config.h>
 #include <odr/Meta.h>
 
+std::optional<odr::DocumentNoExcept> document;
+
 JNIEXPORT jobject JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject instance, jobject options)
 {
@@ -24,17 +26,11 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
     env->ReleaseStringUTFChars(inputPath, inputPathC);
 
     try {
-        jfieldID pointerField = env->GetFieldID(optionsClass, "nativePointer", "J");
-        jlong pointer = env->GetLongField(options, pointerField);
-
-        odr::DocumentNoExcept *document = odr::DocumentNoExcept::open(inputPathCpp).release();
-        if (document == nullptr) {
+        document = odr::DocumentNoExcept::open(inputPathCpp);
+        if (!document.has_value()) {
             env->SetIntField(result, errorField, -1);
             return result;
         }
-
-        jfieldID pointerResultField = env->GetFieldID(resultClass, "nativePointer", "J");
-        env->SetLongField(result, pointerResultField, reinterpret_cast<jlong>(document));
 
         auto meta = document->meta();
 
@@ -173,10 +169,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
     jboolean isCopy;
 
     jclass optionsClass = env->GetObjectClass(options);
-    jfieldID pointerField = env->GetFieldID(optionsClass, "nativePointer", "J");
-
-    jlong pointer = env->GetLongField(options, pointerField);
-    odr::DocumentNoExcept *document = (odr::DocumentNoExcept *) pointer;
 
     jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
     jmethodID resultConstructor = env->GetMethodID(resultClass, "<init>", "()V");
@@ -229,11 +221,5 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
 JNIEXPORT void JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jobject instance, jobject options)
 {
-    jclass optionsClass = env->GetObjectClass(options);
-    jfieldID pointerField = env->GetFieldID(optionsClass, "nativePointer", "J");
-
-    jlong pointer = env->GetLongField(options, pointerField);
-    auto translator = (odr::DocumentNoExcept *) pointer;
-
-    delete translator;
+    document.reset();
 }

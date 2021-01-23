@@ -57,9 +57,8 @@ public class RawLoader extends FileLoader {
                 extension = "txt";
             }
 
-            // TODO: use options.cacheUri instead
-            File cacheFile = AndroidFileCache.getCacheFile(context);
-            File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
+            File cacheFile = AndroidFileCache.getCacheFile(context, options.cacheUri);
+            File cacheDirectory = AndroidFileCache.getCacheDirectory(cacheFile);
 
             Uri finalUri;
             if (fileType.startsWith("image/")) {

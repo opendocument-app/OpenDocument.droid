@@ -22,7 +22,7 @@ platform :android do
       task: "clean app:bundleProRelease"
     )
     upload_to_play_store(
-      track: 'open_testing',
+      track: 'beta',
       package_name: 'at.tomtasche.reader.pro',
       skip_upload_metadata: true,
       skip_upload_changelogs: true,
@@ -38,7 +38,7 @@ platform :android do
       task: "clean app:bundleLiteRelease"
     )
     upload_to_play_store(
-      track: 'open_testing',
+      track: 'beta',
       package_name: 'at.tomtasche.reader',
       skip_upload_metadata: true,
       skip_upload_changelogs: true,

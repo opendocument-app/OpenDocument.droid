@@ -8,5 +8,5 @@
     <!-- for odr -->
     <cache-path
             name="cache"
-            path="cache" />
+            path="." />
 </paths>

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-./gradlew assembleDebug
-./gradlew assembleDebugAndroidTest
+./gradlew assembleProDebug
+./gradlew assembleProDebugAndroidTest
 
-ls app/build/outputs/apk/debug/app-debug.apk
-ls app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+ls app/build/outputs/apk/pro/debug/app-pro-debug.apk
+ls app/build/outputs/apk/androidTest/pro/debug/app-pro-debug-androidTest.apk

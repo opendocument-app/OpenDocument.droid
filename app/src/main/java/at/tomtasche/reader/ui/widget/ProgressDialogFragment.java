@@ -46,15 +46,11 @@ public class ProgressDialogFragment extends DialogFragment {
 
         progressDialog.setMessage(message);
         progressDialog.setIndeterminate(true);
-        progressDialog.setCancelable(false);
 
-        setCancelable(false);
+        // known issue that causes infinite progressdialog
+        progressDialog.setCancelable(true);
+        setCancelable(true);
 
         return progressDialog;
-    }
-
-    // another dirty hack for a nullpointerexception thrown sometimes on dismiss()
-    public boolean isNotNull() {
-        return progressDialog != null;
     }
 }

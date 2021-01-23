@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:installLocation="auto"
-        android:versionCode="137"
-        android:versionName="3.3.7"
+        android:versionCode="140"
+        android:versionName="3.9.1"
         package="at.tomtasche.reader"
         tools:ignore="GoogleAppIndexingWarning">
 
@@ -30,6 +30,23 @@
             android:resizeable="true"
             android:smallScreens="true"
             android:xlargeScreens="true" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+
+        <!-- to support finding files -->
+        <intent>
+            <action android:name="android.intent.action.GET_CONTENT" />
+            <data android:mimeType="application/*" />
+        </intent>
+
+        <intent>
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:mimeType="*/*" />
+        </intent>
+    </queries>
 
     <application
             android:allowBackup="true"
@@ -374,7 +391,6 @@
 
         <provider
                 android:name="androidx.core.content.FileProvider"
-                android:enabled="@bool/filepicker_enabled"
                 android:authorities="${applicationId}.provider"
                 android:exported="false"
                 android:grantUriPermissions="true">

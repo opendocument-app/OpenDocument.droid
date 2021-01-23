@@ -3,13 +3,13 @@ apply plugin: 'com.google.firebase.firebase-perf'
 apply plugin: 'com.google.firebase.crashlytics'
 
 android {
-    compileSdkVersion 29
-    ndkVersion "21.3.6528147"
+    compileSdkVersion 30
+    ndkVersion "22.0.7026061"
 
     defaultConfig {
         applicationId "at.tomtasche.reader"
         minSdkVersion 16
-        targetSdkVersion 29
+        targetSdkVersion 30
 
         testApplicationId "at.tomtasche.reader.test"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -19,6 +19,7 @@ android {
         vectorDrawables.useSupportLibrary true
 
         externalNativeBuild.cmake.targets "odr-core"
+        externalNativeBuild.cmake.arguments "-DANDROID_STL=c++_shared"
     }
 
     dexOptions.javaMaxHeapSize "4g"
@@ -91,13 +92,13 @@ dependencies {
     implementation 'com.google.firebase:firebase-crashlytics'
     implementation 'com.google.firebase:firebase-crashlytics-ndk'
 
-    implementation 'com.android.billingclient:billing:3.0.1'
+    implementation 'com.android.billingclient:billing:3.0.2'
 
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.core:core:1.3.2'
     implementation 'com.google.android.material:material:1.2.1'
-    implementation 'androidx.webkit:webkit:1.3.0-rc02'
+    implementation 'androidx.webkit:webkit:1.4.0'
 
     implementation 'com.github.AppIntro:AppIntro:5.1.0'
 
@@ -110,7 +111,7 @@ dependencies {
         exclude group: 'com.android.support'
     })
 
-    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.10'
+    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.12'
     implementation 'com.viliussutkus89:wvware-android:1.2.4'
     implementation 'com.github.huzongyao:AndroidMagic:v1.1.2'
 

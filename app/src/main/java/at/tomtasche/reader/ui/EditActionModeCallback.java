@@ -72,33 +72,38 @@ public class EditActionModeCallback implements ActionMode.Callback {
             }
 
             case R.id.edit_save: {
-                boolean isModernSaveAvailable = false;
-                if (Build.VERSION.SDK_INT >= 19) {
-                    isModernSaveAvailable = activity.requestSave();
-                }
-
-                if (!isModernSaveAvailable) {
-                    Runnable onPermission = new Runnable() {
-                        @Override
-                        public void run() {
-                            DateFormat dateFormat = new SimpleDateFormat("MMddyyyy-HHmmss", Locale.US);
-                            Date nowDate = Calendar.getInstance().getTime();
-                            String nowString = dateFormat.format(nowDate);
-
-                            File modifiedFile = new File(Environment.getExternalStorageDirectory(),
-                                    "modified-by-opendocument-reader-on-" + nowString);
-                            Uri fileUri = Uri.parse("file://"
-                                    + modifiedFile.getAbsolutePath());
-
-                            documentFragment.save(fileUri);
+                documentFragment.prepareSave(new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean isModernSaveAvailable = false;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                            isModernSaveAvailable = activity.requestSave();
                         }
-                    };
 
-                    boolean hasPermission = activity.requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, onPermission);
-                    if (hasPermission) {
-                        onPermission.run();
+                        if (!isModernSaveAvailable) {
+                            Runnable onPermission = new Runnable() {
+                                @Override
+                                public void run() {
+                                    DateFormat dateFormat = new SimpleDateFormat("MMddyyyy-HHmmss", Locale.US);
+                                    Date nowDate = Calendar.getInstance().getTime();
+                                    String nowString = dateFormat.format(nowDate);
+
+                                    File modifiedFile = new File(Environment.getExternalStorageDirectory(),
+                                            "modified-by-opendocument-reader-on-" + nowString);
+                                    Uri fileUri = Uri.parse("file://"
+                                            + modifiedFile.getAbsolutePath());
+
+                                    documentFragment.save(fileUri);
+                                }
+                            };
+
+                            boolean hasPermission = activity.requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, onPermission);
+                            if (hasPermission) {
+                                onPermission.run();
+                            }
+                        }
                     }
-                }
+                });
 
                 break;
             }
