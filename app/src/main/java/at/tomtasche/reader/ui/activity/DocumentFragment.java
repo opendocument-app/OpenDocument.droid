@@ -108,9 +108,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             pageView.setDocumentFragment(this);
         } catch (Throwable t) {
-            crashManager.log(t);
-
-            crashManager.log("no webview installed: " + t.getMessage());
+            // can't call crashlytics yet at this point (onActivityCreated not called)
 
             String errorString = "Please install \"Android System WebView\" and restart the app afterwards.";
 
@@ -169,10 +167,14 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         if (savedInstanceState != null) {
+            crashManager.log("onActivityCreated has savedInstanceState");
+
             initializePageView();
 
             lastResult = savedInstanceState.getParcelable(SAVED_KEY_LAST_RESULT);
             if (lastResult != null) {
+                crashManager.log("savedInstanceState has lastResult");
+
                 prepareLoad(lastResult.loaderType, false);
             }
 
@@ -198,6 +200,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
+
+        crashManager.log("onSaveInstanceState");
 
         outState.putParcelable(SAVED_KEY_LAST_RESULT, lastResult);
         outState.putString(SAVED_KEY_CURRENT_HTML_DIFF, currentHtmlDiff);

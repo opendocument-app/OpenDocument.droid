@@ -19,7 +19,13 @@ platform :android do
   desc "Deploy a new version to the Google Play"
   lane :deployPro do
     gradle(
-      task: "clean app:bundleProRelease"
+      task: "clean"
+    )
+
+    gradle(
+      task: "bundle",
+      flavor: "Pro",
+      build_type: "Release"
     )
     upload_to_play_store(
       track: 'beta',
@@ -35,7 +41,13 @@ platform :android do
   desc "Deploy a new version to the Google Play"
   lane :deployLite do
     gradle(
-      task: "clean app:bundleLiteRelease"
+      task: "clean"
+    )
+
+    gradle(
+      task: "bundle",
+      flavor: "Lite",
+      build_type: "Release"
     )
     upload_to_play_store(
       track: 'beta',

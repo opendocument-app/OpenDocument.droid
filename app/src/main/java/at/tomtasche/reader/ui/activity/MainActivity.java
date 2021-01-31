@@ -580,6 +580,8 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void run() {
+                analyticsManager.report(FirebaseAnalytics.Event.PRESENT_OFFER + "_clicked");
+
                 buyAdRemoval();
             }
         }, true, false);

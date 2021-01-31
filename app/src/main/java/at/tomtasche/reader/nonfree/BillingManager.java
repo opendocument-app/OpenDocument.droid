@@ -101,6 +101,8 @@ public class BillingManager implements PurchasesUpdatedListener {
     }
 
     private void connectAndRun(Runnable runnable) {
+        analyticsManager.report("purchase_init");
+
         billingClient.startConnection(new BillingClientStateListener() {
             @Override
             public void onBillingSetupFinished(BillingResult billingResult) {
@@ -178,6 +180,7 @@ public class BillingManager implements PurchasesUpdatedListener {
         }
 
         if (resolvedSku == null) {
+            // TODO: could happen if BillingClient calls are delayed? wait for them to complete before initiating purchase
             crashManager.log("SKU not resolved");
         }
 

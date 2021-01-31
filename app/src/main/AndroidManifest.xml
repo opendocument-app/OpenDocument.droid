@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:installLocation="auto"
-        android:versionCode="140"
-        android:versionName="3.9.1"
+        android:versionCode="144"
+        android:versionName="3.9.3"
         package="at.tomtasche.reader"
         tools:ignore="GoogleAppIndexingWarning">
 
@@ -57,7 +57,8 @@
             android:theme="@style/MainTheme"
             android:name="androidx.multidex.MultiDexApplication"
             tools:replace="android:label"
-            android:requestLegacyExternalStorage="true">
+            android:requestLegacyExternalStorage="true"
+            android:allowNativeHeapPointerTagging="false">
 
         <meta-data
                 android:name="com.google.android.gms.version"
