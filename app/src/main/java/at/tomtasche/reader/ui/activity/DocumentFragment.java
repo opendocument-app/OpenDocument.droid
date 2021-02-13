@@ -145,6 +145,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         analyticsManager = mainActivity.getAnalyticsManager();
         crashManager = mainActivity.getCrashManager();
 
+        crashManager.log("onActivityCreated");
+
         metadataLoader = new MetadataLoader(context);
         metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
@@ -361,8 +363,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     private void unload() {
-        lastResult = null;
-
         toggleDocumentMenu(false);
 
         ActionBar bar = ((AppCompatActivity) getActivity()).getSupportActionBar();
@@ -407,6 +407,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             errorOnStart = null;
         }
 
+        lastResult = result;
+
         analyticsManager.setCurrentScreen(activity, "screen_" + result.loaderType.toString() + "_" + result.options.fileType);
 
         FileLoader.Options options = result.options;
@@ -419,8 +421,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             loadWithType(FileLoader.LoaderType.ODF, options);
         } else {
             analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
-
-            lastResult = result;
 
             ActionBar bar = ((AppCompatActivity) activity).getSupportActionBar();
             bar.removeAllTabs();
@@ -469,6 +469,9 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             resultOnStart = null;
             errorOnStart = null;
         }
+
+        // still needs to be saved for features like "Open With" to work
+        lastResult = result;
 
         unload();
 

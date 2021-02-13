@@ -154,13 +154,21 @@ public class MainActivity extends AppCompatActivity {
             toggleComponent(filePickerActivity, false);
         }
 
+        crashManager.log("onCreate");
+
         documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
 
         if (documentFragment != null && documentFragment.hasLastResult()) {
             // nothing else to do
+
+            crashManager.log("onCreate nothing");
         } else if (savedInstanceState != null && savedInstanceState.containsKey(SAVED_KEY_LAST_CACHE_URI)) {
             loadOnStart = savedInstanceState.getParcelable(SAVED_KEY_LAST_CACHE_URI);
+
+            crashManager.log("onCreate loadOnStart");
         } else if (documentFragment == null) {
+            crashManager.log("onCreate from background");
+
             // app was started from another app, but make sure not to load it twice
             // (i.e. after bringing app back from background)
             if (getIntent().getData() != null) {
@@ -171,6 +179,8 @@ public class MainActivity extends AppCompatActivity {
                 analyticsManager.setCurrentScreen(this, "screen_main");
             }
         } else {
+            crashManager.log("onCreate empty");
+
             analyticsManager.setCurrentScreen(this, "screen_main");
         }
     }
@@ -185,6 +195,8 @@ public class MainActivity extends AppCompatActivity {
             landingContainer.setVisibility(View.GONE);
             documentContainer.setVisibility(View.VISIBLE);
         }
+
+        crashManager.log("onStart");
 
         if (loadOnStart != null) {
             loadUri(loadOnStart, false);
@@ -341,13 +353,6 @@ public class MainActivity extends AppCompatActivity {
         adManager = new AdManager();
         adManager.setEnabled(!IS_TESTING && USE_PROPRIETARY_LIBRARIES);
         adManager.setAdContainer(adContainer);
-        adManager.setOnAdFailedCallback(new Runnable() {
-
-            @Override
-            public void run() {
-                offerPurchase();
-            }
-        });
         adManager.initialize(this, analyticsManager, crashManager);
 
         billingManager = new BillingManager();
@@ -364,6 +369,8 @@ public class MainActivity extends AppCompatActivity {
         super.onNewIntent(intent);
 
         if (intent.getData() != null) {
+            crashManager.log("onNewIntent loadUri");
+
             loadUri(intent.getData(), false);
 
             analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "other");
@@ -392,6 +399,8 @@ public class MainActivity extends AppCompatActivity {
         } else if (requestCode == CREATE_CODE && intent != null) {
             documentFragment.save(intent.getData());
         } else if (intent != null) {
+            crashManager.log("onActivityResult loadUri");
+
             Uri uri = intent.getData();
             if (requestCode == 42 && resultCode == Activity.RESULT_OK && uri != null) {
                 loadUri(uri, true);
