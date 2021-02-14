@@ -28,7 +28,7 @@ platform :android do
       build_type: "Release"
     )
     upload_to_play_store(
-      track: 'beta',
+      track: 'internal',
       package_name: 'at.tomtasche.reader.pro',
       skip_upload_metadata: true,
       skip_upload_changelogs: true,
@@ -50,7 +50,7 @@ platform :android do
       build_type: "Release"
     )
     upload_to_play_store(
-      track: 'beta',
+      track: 'internal',
       package_name: 'at.tomtasche.reader',
       skip_upload_metadata: true,
       skip_upload_changelogs: true,

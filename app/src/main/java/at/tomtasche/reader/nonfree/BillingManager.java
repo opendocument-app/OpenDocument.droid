@@ -199,9 +199,11 @@ public class BillingManager implements PurchasesUpdatedListener {
                         progressDialog = null;
 
                         onPurchaseInit = null;
-                    }
 
-                    startPurchase(activity);
+                        // only start purchase if progressDialog is still visible.
+                        // otherwise we might distract the user while doing something else
+                        startPurchase(activity);
+                    }
                 }
             };
 
@@ -213,6 +215,8 @@ public class BillingManager implements PurchasesUpdatedListener {
                 }
             });
             progressDialog.show();
+
+            return;
         }
 
         BillingFlowParams flowParams = BillingFlowParams.newBuilder()

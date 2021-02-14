@@ -20,7 +20,13 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.play.core.review.ReviewInfo;
+import com.google.android.play.core.review.ReviewManager;
+import com.google.android.play.core.review.ReviewManagerFactory;
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -456,6 +462,33 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             } else {
                 offerUpload(activity, options, false);
             }
+
+            FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
+            remoteConfig.fetchAndActivate().addOnCompleteListener(new OnCompleteListener<Boolean>() {
+                @Override
+                public void onComplete(@NonNull Task<Boolean> task) {
+                    boolean showInAppRating = remoteConfig.getBoolean("show_in_app_rating");
+                    if (showInAppRating) {
+                        analyticsManager.report("in_app_review_eligible");
+
+                        ReviewManager manager = ReviewManagerFactory.create(activity);
+                        com.google.android.play.core.tasks.Task<ReviewInfo> request = manager.requestReviewFlow();
+                        request.addOnCompleteListener(reviewInfoTask -> {
+                            if (reviewInfoTask.isSuccessful()) {
+                                analyticsManager.report("in_app_review_start");
+
+                                ReviewInfo reviewInfo = reviewInfoTask.getResult();
+                                com.google.android.play.core.tasks.Task<Void> flow = manager.launchReviewFlow(activity, reviewInfo);
+                                flow.addOnCompleteListener(reviewTask -> {
+                                    analyticsManager.report("in_app_review_done");
+                                });
+                            } else {
+                                analyticsManager.report("in_app_review_error");
+                            }
+                        });
+                    }
+                }
+            });
         }
     }
 

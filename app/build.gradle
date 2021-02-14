@@ -91,8 +91,11 @@ dependencies {
     implementation 'com.google.firebase:firebase-perf'
     implementation 'com.google.firebase:firebase-crashlytics-ndk'
     implementation 'com.google.firebase:firebase-inappmessaging-display'
+    implementation 'com.google.firebase:firebase-config'
 
     implementation 'com.android.billingclient:billing:3.0.2'
+
+    implementation 'com.google.android.play:core:1.9.1'
 
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'androidx.appcompat:appcompat:1.2.0'
