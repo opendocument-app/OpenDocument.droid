@@ -13,13 +13,19 @@ public class AnalyticsManager {
     private boolean enabled;
 
     private FirebaseAnalytics analytics;
+    private FirebasePerformance performance;
 
     public void initialize(Context context) {
         if (!enabled) {
+            FirebaseAnalytics.getInstance(context).setAnalyticsCollectionEnabled(false);
+
+            FirebasePerformance.getInstance().setPerformanceCollectionEnabled(false);
+
             return;
         }
 
         analytics = FirebaseAnalytics.getInstance(context);
+        performance = FirebasePerformance.getInstance();
     }
 
     public void setEnabled(boolean enabled) {
@@ -55,7 +61,7 @@ public class AnalyticsManager {
             return null;
         }
 
-        Trace trace = FirebasePerformance.getInstance().newTrace(name);
+        Trace trace = performance.newTrace(name);
         trace.start();
 
         return trace;

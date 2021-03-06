@@ -1,6 +1,8 @@
 package at.tomtasche.reader.nonfree;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 
 import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
@@ -38,6 +40,9 @@ public class BillingManager implements PurchasesUpdatedListener {
     private BillingClient billingClient;
 
     private SkuDetails resolvedSku;
+
+    private Runnable onPurchaseInit;
+    private ProgressDialog progressDialog;
 
     public void initialize(Context context, AnalyticsManager analyticsManager, AdManager adManager, CrashManager crashManager) {
         this.adManager = adManager;
@@ -87,6 +92,10 @@ public class BillingManager implements PurchasesUpdatedListener {
                                         enabled = false;
                                     } else {
                                         adManager.showGoogleAds();
+
+                                        if (onPurchaseInit != null) {
+                                            onPurchaseInit.run();
+                                        }
                                     }
                                 } else {
                                     analyticsManager.report("purchase_init_query_failed", "code", billingResult.getResponseCode());
@@ -101,6 +110,8 @@ public class BillingManager implements PurchasesUpdatedListener {
     }
 
     private void connectAndRun(Runnable runnable) {
+        analyticsManager.report("purchase_init");
+
         billingClient.startConnection(new BillingClientStateListener() {
             @Override
             public void onBillingSetupFinished(BillingResult billingResult) {
@@ -179,6 +190,33 @@ public class BillingManager implements PurchasesUpdatedListener {
 
         if (resolvedSku == null) {
             crashManager.log("SKU not resolved");
+
+            onPurchaseInit = new Runnable() {
+                @Override
+                public void run() {
+                    if (progressDialog != null) {
+                        progressDialog.dismiss();
+                        progressDialog = null;
+
+                        onPurchaseInit = null;
+
+                        // only start purchase if progressDialog is still visible.
+                        // otherwise we might distract the user while doing something else
+                        startPurchase(activity);
+                    }
+                }
+            };
+
+            progressDialog = new ProgressDialog(activity);
+            progressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    progressDialog = null;
+                }
+            });
+            progressDialog.show();
+
+            return;
         }
 
         BillingFlowParams flowParams = BillingFlowParams.newBuilder()
@@ -204,6 +242,13 @@ public class BillingManager implements PurchasesUpdatedListener {
     public void close() {
         if (!enabled) {
             return;
+        }
+
+        onPurchaseInit = null;
+
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+            progressDialog = null;
         }
 
         if (billingClient == null || !billingClient.isReady()) {

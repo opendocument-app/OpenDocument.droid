@@ -27,7 +27,13 @@ import android.widget.LinearLayout;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.play.core.review.ReviewInfo;
+import com.google.android.play.core.review.ReviewManager;
+import com.google.android.play.core.review.ReviewManagerFactory;
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.kobakei.ratethisapp.RateThisApp;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 
@@ -44,11 +50,11 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.AndroidFileCache;
-import at.tomtasche.reader.background.KitKatPrinter;
+import at.tomtasche.reader.background.PrintingManager;
 import at.tomtasche.reader.nonfree.AdManager;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.BillingManager;
+import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.nonfree.HelpManager;
 import at.tomtasche.reader.ui.EditActionModeCallback;
@@ -80,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String SAVED_KEY_LAST_CACHE_URI = "LAST_CACHE_URI";
     private static final boolean IS_TESTING = isTesting();
-    private static final boolean USE_PROPRIETARY_LIBRARIES = true;
     private static final int GOOGLE_REQUEST_CODE = 1993;
     private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
     private static final int PERMISSION_CODE = 1353;
@@ -100,10 +105,12 @@ public class MainActivity extends AppCompatActivity {
     private EditActionModeCallback editActionMode;
 
     private CrashManager crashManager;
+    private ConfigManager configManager;
     private AnalyticsManager analyticsManager;
     private AdManager adManager;
     private BillingManager billingManager;
     private HelpManager helpManager;
+    private PrintingManager printingManager;
 
     private Runnable onPermissionRunnable;
 
@@ -139,6 +146,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        printingManager = new PrintingManager();
         initializeProprietaryLibraries();
 
         if (!IS_TESTING) {
@@ -154,13 +162,21 @@ public class MainActivity extends AppCompatActivity {
             toggleComponent(filePickerActivity, false);
         }
 
+        crashManager.log("onCreate");
+
         documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
 
         if (documentFragment != null && documentFragment.hasLastResult()) {
             // nothing else to do
+
+            crashManager.log("onCreate nothing");
         } else if (savedInstanceState != null && savedInstanceState.containsKey(SAVED_KEY_LAST_CACHE_URI)) {
             loadOnStart = savedInstanceState.getParcelable(SAVED_KEY_LAST_CACHE_URI);
+
+            crashManager.log("onCreate loadOnStart");
         } else if (documentFragment == null) {
+            crashManager.log("onCreate from background");
+
             // app was started from another app, but make sure not to load it twice
             // (i.e. after bringing app back from background)
             if (getIntent().getData() != null) {
@@ -171,6 +187,8 @@ public class MainActivity extends AppCompatActivity {
                 analyticsManager.setCurrentScreen(this, "screen_main");
             }
         } else {
+            crashManager.log("onCreate empty");
+
             analyticsManager.setCurrentScreen(this, "screen_main");
         }
     }
@@ -186,6 +204,8 @@ public class MainActivity extends AppCompatActivity {
             documentContainer.setVisibility(View.VISIBLE);
         }
 
+        crashManager.log("onStart");
+
         if (loadOnStart != null) {
             loadUri(loadOnStart, false);
 
@@ -197,8 +217,6 @@ public class MainActivity extends AppCompatActivity {
         if (!IS_GOOGLE_ECOSYSTEM) {
             return;
         }
-
-        // TODO: replace with something smarter like https://github.com/Angtrim/Android-Five-Stars-Library
 
         RateThisApp.onCreate(this);
         RateThisApp.setCallback(new RateThisApp.Callback() {
@@ -219,10 +237,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        if (RateThisApp.shouldShowRateDialog()) {
-            analyticsManager.report("rating_show");
-            RateThisApp.showRateDialog(this);
-        }
+        configManager.getBooleanConfig("show_rating_dialog", new ConfigManager.ConfigListener<Boolean>() {
+            @Override
+            public void onConfig(String key, Boolean showRatingDialog) {
+                if (showRatingDialog) {
+                    analyticsManager.report("rating_dialog_eligible");
+
+                    // TODO: replace with something smarter like https://github.com/Angtrim/Android-Five-Stars-Library
+
+                    if (RateThisApp.shouldShowRateDialog()) {
+                        analyticsManager.report("rating_show");
+                        RateThisApp.showRateDialog(MainActivity.this);
+                    }
+                }
+            }
+        });
     }
 
     private void initializeCatchAllSwitch() {
@@ -321,7 +350,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeProprietaryLibraries() {
-        if (USE_PROPRIETARY_LIBRARIES && IS_GOOGLE_ECOSYSTEM) {
+        boolean useProprietaryLibraries = !getResources().getBoolean(R.bool.DISABLE_TRACKING);
+
+        if (useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM) {
             GoogleApiAvailability googleApi = GoogleApiAvailability.getInstance();
             int googleAvailability = googleApi.isGooglePlayServicesAvailable(this);
             if (googleAvailability != ConnectionResult.SUCCESS) {
@@ -331,31 +362,28 @@ public class MainActivity extends AppCompatActivity {
         }
 
         crashManager = new CrashManager();
-        crashManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+        crashManager.setEnabled(useProprietaryLibraries);
         crashManager.initialize();
 
         analyticsManager = new AnalyticsManager();
-        analyticsManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+        analyticsManager.setEnabled(useProprietaryLibraries);
         analyticsManager.initialize(this);
 
-        adManager = new AdManager();
-        adManager.setEnabled(!IS_TESTING && USE_PROPRIETARY_LIBRARIES);
-        adManager.setAdContainer(adContainer);
-        adManager.setOnAdFailedCallback(new Runnable() {
+        configManager = new ConfigManager();
+        configManager.setEnabled(useProprietaryLibraries);
+        configManager.initialize();
 
-            @Override
-            public void run() {
-                offerPurchase();
-            }
-        });
+        adManager = new AdManager();
+        adManager.setEnabled(!IS_TESTING && useProprietaryLibraries);
+        adManager.setAdContainer(adContainer);
         adManager.initialize(this, analyticsManager, crashManager);
 
         billingManager = new BillingManager();
-        billingManager.setEnabled(USE_PROPRIETARY_LIBRARIES && IS_GOOGLE_ECOSYSTEM);
+        billingManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
         billingManager.initialize(this, analyticsManager, adManager, crashManager);
 
         helpManager = new HelpManager();
-        helpManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+        helpManager.setEnabled(useProprietaryLibraries);
         helpManager.initialize(this);
     }
 
@@ -364,6 +392,8 @@ public class MainActivity extends AppCompatActivity {
         super.onNewIntent(intent);
 
         if (intent.getData() != null) {
+            crashManager.log("onNewIntent loadUri");
+
             loadUri(intent.getData(), false);
 
             analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "other");
@@ -392,6 +422,8 @@ public class MainActivity extends AppCompatActivity {
         } else if (requestCode == CREATE_CODE && intent != null) {
             documentFragment.save(intent.getData());
         } else if (intent != null) {
+            crashManager.log("onActivityResult loadUri");
+
             Uri uri = intent.getData();
             if (requestCode == 42 && resultCode == Activity.RESULT_OK && uri != null) {
                 loadUri(uri, true);
@@ -533,11 +565,7 @@ public class MainActivity extends AppCompatActivity {
 
                 analyticsManager.report("menu_print");
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    KitKatPrinter.print(this, documentFragment.getPageView());
-                } else {
-                    SnackbarHelper.show(this, R.string.crouton_print_unavailable, null, true, true);
-                }
+                printingManager.print(this, documentFragment.getPageView());
 
                 break;
             }
@@ -580,6 +608,8 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void run() {
+                analyticsManager.report(FirebaseAnalytics.Event.PRESENT_OFFER + "_clicked");
+
                 buyAdRemoval();
             }
         }, true, false);
@@ -792,6 +822,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         billingManager.close();
+        printingManager.close();
 
         super.onStop();
     }
@@ -819,5 +850,9 @@ public class MainActivity extends AppCompatActivity {
 
     public AnalyticsManager getAnalyticsManager() {
         return analyticsManager;
+    }
+
+    public ConfigManager getConfigManager() {
+        return configManager;
     }
 }

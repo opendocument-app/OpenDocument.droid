@@ -20,7 +20,13 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.play.core.review.ReviewInfo;
+import com.google.android.play.core.review.ReviewManager;
+import com.google.android.play.core.review.ReviewManagerFactory;
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -47,6 +53,7 @@ import at.tomtasche.reader.background.PdfLoader;
 import at.tomtasche.reader.background.RawLoader;
 import at.tomtasche.reader.background.StreamUtil;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
+import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.widget.PageView;
@@ -68,6 +75,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private OnlineLoader onlineLoader;
 
     private AnalyticsManager analyticsManager;
+    private ConfigManager configManager;
     private CrashManager crashManager;
 
     private ProgressDialogFragment progressDialog;
@@ -108,9 +116,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             pageView.setDocumentFragment(this);
         } catch (Throwable t) {
-            crashManager.log(t);
-
-            crashManager.log("no webview installed: " + t.getMessage());
+            // can't call crashlytics yet at this point (onActivityCreated not called)
 
             String errorString = "Please install \"Android System WebView\" and restart the app afterwards.";
 
@@ -145,7 +151,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         MainActivity mainActivity = (MainActivity) getActivity();
         analyticsManager = mainActivity.getAnalyticsManager();
+        configManager = mainActivity.getConfigManager();
         crashManager = mainActivity.getCrashManager();
+
+        crashManager.log("onActivityCreated");
 
         metadataLoader = new MetadataLoader(context);
         metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
@@ -169,10 +178,14 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         if (savedInstanceState != null) {
+            crashManager.log("onActivityCreated has savedInstanceState");
+
             initializePageView();
 
             lastResult = savedInstanceState.getParcelable(SAVED_KEY_LAST_RESULT);
             if (lastResult != null) {
+                crashManager.log("savedInstanceState has lastResult");
+
                 prepareLoad(lastResult.loaderType, false);
             }
 
@@ -198,6 +211,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
+
+        crashManager.log("onSaveInstanceState");
 
         outState.putParcelable(SAVED_KEY_LAST_RESULT, lastResult);
         outState.putString(SAVED_KEY_CURRENT_HTML_DIFF, currentHtmlDiff);
@@ -357,8 +372,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     }
 
     private void unload() {
-        lastResult = null;
-
         toggleDocumentMenu(false);
 
         ActionBar bar = ((AppCompatActivity) getActivity()).getSupportActionBar();
@@ -403,6 +416,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             errorOnStart = null;
         }
 
+        lastResult = result;
+
         analyticsManager.setCurrentScreen(activity, "screen_" + result.loaderType.toString() + "_" + result.options.fileType);
 
         FileLoader.Options options = result.options;
@@ -415,8 +430,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             loadWithType(FileLoader.LoaderType.ODF, options);
         } else {
             analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
-
-            lastResult = result;
 
             ActionBar bar = ((AppCompatActivity) activity).getSupportActionBar();
             bar.removeAllTabs();
@@ -452,6 +465,31 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             } else {
                 offerUpload(activity, options, false);
             }
+
+            configManager.getBooleanConfig("show_in_app_rating", new ConfigManager.ConfigListener<Boolean>() {
+                @Override
+                public void onConfig(String key, Boolean showInAppRating) {
+                    if (showInAppRating) {
+                        analyticsManager.report("in_app_review_eligible");
+
+                        ReviewManager manager = ReviewManagerFactory.create(activity);
+                        com.google.android.play.core.tasks.Task<ReviewInfo> request = manager.requestReviewFlow();
+                        request.addOnCompleteListener(reviewInfoTask -> {
+                            if (reviewInfoTask.isSuccessful()) {
+                                analyticsManager.report("in_app_review_start");
+
+                                ReviewInfo reviewInfo = reviewInfoTask.getResult();
+                                com.google.android.play.core.tasks.Task<Void> flow = manager.launchReviewFlow(activity, reviewInfo);
+                                flow.addOnCompleteListener(reviewTask -> {
+                                    analyticsManager.report("in_app_review_done");
+                                });
+                            } else {
+                                analyticsManager.report("in_app_review_error");
+                            }
+                        });
+                    }
+                }
+            });
         }
     }
 
@@ -465,6 +503,9 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             resultOnStart = null;
             errorOnStart = null;
         }
+
+        // still needs to be saved for features like "Open With" to work
+        lastResult = result;
 
         unload();
 

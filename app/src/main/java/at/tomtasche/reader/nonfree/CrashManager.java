@@ -14,6 +14,8 @@ public class CrashManager {
 
     public void initialize() {
         if (!enabled) {
+            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
+
             return;
         }
 

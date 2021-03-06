@@ -19,10 +19,16 @@ platform :android do
   desc "Deploy a new version to the Google Play"
   lane :deployPro do
     gradle(
-      task: "clean app:bundleProRelease"
+      task: "clean"
+    )
+
+    gradle(
+      task: "bundle",
+      flavor: "Pro",
+      build_type: "Release"
     )
     upload_to_play_store(
-      track: 'beta',
+      track: 'internal',
       package_name: 'at.tomtasche.reader.pro',
       skip_upload_metadata: true,
       skip_upload_changelogs: true,
@@ -35,16 +41,21 @@ platform :android do
   desc "Deploy a new version to the Google Play"
   lane :deployLite do
     gradle(
-      task: "clean app:bundleLiteRelease"
+      task: "clean"
+    )
+
+    gradle(
+      task: "bundle",
+      flavor: "Lite",
+      build_type: "Release"
     )
     upload_to_play_store(
-      track: 'beta',
+      track: 'internal',
       package_name: 'at.tomtasche.reader',
       skip_upload_metadata: true,
       skip_upload_changelogs: true,
       skip_upload_images: true,
-      skip_upload_screenshots: true,
-      version_codes_to_retain: [93]
+      skip_upload_screenshots: true
     )
     gradle(task: "app:uploadCrashlyticsSymbolFileLiteRelease")
   end
