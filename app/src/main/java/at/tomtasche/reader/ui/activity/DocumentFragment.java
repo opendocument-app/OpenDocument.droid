@@ -53,6 +53,7 @@ import at.tomtasche.reader.background.PdfLoader;
 import at.tomtasche.reader.background.RawLoader;
 import at.tomtasche.reader.background.StreamUtil;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
+import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.widget.PageView;
@@ -74,6 +75,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private OnlineLoader onlineLoader;
 
     private AnalyticsManager analyticsManager;
+    private ConfigManager configManager;
     private CrashManager crashManager;
 
     private ProgressDialogFragment progressDialog;
@@ -149,6 +151,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         MainActivity mainActivity = (MainActivity) getActivity();
         analyticsManager = mainActivity.getAnalyticsManager();
+        configManager = mainActivity.getConfigManager();
         crashManager = mainActivity.getCrashManager();
 
         crashManager.log("onActivityCreated");
@@ -463,11 +466,9 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 offerUpload(activity, options, false);
             }
 
-            FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
-            remoteConfig.fetchAndActivate().addOnCompleteListener(new OnCompleteListener<Boolean>() {
+            configManager.getBooleanConfig("show_in_app_rating", new ConfigManager.ConfigListener<Boolean>() {
                 @Override
-                public void onComplete(@NonNull Task<Boolean> task) {
-                    boolean showInAppRating = remoteConfig.getBoolean("show_in_app_rating");
+                public void onConfig(String key, Boolean showInAppRating) {
                     if (showInAppRating) {
                         analyticsManager.report("in_app_review_eligible");
 

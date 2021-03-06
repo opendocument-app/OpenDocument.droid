@@ -55,8 +55,7 @@ platform :android do
       skip_upload_metadata: true,
       skip_upload_changelogs: true,
       skip_upload_images: true,
-      skip_upload_screenshots: true,
-      version_codes_to_retain: [93]
+      skip_upload_screenshots: true
     )
     gradle(task: "app:uploadCrashlyticsSymbolFileLiteRelease")
   end

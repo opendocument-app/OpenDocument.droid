@@ -284,7 +284,10 @@ public class AdManager implements RewardedVideoAdListener {
             if (!isInterstitial) {
                 adFailed = true;
                 toggleVisibility(false);
-                adFailedRunnable.run();
+
+                if (adFailedRunnable != null) {
+                    adFailedRunnable.run();
+                }
             } else if (progressDialog != null) {
                 progressDialog.dismiss();
                 progressDialog = null;
