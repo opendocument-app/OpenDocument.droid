@@ -1,4 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="toast_error_generic">문제가 발생해서 파일을 열지 못 했습니다</string>
+    <string name="toast_error_find_file">파일이 없어서 더 이상 찾을 수 없습니다. </string>
+    <string name="toast_error_illegal_file">지원하지 않는 파일입니다. </string>
+    <string name="toast_error_illegal_file_reopen">지원하지 않는 파일입니다. 다른 앱에서 열어 보세요. </string>
+    <string name="dialog_recent_title">최근 문서</string>
+    <string name="dialog_loading_title">로딩 중...</string>
+    <string name="dialog_uploading_title">업로드 중...</string>
+    <string name="dialog_list_no_documents_found">문서를 찾을 수 없습니다.</string>
+    <string name="menu_search">문서 검색</string>
+    <string name="menu_open">문서 열기</string>
+    <string name="menu_open_with">다른 앱으로 열기...</string>
+    <string name="menu_share">문서 공유</string>
+    <string name="menu_edit">문서 편집</string>
+    <string name="menu_remove_ads">광고 제거</string>
+    <string name="menu_fullscreen">전체 화면으로 열기</string>
+    <string name="menu_cloud_print">문서 인쇄</string>
+    <string name="menu_tts">텍스트 음성 변환 (TTS)</string>
+    <string name="crouton_leave_fullscreen">전체 화면을 끝내려면 뒤로가기를 누르세요</string>
+    <string name="action_find_previous">이전</string>
+    <string name="action_find_next">다음</string>
+    <string name="action_find_on_page">페이지에서 찾기</string>
+    <string name="action_tts_play">재생</string>
+    <string name="action_tts_pause">중지</string>
+    <string name="action_tts_next">다음</string>
+    <string name="action_tts_previous">이전</string>
+    <string name="action_edit_save">저장</string>
+    <string name="action_edit_help">도움</string>
     <!--  iOS -->
+    <string name="ok">확인</string>
+    <string name="unsaved_changes">저장된 내용을 변경하지 않음</string>
 </resources>
