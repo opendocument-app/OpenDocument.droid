@@ -5,6 +5,9 @@
     <string name="toast_error_illegal_file">지원하지 않는 파일입니다. </string>
     <string name="toast_error_illegal_file_reopen">지원하지 않는 파일입니다. 다른 앱에서 열어 보세요. </string>
     <string name="toast_hint_unsupported_file">열린 파일이 제대로 보여지지 않습니까? 다른 앱에서 여시겠습니까?</string>
+    <string name="toast_hint_upload_file">파일이 잘 보여지지 않는다면, 포맷을 제대로 보여주기 위해서 임시로 업로드하세요.</string>
+    <string name="toast_error_reopen_noapp">선택한 파일을 지원하는 앱이 없습니다. </string>
+    <string name="toast_error_save_nofile">선택한 파일을 저장할 위치가 없습니다.</string>
     <string name="toast_error_save_failed">파일이 저장되지 않았습니다. support@opendocument.app 으로 문의하세요.</string>
     <string name="toast_error_out_of_memory">메모리가 부족합니다! 사진이 너무 많거나 파일이 너무 큽니다.</string>
     <string name="toast_error_password_protected">문서가 암호로 잠겨 있습니다.</string>
@@ -15,7 +18,11 @@
     <string name="dialog_uploading_title">업로드 중...</string>
     <string name="dialog_generic_loading_message">잠시 기다려 주세요.</string>
     <string name="dialog_uploading_message_appendix">업로드한 파일은 비공개이고, 24시간 뒤에 자동 삭제됩니다.</string>
+    <string name="dialog_remove_ads_title">적은 비용으로 광고 제거:</string>
+    <string name="dialog_upload_file">이 포맷을 지원하지 않기에 문서를 열 수 없습니다. 임시로 서버에 업로드해서 여시겠습니까? 업로드한 파일은 비공개이고, 24 시간 뒤에 자동으로 삭제합니다.</string>
+    <string name="dialog_title_choose_file">기기에서 파일 선택</string>
     <string name="dialog_list_no_documents_found">문서를 찾을 수 없습니다.</string>
+    <string name="menu_recent">최근에 열어 본 문서</string>
     <string name="menu_search">문서 검색</string>
     <string name="menu_open">문서 열기</string>
     <string name="menu_open_with">다른 앱으로 열기...</string>
@@ -26,6 +33,7 @@
     <string name="menu_cloud_print">문서 인쇄</string>
     <string name="menu_tts">텍스트 음성 변환 (TTS)</string>
     <string name="crouton_leave_fullscreen">전체 화면을 끝내려면 뒤로가기를 누르세요</string>
+    <string name="crouton_error_open_app">선택한 앱을 열 수 없습니다.</string>
     <string name="action_find_previous">이전</string>
     <string name="action_find_next">다음</string>
     <string name="action_find_on_page">페이지에서 찾기</string>
@@ -35,6 +43,12 @@
     <string name="action_tts_previous">이전</string>
     <string name="action_edit_save">저장</string>
     <string name="action_edit_help">도움</string>
+    <string name="action_edit_banner">문서를 수정하고, 아래에서 저장을 누르세요.</string>
+    <string name="landing_welcome_title">OpenDocument Reader를\n 오신 것을 환영합니다.</string>
+    <string name="landing_intro_view">OpenDocument Reader를 사용해서 어디서든 OpenDocument 포맷(.odt, .ods, .odp 및 .odg) 문서를 볼 수 있습니다. </string>
+    <string name="landing_intro_search">OpenDocument Reader를 사용해서 쉽게 문서를 찾고 열 수 있습니다. </string>
+    <string name="landing_intro_edit">중요한 프레젠테이션에서 수정할 오타가 하나 남았나요? 이제 수정도 지원합니다!</string>
+    <string name="landing_intro_open_all">이 앱은 삼성 \"My Files\"과 같은 앱을 지원하기 위해, 기본으로 모든 파일 포맷을 열게 등록되어 있습니다. 문제가 발생하면 이 기능을 끌 수 있습니다.</string>
     <string name="tts_status_reading">읽는 중...</string>
     <string name="tts_status_initializing">TTS 초기화 중...</string>
     <string name="tts_status_ready">준비 완료!</string>
