@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-     Copyright (C) 2007 The Android Open Source Project
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2007 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -17,19 +17,23 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-    <EditText
-            android:id="@+id/edit"
+        android:orientation="horizontal"
+        >
+    <EditText android:id="@+id/edit"
             android:layout_width="0dip"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="10dip"
             android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:scrollHorizontally="true"
+            android:inputType="text"
             android:hint="@string/action_find_on_page"
             android:imeOptions="actionDone|flagNoExtractUi|flagNoFullscreen"
-            android:inputType="text"
-            android:scrollHorizontally="true"
-            android:importantForAutofill="no"
-            android:layout_marginRight="10dip" />
-
+            android:layout_marginEnd="10dip"
+            />
+    <TextView android:id="@+id/matches"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="?android:attr/textColorPrimary"
+            />
 </LinearLayout>
