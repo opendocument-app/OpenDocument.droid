@@ -21,7 +21,7 @@ jobs:
         java-version: 1.8
 
     - name: build
-      run: ./gradlew clean assembleDebug --debug
+      run: ./gradlew clean assembleDebug --stacktrace
 
   test:
     runs-on: macos-latest
