@@ -240,6 +240,10 @@ public class MainActivity extends AppCompatActivity {
         configManager.getBooleanConfig("show_rating_dialog", new ConfigManager.ConfigListener<Boolean>() {
             @Override
             public void onConfig(String key, Boolean showRatingDialog) {
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+
                 if (showRatingDialog) {
                     analyticsManager.report("rating_dialog_eligible");
 

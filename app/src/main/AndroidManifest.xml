@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:installLocation="auto"
-        android:versionCode="150"
-        android:versionName="3.10.0"
+        android:versionCode="152"
+        android:versionName="3.10.2"
         package="at.tomtasche.reader"
         tools:ignore="GoogleAppIndexingWarning">
 
@@ -51,8 +51,8 @@
     <application
             android:allowBackup="true"
             android:hardwareAccelerated="true"
-            android:icon="@mipmap/icon"
-            android:roundIcon="@mipmap/icon_round"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
             android:label="@string/app_title"
             android:theme="@style/MainTheme"
             android:name="androidx.multidex.MultiDexApplication"
@@ -353,8 +353,8 @@
         <activity
                 android:name="com.nononsenseapps.filepicker.FilePickerActivity"
                 android:enabled="@bool/filepicker_enabled"
-                android:icon="@mipmap/icon"
-                android:roundIcon="@mipmap/icon_round"
+                android:icon="@mipmap/ic_launcher"
+                android:roundIcon="@mipmap/ic_launcher_round"
                 android:excludeFromRecents="true"
                 android:exported="false"
                 android:label="@string/dialog_title_choose_file"
@@ -378,8 +378,8 @@
 
         <activity
                 android:name="at.tomtasche.reader.ui.activity.IntroActivity"
-                android:icon="@mipmap/icon"
-                android:roundIcon="@mipmap/icon_round"
+                android:icon="@mipmap/ic_launcher"
+                android:roundIcon="@mipmap/ic_launcher_round"
                 android:excludeFromRecents="true"
                 android:exported="false"
                 android:label="@string/app_title"
