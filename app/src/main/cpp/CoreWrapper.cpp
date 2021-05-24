@@ -84,7 +84,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jfieldID ooxmlField = env->GetFieldID(optionsClass, "ooxml", "Z");
         jboolean ooxml = env->GetBooleanField(options, ooxmlField);
         if (!ooxml) {
-            if (meta.type == odr::FileType::OPENDOCUMENT_TEXT || meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
+            if (meta.type == odr::FileType::OPENDOCUMENT_TEXT) {
                 jstring pageName = env->NewStringUTF("Document");
                 env->CallBooleanMethod(pageNames, addMethod, pageName);
 
@@ -95,7 +95,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                     env->SetIntField(result, errorField, -4);
                     return result;
                 }
-            } else if (meta.type == odr::FileType::OPENDOCUMENT_SPREADSHEET || meta.type == odr::FileType::OPENDOCUMENT_PRESENTATION) {
+            } else if (meta.type == odr::FileType::OPENDOCUMENT_SPREADSHEET || meta.type == odr::FileType::OPENDOCUMENT_PRESENTATION || meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
                 int i = 0;
                 // TODO: this could fail for HUGE documents with hundreds of pages
                 // https://stackoverflow.com/a/24292867/198996

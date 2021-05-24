@@ -1,24 +1,32 @@
 package at.tomtasche.reader.nonfree;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.FullScreenContentCallback;
+import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.reward.RewardItem;
-import com.google.android.gms.ads.reward.RewardedVideoAd;
-import com.google.android.gms.ads.reward.RewardedVideoAdListener;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+import com.google.android.gms.ads.rewarded.RewardedAd;
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 
-public class AdManager implements RewardedVideoAdListener {
+import org.jetbrains.annotations.NotNull;
+
+import androidx.annotation.NonNull;
+
+public class AdManager {
 
     private boolean enabled;
 
@@ -26,14 +34,12 @@ public class AdManager implements RewardedVideoAdListener {
     private CrashManager crashManager;
     private AnalyticsManager analyticsManager;
 
-    private boolean adFailed;
-
     private LinearLayout adContainer;
-    private AdView madView;
-    private InterstitialAd interstitial;
-    private Runnable adFailedRunnable;
-    private RewardedVideoAd rewardedVideoAd;
-    private ProgressDialog progressDialog;
+    private AdView adView;
+    private boolean showInterstitialOnLoad;
+    private InterstitialAd interstitialAd;
+    private boolean showVideoOnLoad;
+    private RewardedAd videoAd;
 
     public void initialize(Activity activity, AnalyticsManager analyticsManager, CrashManager crashManager) {
         if (!enabled) {
@@ -45,7 +51,7 @@ public class AdManager implements RewardedVideoAdListener {
         this.analyticsManager = analyticsManager;
 
         try {
-            MobileAds.initialize(activity, "ca-app-pub-8161473686436957~9025061963");
+            MobileAds.initialize(activity);
         } catch (Throwable e) {
             // java.lang.VerifyError: com/google/android/gms/ads/internal/ClientApi
             crashManager.log(e);
@@ -58,10 +64,6 @@ public class AdManager implements RewardedVideoAdListener {
         this.enabled = enabled;
     }
 
-    public void setOnAdFailedCallback(Runnable runnable) {
-        adFailedRunnable = runnable;
-    }
-
     public void setAdContainer(LinearLayout adContainer) {
         this.adContainer = adContainer;
     }
@@ -71,14 +73,14 @@ public class AdManager implements RewardedVideoAdListener {
             return;
         }
 
-        this.madView = adView;
+        this.adView = adView;
 
         adContainer.removeAllViews();
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         adContainer.addView(adView, params);
 
-        toggleVisibility(true);
+        adContainer.setVisibility(View.VISIBLE);
     }
 
     public void showGoogleAds() {
@@ -86,34 +88,62 @@ public class AdManager implements RewardedVideoAdListener {
             return;
         }
 
-        adFailed = false;
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                AdView adView = new AdView(activity);
 
-        AdView adView = new AdView(activity);
+                // https://developers.google.com/admob/android/banner/adaptive
+                Display display = activity.getWindowManager().getDefaultDisplay();
+                DisplayMetrics outMetrics = new DisplayMetrics();
+                display.getMetrics(outMetrics);
 
-        // https://developers.google.com/admob/android/banner/adaptive
-        Display display = activity.getWindowManager().getDefaultDisplay();
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        display.getMetrics(outMetrics);
+                float widthPixels = outMetrics.widthPixels;
+                float density = outMetrics.density;
 
-        float widthPixels = outMetrics.widthPixels;
-        float density = outMetrics.density;
+                int adWidth = (int) (widthPixels / density);
+                AdSize adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth);
+                adView.setAdSize(adSize);
 
-        int adWidth = (int) (widthPixels / density);
+                adView.setAdUnitId("ca-app-pub-8161473686436957/5931994762");
+                adView.setAdListener(new AdListener() {
+                    @Override
+                    public void onAdFailedToLoad(@NonNull @NotNull LoadAdError loadAdError) {
+                        analyticsManager.report("ads_banner_failed", "code", loadAdError.getCode());
+                    }
 
-        adView.setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth));
+                    @Override
+                    public void onAdLoaded() {
+                        analyticsManager.report("ads_banner_loaded");
+                    }
 
-        adView.setAdUnitId("ca-app-pub-8161473686436957/5931994762");
-        adView.setAdListener(new MyAdListener(false));
+                    @Override
+                    public void onAdClicked() {
+                        analyticsManager.report("ads_banner_clicked");
+                    }
 
-        AdRequest adRequest = new AdRequest.Builder().build();
-        adView.loadAd(adRequest);
+                    @Override
+                    public void onAdImpression() {
+                        analyticsManager.report("ads_banner_impression");
+                    }
 
-        showAds(adView);
-    }
+                    @Override
+                    public void onAdClosed() {
+                        analyticsManager.report("ads_banner_closed");
+                    }
 
-    private void toggleVisibility(boolean visible) {
-        boolean show = visible && !adFailed && enabled;
-        adContainer.setVisibility(show ? View.VISIBLE : View.GONE);
+                    @Override
+                    public void onAdOpened() {
+                        analyticsManager.report("ads_banner_opened");
+                    }
+                });
+
+                AdRequest adRequest = new AdRequest.Builder().build();
+                adView.loadAd(adRequest);
+
+                showAds(adView);
+            }
+        });
     }
 
     public void loadInterstitial() {
@@ -121,13 +151,28 @@ public class AdManager implements RewardedVideoAdListener {
             return;
         }
 
-        interstitial = new InterstitialAd(activity);
-        interstitial.setAdUnitId("ca-app-pub-8161473686436957/2477707165");
-        interstitial.setAdListener(new MyAdListener(true));
+        showInterstitialOnLoad = false;
+        interstitialAd = null;
 
         AdRequest adRequest = new AdRequest.Builder().build();
 
-        interstitial.loadAd(adRequest);
+        InterstitialAd.load(activity, "ca-app-pub-8161473686436957/2477707165", adRequest, new InterstitialAdLoadCallback() {
+            @Override
+            public void onAdLoaded(@NonNull @NotNull InterstitialAd interstitialAd) {
+                analyticsManager.report("ads_interstitial_loaded");
+
+                AdManager.this.interstitialAd = interstitialAd;
+
+                if (showInterstitialOnLoad) {
+                    showInterstitial();
+                }
+            }
+
+            @Override
+            public void onAdFailedToLoad(@NonNull @NotNull LoadAdError loadAdError) {
+                analyticsManager.report("ads_interstitial_failed", "code", loadAdError.getCode());
+            }
+        });
     }
 
     public void showInterstitial() {
@@ -135,14 +180,29 @@ public class AdManager implements RewardedVideoAdListener {
             return;
         }
 
-        if (interstitial != null) {
-            try {
-                interstitial.show();
-            } catch (Exception e) {
-                // very rarely crashes with "The ad unit ID must be set on InterstitialAd before show is called."
+        if (interstitialAd != null) {
+            interstitialAd.setFullScreenContentCallback(new FullScreenContentCallback(){
+                @Override
+                public void onAdDismissedFullScreenContent() {
+                    analyticsManager.report("ads_interstitial_fullscreen_dismissed");
+                }
 
-                crashManager.log(e);
-            }
+                @Override
+                public void onAdFailedToShowFullScreenContent(AdError adError) {
+                    analyticsManager.report("ads_interstitial_fullscreen_failed", "code", adError.getCode());
+                }
+
+                @Override
+                public void onAdShowedFullScreenContent() {
+                    analyticsManager.report("ads_interstitial_fullscreen_shown");
+                }
+            });
+
+            interstitialAd.show(activity);
+
+            interstitialAd = null;
+        } else {
+            showInterstitialOnLoad = true;
         }
     }
 
@@ -151,10 +211,30 @@ public class AdManager implements RewardedVideoAdListener {
             return;
         }
 
-        rewardedVideoAd = MobileAds.getRewardedVideoAdInstance(activity);
-        rewardedVideoAd.setRewardedVideoAdListener(this);
+        showVideoOnLoad = false;
+        videoAd = null;
 
-        rewardedVideoAd.loadAd("ca-app-pub-8161473686436957/7215347444", new AdRequest.Builder().build());
+        AdRequest adRequest = new AdRequest.Builder().build();
+
+        RewardedAd.load(activity, "ca-app-pub-8161473686436957/7215347444", adRequest, new RewardedAdLoadCallback(){
+            @Override
+            public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                analyticsManager.report("ads_video_failed", "code", loadAdError.getCode());
+
+                removeAds();
+            }
+
+            @Override
+            public void onAdLoaded(@NonNull RewardedAd rewardedAd) {
+                analyticsManager.report("ads_video_loaded");
+
+                AdManager.this.videoAd = rewardedAd;
+
+                if (showVideoOnLoad) {
+                    showVideo();
+                }
+            }
+        });
     }
 
     public void showVideo() {
@@ -162,38 +242,33 @@ public class AdManager implements RewardedVideoAdListener {
             return;
         }
 
-        if (rewardedVideoAd != null) {
-            if (!rewardedVideoAd.isLoaded()) {
-                progressDialog = new ProgressDialog(activity);
-                progressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        rewardedVideoAd = null;
-                    }
-                });
-                progressDialog.show();
+        if (videoAd != null) {
+            videoAd.show(activity, rewardItem -> {
+                analyticsManager.report("ads_video_rewarded");
 
-                return;
-            }
+                removeAds();
+            });
 
-            try {
-                rewardedVideoAd.show();
-            } catch (Exception e) {
-                crashManager.log(e);
-            }
+            videoAd = null;
+        } else {
+            showVideoOnLoad = true;
         }
-
-        rewardedVideoAd = null;
     }
 
     public void removeAds() {
         enabled = false;
 
-        adContainer.setVisibility(View.GONE);
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                adContainer.setVisibility(View.GONE);
+            }
+        });
     }
 
     public void destroyAds() {
-        interstitial = null;
+        interstitialAd = null;
+        videoAd = null;
 
         try {
             // keeps throwing exceptions for some users:
@@ -201,135 +276,11 @@ public class AdManager implements RewardedVideoAdListener {
             // android.webkit.WebViewClassic.requestFocus(WebViewClassic.java:9898)
             // android.webkit.WebView.requestFocus(WebView.java:2133)
             // android.view.ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
-            if (madView != null) {
-                madView.destroy();
+            if (adView != null) {
+                adView.destroy();
             }
         } catch (Exception e) {
             crashManager.log(e);
-        }
-    }
-
-    @Override
-    public void onRewardedVideoAdLoaded() {
-        analyticsManager.report("ads_video_loaded");
-
-        if (progressDialog != null) {
-            progressDialog.dismiss();
-            progressDialog = null;
-
-            showVideo();
-        }
-    }
-
-    @Override
-    public void onRewardedVideoAdOpened() {
-        analyticsManager.report("ads_video_opened");
-    }
-
-    @Override
-    public void onRewardedVideoStarted() {
-        analyticsManager.report("ads_video_started");
-    }
-
-    @Override
-    public void onRewardedVideoAdClosed() {
-        analyticsManager.report("ads_video_closed");
-    }
-
-    @Override
-    public void onRewarded(RewardItem rewardItem) {
-        analyticsManager.report("ads_video_rewarded");
-
-        removeAds();
-    }
-
-    @Override
-    public void onRewardedVideoAdLeftApplication() {
-        analyticsManager.report("ads_video_left");
-    }
-
-    @Override
-    public void onRewardedVideoAdFailedToLoad(int i) {
-        analyticsManager.report("ads_video_failed", "code", i);
-
-        if (progressDialog != null) {
-            progressDialog.dismiss();
-            progressDialog = null;
-        }
-
-        rewardedVideoAd = null;
-
-        removeAds();
-    }
-
-    @Override
-    public void onRewardedVideoCompleted() {
-        analyticsManager.report("ads_video_completed");
-    }
-
-    private class MyAdListener extends AdListener {
-
-        private boolean isInterstitial;
-        private String prefix;
-
-        MyAdListener(boolean isInterstitial) {
-            this.isInterstitial = isInterstitial;
-            this.prefix = isInterstitial ? "interstitial" : "banner";
-        }
-
-        @Override
-        public void onAdFailedToLoad(int arg0) {
-            analyticsManager.report("ads_" + prefix + "_failed", "code", arg0);
-
-            if (!isInterstitial) {
-                adFailed = true;
-                toggleVisibility(false);
-
-                if (adFailedRunnable != null) {
-                    adFailedRunnable.run();
-                }
-            } else if (progressDialog != null) {
-                progressDialog.dismiss();
-                progressDialog = null;
-
-                interstitial = null;
-            }
-        }
-
-        @Override
-        public void onAdLoaded() {
-            analyticsManager.report("ads_" + prefix + "_loaded");
-
-            if (isInterstitial && progressDialog != null) {
-                progressDialog.dismiss();
-                progressDialog = null;
-
-                showInterstitial();
-            }
-        }
-
-        @Override
-        public void onAdClicked() {
-            analyticsManager.report("ads_" + prefix + "_clicked");
-        }
-
-        @Override
-        public void onAdImpression() {
-            analyticsManager.report("ads_" + prefix + "_impression");
-        }
-
-        @Override
-        public void onAdClosed() {
-            analyticsManager.report("ads_" + prefix + "_closed");
-
-            if (isInterstitial) {
-                interstitial = null;
-            }
-        }
-
-        @Override
-        public void onAdOpened() {
-            analyticsManager.report("ads_" + prefix + "_opened");
         }
     }
 }

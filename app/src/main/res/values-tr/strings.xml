@@ -67,6 +67,7 @@
     <string name="reopen_chooser_title">Aygıtınızda kurulu başka bir uygulamayı kullanarak açın:</string>
     <string-array name="dialog_remove_ads_options">
         <item>Reklamları sürekli kaldır</item>
+        <item>Remove ads for a month</item>
         <item>Kısa bir video izleyerek reklamları geçici olarak ücretsiz kaldırın</item>
     </string-array>
 </resources>

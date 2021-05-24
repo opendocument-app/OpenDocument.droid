@@ -62,6 +62,7 @@
     <string name="reopen_chooser_title">Abrir usando otra aplicación instalada en tu dispositivo:</string>
     <string-array name="dialog_remove_ads_options">
         <item>Elimina los anuncios definitivamente</item>
+        <item>Remove ads for a month</item>
         <item>Eliminar los anuncios temporalmente gratis viendo un vídeo corto</item>
     </string-array>
     <!--  iOS -->

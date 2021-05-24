@@ -68,6 +68,7 @@
     <string name="reopen_chooser_title">Odpri z drugim nameščenim programom na napravi:</string>
     <string-array name="dialog_remove_ads_options">
         <item>Odstrani oglase za vedno</item>
+        <item>Remove ads for a month</item>
         <item>Začasno odstrani oglase</item>
     </string-array>
     <!--  iOS -->

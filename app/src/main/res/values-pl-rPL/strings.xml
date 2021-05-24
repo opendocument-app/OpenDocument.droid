@@ -55,6 +55,7 @@
     <string name="crouton_remove_ads">Potrzebujesz więcej miejsca do czytania? Usuń bezpłatnie reklamy, używając menu.</string>
     <string-array name="dialog_remove_ads_options">
         <item>Usuń reklamy na trwałe</item>
+        <item>Remove ads for a month</item>
         <item>Usuń reklamy na pewien czas i obejrzyj krótki film</item>
     </string-array>
     <!--  iOS -->

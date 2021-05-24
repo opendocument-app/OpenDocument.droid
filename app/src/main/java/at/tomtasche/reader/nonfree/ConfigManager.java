@@ -5,7 +5,6 @@ import android.net.Uri;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
-import com.kobakei.ratethisapp.RateThisApp;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -68,6 +67,10 @@ public class ConfigManager {
 
         boolean value = remoteConfig.getBoolean(key);
         configListener.onConfig(key, value);
+    }
+
+    public boolean getBooleanConfig(String key) {
+        return remoteConfig.getBoolean(key);
     }
 
     public interface ConfigListener<T> {
