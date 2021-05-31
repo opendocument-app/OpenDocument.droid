@@ -142,7 +142,6 @@ public class FindActionModeCallback implements ActionMode.Callback, TextWatcher,
             mWebView.clearMatches();
             mMatches.setVisibility(View.GONE);
             mMatchesFound = false;
-            mWebView.findAll(null);
         } else {
             mMatchesFound = true;
             mMatches.setVisibility(View.INVISIBLE);
