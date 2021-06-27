@@ -3,9 +3,12 @@
     <string name="toast_error_generic">Tharla taisme. Níorbh fhéidir an comhad a oscailt.</string>
     <string name="toast_error_find_file">Níorbh fhéidir an comhad a fháil. B\'fhéidir nach ann dó a thuilleadh?</string>
     <string name="toast_error_illegal_file">Tá an dealramh air nach dtugtar tacaíocht den chineál comhad sin.</string>
+    <string name="toast_error_illegal_file_reopen">Formáid chomhaid nach dtugtar tacaíocht di. Féach í a oscailt i bhfeidhmchláirín eile.</string>
     <string name="toast_hint_unsupported_file">An é nach bhfuil tú sásta leis an mbealach ina thaispeántar an comhad? Oscail le feidhmchlár eile é ina ionad sin.</string>
     <string name="toast_hint_upload_file">An é nach bhfuil tú sásta leis an mbealach ina thaispeántar an comhad? Uasluchtaigh go sealadach é chun an formáidiú a fheabhsú.</string>
     <string name="toast_error_reopen_noapp">Níor aimsíodh aon fheidhmchlár ar an ngléas a thugann tacaíocht don chineál comhad sin.</string>
+    <string name="toast_error_save_nofile">Níl aon áit chun an comhad a chur i dtaisce.</string>
+    <string name="toast_error_save_failed">Níorbh fhéidir an comhad a chur i dtaisce. Déan teagmháil le support@opendocument.app</string>
     <string name="toast_error_out_of_memory">Níl cuimhne fágtha sa ghuthán! Tá an iomarca grianghraif ann nó tá an comhad rómhór.</string>
     <string name="toast_error_password_protected">Tá an cháipéis faoi chosaint focal faire</string>
     <string name="toast_error_permission_required">Tá cead de dhíth chun cáipéisí a léamh agus chun iad a chur i dtaisce</string>
@@ -22,6 +25,8 @@
     <string name="menu_recent">Cáipéisí a osclaíodh le déanaí</string>
     <string name="menu_search">Cuardaigh</string>
     <string name="menu_open">Oscail</string>
+    <string name="menu_open_with">Oscail le...</string>
+    <string name="menu_share">Comhroinn an cháipéis</string>
     <string name="menu_edit">Cuir an cháipéis in eagar</string>
     <string name="menu_remove_ads">Bain na fógraí</string>
     <string name="menu_fullscreen">Lánscáileán</string>
@@ -37,6 +42,7 @@
     <string name="action_tts_next">Ar aghaidh</string>
     <string name="action_tts_previous">Roimhe</string>
     <string name="action_edit_save">Taisc</string>
+    <string name="action_edit_help">Cabhair</string>
     <string name="action_edit_banner">Cuir do cháipéis in eagar thíos agus brúigh ar Taisc</string>
     <string name="landing_welcome_title">Fáilte go \nOpenDocument Reader</string>
     <string name="landing_intro_view">Le OpenDocument Reader, tá tú in ann breathnú ar cháipéisí atá i bhformáid OpenDocument (.odt, .ods, .odp, agus .odg) pé áit ina bhfuil tú.</string>
@@ -44,11 +50,12 @@
     <string name="landing_intro_edit">Ar aimsigh tú aon bhotún amháin eile atá le ceartú sula ndéanann tú do chur i láthair? Anois is féidir athruithe a dhéanamh freisin!</string>
     <string name="landing_intro_open_all">Mar réamhshocrú, cláraíonn an feidhmchláirín seo gach cineál comhad mar oscailte chun tacú le feidhmchláiríní amhail \"Samsung My Files\". Tig leat an ghné sin a chur as anseo má chruthaíonn sí fadhbanna duit.</string>
     <string name="tts_status_reading">Ag léamh…</string>
-    <string name="tts_status_initializing">Ag tosú TTS…</string>
+    <string name="tts_status_initializing">Ag tosú téacs go teanga…</string>
     <string name="tts_status_ready">Réidh!</string>
-    <string name="tts_status_failed">Theip ar TTS.</string>
+    <string name="tts_status_failed">Theip ar théacs go teanga.</string>
     <string name="tts_status_paused">Curtha ar sos.</string>
     <string name="tts_status_finished">Críochnaithe.</string>
+    <string name="toast_edit_status_saved">Cuireadh an cháipéis i dtaisce.</string>
     <string name="crouton_printing">Ag clóbhualadh…</string>
     <string name="crouton_print_unavailable">Ní féidir clóbhualadh ó do ghaireas. Uasghrádaigh chuig leagan níos nuaí de Android.</string>
     <string name="intro_title_open">Oscail agus léigh do chomhad ODF agus tú ar shiúl!</string>
@@ -62,7 +69,16 @@
     <string name="reopen_chooser_title">Oscail ag baint feidhm as feidhmchláirín eile atá suiteáilte ar do ghaireas:</string>
     <string-array name="dialog_remove_ads_options">
         <item>Bain na fógraí go deo</item>
+        <item>Remove ads for a month</item>
         <item>Bain fógraí go sealadach saor in aisce trí bhreathnú ar fhíseán gearr</item>
     </string-array>
     <!--  iOS -->
+    <string name="ok">Tá go maith</string>
+    <string name="unsaved_changes">Tá athruithe ann nár cuireadh i dtaisce</string>
+    <string name="save_now">Cuir i dtaisce anois iad?</string>
+    <string name="yes">Cuir</string>
+    <string name="discard_changes">Cuileáil na hathruithe</string>
+    <string name="cancel">Cealaigh</string>
+    <string name="error">Earráid</string>
+    <string name="back_to_documents">Ar ais chuig na cáipéisí</string>
 </resources>

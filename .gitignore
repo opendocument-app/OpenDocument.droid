@@ -64,3 +64,5 @@ app/lite/release/
 .cxx/
 
 fastlane/report.xml
+
+.idea/

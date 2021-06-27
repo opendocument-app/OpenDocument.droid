@@ -27,14 +27,7 @@ import android.widget.LinearLayout;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.play.core.review.ReviewInfo;
-import com.google.android.play.core.review.ReviewManager;
-import com.google.android.play.core.review.ReviewManagerFactory;
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
-import com.kobakei.ratethisapp.RateThisApp;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 
 import java.util.LinkedList;
@@ -151,8 +144,6 @@ public class MainActivity extends AppCompatActivity {
 
         if (!IS_TESTING) {
             showIntroActivity();
-
-            initializeRatingDialog();
         }
 
         initializeCatchAllSwitch();
@@ -211,51 +202,6 @@ public class MainActivity extends AppCompatActivity {
 
             loadOnStart = null;
         }
-    }
-
-    private void initializeRatingDialog() {
-        if (!IS_GOOGLE_ECOSYSTEM) {
-            return;
-        }
-
-        RateThisApp.onCreate(this);
-        RateThisApp.setCallback(new RateThisApp.Callback() {
-
-            @Override
-            public void onYesClicked() {
-                analyticsManager.report("rating_yes");
-            }
-
-            @Override
-            public void onNoClicked() {
-                analyticsManager.report("rating_no");
-            }
-
-            @Override
-            public void onCancelClicked() {
-                analyticsManager.report("rating_cancel");
-            }
-        });
-
-        configManager.getBooleanConfig("show_rating_dialog", new ConfigManager.ConfigListener<Boolean>() {
-            @Override
-            public void onConfig(String key, Boolean showRatingDialog) {
-                if (isFinishing() || isDestroyed()) {
-                    return;
-                }
-
-                if (showRatingDialog) {
-                    analyticsManager.report("rating_dialog_eligible");
-
-                    // TODO: replace with something smarter like https://github.com/Angtrim/Android-Five-Stars-Library
-
-                    if (RateThisApp.shouldShowRateDialog()) {
-                        analyticsManager.report("rating_show");
-                        RateThisApp.showRateDialog(MainActivity.this);
-                    }
-                }
-            }
-        });
     }
 
     private void initializeCatchAllSwitch() {
@@ -681,25 +627,42 @@ public class MainActivity extends AppCompatActivity {
 
         final boolean isBillingEnabled = billingManager.isEnabled();
 
+        boolean isShowSubscription = configManager.getBooleanConfig("show_subscription");
+        boolean isShowPurchase = !configManager.getBooleanConfig("do_not_show_purchase");
+
         String[] optionStrings = getResources().getStringArray(R.array.dialog_remove_ads_options);
-        if (!isBillingEnabled) {
-            optionStrings = new String[]{optionStrings[1]};
+
+        List<String> optionStringList = new LinkedList<>();
+        List<String> productStringList = new LinkedList<>();
+
+        if (isBillingEnabled) {
+            if (isShowSubscription) {
+                optionStringList.add(optionStrings[1]);
+                productStringList.add(BillingManager.BILLING_PRODUCT_SUBSCRIPTION);
+            }
+            if (isShowPurchase) {
+                optionStringList.add(optionStrings[0]);
+                productStringList.add(BillingManager.BILLING_PRODUCT_PURCHASE);
+            }
         }
+
+        optionStringList.add(optionStrings[2]);
+
+        optionStrings = optionStringList.toArray(new String[optionStringList.size()]);
 
         builder.setItems(optionStrings, new OnClickListener() {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String product;
-
                 if (!isBillingEnabled) {
                     which = 99;
                 }
 
                 analyticsManager.report(FirebaseAnalytics.Event.ADD_TO_CART);
 
-                if (which == 0) {
-                    product = BillingManager.BILLING_PRODUCT_FOREVER;
+                String product;
+                if (which < productStringList.size()) {
+                    product = productStringList.get(which);
                 } else {
                     dialog.dismiss();
 
@@ -708,7 +671,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                billingManager.startPurchase(MainActivity.this);
+                billingManager.startPurchase(MainActivity.this, product);
 
                 dialog.dismiss();
             }
