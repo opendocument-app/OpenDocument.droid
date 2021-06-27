@@ -71,7 +71,7 @@
     <string-array name="dialog_remove_ads_options">
         <item>Supprimer les pubs définitivement</item>
         <item>Remove ads for a month</item>
-        <item>Supprimer temporairement et gratuitement les pubs en regardant une courte vidéo</item>
+        <item>Remove ads temporarily for free by watching a short video</item>
     </string-array>
     <!--  iOS -->
     <string name="ok">OK</string>
