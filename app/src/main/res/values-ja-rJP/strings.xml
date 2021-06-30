@@ -69,8 +69,13 @@
     <string name="reopen_chooser_title">お使いのデバイスにインストールされた別のアプリで開く:</string>
     <string-array name="dialog_remove_ads_options">
         <item>永久に広告を削除する</item>
-        <item>Remove ads for a month</item>
-        <item>Remove ads temporarily for free by watching a short video</item>
+        <item>1ヶ月間広告を削除する</item>
+        <item>短い動画を視聴して、一時的に無料で広告を削除する</item>
     </string-array>
     <!--  iOS -->
+    <string name="ok">OK</string>
+    <string name="unsaved_changes">保存していない変更があります</string>
+    <string name="save_now">今すぐ保存しますか?</string>
+    <string name="yes">はい</string>
+    <string name="discard_changes">変更を破棄</string>
 </resources>
