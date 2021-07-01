@@ -88,15 +88,16 @@ android {
 }
 
 dependencies {
-    implementation platform('com.google.firebase:firebase-bom:27.1.0')
+    implementation platform('com.google.firebase:firebase-bom:28.1.0')
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.google.firebase:firebase-auth'
-    implementation 'com.google.firebase:firebase-ads'
     implementation 'com.google.firebase:firebase-perf'
     implementation 'com.google.firebase:firebase-crashlytics-ndk'
     implementation 'com.google.firebase:firebase-inappmessaging-display'
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-config'
+
+    implementation 'com.google.android.gms:play-services-ads:20.2.0'
 
     implementation 'com.android.billingclient:billing:4.0.0'
 
