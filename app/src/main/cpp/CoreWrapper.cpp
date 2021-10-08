@@ -84,7 +84,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jfieldID ooxmlField = env->GetFieldID(optionsClass, "ooxml", "Z");
         jboolean ooxml = env->GetBooleanField(options, ooxmlField);
         if (!ooxml &&
-            (documentFile->file_type() == odr::FileType::office_open_xml_document || documentFile->file_type() == odr::FileType::office_open_xml_workbook || documentFile->file_type() == odr::FileType::office_open_xml_presentation || )) {
+            (documentFile->file_type() == odr::FileType::office_open_xml_document || documentFile->file_type() == odr::FileType::office_open_xml_workbook || documentFile->file_type() == odr::FileType::office_open_xml_presentation)) {
             env->SetIntField(result, errorField, -5);
             return result;
         }
@@ -105,6 +105,44 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 auto sheet = cursor.element().sheet();
 
                 jstring sheetName = env->NewStringUTF(sheet.name().c_str());
+                env->CallBooleanMethod(pageNames, addMethod, sheetName);
+
+                const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
+                config.entry_offset = i;
+
+                try {
+                    odr::html::translate(*document, entryOutputPath, config);
+                } catch (...) {
+                    env->SetIntField(result, errorField, -4);
+                    return result;
+                }
+            });
+        } else if (document->document_type() == odr::DocumentType::presentation) {
+            auto cursor = document->root_element();
+
+            cursor.for_each_child([&](odr::DocumentCursor &cursor, std::uint32_t i) {
+                auto slide = cursor.element().slide();
+
+                jstring sheetName = env->NewStringUTF(slide.name().c_str());
+                env->CallBooleanMethod(pageNames, addMethod, sheetName);
+
+                const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
+                config.entry_offset = i;
+
+                try {
+                    odr::html::translate(*document, entryOutputPath, config);
+                } catch (...) {
+                    env->SetIntField(result, errorField, -4);
+                    return result;
+                }
+            });
+        } else if (document->document_type() == odr::DocumentType::drawing) {
+            auto cursor = document->root_element();
+
+            cursor.for_each_child([&](odr::DocumentCursor &cursor, std::uint32_t i) {
+                auto page = cursor.element().page();
+
+                jstring sheetName = env->NewStringUTF(std::to_string(i).c_str());
                 env->CallBooleanMethod(pageNames, addMethod, sheetName);
 
                 const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
