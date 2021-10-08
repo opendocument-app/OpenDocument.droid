@@ -1,5 +1,6 @@
 #include "CoreWrapper.h"
 #include <string>
+#include <optional>
 #include <odr/document.h>
 #include <odr/file.h>
 #include <odr/html.h>
