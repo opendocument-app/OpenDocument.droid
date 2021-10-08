@@ -27,14 +27,13 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
     env->ReleaseStringUTFChars(inputPath, inputPathC);
 
     try {
-        if (!document.has_value()) {
+        odr::DecodedFile file(inputPathCpp);
+        try {
+            documentFile = file.document_file();
+        } catch (...) {
             env->SetIntField(result, errorField, -1);
             return result;
         }
-
-        odr::DecodedFile file(inputPathCpp);
-        // TODO this throws if it is not a document file!
-        documentFile = file.document_file();
 
         jfieldID passwordField = env->GetFieldID(optionsClass, "password", "Ljava/lang/String;");
         jstring password = (jstring) env->GetObjectField(options, passwordField);
@@ -47,8 +46,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
 
             decrypted = documentFile->decrypt(passwordCpp);
         }
-
-        document = documentFile->document();
 
         if (!decrypted) {
             env->SetIntField(result, errorField, -2);
@@ -85,11 +82,13 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
 
         jfieldID ooxmlField = env->GetFieldID(optionsClass, "ooxml", "Z");
         jboolean ooxml = env->GetBooleanField(options, ooxmlField);
-        if (!ooxml && documentFile->file_type() == odr::FileType::office_open_xml_document) {
-            // TODO fail fast if ooxml file is given but disabled
+        if (!ooxml &&
+            (documentFile->file_type() == odr::FileType::office_open_xml_document || documentFile->file_type() == odr::FileType::office_open_xml_workbook || documentFile->file_type() == odr::FileType::office_open_xml_presentation || )) {
             env->SetIntField(result, errorField, -5);
             return result;
         }
+
+        document = documentFile->document();
 
         if (document->document_type() == odr::DocumentType::text) {
             jstring pageName = env->NewStringUTF("Document");
@@ -110,8 +109,12 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
                 config.entry_offset = i;
 
-                // TODO: trycatch, return -4
-                odr::html::translate(*document, entryOutputPath, config);
+                try {
+                    odr::html::translate(*document, entryOutputPath, config);
+                } catch (...) {
+                    env->SetIntField(result, errorField, -4);
+                    return result;
+                }
             });
         } else {
             env->SetIntField(result, errorField, -5);
@@ -159,11 +162,19 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
         jfieldID outputPathField = env->GetFieldID(resultClass, "outputPath", "Ljava/lang/String;");
         env->SetObjectField(result, outputPathField, outputPath);
 
-        // TODO: trycatch, return -6
-        odr::html::edit(*document, htmlDiffCpp);
+        try {
+            odr::html::edit(*document, htmlDiffCpp);
+        } catch (...) {
+            env->SetIntField(result, errorField, -6);
+            return result;
+        }
 
-        // TODO: trycatch, return -7
-        document->save(outputPathCpp);
+        try {
+            document->save(outputPathCpp);
+        } catch (...) {
+            env->SetIntField(result, errorField, -7);
+            return result;
+        }
     } catch (...) {
         env->SetIntField(result, errorField, -3);
         return result;
@@ -177,4 +188,5 @@ JNIEXPORT void JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jobject instance, jobject options)
 {
     document.reset();
+    documentFile.reset();
 }
