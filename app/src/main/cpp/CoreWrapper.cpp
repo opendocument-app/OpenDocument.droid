@@ -1,5 +1,6 @@
 #include "CoreWrapper.h"
 #include <string>
+#include <optional>
 #include <odr/document.h>
 #include <odr/file.h>
 #include <odr/html.h>
@@ -27,11 +28,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
     env->ReleaseStringUTFChars(inputPath, inputPathC);
 
     try {
-        if (!document.has_value()) {
-            env->SetIntField(result, errorField, -1);
-            return result;
-        }
-
         odr::DecodedFile file(inputPathCpp);
         // TODO this throws if it is not a document file!
         documentFile = file.document_file();
