@@ -95,6 +95,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private FileLoader.Result resultOnStart;
     private Throwable errorOnStart;
 
+    private int lastSelectedTab = -1;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -791,8 +793,18 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     @Override
     public void onTabSelected(ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {
+        if (lastResult.options.translatable) {
+            if (lastSelectedTab > 0) {
+                getActivity().getActionBar().setSelectedNavigationItem(lastSelectedTab);
+            }
+
+            return;
+        }
+
         Uri uri = lastResult.partUris.get(tab.getPosition());
         loadData(uri.toString());
+
+        lastSelectedTab = tab.getPosition();
     }
 
     @Override
