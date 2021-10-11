@@ -14,7 +14,5 @@ add_library(odr-core SHARED ${SRC})
 option (ODR_TEST "" OFF)
 set(ODR_TEST OFF)
 
-find_library(LOG log)
-
 add_subdirectory(OpenDocument.core)
-target_link_libraries(odr-core odr-shared ${LOG})
+target_link_libraries(odr-core odr-shared)

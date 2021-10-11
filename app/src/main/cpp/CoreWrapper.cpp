@@ -2,11 +2,10 @@
 #include <string>
 #include <optional>
 #include <odr/document.h>
-#include <odr/file.h>
-#include <odr/html.h>
-#include <android/log.h>
 #include <odr/document_cursor.h>
 #include <odr/document_element.h>
+#include <odr/file.h>
+#include <odr/html.h>
 
 std::optional<odr::DocumentFile> documentFile;
 std::optional<odr::Document> document;
@@ -22,8 +21,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
 
     jfieldID errorField = env->GetFieldID(resultClass, "errorCode", "I");
 
-    __android_log_print(ANDROID_LOG_VERBOSE, "smn", "1");
-
     jclass optionsClass = env->GetObjectClass(options);
     jfieldID inputPathField = env->GetFieldID(optionsClass, "inputPath", "Ljava/lang/String;");
     jstring inputPath = (jstring) env->GetObjectField(options, inputPathField);
@@ -31,8 +28,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
     const auto inputPathC = env->GetStringUTFChars(inputPath, &isCopy);
     auto inputPathCpp = std::string(inputPathC, env->GetStringUTFLength(inputPath));
     env->ReleaseStringUTFChars(inputPath, inputPathC);
-
-    __android_log_print(ANDROID_LOG_VERBOSE, "smn", "2");
 
     try {
         odr::DecodedFile file(inputPathCpp);
@@ -42,8 +37,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
             env->SetIntField(result, errorField, -1);
             return result;
         }
-
-        __android_log_print(ANDROID_LOG_VERBOSE, "smn", "3");
 
         jfieldID passwordField = env->GetFieldID(optionsClass, "password", "Ljava/lang/String;");
         jstring password = (jstring) env->GetObjectField(options, passwordField);
@@ -57,8 +50,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
             decrypted = documentFile->decrypt(passwordCpp);
         }
 
-        __android_log_print(ANDROID_LOG_VERBOSE, "smn", "4");
-
         if (!decrypted) {
             env->SetIntField(result, errorField, -2);
             return result;
@@ -67,8 +58,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         const auto extensionCpp = documentFile->file_meta().type_as_string();
         const auto extensionC = extensionCpp.c_str();
         jstring extension = env->NewStringUTF(extensionC);
-
-        __android_log_print(ANDROID_LOG_VERBOSE, "smn", "5");
 
         jfieldID extensionField = env->GetFieldID(resultClass, "extension", "Ljava/lang/String;");
         env->SetObjectField(result, extensionField, extension);
@@ -80,8 +69,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         config.editable = editable;
         config.entry_count = 1;
         config.table_limit = {10000, 500};
-
-        __android_log_print(ANDROID_LOG_VERBOSE, "smn", "6");
 
         jfieldID outputPathField = env->GetFieldID(optionsClass, "outputPath", "Ljava/lang/String;");
         jstring outputPath = (jstring) env->GetObjectField(options, outputPathField);
@@ -104,94 +91,77 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
             return result;
         }
 
-        __android_log_print(ANDROID_LOG_VERBOSE, "smn", "7");
-
         document = documentFile->document();
 
-        __android_log_print(ANDROID_LOG_VERBOSE, "smn", "7.1");
-
         if (document->document_type() == odr::DocumentType::text) {
-            __android_log_print(ANDROID_LOG_VERBOSE, "smn", "7.2t");
-
             jstring pageName = env->NewStringUTF("Document");
             env->CallBooleanMethod(pageNames, addMethod, pageName);
 
             outputPathCpp = outputPathCpp + "0.html";
 
-            __android_log_print(ANDROID_LOG_VERBOSE, "smn", "7.3");
-
-            odr::html::translate(*document, outputPathCpp, config);
-
-            __android_log_print(ANDROID_LOG_VERBOSE, "smn", "7.4");
+            try {
+                odr::html::translate(*document, outputPathCpp, config);
+            } catch (...) {
+                env->SetIntField(result, errorField, -4);
+                return result;
+            }
         } else if (document->document_type() == odr::DocumentType::spreadsheet) {
-            __android_log_print(ANDROID_LOG_VERBOSE, "smn", "7.2");
-
             auto cursor = document->root_element();
 
-            __android_log_print(ANDROID_LOG_VERBOSE, "smn", "8");
+            try {
+                cursor.for_each_child([&](odr::DocumentCursor &cursor, std::uint32_t i) {
+                    auto sheet = cursor.element().sheet();
 
-            cursor.for_each_child([&](odr::DocumentCursor &cursor, std::uint32_t i) {
-                __android_log_print(ANDROID_LOG_VERBOSE, "smn", "8.1");
+                    jstring sheetName = env->NewStringUTF(sheet.name().c_str());
+                    env->CallBooleanMethod(pageNames, addMethod, sheetName);
 
-                auto sheet = cursor.element().sheet();
-
-                __android_log_print(ANDROID_LOG_VERBOSE, "smn", "9");
-
-                jstring sheetName = env->NewStringUTF(sheet.name().c_str());
-                env->CallBooleanMethod(pageNames, addMethod, sheetName);
-
-                const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
-                config.entry_offset = i;
-
-                try {
-                    __android_log_print(ANDROID_LOG_VERBOSE, "smn", "10");
+                    const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
+                    config.entry_offset = i;
 
                     odr::html::translate(*document, entryOutputPath, config);
-
-                    __android_log_print(ANDROID_LOG_VERBOSE, "smn", "11");
-                } catch (...) {
-                    env->SetIntField(result, errorField, -4);
-                    return result;
-                }
-            });
+                });
+            } catch (...) {
+                env->SetIntField(result, errorField, -4);
+                return result;
+            }
         } else if (document->document_type() == odr::DocumentType::presentation) {
             auto cursor = document->root_element();
 
-            cursor.for_each_child([&](odr::DocumentCursor &cursor, std::uint32_t i) {
-                auto slide = cursor.element().slide();
+            try {
+                cursor.for_each_child([&](odr::DocumentCursor &cursor, std::uint32_t i) {
+                    auto slide = cursor.element().slide();
 
-                jstring sheetName = env->NewStringUTF(slide.name().c_str());
-                env->CallBooleanMethod(pageNames, addMethod, sheetName);
+                    jstring sheetName = env->NewStringUTF(slide.name().c_str());
+                    env->CallBooleanMethod(pageNames, addMethod, sheetName);
 
-                const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
-                config.entry_offset = i;
+                    const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
+                    config.entry_offset = i;
 
-                try {
-                    odr::html::translate(*document, entryOutputPath, config);
-                } catch (...) {
-                    env->SetIntField(result, errorField, -4);
-                    return result;
-                }
-            });
+                        odr::html::translate(*document, entryOutputPath, config);
+                });
+            } catch (...) {
+                env->SetIntField(result, errorField, -4);
+                return result;
+            }
         } else if (document->document_type() == odr::DocumentType::drawing) {
             auto cursor = document->root_element();
 
-            cursor.for_each_child([&](odr::DocumentCursor &cursor, std::uint32_t i) {
-                auto page = cursor.element().page();
+            try {
+                cursor.for_each_child([&](odr::DocumentCursor &cursor, std::uint32_t i) {
+                    auto page = cursor.element().page();
 
-                jstring sheetName = env->NewStringUTF(std::to_string(i).c_str());
-                env->CallBooleanMethod(pageNames, addMethod, sheetName);
+                    jstring sheetName = env->NewStringUTF(std::to_string(i).c_str());
+                    env->CallBooleanMethod(pageNames, addMethod, sheetName);
 
-                const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
-                config.entry_offset = i;
+                    const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
+                    config.entry_offset = i;
 
-                try {
                     odr::html::translate(*document, entryOutputPath, config);
-                } catch (...) {
-                    env->SetIntField(result, errorField, -4);
-                    return result;
-                }
-            });
+                });
+            } catch (...) {
+                env->SetIntField(result, errorField, -4);
+                return result;
+            }
         } else {
             env->SetIntField(result, errorField, -5);
             return result;
@@ -202,9 +172,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
     }
 
     env->SetIntField(result, errorField, 0);
-
-    __android_log_print(ANDROID_LOG_VERBOSE, "smn", "12");
-
     return result;
 }
 
