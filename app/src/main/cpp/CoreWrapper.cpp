@@ -137,7 +137,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                     const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
                     config.entry_offset = i;
 
-                        odr::html::translate(*document, entryOutputPath, config);
+                    odr::html::translate(*document, entryOutputPath, config);
                 });
             } catch (...) {
                 env->SetIntField(result, errorField, -4);
@@ -197,8 +197,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
         env->ReleaseStringUTFChars(outputPathPrefix, outputPathPrefixC);
 
         const auto htmlDiffC = env->GetStringUTFChars(htmlDiff, &isCopy);
-        auto htmlDiffCpp = std::string(htmlDiffC, env->GetStringUTFLength(htmlDiff));
-        env->ReleaseStringUTFChars(htmlDiff, htmlDiffC);
 
         const auto extension = documentFile->file_meta().type_as_string();
         const auto outputPathCpp = outputPathPrefixCpp + "." + extension;
@@ -209,8 +207,12 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
         env->SetObjectField(result, outputPathField, outputPath);
 
         try {
-            odr::html::edit(*document, htmlDiffCpp);
+            odr::html::edit(*document, htmlDiffC);
+
+            env->ReleaseStringUTFChars(htmlDiff, htmlDiffC);
         } catch (...) {
+            env->ReleaseStringUTFChars(htmlDiff, htmlDiffC);
+
             env->SetIntField(result, errorField, -6);
             return result;
         }

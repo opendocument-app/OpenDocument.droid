@@ -794,8 +794,14 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     @Override
     public void onTabSelected(ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {
         if (lastResult.options.translatable) {
-            if (lastSelectedTab > 0) {
-                getActivity().getActionBar().setSelectedNavigationItem(lastSelectedTab);
+            if (lastSelectedTab >= 0) {
+                mainHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        ActionBar bar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+                        bar.setSelectedNavigationItem(lastSelectedTab);
+                    }
+                }, 1);
             }
 
             return;
