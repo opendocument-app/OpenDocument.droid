@@ -41,9 +41,32 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
             env->ReleaseStringUTFChars(password, passwordC);
         }
 
+<<<<<<< HEAD
         jfieldID editableField = env->GetFieldID(optionsClass, "editable", "Z");
         jboolean editable = env->GetBooleanField(options, editableField);
 
+=======
+        if (!decrypted) {
+            env->SetIntField(result, errorField, -2);
+            return result;
+        }
+
+        const auto extensionCpp = meta.type_as_string();
+        const auto extensionC = extensionCpp.c_str();
+        jstring extension = env->NewStringUTF(extensionC);
+
+        jfieldID extensionField = env->GetFieldID(resultClass, "extension", "Ljava/lang/String;");
+        env->SetObjectField(result, extensionField, extension);
+
+        jfieldID editableField = env->GetFieldID(optionsClass, "editable", "Z");
+        jboolean editable = env->GetBooleanField(options, editableField);
+
+        odr::HtmlConfig config = {};
+        config.editable = editable;
+        config.entry_count = 1;
+        config.table_limit_rows = 10000;
+
+>>>>>>> 7401ced (tmp)
         jfieldID outputPathField = env->GetFieldID(optionsClass, "outputPath", "Ljava/lang/String;");
         jstring outputPath = (jstring) env->GetObjectField(options, outputPathField);
 
@@ -63,6 +86,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jfieldID ooxmlField = env->GetFieldID(optionsClass, "ooxml", "Z");
         jboolean ooxml = env->GetBooleanField(options, ooxmlField);
 
+<<<<<<< HEAD
         try {
             odr::HtmlConfig config;
             config.editable = editable;
@@ -87,6 +111,35 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 (html->file_type() == odr::FileType::office_open_xml_document || html->file_type() == odr::FileType::office_open_xml_workbook || html->file_type() == odr::FileType::office_open_xml_presentation)) {
                 // TODO: this is stupid and should happen BEFORE translation
 
+=======
+                outputPathCpp = outputPathCpp + "0.html";
+
+                bool translated = document->translate(outputPathCpp, config);
+                if (!translated) {
+                    env->SetIntField(result, errorField, -4);
+                    return result;
+                }
+            } else if (meta.type == odr::FileType::OPENDOCUMENT_SPREADSHEET || meta.type == odr::FileType::OPENDOCUMENT_PRESENTATION || meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
+                int i = 0;
+                // TODO: this could fail for HUGE documents with hundreds of pages
+                // https://stackoverflow.com/a/24292867/198996
+                for (auto page = meta.entries.begin(); page != meta.entries.end(); page++) {
+                    jstring pageName = env->NewStringUTF(page->name.c_str());
+                    env->CallBooleanMethod(pageNames, addMethod, pageName);
+
+                    const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
+                    config.entry_offset = i;
+
+                    bool translated = document->translate(entryOutputPath, config);
+                    if (!translated) {
+                        env->SetIntField(result, errorField, -4);
+                        return result;
+                    }
+
+                    i++;
+                }
+            } else {
+>>>>>>> 7401ced (tmp)
                 env->SetIntField(result, errorField, -5);
                 return result;
             }
@@ -95,8 +148,40 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 jstring pageName = env->NewStringUTF(page.name.c_str());
                 env->CallBooleanMethod(pageNames, addMethod, pageName);
 
+<<<<<<< HEAD
                 jstring pagePath = env->NewStringUTF(page.path.c_str());
                 env->CallBooleanMethod(pagePaths, addMethod, pagePath);
+=======
+                outputPathCpp = outputPathCpp + "0.html";
+
+                bool translated = document->translate(outputPathCpp, config);
+                if (!translated) {
+                    env->SetIntField(result, errorField, -4);
+                    return result;
+                }
+            } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_WORKBOOK || meta.type == odr::FileType::OFFICE_OPEN_XML_PRESENTATION) {
+                int i = 0;
+                // TODO: this could fail for HUGE documents with hundreds of pages
+                // https://stackoverflow.com/a/24292867/198996
+                for (auto page = meta.entries.begin(); page != meta.entries.end(); page++) {
+                    jstring pageName = env->NewStringUTF(page->name.c_str());
+                    env->CallBooleanMethod(pageNames, addMethod, pageName);
+
+                    const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
+                    config.entry_offset = i;
+
+                    bool translated = document->translate(entryOutputPath, config);
+                    if (!translated) {
+                        env->SetIntField(result, errorField, -4);
+                        return result;
+                    }
+
+                    i++;
+                }
+            } else {
+                env->SetIntField(result, errorField, -5);
+                return result;
+>>>>>>> 7401ced (tmp)
             }
         } catch (odr::UnknownFileType) {
             env->SetIntField(result, errorField, -5);
@@ -140,7 +225,11 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
 
         const auto htmlDiffC = env->GetStringUTFChars(htmlDiff, &isCopy);
 
+<<<<<<< HEAD
         const auto extension = odr::OpenDocumentReader::type_to_string(html->file_type());
+=======
+        const auto extension = meta.type_as_string();
+>>>>>>> 7401ced (tmp)
         const auto outputPathCpp = outputPathPrefixCpp + "." + extension;
         const char *outputPathC = outputPathCpp.c_str();
         jstring outputPath = env->NewStringUTF(outputPathC);
