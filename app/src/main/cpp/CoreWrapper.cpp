@@ -1,8 +1,8 @@
 #include "CoreWrapper.h"
 
-#include <odr/Document.h>
-#include <odr/Config.h>
-#include <odr/Meta.h>
+#include <odr/document.h>
+#include <odr/html_config.h>
+#include <odr/file_meta.h>
 
 std::optional<odr::DocumentNoExcept> document;
 
@@ -53,7 +53,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
             return result;
         }
 
-        const auto extensionCpp = meta.typeAsString();
+        const auto extensionCpp = meta.type_as_string();
         const auto extensionC = extensionCpp.c_str();
         jstring extension = env->NewStringUTF(extensionC);
 
@@ -63,10 +63,10 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jfieldID editableField = env->GetFieldID(optionsClass, "editable", "Z");
         jboolean editable = env->GetBooleanField(options, editableField);
 
-        odr::Config config = {};
+        odr::HtmlConfig config = {};
         config.editable = editable;
-        config.entryCount = 1;
-        config.tableLimitRows = 10000;
+        config.entry_count = 1;
+        config.table_limit_rows = 10000;
 
         jfieldID outputPathField = env->GetFieldID(optionsClass, "outputPath", "Ljava/lang/String;");
         jstring outputPath = (jstring) env->GetObjectField(options, outputPathField);
@@ -104,7 +104,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                     env->CallBooleanMethod(pageNames, addMethod, pageName);
 
                     const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
-                    config.entryOffset = i;
+                    config.entry_offset = i;
 
                     bool translated = document->translate(entryOutputPath, config);
                     if (!translated) {
@@ -139,7 +139,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                     env->CallBooleanMethod(pageNames, addMethod, pageName);
 
                     const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
-                    config.entryOffset = i;
+                    config.entry_offset = i;
 
                     bool translated = document->translate(entryOutputPath, config);
                     if (!translated) {
@@ -190,7 +190,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
 
         const auto meta = document->meta();
 
-        const auto extension = meta.typeAsString();
+        const auto extension = meta.type_as_string();
         const auto outputPathCpp = outputPathPrefixCpp + "." + extension;
         const char *outputPathC = outputPathCpp.c_str();
         jstring outputPath = env->NewStringUTF(outputPathC);
