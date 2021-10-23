@@ -28,7 +28,7 @@ jobs:
         python -m pip install --upgrade pip conan
 
     - name: build
-      run: ./gradlew clean assembleDebug --debug --stacktrace
+      run: ./gradlew clean assembleDebug --scan --stacktrace
 
   test:
     runs-on: macos-latest
