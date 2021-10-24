@@ -1,60 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:tools="http://schemas.android.com/tools"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <item
-            android:id="@+id/menu_open"
-            android:icon="@drawable/ic_folder_open"
-            android:title="@string/menu_open"
-            app:showAsAction="always"
-            tools:ignore="AlwaysShowAction" />
-
-    <group
-            android:id="@+id/menu_document_group"
-            android:visible="false">
-        <item
-                android:id="@+id/menu_edit"
-                android:icon="@drawable/ic_edit"
-                android:title="@string/menu_edit"
-                app:showAsAction="always"
-                tools:ignore="AlwaysShowAction" />
-        <item
-                android:id="@+id/menu_search"
-                android:icon="@drawable/ic_search"
-                android:title="@string/menu_search"
-                app:showAsAction="always"
-                tools:ignore="AlwaysShowAction" />
-        <item
-                android:id="@+id/menu_fullscreen"
-                android:icon="@drawable/ic_fullscreen"
-                android:title="@string/menu_fullscreen"
-                app:showAsAction="ifRoom" />
-        <item
-                android:id="@+id/menu_open_with"
-                android:title="@string/menu_open_with"
-                app:showAsAction="never" />
-        <item
-                android:id="@+id/menu_share"
-                android:title="@string/menu_share"
-                app:showAsAction="never" />
-        <item
-                android:id="@+id/menu_print"
-                android:title="@string/menu_cloud_print"
-                app:showAsAction="never" />
-        <item
-                android:id="@+id/menu_tts"
-                android:title="@string/menu_tts"
-                app:showAsAction="never" />
-    </group>
+        android:id="@+id/menu_open"
+        android:icon="@drawable/ic_folder_open"
+        android:title="@string/menu_open"
+        app:showAsAction="always"
+        tools:ignore="AlwaysShowAction" />
 
     <item
-            android:id="@+id/menu_remove_ads"
-            android:title="@string/menu_remove_ads"
-            app:showAsAction="never" />
+        android:id="@+id/menu_edit"
+        android:icon="@drawable/ic_edit"
+        android:title="@string/menu_edit"
+        android:visible="false"
+        app:showAsAction="always"
+        tools:ignore="AlwaysShowAction" />
 
     <item
-            android:id="@+id/edit_help"
-            app:showAsAction="never"
-            android:title="@string/action_edit_help" />
+        android:id="@+id/menu_search"
+        android:icon="@drawable/ic_search"
+        android:title="@string/menu_search"
+        android:visible="false"
+        app:showAsAction="always"
+        tools:ignore="AlwaysShowAction" />
+
+    <item
+        android:id="@+id/menu_fullscreen"
+        android:icon="@drawable/ic_fullscreen"
+        android:title="@string/menu_fullscreen"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_open_with"
+        android:title="@string/menu_open_with"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_share"
+        android:title="@string/menu_share"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_print"
+        android:title="@string/menu_cloud_print"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_tts"
+        android:title="@string/menu_tts"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_remove_ads"
+        android:title="@string/menu_remove_ads"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/edit_help"
+        android:title="@string/action_edit_help"
+        app:showAsAction="never" />
 </menu>

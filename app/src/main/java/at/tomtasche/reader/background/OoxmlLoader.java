@@ -89,8 +89,8 @@ public class OoxmlLoader extends FileLoader {
         //  (not reported as DOCX prior)
         options.fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreResult.extension);
 
-        for (int i = 0; i < coreResult.pageNames.size(); i++) {
-            File entryFile = new File(fakeHtmlFile.getPath() + i + ".html");
+        for (int i = 0; i < coreResult.pagePaths.size(); i++) {
+            File entryFile = new File(coreResult.pagePaths.get(i));
 
             result.partTitles.add(coreResult.pageNames.get(i));
             result.partUris.add(Uri.fromFile(entryFile));

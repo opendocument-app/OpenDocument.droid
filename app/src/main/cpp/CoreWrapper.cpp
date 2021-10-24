@@ -57,6 +57,9 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jfieldID pageNamesField = env->GetFieldID(resultClass, "pageNames", "Ljava/util/List;");
         jobject pageNames = (jobject) env->GetObjectField(result, pageNamesField);
 
+        jfieldID pagePathsField = env->GetFieldID(resultClass, "pagePaths", "Ljava/util/List;");
+        jobject pagePaths = (jobject) env->GetObjectField(result, pagePathsField);
+
         jfieldID ooxmlField = env->GetFieldID(optionsClass, "ooxml", "Z");
         jboolean ooxml = env->GetBooleanField(options, ooxmlField);
 
@@ -64,27 +67,21 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
             odr::HtmlConfig config;
             config.editable = editable;
 
-            __android_log_print(ANDROID_LOG_VERBOSE, "smn", "1");
-
             const char* passwordC = nullptr;
             if (passwordCpp.has_value()) {
                 passwordC = passwordCpp.value().c_str();
             }
 
-            __android_log_print(ANDROID_LOG_VERBOSE, "smn", "2");
-            __android_log_print(ANDROID_LOG_VERBOSE, "smn", "%s", inputPathCpp.c_str());
-            __android_log_print(ANDROID_LOG_VERBOSE, "smn", "%s", outputPathCpp.c_str());
+            // __android_log_print(ANDROID_LOG_VERBOSE, "smn", "%s", outputPathCpp.c_str());
 
             html = odr::OpenDocumentReader::html(inputPathCpp, passwordC, outputPathCpp, config);
 
-            __android_log_print(ANDROID_LOG_VERBOSE, "smn", "3");
+            const auto extensionCpp = odr::OpenDocumentReader::type_to_string(html->file_type());
+            const auto extensionC = extensionCpp.c_str();
+            jstring extension = env->NewStringUTF(extensionC);
 
-            //const auto extensionCpp = html->file_type().type_as_string();
-            //const auto extensionC = extensionCpp.c_str();
-            //jstring extension = env->NewStringUTF(extensionC);
-
-            //jfieldID extensionField = env->GetFieldID(resultClass, "extension", "Ljava/lang/String;");
-            //env->SetObjectField(result, extensionField, extension);
+            jfieldID extensionField = env->GetFieldID(resultClass, "extension", "Ljava/lang/String;");
+            env->SetObjectField(result, extensionField, extension);
 
             if (!ooxml &&
                 (html->file_type() == odr::FileType::office_open_xml_document || html->file_type() == odr::FileType::office_open_xml_workbook || html->file_type() == odr::FileType::office_open_xml_presentation)) {
@@ -94,14 +91,12 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 return result;
             }
 
-            __android_log_print(ANDROID_LOG_VERBOSE, "smn", "4");
-
             for (auto &&page : html->pages()) {
-                __android_log_print(ANDROID_LOG_VERBOSE, "smn", "5");
                 jstring pageName = env->NewStringUTF(page.name.c_str());
                 env->CallBooleanMethod(pageNames, addMethod, pageName);
 
-                __android_log_print(ANDROID_LOG_VERBOSE, "smn", "6");
+                jstring pagePath = env->NewStringUTF(page.path.c_str());
+                env->CallBooleanMethod(pagePaths, addMethod, pagePath);
             }
         } catch (odr::UnknownFileType) {
             env->SetIntField(result, errorField, -5);
@@ -145,7 +140,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
 
         const auto htmlDiffC = env->GetStringUTFChars(htmlDiff, &isCopy);
 
-        /*const auto extension = documentFile->file_meta().type_as_string();
+        const auto extension = odr::OpenDocumentReader::type_to_string(html->file_type());
         const auto outputPathCpp = outputPathPrefixCpp + "." + extension;
         const char *outputPathC = outputPathCpp.c_str();
         jstring outputPath = env->NewStringUTF(outputPathC);
@@ -169,7 +164,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
         } catch (...) {
             env->SetIntField(result, errorField, -7);
             return result;
-        }*/
+        }
     } catch (...) {
         env->SetIntField(result, errorField, -3);
         return result;
