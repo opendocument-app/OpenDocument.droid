@@ -97,6 +97,7 @@ public class CoreWrapper {
         public Exception exception;
 
         public List<String> pageNames = new LinkedList<>();
+        public List<String> pagePaths = new LinkedList<>();
 
         public String outputPath;
 

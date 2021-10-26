@@ -17,7 +17,7 @@ public class OdfLoader extends FileLoader {
 
     @Override
     public boolean isSupported(Options options) {
-        return options.fileType.startsWith("application/vnd.oasis.opendocument") || options.fileType.startsWith("application/x-vnd.oasis.opendocument");
+        return options.fileType.startsWith("application/vnd.oasis.opendocument") || options.fileType.startsWith("application/x-vnd.oasis.opendocument") || options.fileType.startsWith("application/vnd.oasis.opendocument.text-master");
     }
 
     @Override
@@ -84,8 +84,8 @@ public class OdfLoader extends FileLoader {
             throw coreResult.exception;
         }
 
-        for (int i = 0; i < coreResult.pageNames.size(); i++) {
-            File entryFile = new File(fakeHtmlFile.getPath() + i + ".html");
+        for (int i = 0; i < coreResult.pagePaths.size(); i++) {
+            File entryFile = new File(coreResult.pagePaths.get(i));
 
             result.partTitles.add(coreResult.pageNames.get(i));
             result.partUris.add(Uri.fromFile(entryFile));

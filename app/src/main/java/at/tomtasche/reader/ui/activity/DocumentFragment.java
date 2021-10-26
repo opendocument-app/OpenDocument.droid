@@ -95,6 +95,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     private FileLoader.Result resultOnStart;
     private Throwable errorOnStart;
 
+    private int lastSelectedTab = -1;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -205,7 +207,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         this.menu = menu;
 
-        menu.setGroupVisible(R.id.menu_document_group, true);
+        menu.findItem(R.id.menu_fullscreen).setVisible(true);
+        menu.findItem(R.id.menu_open_with).setVisible(true);
+        menu.findItem(R.id.menu_share).setVisible(true);
+        menu.findItem(R.id.menu_print).setVisible(true);
+        // the other menu items are dynamically enabled on document load
     }
 
     @Override
@@ -416,6 +422,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             errorOnStart = null;
         }
 
+        lastSelectedTab = -1;
         lastResult = result;
 
         analyticsManager.setCurrentScreen(activity, "screen_" + result.loaderType.toString() + "_" + result.options.fileType);
@@ -791,6 +798,22 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     @Override
     public void onTabSelected(ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {
+        if (lastResult.options.translatable) {
+            if (lastSelectedTab >= 0) {
+                mainHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        ActionBar bar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+                        bar.setSelectedNavigationItem(lastSelectedTab);
+                    }
+                }, 1);
+
+                return;
+            }
+
+            lastSelectedTab = tab.getPosition();
+        }
+
         Uri uri = lastResult.partUris.get(tab.getPosition());
         loadData(uri.toString());
     }

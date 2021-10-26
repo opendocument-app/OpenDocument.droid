@@ -216,6 +216,10 @@ public class BillingManager implements PurchasesUpdatedListener {
     }
 
     public boolean hasPurchased() {
+        if (!enabled) {
+            return true;
+        }
+
         if (billingPreferences == null) {
             return false;
         }

@@ -297,6 +297,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     private void initializeProprietaryLibraries() {
         boolean useProprietaryLibraries = !getResources().getBoolean(R.bool.DISABLE_TRACKING);
 
