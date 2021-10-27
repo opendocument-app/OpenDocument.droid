@@ -215,10 +215,8 @@ public class MainActivity extends AppCompatActivity {
         toggleComponent(strictCatchComponent, !isCatchAllEnabled);
 
         SwitchCompat catchAllSwitch = findViewById(R.id.landing_catch_all);
-        if (!IS_GOOGLE_ECOSYSTEM) {
-            LinearLayout parent = (LinearLayout) catchAllSwitch.getParent();
-            parent.setVisibility(View.GONE);
-        }
+        LinearLayout parent = (LinearLayout) catchAllSwitch.getParent();
+        parent.setVisibility(View.GONE);
 
         catchAllSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -313,19 +311,19 @@ public class MainActivity extends AppCompatActivity {
         }
 
         crashManager = new CrashManager();
-        crashManager.setEnabled(useProprietaryLibraries);
+        crashManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
         crashManager.initialize();
 
         analyticsManager = new AnalyticsManager();
-        analyticsManager.setEnabled(useProprietaryLibraries);
+        analyticsManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
         analyticsManager.initialize(this);
 
         configManager = new ConfigManager();
-        configManager.setEnabled(useProprietaryLibraries);
+        configManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
         configManager.initialize();
 
         adManager = new AdManager();
-        adManager.setEnabled(!IS_TESTING && useProprietaryLibraries);
+        adManager.setEnabled(!IS_TESTING && useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
         adManager.setAdContainer(adContainer);
         adManager.initialize(this, analyticsManager, crashManager);
 
@@ -334,7 +332,7 @@ public class MainActivity extends AppCompatActivity {
         billingManager.initialize(this, analyticsManager, adManager, crashManager);
 
         helpManager = new HelpManager();
-        helpManager.setEnabled(useProprietaryLibraries);
+        helpManager.setEnabled(true);
         helpManager.initialize(this);
     }
 
@@ -357,7 +355,7 @@ public class MainActivity extends AppCompatActivity {
 
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
-        if (billingManager.hasPurchased()) {
+        if (!billingManager.isEnabled() || billingManager.hasPurchased()) {
             menu.findItem(R.id.menu_remove_ads).setVisible(false);
         }
 
