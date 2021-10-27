@@ -225,11 +225,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
 
         const auto htmlDiffC = env->GetStringUTFChars(htmlDiff, &isCopy);
 
-<<<<<<< HEAD
         const auto extension = odr::OpenDocumentReader::type_to_string(html->file_type());
-=======
-        const auto extension = meta.type_as_string();
->>>>>>> 7401ced (tmp)
         const auto outputPathCpp = outputPathPrefixCpp + "." + extension;
         const char *outputPathC = outputPathCpp.c_str();
         jstring outputPath = env->NewStringUTF(outputPathC);
