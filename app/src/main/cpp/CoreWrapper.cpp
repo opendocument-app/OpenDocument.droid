@@ -104,6 +104,9 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         } catch (odr::WrongPassword) {
             env->SetIntField(result, errorField, -2);
             return result;
+        } catch (odr::UnsupportedFileType) {
+            env->SetIntField(result, errorField, -5);
+            return result;
         } catch (...) {
             env->SetIntField(result, errorField, -4);
             return result;
