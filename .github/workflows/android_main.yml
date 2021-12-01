@@ -21,7 +21,15 @@ jobs:
         java-version: 1.8
 
     - name: build
-      run: ./gradlew clean assembleDebug --stacktrace
+      run: ./gradlew clean assembleDebug --debug --full-stacktrace > gradle.log 2>&1
+
+    - uses: actions/upload-artifact@v2
+      if: ${{ failure() }}
+      with:
+        name: 
+        path: |
+          ./gradle.log
+          ./app/.cxx/cmake
 
   test:
     runs-on: macos-latest
