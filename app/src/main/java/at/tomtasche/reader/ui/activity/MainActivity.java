@@ -215,8 +215,6 @@ public class MainActivity extends AppCompatActivity {
         toggleComponent(strictCatchComponent, !isCatchAllEnabled);
 
         SwitchCompat catchAllSwitch = findViewById(R.id.landing_catch_all);
-        LinearLayout parent = (LinearLayout) catchAllSwitch.getParent();
-        parent.setVisibility(View.GONE);
 
         catchAllSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
