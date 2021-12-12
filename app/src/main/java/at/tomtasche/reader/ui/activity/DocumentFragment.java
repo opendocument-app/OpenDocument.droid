@@ -13,20 +13,16 @@ import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.play.core.review.ReviewInfo;
 import com.google.android.play.core.review.ReviewManager;
 import com.google.android.play.core.review.ReviewManagerFactory;
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -409,6 +405,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         menu.findItem(R.id.menu_search).setVisible(enabled);
         menu.findItem(R.id.menu_tts).setVisible(enabled);
+
+        menu.findItem(R.id.menu_help).setShowAsAction(enabled ? MenuItem.SHOW_AS_ACTION_NEVER : MenuItem.SHOW_AS_ACTION_ALWAYS);
     }
 
     @Override

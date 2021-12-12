@@ -21,6 +21,7 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
@@ -142,10 +143,6 @@ public class MainActivity extends AppCompatActivity {
         printingManager = new PrintingManager();
         initializeProprietaryLibraries();
 
-        if (!IS_TESTING) {
-            showIntroActivity();
-        }
-
         initializeCatchAllSwitch();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -182,6 +179,29 @@ public class MainActivity extends AppCompatActivity {
 
             analyticsManager.setCurrentScreen(this, "screen_main");
         }
+
+        final View content = findViewById(android.R.id.content);
+        content.getViewTreeObserver().addOnPreDrawListener(
+                new ViewTreeObserver.OnPreDrawListener() {
+                    @Override
+                    public boolean onPreDraw() {
+                        if (configManager.isLoaded()) {
+                            if (IS_TESTING) {
+                                return true;
+                            }
+
+                            Boolean isShowIntro = configManager.getBooleanConfig("show_intro");
+                            if (isShowIntro == null || isShowIntro) {
+                                showIntroActivityOnFirstStart();
+                            }
+
+                            content.getViewTreeObserver().removeOnPreDrawListener(this);
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                });
     }
 
     @Override
@@ -248,13 +268,12 @@ public class MainActivity extends AppCompatActivity {
         adManager.showGoogleAds();
     }
 
-    private void showIntroActivity() {
+    private void showIntroActivityOnFirstStart() {
         SharedPreferences getPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         boolean wasIntroShown = getPrefs.getBoolean("introShown", false);
         if (!wasIntroShown) {
-            Intent intent = new Intent(MainActivity.this, IntroActivity.class);
-            startActivity(intent);
+            helpManager.show();
 
             SharedPreferences.Editor editor = getPrefs.edit();
             editor.putBoolean("introShown", true);
@@ -294,7 +313,6 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
     }
-
 
     private void initializeProprietaryLibraries() {
         boolean useProprietaryLibraries = !getResources().getBoolean(R.bool.DISABLE_TRACKING);
@@ -532,7 +550,7 @@ public class MainActivity extends AppCompatActivity {
 
                 break;
             }
-            case R.id.edit_help: {
+            case R.id.menu_help: {
                 helpManager.show();
 
                 break;
