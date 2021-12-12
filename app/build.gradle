@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.google.firebase.firebase-perf'
+apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
+apply plugin: 'com.google.firebase.firebase-perf'
 
 android {
     compileSdkVersion 31
@@ -101,6 +102,7 @@ dependencies {
 
     implementation 'com.android.billingclient:billing:4.0.0'
 
+    implementation 'com.google.android.gms:play-services-ads:20.4.0'
     implementation 'com.google.android.play:core:1.10.2'
 
     implementation 'androidx.multidex:multidex:2.0.1'

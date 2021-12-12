@@ -69,11 +69,9 @@ public class OoxmlLoader extends FileLoader {
 
         File cacheDirectory = AndroidFileCache.getCacheDirectory(cacheFile);
 
-        File fakeHtmlFile = new File(cacheDirectory, "ooxml");
-
         CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
         coreOptions.inputPath = cacheFile.getPath();
-        coreOptions.outputPath = fakeHtmlFile.getPath();
+        coreOptions.outputPath = cacheDirectory.getPath();
         coreOptions.password = options.password;
         coreOptions.editable = options.translatable;
         coreOptions.ooxml = true;

@@ -58,11 +58,9 @@ public class OdfLoader extends FileLoader {
 
         File cacheDirectory = AndroidFileCache.getCacheDirectory(cachedFile);
 
-        File fakeHtmlFile = new File(cacheDirectory, "odf");
-
         CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
         coreOptions.inputPath = cachedFile.getPath();
-        coreOptions.outputPath = fakeHtmlFile.getPath();
+        coreOptions.outputPath = cacheDirectory.getPath();
         coreOptions.password = options.password;
         coreOptions.editable = options.translatable;
         coreOptions.ooxml = false;
