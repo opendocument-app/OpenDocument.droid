@@ -530,6 +530,8 @@ public class MainActivity extends AppCompatActivity {
 
                 analyticsManager.report("menu_print");
 
+                documentFragment.getPageView().toggleDarkMode(false);
+
                 printingManager.print(this, documentFragment.getPageView());
 
                 break;
