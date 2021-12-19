@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Base64;
 import android.util.Base64OutputStream;
+import android.webkit.MimeTypeMap;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,8 +15,13 @@ import java.io.OutputStream;
 
 public class RawLoader extends FileLoader {
 
+    private static final boolean USE_CORE_TXT = false;
+
     private static final String[] MIME_WHITELIST = {"text/", "image/", "video/", "audio/", "application/json", "application/xml", "application/zip"};
     private static final String[] MIME_BLACKLIST = {"image/vnd.dwg", "image/g3fax", "image/tiff", "image/vnd.djvu", "image/x-eps", "image/x-tga", "image/x-tga", "audio/amr", "video/3gpp", "video/quicktime", "text/calendar", "text/vcard"};
+
+    private CoreWrapper lastCore;
+    private CoreWrapper.CoreOptions lastCoreOptions;
 
     public RawLoader(Context context) {
         super(context, LoaderType.RAW);
@@ -102,26 +108,56 @@ public class RawLoader extends FileLoader {
 
                 finalUri = Uri.fromFile(htmlFile).buildUpon().appendQueryParameter("ext", extension).build();
             } else if (fileType.startsWith("text/")) {
-                File htmlFile = new File(cacheDirectory, "text.html");
-                InputStream htmlPrefixStream = context.getAssets().open("text-prefix.html");
-                InputStream htmlSuffixStream = context.getAssets().open("text-suffix.html");
+                if (USE_CORE_TXT) {
+                    if (lastCore != null) {
+                        lastCore.close();
+                    }
 
-                OutputStream outputStream = new FileOutputStream(htmlFile);
-                try {
-                    StreamUtil.copy(htmlPrefixStream, outputStream);
+                    CoreWrapper core = new CoreWrapper();
+                    try {
+                        core.initialize();
 
-                    writeBase64(cacheFile, cacheDirectory, outputStream);
+                        lastCore = core;
+                    } catch (Throwable e) {
+                        crashManager.log(e);
+                    }
 
-                    StreamUtil.copy(htmlSuffixStream, outputStream);
-                } finally {
-                    outputStream.close();
+                    CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
+                    coreOptions.inputPath = cacheFile.getPath();
+                    coreOptions.outputPath = cacheDirectory.getPath();
+                    coreOptions.txt = true;
+
+                    lastCoreOptions = coreOptions;
+
+                    CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
+                    if (coreResult.exception != null) {
+                        throw coreResult.exception;
+                    }
+
+                    File entryFile = new File(coreResult.pagePaths.get(0));
+                    finalUri = Uri.fromFile(entryFile);
+                } else {
+                    File htmlFile = new File(cacheDirectory, "text.html");
+                    InputStream htmlPrefixStream = context.getAssets().open("text-prefix.html");
+                    InputStream htmlSuffixStream = context.getAssets().open("text-suffix.html");
+
+                    OutputStream outputStream = new FileOutputStream(htmlFile);
+                    try {
+                        StreamUtil.copy(htmlPrefixStream, outputStream);
+
+                        writeBase64(cacheFile, cacheDirectory, outputStream);
+
+                        StreamUtil.copy(htmlSuffixStream, outputStream);
+                    } finally {
+                        outputStream.close();
+                    }
+
+                    File fontFile = new File(cacheDirectory, "text.ttf");
+                    InputStream fontStream = context.getAssets().open("text.ttf");
+                    StreamUtil.copy(fontStream, fontFile);
+
+                    finalUri = Uri.fromFile(htmlFile).buildUpon().appendQueryParameter("ext", extension).build();
                 }
-
-                File fontFile = new File(cacheDirectory, "text.ttf");
-                InputStream fontStream = context.getAssets().open("text.ttf");
-                StreamUtil.copy(fontStream, fontFile);
-
-                finalUri = Uri.fromFile(htmlFile).buildUpon().appendQueryParameter("ext", extension).build();
             } else if (fileType.startsWith("application/zip")) {
                 File htmlFile = new File(cacheDirectory, "zip.html");
                 InputStream htmlPrefixStream = context.getAssets().open("zip-prefix.html");

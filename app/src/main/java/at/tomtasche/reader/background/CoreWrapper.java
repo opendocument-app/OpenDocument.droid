@@ -81,6 +81,7 @@ public class CoreWrapper {
     public static class CoreOptions {
 
         public boolean ooxml;
+        public boolean txt;
 
         public boolean editable;
 

@@ -63,6 +63,9 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jfieldID ooxmlField = env->GetFieldID(optionsClass, "ooxml", "Z");
         jboolean ooxml = env->GetBooleanField(options, ooxmlField);
 
+        jfieldID txtField = env->GetFieldID(optionsClass, "txt", "Z");
+        jboolean txt = env->GetBooleanField(options, txtField);
+
         try {
             odr::HtmlConfig config;
             config.editable = editable;
@@ -85,6 +88,13 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
 
             if (!ooxml &&
                 (html->file_type() == odr::FileType::office_open_xml_document || html->file_type() == odr::FileType::office_open_xml_workbook || html->file_type() == odr::FileType::office_open_xml_presentation)) {
+                // TODO: this is stupid and should happen BEFORE translation
+
+                env->SetIntField(result, errorField, -5);
+                return result;
+            }
+
+            if (!txt && html->file_type() == odr::FileType::text_file) {
                 // TODO: this is stupid and should happen BEFORE translation
 
                 env->SetIntField(result, errorField, -5);
