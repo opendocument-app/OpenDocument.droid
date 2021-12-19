@@ -1,10 +1,16 @@
 #include "CoreWrapper.h"
+#include <string>
+#include <optional>
+#include <odr/document.h>
+#include <odr/document_cursor.h>
+#include <odr/document_element.h>
+#include <odr/file.h>
+#include <odr/html.h>
+#include <odr/open_document_reader.h>
+#include <odr/exceptions.h>
+#include <android/log.h>
 
-#include <odr/Document.h>
-#include <odr/Config.h>
-#include <odr/Meta.h>
-
-std::optional<odr::DocumentNoExcept> document;
+std::optional<odr::Html> html;
 
 JNIEXPORT jobject JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject instance, jobject options)
@@ -26,47 +32,17 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
     env->ReleaseStringUTFChars(inputPath, inputPathC);
 
     try {
-        document = odr::DocumentNoExcept::open(inputPathCpp);
-        if (!document.has_value()) {
-            env->SetIntField(result, errorField, -1);
-            return result;
-        }
-
-        auto meta = document->meta();
-
+        std::optional<std::string> passwordCpp;
         jfieldID passwordField = env->GetFieldID(optionsClass, "password", "Ljava/lang/String;");
         jstring password = (jstring) env->GetObjectField(options, passwordField);
-
-        bool decrypted = !meta.encrypted;
-        if (password != NULL) {
+        if (password != nullptr) {
             const auto passwordC = env->GetStringUTFChars(password, &isCopy);
-            const auto passwordCpp = std::string(passwordC, env->GetStringUTFLength(password));
+            passwordCpp = std::string(passwordC, env->GetStringUTFLength(password));
             env->ReleaseStringUTFChars(password, passwordC);
-
-            decrypted = document->decrypt(passwordCpp);
-
-            meta = document->meta();
         }
-
-        if (!decrypted) {
-            env->SetIntField(result, errorField, -2);
-            return result;
-        }
-
-        const auto extensionCpp = meta.typeAsString();
-        const auto extensionC = extensionCpp.c_str();
-        jstring extension = env->NewStringUTF(extensionC);
-
-        jfieldID extensionField = env->GetFieldID(resultClass, "extension", "Ljava/lang/String;");
-        env->SetObjectField(result, extensionField, extension);
 
         jfieldID editableField = env->GetFieldID(optionsClass, "editable", "Z");
         jboolean editable = env->GetBooleanField(options, editableField);
-
-        odr::Config config = {};
-        config.editable = editable;
-        config.entryCount = 1;
-        config.tableLimitRows = 10000;
 
         jfieldID outputPathField = env->GetFieldID(optionsClass, "outputPath", "Ljava/lang/String;");
         jstring outputPath = (jstring) env->GetObjectField(options, outputPathField);
@@ -81,78 +57,59 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jfieldID pageNamesField = env->GetFieldID(resultClass, "pageNames", "Ljava/util/List;");
         jobject pageNames = (jobject) env->GetObjectField(result, pageNamesField);
 
+        jfieldID pagePathsField = env->GetFieldID(resultClass, "pagePaths", "Ljava/util/List;");
+        jobject pagePaths = (jobject) env->GetObjectField(result, pagePathsField);
+
         jfieldID ooxmlField = env->GetFieldID(optionsClass, "ooxml", "Z");
         jboolean ooxml = env->GetBooleanField(options, ooxmlField);
-        if (!ooxml) {
-            if (meta.type == odr::FileType::OPENDOCUMENT_TEXT) {
-                jstring pageName = env->NewStringUTF("Document");
-                env->CallBooleanMethod(pageNames, addMethod, pageName);
 
-                outputPathCpp = outputPathCpp + "0.html";
+        try {
+            odr::HtmlConfig config;
+            config.editable = editable;
 
-                bool translated = document->translate(outputPathCpp, config);
-                if (!translated) {
-                    env->SetIntField(result, errorField, -4);
-                    return result;
-                }
-            } else if (meta.type == odr::FileType::OPENDOCUMENT_SPREADSHEET || meta.type == odr::FileType::OPENDOCUMENT_PRESENTATION || meta.type == odr::FileType::OPENDOCUMENT_GRAPHICS) {
-                int i = 0;
-                // TODO: this could fail for HUGE documents with hundreds of pages
-                // https://stackoverflow.com/a/24292867/198996
-                for (auto page = meta.entries.begin(); page != meta.entries.end(); page++) {
-                    jstring pageName = env->NewStringUTF(page->name.c_str());
-                    env->CallBooleanMethod(pageNames, addMethod, pageName);
+            const char* passwordC = nullptr;
+            if (passwordCpp.has_value()) {
+                passwordC = passwordCpp.value().c_str();
+            }
 
-                    const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
-                    config.entryOffset = i;
+            // __android_log_print(ANDROID_LOG_VERBOSE, "smn", "%s", outputPathCpp.c_str());
 
-                    bool translated = document->translate(entryOutputPath, config);
-                    if (!translated) {
-                        env->SetIntField(result, errorField, -4);
-                        return result;
-                    }
+            html = odr::OpenDocumentReader::html(inputPathCpp, passwordC, outputPathCpp, config);
 
-                    i++;
-                }
-            } else {
+            const auto extensionCpp = odr::OpenDocumentReader::type_to_string(html->file_type());
+            const auto extensionC = extensionCpp.c_str();
+            jstring extension = env->NewStringUTF(extensionC);
+
+            jfieldID extensionField = env->GetFieldID(resultClass, "extension", "Ljava/lang/String;");
+            env->SetObjectField(result, extensionField, extension);
+
+            if (!ooxml &&
+                (html->file_type() == odr::FileType::office_open_xml_document || html->file_type() == odr::FileType::office_open_xml_workbook || html->file_type() == odr::FileType::office_open_xml_presentation)) {
+                // TODO: this is stupid and should happen BEFORE translation
+
                 env->SetIntField(result, errorField, -5);
                 return result;
             }
-        } else {
-            if (meta.type == odr::FileType::OFFICE_OPEN_XML_DOCUMENT) {
-                jstring pageName = env->NewStringUTF("Text document");
+
+            for (auto &&page : html->pages()) {
+                jstring pageName = env->NewStringUTF(page.name.c_str());
                 env->CallBooleanMethod(pageNames, addMethod, pageName);
 
-                outputPathCpp = outputPathCpp + "0.html";
-
-                bool translated = document->translate(outputPathCpp, config);
-                if (!translated) {
-                    env->SetIntField(result, errorField, -4);
-                    return result;
-                }
-            } else if (meta.type == odr::FileType::OFFICE_OPEN_XML_WORKBOOK || meta.type == odr::FileType::OFFICE_OPEN_XML_PRESENTATION) {
-                int i = 0;
-                // TODO: this could fail for HUGE documents with hundreds of pages
-                // https://stackoverflow.com/a/24292867/198996
-                for (auto page = meta.entries.begin(); page != meta.entries.end(); page++) {
-                    jstring pageName = env->NewStringUTF(page->name.c_str());
-                    env->CallBooleanMethod(pageNames, addMethod, pageName);
-
-                    const auto entryOutputPath = outputPathCpp + std::to_string(i) + ".html";
-                    config.entryOffset = i;
-
-                    bool translated = document->translate(entryOutputPath, config);
-                    if (!translated) {
-                        env->SetIntField(result, errorField, -4);
-                        return result;
-                    }
-
-                    i++;
-                }
-            } else {
-                env->SetIntField(result, errorField, -5);
-                return result;
+                jstring pagePath = env->NewStringUTF(page.path.c_str());
+                env->CallBooleanMethod(pagePaths, addMethod, pagePath);
             }
+        } catch (odr::UnknownFileType) {
+            env->SetIntField(result, errorField, -5);
+            return result;
+        } catch (odr::WrongPassword) {
+            env->SetIntField(result, errorField, -2);
+            return result;
+        } catch (odr::UnsupportedFileType) {
+            env->SetIntField(result, errorField, -5);
+            return result;
+        } catch (...) {
+            env->SetIntField(result, errorField, -4);
+            return result;
         }
     } catch (...) {
         env->SetIntField(result, errorField, -3);
@@ -185,12 +142,8 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
         env->ReleaseStringUTFChars(outputPathPrefix, outputPathPrefixC);
 
         const auto htmlDiffC = env->GetStringUTFChars(htmlDiff, &isCopy);
-        auto htmlDiffCpp = std::string(htmlDiffC, env->GetStringUTFLength(htmlDiff));
-        env->ReleaseStringUTFChars(htmlDiff, htmlDiffC);
 
-        const auto meta = document->meta();
-
-        const auto extension = meta.typeAsString();
+        const auto extension = odr::OpenDocumentReader::type_to_string(html->file_type());
         const auto outputPathCpp = outputPathPrefixCpp + "." + extension;
         const char *outputPathC = outputPathCpp.c_str();
         jstring outputPath = env->NewStringUTF(outputPathC);
@@ -198,14 +151,20 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
         jfieldID outputPathField = env->GetFieldID(resultClass, "outputPath", "Ljava/lang/String;");
         env->SetObjectField(result, outputPathField, outputPath);
 
-        bool success = document->edit(htmlDiffCpp);
-        if (!success) {
+        try {
+            html->edit(htmlDiffC);
+
+            env->ReleaseStringUTFChars(htmlDiff, htmlDiffC);
+        } catch (...) {
+            env->ReleaseStringUTFChars(htmlDiff, htmlDiffC);
+
             env->SetIntField(result, errorField, -6);
             return result;
         }
 
-        success = document->save(outputPathCpp);
-        if (!success) {
+        try {
+            html->save(outputPathCpp);
+        } catch (...) {
             env->SetIntField(result, errorField, -7);
             return result;
         }
@@ -221,5 +180,5 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
 JNIEXPORT void JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jobject instance, jobject options)
 {
-    document.reset();
+    html.reset();
 }

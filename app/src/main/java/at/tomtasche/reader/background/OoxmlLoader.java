@@ -69,11 +69,9 @@ public class OoxmlLoader extends FileLoader {
 
         File cacheDirectory = AndroidFileCache.getCacheDirectory(cacheFile);
 
-        File fakeHtmlFile = new File(cacheDirectory, "ooxml");
-
         CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
         coreOptions.inputPath = cacheFile.getPath();
-        coreOptions.outputPath = fakeHtmlFile.getPath();
+        coreOptions.outputPath = cacheDirectory.getPath();
         coreOptions.password = options.password;
         coreOptions.editable = options.translatable;
         coreOptions.ooxml = true;
@@ -89,8 +87,8 @@ public class OoxmlLoader extends FileLoader {
         //  (not reported as DOCX prior)
         options.fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreResult.extension);
 
-        for (int i = 0; i < coreResult.pageNames.size(); i++) {
-            File entryFile = new File(fakeHtmlFile.getPath() + i + ".html");
+        for (int i = 0; i < coreResult.pagePaths.size(); i++) {
+            File entryFile = new File(coreResult.pagePaths.get(i));
 
             result.partTitles.add(coreResult.pageNames.get(i));
             result.partUris.add(Uri.fromFile(entryFile));

@@ -13,20 +13,16 @@ import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.play.core.review.ReviewInfo;
 import com.google.android.play.core.review.ReviewManager;
 import com.google.android.play.core.review.ReviewManagerFactory;
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -94,6 +90,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     private FileLoader.Result resultOnStart;
     private Throwable errorOnStart;
+
+    private int lastSelectedTab = -1;
 
     @Nullable
     @Override
@@ -205,7 +203,11 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         this.menu = menu;
 
-        menu.setGroupVisible(R.id.menu_document_group, true);
+        menu.findItem(R.id.menu_fullscreen).setVisible(true);
+        menu.findItem(R.id.menu_open_with).setVisible(true);
+        menu.findItem(R.id.menu_share).setVisible(true);
+        menu.findItem(R.id.menu_print).setVisible(true);
+        // the other menu items are dynamically enabled on document load
     }
 
     @Override
@@ -403,6 +405,8 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         menu.findItem(R.id.menu_search).setVisible(enabled);
         menu.findItem(R.id.menu_tts).setVisible(enabled);
+
+        menu.findItem(R.id.menu_help).setShowAsAction(enabled ? MenuItem.SHOW_AS_ACTION_NEVER : MenuItem.SHOW_AS_ACTION_ALWAYS);
     }
 
     @Override
@@ -416,6 +420,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             errorOnStart = null;
         }
 
+        lastSelectedTab = -1;
         lastResult = result;
 
         analyticsManager.setCurrentScreen(activity, "screen_" + result.loaderType.toString() + "_" + result.options.fileType);
@@ -791,6 +796,22 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     @Override
     public void onTabSelected(ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {
+        if (lastResult.options.translatable) {
+            if (lastSelectedTab >= 0) {
+                mainHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        ActionBar bar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+                        bar.setSelectedNavigationItem(lastSelectedTab);
+                    }
+                }, 1);
+
+                return;
+            }
+
+            lastSelectedTab = tab.getPosition();
+        }
+
         Uri uri = lastResult.partUris.get(tab.getPosition());
         loadData(uri.toString());
     }

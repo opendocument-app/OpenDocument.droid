@@ -202,7 +202,12 @@ public class PageView extends WebView implements ParagraphListener {
                 inputStream.close();
             }
 
-            documentFragment.loadUri(AndroidFileCache.getCacheFileUri(getContext(), tmpFile), false);
+            post(new Runnable() {
+                @Override
+                public void run() {
+                    documentFragment.loadUri(AndroidFileCache.getCacheFileUri(getContext(), tmpFile), false);
+                }
+            });
         } catch (IOException e) {
             crashManager.log(e);
         }

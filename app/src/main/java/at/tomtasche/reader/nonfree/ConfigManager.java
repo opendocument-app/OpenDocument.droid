@@ -47,11 +47,24 @@ public class ConfigManager {
         });
     }
 
+    public boolean isLoaded() {
+        if (!enabled) {
+            return true;
+        }
+
+        return loaded;
+    }
+
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 
     public void getBooleanConfig(String key, ConfigListener<Boolean> configListener) {
+        if (!enabled) {
+            configListener.onConfig(key, null);
+            return;
+        }
+
         synchronized (callbacks) {
             if (!loaded) {
                 callbacks.add(new Runnable() {
@@ -69,7 +82,11 @@ public class ConfigManager {
         configListener.onConfig(key, value);
     }
 
-    public boolean getBooleanConfig(String key) {
+    public Boolean getBooleanConfig(String key) {
+        if (!enabled) {
+            return null;
+        }
+
         return remoteConfig.getBoolean(key);
     }
 

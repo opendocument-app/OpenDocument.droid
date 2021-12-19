@@ -97,7 +97,12 @@ public class AndroidFileCache {
 
         for (String s : files) {
             try {
-                new File(directory, s).delete();
+                File file = new File(directory, s);
+                if (file.isDirectory()) {
+                    cleanup(file);
+                } else {
+                    file.delete();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

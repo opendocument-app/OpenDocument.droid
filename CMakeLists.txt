@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.12.4)
 
+project(odr-droid)
+
 set(CMAKE_CXX_STANDARD 17)
 
 FILE(GLOB SRC
@@ -14,5 +16,7 @@ add_library(odr-core SHARED ${SRC})
 option (ODR_TEST "" OFF)
 set(ODR_TEST OFF)
 
+find_library(LOG log)
+
 add_subdirectory(OpenDocument.core)
-target_link_libraries(odr-core odr-shared)
+target_link_libraries(odr-core odr-shared ${LOG})
