@@ -254,6 +254,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 break;
             case OOXML:
                 loader = ooxmlLoader;
+                isEditEnabled = true;
                 break;
             case PDF:
                 loader = pdfLoader;
