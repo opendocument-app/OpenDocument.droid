@@ -110,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Uri lastUri;
     private Uri loadOnStart;
+    private Uri lastSaveUri;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -297,6 +298,12 @@ public class MainActivity extends AppCompatActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public boolean requestSave() {
+        if (lastSaveUri != null) {
+            documentFragment.save(lastSaveUri);
+
+            return true;
+        }
+
         try {
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -385,7 +392,9 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == GOOGLE_REQUEST_CODE) {
             initializeProprietaryLibraries();
         } else if (requestCode == CREATE_CODE && intent != null) {
-            documentFragment.save(intent.getData());
+            lastSaveUri = intent.getData();
+
+            documentFragment.save(lastSaveUri);
         } else if (intent != null) {
             crashManager.log("onActivityResult loadUri");
 
@@ -397,6 +406,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void loadUri(Uri uri, boolean showAd) {
+        lastSaveUri = null;
         lastUri = uri;
 
         Runnable onPermission = new Runnable() {
