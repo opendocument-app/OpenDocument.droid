@@ -359,7 +359,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    loadUri(outFile, false, true);
+                    loadUri(outFile, true, true);
                 }
             });
 
