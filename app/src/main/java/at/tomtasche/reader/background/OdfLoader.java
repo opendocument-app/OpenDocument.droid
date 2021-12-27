@@ -72,6 +72,8 @@ public class OdfLoader extends FileLoader {
         String coreExtension = coreResult.extension;
         // "unnamed" refers to default of Meta::typeToString
         if (coreExtension != null && !coreExtension.equals("unnamed")) {
+            options.fileExtension = coreExtension;
+
             String fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreExtension);
             if (fileType != null) {
                 options.fileType = fileType;

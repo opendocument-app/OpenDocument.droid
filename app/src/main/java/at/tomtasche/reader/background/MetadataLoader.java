@@ -111,7 +111,7 @@ public class MetadataLoader extends FileLoader {
             options.cacheUri = AndroidFileCache.getCacheFileUri(context, cachedFile);
 
             String[] fileSplit = options.filename.split("\\.");
-            options.fileExtension = fileSplit.length > 0 ? fileSplit[fileSplit.length - 1] : "N/A";
+            String extension = fileSplit.length > 0 ? fileSplit[fileSplit.length - 1] : "N/A";
 
             String type = null;
             try {
@@ -145,22 +145,21 @@ public class MetadataLoader extends FileLoader {
                 }
             }
 
-            if (type == null) {
+            if (type != null) {
+                extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(type);
+            } else {
                 type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(options.fileExtension);
             }
 
+            if (extension != null) {
+                options.fileExtension = extension;
+            }
             if (type != null) {
                 options.fileType = type;
             }
 
             if ("inode/x-empty".equals(type)) {
                 throw new FileNotFoundException();
-            }
-
-            String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(options.fileType);
-            if (extension != null) {
-                // override extension parsed from filename
-                options.fileExtension = extension;
             }
 
             if (options.persistentUri) {
