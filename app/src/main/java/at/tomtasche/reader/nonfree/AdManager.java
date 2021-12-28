@@ -15,6 +15,7 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.RequestConfiguration;
 import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
@@ -25,6 +26,9 @@ import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 import org.jetbrains.annotations.NotNull;
 
 import androidx.annotation.NonNull;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class AdManager {
 
@@ -58,6 +62,11 @@ public class AdManager {
 
             enabled = false;
         }
+
+        List<String> testDeviceIds = Arrays.asList("46C05048B04145D0724C1ADA7FC17619");
+        RequestConfiguration configuration =
+                new RequestConfiguration.Builder().setTestDeviceIds(testDeviceIds).build();
+        MobileAds.setRequestConfiguration(configuration);
     }
 
     public void setEnabled(boolean enabled) {

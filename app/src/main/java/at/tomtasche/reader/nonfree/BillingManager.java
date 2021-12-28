@@ -64,7 +64,7 @@ public class BillingManager implements PurchasesUpdatedListener {
             billingPreferences.setPurchased(true);
         }
 
-        if (billingPreferences.hasPurchased()) {
+        if (hasPurchased()) {
             adManager.removeAds();
 
             enabled = false;

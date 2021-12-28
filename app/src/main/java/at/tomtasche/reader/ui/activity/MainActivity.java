@@ -421,10 +421,6 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (showAd) {
-            adManager.showInterstitial();
-        }
-
         if (documentFragment == null) {
             documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
 
@@ -457,6 +453,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         documentFragment.loadUri(uri, isPersistentUri);
+
+        if (showAd) {
+            // delay until all UI work has completed for loading the fragment
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    adManager.showInterstitial();
+                }
+            });
+        }
     }
 
     @Override
