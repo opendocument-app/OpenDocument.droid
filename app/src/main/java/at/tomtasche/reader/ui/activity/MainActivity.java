@@ -348,7 +348,7 @@ public class MainActivity extends AppCompatActivity {
         adManager = new AdManager();
         adManager.setEnabled(!IS_TESTING && useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
         adManager.setAdContainer(adContainer);
-        adManager.initialize(this, analyticsManager, crashManager);
+        adManager.initialize(this, analyticsManager, crashManager, configManager);
 
         billingManager = new BillingManager();
         billingManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);

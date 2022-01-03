@@ -37,6 +37,7 @@ public class AdManager {
     private Activity activity;
     private CrashManager crashManager;
     private AnalyticsManager analyticsManager;
+    private ConfigManager configManager;
 
     private LinearLayout adContainer;
     private AdView adView;
@@ -45,7 +46,7 @@ public class AdManager {
     private boolean showVideoOnLoad;
     private RewardedAd videoAd;
 
-    public void initialize(Activity activity, AnalyticsManager analyticsManager, CrashManager crashManager) {
+    public void initialize(Activity activity, AnalyticsManager analyticsManager, CrashManager crashManager, ConfigManager configManager) {
         if (!enabled) {
             return;
         }
@@ -53,6 +54,7 @@ public class AdManager {
         this.activity = activity;
         this.crashManager = crashManager;
         this.analyticsManager = analyticsManager;
+        this.configManager = configManager;
 
         try {
             MobileAds.initialize(activity);
@@ -186,6 +188,11 @@ public class AdManager {
 
     public void showInterstitial() {
         if (!enabled) {
+            return;
+        }
+
+        Boolean doNotShowIntersitital = configManager.getBooleanConfig("do_not_show_interstitial");
+        if (doNotShowIntersitital == null || doNotShowIntersitital) {
             return;
         }
 

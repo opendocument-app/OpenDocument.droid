@@ -66,6 +66,9 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jfieldID txtField = env->GetFieldID(optionsClass, "txt", "Z");
         jboolean txt = env->GetBooleanField(options, txtField);
 
+        jfieldID pagingField = env->GetFieldID(optionsClass, "paging", "Z");
+        jboolean paging = env->GetBooleanField(options, pagingField);
+
         try {
             // __android_log_print(ANDROID_LOG_VERBOSE, "smn", "%s", outputPathCpp.c_str());
 
@@ -95,6 +98,10 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
 
             odr::HtmlConfig config;
             config.editable = editable;
+
+            if (paging) {
+                config.text_document_margin = true;
+            }
 
             const char* passwordC = nullptr;
             if (passwordCpp.has_value()) {

@@ -157,7 +157,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         metadataLoader = new MetadataLoader(context);
         metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
-        odfLoader = new OdfLoader(context);
+        odfLoader = new OdfLoader(context, configManager);
         odfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         pdfLoader = new PdfLoader(context);

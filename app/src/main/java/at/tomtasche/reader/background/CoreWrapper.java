@@ -85,6 +85,8 @@ public class CoreWrapper {
 
         public boolean editable;
 
+        public boolean paging;
+
         public String password;
 
         public String inputPath;
