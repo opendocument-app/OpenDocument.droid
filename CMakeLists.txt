@@ -1,39 +1,39 @@
-cmake_minimum_required(VERSION 3.12.4)
+cmake_minimum_required(VERSION 3.18.1)
 project(odr-droid CXX)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+    message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+    file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/0.17.0/conan.cmake"
+            "${CMAKE_BINARY_DIR}/conan.cmake"
+            EXPECTED_HASH SHA256=3bef79da16c2e031dc429e1dac87a08b9226418b300ce004cc125a82687baeef
+            TLS_VERIFY ON)
+endif()
 
 # determine abi
 set(ARCH "${CMAKE_ANDROID_ARCH_ABI}")
 string(REPLACE "armeabi-v7a" "armv7" ARCH "${ARCH}")
 string(REPLACE "arm64-v8a" "armv8" ARCH "${ARCH}")
 
-# determine api level
-set(API_LEVEL "${CMAKE_SYSTEM_VERSION}")
-# TODO above does not work somehow
-set(API_LEVEL "19")
-
 include(${CMAKE_CURRENT_LIST_DIR}/app/conan.cmake)
-conan_cmake_configure(GENERATORS cmake)
 conan_cmake_autodetect(settings ARCH ${ARCH})
-list(APPEND settings "os=Android" "os.api_level=19")
 # inspired from here https://docs.conan.io/en/latest/integrations/cross_platform/android.html
-configure_file(app/toolchain.cmake.in ${CMAKE_BINARY_DIR}/toolchain.cmake @ONLY)
-conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_CURRENT_LIST_DIR}/OpenDocument.core
+configure_file(app/toolchain.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/toolchain.cmake @ONLY)
+conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_CURRENT_LIST_DIR}
         BUILD missing
-        REMOTE conancenter
         SETTINGS ${settings}
-        ENV CONAN_CMAKE_TOOLCHAIN_FILE=${CMAKE_BINARY_DIR}/toolchain.cmake)
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(TARGETS NO_OUTPUT_DIRS)
+        PROFILE ${CMAKE_CURRENT_LIST_DIR}/conanprofile.txt
+        ENV CONAN_CMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_BINARY_DIR}/toolchain.cmake)
+include(${CMAKE_CURRENT_BINARY_DIR}/conan_paths.cmake)
 
-set(ODR_TEST OFF CACHE BOOL "" FORCE)
-add_subdirectory(OpenDocument.core)
+find_package(odr REQUIRED)
 
 add_library(odr-core SHARED
         app/src/main/cpp/CoreWrapper.cpp)
 target_include_directories(odr-core
         PRIVATE app/src/main/cpp/)
 target_link_libraries(odr-core
-        PRIVATE odr-static log)
+        PRIVATE odr::odr log)

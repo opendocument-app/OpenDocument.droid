@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import at.tomtasche.reader.ui.activity.IntroActivity;
+
 public class HelpManager {
 
     private boolean enabled;
@@ -22,8 +24,7 @@ public class HelpManager {
     }
 
     public void show() {
-        context.startActivity(new Intent(
-                Intent.ACTION_VIEW,
-                Uri.parse("https://opendocument.app/")));
+        Intent intent = new Intent(context, IntroActivity.class);
+        context.startActivity(intent);
     }
 }

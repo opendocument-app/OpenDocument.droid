@@ -21,6 +21,7 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
@@ -109,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Uri lastUri;
     private Uri loadOnStart;
+    private Uri lastSaveUri;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -141,10 +143,6 @@ public class MainActivity extends AppCompatActivity {
 
         printingManager = new PrintingManager();
         initializeProprietaryLibraries();
-
-        if (!IS_TESTING) {
-            showIntroActivity();
-        }
 
         initializeCatchAllSwitch();
 
@@ -182,6 +180,29 @@ public class MainActivity extends AppCompatActivity {
 
             analyticsManager.setCurrentScreen(this, "screen_main");
         }
+
+        final View content = findViewById(android.R.id.content);
+        content.getViewTreeObserver().addOnPreDrawListener(
+                new ViewTreeObserver.OnPreDrawListener() {
+                    @Override
+                    public boolean onPreDraw() {
+                        if (configManager.isLoaded()) {
+                            if (IS_TESTING) {
+                                return true;
+                            }
+
+                            Boolean isShowIntro = configManager.getBooleanConfig("show_intro");
+                            if (isShowIntro == null || isShowIntro) {
+                                showIntroActivityOnFirstStart();
+                            }
+
+                            content.getViewTreeObserver().removeOnPreDrawListener(this);
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                });
     }
 
     @Override
@@ -215,8 +236,6 @@ public class MainActivity extends AppCompatActivity {
         toggleComponent(strictCatchComponent, !isCatchAllEnabled);
 
         SwitchCompat catchAllSwitch = findViewById(R.id.landing_catch_all);
-        LinearLayout parent = (LinearLayout) catchAllSwitch.getParent();
-        parent.setVisibility(View.GONE);
 
         catchAllSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -250,13 +269,12 @@ public class MainActivity extends AppCompatActivity {
         adManager.showGoogleAds();
     }
 
-    private void showIntroActivity() {
+    private void showIntroActivityOnFirstStart() {
         SharedPreferences getPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         boolean wasIntroShown = getPrefs.getBoolean("introShown", false);
         if (!wasIntroShown) {
-            Intent intent = new Intent(MainActivity.this, IntroActivity.class);
-            startActivity(intent);
+            helpManager.show();
 
             SharedPreferences.Editor editor = getPrefs.edit();
             editor.putBoolean("introShown", true);
@@ -280,6 +298,12 @@ public class MainActivity extends AppCompatActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public boolean requestSave() {
+        if (lastSaveUri != null) {
+            documentFragment.save(lastSaveUri);
+
+            return true;
+        }
+
         try {
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -296,7 +320,6 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
     }
-
 
     private void initializeProprietaryLibraries() {
         boolean useProprietaryLibraries = !getResources().getBoolean(R.bool.DISABLE_TRACKING);
@@ -325,7 +348,7 @@ public class MainActivity extends AppCompatActivity {
         adManager = new AdManager();
         adManager.setEnabled(!IS_TESTING && useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
         adManager.setAdContainer(adContainer);
-        adManager.initialize(this, analyticsManager, crashManager);
+        adManager.initialize(this, analyticsManager, crashManager, configManager);
 
         billingManager = new BillingManager();
         billingManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
@@ -369,7 +392,9 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == GOOGLE_REQUEST_CODE) {
             initializeProprietaryLibraries();
         } else if (requestCode == CREATE_CODE && intent != null) {
-            documentFragment.save(intent.getData());
+            lastSaveUri = intent.getData();
+
+            documentFragment.save(lastSaveUri);
         } else if (intent != null) {
             crashManager.log("onActivityResult loadUri");
 
@@ -381,6 +406,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void loadUri(Uri uri, boolean showAd) {
+        lastSaveUri = null;
         lastUri = uri;
 
         Runnable onPermission = new Runnable() {
@@ -393,10 +419,6 @@ public class MainActivity extends AppCompatActivity {
         boolean hasPermission = requestPermission(Manifest.permission.READ_EXTERNAL_STORAGE, onPermission);
         if (!hasPermission) {
             return;
-        }
-
-        if (showAd) {
-            adManager.showInterstitial();
         }
 
         if (documentFragment == null) {
@@ -431,6 +453,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         documentFragment.loadUri(uri, isPersistentUri);
+
+        if (showAd) {
+            // delay until all UI work has completed for loading the fragment
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    adManager.showInterstitial();
+                }
+            });
+        }
     }
 
     @Override
@@ -514,6 +546,8 @@ public class MainActivity extends AppCompatActivity {
 
                 analyticsManager.report("menu_print");
 
+                documentFragment.getPageView().toggleDarkMode(false);
+
                 printingManager.print(this, documentFragment.getPageView());
 
                 break;
@@ -534,7 +568,7 @@ public class MainActivity extends AppCompatActivity {
 
                 break;
             }
-            case R.id.edit_help: {
+            case R.id.menu_help: {
                 helpManager.show();
 
                 break;

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Base64;
 import android.util.Base64OutputStream;
+import android.webkit.MimeTypeMap;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,8 +15,13 @@ import java.io.OutputStream;
 
 public class RawLoader extends FileLoader {
 
+    private static final boolean USE_CORE_TXT = true;
+
     private static final String[] MIME_WHITELIST = {"text/", "image/", "video/", "audio/", "application/json", "application/xml", "application/zip"};
     private static final String[] MIME_BLACKLIST = {"image/vnd.dwg", "image/g3fax", "image/tiff", "image/vnd.djvu", "image/x-eps", "image/x-tga", "image/x-tga", "audio/amr", "video/3gpp", "video/quicktime", "text/calendar", "text/vcard"};
+
+    private CoreWrapper lastCore;
+    private CoreWrapper.CoreOptions lastCoreOptions;
 
     public RawLoader(Context context) {
         super(context, LoaderType.RAW);
@@ -50,12 +56,7 @@ public class RawLoader extends FileLoader {
 
         try {
             String fileType = options.fileType;
-
             String extension = options.fileExtension;
-            if (extension == null || extension.equals("csv")) {
-                // WebView doesn't display CSV if it has that extension
-                extension = "txt";
-            }
 
             File cacheFile = AndroidFileCache.getCacheFile(context, options.cacheUri);
             File cacheDirectory = AndroidFileCache.getCacheDirectory(cacheFile);
@@ -101,7 +102,7 @@ public class RawLoader extends FileLoader {
                 StreamUtil.copy(cacheFile, videoFile);
 
                 finalUri = Uri.fromFile(htmlFile).buildUpon().appendQueryParameter("ext", extension).build();
-            } else if (fileType.startsWith("text/")) {
+            } else if (extension.equals("csv")) {
                 File htmlFile = new File(cacheDirectory, "text.html");
                 InputStream htmlPrefixStream = context.getAssets().open("text-prefix.html");
                 InputStream htmlSuffixStream = context.getAssets().open("text-suffix.html");
@@ -122,6 +123,34 @@ public class RawLoader extends FileLoader {
                 StreamUtil.copy(fontStream, fontFile);
 
                 finalUri = Uri.fromFile(htmlFile).buildUpon().appendQueryParameter("ext", extension).build();
+            } else if (fileType.startsWith("text/")) {
+                if (lastCore != null) {
+                    lastCore.close();
+                }
+
+                CoreWrapper core = new CoreWrapper();
+                try {
+                    core.initialize();
+
+                    lastCore = core;
+                } catch (Throwable e) {
+                    crashManager.log(e);
+                }
+
+                CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
+                coreOptions.inputPath = cacheFile.getPath();
+                coreOptions.outputPath = cacheDirectory.getPath();
+                coreOptions.txt = true;
+
+                lastCoreOptions = coreOptions;
+
+                CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
+                if (coreResult.exception != null) {
+                    throw coreResult.exception;
+                }
+
+                File entryFile = new File(coreResult.pagePaths.get(0));
+                finalUri = Uri.fromFile(entryFile);
             } else if (fileType.startsWith("application/zip")) {
                 File htmlFile = new File(cacheDirectory, "zip.html");
                 InputStream htmlPrefixStream = context.getAssets().open("zip-prefix.html");

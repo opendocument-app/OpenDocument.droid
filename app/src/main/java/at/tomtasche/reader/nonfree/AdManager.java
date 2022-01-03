@@ -15,6 +15,7 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.RequestConfiguration;
 import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
@@ -26,6 +27,9 @@ import org.jetbrains.annotations.NotNull;
 
 import androidx.annotation.NonNull;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class AdManager {
 
     private boolean enabled;
@@ -33,6 +37,7 @@ public class AdManager {
     private Activity activity;
     private CrashManager crashManager;
     private AnalyticsManager analyticsManager;
+    private ConfigManager configManager;
 
     private LinearLayout adContainer;
     private AdView adView;
@@ -41,7 +46,7 @@ public class AdManager {
     private boolean showVideoOnLoad;
     private RewardedAd videoAd;
 
-    public void initialize(Activity activity, AnalyticsManager analyticsManager, CrashManager crashManager) {
+    public void initialize(Activity activity, AnalyticsManager analyticsManager, CrashManager crashManager, ConfigManager configManager) {
         if (!enabled) {
             return;
         }
@@ -49,6 +54,7 @@ public class AdManager {
         this.activity = activity;
         this.crashManager = crashManager;
         this.analyticsManager = analyticsManager;
+        this.configManager = configManager;
 
         try {
             MobileAds.initialize(activity);
@@ -58,6 +64,11 @@ public class AdManager {
 
             enabled = false;
         }
+
+        List<String> testDeviceIds = Arrays.asList("46C05048B04145D0724C1ADA7FC17619");
+        RequestConfiguration configuration =
+                new RequestConfiguration.Builder().setTestDeviceIds(testDeviceIds).build();
+        MobileAds.setRequestConfiguration(configuration);
     }
 
     public void setEnabled(boolean enabled) {
@@ -177,6 +188,11 @@ public class AdManager {
 
     public void showInterstitial() {
         if (!enabled) {
+            return;
+        }
+
+        Boolean doNotShowIntersitital = configManager.getBooleanConfig("do_not_show_interstitial");
+        if (doNotShowIntersitital == null || doNotShowIntersitital) {
             return;
         }
 
