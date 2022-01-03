@@ -6,13 +6,19 @@ import android.webkit.MimeTypeMap;
 
 import java.io.File;
 
+import at.tomtasche.reader.nonfree.ConfigManager;
+
 public class OdfLoader extends FileLoader {
+
+    private ConfigManager configManager;
 
     private CoreWrapper lastCore;
     private CoreWrapper.CoreOptions lastCoreOptions;
 
-    public OdfLoader(Context context) {
+    public OdfLoader(Context context, ConfigManager configManager) {
         super(context, LoaderType.ODF);
+
+        this.configManager = configManager;
     }
 
     @Override
@@ -65,6 +71,11 @@ public class OdfLoader extends FileLoader {
         coreOptions.editable = options.translatable;
         coreOptions.ooxml = false;
 
+        Boolean usePaging = configManager.getBooleanConfig("use_paging");
+        if (usePaging == null || usePaging) {
+            coreOptions.paging = true;
+        }
+
         lastCoreOptions = coreOptions;
 
         CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
@@ -72,6 +83,8 @@ public class OdfLoader extends FileLoader {
         String coreExtension = coreResult.extension;
         // "unnamed" refers to default of Meta::typeToString
         if (coreExtension != null && !coreExtension.equals("unnamed")) {
+            options.fileExtension = coreExtension;
+
             String fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreExtension);
             if (fileType != null) {
                 options.fileType = fileType;

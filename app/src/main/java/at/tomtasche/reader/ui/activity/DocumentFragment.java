@@ -157,7 +157,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         metadataLoader = new MetadataLoader(context);
         metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
-        odfLoader = new OdfLoader(context);
+        odfLoader = new OdfLoader(context, configManager);
         odfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         pdfLoader = new PdfLoader(context);
@@ -254,6 +254,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 break;
             case OOXML:
                 loader = ooxmlLoader;
+                isEditEnabled = true;
                 break;
             case PDF:
                 loader = pdfLoader;
@@ -358,7 +359,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    loadUri(outFile, false, true);
+                    loadUri(outFile, true, true);
                 }
             });
 

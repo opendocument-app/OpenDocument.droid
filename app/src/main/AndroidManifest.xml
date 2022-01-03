@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:installLocation="auto"
-        android:versionCode="164"
-        android:versionName="3.12"
+        android:versionCode="166"
+        android:versionName="3.14"
         package="at.tomtasche.reader"
         tools:ignore="GoogleAppIndexingWarning">
 
@@ -70,7 +70,8 @@
         <activity
                 android:name="at.tomtasche.reader.ui.activity.MainActivity"
                 android:label="@string/app_title"
-                android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize">
+                android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+                android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -82,6 +83,7 @@
                 android:name="at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH"
                 android:label="@string/app_title"
                 android:targetActivity="at.tomtasche.reader.ui.activity.MainActivity"
+                android:exported="true"
                 tools:ignore="AppLinkUrlError">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -203,6 +205,7 @@
                 android:name="at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL"
                 android:label="@string/app_title"
                 android:targetActivity="at.tomtasche.reader.ui.activity.MainActivity"
+                android:exported="true"
                 tools:ignore="AppLinkUrlError">
             <!-- necessary for Samsung "My Files" - https://stackoverflow.com/a/52624829/198996 -->
             <!-- Matches intents by file extension -->
@@ -384,7 +387,7 @@
         <activity
                 android:name="com.google.android.gms.ads.AdActivity"
                 android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
-                tools:replace="android:theme" />
+                tools:replace="android:theme"/>
 
         <provider
                 android:name="androidx.core.content.FileProvider"

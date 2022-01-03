@@ -68,21 +68,7 @@ public class MetadataLoader extends FileLoader {
 
             AndroidFileCache.cleanup(context);
 
-            File cachedFile;
-            if (AndroidFileCache.isCached(context, uri)) {
-                cachedFile = AndroidFileCache.getCacheFile(context, uri);
-            } else {
-                cachedFile = AndroidFileCache.createCacheFile(context);
-
-                InputStream stream = context.getContentResolver().openInputStream(uri);
-                StreamUtil.copy(stream, cachedFile);
-            }
-
-            // if file didn't exist an exception would have been thrown by now
-            options.fileExists = true;
-
-            options.cacheUri = AndroidFileCache.getCacheFileUri(context, cachedFile);
-
+            // detecting the filename early so we can use it in the catch-block if something goes wrong
             String filename = null;
             try {
                 // https://stackoverflow.com/a/38304115/198996
@@ -109,8 +95,23 @@ public class MetadataLoader extends FileLoader {
 
             options.filename = filename;
 
+            File cachedFile;
+            if (AndroidFileCache.isCached(context, uri)) {
+                cachedFile = AndroidFileCache.getCacheFile(context, uri);
+            } else {
+                cachedFile = AndroidFileCache.createCacheFile(context);
+
+                InputStream stream = context.getContentResolver().openInputStream(uri);
+                StreamUtil.copy(stream, cachedFile);
+            }
+
+            // if file didn't exist an exception would have been thrown by now
+            options.fileExists = true;
+
+            options.cacheUri = AndroidFileCache.getCacheFileUri(context, cachedFile);
+
             String[] fileSplit = options.filename.split("\\.");
-            options.fileExtension = fileSplit.length > 0 ? fileSplit[fileSplit.length - 1] : "N/A";
+            String extension = fileSplit.length > 0 ? fileSplit[fileSplit.length - 1] : "N/A";
 
             String type = null;
             try {
@@ -125,7 +126,7 @@ public class MetadataLoader extends FileLoader {
                 type = context.getContentResolver().getType(uri);
             }
 
-            if (type == null && filename != null) {
+            if (type == null) {
                 try {
                     type = URLConnection.guessContentTypeFromName(filename);
                 } catch (Exception e) {
@@ -136,33 +137,29 @@ public class MetadataLoader extends FileLoader {
 
             if (type == null) {
                 try {
-                    InputStream tempStream = new FileInputStream(cachedFile);
-                    try {
+                    try (InputStream tempStream = new FileInputStream(cachedFile)) {
                         type = URLConnection.guessContentTypeFromStream(tempStream);
-                    } finally {
-                        tempStream.close();
                     }
                 } catch (Exception e) {
                     crashManager.log(e);
                 }
             }
 
-            if (type == null) {
+            if (type != null) {
+                extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(type);
+            } else {
                 type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(options.fileExtension);
             }
 
+            if (extension != null) {
+                options.fileExtension = extension;
+            }
             if (type != null) {
                 options.fileType = type;
             }
 
             if ("inode/x-empty".equals(type)) {
                 throw new FileNotFoundException();
-            }
-
-            String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(options.fileType);
-            if (extension != null) {
-                // override extension parsed from filename
-                options.fileExtension = extension;
             }
 
             if (options.persistentUri) {
@@ -176,6 +173,12 @@ public class MetadataLoader extends FileLoader {
             callOnSuccess(result);
         } catch (Throwable e) {
             options.fileType = "N/A";
+
+            try {
+                RecentDocumentsUtil.removeRecentDocument(context, options.filename, options.originalUri);
+            } catch (Exception e1) {
+                crashManager.log(e1);
+            }
 
             callOnError(result, e);
         }
