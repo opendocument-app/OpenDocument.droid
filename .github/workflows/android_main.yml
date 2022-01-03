@@ -27,14 +27,8 @@ jobs:
     - name: install python dependencies
       run: |
         python -m pip install --upgrade pip conan
-
-    - name: set up python 3.8
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-    - name: install python dependencies
-      run: |
-        python -m pip install --upgrade pip conan
+    - name: conan repo
+      run: conan remote add odr https://odr.jfrog.io/artifactory/api/conan/odr-conan
 
     - name: build
       run: ./gradlew clean assembleDebug --scan --stacktrace
@@ -60,6 +54,13 @@ jobs:
       run: gem install bundler:1.17.3
     - name: fastlane
       run: bundle install
+
+    - name: pip
+      run: python3 -m ensurepip
+    - name: conan
+      run: pip3 install conan
+    - name: conan repo
+      run: conan remote add odr https://odr.jfrog.io/artifactory/api/conan/odr-conan
 
     - name: run tests
       uses: reactivecircus/android-emulator-runner@v2
