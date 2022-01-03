@@ -59,6 +59,8 @@ jobs:
       run: python3 -m ensurepip
     - name: conan
       run: pip3 install conan
+    - name: conan revisions
+      run: conan config set general.revisions_enabled=1
     - name: conan repo
       run: conan remote add odr https://odr.jfrog.io/artifactory/api/conan/odr-conan
 
