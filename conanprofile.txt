@@ -4,3 +4,4 @@ include(default)
 os=Android
 os.api_level=19
 build_type=Release
+compiler.libcxx=c++_shared
