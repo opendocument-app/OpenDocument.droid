@@ -1,8 +1,7 @@
 [requires]
-odrcore/2.1.2@
+odrcore/2.0.0@andiwand/pdf2htmlex
 
 [generators]
 cmake
 cmake_paths
 cmake_find_package
-
