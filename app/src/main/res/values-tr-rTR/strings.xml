@@ -73,4 +73,10 @@
         <item>Kısa bir video izleyerek reklamları geçici olarak ücretsiz kaldırın</item>
     </string-array>
     <!--  iOS -->
+    <string name="ok">Tamam</string>
+    <string name="yes">Evet</string>
+    <string name="discard_changes">Değişiklikleri iptal et</string>
+    <string name="cancel">İptal</string>
+    <string name="error">Hata</string>
+    <string name="back_to_documents">Belgeye geri dön</string>
 </resources>
