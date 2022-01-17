@@ -48,7 +48,7 @@
     <string name="landing_intro_view">OpenDocument Reader povsod omogoča ogled dokumentov, ki so shranjeni v obliki OpenDocument (.odt, .ods, .odp).</string>
     <string name="landing_intro_search">S programom OpenDocument Reader lahko berete in hitro iščete po dokumentih.</string>
     <string name="landing_intro_edit">Ste našli še zadnjo napako v dokumentu, ki jo želite popraviti? Sedaj podpira tudi urejanje!</string>
-    <string name="landing_intro_open_all">Ta program se registrira, da privzeto odpre vse vrste datotek, da lahko podpira programe, kot je \"Samsung My Files\". Če vam ta značilnost povzroča težave, jo lahko tukaj izklopite.</string>
+    <string name="landing_intro_open_all">Ta program se registrira, da privzeto odpre vse vrste datotek, da lahko podpira programe, kot je \"Samsung Moje datoteke\". Če vam ta značilnost povzroča težave, jo lahko tukaj izklopite.</string>
     <string name="tts_status_reading">Branje …</string>
     <string name="tts_status_initializing">Začenjanje TTS-a …</string>
     <string name="tts_status_ready">Pripravljen!</string>
@@ -68,6 +68,16 @@
     <string name="reopen_chooser_title">Odpri z drugim nameščenim programom na napravi:</string>
     <string-array name="dialog_remove_ads_options">
         <item>Odstrani oglase za vedno</item>
+        <item>Remove ads for a month</item>
         <item>Začasno odstrani oglase</item>
     </string-array>
+    <!--  iOS -->
+    <string name="ok">V redu</string>
+    <string name="unsaved_changes">Spremembe niso shranjene!</string>
+    <string name="save_now">Shrani jih zdaj?</string>
+    <string name="yes">Da</string>
+    <string name="discard_changes">Zavrzi spremembe</string>
+    <string name="cancel">Prekliči</string>
+    <string name="error">Napaka</string>
+    <string name="back_to_documents">Nazaj v dokumente</string>
 </resources>

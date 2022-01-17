@@ -1,5 +1,3 @@
-package at.tomtasche.reader.ui;
-
 /*
  * Copyright (C) 2010 The Android Open Source Project
  *
@@ -16,12 +14,12 @@ package at.tomtasche.reader.ui;
  * limitations under the License.
  */
 
-import android.annotation.TargetApi;
+package at.tomtasche.reader.ui;
+
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.os.Build;
 import android.text.Editable;
 import android.text.Selection;
 import android.text.Spannable;
@@ -32,16 +30,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
-import android.webkit.WebView.FindListener;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.appcompat.view.ActionMode;
 import at.tomtasche.reader.R;
 
-@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class FindActionModeCallback implements ActionMode.Callback, TextWatcher {
+// https://github.com/aosp-mirror/platform_frameworks_base/blob/a8b1b1a2e62bcca18f52ed31549c93d43728d152/core/java/android/webkit/FindActionModeCallback.java
+public class FindActionModeCallback implements ActionMode.Callback, TextWatcher,
+        View.OnClickListener, WebView.FindListener {
     private View mCustomView;
     private EditText mEditText;
+    private TextView mMatches;
     private WebView mWebView;
     private InputMethodManager mInput;
     private Resources mResources;
@@ -53,23 +53,25 @@ public class FindActionModeCallback implements ActionMode.Callback, TextWatcher 
     public FindActionModeCallback(Context context) {
         mCustomView = LayoutInflater.from(context).inflate(
                 R.layout.webview_find, null);
-        mEditText = (EditText) mCustomView.findViewById(R.id.edit);
-        // mEditText.setCustomSelectionActionModeCallback(new NoAction());
+        mEditText = (EditText) mCustomView.findViewById(
+                R.id.edit);
+        mEditText.setOnClickListener(this);
         setText("");
-        mInput = (InputMethodManager) context
-                .getSystemService(Context.INPUT_METHOD_SERVICE);
+        mMatches = (TextView) mCustomView.findViewById(
+                R.id.matches);
+        mInput = context.getSystemService(InputMethodManager.class);
         mResources = context.getResources();
     }
 
-    void finish() {
+    public void finish() {
         mActionMode.finish();
     }
 
-    /*
-     * Place text in the text field so it can be searched for. Need to press the
-     * find next or find previous button to find all of the matches.
+    /**
+     * Place text in the text field so it can be searched for.  Need to press
+     * the find next or find previous button to find all of the matches.
      */
-    void setText(String text) {
+    public void setText(String text) {
         mEditText.setText(text);
         Spannable span = (Spannable) mEditText.getText();
         int length = span.length();
@@ -83,9 +85,10 @@ public class FindActionModeCallback implements ActionMode.Callback, TextWatcher 
         mMatchesFound = false;
     }
 
-    /*
-     * Set the WebView to search. Must be non null, and set before calling
-     * startActionMode.
+    /**
+     * Set the WebView to search.
+     *
+     * @param webView an implementation of WebView
      */
     public void setWebView(WebView webView) {
         if (null == webView) {
@@ -93,22 +96,21 @@ public class FindActionModeCallback implements ActionMode.Callback, TextWatcher 
                     + "FindActionModeCallback cannot be null");
         }
         mWebView = webView;
-
-        mWebView.setFindListener(new FindListener() {
-
-            @Override
-            public void onFindResultReceived(int activeMatchOrdinal,
-                                             int numberOfMatches, boolean isDoneCounting) {
-                mNumberOfMatches = numberOfMatches;
-            }
-        });
+        mWebView.setFindListener(this);
     }
 
-    /*
+    @Override
+    public void onFindResultReceived(int activeMatchOrdinal, int numberOfMatches,
+                                     boolean isDoneCounting) {
+        if (isDoneCounting) {
+            updateMatchCount(activeMatchOrdinal, numberOfMatches, numberOfMatches == 0);
+        }
+    }
+
+    /**
      * Move the highlight to the next match.
-     *
-     * @param next If true, find the next match further down in the document. If
-     * false, find the previous match, up in the document.
+     * @param next If {@code true}, find the next match further down in the document.
+     *             If {@code false}, find the previous match, up in the document.
      */
     private void findNext(boolean next) {
         if (mWebView == null) {
@@ -127,51 +129,71 @@ public class FindActionModeCallback implements ActionMode.Callback, TextWatcher 
         mWebView.findNext(next);
     }
 
-    /*
+    /**
      * Highlight all the instances of the string from mEditText in mWebView.
      */
-    void findAll() {
+    public void findAll() {
         if (mWebView == null) {
             throw new AssertionError(
                     "No WebView for FindActionModeCallback::findAll");
         }
         CharSequence find = mEditText.getText();
-        if (find == null || 0 == find.length()) {
+        if (0 == find.length()) {
             mWebView.clearMatches();
+            mMatches.setVisibility(View.GONE);
             mMatchesFound = false;
         } else {
             mMatchesFound = true;
+            mMatches.setVisibility(View.INVISIBLE);
             mNumberOfMatches = 0;
             mWebView.findAllAsync(find.toString());
         }
     }
 
     public void showSoftInput() {
-        // mInput.startGettingWindowFocus(mEditText.getRootView());
-        // mInput.focusIn(mEditText);
-        mInput.showSoftInput(mEditText, 0);
+        if (mEditText.requestFocus()) {
+            mInput.showSoftInput(mEditText, 0);
+        }
     }
 
-    public void updateMatchCount(int matchIndex, int matchCount,
-                                 boolean isEmptyFind) {
+    public void updateMatchCount(int matchIndex, int matchCount, boolean isEmptyFind) {
         if (!isEmptyFind) {
             mNumberOfMatches = matchCount;
             mActiveMatchIndex = matchIndex;
         } else {
+            mMatches.setVisibility(View.GONE);
             mNumberOfMatches = 0;
         }
+    }
+
+    // OnClickListener implementation
+
+    @Override
+    public void onClick(View v) {
+        findNext(true);
     }
 
     // ActionMode.Callback implementation
 
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+        if (!mode.isUiFocusable()) {
+            // If the action mode we're running in is not focusable the user
+            // will not be able to type into the find on page field. This
+            // should only come up when we're running in a dialog which is
+            // already less than ideal; disable the option for now.
+            return false;
+        }
+
         mode.setCustomView(mCustomView);
-        mode.getMenuInflater().inflate(R.menu.webview_find, menu);
+        mode.getMenuInflater().inflate(R.menu.webview_find,
+                menu);
         mActionMode = mode;
         Editable edit = mEditText.getText();
         Selection.setSelection(edit, edit.length());
+        mMatches.setVisibility(View.GONE);
         mMatchesFound = false;
+        mMatches.setText("0");
         mEditText.requestFocus();
         return true;
     }
@@ -179,12 +201,14 @@ public class FindActionModeCallback implements ActionMode.Callback, TextWatcher 
     @Override
     public void onDestroyActionMode(ActionMode mode) {
         mActionMode = null;
-        // mWebView.notifyFindDialogDismissed();
+        mWebView.setFindListener(null);
         mInput.hideSoftInputFromWindow(mWebView.getWindowToken(), 0);
     }
 
     @Override
     public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+        showSoftInput();
+
         return false;
     }
 
@@ -195,7 +219,7 @@ public class FindActionModeCallback implements ActionMode.Callback, TextWatcher 
                     "No WebView for FindActionModeCallback::onActionItemClicked");
         }
         mInput.hideSoftInputFromWindow(mWebView.getWindowToken(), 0);
-        switch (item.getItemId()) {
+        switch(item.getItemId()) {
             case R.id.find_prev:
                 findNext(false);
                 break;
@@ -211,24 +235,28 @@ public class FindActionModeCallback implements ActionMode.Callback, TextWatcher 
     // TextWatcher implementation
 
     @Override
-    public void beforeTextChanged(CharSequence s, int start, int count,
+    public void beforeTextChanged(CharSequence s,
+                                  int start,
+                                  int count,
                                   int after) {
-        // Does nothing. Needed to implement TextWatcher.
+        // Does nothing.  Needed to implement TextWatcher.
     }
 
     @Override
-    public void onTextChanged(CharSequence s, int start, int before, int count) {
+    public void onTextChanged(CharSequence s,
+                              int start,
+                              int before,
+                              int count) {
         findAll();
     }
 
     @Override
     public void afterTextChanged(Editable s) {
-        // Does nothing. Needed to implement TextWatcher.
+        // Does nothing.  Needed to implement TextWatcher.
     }
 
     private Rect mGlobalVisibleRect = new Rect();
     private Point mGlobalVisibleOffset = new Point();
-
     public int getActionModeGlobalBottom() {
         if (mActionMode == null) {
             return 0;

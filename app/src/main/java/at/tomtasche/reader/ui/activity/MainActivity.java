@@ -21,33 +21,34 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
-import android.widget.Switch;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.kobakei.ratethisapp.RateThisApp;
+import com.nononsenseapps.filepicker.FilePickerActivity;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
-import at.tomtasche.reader.BuildConfig;
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.background.AndroidFileCache;
-import at.tomtasche.reader.background.KitKatPrinter;
+import at.tomtasche.reader.background.PrintingManager;
 import at.tomtasche.reader.nonfree.AdManager;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.BillingManager;
+import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.nonfree.HelpManager;
 import at.tomtasche.reader.ui.EditActionModeCallback;
@@ -77,12 +78,12 @@ public class MainActivity extends AppCompatActivity {
 
     protected static boolean IS_GOOGLE_ECOSYSTEM = true;
 
+    private static final String SAVED_KEY_LAST_CACHE_URI = "LAST_CACHE_URI";
     private static final boolean IS_TESTING = isTesting();
-    private static final boolean USE_PROPRIETARY_LIBRARIES = true;
     private static final int GOOGLE_REQUEST_CODE = 1993;
     private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
-    private static int PERMISSION_CODE = 1353;
-    private static int CREATE_CODE = 4213;
+    private static final int PERMISSION_CODE = 1353;
+    private static final int CREATE_CODE = 4213;
 
     private boolean didTriggerPermissionDialogAgain = false;
 
@@ -98,12 +99,18 @@ public class MainActivity extends AppCompatActivity {
     private EditActionModeCallback editActionMode;
 
     private CrashManager crashManager;
+    private ConfigManager configManager;
     private AnalyticsManager analyticsManager;
     private AdManager adManager;
     private BillingManager billingManager;
     private HelpManager helpManager;
+    private PrintingManager printingManager;
 
     private Runnable onPermissionRunnable;
+
+    private Uri lastUri;
+    private Uri loadOnStart;
+    private Uri lastSaveUri;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -122,56 +129,105 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.landing_intro_open).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                analyticsManager.report("intro_open");
+                findDocument();
+            }
+        });
+        findViewById(R.id.landing_open_fab).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                analyticsManager.report("fab_open");
                 findDocument();
             }
         });
 
+        printingManager = new PrintingManager();
         initializeProprietaryLibraries();
 
-        if (!IS_TESTING) {
-            showIntroActivity();
+        initializeCatchAllSwitch();
 
-            initializeRatingDialog();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            ComponentName filePickerActivity = new ComponentName(this, FilePickerActivity.class.getName());
+            toggleComponent(filePickerActivity, false);
         }
 
-        initializeCatchAllSwitch();
+        crashManager.log("onCreate");
+
+        documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
+
+        if (documentFragment != null && documentFragment.hasLastResult()) {
+            // nothing else to do
+
+            crashManager.log("onCreate nothing");
+        } else if (savedInstanceState != null && savedInstanceState.containsKey(SAVED_KEY_LAST_CACHE_URI)) {
+            loadOnStart = savedInstanceState.getParcelable(SAVED_KEY_LAST_CACHE_URI);
+
+            crashManager.log("onCreate loadOnStart");
+        } else if (documentFragment == null) {
+            crashManager.log("onCreate from background");
+
+            // app was started from another app, but make sure not to load it twice
+            // (i.e. after bringing app back from background)
+            if (getIntent().getData() != null) {
+                loadOnStart = getIntent().getData();
+
+                analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "other");
+            } else {
+                analyticsManager.setCurrentScreen(this, "screen_main");
+            }
+        } else {
+            crashManager.log("onCreate empty");
+
+            analyticsManager.setCurrentScreen(this, "screen_main");
+        }
+
+        final View content = findViewById(android.R.id.content);
+        content.getViewTreeObserver().addOnPreDrawListener(
+                new ViewTreeObserver.OnPreDrawListener() {
+                    @Override
+                    public boolean onPreDraw() {
+                        if (configManager.isLoaded()) {
+                            if (IS_TESTING) {
+                                return true;
+                            }
+
+                            Boolean isShowIntro = configManager.getBooleanConfig("show_intro");
+                            if (isShowIntro == null || isShowIntro) {
+                                showIntroActivityOnFirstStart();
+                            }
+
+                            content.getViewTreeObserver().removeOnPreDrawListener(this);
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                });
     }
 
-    private void initializeRatingDialog() {
-        if (!IS_GOOGLE_ECOSYSTEM) {
-            return;
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
+
+        if (documentFragment != null) {
+            landingContainer.setVisibility(View.GONE);
+            documentContainer.setVisibility(View.VISIBLE);
         }
 
-        // TODO: replace with something smarter like https://github.com/Angtrim/Android-Five-Stars-Library
+        crashManager.log("onStart");
 
-        RateThisApp.onCreate(this);
-        RateThisApp.setCallback(new RateThisApp.Callback() {
+        if (loadOnStart != null) {
+            loadUri(loadOnStart, false);
 
-            @Override
-            public void onYesClicked() {
-                analyticsManager.report("rating_yes");
-            }
-
-            @Override
-            public void onNoClicked() {
-                analyticsManager.report("rating_no");
-            }
-
-            @Override
-            public void onCancelClicked() {
-                analyticsManager.report("rating_cancel");
-            }
-        });
-
-        if (RateThisApp.shouldShowRateDialog()) {
-            analyticsManager.report("rating_show");
-            RateThisApp.showRateDialog(this);
+            loadOnStart = null;
         }
     }
 
     private void initializeCatchAllSwitch() {
-        ComponentName catchAllComponent = new ComponentName(this, BuildConfig.APPLICATION_ID + ".ui.activity.MainActivity.CATCH_ALL");
-        ComponentName strictCatchComponent = new ComponentName(this, BuildConfig.APPLICATION_ID + ".ui.activity.MainActivity.STRICT_CATCH");
+        ComponentName catchAllComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL");
+        ComponentName strictCatchComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH");
 
         boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(catchAllComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED && IS_GOOGLE_ECOSYSTEM;
 
@@ -179,11 +235,7 @@ public class MainActivity extends AppCompatActivity {
         toggleComponent(catchAllComponent, isCatchAllEnabled);
         toggleComponent(strictCatchComponent, !isCatchAllEnabled);
 
-        Switch catchAllSwitch = findViewById(R.id.landing_catch_all);
-        if (!IS_GOOGLE_ECOSYSTEM) {
-            LinearLayout parent = (LinearLayout) catchAllSwitch.getParent();
-            parent.setVisibility(View.GONE);
-        }
+        SwitchCompat catchAllSwitch = findViewById(R.id.landing_catch_all);
 
         catchAllSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -204,16 +256,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
 
-        // app was started from another app, but make sure not to load it twice
-        // (i.e. after bringing app back from background)
-        if (getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG) == null) {
-            analyticsManager.setCurrentScreen(this, "screen_main");
-
-            handleIntent(getIntent());
-        }
+        outState.putParcelable(SAVED_KEY_LAST_CACHE_URI, lastUri);
     }
 
     @Override
@@ -223,25 +269,12 @@ public class MainActivity extends AppCompatActivity {
         adManager.showGoogleAds();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
-
-        if (getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG) == null) {
-            // setCurrentScreen not ready to call before that
-            analyticsManager.setCurrentScreen(this, "screen_main");
-        }
-    }
-
-    private void showIntroActivity() {
+    private void showIntroActivityOnFirstStart() {
         SharedPreferences getPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         boolean wasIntroShown = getPrefs.getBoolean("introShown", false);
         if (!wasIntroShown) {
-            Intent intent = new Intent(MainActivity.this, IntroActivity.class);
-            startActivity(intent);
+            helpManager.show();
 
             SharedPreferences.Editor editor = getPrefs.edit();
             editor.putBoolean("introShown", true);
@@ -265,6 +298,12 @@ public class MainActivity extends AppCompatActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public boolean requestSave() {
+        if (lastSaveUri != null) {
+            documentFragment.save(lastSaveUri);
+
+            return true;
+        }
+
         try {
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -283,7 +322,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeProprietaryLibraries() {
-        if (USE_PROPRIETARY_LIBRARIES && IS_GOOGLE_ECOSYSTEM) {
+        boolean useProprietaryLibraries = !getResources().getBoolean(R.bool.DISABLE_TRACKING);
+
+        if (useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM) {
             GoogleApiAvailability googleApi = GoogleApiAvailability.getInstance();
             int googleAvailability = googleApi.isGooglePlayServicesAvailable(this);
             if (googleAvailability != ConnectionResult.SUCCESS) {
@@ -293,31 +334,28 @@ public class MainActivity extends AppCompatActivity {
         }
 
         crashManager = new CrashManager();
-        crashManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+        crashManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
         crashManager.initialize();
 
         analyticsManager = new AnalyticsManager();
-        analyticsManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+        analyticsManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
         analyticsManager.initialize(this);
 
-        adManager = new AdManager();
-        adManager.setEnabled(!IS_TESTING && USE_PROPRIETARY_LIBRARIES);
-        adManager.setAdContainer(adContainer);
-        adManager.setOnAdFailedCallback(new Runnable() {
+        configManager = new ConfigManager();
+        configManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
+        configManager.initialize();
 
-            @Override
-            public void run() {
-                offerPurchase();
-            }
-        });
-        adManager.initialize(this, analyticsManager, crashManager);
+        adManager = new AdManager();
+        adManager.setEnabled(!IS_TESTING && useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
+        adManager.setAdContainer(adContainer);
+        adManager.initialize(this, analyticsManager, crashManager, configManager);
 
         billingManager = new BillingManager();
-        billingManager.setEnabled(USE_PROPRIETARY_LIBRARIES && IS_GOOGLE_ECOSYSTEM);
+        billingManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
         billingManager.initialize(this, analyticsManager, adManager, crashManager);
 
         helpManager = new HelpManager();
-        helpManager.setEnabled(USE_PROPRIETARY_LIBRARIES);
+        helpManager.setEnabled(true);
         helpManager.initialize(this);
     }
 
@@ -325,11 +363,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
-        handleIntent(intent);
-    }
-
-    private void handleIntent(Intent intent) {
         if (intent.getData() != null) {
+            crashManager.log("onNewIntent loadUri");
+
             loadUri(intent.getData(), false);
 
             analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "other");
@@ -342,6 +378,10 @@ public class MainActivity extends AppCompatActivity {
 
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
+        if (!billingManager.isEnabled() || billingManager.hasPurchased()) {
+            menu.findItem(R.id.menu_remove_ads).setVisible(false);
+        }
+
         return true;
     }
 
@@ -352,8 +392,12 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == GOOGLE_REQUEST_CODE) {
             initializeProprietaryLibraries();
         } else if (requestCode == CREATE_CODE && intent != null) {
-            documentFragment.save(intent.getData());
+            lastSaveUri = intent.getData();
+
+            documentFragment.save(lastSaveUri);
         } else if (intent != null) {
+            crashManager.log("onActivityResult loadUri");
+
             Uri uri = intent.getData();
             if (requestCode == 42 && resultCode == Activity.RESULT_OK && uri != null) {
                 loadUri(uri, true);
@@ -362,6 +406,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void loadUri(Uri uri, boolean showAd) {
+        lastSaveUri = null;
+        lastUri = uri;
+
         Runnable onPermission = new Runnable() {
             @Override
             public void run() {
@@ -372,10 +419,6 @@ public class MainActivity extends AppCompatActivity {
         boolean hasPermission = requestPermission(Manifest.permission.READ_EXTERNAL_STORAGE, onPermission);
         if (!hasPermission) {
             return;
-        }
-
-        if (showAd) {
-            adManager.showInterstitial();
         }
 
         if (documentFragment == null) {
@@ -389,7 +432,7 @@ public class MainActivity extends AppCompatActivity {
                 getSupportFragmentManager()
                         .beginTransaction()
                         .replace(R.id.document_container, documentFragment, DOCUMENT_FRAGMENT_TAG)
-                        .commit();
+                        .commitNow();
             }
         }
 
@@ -405,20 +448,21 @@ public class MainActivity extends AppCompatActivity {
                 // some providers dont support persisted permissions
                 crashManager.log(e);
 
-                if (!uri.toString().startsWith("content://at.tomtasche.reader")) {
-                    isPersistentUri = false;
-                }
+                isPersistentUri = false;
             }
         }
 
-        // delay loadUri to allow for DocumentFragment.onActivityCreated to be called
-        boolean finalIsPersistentUri = isPersistentUri;
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                documentFragment.loadUri(uri, finalIsPersistentUri);
-            }
-        }, 250);
+        documentFragment.loadUri(uri, isPersistentUri);
+
+        if (showAd) {
+            // delay until all UI work has completed for loading the fragment
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    adManager.showInterstitial();
+                }
+            });
+        }
     }
 
     @Override
@@ -498,13 +542,13 @@ public class MainActivity extends AppCompatActivity {
                 break;
             }
             case R.id.menu_print: {
+                // TODO: remove as printing is offered on share too!
+
                 analyticsManager.report("menu_print");
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    KitKatPrinter.print(this, documentFragment.getPageView());
-                } else {
-                    SnackbarHelper.show(this, R.string.crouton_print_unavailable, null, true, true);
-                }
+                documentFragment.getPageView().toggleDarkMode(false);
+
+                printingManager.print(this, documentFragment.getPageView());
 
                 break;
             }
@@ -524,7 +568,7 @@ public class MainActivity extends AppCompatActivity {
 
                 break;
             }
-            case R.id.edit_help: {
+            case R.id.menu_help: {
                 helpManager.show();
 
                 break;
@@ -547,6 +591,8 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void run() {
+                analyticsManager.report(FirebaseAnalytics.Event.PRESENT_OFFER + "_clicked");
+
                 buyAdRemoval();
             }
         }, true, false);
@@ -614,38 +660,51 @@ public class MainActivity extends AppCompatActivity {
 
         final boolean isBillingEnabled = billingManager.isEnabled();
 
+        boolean isShowSubscription = configManager.getBooleanConfig("show_subscription");
+        boolean isShowPurchase = !configManager.getBooleanConfig("do_not_show_purchase");
+
         String[] optionStrings = getResources().getStringArray(R.array.dialog_remove_ads_options);
-        if (!isBillingEnabled) {
-            optionStrings = new String[]{optionStrings[1]};
+
+        List<String> optionStringList = new LinkedList<>();
+        List<String> productStringList = new LinkedList<>();
+
+        if (isBillingEnabled) {
+            if (isShowSubscription) {
+                optionStringList.add(optionStrings[1]);
+                productStringList.add(BillingManager.BILLING_PRODUCT_SUBSCRIPTION);
+            }
+            if (isShowPurchase) {
+                optionStringList.add(optionStrings[0]);
+                productStringList.add(BillingManager.BILLING_PRODUCT_PURCHASE);
+            }
         }
+
+        optionStringList.add(optionStrings[2]);
+
+        optionStrings = optionStringList.toArray(new String[optionStringList.size()]);
 
         builder.setItems(optionStrings, new OnClickListener() {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String product;
-
                 if (!isBillingEnabled) {
                     which = 99;
                 }
 
                 analyticsManager.report(FirebaseAnalytics.Event.ADD_TO_CART);
 
-                switch (which) {
-                    case 0:
-                        product = BillingManager.BILLING_PRODUCT_FOREVER;
+                String product;
+                if (which < productStringList.size()) {
+                    product = productStringList.get(which);
+                } else {
+                    dialog.dismiss();
 
-                        break;
+                    adManager.showVideo();
 
-                    default:
-                        dialog.dismiss();
-
-                        adManager.showVideo();
-
-                        return;
+                    return;
                 }
 
-                billingManager.startPurchase(MainActivity.this);
+                billingManager.startPurchase(MainActivity.this, product);
 
                 dialog.dismiss();
             }
@@ -693,14 +752,22 @@ public class MainActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
         PackageManager pm = getPackageManager();
-        final List<ResolveInfo> targets = pm.queryIntentActivities(intent, 0);
-        int size = targets.size() + 1;
-        String[] targetNames = new String[size];
-        for (int i = 0; i < targets.size(); i++) {
-            targetNames[i] = targets.get(i).loadLabel(pm).toString();
+        List<ResolveInfo> allTargets = pm.queryIntentActivities(intent, 0);
+        List<ResolveInfo> targetList = new LinkedList<>();
+        for (int i = 0; i < allTargets.size(); i++) {
+            ResolveInfo target = allTargets.get(i);
+            if (!target.activityInfo.packageName.equals(getPackageName()) && !target.activityInfo.exported) {
+                continue;
+            }
+
+            targetList.add(target);
         }
 
-        targetNames[size - 1] = getString(R.string.menu_recent);
+        String[] targetNames = new String[targetList.size() + 1];
+        for (int i = 0; i < targetList.size(); i++) {
+            targetNames[i] = targetList.get(i).loadLabel(pm).toString();
+        }
+        targetNames[targetNames.length - 1] = getString(R.string.menu_recent);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dialog_choose_filemanager);
@@ -708,13 +775,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (which == size - 1) {
+                if (which == targetNames.length - 1) {
                     showRecent();
 
                     return;
                 }
 
-                ResolveInfo target = targets.get(which);
+                ResolveInfo target = targetList.get(which);
                 if (target == null) {
                     return;
                 }
@@ -745,16 +812,17 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onPause() {
-        super.onPause();
-
         if (ttsActionMode != null) {
             ttsActionMode.stop();
         }
+
+        super.onPause();
     }
 
     @Override
     protected void onStop() {
         billingManager.close();
+        printingManager.close();
 
         super.onStop();
     }
@@ -782,5 +850,9 @@ public class MainActivity extends AppCompatActivity {
 
     public AnalyticsManager getAnalyticsManager() {
         return analyticsManager;
+    }
+
+    public ConfigManager getConfigManager() {
+        return configManager;
     }
 }

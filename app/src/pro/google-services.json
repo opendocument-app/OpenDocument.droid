@@ -1,0 +1,110 @@
+{
+  "project_info": {
+    "project_number": "1093041624247",
+    "firebase_url": "https://admob-app-id-9025061963.firebaseio.com",
+    "project_id": "admob-app-id-9025061963",
+    "storage_bucket": "admob-app-id-9025061963.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1093041624247:android:6ee3f7722637d69e",
+        "android_client_info": {
+          "package_name": "at.tomtasche.reader"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1093041624247-r99k5n37emneuo117a7mhm8b7hk6eh77.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "at.tomtasche.reader",
+            "certificate_hash": "ce886552f406efbd45a7408375422af74f18412b"
+          }
+        },
+        {
+          "client_id": "1093041624247-jl8grfrvqrjf5d7hg9b9gvhq3tkcg936.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "at.tomtasche.reader",
+            "certificate_hash": "251d73b707fdaaaae180a52864d4892ace7025a1"
+          }
+        },
+        {
+          "client_id": "1093041624247-nnsfmjhf0j1klsfadraatuedk8b8k8it.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "at.tomtasche.reader",
+            "certificate_hash": "e501cb13981ea890ad3f276b8c53539401664d6e"
+          }
+        },
+        {
+          "client_id": "1093041624247-ma9ptn5dtg2n9d80r6bkmpgjnn7os4g2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDitZgQ9LSQaWVpNngpFdeM9F74ecGCPVs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1093041624247-ma9ptn5dtg2n9d80r6bkmpgjnn7os4g2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1093041624247-3mpspg70slchbpn1vut1h5g884mkt778.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "at.tomtasche.reader.lite1",
+                "app_store_id": "1510195065"
+              }
+            }
+          ]
+        }
+      },
+      "admob_app_id": "ca-app-pub-8161473686436957~9025061963"
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1093041624247:android:171236dad185bfad136932",
+        "android_client_info": {
+          "package_name": "at.tomtasche.reader.pro"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1093041624247-ma9ptn5dtg2n9d80r6bkmpgjnn7os4g2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDitZgQ9LSQaWVpNngpFdeM9F74ecGCPVs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1093041624247-ma9ptn5dtg2n9d80r6bkmpgjnn7os4g2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1093041624247-3mpspg70slchbpn1vut1h5g884mkt778.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "at.tomtasche.reader.lite1",
+                "app_store_id": "1510195065"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

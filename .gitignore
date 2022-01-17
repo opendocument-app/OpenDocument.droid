@@ -56,7 +56,13 @@ freeline/
 freeline_project_description.json
 
 app/release/
+app/pro/release/
+app/lite/release/
 
 *.DS_Store
 
 .cxx/
+
+fastlane/report.xml
+
+.idea/

@@ -43,8 +43,8 @@ public class PdfLoader extends FileLoader {
         result.loaderType = type;
 
         try {
-            File cacheFile = AndroidFileCache.getCacheFile(context);
-            File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
+            File cacheFile = AndroidFileCache.getCacheFile(context, options.cacheUri);
+            File cacheDirectory = AndroidFileCache.getCacheDirectory(cacheFile);
 
             pdf2htmlEX pdfConverter = new pdf2htmlEX(context).setInputPDF(cacheFile);
             pdfConverter.setOutline(false).setBackgroundFormat("jpg").setDRM(false);

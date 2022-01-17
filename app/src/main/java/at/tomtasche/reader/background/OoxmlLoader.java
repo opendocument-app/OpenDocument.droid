@@ -39,49 +39,7 @@ public class OoxmlLoader extends FileLoader {
         result.loaderType = type;
 
         try {
-            File cachedFile = AndroidFileCache.getCacheFile(context);
-
-            if (lastCore != null) {
-                lastCore.close();
-            }
-
-            CoreWrapper core = new CoreWrapper();
-            try {
-                core.initialize();
-
-                lastCore = core;
-            } catch (Throwable e) {
-                crashManager.log(e);
-            }
-
-            File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
-
-            File fakeHtmlFile = new File(cacheDirectory, "ooxml");
-
-            CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
-            coreOptions.inputPath = cachedFile.getPath();
-            coreOptions.outputPath = fakeHtmlFile.getPath();
-            coreOptions.password = options.password;
-            coreOptions.editable = options.translatable;
-            coreOptions.ooxml = true;
-
-            lastCoreOptions = coreOptions;
-
-            CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
-            if (coreResult.exception != null) {
-                throw coreResult.exception;
-            }
-
-            // fileType could potentially change after decrypting DOCX successfully for the first time
-            //  (not reported as DOCX prior)
-            options.fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreResult.extension);
-
-            for (int i = 0; i < coreResult.pageNames.size(); i++) {
-                File entryFile = new File(fakeHtmlFile.getPath() + i + ".html");
-
-                result.partTitles.add(coreResult.pageNames.get(i));
-                result.partUris.add(Uri.fromFile(entryFile));
-            }
+            translate(options, result);
 
             callOnSuccess(result);
         } catch (Throwable e) {
@@ -93,20 +51,82 @@ public class OoxmlLoader extends FileLoader {
         }
     }
 
+    private void translate(Options options, Result result) throws Exception {
+        File cacheFile = AndroidFileCache.getCacheFile(context, options.cacheUri);
+
+        if (lastCore != null) {
+            lastCore.close();
+        }
+
+        CoreWrapper core = new CoreWrapper();
+        try {
+            core.initialize();
+
+            lastCore = core;
+        } catch (Throwable e) {
+            crashManager.log(e);
+        }
+
+        File cacheDirectory = AndroidFileCache.getCacheDirectory(cacheFile);
+
+        CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
+        coreOptions.inputPath = cacheFile.getPath();
+        coreOptions.outputPath = cacheDirectory.getPath();
+        coreOptions.password = options.password;
+        coreOptions.editable = options.translatable;
+        coreOptions.ooxml = true;
+
+        lastCoreOptions = coreOptions;
+
+        CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
+        if (coreResult.exception != null) {
+            throw coreResult.exception;
+        }
+
+        // fileType could potentially change after decrypting DOCX successfully for the first time
+        //  (not reported as DOCX prior)
+        options.fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreResult.extension);
+
+        for (int i = 0; i < coreResult.pagePaths.size(); i++) {
+            File entryFile = new File(coreResult.pagePaths.get(i));
+
+            result.partTitles.add(coreResult.pageNames.get(i));
+            result.partUris.add(Uri.fromFile(entryFile));
+        }
+    }
+
     @Override
-    public File retranslate(String htmlDiff) {
-        File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
-        File tempFilePrefix = new File(cacheDirectory, "retranslate");
+    public File retranslate(Options options, String htmlDiff) {
+        if (lastCore == null) {
+            // necessary if fragment was destroyed in the meanwhile - meaning the Loader is reinstantiated
+
+            Result result = new Result();
+            result.options = options;
+
+            try {
+                translate(options, result);
+            } catch (Exception e) {
+                crashManager.log(e);
+
+                return null;
+            }
+        }
+
+        File inputFile = new File(lastCoreOptions.inputPath);
+        File inputCacheDirectory = AndroidFileCache.getCacheDirectory(inputFile);
+        File tempFilePrefix = new File(inputCacheDirectory, "retranslate");
 
         lastCoreOptions.outputPath = tempFilePrefix.getPath();
 
-        CoreWrapper.CoreResult result = lastCore.backtranslate(lastCoreOptions, htmlDiff);
-        if (result.errorCode != 0) {
-            crashManager.log(new RuntimeException("could not retranslate file with error " + result.errorCode));
+        try {
+            CoreWrapper.CoreResult result = lastCore.backtranslate(lastCoreOptions, htmlDiff);
+
+            return new File(result.outputPath);
+        } catch (Throwable e) {
+            crashManager.log(e);
+
             return null;
         }
-
-        return new File(result.outputPath);
     }
 
     @Override

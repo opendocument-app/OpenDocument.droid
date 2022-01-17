@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        package="at.tomtasche.reader"
         android:installLocation="auto"
-        android:versionCode="132"
-        android:versionName="3.3.2"
+        android:versionCode="166"
+        android:versionName="3.14"
+        package="at.tomtasche.reader"
         tools:ignore="GoogleAppIndexingWarning">
-
-    <uses-permission
-            android:name="android.permission.CAMERA"
-            tools:node="remove" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -31,16 +27,34 @@
             android:smallScreens="true"
             android:xlargeScreens="true" />
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+
+        <!-- to support finding files -->
+        <intent>
+            <action android:name="android.intent.action.GET_CONTENT" />
+            <data android:mimeType="application/*" />
+        </intent>
+
+        <intent>
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:mimeType="*/*" />
+        </intent>
+    </queries>
+
     <application
             android:allowBackup="true"
             android:hardwareAccelerated="true"
-            android:icon="@mipmap/icon"
-            android:roundIcon="@mipmap/icon_round"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
             android:label="@string/app_title"
             android:theme="@style/MainTheme"
             android:name="androidx.multidex.MultiDexApplication"
             tools:replace="android:label"
-            android:requestLegacyExternalStorage="true">
+            android:requestLegacyExternalStorage="true"
+            android:allowNativeHeapPointerTagging="false">
 
         <meta-data
                 android:name="com.google.android.gms.version"
@@ -54,9 +68,10 @@
                 android:required="false" />
 
         <activity
-                android:name=".ui.activity.MainActivity"
+                android:name="at.tomtasche.reader.ui.activity.MainActivity"
                 android:label="@string/app_title"
-                android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize">
+                android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+                android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -65,9 +80,10 @@
         </activity>
 
         <activity-alias
-                android:name=".ui.activity.MainActivity.STRICT_CATCH"
+                android:name="at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH"
                 android:label="@string/app_title"
-                android:targetActivity=".ui.activity.MainActivity"
+                android:targetActivity="at.tomtasche.reader.ui.activity.MainActivity"
+                android:exported="true"
                 tools:ignore="AppLinkUrlError">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -186,9 +202,10 @@
         </activity-alias>
 
         <activity-alias
-                android:name=".ui.activity.MainActivity.CATCH_ALL"
+                android:name="at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL"
                 android:label="@string/app_title"
-                android:targetActivity=".ui.activity.MainActivity"
+                android:targetActivity="at.tomtasche.reader.ui.activity.MainActivity"
+                android:exported="true"
                 tools:ignore="AppLinkUrlError">
             <!-- necessary for Samsung "My Files" - https://stackoverflow.com/a/52624829/198996 -->
             <!-- Matches intents by file extension -->
@@ -335,8 +352,8 @@
         <activity
                 android:name="com.nononsenseapps.filepicker.FilePickerActivity"
                 android:enabled="@bool/filepicker_enabled"
-                android:icon="@mipmap/icon"
-                android:roundIcon="@mipmap/icon_round"
+                android:icon="@mipmap/ic_launcher"
+                android:roundIcon="@mipmap/ic_launcher_round"
                 android:excludeFromRecents="true"
                 android:exported="false"
                 android:label="@string/dialog_title_choose_file"
@@ -359,9 +376,9 @@
         </activity>
 
         <activity
-                android:name=".ui.activity.IntroActivity"
-                android:icon="@mipmap/icon"
-                android:roundIcon="@mipmap/icon_round"
+                android:name="at.tomtasche.reader.ui.activity.IntroActivity"
+                android:icon="@mipmap/ic_launcher"
+                android:roundIcon="@mipmap/ic_launcher_round"
                 android:excludeFromRecents="true"
                 android:exported="false"
                 android:label="@string/app_title"
@@ -370,11 +387,10 @@
         <activity
                 android:name="com.google.android.gms.ads.AdActivity"
                 android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
-                tools:replace="android:theme" />
+                tools:replace="android:theme"/>
 
         <provider
                 android:name="androidx.core.content.FileProvider"
-                android:enabled="@bool/filepicker_enabled"
                 android:authorities="${applicationId}.provider"
                 android:exported="false"
                 android:grantUriPermissions="true">

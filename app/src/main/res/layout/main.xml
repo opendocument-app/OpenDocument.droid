@@ -74,7 +74,7 @@
             <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="0.7"
+                    android:layout_weight="0.8"
                     android:gravity="center_vertical"
                     android:lineSpacingMultiplier="1.2"
                     android:text="@string/landing_intro_view" />
@@ -100,7 +100,7 @@
             <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="0.7"
+                    android:layout_weight="0.8"
                     android:gravity="center_vertical"
                     android:lineSpacingMultiplier="1.2"
                     android:text="@string/landing_intro_search" />
@@ -126,7 +126,7 @@
             <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="0.7"
+                    android:layout_weight="0.8"
                     android:gravity="center_vertical"
                     android:lineSpacingMultiplier="1.2"
                     android:text="@string/landing_intro_edit" />
@@ -141,7 +141,7 @@
                 android:orientation="horizontal"
                 android:weightSum="1">
 
-            <Switch
+            <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/landing_catch_all"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -157,13 +157,22 @@
             <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="0.7"
+                    android:layout_weight="0.8"
                     android:gravity="center_vertical"
                     android:lineSpacingMultiplier="1.0"
+                    android:text="@string/landing_intro_open_all"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textSize="12sp"
-                    android:text="@string/landing_intro_open_all" />
+                    android:textSize="12sp" />
         </LinearLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/landing_open_fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|bottom"
+                app:srcCompat="@drawable/ic_folder_open"
+                android:layout_margin="16dp"
+                tools:ignore="ContentDescription" />
     </LinearLayout>
 
     <FrameLayout

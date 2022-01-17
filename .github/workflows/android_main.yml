@@ -1,21 +1,94 @@
-name: build
+name: OpenDocument-Reader-Android
 
 on: [push]
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Install ninja
+    - name: checkout
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.PAT_TOMTASCHE }}
+        submodules: true
+
+    - name: ninja
       run: sudo apt-get install -y ninja-build
-    - name: Checkout submodule
-      run: git submodule update --init --recursive
-    - name: set up JDK 1.8
+    - name: java
       uses: actions/setup-java@v1
       with:
-        java-version: 1.8
-    - name: Build with Gradle
-      run: ./gradlew clean assembleDebug
+        java-version: 11
+
+    - name: set up python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: install python dependencies
+      run: |
+        python -m pip install --upgrade pip conan
+    - name: conan revisions
+      run: conan config set general.revisions_enabled=1
+    - name: conan repo
+      run: conan remote add odr https://odr.jfrog.io/artifactory/api/conan/odr-conan
+
+    - name: build
+      run: ./gradlew clean assembleDebug --scan --stacktrace
+
+  test:
+    runs-on: macos-11
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.PAT_TOMTASCHE }}
+        submodules: true
+
+    - name: java
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
+
+    - name: brew
+      run: ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null
+    - name: fix ninja install
+      run: rm '/usr/local/bin/2to3'
+    - name: ninja
+      run: brew install ninja
+    # https://stackoverflow.com/a/57758679/198996
+    - name: bundler
+      run: gem install bundler:1.17.3
+    - name: fastlane
+      run: bundle install
+
+    - name: pip
+      run: python3 -m ensurepip
+    - name: conan
+      run: pip3 install conan
+    - name: conan revisions
+      run: conan config set general.revisions_enabled=1
+    - name: conan repo
+      run: conan remote add odr https://odr.jfrog.io/artifactory/api/conan/odr-conan
+
+    - name: run tests
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 29
+        target: google_apis
+        arch: x86_64
+        script: |
+          adb logcat > logcat.txt &
+          bundle exec fastlane tests
+
+    - uses: actions/upload-artifact@v2
+      if: ${{ always() }}
+      with:
+        name: test-report
+        path: app/build/reports/androidTests/connected/flavors/*DebugAndroidTest
+
+    - uses: actions/upload-artifact@v2
+      if: ${{ failure() }}
+      with:
+        name: test-log
+        path: logcat.txt

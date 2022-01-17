@@ -6,18 +6,24 @@ import android.webkit.MimeTypeMap;
 
 import java.io.File;
 
+import at.tomtasche.reader.nonfree.ConfigManager;
+
 public class OdfLoader extends FileLoader {
+
+    private ConfigManager configManager;
 
     private CoreWrapper lastCore;
     private CoreWrapper.CoreOptions lastCoreOptions;
 
-    public OdfLoader(Context context) {
+    public OdfLoader(Context context, ConfigManager configManager) {
         super(context, LoaderType.ODF);
+
+        this.configManager = configManager;
     }
 
     @Override
     public boolean isSupported(Options options) {
-        return options.fileType.startsWith("application/vnd.oasis.opendocument") || options.fileType.startsWith("application/x-vnd.oasis.opendocument");
+        return options.fileType.startsWith("application/vnd.oasis.opendocument") || options.fileType.startsWith("application/x-vnd.oasis.opendocument") || options.fileType.startsWith("application/vnd.oasis.opendocument.text-master");
     }
 
     @Override
@@ -27,55 +33,7 @@ public class OdfLoader extends FileLoader {
         result.loaderType = type;
 
         try {
-            File cachedFile = AndroidFileCache.getCacheFile(context);
-
-            if (lastCore != null) {
-                lastCore.close();
-            }
-
-            CoreWrapper core = new CoreWrapper();
-            try {
-                core.initialize();
-
-                lastCore = core;
-            } catch (Throwable e) {
-                crashManager.log(e);
-            }
-
-            File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
-
-            File fakeHtmlFile = new File(cacheDirectory, "odf");
-
-            CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
-            coreOptions.inputPath = cachedFile.getPath();
-            coreOptions.outputPath = fakeHtmlFile.getPath();
-            coreOptions.password = options.password;
-            coreOptions.editable = options.translatable;
-            coreOptions.ooxml = false;
-
-            lastCoreOptions = coreOptions;
-
-            CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
-
-            String coreExtension = coreResult.extension;
-            // "unnamed" refers to default of Meta::typeToString
-            if (coreExtension != null && !coreExtension.equals("unnamed")) {
-                String fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreExtension);
-                if (fileType != null) {
-                    options.fileType = fileType;
-                }
-            }
-
-            if (coreResult.exception != null) {
-                throw coreResult.exception;
-            }
-
-            for (int i = 0; i < coreResult.pageNames.size(); i++) {
-                File entryFile = new File(fakeHtmlFile.getPath() + i + ".html");
-
-                result.partTitles.add(coreResult.pageNames.get(i));
-                result.partUris.add(Uri.fromFile(entryFile));
-            }
+            translate(options, result);
 
             callOnSuccess(result);
         } catch (Throwable e) {
@@ -87,10 +45,84 @@ public class OdfLoader extends FileLoader {
         }
     }
 
+    private void translate(Options options, Result result) throws Exception {
+        File cachedFile = AndroidFileCache.getCacheFile(context, options.cacheUri);
+
+        if (lastCore != null) {
+            lastCore.close();
+            lastCore = null;
+        }
+
+        CoreWrapper core = new CoreWrapper();
+        try {
+            core.initialize();
+
+            lastCore = core;
+        } catch (Throwable e) {
+            crashManager.log(e);
+        }
+
+        File cacheDirectory = AndroidFileCache.getCacheDirectory(cachedFile);
+
+        CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
+        coreOptions.inputPath = cachedFile.getPath();
+        coreOptions.outputPath = cacheDirectory.getPath();
+        coreOptions.password = options.password;
+        coreOptions.editable = options.translatable;
+        coreOptions.ooxml = false;
+
+        Boolean usePaging = configManager.getBooleanConfig("use_paging");
+        if (usePaging == null || usePaging) {
+            coreOptions.paging = true;
+        }
+
+        lastCoreOptions = coreOptions;
+
+        CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
+
+        String coreExtension = coreResult.extension;
+        // "unnamed" refers to default of Meta::typeToString
+        if (coreExtension != null && !coreExtension.equals("unnamed")) {
+            options.fileExtension = coreExtension;
+
+            String fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreExtension);
+            if (fileType != null) {
+                options.fileType = fileType;
+            }
+        }
+
+        if (coreResult.exception != null) {
+            throw coreResult.exception;
+        }
+
+        for (int i = 0; i < coreResult.pagePaths.size(); i++) {
+            File entryFile = new File(coreResult.pagePaths.get(i));
+
+            result.partTitles.add(coreResult.pageNames.get(i));
+            result.partUris.add(Uri.fromFile(entryFile));
+        }
+    }
+
     @Override
-    public File retranslate(String htmlDiff) {
-        File cacheDirectory = AndroidFileCache.getCacheDirectory(context);
-        File tempFilePrefix = new File(cacheDirectory, "retranslate");
+    public File retranslate(Options options, String htmlDiff) {
+        if (lastCore == null) {
+            // necessary if fragment was destroyed in the meanwhile - meaning the Loader is reinstantiated
+
+            Result result = new Result();
+            result.options = options;
+
+            try {
+                translate(options, result);
+            } catch (Exception e) {
+                crashManager.log(e);
+
+                return null;
+            }
+        }
+
+        File inputFile = new File(lastCoreOptions.inputPath);
+        File inputCacheDirectory = AndroidFileCache.getCacheDirectory(inputFile);
+        File tempFilePrefix = new File(inputCacheDirectory, "retranslate");
 
         lastCoreOptions.outputPath = tempFilePrefix.getPath();
 

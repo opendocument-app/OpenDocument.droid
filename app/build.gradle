@@ -1,15 +1,16 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.google.firebase.firebase-perf'
+apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
+apply plugin: 'com.google.firebase.firebase-perf'
 
 android {
-    compileSdkVersion 29
-    ndkVersion "21.1.6352462"
+    compileSdkVersion 31
+    ndkVersion "23.1.7779620"
 
     defaultConfig {
         applicationId "at.tomtasche.reader"
-        minSdkVersion 16
-        targetSdkVersion 29
+        minSdkVersion 19
+        targetSdkVersion 31
 
         testApplicationId "at.tomtasche.reader.test"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -19,9 +20,45 @@ android {
         vectorDrawables.useSupportLibrary true
 
         externalNativeBuild.cmake.targets "odr-core"
+        externalNativeBuild.cmake.arguments "-DANDROID_STL=c++_shared"
     }
 
     dexOptions.javaMaxHeapSize "4g"
+
+    flavorDimensions "default"
+
+    signingConfigs {
+        releasePro {
+            storeFile file("../../google_play.keystore")
+            storePassword "releaseme"
+            keyAlias "reader-pro"
+            keyPassword "releaseme"
+        }
+
+        releaseLite {
+            storeFile file("../../google_play.keystore")
+            storePassword "releaseme"
+            keyAlias "reader"
+            keyPassword "releaseme"
+        }
+    }
+
+    productFlavors {
+        lite {
+            signingConfig signingConfigs.releaseLite
+
+            resValue("bool", "DISABLE_TRACKING", "false")
+        }
+
+        pro {
+            applicationIdSuffix ".pro"
+            versionNameSuffix "-pro"
+
+            signingConfig signingConfigs.releasePro
+
+            resValue("bool", "DISABLE_TRACKING", "true")
+        }
+    }
 
     buildTypes {
         release {
@@ -30,6 +67,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.txt'
 
             firebaseCrashlytics.nativeSymbolUploadEnabled true
+            ndk.debugSymbolLevel = "full"
         }
     }
 
@@ -44,45 +82,48 @@ android {
 
     externalNativeBuild {
         cmake {
-            version "3.12.4+"
+            version "3.18.0+"
             path file('../CMakeLists.txt')
         }
     }
 }
 
 dependencies {
-    implementation 'com.google.firebase:firebase-storage:19.1.1'
-    implementation 'com.google.firebase:firebase-auth:19.3.1'
-    implementation 'com.google.firebase:firebase-ads:19.1.0'
-    implementation 'com.google.firebase:firebase-core:17.4.0'
-    implementation 'com.google.firebase:firebase-perf:19.0.7'
-    implementation 'com.google.firebase:firebase-crashlytics:17.0.0'
-    implementation 'com.google.firebase:firebase-crashlytics-ndk:17.0.0'
+    implementation platform('com.google.firebase:firebase-bom:29.0.2')
+    implementation 'com.google.firebase:firebase-storage'
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-perf'
+    implementation 'com.google.firebase:firebase-crashlytics-ndk'
+    implementation 'com.google.firebase:firebase-inappmessaging-display'
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-config'
 
-    implementation 'com.android.billingclient:billing:2.2.0'
+    implementation 'com.google.android.gms:play-services-ads:20.5.0'
+
+    implementation 'com.android.billingclient:billing:4.0.0'
+
+    implementation 'com.google.android.gms:play-services-ads:20.5.0'
+    implementation 'com.google.android.play:core:1.10.2'
 
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'androidx.core:core:1.2.0'
-    implementation 'com.google.android.material:material:1.1.0'
+    implementation 'androidx.appcompat:appcompat:1.4.0'
+    implementation 'androidx.core:core:1.7.0'
+    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'androidx.webkit:webkit:1.4.0'
 
     implementation 'com.github.AppIntro:AppIntro:5.1.0'
-
-    implementation('io.github.kobakei:ratethisapp:1.2.0') {
-        exclude group: 'com.google.android'
-        exclude group: 'com.android.support'
-    }
 
     implementation('com.nononsenseapps:filepicker:4.2.1', {
         exclude group: 'com.android.support'
     })
 
-    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.10'
+    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.12'
     implementation 'com.viliussutkus89:wvware-android:1.2.4'
     implementation 'com.github.huzongyao:AndroidMagic:v1.1.2'
 
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0-beta01'
-    androidTestImplementation 'androidx.test:rules:1.3.0-beta01'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    androidTestImplementation 'androidx.test:rules:1.4.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
 }
 
 apply plugin: 'com.google.gms.google-services'

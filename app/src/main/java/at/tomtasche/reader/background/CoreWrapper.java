@@ -5,19 +5,12 @@ import java.util.List;
 
 public class CoreWrapper {
 
-    private long lastNativePointer;
-
     public void initialize() {
         System.loadLibrary("odr-core");
     }
 
     public CoreResult parse(CoreOptions options) {
-        if (lastNativePointer != 0) {
-            throw new RuntimeException("do not reuse native pointers for repeated parsing");
-        }
-
         CoreResult result = parseNative(options);
-        lastNativePointer = result.nativePointer;
 
         switch (result.errorCode) {
             case 0:
@@ -53,8 +46,6 @@ public class CoreWrapper {
     private native CoreResult parseNative(CoreOptions options);
 
     public CoreResult backtranslate(CoreOptions options, String htmlDiff) {
-        options.nativePointer = lastNativePointer;
-
         CoreResult result = backtranslateNative(options, htmlDiff);
 
         switch (result.errorCode) {
@@ -81,42 +72,39 @@ public class CoreWrapper {
 
     public void close() {
         CoreOptions options = new CoreOptions();
-        options.nativePointer = lastNativePointer;
 
         closeNative(options);
-
-        lastNativePointer = 0;
     }
 
     private native void closeNative(CoreOptions options);
 
     public static class CoreOptions {
 
-        long nativePointer;
+        public boolean ooxml;
+        public boolean txt;
 
-        boolean ooxml;
+        public boolean editable;
 
-        boolean editable;
+        public boolean paging;
 
-        String password;
+        public String password;
 
-        String inputPath;
-        String outputPath;
+        public String inputPath;
+        public String outputPath;
     }
 
     public static class CoreResult {
 
-        long nativePointer;
+        public int errorCode;
 
-        int errorCode;
+        public Exception exception;
 
-        Exception exception;
+        public List<String> pageNames = new LinkedList<>();
+        public List<String> pagePaths = new LinkedList<>();
 
-        List<String> pageNames = new LinkedList<>();
+        public String outputPath;
 
-        String outputPath;
-
-        String extension;
+        public String extension;
     }
 
     public class CoreCouldNotOpenException extends RuntimeException {}

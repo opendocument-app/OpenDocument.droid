@@ -61,6 +61,8 @@
     <string name="crouton_remove_ads">Brauchen Sie mehr Platz zum Lesen? Entfernen Sie Werbung kostenlos über das Menü.</string>
     <string-array name="dialog_remove_ads_options">
         <item>Werbung für immer entfernen</item>
+        <item>Werbung für einen Monat entfernen</item>
         <item>Werbung gratis entfernen durch Ansehen eines kurzen Videos</item>
     </string-array>
+    <!--  iOS -->
 </resources>

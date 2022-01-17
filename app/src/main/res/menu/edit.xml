@@ -8,7 +8,7 @@
             app:showAsAction="always"
             android:title="@string/action_edit_save" />
     <item
-            android:id="@+id/edit_help"
+            android:id="@+id/menu_help"
             android:icon="@drawable/ic_help_outline"
             app:showAsAction="ifRoom"
             android:title="@string/action_edit_help" />

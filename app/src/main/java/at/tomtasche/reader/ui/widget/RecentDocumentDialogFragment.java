@@ -68,7 +68,7 @@ public class RecentDocumentDialogFragment extends DialogFragment implements
         items.clear();
         try {
             items.putAll(RecentDocumentsUtil.getRecentDocuments(getActivity()));
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -108,21 +108,6 @@ public class RecentDocumentDialogFragment extends DialogFragment implements
     @Override
     public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int arg2,
                                    long arg3) {
-        if (items == null)
-            return false;
-
-        final String key = (String) adapter.getItem(arg2);
-        if (key == null)
-            return false;
-
-        try {
-            RecentDocumentsUtil.removeRecentDocument(getActivity(), key);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        loadRecentDocuments();
-
-        return true;
+        return false;
     }
 }

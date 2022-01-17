@@ -1,6 +1,7 @@
 package at.tomtasche.reader.nonfree;
 
 import android.net.Uri;
+import android.util.Log;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
@@ -14,6 +15,8 @@ public class CrashManager {
 
     public void initialize() {
         if (!enabled) {
+            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
+
             return;
         }
 
@@ -43,6 +46,8 @@ public class CrashManager {
         if (!enabled) {
             return;
         }
+
+        Log.d("ODR", message);
 
         crashlytics.log(message);
     }

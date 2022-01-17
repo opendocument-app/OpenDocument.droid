@@ -7,6 +7,8 @@
     <string name="toast_hint_unsupported_file">ファイルの表示方法に満足できませんか？ 代わりに別のアプリで開きます。</string>
     <string name="toast_hint_upload_file">ファイルの表示方法に満足できませんか? 一時的にアップロードして、形式を改善します。</string>
     <string name="toast_error_reopen_noapp">お使いのデバイスで、このファイル形式をサポートするアプリが見つかりませんでした。</string>
+    <string name="toast_error_save_nofile">選択したファイルを保存する場所がありません。</string>
+    <string name="toast_error_save_failed">ファイルを保存できませんでした。support@opendoocument.app にお問い合わせください</string>
     <string name="toast_error_out_of_memory">デバイスのメモリ不足です! 写真が多すぎるかファイルが大きすぎます。</string>
     <string name="toast_error_password_protected">ドキュメントがパスワードで保護されています</string>
     <string name="toast_error_permission_required">ドキュメントの読み取りと保存を行う権限が必要です</string>
@@ -23,6 +25,8 @@
     <string name="menu_recent">最近開いたドキュメント</string>
     <string name="menu_search">ドキュメントの検索</string>
     <string name="menu_open">ドキュメントを開く</string>
+    <string name="menu_open_with">開く...</string>
+    <string name="menu_share">ドキュメントを共有</string>
     <string name="menu_edit">ドキュメントを編集</string>
     <string name="menu_remove_ads">広告を削除する</string>
     <string name="menu_fullscreen">全画面表示を開く</string>
@@ -51,6 +55,7 @@
     <string name="tts_status_failed">テキスト読み上げできませんでした。</string>
     <string name="tts_status_paused">一時停止しました。</string>
     <string name="tts_status_finished">完了しました。</string>
+    <string name="toast_edit_status_saved">ドキュメントを保存しました。</string>
     <string name="crouton_printing">印刷しています…</string>
     <string name="crouton_print_unavailable">お使いのデバイスで印刷は利用できません。Android の新しいバージョンにアップグレードしてください。</string>
     <string name="intro_title_open">外出先で ODF ファイルを開いたり読み込みます!</string>
@@ -64,6 +69,16 @@
     <string name="reopen_chooser_title">お使いのデバイスにインストールされた別のアプリで開く:</string>
     <string-array name="dialog_remove_ads_options">
         <item>永久に広告を削除する</item>
-        <item>無料の短いビデオを見て、一時的に広告を削除する</item>
+        <item>1ヶ月間広告を削除する</item>
+        <item>短い動画を視聴して、一時的に無料で広告を削除する</item>
     </string-array>
+    <!--  iOS -->
+    <string name="ok">OK</string>
+    <string name="unsaved_changes">保存していない変更があります</string>
+    <string name="save_now">今すぐ保存しますか?</string>
+    <string name="yes">はい</string>
+    <string name="discard_changes">変更を破棄</string>
+    <string name="cancel">キャンセル</string>
+    <string name="error">エラー</string>
+    <string name="back_to_documents">ドキュメントに戻る</string>
 </resources>

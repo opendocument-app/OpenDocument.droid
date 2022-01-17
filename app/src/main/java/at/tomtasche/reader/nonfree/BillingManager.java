@@ -1,6 +1,8 @@
 package at.tomtasche.reader.nonfree;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 
 import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
@@ -15,16 +17,20 @@ import com.android.billingclient.api.SkuDetailsParams;
 import com.android.billingclient.api.SkuDetailsResponseListener;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import at.tomtasche.reader.BuildConfig;
 import at.tomtasche.reader.background.BillingPreferences;
 
 public class BillingManager implements PurchasesUpdatedListener {
 
-    public static final String BILLING_PRODUCT_FOREVER = "remove_ads_for_eva";
+    // test SKU: android.test.purchased
+    public static final String BILLING_PRODUCT_PURCHASE = "remove_ads_for_eva";
+    public static final String BILLING_PRODUCT_SUBSCRIPTION = "remove_ads_subscription";
 
     private boolean enabled;
 
@@ -35,7 +41,11 @@ public class BillingManager implements PurchasesUpdatedListener {
     private BillingPreferences billingPreferences;
     private BillingClient billingClient;
 
-    private SkuDetails resolvedSku;
+    private SkuDetails purchaseSku;
+    private SkuDetails subscriptionSku;
+
+    private Runnable onPurchaseInit;
+    private ProgressDialog progressDialog;
 
     public void initialize(Context context, AnalyticsManager analyticsManager, AdManager adManager, CrashManager crashManager) {
         this.adManager = adManager;
@@ -50,19 +60,23 @@ public class BillingManager implements PurchasesUpdatedListener {
 
         billingPreferences = new BillingPreferences(context);
 
-        if (billingPreferences.hasPurchased()) {
+        if (BuildConfig.FLAVOR.equals("pro")) {
+            billingPreferences.setPurchased(true);
+        }
+
+        if (hasPurchased()) {
             adManager.removeAds();
 
             enabled = false;
 
-            return;
+            // fall through in order to recheck purchases (e.g. cancelled subscription)
         }
 
         billingClient = BillingClient.newBuilder(context).setListener(this).enablePendingPurchases().build();
         connectAndRun(new Runnable() {
             @Override
             public void run() {
-                List<String> skuList = Collections.singletonList(BILLING_PRODUCT_FOREVER);
+                List<String> skuList = Arrays.asList(BILLING_PRODUCT_PURCHASE, BILLING_PRODUCT_SUBSCRIPTION);
                 SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
                 params.setSkusList(skuList).setType(BillingClient.SkuType.INAPP);
                 billingClient.querySkuDetailsAsync(params.build(),
@@ -70,21 +84,28 @@ public class BillingManager implements PurchasesUpdatedListener {
                             @Override
                             public void onSkuDetailsResponse(BillingResult billingResult,
                                                              List<SkuDetails> skuDetailsList) {
-                                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && !skuDetailsList.isEmpty()) {
-                                    resolvedSku = skuDetailsList.get(0);
+                                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                                    List<SkuDetails> allSkuDetailsList = new LinkedList<>(skuDetailsList);
 
-                                    refreshPurchased();
-                                    if (hasPurchased()) {
-                                        adManager.removeAds();
-                                        enabled = false;
-                                    } else {
-                                        adManager.showGoogleAds();
-                                    }
+                                    SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
+                                    params.setSkusList(skuList).setType(BillingClient.SkuType.SUBS);
+                                    billingClient.querySkuDetailsAsync(params.build(),
+                                            new SkuDetailsResponseListener() {
+                                                @Override
+                                                public void onSkuDetailsResponse(BillingResult billingResult,
+                                                                                 List<SkuDetails> skuDetailsList) {
+                                                    if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                                                        analyticsManager.report("purchase_init_query_success", "code", billingResult.getResponseCode());
+
+                                                        allSkuDetailsList.addAll(skuDetailsList);
+                                                        finishPurchaseInit(allSkuDetailsList);
+                                                    } else {
+                                                        failPurchaseInit(billingResult);
+                                                    }
+                                                }
+                                            });
                                 } else {
-                                    analyticsManager.report("purchase_init_query_failed", "code", billingResult.getResponseCode());
-
-                                    enabled = false;
-                                    adManager.showGoogleAds();
+                                    failPurchaseInit(billingResult);
                                 }
                             }
                         });
@@ -92,7 +113,45 @@ public class BillingManager implements PurchasesUpdatedListener {
         });
     }
 
+    private void finishPurchaseInit(List<SkuDetails> allSkuDetailsList) {
+        for (SkuDetails sku : allSkuDetailsList) {
+            if (BILLING_PRODUCT_PURCHASE.equals(sku.getSku())) {
+                purchaseSku = sku;
+            } else if (BILLING_PRODUCT_SUBSCRIPTION.equals(sku.getSku())) {
+                subscriptionSku = sku;
+            }
+        }
+
+        refreshPurchased();
+        if (hasPurchased()) {
+            adManager.removeAds();
+            enabled = false;
+        } else {
+            adManager.showGoogleAds();
+
+            if (onPurchaseInit != null) {
+                onPurchaseInit.run();
+            }
+        }
+    }
+
+    private void failPurchaseInit(BillingResult billingResult) {
+        if (!enabled) {
+            // it's possible to get here with !enabled if a user has purchased already, but subsequent license checks failed. ignore in that case
+
+            return;
+        }
+
+        analyticsManager.report("purchase_init_query_failed", "code", billingResult.getResponseCode());
+
+        enabled = false;
+
+        adManager.showGoogleAds();
+    }
+
     private void connectAndRun(Runnable runnable) {
+        analyticsManager.report("purchase_init");
+
         billingClient.startConnection(new BillingClientStateListener() {
             @Override
             public void onBillingSetupFinished(BillingResult billingResult) {
@@ -111,6 +170,8 @@ public class BillingManager implements PurchasesUpdatedListener {
             @Override
             public void onBillingServiceDisconnected() {
                 // TODO: retry?
+
+                analyticsManager.report("purchase_init_disconnected");
             }
         });
     }
@@ -120,9 +181,18 @@ public class BillingManager implements PurchasesUpdatedListener {
             return;
         }
 
+        Purchase.PurchasesResult purchasesResult = billingClient.queryPurchases(BillingClient.SkuType.INAPP);
+        boolean hasPurchased = acknowledgePurchases(purchasesResult);
+
+        purchasesResult = billingClient.queryPurchases(BillingClient.SkuType.SUBS);
+        hasPurchased |= acknowledgePurchases(purchasesResult);
+
+        billingPreferences.setPurchased(hasPurchased);
+    }
+
+    private boolean acknowledgePurchases(Purchase.PurchasesResult purchasesResult) {
         boolean hasPurchased = false;
 
-        Purchase.PurchasesResult purchasesResult = billingClient.queryPurchases(BillingClient.SkuType.INAPP);
         if (purchasesResult.getPurchasesList() != null) {
             for (Purchase purchase : purchasesResult.getPurchasesList()) {
                 if (!purchase.isAcknowledged()) {
@@ -142,11 +212,14 @@ public class BillingManager implements PurchasesUpdatedListener {
                 break;
             }
         }
-
-        billingPreferences.setPurchased(hasPurchased);
+        return hasPurchased;
     }
 
     public boolean hasPurchased() {
+        if (!enabled) {
+            return true;
+        }
+
         if (billingPreferences == null) {
             return false;
         }
@@ -162,17 +235,51 @@ public class BillingManager implements PurchasesUpdatedListener {
         return enabled;
     }
 
-    public void startPurchase(AppCompatActivity activity) {
+    public void startPurchase(AppCompatActivity activity, String product) {
         if (!enabled) {
             return;
         }
 
-        if (resolvedSku == null) {
+        SkuDetails productSku = null;
+        if (BILLING_PRODUCT_PURCHASE.equals(product)) {
+            productSku = purchaseSku;
+        } else if (BILLING_PRODUCT_SUBSCRIPTION.equals(product)) {
+            productSku = subscriptionSku;
+        }
+
+        if (productSku == null) {
             crashManager.log("SKU not resolved");
+
+            onPurchaseInit = new Runnable() {
+                @Override
+                public void run() {
+                    if (progressDialog != null) {
+                        progressDialog.dismiss();
+                        progressDialog = null;
+
+                        onPurchaseInit = null;
+
+                        // only start purchase if progressDialog is still visible.
+                        // otherwise we might distract the user while doing something else
+                        startPurchase(activity, product);
+                    }
+                }
+            };
+
+            progressDialog = new ProgressDialog(activity);
+            progressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    progressDialog = null;
+                }
+            });
+            progressDialog.show();
+
+            return;
         }
 
         BillingFlowParams flowParams = BillingFlowParams.newBuilder()
-                .setSkuDetails(resolvedSku).build();
+                .setSkuDetails(productSku).build();
         BillingResult result = billingClient.launchBillingFlow(activity, flowParams);
 
         analyticsManager.report("purchase_attempt", "code", result.getResponseCode());
@@ -181,11 +288,11 @@ public class BillingManager implements PurchasesUpdatedListener {
             connectAndRun(new Runnable() {
                 @Override
                 public void run() {
-                    if (activity == null || activity.isFinishing()) {
+                    if (activity.isFinishing()) {
                         return;
                     }
 
-                    startPurchase(activity);
+                    startPurchase(activity, product);
                 }
             });
         }
@@ -194,6 +301,13 @@ public class BillingManager implements PurchasesUpdatedListener {
     public void close() {
         if (!enabled) {
             return;
+        }
+
+        onPurchaseInit = null;
+
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+            progressDialog = null;
         }
 
         if (billingClient == null || !billingClient.isReady()) {
@@ -206,10 +320,12 @@ public class BillingManager implements PurchasesUpdatedListener {
     @Override
     public void onPurchasesUpdated(BillingResult billingResult, @Nullable List<Purchase> purchases) {
         if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-            billingPreferences.setPurchased(true);
+            refreshPurchased();
 
-            adManager.removeAds();
-            enabled = false;
+            if (hasPurchased()) {
+                adManager.removeAds();
+                enabled = false;
+            }
 
             analyticsManager.report("purchase_success");
             analyticsManager.report(FirebaseAnalytics.Event.ECOMMERCE_PURCHASE);
