@@ -9,3 +9,16 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+
+  # Scan for updates in development branch too
+  - package-ecosystem: "gradle"
+    target-branch: "development"
+    directory: "/"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "github-actions"
+    target-branch: "development"
+    directory: "/"
+    schedule:
+      interval: "daily"
