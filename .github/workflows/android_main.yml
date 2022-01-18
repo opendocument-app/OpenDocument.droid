@@ -41,7 +41,6 @@ jobs:
     - name: checkout
       uses: actions/checkout@v2
       with:
-        token: ${{ secrets.PAT_TOMTASCHE }}
         submodules: true
 
     - name: java
