@@ -9,9 +9,6 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v2
-      with:
-        token: ${{ secrets.PAT_TOMTASCHE }}
-        submodules: true
 
     - name: ninja
       run: sudo apt-get install -y ninja-build
@@ -41,9 +38,6 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v2
-      with:
-        token: ${{ secrets.PAT_TOMTASCHE }}
-        submodules: true
 
     - name: java
       uses: actions/setup-java@v1
