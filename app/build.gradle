@@ -89,7 +89,7 @@ android {
 }
 
 dependencies {
-    implementation platform('com.google.firebase:firebase-bom:29.0.2')
+    implementation platform('com.google.firebase:firebase-bom:29.0.4')
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-perf'
