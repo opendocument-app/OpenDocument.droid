@@ -64,7 +64,6 @@
     <string name="intro_description_edit">OpenDocument リーダーは、お使いのモバイルデバイス上でドキュメントを読むことができるだけでなく、変更もサポートしています。タイプミスは、電車の中でもすぐに修正できます!</string>
     <string name="intro_title_apps">他のアプリを使用してドキュメントを読む</string>
     <string name="intro_description_apps">OpenDocument リーダーは、ドキュメントを開く他のアプリを幅広くサポートしています。同僚が Gmail でプレゼンテーションを送信しましたか? 添付ファイルをクリックすると、このアプリがすぐに開くことができます!</string>
-    <string name="intro_button_start">開始</string>
     <string name="crouton_remove_ads">読むためのスペースがもっと必要ですか? メニューから無料の広告を削除してください。</string>
     <string name="reopen_chooser_title">お使いのデバイスにインストールされた別のアプリで開く:</string>
     <string-array name="dialog_remove_ads_options">
