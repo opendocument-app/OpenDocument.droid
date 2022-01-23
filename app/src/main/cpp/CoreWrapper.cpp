@@ -70,19 +70,26 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jboolean paging = env->GetBooleanField(options, pagingField);
 
         try {
-            // __android_log_print(ANDROID_LOG_VERBOSE, "smn", "%s", outputPathCpp.c_str());
+            __android_log_print(ANDROID_LOG_VERBOSE, "smn", "%s", "test0");
 
             odr::DecodedFile file(inputPathCpp);
-            const auto fileCategory = odr::OpenDocumentReader::category_by_type(file.file_type());
+__android_log_print(ANDROID_LOG_VERBOSE, "smn", "%s", "test1");
+
+const auto fileCategory = odr::OpenDocumentReader::category_by_type(file.file_type());
+__android_log_print(ANDROID_LOG_VERBOSE, "smn", "%s", "test2");
 
             {
-                const auto extensionCpp = odr::OpenDocumentReader::type_to_string(file.file_type());
+__android_log_print(ANDROID_LOG_VERBOSE, "smn", "%s", "test3");
+
+const auto extensionCpp = odr::OpenDocumentReader::type_to_string(file.file_type());
                 const auto extensionC = extensionCpp.c_str();
                 jstring extension = env->NewStringUTF(extensionC);
 
                 jfieldID extensionField = env->GetFieldID(resultClass, "extension",
                                                           "Ljava/lang/String;");
                 env->SetObjectField(result, extensionField, extension);
+
+                __android_log_print(ANDROID_LOG_VERBOSE, "smn", "%s", extensionCpp.c_str());
             }
 
             if (!ooxml &&
