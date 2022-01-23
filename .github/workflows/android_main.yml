@@ -43,6 +43,7 @@ jobs:
       uses: actions/setup-java@v2.5.0
       with:
         java-version: 11
+        distribution: 'zulu'
 
     - name: brew
       run: ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null
