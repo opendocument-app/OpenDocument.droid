@@ -48,6 +48,7 @@ public class PdfLoader extends FileLoader {
 
             pdf2htmlEX pdfConverter = new pdf2htmlEX(context).setInputPDF(cacheFile);
             pdfConverter.setOutline(false).setBackgroundFormat("jpg").setDRM(false);
+            pdfConverter.setProcessAnnotation(true);
             if (options.password != null) {
                 pdfConverter.setOwnerPassword(options.password).setUserPassword(options.password);
                 pdfConverter.setEmbedExternalFont(false).setEmbedFont(false);
