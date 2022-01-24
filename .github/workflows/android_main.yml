@@ -13,7 +13,7 @@ jobs:
     - name: ninja
       run: sudo apt-get install -y ninja-build
     - name: java
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v2.5.0
       with:
         java-version: 11
 
@@ -40,7 +40,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: java
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v2.5.0
       with:
         java-version: 11
 
