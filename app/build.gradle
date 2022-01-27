@@ -111,7 +111,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.5.0'
     implementation 'androidx.webkit:webkit:1.4.0'
 
-    implementation 'com.github.AppIntro:AppIntro:6.1.0'
+    implementation 'com.github.AppIntro:AppIntro:6.2.0'
 
     implementation('com.nononsenseapps:filepicker:4.2.1', {
         exclude group: 'com.android.support'
