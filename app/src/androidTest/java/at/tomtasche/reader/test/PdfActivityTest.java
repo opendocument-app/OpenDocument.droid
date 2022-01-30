@@ -2,10 +2,14 @@ package at.tomtasche.reader.test;
 
 
 import android.Manifest;
+import android.content.Context;
+import android.content.res.AssetManager;
 import android.os.Environment;
 import android.view.View;
 
 import org.hamcrest.Matcher;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,6 +24,7 @@ import java.net.URL;
 import androidx.test.espresso.FailureHandler;
 import androidx.test.espresso.ViewInteraction;
 import androidx.test.filters.LargeTest;
+import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
 import androidx.test.rule.GrantPermissionRule;
 import androidx.test.runner.AndroidJUnit4;
@@ -39,6 +44,8 @@ import static org.hamcrest.Matchers.allOf;
 @RunWith(AndroidJUnit4.class)
 public class PdfActivityTest {
 
+    private File m_testFile;
+
     private boolean loadingDone;
     private boolean loadingSuccess;
 
@@ -57,8 +64,25 @@ public class PdfActivityTest {
             while ((len = src.read(buf)) > 0) {
                 out.write(buf, 0, len);
             }
-        } finally {
-            src.close();
+        }
+    }
+
+    @Before
+    public void extractTestFile() throws IOException {
+        m_testFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "AAA/test.pdf");
+        m_testFile.getParentFile().mkdirs();
+
+        Context testCtx = InstrumentationRegistry.getInstrumentation().getContext();
+        AssetManager assetManager = testCtx.getAssets();
+        try (InputStream inputStream = assetManager.open("dummy.pdf")) {
+            copy(inputStream, m_testFile);
+        }
+    }
+
+    @After
+    public void cleanupTestFile() {
+        if (null != m_testFile) {
+            m_testFile.delete();
         }
     }
 
@@ -67,19 +91,6 @@ public class PdfActivityTest {
         // TODO: fix for Android 29+
 
         if (true) return;
-
-        try {
-            final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "AAA/test.pdf");
-            file.getParentFile().mkdirs();
-            file.createNewFile();
-
-            InputStream inputStream = new URL("https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf").openStream();
-            copy(inputStream, file);
-        } catch (IOException e) {
-            e.printStackTrace();
-
-            throw new RuntimeException(e);
-        }
 
         ViewInteraction actionMenuItemView = onView(
                 allOf(withId(R.id.menu_open), withContentDescription("Open document"),

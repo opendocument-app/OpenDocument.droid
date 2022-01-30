@@ -1,6 +1,8 @@
 package at.tomtasche.reader.test;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.res.AssetManager;
 import android.os.Environment;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +11,7 @@ import android.view.ViewParent;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,6 +28,7 @@ import androidx.test.espresso.FailureHandler;
 import androidx.test.espresso.ViewInteraction;
 import androidx.test.filters.LargeTest;
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner;
+import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
 import androidx.test.rule.GrantPermissionRule;
 import androidx.test.runner.AndroidJUnit4;
@@ -45,6 +49,8 @@ import static org.hamcrest.Matchers.allOf;
 @RunWith(AndroidJUnit4ClassRunner.class)
 public class OdtActivityTest {
 
+    private File m_testFile;
+
     private boolean loadingDone;
 
     @Rule
@@ -62,35 +68,33 @@ public class OdtActivityTest {
             while ((len = src.read(buf)) > 0) {
                 out.write(buf, 0, len);
             }
-        } finally {
-            src.close();
         }
     }
 
-    private void setup() {
-        // TODO: fix for Android 29+
+    @Before
+    public void extractTestFile() throws IOException {
+        File folder = new File(Environment.getExternalStorageDirectory(), "AAA_ODRTEST");
+        folder.mkdirs();
 
-        try {
-            File folder = new File(Environment.getExternalStorageDirectory(), "AAA_ODRTEST");
-            folder.mkdirs();
+        m_testFile = new File(folder, "test.odt");
 
-            File file = new File(folder, "test.odt");
+        Context testCtx = InstrumentationRegistry.getInstrumentation().getContext();
+        AssetManager assetManager = testCtx.getAssets();
+        try (InputStream inputStream = assetManager.open("test.odt")) {
+            copy(inputStream, m_testFile);
+        }
+    }
 
-            file.delete();
-            file.createNewFile();
-
-            InputStream inputStream = new URL("https://api.libreoffice.org/examples/cpp/DocumentLoader/test.odt").openStream();
-            copy(inputStream, file);
-        } catch (IOException e) {
-            e.printStackTrace();
-
-            throw new RuntimeException(e);
+    @After
+    public void cleanupTestFile() {
+        if (null != m_testFile) {
+            m_testFile.delete();
         }
     }
 
     @Test
     public void mainActivityTest() {
-        setup();
+        // TODO: fix for Android 29+
 
         ViewInteraction actionMenuItemView = onView(
                 allOf(withId(R.id.menu_open), withContentDescription("Open document"),

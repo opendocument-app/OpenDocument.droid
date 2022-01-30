@@ -1,5 +1,10 @@
 package at.tomtasche.reader.test;
 
+import android.content.Context;
+import android.content.res.AssetManager;
+import android.os.Environment;
+
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,36 +17,35 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 
-import androidx.test.InstrumentationRegistry;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.filters.LargeTest;
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner;
+import androidx.test.platform.app.InstrumentationRegistry;
+
 import at.tomtasche.reader.background.CoreWrapper;
 
 @LargeTest
 @RunWith(AndroidJUnit4ClassRunner.class)
 public class CoreTest {
 
-    private String testFilePath;
+    private File m_testFile;
 
     @Before
-    public void setup() {
-        // TODO: fix for Android 29+
+    public void extractTestFile() throws IOException {
+        Context appCtx = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        m_testFile = new File(appCtx.getCacheDir(), "test.odt");
 
-        try {
-            File file = new File(ApplicationProvider.getApplicationContext().getCacheDir(), "test.odt");
-            testFilePath = file.getAbsolutePath();
+        Context testCtx = InstrumentationRegistry.getInstrumentation().getContext();
+        AssetManager assetManager = testCtx.getAssets();
+        try (InputStream inputStream = assetManager.open("dummy.pdf")) {
+            copy(inputStream, m_testFile);
+        }
+    }
 
-            if (file.exists()) {
-                return;
-            }
-
-            InputStream inputStream = new URL("https://api.libreoffice.org/examples/cpp/DocumentLoader/test.odt").openStream();
-            copy(inputStream, file);
-        } catch (IOException e) {
-            e.printStackTrace();
-
-            throw new RuntimeException(e);
+    @After
+    public void cleanupTestFile() {
+        if (null != m_testFile) {
+            m_testFile.delete();
         }
     }
 
@@ -52,20 +56,19 @@ public class CoreTest {
             while ((len = src.read(buf)) > 0) {
                 out.write(buf, 0, len);
             }
-        } finally {
-            src.close();
         }
     }
 
     @Test
     public void test() {
+        // TODO: fix for Android 29+
         CoreWrapper core = new CoreWrapper();
         core.initialize();
 
         File htmlFile = new File(ApplicationProvider.getApplicationContext().getCacheDir(),"html");
 
         CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
-        coreOptions.inputPath = testFilePath;
+        coreOptions.inputPath = m_testFile.getAbsolutePath();
         coreOptions.outputPath = htmlFile.getPath();
         coreOptions.editable = true;
 
