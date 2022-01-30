@@ -67,6 +67,11 @@ jobs:
     - name: conan repo
       run: conan remote add odr https://odr.jfrog.io/artifactory/api/conan/odr-conan
 
+    # Not necessary, project is built when being tested too
+    # Still helpful to have a separate step to know how long is the build and how long are the tests.
+    - name: build
+      run: ./gradlew assembleDebug
+
     - name: run tests
       uses: reactivecircus/android-emulator-runner@v2
       with:
