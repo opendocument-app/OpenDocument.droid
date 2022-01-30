@@ -12,16 +12,17 @@ import static org.hamcrest.Matchers.allOf;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Environment;
 import android.view.View;
 
+import androidx.test.core.app.ActivityScenario;
 import androidx.test.espresso.FailureHandler;
 import androidx.test.espresso.ViewInteraction;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.rule.ActivityTestRule;
 import androidx.test.rule.GrantPermissionRule;
 
 import org.hamcrest.Matcher;
@@ -48,8 +49,14 @@ public class OdtActivityTest {
 
     private boolean loadingDone;
 
-    @Rule
-    public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class);
+    @Before
+    public void setUp() {
+        ActivityScenario.launch(MainActivity.class).onActivity(activity -> {
+            // Close system dialogs which may cover our Activity.
+            // Happens frequently on slow emulators.
+            activity.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
+        });
+    }
 
     @Rule
     public GrantPermissionRule mGrantPermissionRule =
