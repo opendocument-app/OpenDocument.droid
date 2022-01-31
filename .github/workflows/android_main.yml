@@ -48,7 +48,7 @@ jobs:
           # Newest x86
           - arch: x86
             api-level: 30
-          # Newest
+          # Newest in general
           - arch: x86_64
             api-level: 32
     steps:
@@ -83,28 +83,66 @@ jobs:
       run: conan remote add odr https://odr.jfrog.io/artifactory/api/conan/odr-conan
 
     # Not necessary, project is built when being tested too
-    # Still helpful to have a separate step to know how long is the build and how long are the tests.
-    - name: build
+    - name: Assemble project
       run: ./gradlew assembleDebug
 
-    - name: run tests
+    - name: Android Virtual Device (AVD) cache
+      uses: actions/cache@v2
+      id: avd-cache
+      with:
+        path: |
+          ~/.android/avd/*
+          ~/.android/adb*
+        key: avd-${{ matrix.api-level }}-${{ matrix.arch }}
+
+    - name: Create AVD and generate snapshot for caching
+      if: steps.avd-cache.outputs.cache-hit != 'true'
       uses: reactivecircus/android-emulator-runner@v2
       with:
         api-level: ${{ matrix.api-level }}
-        target: google_apis
         arch: ${{ matrix.arch }}
+        target: google_apis
+        force-avd-creation: false
+        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: false
+        script: echo "Generated AVD snapshot for caching."
+
+    - name: Run tests
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: ${{ matrix.api-level }}
+        arch: ${{ matrix.arch }}
+        target: google_apis
+        force-avd-creation: false
+        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot-save
+        disable-animations: true
+
+        # This script might look a bit ugly, but it is necessary.
+        # Let us go over the "questionable" parts.
+
+        # logcat is needed to save raw device logs. Run in background, to keep saving while testing.
+
+        # "bundle exec fastlane tests"" might fail, but we still need to screenshot the device after it.
+        # "set +e" is there to make bash NOT exit on error.
+        # Save returned exit code from connectedCheck, do the screenshot and then return the original exit code.
         script: |
-          adb logcat > logcat.txt &
+          mkdir testResults
+          adb logcat > testResults/logcat.txt &
+
+          set +e
           bundle exec fastlane tests
+          connectedCheckRetVal=$?
+
+          mv app/build/reports/androidTests/connected testResults/
+
+          adb shell screencap /data/local/tmp/screen.png
+          adb pull /data/local/tmp/screen.png testResults/
+
+          exit $connectedCheckRetVal
 
     - uses: actions/upload-artifact@v2
-      if: ${{ always() }}
+      if: always()
       with:
-        name: test-report-${{ matrix.api-level }}-${{ matrix.arch }}
-        path: app/build/reports/androidTests/connected/flavors/*DebugAndroidTest
-
-    - uses: actions/upload-artifact@v2
-      if: ${{ failure() }}
-      with:
-        name: test-log-${{ matrix.api-level }}-${{ matrix.arch }}
-        path: logcat.txt
+        name: testResults-${{ matrix.api-level }}-${{ matrix.arch }}
+        path: testResults
+        if-no-files-found: error
