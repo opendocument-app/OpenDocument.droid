@@ -100,11 +100,11 @@ jobs:
     - uses: actions/upload-artifact@v2
       if: ${{ always() }}
       with:
-        name: test-report
+        name: test-report-${{ matrix.api-level }}-${{ matrix.arch }}
         path: app/build/reports/androidTests/connected/flavors/*DebugAndroidTest
 
     - uses: actions/upload-artifact@v2
       if: ${{ failure() }}
       with:
-        name: test-log
+        name: test-log-${{ matrix.api-level }}-${{ matrix.arch }}
         path: logcat.txt
