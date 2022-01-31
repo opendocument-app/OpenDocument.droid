@@ -117,28 +117,18 @@ jobs:
         emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot-save
         disable-animations: true
 
-        # This script might look a bit ugly, but it is necessary.
-        # Let us go over the "questionable" parts.
-
-        # logcat is needed to save raw device logs. Run in background, to keep saving while testing.
-
-        # "bundle exec fastlane tests"" might fail, but we still need to screenshot the device after it.
-        # "set +e" is there to make bash NOT exit on error.
-        # Save returned exit code from connectedCheck, do the screenshot and then return the original exit code.
         script: |
           mkdir testResults
           adb logcat > testResults/logcat.txt &
 
-          set +e
-          bundle exec fastlane tests
-          connectedCheckRetVal=$?
+          bundle exec fastlane tests || touch sorry_but_tests_are_failing
 
           mv app/build/reports/androidTests/connected testResults/
 
           adb shell screencap /data/local/tmp/screen.png
           adb pull /data/local/tmp/screen.png testResults/
 
-          exit $connectedCheckRetVal
+          test ! -f sorry_but_tests_are_failing
 
     - uses: actions/upload-artifact@v2
       if: always()
