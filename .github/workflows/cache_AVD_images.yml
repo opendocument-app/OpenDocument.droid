@@ -1,0 +1,57 @@
+name: Cache Android Virtual Devices, used in android_main.yml workflow
+
+on: workflow_dispatch
+
+# "actions/cache" does not save on run failure.
+# Main workflow may fail often. This workflow is needed to have the cache available during those times.
+
+# Make sure the matrix here and in android_main.yml is the same
+jobs:
+  cacheAVDs:
+    runs-on: macos-11
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Oldest version we support
+          - arch: x86
+            api-level: 19
+          # Oldest x86_64
+          - arch: x86_64
+            api-level: 21
+          # Newest x86
+          - arch: x86
+            api-level: 30
+          # Newest in general
+          - arch: x86_64
+            api-level: 32
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: java
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      - name: Android Virtual Device (AVD) cache
+        uses: actions/cache@v2
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-${{ matrix.api-level }}-${{ matrix.arch }}
+
+      - name: Create AVD and generate snapshot for caching
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          arch: ${{ matrix.arch }}
+          target: google_apis
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
