@@ -26,6 +26,20 @@ import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.test.espresso.IdlingResource;
+import androidx.test.espresso.idling.CountingIdlingResource;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -34,15 +48,6 @@ import com.nononsenseapps.filepicker.FilePickerActivity;
 import java.util.LinkedList;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.FragmentTransaction;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.PrintingManager;
 import at.tomtasche.reader.nonfree.AdManager;
@@ -111,6 +116,9 @@ public class MainActivity extends AppCompatActivity {
     private Uri lastUri;
     private Uri loadOnStart;
     private Uri lastSaveUri;
+
+    @Nullable
+    private CountingIdlingResource openFileIdlingResource;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -400,6 +408,10 @@ public class MainActivity extends AppCompatActivity {
 
             Uri uri = intent.getData();
             if (requestCode == 42 && resultCode == Activity.RESULT_OK && uri != null) {
+                if (null != openFileIdlingResource) {
+                    openFileIdlingResource.decrement();
+                }
+
                 loadUri(uri, true);
             }
         }
@@ -789,8 +801,16 @@ public class MainActivity extends AppCompatActivity {
                 intent.setComponent(new ComponentName(target.activityInfo.packageName, target.activityInfo.name));
 
                 try {
+                    if (null != openFileIdlingResource) {
+                        openFileIdlingResource.increment();
+                    }
+
                     startActivityForResult(intent, 42);
                 } catch (Exception e) {
+                    if (null != openFileIdlingResource) {
+                        openFileIdlingResource.decrement();
+                    }
+
                     crashManager.log(e);
 
                     SnackbarHelper.show(MainActivity.this, R.string.crouton_error_open_app, new Runnable() {
@@ -854,5 +874,14 @@ public class MainActivity extends AppCompatActivity {
 
     public ConfigManager getConfigManager() {
         return configManager;
+    }
+
+    @VisibleForTesting
+    @NonNull
+    public IdlingResource getOpenFileIdlingResource() {
+        if (null == openFileIdlingResource) {
+            openFileIdlingResource = new CountingIdlingResource("MainActivity.openFileIdlingResource");
+        }
+        return openFileIdlingResource;
     }
 }
