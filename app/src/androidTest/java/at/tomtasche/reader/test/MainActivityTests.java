@@ -131,7 +131,7 @@ public class MainActivityTests {
         onView(allOf(withId(R.id.menu_open), withContentDescription("Open document"), isDisplayed()))
             .perform(click());
 
-        onView(allOf(withId(android.R.id.text1), withText("Files"), isDisplayed())).perform(click());
+        onView(allOf(withId(android.R.id.text1), withText("Documents"), isDisplayed())).perform(click());
 
         // next onView will be blocked until m_idlingResource is idle.
 
@@ -162,7 +162,7 @@ public class MainActivityTests {
         onView(allOf(withId(R.id.menu_open), withContentDescription("Open document"), isDisplayed()))
             .perform(click());
 
-        onView(allOf(withId(android.R.id.text1), withText("Files"), isDisplayed())).perform(click());
+        onView(allOf(withId(android.R.id.text1), withText("Documents"), isDisplayed())).perform(click());
 
         // next onView will be blocked until m_idlingResource is idle.
 
