@@ -88,11 +88,6 @@ jobs:
     - name: conan repo
       run: conan remote add odr https://odr.jfrog.io/artifactory/api/conan/odr-conan
 
-    # Not necessary, project is built when being tested too
-    - name: Assemble project
-      if: false
-      run: ./gradlew assembleDebug
-
     - name: Android Virtual Device (AVD) cache
       uses: actions/cache@v2
       id: avd-cache
@@ -114,6 +109,10 @@ jobs:
     # Temp workaround, until https://github.com/ReactiveCircus/android-emulator-runner/pull/219 is merged
     - name: Increate storage size for emulator
       run: echo "disk.dataPartition.size=8G" >> /Users/runner/.android/avd/test.avd/config.ini
+
+      # Not necessary, project is built when being tested too
+    - name: Assemble project
+      run: ./gradlew assembleDebug
 
     - name: Run tests
       uses: reactivecircus/android-emulator-runner@v2
