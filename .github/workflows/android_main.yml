@@ -110,10 +110,6 @@ jobs:
     - name: Increate storage size for emulator
       run: echo "disk.dataPartition.size=8G" >> /Users/runner/.android/avd/test.avd/config.ini
 
-      # Not necessary, project is built when being tested too
-    - name: Assemble project
-      run: ./gradlew assembleDebug
-
     - name: Run tests
       uses: reactivecircus/android-emulator-runner@v2
       with:
