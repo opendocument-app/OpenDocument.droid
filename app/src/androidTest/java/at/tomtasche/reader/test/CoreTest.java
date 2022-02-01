@@ -3,7 +3,6 @@ package at.tomtasche.reader.test;
 import android.content.Context;
 import android.content.res.AssetManager;
 
-import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -59,11 +58,11 @@ public class CoreTest {
 
     @Test
     public void test() {
-        // TODO: fix for Android 29+
         CoreWrapper core = new CoreWrapper();
         core.initialize();
 
-        File htmlFile = new File(ApplicationProvider.getApplicationContext().getCacheDir(),"html");
+        File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
+        File htmlFile = new File(cacheDir, "html");
 
         CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
         coreOptions.inputPath = m_testFile.getAbsolutePath();
@@ -73,7 +72,7 @@ public class CoreTest {
         CoreWrapper.CoreResult coreResult = core.parse(coreOptions);
         Assert.assertEquals(0, coreResult.errorCode);
 
-        File resultFile = new File(ApplicationProvider.getApplicationContext().getCacheDir(),"result");
+        File resultFile = new File(cacheDir, "result");
         coreOptions.outputPath = resultFile.getPath();
 
         String htmlDiff = "{\"modifiedText\":{\"3\":\"This is a simple test document to demonstrate the DocumentLoadewwwwr example!\"}}";
