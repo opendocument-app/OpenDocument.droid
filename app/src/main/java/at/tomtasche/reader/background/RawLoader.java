@@ -18,7 +18,7 @@ public class RawLoader extends FileLoader {
     private static final boolean USE_CORE_TXT = true;
 
     private static final String[] MIME_WHITELIST = {"text/", "image/", "video/", "audio/", "application/json", "application/xml", "application/zip"};
-    private static final String[] MIME_BLACKLIST = {"image/vnd.dwg", "image/g3fax", "image/tiff", "image/vnd.djvu", "image/x-eps", "image/x-tga", "image/x-tga", "audio/amr", "video/3gpp", "video/quicktime", "text/calendar", "text/vcard"};
+    private static final String[] MIME_BLACKLIST = {"image/vnd.dwg", "image/g3fax", "image/tiff", "image/vnd.djvu", "image/x-eps", "image/x-tga", "image/x-tga", "audio/amr", "video/3gpp", "video/quicktime", "text/calendar", "text/vcard", "text/rtf"};
 
     private CoreWrapper lastCore;
     private CoreWrapper.CoreOptions lastCoreOptions;

@@ -2,7 +2,10 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
+
+import androidx.annotation.RequiresApi;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
@@ -13,10 +16,23 @@ import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.nio.file.Files;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import at.tomtasche.reader.nonfree.AnalyticsManager;
+import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 
 public class OnlineLoader extends FileLoader {
@@ -29,7 +45,8 @@ public class OnlineLoader extends FileLoader {
             "application/x-httpd-php", "text/php", "application/php", "application/x-php",
             "application/x-javascript", "text/javascript",
             "text/x-java-source", "text/java", "text/x-java", "application/ms-java",
-            "application/rtf",
+            // rtf
+            "application/rtf", "text/rtf",
             // psd: https://filext.com/file-extension/PSD
             "image/photoshop", "image/x-photoshop", "image/psd", "application/photoshop", "application/psd", "zz-application/zz-winassoc-psd",
             // pdf: https://filext.com/file-extension/PDF
@@ -51,7 +68,9 @@ public class OnlineLoader extends FileLoader {
             // autocad: https://filext.com/file-extension/DXF
             "application/dxf", "application/x-autocad", "application/x-dxf", "drawing/x-dxf", "image/vnd.dxf", "image/x-autocad", "image/x-dxf", "zz-application/zz-winassoc-dxf",
             // zip: https://filext.com/file-extension/ZIP
-            "application/zip", "application/x-zip", "application/x-zip-compressed", "application/x-compress", "application/x-compressed", "multipart/x-zip"
+            "application/zip", "application/x-zip", "application/x-zip-compressed", "application/x-compress", "application/x-compressed", "multipart/x-zip",
+            // WPD
+            "application/vnd.wordperfect"
     };
     private static final String[] MIME_BLACKLIST = {"image/x-tga", "image/vnd.djvu", "image/g3fax", "audio/amr", "text/calendar", "text/vcard", "video/3gpp"};
 
@@ -78,7 +97,6 @@ public class OnlineLoader extends FileLoader {
         } catch (Throwable e) {
             crashManager.log(e);
         }
-
     }
 
     @Override
@@ -108,10 +126,63 @@ public class OnlineLoader extends FileLoader {
         result.options = options;
         result.loaderType = type;
 
-        if (auth == null || storage == null) {
-            callOnError(result, new RuntimeException("firebase not initialized"));
+        try {
+            Uri viewerUri;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                    ("text/rtf".equals(options.fileType) || "application/vnd.wordperfect".equals(options.fileType))) {
+                viewerUri = doOnlineConvert(options);
+            } else {
+                viewerUri = doFirebaseConvert(options);
+            }
 
-            return;
+            result.partTitles.add(null);
+            result.partUris.add(viewerUri);
+
+            callOnSuccess(result);
+        } catch (Throwable e) {
+            callOnError(result, e);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private Uri doOnlineConvert(Options options) throws IOException {
+        // https://stackoverflow.com/a/2469587/198996
+        String basePath = "https://use.opendocument.app";
+        String url = basePath + "/upload"; // TODO: /v1
+        String charset = "UTF-8";
+        File binaryFile = AndroidFileCache.getCacheFile(context, options.cacheUri);
+        String boundary = Long.toHexString(System.currentTimeMillis());
+        String CRLF = "\r\n";
+
+        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+        connection.setInstanceFollowRedirects(false);
+
+        try (
+                OutputStream output = connection.getOutputStream();
+                PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, charset), true);
+        ) {
+            writer.append("--" + boundary).append(CRLF);
+            writer.append("Content-Disposition: form-data; name=\"document\"; filename=\"document\"").append(CRLF);
+            // writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(binaryFile.getName())).append(CRLF);
+            // writer.append("Content-Transfer-Encoding: binary").append(CRLF);
+            writer.append(CRLF).flush();
+            Files.copy(binaryFile.toPath(), output);
+            output.flush();
+            writer.append(CRLF).flush();
+
+            writer.append("--" + boundary + "--").append(CRLF).flush();
+        }
+
+        String redirectUrl = connection.getHeaderField("Location");
+        return Uri.parse(basePath + redirectUrl);
+    }
+
+    private Uri doFirebaseConvert(Options options) throws ExecutionException, InterruptedException, UnsupportedEncodingException {
+        if (auth == null || storage == null) {
+            throw new RuntimeException("firebase not initialized");
         }
 
         Task<AuthResult> authenticationTask = null;
@@ -122,47 +193,40 @@ public class OnlineLoader extends FileLoader {
             authenticationTask = auth.signInAnonymously();
         }
 
-        try {
-            if (authenticationTask != null) {
-                Tasks.await(authenticationTask);
+        if (authenticationTask != null) {
+            Tasks.await(authenticationTask);
 
-                currentUserId = authenticationTask.getResult().getUser().getUid();
-            }
+            currentUserId = authenticationTask.getResult().getUser().getUid();
+        }
 
-            StorageMetadata.Builder metadataBuilder = new StorageMetadata.Builder();
-            if (!"N/A".equals(options.fileType)) {
-                metadataBuilder.setContentType(options.fileType);
-            }
+        StorageMetadata.Builder metadataBuilder = new StorageMetadata.Builder();
+        if (!"N/A".equals(options.fileType)) {
+            metadataBuilder.setContentType(options.fileType);
+        }
 
-            String filePath = currentUserId + "/" + UUID.randomUUID() + "." + options.fileExtension;
-            StorageReference reference = storage.child("uploads/" + filePath);
-            UploadTask uploadTask = reference.putFile(options.cacheUri, metadataBuilder.build());
-            Tasks.await(uploadTask);
+        String filePath = currentUserId + "/" + UUID.randomUUID() + "." + options.fileExtension;
+        StorageReference reference = storage.child("uploads/" + filePath);
+        UploadTask uploadTask = reference.putFile(options.cacheUri, metadataBuilder.build());
+        Tasks.await(uploadTask);
 
-            if (uploadTask.isSuccessful()) {
-                Uri viewerUri;
-                if (odfLoader.isSupported(options)) {
-                    // ODF does not seem to be supported by google docs viewer
-                    String downloadUrl = "https://us-central1-admob-app-id-9025061963.cloudfunctions.net/download?filePath=" + filePath;
+        if (uploadTask.isSuccessful()) {
+            Uri viewerUri;
+            if (odfLoader.isSupported(options)) {
+                // ODF does not seem to be supported by google docs viewer
+                String downloadUrl = "https://us-central1-admob-app-id-9025061963.cloudfunctions.net/download?filePath=" + filePath;
 
-                    viewerUri = Uri.parse(MICROSOFT_VIEWER_URL + downloadUrl);
-                } else {
-                    Task<Uri> urlTask = reference.getDownloadUrl();
-                    Tasks.await(urlTask);
-                    String downloadUrl = urlTask.getResult().toString();
-
-                    viewerUri = Uri.parse(GOOGLE_VIEWER_URL + URLEncoder.encode(downloadUrl, StreamUtil.ENCODING));
-                }
-
-                result.partTitles.add(null);
-                result.partUris.add(viewerUri);
-
-                callOnSuccess(result);
+                viewerUri = Uri.parse(MICROSOFT_VIEWER_URL + downloadUrl);
             } else {
-                throw new RuntimeException("server couldn't handle request");
+                Task<Uri> urlTask = reference.getDownloadUrl();
+                Tasks.await(urlTask);
+                String downloadUrl = urlTask.getResult().toString();
+
+                viewerUri = Uri.parse(GOOGLE_VIEWER_URL + URLEncoder.encode(downloadUrl, StreamUtil.ENCODING));
             }
-        } catch (Throwable e) {
-            callOnError(result, e);
+
+            return viewerUri;
+        } else {
+            throw new RuntimeException("server couldn't handle request");
         }
     }
 
