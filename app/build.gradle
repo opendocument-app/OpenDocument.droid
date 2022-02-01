@@ -73,7 +73,6 @@ android {
 
     android.bundle.language.enableSplit false
 
-    lintOptions.abortOnError false
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -85,6 +84,9 @@ android {
             version "3.18.0+"
             path file('../CMakeLists.txt')
         }
+    }
+    lint {
+        abortOnError false
     }
 }
 
