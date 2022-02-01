@@ -67,17 +67,10 @@ public class MainActivity extends AppCompatActivity {
     // taken from: https://stackoverflow.com/a/36829889/198996
     private static boolean isTesting() {
         try {
-            Class.forName("at.tomtasche.reader.test.PdfActivityTest");
+            Class.forName("at.tomtasche.reader.test.MainActivityTests");
             return true;
         } catch (ClassNotFoundException e) {
         }
-
-        try {
-            Class.forName("at.tomtasche.reader.test.OdfActivityTest");
-            return true;
-        } catch (ClassNotFoundException e) {
-        }
-
         return false;
     }
 
