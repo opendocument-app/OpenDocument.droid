@@ -35,7 +35,7 @@ public class CoreTest {
 
         Context testCtx = InstrumentationRegistry.getInstrumentation().getContext();
         AssetManager assetManager = testCtx.getAssets();
-        try (InputStream inputStream = assetManager.open("dummy.pdf")) {
+        try (InputStream inputStream = assetManager.open("test.odt")) {
             copy(inputStream, m_testFile);
         }
     }
