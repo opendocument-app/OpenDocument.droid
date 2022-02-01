@@ -70,20 +70,27 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jboolean paging = env->GetBooleanField(options, pagingField);
 
         try {
-            // __android_log_print(ANDROID_LOG_VERBOSE, "smn", "%s", outputPathCpp.c_str());
+            odr::FileType fileType;
+            try {
+                const auto types = odr::OpenDocumentReader::types(inputPathCpp);
 
-            odr::DecodedFile file(inputPathCpp);
-            const auto fileCategory = odr::OpenDocumentReader::category_by_type(file.file_type());
-
-            {
-                const auto extensionCpp = odr::OpenDocumentReader::type_to_string(file.file_type());
-                const auto extensionC = extensionCpp.c_str();
-                jstring extension = env->NewStringUTF(extensionC);
-
-                jfieldID extensionField = env->GetFieldID(resultClass, "extension",
-                                                          "Ljava/lang/String;");
-                env->SetObjectField(result, extensionField, extension);
+                fileType = types.back();
+            } catch (odr::UnsupportedFileType& e) {
+                fileType = e.file_type;
             }
+
+            const auto extensionCpp = odr::OpenDocumentReader::type_to_string(fileType);
+            const auto extensionC = extensionCpp.c_str();
+            jstring extension = env->NewStringUTF(extensionC);
+
+            jfieldID extensionField = env->GetFieldID(resultClass, "extension",
+                                                      "Ljava/lang/String;");
+            env->SetObjectField(result, extensionField, extension);
+
+            // __android_log_print(ANDROID_LOG_VERBOSE, "smn", "%s", extensionCpp.c_str());
+
+            const auto file = odr::OpenDocumentReader::open(inputPathCpp);
+            const auto fileCategory = odr::OpenDocumentReader::category_by_type(file.file_type());
 
             if (!ooxml &&
                 (file.file_type() == odr::FileType::office_open_xml_document || file.file_type() == odr::FileType::office_open_xml_workbook || file.file_type() == odr::FileType::office_open_xml_presentation || file.file_type() == odr::FileType::office_open_xml_encrypted)) {
