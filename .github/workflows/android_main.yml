@@ -1,6 +1,12 @@
 name: OpenDocument-Reader-Android
 
-on: [push]
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+      - '!.github/workflows/android_main.yml'
 
 jobs:
   build:
@@ -37,6 +43,7 @@ jobs:
     runs-on: macos-11
     strategy:
       fail-fast: false
+      # Make sure the matrix here and in cache_AVD_images.yml is the same
       matrix:
         include:
           # Oldest version we support
