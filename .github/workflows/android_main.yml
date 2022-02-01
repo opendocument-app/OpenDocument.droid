@@ -38,7 +38,6 @@ jobs:
 
     - name: build
       run: ./gradlew clean assembleDebug --scan --stacktrace
-
   test:
     runs-on: macos-11
     strategy:
@@ -111,6 +110,10 @@ jobs:
         target: google_apis
         script: echo "Generated AVD snapshot for caching."
 
+    # Temp workaround, until https://github.com/ReactiveCircus/android-emulator-runner/pull/219 is merged
+    - name: Increate storage size for emulator
+      run: echo "disk.dataPartition.size=8G" >> /Users/runner/.android/avd/test.avd/config.ini
+
     - name: Run tests
       uses: reactivecircus/android-emulator-runner@v2
       with:
@@ -119,7 +122,6 @@ jobs:
         target: google_apis
         force-avd-creation: false
         emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot-save
-
         script: |
           mkdir testResults
           adb logcat > testResults/logcat.txt &
