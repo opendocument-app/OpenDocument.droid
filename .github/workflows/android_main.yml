@@ -90,6 +90,7 @@ jobs:
 
     # Not necessary, project is built when being tested too
     - name: Assemble project
+      if: false
       run: ./gradlew assembleDebug
 
     - name: Android Virtual Device (AVD) cache
@@ -115,6 +116,7 @@ jobs:
       run: echo "disk.dataPartition.size=8G" >> /Users/runner/.android/avd/test.avd/config.ini
 
     - name: Run tests
+      if: false
       uses: reactivecircus/android-emulator-runner@v2
       with:
         api-level: ${{ matrix.api-level }}
@@ -136,7 +138,8 @@ jobs:
           test ! -f sorry_but_tests_are_failing
 
     - uses: actions/upload-artifact@v2
-      if: always()
+      if: false
+#      if: always()
       with:
         name: testResults-${{ matrix.api-level }}-${{ matrix.arch }}
         path: testResults
