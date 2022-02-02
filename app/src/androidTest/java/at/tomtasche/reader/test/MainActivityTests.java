@@ -9,6 +9,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withContentDescription
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.anyOf;
 
 import android.Manifest;
 import android.app.Activity;
@@ -137,10 +138,11 @@ public class MainActivityTests {
         onView(allOf(withId(R.id.menu_open), withContentDescription("Open document"), isDisplayed()))
             .perform(click());
 
-        onView(allOf(withId(android.R.id.text1), withText("Documents"), isDisplayed())).perform(click());
+        // The menu item could be either Documents or Files.
+        onView(allOf(withId(android.R.id.text1), anyOf(withText("Documents"), withText("Files")), isDisplayed()))
+                .perform(click());
 
         // next onView will be blocked until m_idlingResource is idle.
-
         onView(allOf(withId(R.id.menu_edit), withContentDescription("Edit document"), isEnabled()))
             .withFailureHandler((error, viewMatcher) -> {
                 // fails on small screens, try again with overflow menu
@@ -168,7 +170,9 @@ public class MainActivityTests {
         onView(allOf(withId(R.id.menu_open), withContentDescription("Open document"), isDisplayed()))
             .perform(click());
 
-        onView(allOf(withId(android.R.id.text1), withText("Documents"), isDisplayed())).perform(click());
+        // The menu item could be either Documents or Files.
+        onView(allOf(withId(android.R.id.text1), anyOf(withText("Documents"), withText("Files")), isDisplayed()))
+                .perform(click());
 
         // next onView will be blocked until m_idlingResource is idle.
 
