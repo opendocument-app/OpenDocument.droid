@@ -124,7 +124,8 @@ jobs:
 
           bundle exec fastlane tests || touch sorry_but_tests_are_failing
 
-          mv app/build/reports/androidTests/connected testResults/
+          mv app/build/reports/androidTests/connected testResults/ || /bin/true
+          mv app/build/outputs/androidTest-results testResults/ || /bin/true
 
           adb shell screencap /data/local/tmp/screen.png
           adb pull /data/local/tmp/screen.png testResults/
