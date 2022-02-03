@@ -473,13 +473,14 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 offerUpload(activity, options, false);
             }
 
-            if (null == configManager) {
-                crashManager.log("configManager was null!");
-                return;
-            }
             configManager.getBooleanConfig("show_in_app_rating", new ConfigManager.ConfigListener<Boolean>() {
                 @Override
                 public void onConfig(String key, Boolean showInAppRating) {
+                    if (null == showInAppRating) {
+                        crashManager.log("configManager supplied NULL Boolean value! Not sure how to handle properly, leaving this here as a @TODO reminder");
+                        return;
+                    }
+                    // This may throw java.lang.NullPointerException: Attempt to invoke virtual method 'boolean java.lang.Boolean.booleanValue()' on a null object reference
                     if (showInAppRating) {
                         analyticsManager.report("in_app_review_eligible");
 
