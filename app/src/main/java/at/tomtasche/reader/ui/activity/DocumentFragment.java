@@ -473,6 +473,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
                 offerUpload(activity, options, false);
             }
 
+            if (null == configManager) {
+                crashManager.log("configManager was null!");
+                return;
+            }
             configManager.getBooleanConfig("show_in_app_rating", new ConfigManager.ConfigListener<Boolean>() {
                 @Override
                 public void onConfig(String key, Boolean showInAppRating) {
