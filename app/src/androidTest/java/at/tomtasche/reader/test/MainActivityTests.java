@@ -21,13 +21,13 @@ import android.net.Uri;
 import android.util.ArrayMap;
 
 import androidx.core.content.FileProvider;
-import androidx.test.core.app.ActivityScenario;
 import androidx.test.espresso.IdlingRegistry;
 import androidx.test.espresso.IdlingResource;
 import androidx.test.espresso.intent.Intents;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.rule.ActivityTestRule;
 import androidx.test.rule.GrantPermissionRule;
 
 import org.junit.After;
@@ -59,16 +59,21 @@ public class MainActivityTests {
     @Rule
     public GrantPermissionRule mGrantPermissionRule = GrantPermissionRule.grant(Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
+    // Yes, this is ActivityTestRule instead of ActivityScenario, because ActivityScenario does not actually work.
+    // Issue ID may or may not be added later.
+    @Rule
+    public ActivityTestRule<MainActivity> mainActivityActivityTestRule = new ActivityTestRule<>(MainActivity.class);
+
     @Before
     public void setUp() {
-        ActivityScenario.launch(MainActivity.class).onActivity(activity -> {
-            m_idlingResource = activity.getOpenFileIdlingResource();
-            IdlingRegistry.getInstance().register(m_idlingResource);
+        MainActivity mainActivity = mainActivityActivityTestRule.getActivity();
 
-            // Close system dialogs which may cover our Activity.
-            // Happens frequently on slow emulators.
-            activity.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
-        });
+        m_idlingResource = mainActivity.getOpenFileIdlingResource();
+        IdlingRegistry.getInstance().register(m_idlingResource);
+
+        // Close system dialogs which may cover our Activity.
+        // Happens frequently on slow emulators.
+        mainActivity.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
 
         Intents.init();
     }
