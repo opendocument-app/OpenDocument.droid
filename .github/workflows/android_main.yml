@@ -54,6 +54,10 @@ jobs:
           # Oldest x86_64
           - arch: x86_64
             api-level: 21
+          # API diff between 21 and 30 is too big.
+          # Need to know if test breaking change was old API or new.
+          - arch: x86_64
+            api-level: 25
           # Newest x86
           - arch: x86
             api-level: 30
