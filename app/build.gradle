@@ -119,7 +119,7 @@ dependencies {
         exclude group: 'com.android.support'
     })
 
-    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.15'
+    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.16'
     implementation 'com.viliussutkus89:wvware-android:1.2.4'
     implementation 'com.github.huzongyao:AndroidMagic:v1.1.2'
 

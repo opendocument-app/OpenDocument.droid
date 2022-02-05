@@ -7,7 +7,7 @@ buildscript {
     }
 
     dependencies {
-        // Can't upgrade to AGP 7.1.0 because it breaks CI build.
+        // Can't upgrade to AGP 7.1.0 or 7.1.1 because it breaks CI build.
         // Fix should be available in Chipmunk Canary 7 or 8.
         // We use Stable, not Canary versions.
         // Back story:
