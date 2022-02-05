@@ -122,13 +122,16 @@ jobs:
           mkdir testResults
           adb logcat > testResults/logcat.txt &
 
+          adb shell mkdir -p /sdcard/Pictures/screenshots
+          adb shell screencap /sdcard/Pictures/screenshots/beforeTests.png
+
           bundle exec fastlane tests || touch sorry_but_tests_are_failing
 
-          mv app/build/reports/androidTests/connected testResults/ || /bin/true
-          mv app/build/outputs/androidTest-results testResults/ || /bin/true
+          adb shell screencap /sdcard/Pictures/screenshots/afterTests.png
+          adb pull /sdcard/Pictures/screenshots testResults/
 
-          adb shell screencap /data/local/tmp/screen.png
-          adb pull /data/local/tmp/screen.png testResults/
+          mv app/build/reports/androidTests/connected testResults/
+          mv app/build/outputs/androidTest-results testResults/
 
           test ! -f sorry_but_tests_are_failing
 
