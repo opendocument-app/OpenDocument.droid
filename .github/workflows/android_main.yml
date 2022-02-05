@@ -128,16 +128,17 @@ jobs:
         target: google_apis
         sdcard-path-or-size: 1G
         script: |
-          mkdir testResults
+          mkdir -p testResults/screenshots
           adb logcat > testResults/logcat.txt &
 
-          adb shell mkdir -p /sdcard/Pictures/screenshots
-          adb shell screencap /sdcard/Pictures/screenshots/beforeTests.png
+          adb shell screencap /data/local/tmp/beforeTests.png
+          adb pull /data/local/tmp/beforeTests.png testResults/screenshots/
 
           bundle exec fastlane tests || touch sorry_but_tests_are_failing
+          adb pull /sdcard/Pictures/screenshots testResults/ || true
 
-          adb shell screencap /sdcard/Pictures/screenshots/afterTests.png
-          adb pull /sdcard/Pictures/screenshots testResults/
+          adb shell screencap /data/local/tmp/afterTests.png
+          adb pull /data/local/tmp/afterTests.png testResults/screenshots/
 
           mv app/build/reports/androidTests/connected testResults/
           mv app/build/outputs/androidTest-results testResults/
