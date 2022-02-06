@@ -82,9 +82,9 @@ public class ConfigManager {
         configListener.onConfig(key, value);
     }
 
-    public Boolean getBooleanConfig(String key) {
+    public boolean getBooleanConfig(String key) {
         if (!enabled) {
-            return null;
+            return false;
         }
 
         return remoteConfig.getBoolean(key);

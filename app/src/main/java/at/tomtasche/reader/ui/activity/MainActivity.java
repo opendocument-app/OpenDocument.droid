@@ -661,7 +661,8 @@ public class MainActivity extends AppCompatActivity {
         final boolean isBillingEnabled = billingManager.isEnabled();
 
         boolean isShowSubscription = configManager.getBooleanConfig("show_subscription");
-        boolean isShowPurchase = !configManager.getBooleanConfig("do_not_show_purchase");
+        boolean isNotShowPurchase = configManager.getBooleanConfig("do_not_show_purchase");
+        boolean isProPurchase = configManager.getBooleanConfig("use_pro_purchase");
 
         String[] optionStrings = getResources().getStringArray(R.array.dialog_remove_ads_options);
 
@@ -673,9 +674,12 @@ public class MainActivity extends AppCompatActivity {
                 optionStringList.add(optionStrings[1]);
                 productStringList.add(BillingManager.BILLING_PRODUCT_SUBSCRIPTION);
             }
-            if (isShowPurchase) {
+            if (!isNotShowPurchase) {
                 optionStringList.add(optionStrings[0]);
-                productStringList.add(BillingManager.BILLING_PRODUCT_PURCHASE);
+
+                if (isProPurchase) {
+                    productStringList.add("https://play.google.com/store/apps/details?id=at.tomtasche.reader.pro");
+                }
             }
         }
 
@@ -704,7 +708,11 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                billingManager.startPurchase(MainActivity.this, product);
+                if (product.startsWith("https://")) {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(product)));
+                } else {
+                    billingManager.startPurchase(MainActivity.this, product);
+                }
 
                 dialog.dismiss();
             }
