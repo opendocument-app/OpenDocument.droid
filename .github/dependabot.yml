@@ -11,3 +11,9 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+
+  - package-ecosystem: "bundler"
+    target-branch: "development"
+    directory: "/"
+    schedule:
+      interval: "daily"

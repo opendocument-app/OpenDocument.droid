@@ -1,5 +1,5 @@
 [requires]
-odrcore/2.1.0@
+odrcore/2.1.2@
 
 [generators]
 cmake

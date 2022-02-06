@@ -64,7 +64,6 @@
     <string name="intro_description_edit">OpenDocument Reader sadece mobil aygıtınızdaki belgeleri okumakla kalmaz, aynı zamanda onların değiştirilmesini de destekler. Yazı bir esitide hatta trende bile sabitdir!</string>
     <string name="intro_title_apps">Belgelerinizi diğer uygulamaların içinden okuyun</string>
     <string name="intro_description_apps">OpenDocument Reader, belgeleri açmak için diğer birçok uygulamayı destekler. Bir meslektaşınız Gmail aracılığıyla bir sunum mu gönderdi? Eki tıklayın bu uygulama hemen açılacak!</string>
-    <string name="intro_button_start">BAŞLAT</string>
     <string name="crouton_remove_ads">Okumak için daha fazla alana mı ihtiyacınız var? Menüden reklamları ücretsiz olarak kaldırın.</string>
     <string name="reopen_chooser_title">Aygıtınızda kurulu başka bir uygulamayı kullanarak açın:</string>
     <string-array name="dialog_remove_ads_options">

@@ -73,7 +73,6 @@ android {
 
     android.bundle.language.enableSplit false
 
-    lintOptions.abortOnError false
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -86,10 +85,13 @@ android {
             path file('../CMakeLists.txt')
         }
     }
+    lint {
+        abortOnError false
+    }
 }
 
 dependencies {
-    implementation platform('com.google.firebase:firebase-bom:29.0.2')
+    implementation platform('com.google.firebase:firebase-bom:29.0.4')
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-perf'
@@ -111,13 +113,13 @@ dependencies {
     implementation 'com.google.android.material:material:1.5.0'
     implementation 'androidx.webkit:webkit:1.4.0'
 
-    implementation 'com.github.AppIntro:AppIntro:6.1.0'
+    implementation 'com.github.AppIntro:AppIntro:6.2.0'
 
     implementation('com.nononsenseapps:filepicker:4.2.1', {
         exclude group: 'com.android.support'
     })
 
-    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.15'
+    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.16'
     implementation 'com.viliussutkus89:wvware-android:1.2.4'
     implementation 'com.github.huzongyao:AndroidMagic:v1.1.2'
 

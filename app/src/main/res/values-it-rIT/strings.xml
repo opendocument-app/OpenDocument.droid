@@ -51,7 +51,6 @@
     <string name="intro_description_edit">OpenDocument Reader non solo consente di leggere documenti sul tuo dispositivo mobile, ma supporta anche la modifica di questi. Correggere gli errori di battitura è un gioco da ragazzi, anche sul treno!</string>
     <string name="intro_title_apps">Leggi i tuoi documenti da altre app</string>
     <string name="intro_description_apps">OpenDocument Reader supporta una vasta gamma di altre app da cui aprire documenti. Un collega ha inviato una presentazione tramite Gmail? Fai clic sull\'allegato e questa app si aprirà subito!</string>
-    <string name="intro_button_start">AVVIO</string>
     <string name="crouton_remove_ads">Hai bisogno di più spazio da leggere? Rimuovi gli annunci gratuitamente tramite il menu.</string>
     <string-array name="dialog_remove_ads_options">
         <item>Rimuovere gli annunci per sempre</item>
