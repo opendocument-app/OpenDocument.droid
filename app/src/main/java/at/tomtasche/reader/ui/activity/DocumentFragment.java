@@ -476,7 +476,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             configManager.getBooleanConfig("show_in_app_rating", new ConfigManager.ConfigListener<Boolean>() {
                 @Override
                 public void onConfig(String key, Boolean showInAppRating) {
-                    if (showInAppRating) {
+                    if (null != showInAppRating && showInAppRating) {
                         analyticsManager.report("in_app_review_eligible");
 
                         ReviewManager manager = ReviewManagerFactory.create(activity);
