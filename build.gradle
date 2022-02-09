@@ -13,7 +13,7 @@ buildscript {
         // Back story:
         // https://issuetracker.google.com/issues/206099937
         // https://issuetracker.google.com/issues/202985154
-        classpath 'com.android.tools.build:gradle:7.0.4'
+        classpath 'com.android.tools.build:gradle:7.1.1'
 
         classpath 'com.google.gms:google-services:4.3.10'
         classpath 'com.google.firebase:perf-plugin:1.4.1'
