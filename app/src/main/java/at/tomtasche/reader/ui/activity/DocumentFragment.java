@@ -617,11 +617,28 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         if (invasive) {
             analyticsManager.report("upload_offer_invasive", FirebaseAnalytics.Param.CONTENT_TYPE, fileType, FirebaseAnalytics.Param.CONTENT, options.originalUri);
 
+            boolean showFriendlyUploadOffer = configManager.getBooleanConfig("show_friendly_upload_offer");
+
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-            builder.setTitle(R.string.toast_error_illegal_file);
+
+            String title;
+            if (showFriendlyUploadOffer) {
+                title = "Upload file for conversion?";
+            } else {
+                title = getResources().getString(R.string.toast_error_illegal_file);
+            }
+            builder.setTitle(title);
 
             if (MainActivity.IS_GOOGLE_ECOSYSTEM) {
-                builder.setMessage(R.string.dialog_upload_file);
+                String message;
+                if (showFriendlyUploadOffer) {
+                    // We aren\'t able to open this document, because we don\'t support its format. Do you want to upload it to our server temporarily, so we can display it for you anyway? Uploaded files are private and automatically deleted after 24 hours.
+                    message = "Sorry, this format is only supported if uploaded to our server first. After conversion, the file is deleted within 24 hours and is not accessible to anyone else than you.";
+                } else {
+                    message = getResources().getString(R.string.dialog_upload_file);
+                }
+
+                builder.setMessage(message);
 
                 builder.setPositiveButton(getString(android.R.string.ok),
                         new DialogInterface.OnClickListener() {
