@@ -424,7 +424,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         lastSelectedTab = -1;
         lastResult = result;
 
-        analyticsManager.setCurrentScreen(activity, "screen_" + result.loaderType.toString() + "_" + result.options.fileType);
+        analyticsManager.setCurrentScreen(activity, result.loaderType.toString() + "_" + result.options.fileType);
 
         FileLoader.Options options = result.options;
         if (result.loaderType == FileLoader.LoaderType.METADATA) {
