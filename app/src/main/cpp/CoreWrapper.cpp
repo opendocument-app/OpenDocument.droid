@@ -73,13 +73,14 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
             odr::FileType fileType;
             try {
                 const auto types = odr::OpenDocumentReader::types(inputPathCpp);
+                if (types.empty()) {
+                    env->SetIntField(result, errorField, -5);
+                    return result;
+                }
 
                 fileType = types.back();
             } catch (odr::UnsupportedFileType& e) {
                 fileType = e.file_type;
-            } catch (...) {
-                env->SetIntField(result, errorField, -5);
-                return result;
             }
 
             const auto extensionCpp = odr::OpenDocumentReader::type_to_string(fileType);
