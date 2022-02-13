@@ -80,7 +80,7 @@ public class AnalyticsManager {
 
         Bundle bundle = new Bundle();
         bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, name);
-        bundle.putString(FirebaseAnalytics.Param.SCREEN_CLASS, analytics.getClass().getSimpleName());
+        bundle.putString(FirebaseAnalytics.Param.SCREEN_CLASS, activity.getClass().getSimpleName());
         analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle);
     }
 }
