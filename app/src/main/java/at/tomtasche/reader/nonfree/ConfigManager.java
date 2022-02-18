@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 import androidx.annotation.NonNull;
+
+import at.tomtasche.reader.R;
 import at.tomtasche.reader.ui.activity.MainActivity;
 
 public class ConfigManager {
