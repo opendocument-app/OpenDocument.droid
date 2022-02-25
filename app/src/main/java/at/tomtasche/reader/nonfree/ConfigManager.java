@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 import androidx.annotation.NonNull;
+
+import at.tomtasche.reader.R;
 import at.tomtasche.reader.ui.activity.MainActivity;
 
 public class ConfigManager {
@@ -82,9 +84,9 @@ public class ConfigManager {
         configListener.onConfig(key, value);
     }
 
-    public Boolean getBooleanConfig(String key) {
+    public boolean getBooleanConfig(String key) {
         if (!enabled) {
-            return null;
+            return false;
         }
 
         return remoteConfig.getBoolean(key);

@@ -129,7 +129,7 @@ public class OnlineLoader extends FileLoader {
         try {
             Uri viewerUri;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                    ("text/rtf".equals(options.fileType) || "application/vnd.wordperfect".equals(options.fileType))) {
+                    ("text/rtf".equals(options.fileType) || "application/vnd.wordperfect".equals(options.fileType) || odfLoader.isSupported(options) || "application/vnd.ms-powerpoint".equals(options.fileType))) {
                 viewerUri = doOnlineConvert(options);
             } else {
                 viewerUri = doFirebaseConvert(options);
@@ -166,8 +166,6 @@ public class OnlineLoader extends FileLoader {
         ) {
             writer.append("--" + boundary).append(CRLF);
             writer.append("Content-Disposition: form-data; name=\"document\"; filename=\"document\"").append(CRLF);
-            // writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(binaryFile.getName())).append(CRLF);
-            // writer.append("Content-Transfer-Encoding: binary").append(CRLF);
             writer.append(CRLF).flush();
             Files.copy(binaryFile.toPath(), output);
             output.flush();

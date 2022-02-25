@@ -26,6 +26,20 @@ import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.test.espresso.IdlingResource;
+import androidx.test.espresso.idling.CountingIdlingResource;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -34,15 +48,6 @@ import com.nononsenseapps.filepicker.FilePickerActivity;
 import java.util.LinkedList;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.FragmentTransaction;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.PrintingManager;
 import at.tomtasche.reader.nonfree.AdManager;
@@ -62,17 +67,10 @@ public class MainActivity extends AppCompatActivity {
     // taken from: https://stackoverflow.com/a/36829889/198996
     private static boolean isTesting() {
         try {
-            Class.forName("at.tomtasche.reader.test.PdfActivityTest");
+            Class.forName("at.tomtasche.reader.test.MainActivityTests");
             return true;
         } catch (ClassNotFoundException e) {
         }
-
-        try {
-            Class.forName("at.tomtasche.reader.test.OdfActivityTest");
-            return true;
-        } catch (ClassNotFoundException e) {
-        }
-
         return false;
     }
 
@@ -111,6 +109,9 @@ public class MainActivity extends AppCompatActivity {
     private Uri lastUri;
     private Uri loadOnStart;
     private Uri lastSaveUri;
+
+    @Nullable
+    private CountingIdlingResource openFileIdlingResource;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -400,6 +401,10 @@ public class MainActivity extends AppCompatActivity {
 
             Uri uri = intent.getData();
             if (requestCode == 42 && resultCode == Activity.RESULT_OK && uri != null) {
+                if (null != openFileIdlingResource) {
+                    openFileIdlingResource.decrement();
+                }
+
                 loadUri(uri, true);
             }
         }
@@ -661,7 +666,8 @@ public class MainActivity extends AppCompatActivity {
         final boolean isBillingEnabled = billingManager.isEnabled();
 
         boolean isShowSubscription = configManager.getBooleanConfig("show_subscription");
-        boolean isShowPurchase = !configManager.getBooleanConfig("do_not_show_purchase");
+        boolean isNotShowPurchase = configManager.getBooleanConfig("do_not_show_purchase");
+        boolean isProPurchase = configManager.getBooleanConfig("use_pro_purchase");
 
         String[] optionStrings = getResources().getStringArray(R.array.dialog_remove_ads_options);
 
@@ -673,9 +679,12 @@ public class MainActivity extends AppCompatActivity {
                 optionStringList.add(optionStrings[1]);
                 productStringList.add(BillingManager.BILLING_PRODUCT_SUBSCRIPTION);
             }
-            if (isShowPurchase) {
+            if (!isNotShowPurchase) {
                 optionStringList.add(optionStrings[0]);
-                productStringList.add(BillingManager.BILLING_PRODUCT_PURCHASE);
+
+                if (isProPurchase) {
+                    productStringList.add("https://play.google.com/store/apps/details?id=at.tomtasche.reader.pro");
+                }
             }
         }
 
@@ -704,7 +713,11 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                billingManager.startPurchase(MainActivity.this, product);
+                if (product.startsWith("https://")) {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(product)));
+                } else {
+                    billingManager.startPurchase(MainActivity.this, product);
+                }
 
                 dialog.dismiss();
             }
@@ -789,8 +802,16 @@ public class MainActivity extends AppCompatActivity {
                 intent.setComponent(new ComponentName(target.activityInfo.packageName, target.activityInfo.name));
 
                 try {
+                    if (null != openFileIdlingResource) {
+                        openFileIdlingResource.increment();
+                    }
+
                     startActivityForResult(intent, 42);
                 } catch (Exception e) {
+                    if (null != openFileIdlingResource) {
+                        openFileIdlingResource.decrement();
+                    }
+
                     crashManager.log(e);
 
                     SnackbarHelper.show(MainActivity.this, R.string.crouton_error_open_app, new Runnable() {
@@ -854,5 +875,14 @@ public class MainActivity extends AppCompatActivity {
 
     public ConfigManager getConfigManager() {
         return configManager;
+    }
+
+    @VisibleForTesting
+    @NonNull
+    public IdlingResource getOpenFileIdlingResource() {
+        if (null == openFileIdlingResource) {
+            openFileIdlingResource = new CountingIdlingResource("MainActivity.openFileIdlingResource");
+        }
+        return openFileIdlingResource;
     }
 }

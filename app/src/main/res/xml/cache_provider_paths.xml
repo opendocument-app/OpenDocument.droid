@@ -9,4 +9,10 @@
     <cache-path
             name="cache"
             path="." />
+
+<!--    For instrumentation tests-->
+    <cache-path
+            name="test-documents"
+            path="test-documents" />
+
 </paths>

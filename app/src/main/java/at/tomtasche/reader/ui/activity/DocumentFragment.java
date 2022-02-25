@@ -424,7 +424,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         lastSelectedTab = -1;
         lastResult = result;
 
-        analyticsManager.setCurrentScreen(activity, "screen_" + result.loaderType.toString() + "_" + result.options.fileType);
+        analyticsManager.setCurrentScreen(activity, result.loaderType.toString() + "_" + result.options.fileType);
 
         FileLoader.Options options = result.options;
         if (result.loaderType == FileLoader.LoaderType.METADATA) {
@@ -468,36 +468,44 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
             if (result.loaderType == FileLoader.LoaderType.RAW || result.loaderType == FileLoader.LoaderType.ONLINE) {
                 offerReopen(activity, options, R.string.toast_hint_unsupported_file, false);
-            } else if (result.loaderType == FileLoader.LoaderType.DOC || result.loaderType == FileLoader.LoaderType.OOXML) {
-                // only for MS Office documents. other formats are not often uploaded by users
+            } else if (result.loaderType == FileLoader.LoaderType.DOC || result.loaderType == FileLoader.LoaderType.OOXML || result.loaderType == FileLoader.LoaderType.PDF || result.loaderType == FileLoader.LoaderType.ODF) {
                 offerUpload(activity, options, false);
             }
 
-            configManager.getBooleanConfig("show_in_app_rating", new ConfigManager.ConfigListener<Boolean>() {
-                @Override
-                public void onConfig(String key, Boolean showInAppRating) {
-                    if (showInAppRating) {
-                        analyticsManager.report("in_app_review_eligible");
-
-                        ReviewManager manager = ReviewManagerFactory.create(activity);
-                        com.google.android.play.core.tasks.Task<ReviewInfo> request = manager.requestReviewFlow();
-                        request.addOnCompleteListener(reviewInfoTask -> {
-                            if (reviewInfoTask.isSuccessful()) {
-                                analyticsManager.report("in_app_review_start");
-
-                                ReviewInfo reviewInfo = reviewInfoTask.getResult();
-                                com.google.android.play.core.tasks.Task<Void> flow = manager.launchReviewFlow(activity, reviewInfo);
-                                flow.addOnCompleteListener(reviewTask -> {
-                                    analyticsManager.report("in_app_review_done");
-                                });
-                            } else {
-                                analyticsManager.report("in_app_review_error");
-                            }
-                        });
+            boolean isPro = getResources().getBoolean(R.bool.DISABLE_TRACKING);
+            if (isPro) {
+                requestInAppRating(activity);
+            } else {
+                configManager.getBooleanConfig("show_in_app_rating", new ConfigManager.ConfigListener<Boolean>() {
+                    @Override
+                    public void onConfig(String key, Boolean showInAppRating) {
+                        if (showInAppRating != null && showInAppRating) {
+                            requestInAppRating(activity);
+                        }
                     }
-                }
-            });
+                });
+            }
         }
+    }
+
+    private void requestInAppRating(Activity activity) {
+        analyticsManager.report("in_app_review_eligible");
+
+        ReviewManager manager = ReviewManagerFactory.create(activity);
+        com.google.android.play.core.tasks.Task<ReviewInfo> request = manager.requestReviewFlow();
+        request.addOnCompleteListener(reviewInfoTask -> {
+            if (reviewInfoTask.isSuccessful()) {
+                analyticsManager.report("in_app_review_start");
+
+                ReviewInfo reviewInfo = reviewInfoTask.getResult();
+                com.google.android.play.core.tasks.Task<Void> flow = manager.launchReviewFlow(activity, reviewInfo);
+                flow.addOnCompleteListener(reviewTask -> {
+                    analyticsManager.report("in_app_review_done");
+                });
+            } else {
+                analyticsManager.report("in_app_review_error");
+            }
+        });
     }
 
     @Override
@@ -617,11 +625,28 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         if (invasive) {
             analyticsManager.report("upload_offer_invasive", FirebaseAnalytics.Param.CONTENT_TYPE, fileType, FirebaseAnalytics.Param.CONTENT, options.originalUri);
 
+            boolean showFriendlyUploadOffer = configManager.getBooleanConfig("show_friendly_upload_offer");
+
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-            builder.setTitle(R.string.toast_error_illegal_file);
+
+            String title;
+            if (showFriendlyUploadOffer) {
+                title = "Upload file for conversion?";
+            } else {
+                title = getResources().getString(R.string.toast_error_illegal_file);
+            }
+            builder.setTitle(title);
 
             if (MainActivity.IS_GOOGLE_ECOSYSTEM) {
-                builder.setMessage(R.string.dialog_upload_file);
+                String message;
+                if (showFriendlyUploadOffer) {
+                    // We aren\'t able to open this document, because we don\'t support its format. Do you want to upload it to our server temporarily, so we can display it for you anyway? Uploaded files are private and automatically deleted after 24 hours.
+                    message = "Sorry, this format is only supported if uploaded to our server first. After conversion, the file is deleted within 24 hours and is not accessible to anyone else than you.";
+                } else {
+                    message = getResources().getString(R.string.dialog_upload_file);
+                }
+
+                builder.setMessage(message);
 
                 builder.setPositiveButton(getString(android.R.string.ok),
                         new DialogInterface.OnClickListener() {

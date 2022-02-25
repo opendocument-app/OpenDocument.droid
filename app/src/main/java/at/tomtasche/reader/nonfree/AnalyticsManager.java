@@ -78,7 +78,9 @@ public class AnalyticsManager {
             return;
         }
 
-        analytics.setCurrentScreen(activity, name, null);
-
+        Bundle bundle = new Bundle();
+        bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, name);
+        bundle.putString(FirebaseAnalytics.Param.SCREEN_CLASS, activity.getClass().getSimpleName());
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle);
     }
 }
