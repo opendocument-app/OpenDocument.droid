@@ -28,7 +28,7 @@ jobs:
         java-version: 11
 
     - name: set up python 3.8
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: 3.8
 
