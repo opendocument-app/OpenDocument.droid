@@ -115,11 +115,8 @@ jobs:
         arch: ${{ matrix.arch }}
         target: google_apis
         sdcard-path-or-size: 1G
+        disk-size: 8G
         script: echo "Generated AVD snapshot for caching."
-
-    # Temp workaround, until https://github.com/ReactiveCircus/android-emulator-runner/pull/219 is included in a release
-    - name: Increate storage size for emulator
-      run: echo "disk.dataPartition.size=8G" >> /Users/runner/.android/avd/test.avd/config.ini
 
     - name: Run tests
       uses: reactivecircus/android-emulator-runner@v2
@@ -130,6 +127,7 @@ jobs:
         arch: ${{ matrix.arch }}
         target: google_apis
         sdcard-path-or-size: 1G
+        disk-size: 8G
         script: |
           mkdir -p testResults/screenshots
           adb logcat > testResults/logcat.txt &
