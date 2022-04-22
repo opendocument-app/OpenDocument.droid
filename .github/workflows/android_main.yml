@@ -99,7 +99,7 @@ jobs:
       run: conan remote add odr https://odr.jfrog.io/artifactory/api/conan/odr-conan
 
     - name: Android Virtual Device (AVD) cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: avd-cache
       with:
         path: |
