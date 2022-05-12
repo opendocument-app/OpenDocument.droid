@@ -39,7 +39,19 @@ jobs:
     - name: conan repo
       run: conan remote add odr https://odr.jfrog.io/artifactory/api/conan/odr-conan
 
-    - run: ./gradlew assembleDebug --stacktrace
+    - run: ./gradlew assembleRelease lintProDebug lintLiteDebug --stacktrace
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: APKs
+        path: app/build/outputs/apk/**/*.apk
+        if-no-files-found: error
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: lint-report
+        path: app/build/reports/lint-results-*.html
+        if-no-files-found: error
   test:
     runs-on: macos-11
     # API-30+ tests are failing sometimes.
