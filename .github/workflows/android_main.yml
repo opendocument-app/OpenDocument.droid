@@ -39,7 +39,7 @@ jobs:
     - name: conan repo
       run: conan remote add odr https://odr.jfrog.io/artifactory/api/conan/odr-conan
 
-    - run: ./gradlew clean assembleDebug --stacktrace
+    - run: ./gradlew assembleDebug --stacktrace
   test:
     runs-on: macos-11
     # API-30+ tests are failing sometimes.
