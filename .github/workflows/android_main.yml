@@ -39,7 +39,7 @@ jobs:
     - name: conan repo
       run: conan remote add odr https://odr.jfrog.io/artifactory/api/conan/odr-conan
 
-    - run: ./gradlew assembleRelease lintProDebug lintLiteDebug --stacktrace
+    - run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
 
     - uses: actions/upload-artifact@v3
       with:
