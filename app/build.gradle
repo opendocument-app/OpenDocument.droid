@@ -88,6 +88,14 @@ android {
     lint {
         abortOnError false
     }
+    packagingOptions {
+        // These files are identical.
+        // Build is not supposed to break when identical files are found in several dependencies
+        pickFirst 'lib/armeabi-v7a/libtmpfile.so'
+        pickFirst 'lib/arm64-v8a/libtmpfile.so'
+        pickFirst 'lib/x86/libtmpfile.so'
+        pickFirst 'lib/x86_64/libtmpfile.so'
+    }
 }
 
 dependencies {
