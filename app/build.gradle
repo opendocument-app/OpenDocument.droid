@@ -95,8 +95,16 @@ android {
         pickFirst 'lib/arm64-v8a/libtmpfile.so'
         pickFirst 'lib/x86/libtmpfile.so'
         pickFirst 'lib/x86_64/libtmpfile.so'
+
+        // pdf2htmlEX-Android and wvWare-Android are built with the same NDK-23.1 libc++_shared.so
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
     }
 }
+
+
 
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:29.1.0')
