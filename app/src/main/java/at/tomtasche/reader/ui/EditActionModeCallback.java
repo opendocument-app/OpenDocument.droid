@@ -25,9 +25,9 @@ import at.tomtasche.reader.ui.activity.MainActivity;
 
 public class EditActionModeCallback implements ActionMode.Callback {
 
-    private MainActivity activity;
-    private DocumentFragment documentFragment;
-    private HelpManager helpManager;
+    private final MainActivity activity;
+    private final DocumentFragment documentFragment;
+    private final HelpManager helpManager;
 
     private InputMethodManager imm;
 

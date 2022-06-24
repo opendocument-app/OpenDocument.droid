@@ -2,9 +2,9 @@ package at.tomtasche.reader.ui;
 
 public interface ParagraphListener {
 
-    public void paragraph(String text);
+    void paragraph(String text);
 
-    public void increaseIndex();
+    void increaseIndex();
 
-    public void end();
+    void end();
 }

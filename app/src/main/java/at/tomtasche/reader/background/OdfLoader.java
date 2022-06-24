@@ -10,7 +10,7 @@ import at.tomtasche.reader.nonfree.ConfigManager;
 
 public class OdfLoader extends FileLoader {
 
-    private ConfigManager configManager;
+    private final ConfigManager configManager;
 
     private CoreWrapper lastCore;
     private CoreWrapper.CoreOptions lastCoreOptions;

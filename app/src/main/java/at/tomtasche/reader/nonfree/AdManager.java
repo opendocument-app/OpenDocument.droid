@@ -41,10 +41,6 @@ public class AdManager {
 
     private LinearLayout adContainer;
     private AdView adView;
-    private boolean showInterstitialOnLoad;
-    private InterstitialAd interstitialAd;
-    private boolean showVideoOnLoad;
-    private RewardedAd videoAd;
 
     public void initialize(Activity activity, AnalyticsManager analyticsManager, CrashManager crashManager, ConfigManager configManager) {
         if (!enabled) {
@@ -157,120 +153,6 @@ public class AdManager {
         });
     }
 
-    public void loadInterstitial() {
-        if (!enabled) {
-            return;
-        }
-
-        showInterstitialOnLoad = false;
-        interstitialAd = null;
-
-        AdRequest adRequest = new AdRequest.Builder().build();
-
-        InterstitialAd.load(activity, "ca-app-pub-8161473686436957/2477707165", adRequest, new InterstitialAdLoadCallback() {
-            @Override
-            public void onAdLoaded(@NonNull @NotNull InterstitialAd interstitialAd) {
-                analyticsManager.report("ads_interstitial_loaded");
-
-                AdManager.this.interstitialAd = interstitialAd;
-
-                if (showInterstitialOnLoad) {
-                    showInterstitial();
-                }
-            }
-
-            @Override
-            public void onAdFailedToLoad(@NonNull @NotNull LoadAdError loadAdError) {
-                analyticsManager.report("ads_interstitial_failed", "code", loadAdError.getCode());
-            }
-        });
-    }
-
-    public void showInterstitial() {
-        if (!enabled) {
-            return;
-        }
-
-        Boolean doNotShowIntersitital = configManager.getBooleanConfig("do_not_show_interstitial");
-        if (doNotShowIntersitital == null || doNotShowIntersitital) {
-            return;
-        }
-
-        if (interstitialAd != null) {
-            interstitialAd.setFullScreenContentCallback(new FullScreenContentCallback(){
-                @Override
-                public void onAdDismissedFullScreenContent() {
-                    analyticsManager.report("ads_interstitial_fullscreen_dismissed");
-                }
-
-                @Override
-                public void onAdFailedToShowFullScreenContent(AdError adError) {
-                    analyticsManager.report("ads_interstitial_fullscreen_failed", "code", adError.getCode());
-                }
-
-                @Override
-                public void onAdShowedFullScreenContent() {
-                    analyticsManager.report("ads_interstitial_fullscreen_shown");
-                }
-            });
-
-            interstitialAd.show(activity);
-
-            interstitialAd = null;
-        } else {
-            showInterstitialOnLoad = true;
-        }
-    }
-
-    public void loadVideo() {
-        if (!enabled) {
-            return;
-        }
-
-        showVideoOnLoad = false;
-        videoAd = null;
-
-        AdRequest adRequest = new AdRequest.Builder().build();
-
-        RewardedAd.load(activity, "ca-app-pub-8161473686436957/7215347444", adRequest, new RewardedAdLoadCallback(){
-            @Override
-            public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                analyticsManager.report("ads_video_failed", "code", loadAdError.getCode());
-
-                removeAds();
-            }
-
-            @Override
-            public void onAdLoaded(@NonNull RewardedAd rewardedAd) {
-                analyticsManager.report("ads_video_loaded");
-
-                AdManager.this.videoAd = rewardedAd;
-
-                if (showVideoOnLoad) {
-                    showVideo();
-                }
-            }
-        });
-    }
-
-    public void showVideo() {
-        if (!enabled) {
-            return;
-        }
-
-        if (videoAd != null) {
-            videoAd.show(activity, rewardItem -> {
-                analyticsManager.report("ads_video_rewarded");
-
-                removeAds();
-            });
-
-            videoAd = null;
-        } else {
-            showVideoOnLoad = true;
-        }
-    }
-
     public void removeAds() {
         enabled = false;
 
@@ -283,9 +165,6 @@ public class AdManager {
     }
 
     public void destroyAds() {
-        interstitialAd = null;
-        videoAd = null;
-
         try {
             // keeps throwing exceptions for some users:
             // Caused by: java.lang.NullPointerException
