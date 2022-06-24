@@ -3,18 +3,10 @@ buildscript {
     repositories {
         google()
         mavenCentral()
-        jcenter()
     }
 
     dependencies {
-        // Can't upgrade to AGP 7.1.0 or 7.1.1 because it breaks CI build.
-        // Fix should be available in Chipmunk Canary 7 or 8.
-        // We use Stable, not Canary versions.
-        // Back story:
-        // https://issuetracker.google.com/issues/206099937
-        // https://issuetracker.google.com/issues/202985154
-        classpath 'com.android.tools.build:gradle:7.0.4'
-
+        classpath 'com.android.tools.build:gradle:7.2.0'
         classpath 'com.google.gms:google-services:4.3.10'
         classpath 'com.google.firebase:perf-plugin:1.4.1'
         classpath 'com.google.firebase:firebase-crashlytics-gradle:2.8.1'
@@ -25,7 +17,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        jcenter()
         maven { url 'https://jitpack.io' }
     }
 }
