@@ -18,13 +18,13 @@ import at.tomtasche.reader.ui.widget.PageView;
 public class TtsActionModeCallback implements ActionMode.Callback,
         OnInitListener, ParagraphListener, OnUtteranceCompletedListener {
 
-    private Context context;
-    private PageView pageView;
+    private final Context context;
+    private final PageView pageView;
     private TextToSpeech textToSpeech;
     private Menu menu;
     private TextView statusView;
     private int lastParagraphIndex = 0;
-    private HashMap<String, String> ttsParams;
+    private final HashMap<String, String> ttsParams;
     private boolean paused;
 
     public TtsActionModeCallback(Context context, PageView pageView) {

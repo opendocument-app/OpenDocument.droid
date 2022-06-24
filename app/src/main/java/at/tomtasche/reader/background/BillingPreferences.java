@@ -8,7 +8,7 @@ import at.tomtasche.reader.BuildConfig;
 
 public class BillingPreferences {
 
-    private SharedPreferences sharedPreferences;
+    private final SharedPreferences sharedPreferences;
 
     public BillingPreferences(Context context) {
         sharedPreferences = context.getSharedPreferences(

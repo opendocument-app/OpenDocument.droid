@@ -39,12 +39,12 @@ import at.tomtasche.reader.R;
 // https://github.com/aosp-mirror/platform_frameworks_base/blob/a8b1b1a2e62bcca18f52ed31549c93d43728d152/core/java/android/webkit/FindActionModeCallback.java
 public class FindActionModeCallback implements ActionMode.Callback, TextWatcher,
         View.OnClickListener, WebView.FindListener {
-    private View mCustomView;
-    private EditText mEditText;
-    private TextView mMatches;
+    private final View mCustomView;
+    private final EditText mEditText;
+    private final TextView mMatches;
     private WebView mWebView;
-    private InputMethodManager mInput;
-    private Resources mResources;
+    private final InputMethodManager mInput;
+    private final Resources mResources;
     private boolean mMatchesFound;
     private int mNumberOfMatches;
     private int mActiveMatchIndex;
@@ -53,11 +53,11 @@ public class FindActionModeCallback implements ActionMode.Callback, TextWatcher,
     public FindActionModeCallback(Context context) {
         mCustomView = LayoutInflater.from(context).inflate(
                 R.layout.webview_find, null);
-        mEditText = (EditText) mCustomView.findViewById(
+        mEditText = mCustomView.findViewById(
                 R.id.edit);
         mEditText.setOnClickListener(this);
         setText("");
-        mMatches = (TextView) mCustomView.findViewById(
+        mMatches = mCustomView.findViewById(
                 R.id.matches);
         mInput = context.getSystemService(InputMethodManager.class);
         mResources = context.getResources();
@@ -73,7 +73,7 @@ public class FindActionModeCallback implements ActionMode.Callback, TextWatcher,
      */
     public void setText(String text) {
         mEditText.setText(text);
-        Spannable span = (Spannable) mEditText.getText();
+        Spannable span = mEditText.getText();
         int length = span.length();
         // Ideally, we would like to set the selection to the whole field,
         // but this brings up the Text selection CAB, which dismisses this
@@ -255,8 +255,8 @@ public class FindActionModeCallback implements ActionMode.Callback, TextWatcher,
         // Does nothing.  Needed to implement TextWatcher.
     }
 
-    private Rect mGlobalVisibleRect = new Rect();
-    private Point mGlobalVisibleOffset = new Point();
+    private final Rect mGlobalVisibleRect = new Rect();
+    private final Point mGlobalVisibleOffset = new Point();
     public int getActionModeGlobalBottom() {
         if (mActionMode == null) {
             return 0;

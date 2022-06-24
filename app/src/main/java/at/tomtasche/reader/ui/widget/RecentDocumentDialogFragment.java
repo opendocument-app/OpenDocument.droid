@@ -102,7 +102,7 @@ public class RecentDocumentDialogFragment extends DialogFragment implements
         dismiss();
 
         MainActivity activity = ((MainActivity) getActivity());
-        activity.loadUri(Uri.parse(uri), true);
+        activity.loadUri(Uri.parse(uri));
     }
 
     @Override

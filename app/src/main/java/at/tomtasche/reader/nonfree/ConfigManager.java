@@ -94,6 +94,6 @@ public class ConfigManager {
 
     public interface ConfigListener<T> {
 
-        public void onConfig(String key, T value);
+        void onConfig(String key, T value);
     }
 }
