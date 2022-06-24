@@ -73,7 +73,6 @@ android {
 
     android.bundle.language.enableSplit false
 
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -144,5 +143,3 @@ dependencies {
     implementation 'androidx.test.espresso:espresso-idling-resource:3.4.0'
     implementation 'androidx.annotation:annotation:1.4.0'
 }
-
-apply plugin: 'com.google.gms.google-services'
