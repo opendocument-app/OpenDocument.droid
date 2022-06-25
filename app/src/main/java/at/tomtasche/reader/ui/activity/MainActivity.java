@@ -21,14 +21,12 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -79,10 +77,7 @@ public class MainActivity extends AppCompatActivity {
     private static final boolean IS_TESTING = isTesting();
     private static final int GOOGLE_REQUEST_CODE = 1993;
     private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
-    private static final int PERMISSION_CODE = 1353;
     private static final int CREATE_CODE = 4213;
-
-    private boolean didTriggerPermissionDialogAgain = false;
 
     private Handler handler;
 
@@ -101,8 +96,6 @@ public class MainActivity extends AppCompatActivity {
     private AdManager adManager;
     private BillingManager billingManager;
     private PrintingManager printingManager;
-
-    private Runnable onPermissionRunnable;
 
     private Uri lastUri;
     private Uri loadOnStart;
@@ -264,26 +257,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public boolean requestPermission(String permission, Runnable onPermissionRunnable) {
-        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{permission}, PERMISSION_CODE);
-
-            this.onPermissionRunnable = onPermissionRunnable;
-
-            return false;
-        }
-
-        this.onPermissionRunnable = null;
-
-        return true;
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public boolean requestSave() {
+    public void requestSave() {
         if (lastSaveUri != null) {
             documentFragment.save(lastSaveUri);
 
-            return true;
+            return;
         }
 
         try {
@@ -293,13 +271,9 @@ public class MainActivity extends AppCompatActivity {
             intent.setType(documentFragment.getLastFileType());
 
             startActivityForResult(intent, CREATE_CODE);
-
-            return true;
         } catch (ActivityNotFoundException e) {
             // happens on a variety devices, e.g. Samsung Galaxy Tab4 7.0 with Android 4.4.2
             crashManager.log(e);
-
-            return false;
         }
     }
 
@@ -391,18 +365,6 @@ public class MainActivity extends AppCompatActivity {
         lastSaveUri = null;
         lastUri = uri;
 
-        Runnable onPermission = new Runnable() {
-            @Override
-            public void run() {
-                loadUri(uri);
-            }
-        };
-
-        boolean hasPermission = requestPermission(Manifest.permission.READ_EXTERNAL_STORAGE, onPermission);
-        if (!hasPermission) {
-            return;
-        }
-
         if (documentFragment == null) {
             documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
 
@@ -421,17 +383,15 @@ public class MainActivity extends AppCompatActivity {
         crashManager.log("loading document at: " + uri.toString());
         analyticsManager.report(FirebaseAnalytics.Event.VIEW_ITEM, FirebaseAnalytics.Param.ITEM_NAME, uri.toString());
 
-        boolean isPersistentUri = true;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            try {
-                grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            } catch (Exception e) {
-                // some providers dont support persisted permissions
-                crashManager.log(e);
+        boolean isPersistentUri = false;
+        try {
+            grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                isPersistentUri = false;
-            }
+            isPersistentUri = true;
+        } catch (Exception e) {
+            // some providers dont support persisted permissions
+            crashManager.log(e);
         }
 
         documentFragment.loadUri(uri, isPersistentUri);
@@ -578,41 +538,6 @@ public class MainActivity extends AppCompatActivity {
         ttsActionMode = null;
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            if (requestCode == PERMISSION_CODE && onPermissionRunnable != null) {
-                onPermissionRunnable.run();
-                onPermissionRunnable = null;
-
-                return;
-            }
-        }
-
-        String permission;
-        if (permissions.length > 0) {
-            permission = permissions[0];
-        } else {
-            // https://stackoverflow.com/q/50770955/198996
-            permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-        }
-
-        if (!didTriggerPermissionDialogAgain) {
-            requestPermission(permission, onPermissionRunnable);
-
-            didTriggerPermissionDialogAgain = true;
-        } else {
-            SnackbarHelper.show(this, R.string.toast_error_permission_required, new Runnable() {
-                @Override
-                public void run() {
-                    requestPermission(permission, onPermissionRunnable);
-                }
-            }, true, true);
-        }
-    }
-
     private void showRecent() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
@@ -662,9 +587,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void findDocument() {
         final Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
         intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
         PackageManager pm = getPackageManager();

@@ -4,13 +4,13 @@ apply plugin: 'com.google.firebase.crashlytics'
 apply plugin: 'com.google.firebase.firebase-perf'
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 32
     ndkVersion "23.1.7779620"
 
     defaultConfig {
         applicationId "at.tomtasche.reader"
         minSdkVersion 19
-        targetSdkVersion 31
+        targetSdkVersion 32
 
         testApplicationId "at.tomtasche.reader.test"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

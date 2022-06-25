@@ -8,8 +8,6 @@
         tools:ignore="GoogleAppIndexingWarning">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.android.vending.BILLING" />
 
     <uses-feature
@@ -53,7 +51,6 @@
             android:theme="@style/MainTheme"
             android:name="androidx.multidex.MultiDexApplication"
             tools:replace="android:label"
-            android:requestLegacyExternalStorage="true"
             android:allowNativeHeapPointerTagging="false">
 
         <meta-data
@@ -69,7 +66,6 @@
 
         <activity
                 android:name="at.tomtasche.reader.ui.activity.MainActivity"
-                android:label="@string/app_title"
                 android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
                 android:exported="true">
             <intent-filter>
@@ -381,7 +377,6 @@
                 android:roundIcon="@mipmap/ic_launcher_round"
                 android:excludeFromRecents="true"
                 android:exported="false"
-                android:label="@string/app_title"
                 android:theme="@style/IntroTheme" />
 
         <activity

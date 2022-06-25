@@ -122,13 +122,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             startActivity(intent);
 
             Toast.makeText(getContext(), errorString, Toast.LENGTH_LONG).show();
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                getActivity().finishAffinity();
-            } else {
-                getActivity().finish();
-                System.exit(0);
-            }
+            getActivity().finishAffinity();
         }
     }
 
