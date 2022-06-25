@@ -73,7 +73,6 @@ android {
 
     android.bundle.language.enableSplit false
 
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -88,10 +87,24 @@ android {
     lint {
         abortOnError false
     }
+    packagingOptions {
+        // These files are identical.
+        // Build is not supposed to break when identical files are found in several dependencies
+        pickFirst 'lib/armeabi-v7a/libtmpfile.so'
+        pickFirst 'lib/arm64-v8a/libtmpfile.so'
+        pickFirst 'lib/x86/libtmpfile.so'
+        pickFirst 'lib/x86_64/libtmpfile.so'
+
+        // pdf2htmlEX-Android and wvWare-Android are built with the same NDK-23.1 libc++_shared.so
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+    }
 }
 
 dependencies {
-    implementation platform('com.google.firebase:firebase-bom:29.1.0')
+    implementation platform('com.google.firebase:firebase-bom:30.2.0')
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-perf'
@@ -100,17 +113,15 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-config'
 
-    implementation 'com.google.android.gms:play-services-ads:20.5.0'
+    implementation 'com.android.billingclient:billing:5.0.0'
 
-    implementation 'com.android.billingclient:billing:4.0.0'
-
-    implementation 'com.google.android.gms:play-services-ads:20.5.0'
+    implementation 'com.google.android.gms:play-services-ads:21.0.0'
     implementation 'com.google.android.play:core:1.10.3'
 
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'androidx.core:core:1.7.0'
-    implementation 'com.google.android.material:material:1.5.0'
+    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'androidx.core:core:1.8.0'
+    implementation 'com.google.android.material:material:1.6.1'
     implementation 'androidx.webkit:webkit:1.4.0'
 
     implementation 'com.github.AppIntro:AppIntro:6.2.0'
@@ -119,8 +130,8 @@ dependencies {
         exclude group: 'com.android.support'
     })
 
-    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.16'
-    implementation 'com.viliussutkus89:wvware-android:1.2.4'
+    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.18'
+    implementation 'com.viliussutkus89:wvware-android:1.2.7'
     implementation 'com.github.huzongyao:AndroidMagic:v1.1.2'
 
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
@@ -130,7 +141,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-intents:3.4.0'
     // espresso-idling-resource is used in main sourceSet as well. cannot be just androidTestImplementation
     implementation 'androidx.test.espresso:espresso-idling-resource:3.4.0'
-    implementation 'androidx.annotation:annotation:1.3.0'
+    implementation 'androidx.annotation:annotation:1.4.0'
 }
-
-apply plugin: 'com.google.gms.google-services'

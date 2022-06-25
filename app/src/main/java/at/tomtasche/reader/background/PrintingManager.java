@@ -20,8 +20,8 @@ import at.tomtasche.reader.ui.activity.MainActivity;
 
 public class PrintingManager {
 
-    private HandlerThread backgroundThread;
-    private Handler backgroundHandler;
+    private final HandlerThread backgroundThread;
+    private final Handler backgroundHandler;
 
     public PrintingManager() {
         backgroundThread = new HandlerThread(PrintingManager.class.getSimpleName());

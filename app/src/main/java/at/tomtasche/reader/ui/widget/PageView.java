@@ -236,6 +236,6 @@ public class PageView extends WebView implements ParagraphListener {
 
     public interface HtmlCallback {
 
-        public void onHtml(String htmlDiff);
+        void onHtml(String htmlDiff);
     }
 }

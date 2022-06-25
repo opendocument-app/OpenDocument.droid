@@ -240,9 +240,9 @@ public abstract class FileLoader {
 
     public interface FileLoaderListener {
 
-        public void onSuccess(Result result);
+        void onSuccess(Result result);
 
-        public void onError(Result result, Throwable throwable);
+        void onError(Result result, Throwable throwable);
     }
 
     @SuppressWarnings("serial")

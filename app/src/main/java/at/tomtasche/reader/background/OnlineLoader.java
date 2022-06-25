@@ -77,7 +77,7 @@ public class OnlineLoader extends FileLoader {
     public static final String GOOGLE_VIEWER_URL = "https://docs.google.com/viewer?embedded=true&url=";
     public static final String MICROSOFT_VIEWER_URL = "https://view.officeapps.live.com/op/view.aspx?src=";
 
-    private OdfLoader odfLoader;
+    private final OdfLoader odfLoader;
 
     private StorageReference storage;
     private FirebaseAuth auth;
@@ -129,7 +129,7 @@ public class OnlineLoader extends FileLoader {
         try {
             Uri viewerUri;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                    ("text/rtf".equals(options.fileType) || "application/vnd.wordperfect".equals(options.fileType) || odfLoader.isSupported(options) || "application/vnd.ms-powerpoint".equals(options.fileType))) {
+                    ("text/rtf".equals(options.fileType) || "application/vnd.wordperfect".equals(options.fileType) || odfLoader.isSupported(options) || "application/vnd.ms-excel".equals(options.fileType) || "application/msword".equals(options.fileType) || "application/vnd.ms-powerpoint".equals(options.fileType) || options.fileType.startsWith("application/vnd.openxmlformats-officedocument.") || options.fileType.equals("application/pdf"))) {
                 viewerUri = doOnlineConvert(options);
             } else {
                 viewerUri = doFirebaseConvert(options);
@@ -162,7 +162,7 @@ public class OnlineLoader extends FileLoader {
 
         try (
                 OutputStream output = connection.getOutputStream();
-                PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, charset), true);
+                PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, charset), true)
         ) {
             writer.append("--" + boundary).append(CRLF);
             writer.append("Content-Disposition: form-data; name=\"document\"; filename=\"document\"").append(CRLF);

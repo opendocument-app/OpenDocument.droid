@@ -44,7 +44,7 @@ abstract class ThreadedPrintDocumentAdapter extends
                                     Context ctxt);
 
     private Context ctxt = null;
-    private ExecutorService threadPool = Executors.newFixedThreadPool(1);
+    private final ExecutorService threadPool = Executors.newFixedThreadPool(1);
 
     ThreadedPrintDocumentAdapter(Context ctxt) {
         this.ctxt = ctxt;

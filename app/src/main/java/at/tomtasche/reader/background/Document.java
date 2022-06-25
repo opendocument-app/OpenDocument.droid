@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Document {
 
-    private List<Page> pages;
+    private final List<Page> pages;
 
     public Document() {
         this.pages = new ArrayList<>();

@@ -220,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
         crashManager.log("onStart");
 
         if (loadOnStart != null) {
-            loadUri(loadOnStart, false);
+            loadUri(loadOnStart);
 
             loadOnStart = null;
         }
@@ -353,7 +353,7 @@ public class MainActivity extends AppCompatActivity {
 
         billingManager = new BillingManager();
         billingManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
-        billingManager.initialize(this, analyticsManager, adManager, crashManager);
+        billingManager.initialize(this, analyticsManager, adManager);
 
         helpManager = new HelpManager();
         helpManager.setEnabled(true);
@@ -367,7 +367,7 @@ public class MainActivity extends AppCompatActivity {
         if (intent.getData() != null) {
             crashManager.log("onNewIntent loadUri");
 
-            loadUri(intent.getData(), false);
+            loadUri(intent.getData());
 
             analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "other");
         }
@@ -405,19 +405,19 @@ public class MainActivity extends AppCompatActivity {
                     openFileIdlingResource.decrement();
                 }
 
-                loadUri(uri, true);
+                loadUri(uri);
             }
         }
     }
 
-    public void loadUri(Uri uri, boolean showAd) {
+    public void loadUri(Uri uri) {
         lastSaveUri = null;
         lastUri = uri;
 
         Runnable onPermission = new Runnable() {
             @Override
             public void run() {
-                loadUri(uri, showAd);
+                loadUri(uri);
             }
         };
 
@@ -458,16 +458,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         documentFragment.loadUri(uri, isPersistentUri);
-
-        if (showAd) {
-            // delay until all UI work has completed for loading the fragment
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    adManager.showInterstitial();
-                }
-            });
-        }
     }
 
     @Override
@@ -587,16 +577,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void offerPurchase() {
-        if (billingManager.hasPurchased() || !billingManager.isEnabled()) {
+        if (billingManager.hasPurchased()) {
             return;
         }
 
-        analyticsManager.report(FirebaseAnalytics.Event.PRESENT_OFFER);
+        analyticsManager.report("present_offer");
         SnackbarHelper.show(this, R.string.crouton_remove_ads, new Runnable() {
 
             @Override
             public void run() {
-                analyticsManager.report(FirebaseAnalytics.Event.PRESENT_OFFER + "_clicked");
+                analyticsManager.report("present_offer_clicked");
 
                 buyAdRemoval();
             }
@@ -656,73 +646,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void buyAdRemoval() {
-        adManager.loadVideo();
-
         analyticsManager.report(FirebaseAnalytics.Event.BEGIN_CHECKOUT);
+        analyticsManager.report(FirebaseAnalytics.Event.ADD_TO_CART);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.dialog_remove_ads_title);
-
-        final boolean isBillingEnabled = billingManager.isEnabled();
-
-        boolean isShowSubscription = configManager.getBooleanConfig("show_subscription");
-        boolean isNotShowPurchase = configManager.getBooleanConfig("do_not_show_purchase");
-        boolean isProPurchase = configManager.getBooleanConfig("use_pro_purchase");
-
-        String[] optionStrings = getResources().getStringArray(R.array.dialog_remove_ads_options);
-
-        List<String> optionStringList = new LinkedList<>();
-        List<String> productStringList = new LinkedList<>();
-
-        if (isBillingEnabled) {
-            if (isShowSubscription) {
-                optionStringList.add(optionStrings[1]);
-                productStringList.add(BillingManager.BILLING_PRODUCT_SUBSCRIPTION);
-            }
-            if (!isNotShowPurchase) {
-                optionStringList.add(optionStrings[0]);
-
-                if (isProPurchase) {
-                    productStringList.add("https://play.google.com/store/apps/details?id=at.tomtasche.reader.pro");
-                }
-            }
-        }
-
-        optionStringList.add(optionStrings[2]);
-
-        optionStrings = optionStringList.toArray(new String[optionStringList.size()]);
-
-        builder.setItems(optionStrings, new OnClickListener() {
-
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (!isBillingEnabled) {
-                    which = 99;
-                }
-
-                analyticsManager.report(FirebaseAnalytics.Event.ADD_TO_CART);
-
-                String product;
-                if (which < productStringList.size()) {
-                    product = productStringList.get(which);
-                } else {
-                    dialog.dismiss();
-
-                    adManager.showVideo();
-
-                    return;
-                }
-
-                if (product.startsWith("https://")) {
-                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(product)));
-                } else {
-                    billingManager.startPurchase(MainActivity.this, product);
-                }
-
-                dialog.dismiss();
-            }
-        });
-        builder.show();
+        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=at.tomtasche.reader.pro")));
     }
 
     private void leaveFullscreen() {
@@ -749,8 +676,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void findDocument() {
-        adManager.loadInterstitial();
-
         final Intent intent;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
             intent = new Intent(Intent.ACTION_GET_CONTENT);
