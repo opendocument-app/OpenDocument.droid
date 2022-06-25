@@ -55,7 +55,6 @@ import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.BillingManager;
 import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
-import at.tomtasche.reader.nonfree.HelpManager;
 import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.SnackbarHelper;
@@ -101,7 +100,6 @@ public class MainActivity extends AppCompatActivity {
     private AnalyticsManager analyticsManager;
     private AdManager adManager;
     private BillingManager billingManager;
-    private HelpManager helpManager;
     private PrintingManager printingManager;
 
     private Runnable onPermissionRunnable;
@@ -182,28 +180,7 @@ public class MainActivity extends AppCompatActivity {
             analyticsManager.setCurrentScreen(this, "screen_main");
         }
 
-        final View content = findViewById(android.R.id.content);
-        content.getViewTreeObserver().addOnPreDrawListener(
-                new ViewTreeObserver.OnPreDrawListener() {
-                    @Override
-                    public boolean onPreDraw() {
-                        if (configManager.isLoaded()) {
-                            if (IS_TESTING) {
-                                return true;
-                            }
-
-                            Boolean isShowIntro = configManager.getBooleanConfig("show_intro");
-                            if (isShowIntro == null || isShowIntro) {
-                                showIntroActivityOnFirstStart();
-                            }
-
-                            content.getViewTreeObserver().removeOnPreDrawListener(this);
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    }
-                });
+        showIntroActivityOnFirstStart();
     }
 
     @Override
@@ -271,11 +248,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showIntroActivityOnFirstStart() {
+        if (IS_TESTING) {
+            return;
+        }
+
         SharedPreferences getPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         boolean wasIntroShown = getPrefs.getBoolean("introShown", false);
         if (!wasIntroShown) {
-            helpManager.show();
+            showIntro();
 
             SharedPreferences.Editor editor = getPrefs.edit();
             editor.putBoolean("introShown", true);
@@ -354,10 +335,6 @@ public class MainActivity extends AppCompatActivity {
         billingManager = new BillingManager();
         billingManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
         billingManager.initialize(this, analyticsManager, adManager);
-
-        helpManager = new HelpManager();
-        helpManager.setEnabled(true);
-        helpManager.initialize(this);
     }
 
     @Override
@@ -379,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
 
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
-        if (!billingManager.isEnabled() || billingManager.hasPurchased()) {
+        if (billingManager.hasPurchased()) {
             menu.findItem(R.id.menu_remove_ads).setVisible(false);
         }
 
@@ -558,13 +535,13 @@ public class MainActivity extends AppCompatActivity {
             case R.id.menu_edit: {
                 analyticsManager.report("menu_edit");
 
-                editActionMode = new EditActionModeCallback(this, documentFragment, helpManager);
+                editActionMode = new EditActionModeCallback(this, documentFragment);
                 startSupportActionMode(editActionMode);
 
                 break;
             }
             case R.id.menu_help: {
-                helpManager.show();
+                showIntro();
 
                 break;
             }
@@ -645,14 +622,22 @@ public class MainActivity extends AppCompatActivity {
         analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "recent");
     }
 
+    public void showIntro() {
+        Intent intent = new Intent(this, IntroActivity.class);
+        startActivity(intent);
+    }
+
     private void buyAdRemoval() {
-        analyticsManager.report(FirebaseAnalytics.Event.BEGIN_CHECKOUT);
         analyticsManager.report(FirebaseAnalytics.Event.ADD_TO_CART);
 
         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=at.tomtasche.reader.pro")));
     }
 
     private void leaveFullscreen() {
+        if (!fullscreen) {
+            return;
+        }
+
         getSupportActionBar().show();
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN,
@@ -666,7 +651,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (fullscreen && keyCode == KeyEvent.KEYCODE_BACK) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
             leaveFullscreen();
 
             return true;
@@ -676,16 +661,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void findDocument() {
-        final Intent intent;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            intent = new Intent(Intent.ACTION_GET_CONTENT);
-            // remove mime-type because most apps don't support ODF mime-types
-            intent.setType("application/*");
-        } else {
-            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-            intent.setType("*/*");
-            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-        }
+        final Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.setType("*/*");
+        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 

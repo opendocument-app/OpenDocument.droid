@@ -19,7 +19,6 @@ import java.util.Locale;
 
 import androidx.appcompat.view.ActionMode;
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.nonfree.HelpManager;
 import at.tomtasche.reader.ui.activity.DocumentFragment;
 import at.tomtasche.reader.ui.activity.MainActivity;
 
@@ -27,14 +26,12 @@ public class EditActionModeCallback implements ActionMode.Callback {
 
     private final MainActivity activity;
     private final DocumentFragment documentFragment;
-    private final HelpManager helpManager;
 
     private InputMethodManager imm;
 
-    public EditActionModeCallback(MainActivity activity, DocumentFragment documentFragment, HelpManager helpManager) {
+    public EditActionModeCallback(MainActivity activity, DocumentFragment documentFragment) {
         this.activity = activity;
         this.documentFragment = documentFragment;
-        this.helpManager = helpManager;
     }
 
     @Override
@@ -64,7 +61,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_help: {
-                helpManager.show();
+                activity.showIntro();
 
                 break;
             }
@@ -73,33 +70,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
                 documentFragment.prepareSave(new Runnable() {
                     @Override
                     public void run() {
-                        boolean isModernSaveAvailable = false;
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                            isModernSaveAvailable = activity.requestSave();
-                        }
-
-                        if (!isModernSaveAvailable) {
-                            Runnable onPermission = new Runnable() {
-                                @Override
-                                public void run() {
-                                    DateFormat dateFormat = new SimpleDateFormat("MMddyyyy-HHmmss", Locale.US);
-                                    Date nowDate = Calendar.getInstance().getTime();
-                                    String nowString = dateFormat.format(nowDate);
-
-                                    File modifiedFile = new File(Environment.getExternalStorageDirectory(),
-                                            "modified-by-opendocument-reader-on-" + nowString);
-                                    Uri fileUri = Uri.parse("file://"
-                                            + modifiedFile.getAbsolutePath());
-
-                                    documentFragment.save(fileUri);
-                                }
-                            };
-
-                            boolean hasPermission = activity.requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, onPermission);
-                            if (hasPermission) {
-                                onPermission.run();
-                            }
-                        }
+                        activity.requestSave();
                     }
                 });
 
