@@ -24,8 +24,6 @@ configure_file(app/toolchain.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/toolchain.cmak
 conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_CURRENT_LIST_DIR}
         BUILD missing
         SETTINGS arch=${ARCH}
-        SETTINGS compiler=${CMAKE_CXX_COMPILER_ID}
-        SETTINGS compiler.version=${CMAKE_CXX_COMPILER_VERSION}
         SETTINGS compiler.libcxx=${ANDROID_STL}
         PROFILE ${CMAKE_CURRENT_LIST_DIR}/conanprofile.txt
         ENV CONAN_CMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_BINARY_DIR}/toolchain.cmake
