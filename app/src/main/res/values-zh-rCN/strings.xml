@@ -66,11 +66,6 @@
     <string name="intro_description_apps">超级文件管理大师支持通过大量其他的app打开文件。一位同事通过Gmail发来一份演示文稿？只需点击附件，立刻将其打开！</string>
     <string name="crouton_remove_ads">需要更多空间以便阅读？通过菜单购买删除广告。</string>
     <string name="reopen_chooser_title">使用设备上的其他应用打开：</string>
-    <string-array name="dialog_remove_ads_options">
-        <item>永久移除广告</item>
-        <item>删除一个月的广告</item>
-        <item>观看短视频暂时免费移除广告</item>
-    </string-array>
     <!--  iOS -->
     <string name="ok">确认</string>
     <string name="unsaved_changes">你有未保存的更改</string>
