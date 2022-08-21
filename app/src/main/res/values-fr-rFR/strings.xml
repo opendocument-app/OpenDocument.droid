@@ -67,11 +67,6 @@
     <string name="intro_description_apps">OpenDocument Reader prend en charge un grand nombre d’autres applications depuis lesquelles il est possible d’ouvrir des documents. Un collègue a envoyé une présentation via Gmail ? Cliquez sur la pièce jointe et cette application s’ouvrira instantanément !</string>
     <string name="crouton_remove_ads">Besoin d’espace pour mieux lire ? Supprimez les publicités gratuitement depuis le menu.</string>
     <string name="reopen_chooser_title">Ouvrir avec une autre application installée sur votre appareil :</string>
-    <string-array name="dialog_remove_ads_options">
-        <item>Supprimer les pubs définitivement</item>
-        <item>Supprimer les publicités pour 1 mois</item>
-        <item>Supprime temporairement et gratuitement les publicités en regardant une courte vidéo</item>
-    </string-array>
     <!--  iOS -->
     <string name="ok">OK</string>
     <string name="unsaved_changes">Vos modifications ne sont pas enregistrées</string>
