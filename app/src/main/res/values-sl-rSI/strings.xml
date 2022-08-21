@@ -65,11 +65,6 @@
     <string name="intro_description_apps">OpenDocument Reader podpira ogromno drugih programov, iz katerih lahko odpirate dokumente. Vam je prijatelj poslal predstavitev po Gmailu? Kliknite na prilogo in ta program jo bo v trenutku odprl!</string>
     <string name="crouton_remove_ads">Ne marate oglasov? Če jih želite odstraniti, kliknite tukaj!</string>
     <string name="reopen_chooser_title">Odpri z drugim nameščenim programom na napravi:</string>
-    <string-array name="dialog_remove_ads_options">
-        <item>Odstrani oglase za vedno</item>
-        <item>Remove ads for a month</item>
-        <item>Začasno odstrani oglase</item>
-    </string-array>
     <!--  iOS -->
     <string name="ok">V redu</string>
     <string name="unsaved_changes">Spremembe niso shranjene!</string>
