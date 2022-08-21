@@ -66,11 +66,6 @@
     <string name="intro_description_apps">OpenDocument 리더는 문서를 열 수 있는 다양한 앱을 지원합니다. 동료나 친구가 이메일로 프레젠테이션 파일을 보냈습니까? 첨부 파일을 클릭하면, 앱이 바로 열립니다!</string>
     <string name="crouton_remove_ads">읽을 공간이 더 필요하신가요? 메뉴에서 무료로 광고를 제거하세요. </string>
     <string name="reopen_chooser_title">기기에 설치된 다른 앱을 사용해서 열기: </string>
-    <string-array name="dialog_remove_ads_options">
-        <item>완전히 광고 제거하기</item>
-        <item>한달동안 광고 제거</item>
-        <item>짧은 광고 영상을 보고 일시적으로 광고 제거</item>
-    </string-array>
     <!--  iOS -->
     <string name="ok">확인</string>
     <string name="unsaved_changes">저장된 내용을 변경하지 않음</string>
