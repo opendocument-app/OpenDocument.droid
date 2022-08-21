@@ -71,8 +71,6 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    protected static boolean IS_GOOGLE_ECOSYSTEM = true;
-
     private static final String SAVED_KEY_LAST_CACHE_URI = "LAST_CACHE_URI";
     private static final boolean IS_TESTING = isTesting();
     private static final int GOOGLE_REQUEST_CODE = 1993;
@@ -200,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
         ComponentName catchAllComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL");
         ComponentName strictCatchComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH");
 
-        boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(catchAllComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED && IS_GOOGLE_ECOSYSTEM;
+        boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(catchAllComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
 
         // retoggle components for users upgrading to latest version of app
         toggleComponent(catchAllComponent, isCatchAllEnabled);
@@ -280,34 +278,34 @@ public class MainActivity extends AppCompatActivity {
     private void initializeProprietaryLibraries() {
         boolean useProprietaryLibraries = !getResources().getBoolean(R.bool.DISABLE_TRACKING);
 
-        if (useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM) {
+        if (useProprietaryLibraries) {
             GoogleApiAvailability googleApi = GoogleApiAvailability.getInstance();
             int googleAvailability = googleApi.isGooglePlayServicesAvailable(this);
             if (googleAvailability != ConnectionResult.SUCCESS) {
-                IS_GOOGLE_ECOSYSTEM = false;
+                useProprietaryLibraries = false;
                 googleApi.getErrorDialog(this, googleAvailability, GOOGLE_REQUEST_CODE).show();
             }
         }
 
         crashManager = new CrashManager();
-        crashManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
+        crashManager.setEnabled(useProprietaryLibraries);
         crashManager.initialize();
 
         analyticsManager = new AnalyticsManager();
-        analyticsManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
+        analyticsManager.setEnabled(useProprietaryLibraries);
         analyticsManager.initialize(this);
 
         configManager = new ConfigManager();
-        configManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
+        configManager.setEnabled(useProprietaryLibraries);
         configManager.initialize();
 
         adManager = new AdManager();
-        adManager.setEnabled(!IS_TESTING && useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
+        adManager.setEnabled(!IS_TESTING && useProprietaryLibraries);
         adManager.setAdContainer(adContainer);
         adManager.initialize(this, analyticsManager, crashManager, configManager);
 
         billingManager = new BillingManager();
-        billingManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
+        billingManager.setEnabled(useProprietaryLibraries);
         billingManager.initialize(this, analyticsManager, adManager);
     }
 
