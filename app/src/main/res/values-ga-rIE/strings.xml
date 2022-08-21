@@ -66,11 +66,6 @@
     <string name="intro_description_apps">Le OpenDocument Reader, tugtar tacaíocht do réimse mór feidhmchláiríní eile inar féidir cáipéisí a oscailt iontu. Ar sheol comhghleacaí leat cur i láthair chugat trí Gmail? Brúigh ar an gceangaltán agus osclóidh an feidhmchláirín seo láithreach bonn!</string>
     <string name="crouton_remove_ads">An bhfuil a thuilleadh slí de dhíth ort? Bain fógraí saor in aisce tríd an roghchlár.</string>
     <string name="reopen_chooser_title">Oscail ag baint feidhm as feidhmchláirín eile atá suiteáilte ar do ghaireas:</string>
-    <string-array name="dialog_remove_ads_options">
-        <item>Bain na fógraí go deo</item>
-        <item>Remove ads for a month</item>
-        <item>Bain fógraí go sealadach saor in aisce trí bhreathnú ar fhíseán gearr</item>
-    </string-array>
     <!--  iOS -->
     <string name="ok">Tá go maith</string>
     <string name="unsaved_changes">Tá athruithe ann nár cuireadh i dtaisce</string>
