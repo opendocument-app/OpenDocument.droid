@@ -66,11 +66,6 @@
     <string name="intro_description_apps">OpenDocument Reader, belgeleri açmak için diğer birçok uygulamayı destekler. Bir meslektaşınız Gmail aracılığıyla bir sunum mu gönderdi? Eki tıklayın bu uygulama hemen açılacak!</string>
     <string name="crouton_remove_ads">Okumak için daha fazla alana mı ihtiyacınız var? Menüden reklamları ücretsiz olarak kaldırın.</string>
     <string name="reopen_chooser_title">Aygıtınızda kurulu başka bir uygulamayı kullanarak açın:</string>
-    <string-array name="dialog_remove_ads_options">
-        <item>Reklamları sürekli kaldır</item>
-        <item>Bir ay boyunca reklamları kaldır</item>
-        <item>Kısa bir video izleyerek reklamları geçici olarak ücretsiz kaldırın</item>
-    </string-array>
     <!--  iOS -->
     <string name="ok">Tamam</string>
     <string name="unsaved_changes">Kaydedilmemiş değişiklikleriniz var</string>
