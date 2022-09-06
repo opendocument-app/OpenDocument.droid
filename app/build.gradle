@@ -115,7 +115,7 @@ dependencies {
 
     implementation 'com.android.billingclient:billing:5.0.0'
 
-    implementation 'com.google.android.gms:play-services-ads:21.1.0'
+    implementation 'com.google.android.gms:play-services-ads:21.2.0'
     implementation 'com.google.android.play:core:1.10.3'
 
     implementation 'androidx.multidex:multidex:2.0.1'
