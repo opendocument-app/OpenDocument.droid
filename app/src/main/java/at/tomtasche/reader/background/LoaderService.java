@@ -55,7 +55,6 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
     private OnlineLoader onlineLoader;
 
     private LoaderListener currentListener;
-    private LoaderListener listener;
 
     @Override
     public void onCreate() {
@@ -125,7 +124,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
     }
 
     public void setListener(LoaderListener listener) {
-        this.listener = listener;
+        this.currentListener = listener;
     }
 
     public void loadUri(Uri uri, boolean persistentUri) {
@@ -244,8 +243,6 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
             File modifiedFile = odfLoader.retranslate(lastResult.options, htmlDiff);
             if (modifiedFile == null) {
                 throw new RuntimeException("retranslate failed");
-
-                return;
             }
 
             OutputStream outputStream = getContentResolver().openOutputStream(outFile);
@@ -262,15 +259,10 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
             });
 
             currentListener.onSaveSuccess();
-            // TODO: SnackbarHelper.show(getActivity(), R.string.toast_edit_status_saved, null, false, false);
         } catch (Throwable e) {
             analyticsManager.report("save_error", FirebaseAnalytics.Param.CONTENT_TYPE, lastResult.options.fileType);
             crashManager.log(e, lastResult.options.originalUri);
-
-            // TODO: SnackbarHelper.show(getActivity(), R.string.toast_error_save_failed, null, true, true);
         }
-
-        // TODO: currentHtmlDiff = null;
     }
 
     @Override
@@ -321,5 +313,6 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         void onError(FileLoader.Result result, Throwable error);
         void onEncrypted(FileLoader.Result result);
         void onUnsupported(FileLoader.Result result);
+        void onSaveError();
     }
 }

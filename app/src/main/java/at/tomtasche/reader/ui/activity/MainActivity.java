@@ -4,9 +4,11 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -15,6 +17,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.ActionMode;
 import android.view.KeyEvent;
@@ -47,6 +50,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.background.LoaderService;
 import at.tomtasche.reader.background.PrintingManager;
 import at.tomtasche.reader.nonfree.AdManager;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
@@ -101,6 +105,22 @@ public class MainActivity extends AppCompatActivity {
 
     @Nullable
     private CountingIdlingResource openFileIdlingResource;
+
+    boolean bounded;
+    LoaderService service;
+    ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            bounded = false;
+            service = null;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder binder) {
+            bounded = true;
+            service = ((LoaderService.LoaderBinder) binder).getService();
+        }
+    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -177,6 +197,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+
+        Intent intent = new Intent(this, LoaderService.class);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
 
         documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
 
@@ -701,6 +724,10 @@ public class MainActivity extends AppCompatActivity {
 
     public ConfigManager getConfigManager() {
         return configManager;
+    }
+
+    public LoaderService getLoaderService() {
+        return service;
     }
 
     @VisibleForTesting

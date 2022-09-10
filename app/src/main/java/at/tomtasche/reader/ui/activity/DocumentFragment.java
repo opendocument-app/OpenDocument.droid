@@ -58,7 +58,7 @@ import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.widget.PageView;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 
-public class DocumentFragment extends Fragment implements FileLoader.FileLoaderListener, ActionBar.TabListener {
+public class DocumentFragment extends Fragment implements LoaderService.LoaderListener, ActionBar.TabListener {
 
     private static final String SAVED_KEY_LAST_RESULT = "LAST_RESULT";
     private static final String SAVED_KEY_CURRENT_HTML_DIFF = "CURRENT_HTML_DIFF";
@@ -85,21 +85,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
     private int lastSelectedTab = -1;
 
-    boolean bounded;
-    LoaderService service;
-    ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            bounded = false;
-            service = null;
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder binder) {
-            bounded = true;
-            service = ((LoaderService.LoaderBinder) binder).getService();
-        }
-    };
+    private LoaderService service;
 
     @Nullable
     @Override
@@ -138,11 +124,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        Context context = getContext();
-
-        Intent intent = new Intent(context, LoaderService.class);
-        context.bindService(intent, connection, Context.BIND_AUTO_CREATE);
-
         mainHandler = new Handler();
 
         setHasOptionsMenu(true);
@@ -151,6 +132,9 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         analyticsManager = mainActivity.getAnalyticsManager();
         configManager = mainActivity.getConfigManager();
         crashManager = mainActivity.getCrashManager();
+
+        service = mainActivity.getLoaderService();
+        service.setListener(this);
 
         crashManager.log("onActivityCreated");
 
@@ -207,7 +191,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         if (resultOnStart != null) {
             if (errorOnStart == null) {
-                onSuccess(resultOnStart);
+                onLoadSuccess(resultOnStart);
             } else {
                 onError(resultOnStart, errorOnStart);
             }
@@ -284,7 +268,7 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
             return;
         }
 
-        service.saveAsync(outFile, currentHtmlDiff);
+        service.saveAsync(lastResult, outFile, currentHtmlDiff);
     }
 
     private void unload() {
@@ -323,8 +307,28 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         menu.findItem(R.id.menu_help).setShowAsAction(enabled ? MenuItem.SHOW_AS_ACTION_NEVER : MenuItem.SHOW_AS_ACTION_ALWAYS);
     }
 
+    private void requestInAppRating(Activity activity) {
+        analyticsManager.report("in_app_review_eligible");
+
+        ReviewManager manager = ReviewManagerFactory.create(activity);
+        com.google.android.play.core.tasks.Task<ReviewInfo> request = manager.requestReviewFlow();
+        request.addOnCompleteListener(reviewInfoTask -> {
+            if (reviewInfoTask.isSuccessful()) {
+                analyticsManager.report("in_app_review_start");
+
+                ReviewInfo reviewInfo = reviewInfoTask.getResult();
+                com.google.android.play.core.tasks.Task<Void> flow = manager.launchReviewFlow(activity, reviewInfo);
+                flow.addOnCompleteListener(reviewTask -> {
+                    analyticsManager.report("in_app_review_done");
+                });
+            } else {
+                analyticsManager.report("in_app_review_error");
+            }
+        });
+    }
+
     @Override
-    public void onSuccess(FileLoader.Result result) {
+    public void onLoadSuccess(FileLoader.Result result) {
         Activity activity = getActivity();
         if (activity == null || isStateSaved()) {
             resultOnStart = result;
@@ -393,26 +397,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         }
     }
 
-    private void requestInAppRating(Activity activity) {
-        analyticsManager.report("in_app_review_eligible");
-
-        ReviewManager manager = ReviewManagerFactory.create(activity);
-        com.google.android.play.core.tasks.Task<ReviewInfo> request = manager.requestReviewFlow();
-        request.addOnCompleteListener(reviewInfoTask -> {
-            if (reviewInfoTask.isSuccessful()) {
-                analyticsManager.report("in_app_review_start");
-
-                ReviewInfo reviewInfo = reviewInfoTask.getResult();
-                com.google.android.play.core.tasks.Task<Void> flow = manager.launchReviewFlow(activity, reviewInfo);
-                flow.addOnCompleteListener(reviewTask -> {
-                    analyticsManager.report("in_app_review_done");
-                });
-            } else {
-                analyticsManager.report("in_app_review_error");
-            }
-        });
-    }
-
     @Override
     public void onError(FileLoader.Result result, Throwable error) {
         Activity activity = getActivity();
@@ -430,67 +414,6 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
         unload();
 
         FileLoader.Options options = result.options;
-        if (error instanceof FileLoader.EncryptedDocumentException) {
-            analyticsManager.report("load_error_encrypted");
-
-            dismissProgress();
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-            builder.setTitle(R.string.toast_error_password_protected);
-
-            final EditText input = new EditText(activity);
-            input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-            builder.setView(input);
-
-            builder.setPositiveButton(getString(android.R.string.ok),
-                    new DialogInterface.OnClickListener() {
-
-                        @Override
-                        public void onClick(DialogInterface dialog,
-                                            int whichButton) {
-                            options.password = input.getText().toString();
-
-                            // close dialog before progress is shown again
-                            dialog.dismiss();
-
-                            if (result.loaderType == FileLoader.LoaderType.ODF) {
-                                loadWithType(FileLoader.LoaderType.ODF, options);
-                            } else if (result.loaderType == FileLoader.LoaderType.DOC) {
-                                loadWithType(FileLoader.LoaderType.DOC, options);
-                            } else if (result.loaderType == FileLoader.LoaderType.PDF) {
-                                loadWithType(FileLoader.LoaderType.PDF, options);
-                            } else {
-                                throw new RuntimeException("encryption not supported for type: " + result.loaderType);
-                            }
-                        }
-                    });
-            builder.setNegativeButton(getString(android.R.string.cancel), null);
-            builder.show();
-
-            return;
-        }
-
-        if (result.loaderType == FileLoader.LoaderType.ODF) {
-            if (service.isOnlineSupported(options)) {
-                dismissProgress();
-
-                offerUpload(activity, options, true);
-            } else {
-                offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
-            }
-
-            return;
-        } else if (result.loaderType == FileLoader.LoaderType.PDF || result.loaderType == FileLoader.LoaderType.OOXML || result.loaderType == FileLoader.LoaderType.DOC) {
-            dismissProgress();
-
-            offerUpload(activity, options, true);
-
-            return;
-        } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
-            offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
-
-            return;
-        }
 
         int errorDescription;
         if (error instanceof FileNotFoundException) {
@@ -505,6 +428,109 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
 
         // MetadataLoader failed, so there's no point in trying to parse or upload the file
         offerReopen(activity, options, errorDescription, true);
+    }
+
+    @Override
+    public void onEncrypted(FileLoader.Result result) {
+        Activity activity = getActivity();
+        if (activity == null || isStateSaved()) {
+            resultOnStart = result;
+            return;
+        } else {
+            resultOnStart = null;
+            errorOnStart = null;
+        }
+
+        // still needs to be saved for features like "Open With" to work
+        lastResult = result;
+
+        unload();
+
+        analyticsManager.report("load_error_encrypted");
+
+        dismissProgress();
+
+        FileLoader.Options options = result.options;
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setTitle(R.string.toast_error_password_protected);
+
+        final EditText input = new EditText(activity);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        builder.setView(input);
+
+        builder.setPositiveButton(getString(android.R.string.ok),
+                new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog,
+                                        int whichButton) {
+                        options.password = input.getText().toString();
+
+                        // close dialog before progress is shown again
+                        dialog.dismiss();
+
+                        if (result.loaderType == FileLoader.LoaderType.ODF) {
+                            loadWithType(FileLoader.LoaderType.ODF, options);
+                        } else if (result.loaderType == FileLoader.LoaderType.DOC) {
+                            loadWithType(FileLoader.LoaderType.DOC, options);
+                        } else if (result.loaderType == FileLoader.LoaderType.PDF) {
+                            loadWithType(FileLoader.LoaderType.PDF, options);
+                        } else {
+                            throw new RuntimeException("encryption not supported for type: " + result.loaderType);
+                        }
+                    }
+                });
+        builder.setNegativeButton(getString(android.R.string.cancel), null);
+        builder.show();
+    }
+
+    @Override
+    public void onUnsupported(FileLoader.Result result) {
+        Activity activity = getActivity();
+        if (activity == null || isStateSaved()) {
+            resultOnStart = result;
+            return;
+        } else {
+            resultOnStart = null;
+            errorOnStart = null;
+        }
+
+        // still needs to be saved for features like "Open With" to work
+        lastResult = result;
+
+        unload();
+
+        FileLoader.Options options = result.options;
+        if (result.loaderType == FileLoader.LoaderType.ODF) {
+            if (service.isOnlineSupported(options)) {
+                dismissProgress();
+
+                offerUpload(activity, options, true);
+            } else {
+                offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
+            }
+        } else if (result.loaderType == FileLoader.LoaderType.PDF || result.loaderType == FileLoader.LoaderType.OOXML || result.loaderType == FileLoader.LoaderType.DOC) {
+            dismissProgress();
+
+            offerUpload(activity, options, true);
+        } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
+            offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
+        }
+    }
+
+    @Override
+    public void onSaveSuccess() {
+        currentHtmlDiff = null;
+
+        SnackbarHelper.show(getActivity(), R.string.toast_edit_status_saved, null, false, false);
+    }
+
+    @Override
+    public void onSaveError() {
+        currentHtmlDiff = null;
+
+        SnackbarHelper.show(getActivity(), R.string.toast_error_save_failed, null, true, true);
     }
 
     private void offerUpload(Activity activity, FileLoader.Options options, boolean invasive) {
@@ -739,6 +765,10 @@ public class DocumentFragment extends Fragment implements FileLoader.FileLoaderL
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+
+        if (service != null) {
+            service.setListener(null);
+        }
 
         if (pageView != null) {
             pageView.destroy();
