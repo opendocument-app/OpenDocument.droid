@@ -1,38 +1,25 @@
 package at.tomtasche.reader.background;
 
-import android.app.Activity;
 import android.app.Service;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.text.InputType;
-import android.widget.EditText;
-
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.OutputStream;
-import java.util.List;
 
 import at.tomtasche.reader.R;
-import at.tomtasche.reader.nonfree.AdManager;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
-import at.tomtasche.reader.nonfree.BillingManager;
 import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
-import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.activity.DocumentFragment;
 
 public class LoaderService extends Service implements FileLoader.FileLoaderListener {
@@ -57,7 +44,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
     private LoaderListener currentListener;
 
     @Override
-    public void onCreate() {
+    public synchronized void onCreate() {
         super.onCreate();
 
         mainHandler = new Handler();
@@ -123,19 +110,11 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         return new LoaderBinder();
     }
 
-    public void setListener(LoaderListener listener) {
+    public synchronized void setListener(LoaderListener listener) {
         this.currentListener = listener;
     }
 
-    public void loadUri(Uri uri, boolean persistentUri) {
-        FileLoader.Options options = new FileLoader.Options();
-        options.originalUri = uri;
-        options.persistentUri = persistentUri;
-
-        loadWithType(FileLoader.LoaderType.METADATA, options);
-    }
-
-    public void loadWithType(FileLoader.LoaderType loaderType, FileLoader.Options options) {
+    public synchronized void loadWithType(FileLoader.LoaderType loaderType, FileLoader.Options options) {
         FileLoader loader;
         switch (loaderType) {
             case ODF:
@@ -254,11 +233,9 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    loadUri(outFile, true);
+                    currentListener.onSaveSuccess(outFile);
                 }
             });
-
-            currentListener.onSaveSuccess();
         } catch (Throwable e) {
             analyticsManager.report("save_error", FirebaseAnalytics.Param.CONTENT_TYPE, lastResult.options.fileType);
             crashManager.log(e, lastResult.options.originalUri);
@@ -308,7 +285,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
     public interface LoaderListener {
         void onLoadSuccess(FileLoader.Result result);
-        void onSaveSuccess();
+        void onSaveSuccess(Uri outFile);
 
         void onError(FileLoader.Result result, Throwable error);
         void onEncrypted(FileLoader.Result result);

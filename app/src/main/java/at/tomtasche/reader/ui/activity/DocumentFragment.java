@@ -1,16 +1,11 @@
 package at.tomtasche.reader.ui.activity;
 
 import android.app.Activity;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.IBinder;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -29,7 +24,6 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -41,15 +35,9 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
-import at.tomtasche.reader.background.DocLoader;
 import at.tomtasche.reader.background.FileLoader;
 import at.tomtasche.reader.background.LoaderService;
-import at.tomtasche.reader.background.MetadataLoader;
-import at.tomtasche.reader.background.OdfLoader;
-import at.tomtasche.reader.background.OnlineLoader;
-import at.tomtasche.reader.background.OoxmlLoader;
-import at.tomtasche.reader.background.PdfLoader;
-import at.tomtasche.reader.background.RawLoader;
+import at.tomtasche.reader.background.LoaderServiceQueue;
 import at.tomtasche.reader.background.StreamUtil;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.ConfigManager;
@@ -85,7 +73,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
     private int lastSelectedTab = -1;
 
-    private LoaderService service;
+    private LoaderServiceQueue serviceQueue;
 
     @Nullable
     @Override
@@ -133,8 +121,13 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         configManager = mainActivity.getConfigManager();
         crashManager = mainActivity.getCrashManager();
 
-        service = mainActivity.getLoaderService();
-        service.setListener(this);
+        serviceQueue = mainActivity.getLoaderServiceQueue();
+        serviceQueue.addToQueue(new LoaderServiceQueue.QueueEntry() {
+            @Override
+            public void onService(LoaderService service) {
+                service.setListener(DocumentFragment.this);
+            }
+        });
 
         crashManager.log("onActivityCreated");
 
@@ -203,28 +196,13 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
     private void prepareLoad(FileLoader.LoaderType loaderType, boolean showProgress) {
         boolean isUpload = false;
-        boolean isEditEnabled = false;
-        boolean isDarkModeSupported = true;
-
         switch (loaderType) {
-            case ODF:
-                isEditEnabled = true;
-                break;
-            case OOXML:
-                isEditEnabled = true;
-                break;
-            case PDF:
-                isDarkModeSupported = false;
-                break;
             case ONLINE:
                 isUpload = true;
                 break;
             default:
                 break;
         }
-
-        toggleDocumentMenu(true, isEditEnabled);
-        pageView.toggleDarkMode(isDarkModeSupported);
 
         if (showProgress) {
             showProgress(isUpload);
@@ -234,13 +212,27 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
     private void loadWithType(FileLoader.LoaderType loaderType, FileLoader.Options options) {
         prepareLoad(loaderType, true);
 
-        service.loadWithType(loaderType, options);
+        serviceQueue.addToQueue(new LoaderServiceQueue.QueueEntry() {
+            @Override
+            public void onService(LoaderService service) {
+                service.loadWithType(loaderType, options);
+            }
+        });
     }
 
     public void loadUri(Uri uri, boolean persistentUri) {
+        loadUri(uri, persistentUri, false);
+    }
+
+    public void loadUri(Uri uri, boolean persistentUri, boolean editable) {
         initializePageView();
 
-        service.loadUri(uri, persistentUri);
+        FileLoader.Options options = new FileLoader.Options();
+        options.originalUri = uri;
+        options.persistentUri = persistentUri;
+        options.translatable = editable;
+
+        loadWithType(FileLoader.LoaderType.METADATA, options);
     }
 
     public void reloadUri(boolean translatable) {
@@ -268,14 +260,25 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             return;
         }
 
-        service.saveAsync(lastResult, outFile, currentHtmlDiff);
+        serviceQueue.addToQueue(new LoaderServiceQueue.QueueEntry() {
+            @Override
+            public void onService(LoaderService service) {
+                service.saveAsync(lastResult, outFile, currentHtmlDiff);
+            }
+        });
     }
 
     private void unload() {
         toggleDocumentMenu(false);
 
+        resetTabs();
+    }
+
+    private void resetTabs() {
         ActionBar bar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         bar.removeAllTabs();
+
+        lastSelectedTab = -1;
     }
 
     private void toggleDocumentMenu(boolean enabled) {
@@ -327,29 +330,60 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         });
     }
 
-    @Override
-    public void onLoadSuccess(FileLoader.Result result) {
+    private boolean isActivityReadyForResult(FileLoader.Result result) {
         Activity activity = getActivity();
         if (activity == null || isStateSaved()) {
             resultOnStart = result;
-            return;
-        } else {
-            resultOnStart = null;
-            errorOnStart = null;
+
+            return false;
         }
 
-        lastSelectedTab = -1;
+        // needs to be saved for errors too for features like "Open With" to work
         lastResult = result;
 
+        resultOnStart = null;
+        errorOnStart = null;
+
+        return true;
+    }
+
+    private void prepareMenu(FileLoader.LoaderType loaderType) {
+        boolean isEditEnabled = false;
+        boolean isDarkModeSupported = true;
+
+        switch (loaderType) {
+            case ODF:
+            case OOXML:
+                isEditEnabled = true;
+                break;
+            case PDF:
+                isDarkModeSupported = false;
+                break;
+            default:
+                break;
+        }
+
+        toggleDocumentMenu(true, isEditEnabled);
+        pageView.toggleDarkMode(isDarkModeSupported);
+    }
+
+    @Override
+    public void onLoadSuccess(FileLoader.Result result) {
+        if (!isActivityReadyForResult(result)) {
+            return;
+        }
+
+
+        Activity activity = getActivity();
         FileLoader.Options options = result.options;
+
+        prepareMenu(result.loaderType);
 
         analyticsManager.setCurrentScreen(activity, result.loaderType.toString() + "_" + options.fileType);
 
-        analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
+        resetTabs();
 
         ActionBar bar = ((AppCompatActivity) activity).getSupportActionBar();
-        bar.removeAllTabs();
-
         List<String> titles = result.partTitles;
         int pages = titles.size();
         if (pages > 1) {
@@ -374,13 +408,13 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             }
         }
 
-        dismissProgress();
-
         if (result.loaderType == FileLoader.LoaderType.RAW || result.loaderType == FileLoader.LoaderType.ONLINE) {
             offerReopen(activity, options, R.string.toast_hint_unsupported_file, false);
         } else if (result.loaderType == FileLoader.LoaderType.DOC || result.loaderType == FileLoader.LoaderType.OOXML || result.loaderType == FileLoader.LoaderType.PDF || result.loaderType == FileLoader.LoaderType.ODF) {
             offerUpload(activity, options, false);
         }
+
+        dismissProgress();
 
         boolean isPro = getResources().getBoolean(R.bool.DISABLE_TRACKING);
         if (isPro) {
@@ -399,21 +433,15 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
     @Override
     public void onError(FileLoader.Result result, Throwable error) {
-        Activity activity = getActivity();
-        if (activity == null || isStateSaved()) {
-            resultOnStart = result;
+        if (!isActivityReadyForResult(result)) {
             return;
-        } else {
-            resultOnStart = null;
-            errorOnStart = null;
         }
 
-        // still needs to be saved for features like "Open With" to work
-        lastResult = result;
+        Activity activity = getActivity();
+        FileLoader.Options options = result.options;
 
         unload();
-
-        FileLoader.Options options = result.options;
+        dismissProgress();
 
         int errorDescription;
         if (error instanceof FileNotFoundException) {
@@ -424,33 +452,21 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             errorDescription = R.string.toast_error_generic;
         }
 
-        dismissProgress();
-
         // MetadataLoader failed, so there's no point in trying to parse or upload the file
         offerReopen(activity, options, errorDescription, true);
     }
 
     @Override
     public void onEncrypted(FileLoader.Result result) {
-        Activity activity = getActivity();
-        if (activity == null || isStateSaved()) {
-            resultOnStart = result;
+        if (!isActivityReadyForResult(result)) {
             return;
-        } else {
-            resultOnStart = null;
-            errorOnStart = null;
         }
 
-        // still needs to be saved for features like "Open With" to work
-        lastResult = result;
+        Activity activity = getActivity();
+        FileLoader.Options options = result.options;
 
         unload();
-
-        analyticsManager.report("load_error_encrypted");
-
         dismissProgress();
-
-        FileLoader.Options options = result.options;
 
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setTitle(R.string.toast_error_password_protected);
@@ -487,32 +503,23 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
     @Override
     public void onUnsupported(FileLoader.Result result) {
-        Activity activity = getActivity();
-        if (activity == null || isStateSaved()) {
-            resultOnStart = result;
+        if (!isActivityReadyForResult(result)) {
             return;
-        } else {
-            resultOnStart = null;
-            errorOnStart = null;
         }
 
-        // still needs to be saved for features like "Open With" to work
-        lastResult = result;
+        Activity activity = getActivity();
+        FileLoader.Options options = result.options;
 
         unload();
+        dismissProgress();
 
-        FileLoader.Options options = result.options;
         if (result.loaderType == FileLoader.LoaderType.ODF) {
-            if (service.isOnlineSupported(options)) {
-                dismissProgress();
-
+            if (serviceQueue.getService().isOnlineSupported(options)) {
                 offerUpload(activity, options, true);
             } else {
                 offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
             }
         } else if (result.loaderType == FileLoader.LoaderType.PDF || result.loaderType == FileLoader.LoaderType.OOXML || result.loaderType == FileLoader.LoaderType.DOC) {
-            dismissProgress();
-
             offerUpload(activity, options, true);
         } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
             offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
@@ -520,10 +527,12 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
     }
 
     @Override
-    public void onSaveSuccess() {
+    public void onSaveSuccess(Uri outFile) {
         currentHtmlDiff = null;
 
         SnackbarHelper.show(getActivity(), R.string.toast_edit_status_saved, null, false, false);
+
+        loadUri(outFile, true, true);
     }
 
     @Override
@@ -716,6 +725,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
     public void onTabSelected(ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {
         if (lastResult.options.translatable) {
             if (lastSelectedTab >= 0) {
+                // I think there was an issue switching tab inside of onTabSelected()
                 mainHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -766,6 +776,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
     public void onDestroyView() {
         super.onDestroyView();
 
+        LoaderService service = serviceQueue.getService();
         if (service != null) {
             service.setListener(null);
         }

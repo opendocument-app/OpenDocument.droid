@@ -1,6 +1,5 @@
 package at.tomtasche.reader.ui.activity;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
@@ -34,8 +33,6 @@ import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.test.espresso.IdlingResource;
@@ -51,6 +48,7 @@ import java.util.List;
 
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.LoaderService;
+import at.tomtasche.reader.background.LoaderServiceQueue;
 import at.tomtasche.reader.background.PrintingManager;
 import at.tomtasche.reader.nonfree.AdManager;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
@@ -106,19 +104,23 @@ public class MainActivity extends AppCompatActivity {
     @Nullable
     private CountingIdlingResource openFileIdlingResource;
 
-    boolean bounded;
-    LoaderService service;
-    ServiceConnection connection = new ServiceConnection() {
+    private LoaderServiceQueue serviceQueue;
+    private LoaderService service;
+    private final ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            bounded = false;
+            if (service != null) {
+                service.setListener(null);
+            }
+
             service = null;
         }
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
-            bounded = true;
             service = ((LoaderService.LoaderBinder) binder).getService();
+
+            serviceQueue.setService(service);
         }
     };
 
@@ -129,6 +131,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.main);
 
         setTitle("");
+
+        serviceQueue = new LoaderServiceQueue();
+        Intent intent = new Intent(this, LoaderService.class);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
 
         handler = new Handler();
 
@@ -197,9 +203,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-
-        Intent intent = new Intent(this, LoaderService.class);
-        bindService(intent, connection, Context.BIND_AUTO_CREATE);
 
         documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
 
@@ -411,7 +414,7 @@ public class MainActivity extends AppCompatActivity {
 
             isPersistentUri = true;
         } catch (Exception e) {
-            // some providers dont support persisted permissions
+            // some providers don't support persisted permissions
             crashManager.log(e);
         }
 
@@ -474,20 +477,18 @@ public class MainActivity extends AppCompatActivity {
 
                     getSupportActionBar().hide();
 
-                    if (!billingManager.hasPurchased()) {
-                        // delay offer to wait for fullscreen animation to finish
-                        handler.postDelayed(new Runnable() {
+                    // delay offer to wait for fullscreen animation to finish
+                    handler.postDelayed(new Runnable() {
 
-                            @Override
-                            public void run() {
-                                if (isFinishing()) {
-                                    return;
-                                }
-
-                                offerPurchase();
+                        @Override
+                        public void run() {
+                            if (isFinishing()) {
+                                return;
                             }
-                        }, 1000);
-                    }
+
+                            offerPurchase();
+                        }
+                    }, 1000);
                 }
 
                 fullscreen = !fullscreen;
@@ -495,8 +496,6 @@ public class MainActivity extends AppCompatActivity {
                 break;
             }
             case R.id.menu_print: {
-                // TODO: remove as printing is offered on share too!
-
                 analyticsManager.report("menu_print");
 
                 documentFragment.getPageView().toggleDarkMode(false);
@@ -597,7 +596,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
+        if (fullscreen && keyCode == KeyEvent.KEYCODE_BACK) {
             leaveFullscreen();
 
             return true;
@@ -690,15 +689,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStop() {
+    protected void onDestroy() {
+        if (service != null) {
+            unbindService(connection);
+        }
+
         billingManager.close();
         printingManager.close();
 
-        super.onStop();
-    }
-
-    @Override
-    protected void onDestroy() {
         adManager.destroyAds();
 
         try {
@@ -726,8 +724,8 @@ public class MainActivity extends AppCompatActivity {
         return configManager;
     }
 
-    public LoaderService getLoaderService() {
-        return service;
+    public LoaderServiceQueue getLoaderServiceQueue() {
+        return serviceQueue;
     }
 
     @VisibleForTesting
