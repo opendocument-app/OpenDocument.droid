@@ -16,6 +16,8 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import java.io.File;
 import java.io.OutputStream;
 
+import javax.annotation.Nullable;
+
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.ConfigManager;
@@ -41,6 +43,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
     private RawLoader rawLoader;
     private OnlineLoader onlineLoader;
 
+    @Nullable
     private LoaderListener currentListener;
 
     @Override
@@ -114,6 +117,10 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         this.currentListener = listener;
     }
 
+    private void logMissingListener() {
+        crashManager.log(new RuntimeException("missing listener"));
+    }
+
     public synchronized void loadWithType(FileLoader.LoaderType loaderType, FileLoader.Options options) {
         FileLoader loader;
         switch (loaderType) {
@@ -158,7 +165,11 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         } else {
             analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
 
-            currentListener.onLoadSuccess(result);
+            if (currentListener != null) {
+                currentListener.onLoadSuccess(result);
+            } else {
+                logMissingListener();
+            }
         }
     }
 
@@ -170,7 +181,11 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         if (error instanceof FileLoader.EncryptedDocumentException) {
             analyticsManager.report("load_error_encrypted");
 
-            currentListener.onEncrypted(result);
+            if (currentListener != null) {
+                currentListener.onEncrypted(result);
+            } else {
+                logMissingListener();
+            }
 
             return;
         }
@@ -187,12 +202,20 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
             } else if (rawLoader.isSupported(options)) {
                 loadWithType(FileLoader.LoaderType.RAW, options);
             } else {
-                currentListener.onUnsupported(result);
+                if (currentListener != null) {
+                    currentListener.onUnsupported(result);
+                } else {
+                    logMissingListener();
+                }
             }
 
             return;
         } else if (result.loaderType != FileLoader.LoaderType.METADATA) {
-            currentListener.onError(result, error);
+            if (currentListener != null) {
+                currentListener.onError(result, error);
+            } else {
+                logMissingListener();
+            }
 
             return;
         }
@@ -201,7 +224,11 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
         analyticsManager.report("load_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
 
-        currentListener.onError(result, error);
+        if (currentListener != null) {
+            currentListener.onError(result, error);
+        } else {
+            logMissingListener();
+        }
     }
 
     public boolean isOnlineSupported(FileLoader.Options options) {
@@ -209,12 +236,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
     }
 
     public void saveAsync(FileLoader.Result lastResult, Uri outFile, String htmlDiff) {
-        backgroundHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                saveSync(lastResult, outFile, htmlDiff);
-            }
-        });
+        backgroundHandler.post(() -> saveSync(lastResult, outFile, htmlDiff));
     }
 
     private void saveSync(FileLoader.Result lastResult, Uri outFile, String htmlDiff) {
@@ -230,15 +252,22 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
             modifiedFile.delete();
 
-            mainHandler.post(new Runnable() {
-                @Override
-                public void run() {
+            mainHandler.post(() -> {
+                if (currentListener != null) {
                     currentListener.onSaveSuccess(outFile);
+                } else {
+                    logMissingListener();
                 }
             });
         } catch (Throwable e) {
             analyticsManager.report("save_error", FirebaseAnalytics.Param.CONTENT_TYPE, lastResult.options.fileType);
             crashManager.log(e, lastResult.options.originalUri);
+
+            if (currentListener != null) {
+                currentListener.onSaveError();
+            } else {
+                logMissingListener();
+            }
         }
     }
 
