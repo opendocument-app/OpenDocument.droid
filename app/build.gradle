@@ -4,13 +4,13 @@ apply plugin: 'com.google.firebase.crashlytics'
 apply plugin: 'com.google.firebase.firebase-perf'
 
 android {
-    compileSdkVersion 31
-    ndkVersion "23.1.7779620"
+    compileSdkVersion 32
+    ndkVersion "25.0.8775105"
 
     defaultConfig {
         applicationId "at.tomtasche.reader"
         minSdkVersion 19
-        targetSdkVersion 31
+        targetSdkVersion 32
 
         testApplicationId "at.tomtasche.reader.test"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -80,7 +80,7 @@ android {
 
     externalNativeBuild {
         cmake {
-            version "3.18.0+"
+            version "3.22.0+"
             path file('../CMakeLists.txt')
         }
     }
@@ -104,7 +104,7 @@ android {
 }
 
 dependencies {
-    implementation platform('com.google.firebase:firebase-bom:30.2.0')
+    implementation platform('com.google.firebase:firebase-bom:30.3.2')
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-perf'
@@ -115,14 +115,14 @@ dependencies {
 
     implementation 'com.android.billingclient:billing:5.0.0'
 
-    implementation 'com.google.android.gms:play-services-ads:21.0.0'
+    implementation 'com.google.android.gms:play-services-ads:21.2.0'
     implementation 'com.google.android.play:core:1.10.3'
 
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'androidx.core:core:1.8.0'
     implementation 'com.google.android.material:material:1.6.1'
-    implementation 'androidx.webkit:webkit:1.4.0'
+    implementation 'androidx.webkit:webkit:1.5.0'
 
     implementation 'com.github.AppIntro:AppIntro:6.2.0'
 
@@ -130,8 +130,8 @@ dependencies {
         exclude group: 'com.android.support'
     })
 
-    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.18'
-    implementation 'com.viliussutkus89:wvware-android:1.2.7'
+    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.19'
+    implementation 'com.viliussutkus89:wvware-android:1.2.8'
     implementation 'com.github.huzongyao:AndroidMagic:v1.1.2'
 
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'

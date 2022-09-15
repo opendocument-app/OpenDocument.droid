@@ -1,12 +1,13 @@
 package at.tomtasche.reader.ui.activity;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -15,26 +16,23 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.ActionMode;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.test.espresso.IdlingResource;
@@ -49,13 +47,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.background.LoaderService;
+import at.tomtasche.reader.background.LoaderServiceQueue;
 import at.tomtasche.reader.background.PrintingManager;
 import at.tomtasche.reader.nonfree.AdManager;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.BillingManager;
 import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
-import at.tomtasche.reader.nonfree.HelpManager;
 import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.SnackbarHelper;
@@ -74,16 +73,11 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    protected static boolean IS_GOOGLE_ECOSYSTEM = true;
-
     private static final String SAVED_KEY_LAST_CACHE_URI = "LAST_CACHE_URI";
     private static final boolean IS_TESTING = isTesting();
     private static final int GOOGLE_REQUEST_CODE = 1993;
     private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
-    private static final int PERMISSION_CODE = 1353;
     private static final int CREATE_CODE = 4213;
-
-    private boolean didTriggerPermissionDialogAgain = false;
 
     private Handler handler;
 
@@ -101,10 +95,7 @@ public class MainActivity extends AppCompatActivity {
     private AnalyticsManager analyticsManager;
     private AdManager adManager;
     private BillingManager billingManager;
-    private HelpManager helpManager;
     private PrintingManager printingManager;
-
-    private Runnable onPermissionRunnable;
 
     private Uri lastUri;
     private Uri loadOnStart;
@@ -113,6 +104,26 @@ public class MainActivity extends AppCompatActivity {
     @Nullable
     private CountingIdlingResource openFileIdlingResource;
 
+    private LoaderServiceQueue serviceQueue;
+    private LoaderService service;
+    private final ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            if (service != null) {
+                service.setListener(null);
+            }
+
+            service = null;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder binder) {
+            service = ((LoaderService.LoaderBinder) binder).getService();
+
+            serviceQueue.setService(service);
+        }
+    };
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,6 +131,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.main);
 
         setTitle("");
+
+        serviceQueue = new LoaderServiceQueue();
+        Intent intent = new Intent(this, LoaderService.class);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
 
         handler = new Handler();
 
@@ -182,28 +197,7 @@ public class MainActivity extends AppCompatActivity {
             analyticsManager.setCurrentScreen(this, "screen_main");
         }
 
-        final View content = findViewById(android.R.id.content);
-        content.getViewTreeObserver().addOnPreDrawListener(
-                new ViewTreeObserver.OnPreDrawListener() {
-                    @Override
-                    public boolean onPreDraw() {
-                        if (configManager.isLoaded()) {
-                            if (IS_TESTING) {
-                                return true;
-                            }
-
-                            Boolean isShowIntro = configManager.getBooleanConfig("show_intro");
-                            if (isShowIntro == null || isShowIntro) {
-                                showIntroActivityOnFirstStart();
-                            }
-
-                            content.getViewTreeObserver().removeOnPreDrawListener(this);
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    }
-                });
+        showIntroActivityOnFirstStart();
     }
 
     @Override
@@ -230,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
         ComponentName catchAllComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL");
         ComponentName strictCatchComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH");
 
-        boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(catchAllComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED && IS_GOOGLE_ECOSYSTEM;
+        boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(catchAllComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
 
         // retoggle components for users upgrading to latest version of app
         toggleComponent(catchAllComponent, isCatchAllEnabled);
@@ -271,11 +265,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showIntroActivityOnFirstStart() {
+        if (IS_TESTING) {
+            return;
+        }
+
         SharedPreferences getPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         boolean wasIntroShown = getPrefs.getBoolean("introShown", false);
         if (!wasIntroShown) {
-            helpManager.show();
+            showIntro();
 
             SharedPreferences.Editor editor = getPrefs.edit();
             editor.putBoolean("introShown", true);
@@ -283,26 +281,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public boolean requestPermission(String permission, Runnable onPermissionRunnable) {
-        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{permission}, PERMISSION_CODE);
-
-            this.onPermissionRunnable = onPermissionRunnable;
-
-            return false;
-        }
-
-        this.onPermissionRunnable = null;
-
-        return true;
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public boolean requestSave() {
+    public void requestSave() {
         if (lastSaveUri != null) {
             documentFragment.save(lastSaveUri);
 
-            return true;
+            return;
         }
 
         try {
@@ -312,52 +295,44 @@ public class MainActivity extends AppCompatActivity {
             intent.setType(documentFragment.getLastFileType());
 
             startActivityForResult(intent, CREATE_CODE);
-
-            return true;
         } catch (ActivityNotFoundException e) {
             // happens on a variety devices, e.g. Samsung Galaxy Tab4 7.0 with Android 4.4.2
             crashManager.log(e);
-
-            return false;
         }
     }
 
     private void initializeProprietaryLibraries() {
         boolean useProprietaryLibraries = !getResources().getBoolean(R.bool.DISABLE_TRACKING);
 
-        if (useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM) {
+        if (useProprietaryLibraries) {
             GoogleApiAvailability googleApi = GoogleApiAvailability.getInstance();
             int googleAvailability = googleApi.isGooglePlayServicesAvailable(this);
             if (googleAvailability != ConnectionResult.SUCCESS) {
-                IS_GOOGLE_ECOSYSTEM = false;
+                useProprietaryLibraries = false;
                 googleApi.getErrorDialog(this, googleAvailability, GOOGLE_REQUEST_CODE).show();
             }
         }
 
         crashManager = new CrashManager();
-        crashManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
+        crashManager.setEnabled(useProprietaryLibraries);
         crashManager.initialize();
 
         analyticsManager = new AnalyticsManager();
-        analyticsManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
+        analyticsManager.setEnabled(useProprietaryLibraries);
         analyticsManager.initialize(this);
 
         configManager = new ConfigManager();
-        configManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
+        configManager.setEnabled(useProprietaryLibraries);
         configManager.initialize();
 
         adManager = new AdManager();
-        adManager.setEnabled(!IS_TESTING && useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
+        adManager.setEnabled(!IS_TESTING && useProprietaryLibraries);
         adManager.setAdContainer(adContainer);
         adManager.initialize(this, analyticsManager, crashManager, configManager);
 
         billingManager = new BillingManager();
-        billingManager.setEnabled(useProprietaryLibraries && IS_GOOGLE_ECOSYSTEM);
+        billingManager.setEnabled(useProprietaryLibraries);
         billingManager.initialize(this, analyticsManager, adManager);
-
-        helpManager = new HelpManager();
-        helpManager.setEnabled(true);
-        helpManager.initialize(this);
     }
 
     @Override
@@ -379,7 +354,7 @@ public class MainActivity extends AppCompatActivity {
 
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
-        if (!billingManager.isEnabled() || billingManager.hasPurchased()) {
+        if (billingManager.hasPurchased()) {
             menu.findItem(R.id.menu_remove_ads).setVisible(false);
         }
 
@@ -414,18 +389,6 @@ public class MainActivity extends AppCompatActivity {
         lastSaveUri = null;
         lastUri = uri;
 
-        Runnable onPermission = new Runnable() {
-            @Override
-            public void run() {
-                loadUri(uri);
-            }
-        };
-
-        boolean hasPermission = requestPermission(Manifest.permission.READ_EXTERNAL_STORAGE, onPermission);
-        if (!hasPermission) {
-            return;
-        }
-
         if (documentFragment == null) {
             documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
 
@@ -444,17 +407,15 @@ public class MainActivity extends AppCompatActivity {
         crashManager.log("loading document at: " + uri.toString());
         analyticsManager.report(FirebaseAnalytics.Event.VIEW_ITEM, FirebaseAnalytics.Param.ITEM_NAME, uri.toString());
 
-        boolean isPersistentUri = true;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            try {
-                grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            } catch (Exception e) {
-                // some providers dont support persisted permissions
-                crashManager.log(e);
+        boolean isPersistentUri = false;
+        try {
+            grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                isPersistentUri = false;
-            }
+            isPersistentUri = true;
+        } catch (Exception e) {
+            // some providers don't support persisted permissions
+            crashManager.log(e);
         }
 
         documentFragment.loadUri(uri, isPersistentUri);
@@ -516,20 +477,18 @@ public class MainActivity extends AppCompatActivity {
 
                     getSupportActionBar().hide();
 
-                    if (!billingManager.hasPurchased()) {
-                        // delay offer to wait for fullscreen animation to finish
-                        handler.postDelayed(new Runnable() {
+                    // delay offer to wait for fullscreen animation to finish
+                    handler.postDelayed(new Runnable() {
 
-                            @Override
-                            public void run() {
-                                if (isFinishing()) {
-                                    return;
-                                }
-
-                                offerPurchase();
+                        @Override
+                        public void run() {
+                            if (isFinishing()) {
+                                return;
                             }
-                        }, 1000);
-                    }
+
+                            offerPurchase();
+                        }
+                    }, 1000);
                 }
 
                 fullscreen = !fullscreen;
@@ -537,8 +496,6 @@ public class MainActivity extends AppCompatActivity {
                 break;
             }
             case R.id.menu_print: {
-                // TODO: remove as printing is offered on share too!
-
                 analyticsManager.report("menu_print");
 
                 documentFragment.getPageView().toggleDarkMode(false);
@@ -558,13 +515,13 @@ public class MainActivity extends AppCompatActivity {
             case R.id.menu_edit: {
                 analyticsManager.report("menu_edit");
 
-                editActionMode = new EditActionModeCallback(this, documentFragment, helpManager);
+                editActionMode = new EditActionModeCallback(this, documentFragment);
                 startSupportActionMode(editActionMode);
 
                 break;
             }
             case R.id.menu_help: {
-                helpManager.show();
+                showIntro();
 
                 break;
             }
@@ -601,41 +558,6 @@ public class MainActivity extends AppCompatActivity {
         ttsActionMode = null;
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            if (requestCode == PERMISSION_CODE && onPermissionRunnable != null) {
-                onPermissionRunnable.run();
-                onPermissionRunnable = null;
-
-                return;
-            }
-        }
-
-        String permission;
-        if (permissions.length > 0) {
-            permission = permissions[0];
-        } else {
-            // https://stackoverflow.com/q/50770955/198996
-            permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-        }
-
-        if (!didTriggerPermissionDialogAgain) {
-            requestPermission(permission, onPermissionRunnable);
-
-            didTriggerPermissionDialogAgain = true;
-        } else {
-            SnackbarHelper.show(this, R.string.toast_error_permission_required, new Runnable() {
-                @Override
-                public void run() {
-                    requestPermission(permission, onPermissionRunnable);
-                }
-            }, true, true);
-        }
-    }
-
     private void showRecent() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
@@ -645,14 +567,22 @@ public class MainActivity extends AppCompatActivity {
         analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "recent");
     }
 
+    public void showIntro() {
+        Intent intent = new Intent(this, IntroActivity.class);
+        startActivity(intent);
+    }
+
     private void buyAdRemoval() {
-        analyticsManager.report(FirebaseAnalytics.Event.BEGIN_CHECKOUT);
         analyticsManager.report(FirebaseAnalytics.Event.ADD_TO_CART);
 
         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=at.tomtasche.reader.pro")));
     }
 
     private void leaveFullscreen() {
+        if (!fullscreen) {
+            return;
+        }
+
         getSupportActionBar().show();
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN,
@@ -676,17 +606,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void findDocument() {
-        final Intent intent;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            intent = new Intent(Intent.ACTION_GET_CONTENT);
-            // remove mime-type because most apps don't support ODF mime-types
-            intent.setType("application/*");
-        } else {
-            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-            intent.setType("*/*");
-            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-        }
+        final Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
         PackageManager pm = getPackageManager();
@@ -766,15 +689,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStop() {
+    protected void onDestroy() {
+        if (service != null) {
+            unbindService(connection);
+        }
+
         billingManager.close();
         printingManager.close();
 
-        super.onStop();
-    }
-
-    @Override
-    protected void onDestroy() {
         adManager.destroyAds();
 
         try {
@@ -800,6 +722,10 @@ public class MainActivity extends AppCompatActivity {
 
     public ConfigManager getConfigManager() {
         return configManager;
+    }
+
+    public LoaderServiceQueue getLoaderServiceQueue() {
+        return serviceQueue;
     }
 
     @VisibleForTesting

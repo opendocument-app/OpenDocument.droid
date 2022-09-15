@@ -11,13 +11,11 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.anyOf;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.util.ArrayMap;
 
@@ -29,9 +27,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
-import androidx.test.rule.GrantPermissionRule;
-import androidx.test.runner.screenshot.ScreenCapture;
-import androidx.test.runner.screenshot.Screenshot;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -40,9 +35,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -62,31 +54,10 @@ public class MainActivityTests {
     private IdlingResource m_idlingResource;
     private static final Map<String, File> s_testFiles = new ArrayMap<>();
 
-    @Rule
-    public GrantPermissionRule mGrantPermissionRule = GrantPermissionRule.grant(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
     // Yes, this is ActivityTestRule instead of ActivityScenario, because ActivityScenario does not actually work.
     // Issue ID may or may not be added later.
     @Rule
     public ActivityTestRule<MainActivity> mainActivityActivityTestRule = new ActivityTestRule<>(MainActivity.class);
-
-    @Rule
-    public RuleChain screenshotRule = RuleChain
-            .outerRule(GrantPermissionRule.grant(Manifest.permission.WRITE_EXTERNAL_STORAGE))
-            .around(new TestWatcher() {
-                @Override
-                protected void failed(Throwable e, Description description) {
-                    super.failed(e, description);
-                    ScreenCapture capture = Screenshot.capture()
-                            .setName(description.getTestClass().getSimpleName() + "-" + description.getMethodName())
-                            .setFormat(Bitmap.CompressFormat.PNG);
-                    try {
-                        capture.process();
-                    } catch (IOException err) {
-                        err.printStackTrace();
-                    }
-                }
-            });
 
     @Before
     public void setUp() {
