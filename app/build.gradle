@@ -141,5 +141,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-intents:3.4.0'
     // espresso-idling-resource is used in main sourceSet as well. cannot be just androidTestImplementation
     implementation 'androidx.test.espresso:espresso-idling-resource:3.4.0'
-    implementation 'androidx.annotation:annotation:1.4.0'
+    implementation 'androidx.annotation:annotation:1.5.0'
 }
