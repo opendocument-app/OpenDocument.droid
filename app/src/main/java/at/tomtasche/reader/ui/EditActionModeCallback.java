@@ -59,26 +59,18 @@ public class EditActionModeCallback implements ActionMode.Callback {
 
     @Override
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_help: {
-                activity.showIntro();
-
-                break;
-            }
-
-            case R.id.edit_save: {
-                documentFragment.prepareSave(new Runnable() {
-                    @Override
-                    public void run() {
-                        activity.requestSave();
-                    }
-                });
-
-                break;
-            }
-
-            default:
-                return false;
+        int itemId = item.getItemId();
+        if (itemId == R.id.menu_help) {
+            activity.showIntro();
+        } else if (itemId == R.id.edit_save) {
+            documentFragment.prepareSave(new Runnable() {
+                @Override
+                public void run() {
+                    activity.requestSave();
+                }
+            });
+        } else {
+            return false;
         }
 
         return true;

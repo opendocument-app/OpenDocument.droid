@@ -77,55 +77,39 @@ public class TtsActionModeCallback implements ActionMode.Callback,
 
     @Override
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.tts_previous: {
+        int itemId = item.getItemId();
+        if (itemId == R.id.tts_previous) {
+            statusView.setText(R.string.tts_status_reading);
+
+            textToSpeech.stop();
+
+            lastParagraphIndex -= 2;
+
+            nextParagraph();
+        } else if (itemId == R.id.tts_play) {
+            if (!textToSpeech.isSpeaking()) {
                 statusView.setText(R.string.tts_status_reading);
 
-                textToSpeech.stop();
-
-                lastParagraphIndex -= 2;
+                paused = false;
 
                 nextParagraph();
-
-                break;
             }
+        } else if (itemId == R.id.tts_pause) {
+            statusView.setText(R.string.tts_status_paused);
 
-            case R.id.tts_play: {
-                if (!textToSpeech.isSpeaking()) {
-                    statusView.setText(R.string.tts_status_reading);
+            paused = true;
 
-                    paused = false;
+            textToSpeech.stop();
 
-                    nextParagraph();
-                }
+            lastParagraphIndex--;
+        } else if (itemId == R.id.tts_next) {
+            statusView.setText(R.string.tts_status_reading);
 
-                break;
-            }
+            textToSpeech.stop();
 
-            case R.id.tts_pause: {
-                statusView.setText(R.string.tts_status_paused);
-
-                paused = true;
-
-                textToSpeech.stop();
-
-                lastParagraphIndex--;
-
-                break;
-            }
-
-            case R.id.tts_next: {
-                statusView.setText(R.string.tts_status_reading);
-
-                textToSpeech.stop();
-
-                nextParagraph();
-
-                break;
-            }
-
-            default:
-                return false;
+            nextParagraph();
+        } else {
+            return false;
         }
 
         return true;

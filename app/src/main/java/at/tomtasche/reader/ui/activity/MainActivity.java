@@ -423,111 +423,80 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_search: {
-                FindActionModeCallback findActionModeCallback = new FindActionModeCallback(this);
-                findActionModeCallback.setWebView(documentFragment.getPageView());
-                startSupportActionMode(findActionModeCallback);
+        int itemId = item.getItemId();
+        if (itemId == R.id.menu_search) {
+            FindActionModeCallback findActionModeCallback = new FindActionModeCallback(this);
+            findActionModeCallback.setWebView(documentFragment.getPageView());
+            startSupportActionMode(findActionModeCallback);
 
-                analyticsManager.report("menu_search");
-                analyticsManager.report(FirebaseAnalytics.Event.SEARCH);
+            analyticsManager.report("menu_search");
+            analyticsManager.report(FirebaseAnalytics.Event.SEARCH);
+        } else if (itemId == R.id.menu_open) {
+            findDocument();
 
-                break;
-            }
-            case R.id.menu_open: {
-                findDocument();
+            analyticsManager.report("menu_open");
+            analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "choose");
+        } else if (itemId == R.id.menu_open_with) {
+            documentFragment.openWith(this);
 
-                analyticsManager.report("menu_open");
-                analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "choose");
+            analyticsManager.report("menu_open_with");
+        } else if (itemId == R.id.menu_share) {
+            documentFragment.share(this);
 
-                break;
-            }
-            case R.id.menu_open_with: {
-                documentFragment.openWith(this);
+            analyticsManager.report("menu_share");
+        } else if (itemId == R.id.menu_remove_ads) {
+            analyticsManager.report("menu_remove_ads");
 
-                analyticsManager.report("menu_open_with");
+            buyAdRemoval();
+        } else if (itemId == R.id.menu_fullscreen) {
+            if (fullscreen) {
+                analyticsManager.report("menu_fullscreen_leave");
 
-                break;
-            }
-            case R.id.menu_share: {
-                documentFragment.share(this);
+                leaveFullscreen();
+            } else {
+                analyticsManager.report("menu_fullscreen_enter");
 
-                analyticsManager.report("menu_share");
+                getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                        WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 
-                break;
-            }
-            case R.id.menu_remove_ads: {
-                analyticsManager.report("menu_remove_ads");
+                getSupportActionBar().hide();
 
-                buyAdRemoval();
+                // delay offer to wait for fullscreen animation to finish
+                handler.postDelayed(new Runnable() {
 
-                break;
-            }
-            case R.id.menu_fullscreen: {
-                if (fullscreen) {
-                    analyticsManager.report("menu_fullscreen_leave");
-
-                    leaveFullscreen();
-                } else {
-                    analyticsManager.report("menu_fullscreen_enter");
-
-                    getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                            WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-
-                    getSupportActionBar().hide();
-
-                    // delay offer to wait for fullscreen animation to finish
-                    handler.postDelayed(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            if (isFinishing()) {
-                                return;
-                            }
-
-                            offerPurchase();
+                    @Override
+                    public void run() {
+                        if (isFinishing()) {
+                            return;
                         }
-                    }, 1000);
-                }
 
-                fullscreen = !fullscreen;
-
-                break;
+                        offerPurchase();
+                    }
+                }, 1000);
             }
-            case R.id.menu_print: {
-                analyticsManager.report("menu_print");
 
-                documentFragment.getPageView().toggleDarkMode(false);
+            fullscreen = !fullscreen;
+        } else if (itemId == R.id.menu_print) {
+            analyticsManager.report("menu_print");
 
-                printingManager.print(this, documentFragment.getPageView());
+            documentFragment.getPageView().toggleDarkMode(false);
 
-                break;
-            }
-            case R.id.menu_tts: {
-                analyticsManager.report("menu_tts");
+            printingManager.print(this, documentFragment.getPageView());
+        } else if (itemId == R.id.menu_tts) {
+            analyticsManager.report("menu_tts");
 
-                ttsActionMode = new TtsActionModeCallback(this, documentFragment.getPageView());
-                startSupportActionMode(ttsActionMode);
+            ttsActionMode = new TtsActionModeCallback(this, documentFragment.getPageView());
+            startSupportActionMode(ttsActionMode);
+        } else if (itemId == R.id.menu_edit) {
+            analyticsManager.report("menu_edit");
 
-                break;
-            }
-            case R.id.menu_edit: {
-                analyticsManager.report("menu_edit");
-
-                editActionMode = new EditActionModeCallback(this, documentFragment);
-                startSupportActionMode(editActionMode);
-
-                break;
-            }
-            case R.id.menu_help: {
-                showIntro();
-
-                break;
-            }
-            default: {
-                return super.onOptionsItemSelected(item);
-            }
+            editActionMode = new EditActionModeCallback(this, documentFragment);
+            startSupportActionMode(editActionMode);
+        } else if (itemId == R.id.menu_help) {
+            showIntro();
+        } else {
+            return super.onOptionsItemSelected(item);
         }
 
         return true;
