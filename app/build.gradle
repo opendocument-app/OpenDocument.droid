@@ -4,13 +4,13 @@ apply plugin: 'com.google.firebase.crashlytics'
 apply plugin: 'com.google.firebase.firebase-perf'
 
 android {
-    compileSdkVersion 32
-    ndkVersion "25.0.8775105"
+    compileSdkVersion 33
+    ndkVersion "25.2.9519653"
 
     defaultConfig {
         applicationId "at.tomtasche.reader"
         minSdkVersion 19
-        targetSdkVersion 32
+        targetSdkVersion 33
 
         testApplicationId "at.tomtasche.reader.test"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -22,8 +22,6 @@ android {
         externalNativeBuild.cmake.targets "odr-core"
         externalNativeBuild.cmake.arguments "-DANDROID_STL=c++_shared"
     }
-
-    dexOptions.javaMaxHeapSize "4g"
 
     flavorDimensions "default"
 
@@ -88,23 +86,17 @@ android {
         abortOnError false
     }
     packagingOptions {
-        // These files are identical.
-        // Build is not supposed to break when identical files are found in several dependencies
-        pickFirst 'lib/armeabi-v7a/libtmpfile.so'
-        pickFirst 'lib/arm64-v8a/libtmpfile.so'
-        pickFirst 'lib/x86/libtmpfile.so'
-        pickFirst 'lib/x86_64/libtmpfile.so'
-
-        // pdf2htmlEX-Android and wvWare-Android are built with the same NDK-23.1 libc++_shared.so
-        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
-        pickFirst 'lib/arm64-v8a/libc++_shared.so'
-        pickFirst 'lib/x86/libc++_shared.so'
-        pickFirst 'lib/x86_64/libc++_shared.so'
+        jniLibs {
+            pickFirsts += ['lib/armeabi-v7a/libtmpfile.so', 'lib/arm64-v8a/libtmpfile.so', 'lib/x86/libtmpfile.so', 'lib/x86_64/libtmpfile.so', 'lib/armeabi-v7a/libc++_shared.so', 'lib/arm64-v8a/libc++_shared.so', 'lib/x86/libc++_shared.so', 'lib/x86_64/libc++_shared.so']
+        }
     }
+    namespace 'at.tomtasche.reader'
 }
 
 dependencies {
-    implementation platform('com.google.firebase:firebase-bom:30.3.2')
+    implementation platform("org.jetbrains.kotlin:kotlin-bom:1.8.10")
+
+    implementation platform('com.google.firebase:firebase-bom:32.2.0')
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-perf'
@@ -113,16 +105,16 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-config'
 
-    implementation 'com.android.billingclient:billing:5.0.0'
+    implementation 'com.android.billingclient:billing:6.0.1'
 
-    implementation 'com.google.android.gms:play-services-ads:21.2.0'
+    implementation 'com.google.android.gms:play-services-ads:22.2.0'
     implementation 'com.google.android.play:core:1.10.3'
 
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'androidx.appcompat:appcompat:1.5.1'
-    implementation 'androidx.core:core:1.8.0'
-    implementation 'com.google.android.material:material:1.6.1'
-    implementation 'androidx.webkit:webkit:1.5.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.core:core:1.10.1'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.webkit:webkit:1.7.0'
 
     implementation 'com.github.AppIntro:AppIntro:6.2.0'
 
@@ -134,12 +126,12 @@ dependencies {
     implementation 'com.viliussutkus89:wvware-android:1.2.8'
     implementation 'com.github.huzongyao:AndroidMagic:v1.1.2'
 
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-    androidTestImplementation 'androidx.test:rules:1.4.0'
-    androidTestImplementation 'androidx.test:runner:1.4.0'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.4.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.test:rules:1.5.0'
+    androidTestImplementation 'androidx.test:runner:1.5.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.5.1'
     // espresso-idling-resource is used in main sourceSet as well. cannot be just androidTestImplementation
-    implementation 'androidx.test.espresso:espresso-idling-resource:3.4.0'
-    implementation 'androidx.annotation:annotation:1.4.0'
+    implementation 'androidx.test.espresso:espresso-idling-resource:3.5.1'
+    implementation 'androidx.annotation:annotation:1.6.0'
 }

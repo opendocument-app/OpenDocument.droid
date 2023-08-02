@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="at.tomtasche.reader"
     android:installLocation="auto"
-    android:versionCode="175"
-    android:versionName="3.22"
+    android:versionCode="176"
+    android:versionName="3.23"
     tools:ignore="GoogleAppIndexingWarning">
 
     <uses-permission android:name="android.permission.INTERNET" />

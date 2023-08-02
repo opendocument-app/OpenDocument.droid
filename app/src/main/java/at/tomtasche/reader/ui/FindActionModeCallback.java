@@ -219,15 +219,14 @@ public class FindActionModeCallback implements ActionMode.Callback, TextWatcher,
                     "No WebView for FindActionModeCallback::onActionItemClicked");
         }
         mInput.hideSoftInputFromWindow(mWebView.getWindowToken(), 0);
-        switch(item.getItemId()) {
-            case R.id.find_prev:
-                findNext(false);
-                break;
-            case R.id.find_next:
-                findNext(true);
-                break;
-            default:
-                return false;
+
+        int itemId = item.getItemId();
+        if (itemId == R.id.find_prev) {
+            findNext(false);
+        } else if (itemId == R.id.find_next) {
+            findNext(true);
+        } else {
+            return false;
         }
         return true;
     }
