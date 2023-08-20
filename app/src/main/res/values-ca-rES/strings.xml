@@ -10,14 +10,12 @@
     <string name="dialog_loading_title">S\'està carregant…</string>
     <string name="dialog_uploading_title">S\'està pujant…</string>
     <string name="dialog_upload_file">No s\'ha pogut obrir el document perquè el seu format no és compatible. Voleu pujar-lo temporalment al nostre servidor per tal que us el puguem mostrar de totes maneres?</string>
-    <string name="dialog_title_choose_file">Trieu un fitxer del dispositiu</string>
     <string name="dialog_list_no_documents_found">No s\'ha trobat cap document</string>
     <string name="menu_search">Cerca</string>
     <string name="menu_open">Obre</string>
     <string name="menu_fullscreen">Mode de pantalla completa</string>
     <string name="menu_cloud_print">Google Cloud Print</string>
     <string name="menu_tts">Text-a-paraula</string>
-    <string name="crouton_leave_fullscreen">Premeu Enrere per abandonar el mode de pantalla completa</string>
     <string name="action_find_previous">Anterior</string>
     <string name="action_find_next">Següent</string>
     <string name="action_find_on_page">Cerca a la pàgina</string>
