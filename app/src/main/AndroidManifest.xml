@@ -7,7 +7,6 @@
     tools:ignore="GoogleAppIndexingWarning">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="com.android.vending.BILLING" />
 
     <uses-feature
         android:name="android.hardware.touchscreen"
@@ -43,7 +42,6 @@
     </queries>
 
     <application
-        android:name="androidx.multidex.MultiDexApplication"
         android:allowBackup="true"
         android:allowNativeHeapPointerTagging="false"
         android:hardwareAccelerated="true"
@@ -314,37 +312,6 @@
             </intent-filter>
         </activity-alias>
 
-        <activity
-            android:name="com.nononsenseapps.filepicker.FilePickerActivity"
-            android:enabled="@bool/filepicker_enabled"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:icon="@mipmap/ic_launcher"
-            android:label="@string/dialog_title_choose_file"
-            android:roundIcon="@mipmap/ic_launcher_round"
-            android:theme="@style/NNF_BaseTheme.Light">
-            <intent-filter>
-                <action android:name="android.intent.action.GET_CONTENT" />
-
-                <category android:name="android.intent.category.OPENABLE" />
-
-                <data android:mimeType="application/vnd.oasis.opendocument.*" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.OPEN_DOCUMENT" />
-
-                <category android:name="android.intent.category.OPENABLE" />
-
-                <data android:mimeType="application/vnd.oasis.opendocument.*" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name="at.tomtasche.reader.ui.activity.IntroActivity"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:icon="@mipmap/ic_launcher"
-            android:roundIcon="@mipmap/ic_launcher_round"
-            android:theme="@style/IntroTheme" />
         <activity
             android:name="com.google.android.gms.ads.AdActivity"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"

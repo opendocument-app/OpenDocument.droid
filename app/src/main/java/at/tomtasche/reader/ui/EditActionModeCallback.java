@@ -60,9 +60,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
     @Override
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
         int itemId = item.getItemId();
-        if (itemId == R.id.menu_help) {
-            activity.showIntro();
-        } else if (itemId == R.id.edit_save) {
+        if (itemId == R.id.edit_save) {
             documentFragment.prepareSave(new Runnable() {
                 @Override
                 public void run() {

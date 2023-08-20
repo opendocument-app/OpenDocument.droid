@@ -11,14 +11,6 @@
         tools:ignore="AlwaysShowAction" />
 
     <item
-        android:id="@+id/menu_help"
-        android:title="@string/action_edit_help"
-        android:icon="@drawable/ic_help_outline"
-        app:showAsAction="always"
-        tools:ignore="AlwaysShowAction"
-        />
-
-    <item
         android:id="@+id/menu_edit"
         android:icon="@drawable/ic_edit"
         android:title="@string/menu_edit"
