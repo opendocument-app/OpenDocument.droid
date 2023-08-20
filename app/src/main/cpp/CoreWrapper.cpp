@@ -1,13 +1,13 @@
 #include "CoreWrapper.h"
 #include <string>
 #include <optional>
-#include <odr/document.h>
-#include <odr/document_cursor.h>
-#include <odr/document_element.h>
-#include <odr/file.h>
-#include <odr/html.h>
-#include <odr/open_document_reader.h>
-#include <odr/exceptions.h>
+#include <odr/document.hpp>
+#include <odr/document_cursor.hpp>
+#include <odr/document_element.hpp>
+#include <odr/file.hpp>
+#include <odr/html.hpp>
+#include <odr/open_document_reader.hpp>
+#include <odr/exceptions.hpp>
 #include <android/log.h>
 
 std::optional<odr::Html> html;
