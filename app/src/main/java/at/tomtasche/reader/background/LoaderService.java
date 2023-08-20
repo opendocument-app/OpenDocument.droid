@@ -16,8 +16,6 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import java.io.File;
 import java.io.OutputStream;
 
-import javax.annotation.Nullable;
-
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.ConfigManager;
@@ -43,7 +41,6 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
     private RawLoader rawLoader;
     private OnlineLoader onlineLoader;
 
-    @Nullable
     private LoaderListener currentListener;
 
     @Override

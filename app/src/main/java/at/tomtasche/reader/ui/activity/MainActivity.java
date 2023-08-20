@@ -41,7 +41,6 @@ import androidx.test.espresso.idling.CountingIdlingResource;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.nononsenseapps.filepicker.FilePickerActivity;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -162,11 +161,6 @@ public class MainActivity extends AppCompatActivity {
 
         initializeCatchAllSwitch();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            ComponentName filePickerActivity = new ComponentName(this, FilePickerActivity.class.getName());
-            toggleComponent(filePickerActivity, false);
-        }
-
         crashManager.log("onCreate");
 
         documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
@@ -196,8 +190,6 @@ public class MainActivity extends AppCompatActivity {
 
             analyticsManager.setCurrentScreen(this, "screen_main");
         }
-
-        showIntroActivityOnFirstStart();
     }
 
     @Override
@@ -262,23 +254,6 @@ public class MainActivity extends AppCompatActivity {
         super.onConfigurationChanged(newConfig);
 
         adManager.showGoogleAds();
-    }
-
-    private void showIntroActivityOnFirstStart() {
-        if (IS_TESTING) {
-            return;
-        }
-
-        SharedPreferences getPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-
-        boolean wasIntroShown = getPrefs.getBoolean("introShown", false);
-        if (!wasIntroShown) {
-            showIntro();
-
-            SharedPreferences.Editor editor = getPrefs.edit();
-            editor.putBoolean("introShown", true);
-            editor.apply();
-        }
     }
 
     public void requestSave() {
@@ -493,8 +468,6 @@ public class MainActivity extends AppCompatActivity {
 
             editActionMode = new EditActionModeCallback(this, documentFragment);
             startSupportActionMode(editActionMode);
-        } else if (itemId == R.id.menu_help) {
-            showIntro();
         } else {
             return super.onOptionsItemSelected(item);
         }
@@ -534,11 +507,6 @@ public class MainActivity extends AppCompatActivity {
         chooserDialog.show(transaction, RecentDocumentDialogFragment.FRAGMENT_TAG);
 
         analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "recent");
-    }
-
-    public void showIntro() {
-        Intent intent = new Intent(this, IntroActivity.class);
-        startActivity(intent);
     }
 
     private void buyAdRemoval() {
@@ -663,7 +631,6 @@ public class MainActivity extends AppCompatActivity {
             unbindService(connection);
         }
 
-        billingManager.close();
         printingManager.close();
 
         adManager.destroyAds();

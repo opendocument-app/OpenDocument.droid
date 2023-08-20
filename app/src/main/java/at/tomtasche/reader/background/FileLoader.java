@@ -7,7 +7,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.perf.metrics.Trace;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -69,11 +68,7 @@ public abstract class FileLoader {
         backgroundHandler.post(new Runnable() {
             @Override
             public void run() {
-                Trace trace = analyticsManager.startTrace("sync_" + type.toString());
-
                 loadSync(options);
-
-                analyticsManager.stopTrace(trace);
 
                 loading = false;
             }

@@ -306,8 +306,6 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
         menu.findItem(R.id.menu_search).setVisible(enabled);
         menu.findItem(R.id.menu_tts).setVisible(enabled);
-
-        menu.findItem(R.id.menu_help).setShowAsAction(enabled ? MenuItem.SHOW_AS_ACTION_NEVER : MenuItem.SHOW_AS_ACTION_ALWAYS);
     }
 
     private void requestInAppRating(Activity activity) {

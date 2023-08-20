@@ -3,29 +3,24 @@ package at.tomtasche.reader.nonfree;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.perf.FirebasePerformance;
-import com.google.firebase.perf.metrics.Trace;
 
 public class AnalyticsManager {
 
     private boolean enabled;
 
     private FirebaseAnalytics analytics;
-    private FirebasePerformance performance;
 
     public void initialize(Context context) {
         if (!enabled) {
             FirebaseAnalytics.getInstance(context).setAnalyticsCollectionEnabled(false);
 
-            FirebasePerformance.getInstance().setPerformanceCollectionEnabled(false);
-
             return;
         }
 
         analytics = FirebaseAnalytics.getInstance(context);
-        performance = FirebasePerformance.getInstance();
     }
 
     public void setEnabled(boolean enabled) {
@@ -54,23 +49,6 @@ public class AnalyticsManager {
 
     public void report(String event, String key, Object value) {
         report(event, key, value, null, null);
-    }
-
-    public Trace startTrace(String name) {
-        if (!enabled) {
-            return null;
-        }
-
-        Trace trace = performance.newTrace(name);
-        trace.start();
-
-        return trace;
-    }
-
-    public void stopTrace(Trace trace) {
-        if (trace != null) {
-            trace.stop();
-        }
     }
 
     public void setCurrentScreen(Activity activity, String name) {
