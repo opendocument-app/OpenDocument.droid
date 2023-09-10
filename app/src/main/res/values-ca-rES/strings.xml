@@ -13,7 +13,6 @@
     <string name="dialog_list_no_documents_found">No s\'ha trobat cap document</string>
     <string name="menu_search">Cerca</string>
     <string name="menu_open">Obre</string>
-    <string name="menu_fullscreen">Mode de pantalla completa</string>
     <string name="menu_cloud_print">Google Cloud Print</string>
     <string name="menu_tts">Text-a-paraula</string>
     <string name="action_find_previous">Anterior</string>
