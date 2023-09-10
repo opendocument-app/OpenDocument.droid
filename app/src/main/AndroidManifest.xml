@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:installLocation="auto"
-    android:versionCode="177"
+    android:versionCode="178"
     android:versionName="3.24"
     tools:ignore="GoogleAppIndexingWarning">
 
