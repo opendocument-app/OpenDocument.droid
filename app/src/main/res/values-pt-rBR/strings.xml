@@ -25,7 +25,6 @@
     <string name="menu_share">Compartilhar documento</string>
     <string name="menu_edit">Editar</string>
     <string name="menu_remove_ads">Remover anúncios</string>
-    <string name="menu_fullscreen">Modo de tela inteira</string>
     <string name="menu_cloud_print">Imprimir</string>
     <string name="menu_tts">Converter texto em fala</string>
     <string name="crouton_error_open_app">Não foi possível abrir este aplicativo.</string>
