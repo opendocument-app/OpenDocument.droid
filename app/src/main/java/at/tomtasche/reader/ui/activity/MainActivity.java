@@ -415,6 +415,15 @@ public class MainActivity extends AppCompatActivity {
             documentFragment.openWith(this);
 
             analyticsManager.report("menu_open_with");
+        } else if (itemId == R.id.menu_save) {
+            documentFragment.prepareSave(new Runnable() {
+                @Override
+                public void run() {
+                    requestSave();
+                }
+            }, true);
+
+            analyticsManager.report("menu_save");
         } else if (itemId == R.id.menu_share) {
             documentFragment.share(this);
 

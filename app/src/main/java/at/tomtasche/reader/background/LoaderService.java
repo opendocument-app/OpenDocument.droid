@@ -238,16 +238,24 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
     private void saveSync(FileLoader.Result lastResult, Uri outFile, String htmlDiff) {
         try {
-            File modifiedFile = odfLoader.retranslate(lastResult.options, htmlDiff);
-            if (modifiedFile == null) {
-                throw new RuntimeException("retranslate failed");
+            File fileToSave;
+            if (htmlDiff != null) {
+                fileToSave = odfLoader.retranslate(lastResult.options, htmlDiff);
+                if (fileToSave == null) {
+                    throw new RuntimeException("retranslate failed");
+                }
+            } else {
+                // "full save" from the main UI
+                fileToSave = AndroidFileCache.getCacheFile(this, lastResult.options.cacheUri);
             }
 
             OutputStream outputStream = getContentResolver().openOutputStream(outFile);
-            StreamUtil.copy(modifiedFile, outputStream);
+            StreamUtil.copy(fileToSave, outputStream);
             outputStream.close();
 
-            modifiedFile.delete();
+            if (htmlDiff != null) {
+                fileToSave.delete();
+            }
 
             mainHandler.post(() -> {
                 if (currentListener != null) {

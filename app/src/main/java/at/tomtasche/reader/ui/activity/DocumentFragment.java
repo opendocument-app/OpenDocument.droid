@@ -162,6 +162,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         menu.findItem(R.id.menu_fullscreen).setVisible(true);
         menu.findItem(R.id.menu_open_with).setVisible(true);
         menu.findItem(R.id.menu_share).setVisible(true);
+        menu.findItem(R.id.menu_save).setVisible(true);
         menu.findItem(R.id.menu_print).setVisible(true);
         // the other menu items are dynamically enabled on document load
     }
@@ -241,7 +242,13 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         loadWithType(lastResult.loaderType, lastResult.options);
     }
 
-    public void prepareSave(Runnable callback) {
+    public void prepareSave(Runnable callback, boolean fullSave) {
+        if (fullSave) {
+            currentHtmlDiff = null;
+
+            callback.run();
+        }
+
         pageView.requestHtml(new PageView.HtmlCallback() {
 
             @Override

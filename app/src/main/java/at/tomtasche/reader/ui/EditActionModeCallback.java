@@ -66,7 +66,7 @@ public class EditActionModeCallback implements ActionMode.Callback {
                 public void run() {
                     activity.requestSave();
                 }
-            });
+            }, false);
         } else {
             return false;
         }
