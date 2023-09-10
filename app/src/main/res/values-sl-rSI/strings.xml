@@ -25,7 +25,6 @@
     <string name="menu_share">Deli dokument</string>
     <string name="menu_edit">Uredi</string>
     <string name="menu_remove_ads">Odstrani oglase</string>
-    <string name="menu_fullscreen">Celozaslonski način</string>
     <string name="menu_cloud_print">Natisni</string>
     <string name="menu_tts">Besedilo v govor</string>
     <string name="crouton_error_open_app">Tega programa ni bilo mogoče odpreti.</string>
