@@ -14,7 +14,6 @@
     <string name="menu_search">Vyhledat</string>
     <string name="menu_open">Otevřít</string>
     <string name="menu_edit">Upravit dokument</string>
-    <string name="menu_fullscreen">Celá obrazovka</string>
     <string name="menu_cloud_print">Google Cloud Print</string>
     <string name="menu_tts">Převést text na řeč</string>
     <string name="action_find_previous">Předchozí</string>
