@@ -40,6 +40,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/menu_save"
+        android:title="@string/action_edit_save"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/menu_share"
         android:title="@string/menu_share"
         android:visible="false"

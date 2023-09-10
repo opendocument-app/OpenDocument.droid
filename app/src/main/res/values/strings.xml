@@ -27,7 +27,7 @@
     <string name="menu_share">Share document</string>
     <string name="menu_edit">Edit document</string>
     <string name="menu_remove_ads">Remove advertisements</string>
-    <string name="menu_fullscreen">Open fullscreen mode</string>
+    <string name="menu_fullscreen">Fullscreen mode</string>
     <string name="menu_cloud_print">Print document</string>
     <string name="menu_tts">Text-To-Speech</string>
     <string name="crouton_error_open_app">Couldn\'t open selected app.</string>
