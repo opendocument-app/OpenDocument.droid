@@ -25,7 +25,6 @@
     <string name="menu_share">Belgeyi Paylaş</string>
     <string name="menu_edit">Belgeyi düzenle</string>
     <string name="menu_remove_ads">Reklamları kaldır</string>
-    <string name="menu_fullscreen">Tam ekran görünümünü aç</string>
     <string name="menu_cloud_print">Belgeyi yazdır</string>
     <string name="menu_tts">Konuşma metni</string>
     <string name="crouton_error_open_app">Seçilen uygulama açılamıyor.</string>
