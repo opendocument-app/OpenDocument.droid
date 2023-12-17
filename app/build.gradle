@@ -93,7 +93,7 @@ android {
 }
 
 dependencies {
-    implementation platform("org.jetbrains.kotlin:kotlin-bom:1.8.10")
+    implementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.10')
 
     implementation platform('com.google.firebase:firebase-bom:32.2.0')
     implementation 'com.google.firebase:firebase-storage'
@@ -102,13 +102,14 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-config'
 
-    implementation 'com.google.android.gms:play-services-ads:22.2.0'
+    implementation 'com.google.android.gms:play-services-ads:22.6.0'
     implementation 'com.google.android.play:core:1.10.3'
+    implementation 'com.google.android.ump:user-messaging-platform:2.1.0'
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.core:core:1.10.1'
-    implementation 'com.google.android.material:material:1.9.0'
-    implementation 'androidx.webkit:webkit:1.7.0'
+    implementation 'androidx.core:core:1.12.0'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.webkit:webkit:1.9.0'
 
     implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.19'
     implementation 'com.viliussutkus89:wvware-android:1.2.8'
@@ -121,5 +122,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-intents:3.5.1'
     // espresso-idling-resource is used in main sourceSet as well. cannot be just androidTestImplementation
     implementation 'androidx.test.espresso:espresso-idling-resource:3.5.1'
-    implementation 'androidx.annotation:annotation:1.6.0'
+    implementation 'androidx.annotation:annotation:1.7.1'
 }
