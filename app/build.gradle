@@ -86,7 +86,7 @@ android {
     }
     packagingOptions {
         jniLibs {
-            pickFirsts += ['lib/armeabi-v7a/libtmpfile.so', 'lib/arm64-v8a/libtmpfile.so', 'lib/x86/libtmpfile.so', 'lib/x86_64/libtmpfile.so', 'lib/armeabi-v7a/libc++_shared.so', 'lib/arm64-v8a/libc++_shared.so', 'lib/x86/libc++_shared.so', 'lib/x86_64/libc++_shared.so']
+            pickFirsts += ['lib/armeabi-v7a/libc++_shared.so', 'lib/arm64-v8a/libc++_shared.so', 'lib/x86/libc++_shared.so', 'lib/x86_64/libc++_shared.so']
         }
     }
     namespace 'at.tomtasche.reader'
