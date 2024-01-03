@@ -112,7 +112,7 @@ dependencies {
     implementation 'androidx.webkit:webkit:1.7.0'
 
     implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.23'
-    implementation 'com.viliussutkus89:wvware-android:1.2.8'
+    implementation 'com.viliussutkus89:wvware-android:1.2.9'
     implementation 'com.github.huzongyao:AndroidMagic:v1.1.2'
 
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
