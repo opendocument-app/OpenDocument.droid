@@ -4,7 +4,7 @@ apply plugin: 'com.google.firebase.crashlytics'
 
 android {
     compileSdkVersion 33
-    ndkVersion "25.2.9519653"
+    ndkVersion "26.1.10909125"
 
     defaultConfig {
         applicationId "at.tomtasche.reader"
@@ -86,7 +86,11 @@ android {
     }
     packagingOptions {
         jniLibs {
-            pickFirsts += ['lib/armeabi-v7a/libc++_shared.so', 'lib/arm64-v8a/libc++_shared.so', 'lib/x86/libc++_shared.so', 'lib/x86_64/libc++_shared.so']
+            // No need to pickFirst libc++_shared.so if all files are identical.
+            // They will be identical if NDK major version matches.
+            // NDK runtime problems may occur if NDK version mismatches,
+            // so comment this out, to get a compile error instead
+            // pickFirsts += ['**/libc++_shared.so']
         }
     }
     namespace 'at.tomtasche.reader'
