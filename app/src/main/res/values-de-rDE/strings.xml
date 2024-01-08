@@ -21,7 +21,6 @@
     <string name="menu_open">Dokument öffnen</string>
     <string name="menu_edit">Dokument bearbeiten</string>
     <string name="menu_remove_ads">Werbung entfernen</string>
-    <string name="menu_fullscreen">Vollbildmodus aktivieren</string>
     <string name="menu_cloud_print">Dokument drucken</string>
     <string name="menu_tts">Sprachausgabe</string>
     <string name="crouton_error_open_app">App konnte nicht geöffnet werden.</string>

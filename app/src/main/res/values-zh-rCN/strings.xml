@@ -25,7 +25,7 @@
     <string name="menu_share">分享文档</string>
     <string name="menu_edit">编辑文档</string>
     <string name="menu_remove_ads">移除广告</string>
-    <string name="menu_fullscreen">打开全屏模式</string>
+    <string name="menu_fullscreen">全屏模式</string>
     <string name="menu_cloud_print">打印文档</string>
     <string name="menu_tts">文字转语音</string>
     <string name="crouton_error_open_app">无法打开选择的应用。</string>

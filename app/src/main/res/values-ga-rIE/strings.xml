@@ -25,7 +25,6 @@
     <string name="menu_share">Comhroinn an cháipéis</string>
     <string name="menu_edit">Cuir an cháipéis in eagar</string>
     <string name="menu_remove_ads">Bain na fógraí</string>
-    <string name="menu_fullscreen">Lánscáileán</string>
     <string name="menu_cloud_print">Clóbhuail an cháipéis</string>
     <string name="menu_tts">Téacs-Go-Glór</string>
     <string name="crouton_error_open_app">Níorbh fhéidir an feidhmchláirín roghnaithe a oscailt.</string>

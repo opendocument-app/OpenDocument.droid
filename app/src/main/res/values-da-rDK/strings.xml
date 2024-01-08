@@ -16,7 +16,6 @@
     <string name="menu_open">Åbn</string>
     <string name="menu_edit">Rediger dokument</string>
     <string name="menu_remove_ads">Fjern reklamer</string>
-    <string name="menu_fullscreen">Åben fuldskærmsvisning</string>
     <string name="menu_cloud_print">Print dokument</string>
     <string name="menu_tts">Tekst-Til-Tale</string>
     <string name="crouton_error_open_app">Kunne ikke åbne den valgte app.</string>

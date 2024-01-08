@@ -25,7 +25,7 @@
     <string name="menu_share">문서 공유</string>
     <string name="menu_edit">문서 편집</string>
     <string name="menu_remove_ads">광고 제거</string>
-    <string name="menu_fullscreen">전체 화면으로 열기</string>
+    <string name="menu_fullscreen">전체 화면 모드</string>
     <string name="menu_cloud_print">문서 인쇄</string>
     <string name="menu_tts">텍스트 음성 변환 (TTS)</string>
     <string name="crouton_error_open_app">선택한 앱을 열 수 없습니다.</string>

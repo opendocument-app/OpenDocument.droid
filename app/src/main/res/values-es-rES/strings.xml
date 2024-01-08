@@ -20,7 +20,6 @@
     <string name="menu_open">Abrir</string>
     <string name="menu_edit">Editar</string>
     <string name="menu_remove_ads">Eliminar anuncios</string>
-    <string name="menu_fullscreen">Modo a pantalla completa</string>
     <string name="menu_cloud_print">Imprimir</string>
     <string name="menu_tts">Reconocimiento de voz</string>
     <string name="crouton_error_open_app">Ha sido imposible abrir esta aplicación.</string>

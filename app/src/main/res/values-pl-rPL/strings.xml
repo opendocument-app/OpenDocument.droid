@@ -16,7 +16,6 @@
     <string name="menu_open">Otwórz dokument</string>
     <string name="menu_edit">Edytuj dokument</string>
     <string name="menu_remove_ads">Usuń reklamy</string>
-    <string name="menu_fullscreen">Otwórz tryb pełnoekranowy</string>
     <string name="menu_cloud_print">Drukuj dokument</string>
     <string name="menu_tts">Przetwarzanie tekstu na mowę</string>
     <string name="crouton_error_open_app">Nie można otworzyć wybranej aplikacji</string>

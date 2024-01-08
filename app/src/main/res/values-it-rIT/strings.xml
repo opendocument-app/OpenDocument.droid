@@ -25,7 +25,6 @@
     <string name="menu_share">Condividi documento</string>
     <string name="menu_edit">Modifica documento</string>
     <string name="menu_remove_ads">Rimuovi pubblicità</string>
-    <string name="menu_fullscreen">Apri in modalità schermo intero</string>
     <string name="menu_cloud_print">Stampa il documento</string>
     <string name="menu_tts">Sintesi vocale</string>
     <string name="crouton_error_open_app">Impossibile aprire l\'app selezionata.</string>

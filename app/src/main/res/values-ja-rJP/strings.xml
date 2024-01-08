@@ -25,7 +25,6 @@
     <string name="menu_share">ドキュメントを共有</string>
     <string name="menu_edit">ドキュメントを編集</string>
     <string name="menu_remove_ads">広告を削除する</string>
-    <string name="menu_fullscreen">全画面表示を開く</string>
     <string name="menu_cloud_print">ドキュメントを印刷</string>
     <string name="menu_tts">テキスト読み上げ</string>
     <string name="crouton_error_open_app">選択したアプリを開くことができません。</string>

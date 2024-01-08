@@ -16,7 +16,7 @@
     <string name="menu_open">Открыть документ</string>
     <string name="menu_edit">Редактировать документ</string>
     <string name="menu_remove_ads">Убрать рекламные объявления</string>
-    <string name="menu_fullscreen">Открыть в полноэкранном режиме</string>
+    <string name="menu_fullscreen">Полноэкранный режим</string>
     <string name="menu_cloud_print">Печать документа</string>
     <string name="menu_tts">Преобразование текста в речь</string>
     <string name="crouton_error_open_app">Не удалось открыть выбранное приложение.</string>
