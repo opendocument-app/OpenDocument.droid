@@ -4,7 +4,7 @@ apply plugin: 'com.google.firebase.crashlytics'
 
 android {
     compileSdkVersion 33
-    ndkVersion "25.2.9519653"
+    ndkVersion "26.1.10909125"
 
     defaultConfig {
         applicationId "at.tomtasche.reader"
@@ -86,7 +86,11 @@ android {
     }
     packagingOptions {
         jniLibs {
-            pickFirsts += ['lib/armeabi-v7a/libtmpfile.so', 'lib/arm64-v8a/libtmpfile.so', 'lib/x86/libtmpfile.so', 'lib/x86_64/libtmpfile.so', 'lib/armeabi-v7a/libc++_shared.so', 'lib/arm64-v8a/libc++_shared.so', 'lib/x86/libc++_shared.so', 'lib/x86_64/libc++_shared.so']
+            // No need to pickFirst libc++_shared.so if all files are identical.
+            // They will be identical if NDK major version matches.
+            // NDK runtime problems may occur if NDK version mismatches,
+            // so comment this out, to get a compile error instead
+            // pickFirsts += ['**/libc++_shared.so']
         }
     }
     namespace 'at.tomtasche.reader'
@@ -111,8 +115,8 @@ dependencies {
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.webkit:webkit:1.7.0'
 
-    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.19'
-    implementation 'com.viliussutkus89:wvware-android:1.2.8'
+    implementation 'com.viliussutkus89:pdf2htmlex-android:0.18.23'
+    implementation 'com.viliussutkus89:wvware-android:1.2.9'
     implementation 'com.github.huzongyao:AndroidMagic:v1.1.2'
 
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
