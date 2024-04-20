@@ -38,11 +38,13 @@ jobs:
     - name: checkout odr.core
       uses: actions/checkout@v3
       with:
-        name: opendocument-app/OpenDocument.core
+        repository: opendocument-app/OpenDocument.core
         ref: v3.0.0
-        path: ../OpenDocument.core
+        path: OpenDocument.core
     - name: conan
-      run: conan export ../OpenDocument.core odrcore/3.0.0@
+      run: conan export OpenDocument.core odrcore/3.0.0@
+    - name: remove odr.core
+      run: rm -rf OpenDocument.core
 
     - run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
 
