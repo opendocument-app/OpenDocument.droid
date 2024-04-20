@@ -25,7 +25,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: 'zulu'
-        java-version: 11
+        java-version: 17
 
     - name: set up python 3.8
       uses: actions/setup-python@v4
@@ -59,6 +59,7 @@ jobs:
         name: lint-report
         path: app/build/reports/lint-results-*.html
         if-no-files-found: error
+
   test:
     runs-on: macos-11
     strategy:
@@ -105,11 +106,18 @@ jobs:
     - name: pip
       run: python3 -m ensurepip
     - name: conan
-      run: pip3 install conan
-    - name: conan revisions
-      run: conan config set general.revisions_enabled=1
-    - name: conan repo
-      run: conan remote add odr https://odr.jfrog.io/artifactory/api/conan/odr-conan
+      run: pip3 install --upgrade conan==1.*
+
+    - name: checkout odr.core
+      uses: actions/checkout@v3
+      with:
+        repository: opendocument-app/OpenDocument.core
+        ref: v3.0.0
+        path: OpenDocument.core
+    - name: conan
+      run: conan export OpenDocument.core odrcore/3.0.0@
+    - name: remove odr.core
+      run: rm -rf OpenDocument.core
 
     - name: Android Virtual Device (AVD) cache
       uses: actions/cache@v3
