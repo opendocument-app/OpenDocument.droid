@@ -2,14 +2,22 @@ name: OpenDocument-Reader-Android
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths-ignore:
-      - '**.md'
   push:
     paths-ignore:
       - '**.md'
       - '.github/**'
       - '!.github/workflows/android_main.yml'
+    branches:
+      - main
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+      - '!.github/workflows/android_main.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   build:
