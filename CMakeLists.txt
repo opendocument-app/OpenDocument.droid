@@ -23,6 +23,7 @@ string(REPLACE "armeabi-v7a" "armv7" ARCH "${ARCH}")
 string(REPLACE "arm64-v8a" "armv8" ARCH "${ARCH}")
 
 include(${CMAKE_CURRENT_LIST_DIR}/app/conan.cmake)
+conan_cmake_configure(GENERATORS cmake)
 conan_cmake_autodetect(settings_build)
 conan_cmake_autodetect(settings_host ARCH ${ARCH})
 # inspired from here https://docs.conan.io/en/latest/integrations/cross_platform/android.html
@@ -30,9 +31,11 @@ configure_file(app/toolchain.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/toolchain.cmak
 conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_CURRENT_LIST_DIR}
         BUILD missing
         SETTINGS_BUILD ${settings_build}
-        SETTINGS_HOST ${settings_host}
+        SETTINGS_HOST ${settings_host} compiler.libcxx=c++_shared
+        PROFILE_BUILD default
         PROFILE_HOST ${CMAKE_CURRENT_LIST_DIR}/conanprofile.txt
-        ENV CONAN_CMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_BINARY_DIR}/toolchain.cmake)
+        ENV CONAN_CMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_BINARY_DIR}/toolchain.cmake
+            ANDROID_NDK_ROOT=${CMAKE_ANDROID_NDK})
 include(${CMAKE_CURRENT_BINARY_DIR}/conan_paths.cmake)
 
 find_package(odr REQUIRED)

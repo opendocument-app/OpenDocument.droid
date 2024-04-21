@@ -3,4 +3,13 @@ include(default)
 [settings]
 os=Android
 os.api_level=19
+compiler=clang
+compiler.libcxx=c++_shared
 build_type=Release
+
+[env]
+CONAN_RUN_TESTS=False
+CONAN_CMAKE_GENERATOR=Ninja
+
+[conf]
+tools.android:ndk_path=$ENV{ANDROID_NDK_ROOT}
