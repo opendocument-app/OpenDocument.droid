@@ -47,10 +47,10 @@ jobs:
       uses: actions/checkout@v3
       with:
         repository: opendocument-app/OpenDocument.core
-        ref: v3.0.0
+        ref: v4.0.0
         path: OpenDocument.core
     - name: conan
-      run: conan export OpenDocument.core odrcore/3.0.0@
+      run: conan export OpenDocument.core odrcore/4.0.0@
     - name: remove odr.core
       run: rm -rf OpenDocument.core
 
