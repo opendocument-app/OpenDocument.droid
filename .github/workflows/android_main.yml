@@ -86,9 +86,6 @@ jobs:
       # Make sure the matrix here and in cache_AVD_images.yml is the same
       matrix:
         include:
-          # Oldest version we support
-          - arch: x86
-            api-level: 19
           # Oldest x86_64
           - arch: x86_64
             api-level: 21
