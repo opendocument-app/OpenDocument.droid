@@ -53,6 +53,8 @@ jobs:
       run: conan export OpenDocument.core odrcore/3.0.0@
     - name: remove odr.core
       run: rm -rf OpenDocument.core
+    - name: conan install odr.core
+      run: conan install odrcore/3.0.0@
 
     - run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
 
@@ -126,6 +128,8 @@ jobs:
       run: conan export OpenDocument.core odrcore/3.0.0@
     - name: remove odr.core
       run: rm -rf OpenDocument.core
+    - name: conan install odr.core
+      run: conan install odrcore/3.0.0@
 
     - name: Android Virtual Device (AVD) cache
       uses: actions/cache@v3
