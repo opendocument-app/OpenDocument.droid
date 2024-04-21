@@ -1,6 +1,8 @@
 include(default)
 
-[settings]s
+[settings]
+compiler=clang
+compiler.libcxx=libc++
 build_type=Release
 
 [env]
