@@ -2,6 +2,7 @@
 #include <string>
 #include <optional>
 #include <odr/document.hpp>
+#include <odr/document_cursor.hpp>
 #include <odr/document_element.hpp>
 #include <odr/file.hpp>
 #include <odr/html.hpp>
@@ -113,9 +114,12 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 config.text_document_margin = true;
             }
 
-            html = odr::OpenDocumentReader::html(inputPathCpp, [&passwordCpp]() {
-                return passwordCpp.value().c_str();
-            }, outputPathCpp, config);
+            const char* passwordC = nullptr;
+            if (passwordCpp.has_value()) {
+                passwordC = passwordCpp.value().c_str();
+            }
+
+            html = odr::OpenDocumentReader::html(inputPathCpp, passwordC, outputPathCpp, config);
 
             {
                 const auto extensionCpp = odr::OpenDocumentReader::type_to_string(
