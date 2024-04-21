@@ -31,6 +31,9 @@ conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_CURRENT_LIST_DIR}
         SETTINGS_HOST ${settings_host} compiler.libcxx=c++_shared
         PROFILE_BUILD ${CMAKE_CURRENT_LIST_DIR}/conanprofile_build.txt
         PROFILE_HOST ${CMAKE_CURRENT_LIST_DIR}/conanprofile_host.txt
+        ENV_BUILD
+            CC=${CMAKE_C_COMPILER}
+            CXX=${CMAKE_CXX_COMPILER}
         ENV_HOST
             CONAN_CMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_BINARY_DIR}/toolchain.cmake
             ANDROID_NDK_ROOT=${CMAKE_ANDROID_NDK})
