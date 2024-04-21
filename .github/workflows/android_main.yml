@@ -54,7 +54,10 @@ jobs:
     - name: remove odr.core
       run: rm -rf OpenDocument.core
     - name: conan install odr.core
-      run: conan install odrcore/3.0.0@ --build missing -s compiler=clang
+      run: conan install odrcore/3.0.0@ --build missing
+      env:
+        CC: clang
+        CXX: clang++
 
     - run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
 
