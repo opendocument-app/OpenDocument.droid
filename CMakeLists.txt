@@ -29,6 +29,7 @@ conan_cmake_autodetect(settings ARCH ${ARCH})
 configure_file(app/toolchain.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/toolchain.cmake @ONLY)
 conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_CURRENT_LIST_DIR}
         BUILD missing
+        SETTINGS_BUILD compiler.libcxx=libc++
         SETTINGS_HOST ${settings} compiler.libcxx=c++_shared
         PROFILE_BUILD default
         PROFILE_HOST ${CMAKE_CURRENT_LIST_DIR}/conanprofile.txt
