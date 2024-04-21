@@ -59,7 +59,7 @@ jobs:
         CC: clang
         CXX: clang++
 
-    - name: gradel
+    - name: gradle
       run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
 
     - name: upload apks

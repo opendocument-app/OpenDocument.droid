@@ -2,7 +2,7 @@ include(default)
 
 [settings]
 compiler=clang
-compiler.libcxx=libc++
+compiler.libcxx=libstdc++11
 build_type=Release
 
 [env]
