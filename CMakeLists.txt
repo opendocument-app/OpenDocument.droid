@@ -5,7 +5,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# make sure "which conan" points to a version of 1.x
+# create virtual environment in project root and "pip install conan==1.*"
+set(CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/bin")
+# or make sure "which conan" points to a version of 1.x
+
 # TODO: call FIND_PROGRAM(conan) here manually so the location is cached for later
 # TODO: use proper virtual environment
 
