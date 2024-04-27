@@ -43,16 +43,10 @@ jobs:
     - name: install pip and conan
       run: python -m pip install --upgrade pip conan==1.*
 
-    - name: checkout odr.core
-      uses: actions/checkout@v3
-      with:
-        repository: opendocument-app/OpenDocument.core
-        ref: v3.0.0
-        path: OpenDocument.core
-    - name: conan export odr.core
-      run: conan export OpenDocument.core odrcore/3.0.0@
-    - name: remove odr.core
-      run: rm -rf OpenDocument.core
+    - name: conan config
+      run: conan config set general.revisions_enabled=1
+    - name: conan repo
+      run: conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
 
     - name: tweak conan profile for build machine
       run: |
@@ -124,16 +118,10 @@ jobs:
     - name: install conan
       run: pip3 install --upgrade conan==1.*
 
-    - name: checkout odr.core
-      uses: actions/checkout@v3
-      with:
-        repository: opendocument-app/OpenDocument.core
-        ref: v3.0.0
-        path: OpenDocument.core
-    - name: conan export odr.core
-      run: conan export OpenDocument.core odrcore/3.0.0@
-    - name: remove odr.core
-      run: rm -rf OpenDocument.core
+    - name: conan config
+      run: conan config set general.revisions_enabled=1
+    - name: conan repo
+      run: conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
 
     - name: tweak conan profile for build machine
       run: |
