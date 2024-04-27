@@ -1,0 +1,11 @@
+include(default)
+
+[settings]
+build_type=Release
+
+[env]
+CONAN_RUN_TESTS=False
+CONAN_CMAKE_GENERATOR=Ninja
+
+[conf]
+tools.build:skip_test=True

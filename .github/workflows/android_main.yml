@@ -2,14 +2,22 @@ name: OpenDocument-Reader-Android
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths-ignore:
-      - '**.md'
   push:
     paths-ignore:
       - '**.md'
       - '.github/**'
       - '!.github/workflows/android_main.yml'
+    branches:
+      - main
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+      - '!.github/workflows/android_main.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -19,39 +27,52 @@ jobs:
     - name: checkout
       uses: actions/checkout@v3
 
-    - name: ninja
+    - name: install ninja
       run: sudo apt-get install -y ninja-build
-    - name: java
+    - name: setup java
       uses: actions/setup-java@v3
       with:
         distribution: 'zulu'
-        java-version: 11
+        java-version: 17
 
-    - name: set up python 3.8
+    - name: setup python 3.8
       uses: actions/setup-python@v4
       with:
         python-version: 3.8
 
     - name: install pip and conan
-      run: python -m pip install --upgrade pip conan
-    - name: conan revisions
+      run: python -m pip install --upgrade pip conan==1.*
+
+    - name: conan config
       run: conan config set general.revisions_enabled=1
     - name: conan repo
-      run: conan remote add odr https://odr.jfrog.io/artifactory/api/conan/odr-conan
+      run: conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
 
-    - run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
+    - name: tweak conan profile for build machine
+      run: |
+        echo "" >> conanprofile_build.txt
+        echo "[settings]" >> conanprofile_build.txt
+        echo "compiler=clang" >> conanprofile_build.txt
+        echo "compiler.libcxx=libstdc++11" >> conanprofile_build.txt
+        echo "" >> conanprofile_build.txt
 
-    - uses: actions/upload-artifact@v3
+    - name: gradle
+      run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
+
+    - name: upload apks
+      uses: actions/upload-artifact@v3
       with:
         name: APKs
         path: app/build/outputs/apk/**/*.apk
         if-no-files-found: error
 
-    - uses: actions/upload-artifact@v3
+    - name: upload lint results
+      uses: actions/upload-artifact@v3
       with:
         name: lint-report
         path: app/build/reports/lint-results-*.html
         if-no-files-found: error
+
   test:
     runs-on: macos-11
     strategy:
@@ -59,9 +80,6 @@ jobs:
       # Make sure the matrix here and in cache_AVD_images.yml is the same
       matrix:
         include:
-          # Oldest version we support
-          - arch: x86
-            api-level: 19
           # Oldest x86_64
           - arch: x86_64
             api-level: 21
@@ -81,28 +99,37 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: 'zulu'
-        java-version: 11
+        java-version: 17
 
-    - name: brew
+    - name: install brew
       run: ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null
     - name: fix ninja install
       run: rm '/usr/local/bin/2to3'
-    - name: ninja
+    - name: install ninja
       run: brew install ninja
     # https://stackoverflow.com/a/57758679/198996
-    - name: bundler
+    - name: install bundler
       run: gem install bundler:1.17.3
-    - name: fastlane
+    - name: install fastlane
       run: bundle install
 
-    - name: pip
+    - name: install pip
       run: python3 -m ensurepip
-    - name: conan
-      run: pip3 install conan
-    - name: conan revisions
+    - name: install conan
+      run: pip3 install --upgrade conan==1.*
+
+    - name: conan config
       run: conan config set general.revisions_enabled=1
     - name: conan repo
-      run: conan remote add odr https://odr.jfrog.io/artifactory/api/conan/odr-conan
+      run: conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
+
+    - name: tweak conan profile for build machine
+      run: |
+        echo "" >> conanprofile_build.txt
+        echo "[settings]" >> conanprofile_build.txt
+        echo "compiler=clang" >> conanprofile_build.txt
+        echo "compiler.libcxx=libc++" >> conanprofile_build.txt
+        echo "" >> conanprofile_build.txt
 
     - name: Android Virtual Device (AVD) cache
       uses: actions/cache@v3
@@ -152,7 +179,8 @@ jobs:
 
           test ! -f sorry_but_tests_are_failing
 
-    - uses: actions/upload-artifact@v3
+    - name: upload test results
+      uses: actions/upload-artifact@v3
       if: always()
       with:
         name: testResults-${{ matrix.api-level }}-${{ matrix.arch }}

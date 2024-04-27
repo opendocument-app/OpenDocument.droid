@@ -11,3 +11,7 @@ Feel free to use it in your own project too, but please don't forget to tell us 
      height="80">](https://play.google.com/store/apps/details?id=at.tomtasche.reader)
 
 More information at http://reader.tomtasche.at/ and in the app itself.
+
+## Setup
+
+- `conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan`

@@ -1,6 +1,0 @@
-include(default)
-
-[settings]
-os=Android
-os.api_level=19
-build_type=Release
