@@ -47,6 +47,8 @@ jobs:
       run: conan config set general.revisions_enabled=1
     - name: conan repo
       run: conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
+    - name: conan login
+      run: conan user --remote odr --password ${{ secrets.ARTIFACTORY }} admin
 
     - name: tweak conan profile for build machine
       run: |
@@ -58,6 +60,9 @@ jobs:
 
     - name: gradle
       run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
+
+    - name: upload binaries to conan repo
+      run: conan upload "*" --confirm --remote odr
 
     - name: upload apks
       uses: actions/upload-artifact@v3
@@ -122,6 +127,8 @@ jobs:
       run: conan config set general.revisions_enabled=1
     - name: conan repo
       run: conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
+    - name: conan login
+      run: conan user --remote odr --password ${{ secrets.ARTIFACTORY }} admin
 
     - name: tweak conan profile for build machine
       run: |
@@ -178,6 +185,9 @@ jobs:
           mv app/build/outputs/androidTest-results testResults/
 
           test ! -f sorry_but_tests_are_failing
+
+    - name: upload binaries to conan repo
+      run: conan upload "*" --confirm --remote odr
 
     - name: upload test results
       uses: actions/upload-artifact@v3
