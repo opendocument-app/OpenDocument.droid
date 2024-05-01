@@ -62,7 +62,7 @@ jobs:
       run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
 
     - name: upload binaries to conan repo
-      run: conan upload "*" --confirm --remote odr
+      run: conan upload "*" --remote odr --confirm --all --no-overwrite recipe
 
     - name: upload apks
       uses: actions/upload-artifact@v3
@@ -187,7 +187,7 @@ jobs:
           test ! -f sorry_but_tests_are_failing
 
     - name: upload binaries to conan repo
-      run: conan upload "*" --confirm --remote odr
+      run: conan upload "*" --remote odr --confirm --all --no-overwrite recipe
 
     - name: upload test results
       uses: actions/upload-artifact@v3
