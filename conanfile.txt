@@ -5,3 +5,6 @@ odrcore/3.0.0@
 cmake
 cmake_paths
 cmake_find_package
+
+[settings]
+odrcore:build_type=RelWithDebInfo
