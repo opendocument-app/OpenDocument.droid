@@ -5,7 +5,7 @@ os=Android
 os.api_level=19
 compiler=clang
 compiler.libcxx=c++_shared
-build_type=Release
+build_type=RelWithDebInfo
 
 [env]
 CONAN_RUN_TESTS=False
