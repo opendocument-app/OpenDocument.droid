@@ -90,15 +90,15 @@ jobs:
         include:
           # Oldest x86_64
           - arch: x86_64
-            api-level: 21
+            api-level: 23
           - arch: x86_64
             api-level: 29
           # API-30+ tests are failing because play services init something something
-#          - arch: x86
-#            api-level: 30
+          - arch: x86
+            api-level: 30
           # API-32+ tests are failing because storage permissions something something
-#          - arch: x86_64
-#            api-level: 32
+          - arch: x86_64
+            api-level: 32
     steps:
     - name: checkout
       uses: actions/checkout@v3
