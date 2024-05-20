@@ -11,7 +11,7 @@ task conanInstall {
     ["Debug", "Release"].each { String build_type ->
         ["armv7", "armv8", "x86", "x86_64"].each { String arch ->
             def cmd = conanExecutable + " install " +
-                    ". --profile android -s build_type="+ build_type +" -s arch=" + arch +
+                    ".. --profile android -s build_type="+ build_type +" -s arch=" + arch +
                     " --build missing -c tools.cmake.cmake_layout:build_folder_vars=['settings.arch']"
             print(">> ${cmd} \n")
 
