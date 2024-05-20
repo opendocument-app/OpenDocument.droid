@@ -2,14 +2,13 @@ include(default)
 
 [settings]
 os=Android
-os.api_level=19
+os.api_level=23
 compiler=clang
+compiler.version=12
+compiler.libcxx=c++_static
+compiler.cppstd=17
 compiler.libcxx=c++_shared
 build_type=RelWithDebInfo
-
-[env]
-CONAN_RUN_TESTS=False
-CONAN_CMAKE_GENERATOR=Ninja
 
 [conf]
 tools.android:ndk_path=$ENV{ANDROID_NDK_ROOT}
