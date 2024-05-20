@@ -46,7 +46,7 @@ jobs:
     - name: conan remote
       run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
     - name: conan login
-      run: conan user --remote odr --password ${{ secrets.ARTIFACTORY }} admin
+      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
 
     - name: tweak conan profile for build machine
       run: |
@@ -124,7 +124,7 @@ jobs:
     - name: conan remote
       run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
     - name: conan login
-      run: conan user --remote odr --password ${{ secrets.ARTIFACTORY }} admin
+      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
 
     - name: tweak conan profile for build machine
       run: |
