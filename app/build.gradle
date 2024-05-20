@@ -4,6 +4,29 @@ plugins {
     id 'com.google.firebase.crashlytics'
 }
 
+task conanInstall {
+    def conanExecutable = "conan" // define the path to your conan installation
+    def buildDir = new File("app/build")
+    buildDir.mkdirs()
+    ["Debug", "Release"].each { String build_type ->
+        ["armv7", "armv8", "x86", "x86_64"].each { String arch ->
+            def cmd = conanExecutable + " install " +
+                    "../src/main/cpp --profile android -s build_type="+ build_type +" -s arch=" + arch +
+                    " --build missing -c tools.cmake.cmake_layout:build_folder_vars=['settings.arch']"
+            print(">> ${cmd} \n")
+
+            def sout = new StringBuilder(), serr = new StringBuilder()
+            def proc = cmd.execute(null, buildDir)
+            proc.consumeProcessOutput(sout, serr)
+            proc.waitFor()
+            println "$sout $serr"
+            if (proc.exitValue() != 0) {
+                throw new Exception("out> $sout err> $serr" + "\nCommand: ${cmd}")
+            }
+        }
+    }
+}
+
 android {
     compileSdkVersion 34
     ndkVersion "26.1.10909125"
@@ -80,7 +103,8 @@ android {
     externalNativeBuild {
         cmake {
             version "3.22.0+"
-            path file('../CMakeLists.txt')
+            path file('CMakeLists.txt')
+            arguments("-DCMAKE_TOOLCHAIN_FILE=conan_android_toolchain.cmake")
         }
     }
     lint {

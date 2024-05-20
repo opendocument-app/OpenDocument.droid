@@ -1,0 +1,9 @@
+[requires]
+odrcore/3.0.0@
+
+[generators]
+CMakeToolchain
+CMakeDeps
+
+[layout]
+cmake_layout
