@@ -43,8 +43,6 @@ jobs:
     - name: install pip and conan
       run: python -m pip install --upgrade pip conan
 
-    - name: conan config
-      run: conan config set general.revisions_enabled=1
     - name: conan remote
       run: |
         conan remote clean
@@ -126,8 +124,6 @@ jobs:
     - name: install conan
       run: pip3 install --upgrade conan
 
-    - name: conan config
-      run: conan config set general.revisions_enabled=1
     - name: conan remote
       run: |
         conan remote clean
