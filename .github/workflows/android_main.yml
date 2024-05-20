@@ -44,10 +44,7 @@ jobs:
       run: python -m pip install --upgrade pip conan
 
     - name: conan remote
-      run: |
-        conan remote clean
-        conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
-        conan remote add conancenter https://center.conan.io
+      run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
     - name: conan login
       run: conan user --remote odr --password ${{ secrets.ARTIFACTORY }} admin
 
@@ -125,10 +122,7 @@ jobs:
       run: pip3 install --upgrade conan
 
     - name: conan remote
-      run: |
-        conan remote clean
-        conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
-        conan remote add conancenter https://center.conan.io
+      run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
     - name: conan login
       run: conan user --remote odr --password ${{ secrets.ARTIFACTORY }} admin
 
