@@ -48,13 +48,8 @@ jobs:
     - name: conan login
       run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
 
-    - name: tweak conan profile for build machine
-      run: |
-        echo "" >> conanprofile_build.txt
-        echo "[settings]" >> conanprofile_build.txt
-        echo "compiler=clang" >> conanprofile_build.txt
-        echo "compiler.libcxx=libstdc++11" >> conanprofile_build.txt
-        echo "" >> conanprofile_build.txt
+    - name: conan profile
+      run: conan profile detect
 
     - name: gradle
       run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
