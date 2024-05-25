@@ -126,13 +126,8 @@ jobs:
     - name: conan login
       run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
 
-    - name: tweak conan profile for build machine
-      run: |
-        echo "" >> conanprofile_build.txt
-        echo "[settings]" >> conanprofile_build.txt
-        echo "compiler=clang" >> conanprofile_build.txt
-        echo "compiler.libcxx=libc++" >> conanprofile_build.txt
-        echo "" >> conanprofile_build.txt
+    - name: conan profile
+      run: conan profile detect
 
     - name: Android Virtual Device (AVD) cache
       uses: actions/cache@v3
