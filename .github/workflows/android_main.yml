@@ -21,9 +21,6 @@ concurrency:
 
 env:
   ndk_version: 26.1.10909125
-  CCACHE_DIR: ${{ github.workspace }}/ccache
-  CCACHE_MAXSIZE: 500M
-  CCACHE_KEY_SUFFIX: r20
 
 jobs:
   build:
@@ -49,20 +46,7 @@ jobs:
     - name: install pip and conan
       run: python -m pip install --upgrade pip conan
 
-    # workaround for https://github.com/actions/virtual-environments/issues/1337
-    - name: prepare ndk dir for caching
-      run: |
-        sudo mkdir -p ${ANDROID_HOME}/ndk
-        sudo chmod -R 777 ${ANDROID_HOME}/ndk
-        sudo chown -R $USER:$USER ${ANDROID_HOME}/ndk
-    - name: ndk cache
-      id: ndk-cache
-      uses: actions/cache@v3
-      with:
-        path: ${ANDROID_HOME}/ndk
-        key: ndk-cache-${{ env.ndk_version }}
     - name: install ndk
-      if: steps.ndk-cache.outputs.cache-hit != 'true'
       run: echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
 
     - name: conan remote
