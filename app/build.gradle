@@ -106,7 +106,7 @@ android {
     externalNativeBuild {
         cmake {
             version "3.22.0+"
-            arguments("-DCMAKE_TOOLCHAIN_FILE=conan_android_toolchain.cmake")
+            arguments "-DCMAKE_TOOLCHAIN_FILE=conan_android_toolchain.cmake"
         }
     }
     lint {
