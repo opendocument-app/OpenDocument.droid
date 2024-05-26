@@ -10,5 +10,5 @@ compiler.libcxx=c++_shared
 build_type=RelWithDebInfo
 
 [conf]
-tools.android:ndk_path=${CMAKE_ANDROID_NDK}
+tools.android:ndk_path=<NDK_PATH>
 tools.build:skip_test=True

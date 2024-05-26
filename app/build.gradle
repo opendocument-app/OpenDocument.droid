@@ -4,12 +4,25 @@ plugins {
     id 'com.google.firebase.crashlytics'
 }
 
+task conanProfile {
+    file("build").mkdirs()
+
+    copy {
+        from "conanprofile.txt"
+        into "build"
+    }
+
+    def file = file("build/conanprofile.txt")
+    def content = file.text
+    content = content.replace("<NDK_PATH>", android.ndkDirectory.toString())
+    file.write(content)
+}
+
 task conanInstall {
     ["Debug", "Release"].each { String build_type ->
         ["armv7", "armv8", "x86", "x86_64"].each { String arch ->
             exec {
-                environment "ANDROID_NDK_ROOT", android.ndkDirectory
-                commandLine "conan", "install", ".", "--profile:host", "conanprofile.txt",
+                commandLine "conan", "install", ".", "--profile:host", "build/conanprofile.txt",
                         "-s", "build_type=" + build_type, "-s", "arch=" + arch, "--build", "missing",
                         "-c", "tools.cmake.cmake_layout:build_folder_vars=['settings.arch']"
             }
