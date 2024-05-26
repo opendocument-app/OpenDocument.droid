@@ -61,7 +61,7 @@ jobs:
         path: /usr/local/lib/android/sdk/ndk
         key: ndk-cache-${{ env.ndk_version }}
     - name: Install NDK
-      if: steps.ndk-cache.outputs.cache-hit != "true"
+      if: steps.ndk-cache.outputs.cache-hit
       run: echo "y" | sudo /usr/local/lib/android/sdk/tools/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
 
     - name: conan remote
