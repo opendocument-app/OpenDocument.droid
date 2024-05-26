@@ -5,26 +5,13 @@ plugins {
 }
 
 task conanInstall {
-    def conanExecutable = "conan"
-    def buildDir = new File("app/build")
-    buildDir.mkdirs()
     ["Debug", "Release"].each { String build_type ->
         ["armv7", "armv8", "x86", "x86_64"].each { String arch ->
-            def cmd = conanExecutable + " install .." +
-                    " --profile:host ../conanprofile.txt" +
-                    " -s build_type=" + build_type +
-                    " -s arch=" + arch +
-                    " --build missing" +
-                    " -c tools.cmake.cmake_layout:build_folder_vars=['settings.arch']"
-            print(">> ${cmd} \n")
-
-            def sout = new StringBuilder(), serr = new StringBuilder()
-            def proc = cmd.execute(null, buildDir)
-            proc.consumeProcessOutput(sout, serr)
-            proc.waitFor()
-            println "$sout $serr"
-            if (proc.exitValue() != 0) {
-                throw new Exception("out> $sout err> $serr" + "\nCommand: ${cmd}")
+            exec {
+                environment "ANDROID_NDK_ROOT", android.ndkDirectory
+                commandLine "conan", "install", ".", "--profile:host", "conanprofile.txt",
+                        "-s", "build_type=" + build_type, "-s", "arch=" + arch, "--build", "missing",
+                        "-c", "tools.cmake.cmake_layout:build_folder_vars=['settings.arch']"
             }
         }
     }
@@ -46,8 +33,12 @@ android {
 
         vectorDrawables.useSupportLibrary true
 
-        externalNativeBuild.cmake.targets "odr-core"
-        externalNativeBuild.cmake.arguments "-DANDROID_STL=c++_shared"
+        externalNativeBuild {
+            cmake {
+                targets "odr-core"
+                arguments "-DCMAKE_TOOLCHAIN_FILE=conan_android_toolchain.cmake -DANDROID_STL=c++_shared"
+            }
+        }
     }
 
     flavorDimensions "default"
@@ -106,7 +97,6 @@ android {
     externalNativeBuild {
         cmake {
             version "3.22.0+"
-            arguments "-DCMAKE_TOOLCHAIN_FILE=conan_android_toolchain.cmake"
         }
     }
     lint {
