@@ -21,8 +21,11 @@ task conanProfile {
 task conanInstall {
     ["armv7", "armv8", "x86", "x86_64"].each { String arch ->
         exec {
-            commandLine "conan", "install", ".", "--profile:host=build/conanprofile.txt",
-                    "-s", "build_type=RelWithDebInfo", "-s", "arch=" + arch, "--build=missing",
+            commandLine "conan", "install", ".",
+                    "--build=missing",
+                    "--profile:host=build/conanprofile.txt",
+                    "-s", "build_type=RelWithDebInfo",
+                    "-s", "arch=" + arch,
                     "-c", "tools.cmake.cmake_layout:build_folder_vars=['settings.arch']"
         }
     }
@@ -47,7 +50,10 @@ android {
         externalNativeBuild {
             cmake {
                 targets "odr-core"
-                arguments "-DCMAKE_TOOLCHAIN_FILE=conan_android_toolchain.cmake"
+                arguments(
+                    "-DCMAKE_TOOLCHAIN_FILE=conan_android_toolchain.cmake",
+                    "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
+                )
             }
         }
     }
