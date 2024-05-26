@@ -36,7 +36,7 @@ android {
         externalNativeBuild {
             cmake {
                 targets "odr-core"
-                arguments "-DCMAKE_TOOLCHAIN_FILE=conan_android_toolchain.cmake -DANDROID_STL=c++_shared"
+                arguments "-DCMAKE_TOOLCHAIN_FILE=conan_android_toolchain.cmake"
             }
         }
     }
@@ -97,6 +97,7 @@ android {
     externalNativeBuild {
         cmake {
             version "3.22.0+"
+            path "CMakeLists.txt"
         }
     }
     lint {
