@@ -59,10 +59,10 @@ jobs:
       uses: actions/cache@v3
       with:
         path: /usr/local/lib/android/sdk/ndk
-        key: ndk-cache-${{ ndk_version }}
+        key: ndk-cache-${{ env.ndk_version }}
     - name: Install NDK
       if: steps.ndk-cache.outputs.cache-hit != "true"
-      run: echo "y" | sudo /usr/local/lib/android/sdk/tools/bin/sdkmanager --install "ndk;${{ ndk_version }}"
+      run: echo "y" | sudo /usr/local/lib/android/sdk/tools/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
 
     - name: conan remote
       run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
