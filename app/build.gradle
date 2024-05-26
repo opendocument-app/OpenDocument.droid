@@ -21,12 +21,16 @@ task conanProfile {
 task conanInstall {
     ["armv7", "armv8", "x86", "x86_64"].each { String arch ->
         exec {
-            commandLine "conan", "install", ".",
-                    "--build=missing",
-                    "--profile:host=build/conanprofile.txt",
-                    "-s", "build_type=RelWithDebInfo",
-                    "-s", "arch=" + arch,
-                    "-c", "tools.cmake.cmake_layout:build_folder_vars=['settings.arch']"
+            commandLine(
+                "conan", "install", ".",
+                "--output-folder=build/conan/" + arch,
+                "--build=missing",
+                "--profile:host=build/conanprofile.txt",
+                "-s", "arch=" + arch,
+                "-s", "build_type=Release",
+                "-s", "&:build_type=RelWithDebInfo",
+                "-s", "odrcore/*:build_type=RelWithDebInfo",
+            )
         }
     }
 }
