@@ -19,16 +19,22 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
+env:
+  ndk_version: 26.1.10909125
+  CCACHE_DIR: ${{ github.workspace }}/ccache
+  CCACHE_MAXSIZE: 500M
+  CCACHE_KEY_SUFFIX: r20
+
 jobs:
   build:
     runs-on: ubuntu-20.04
-
     steps:
     - name: checkout
       uses: actions/checkout@v3
 
     - name: install ninja
       run: sudo apt-get install -y ninja-build
+
     - name: setup java
       uses: actions/setup-java@v3
       with:
@@ -42,6 +48,21 @@ jobs:
 
     - name: install pip and conan
       run: python -m pip install --upgrade pip conan
+
+    - name: Prepare NDK dir for caching ( workaround for https://github.com/actions/virtual-environments/issues/1337 )
+      run: |
+        sudo mkdir -p /usr/local/lib/android/sdk/ndk
+        sudo chmod -R 777 /usr/local/lib/android/sdk/ndk
+        sudo chown -R $USER:$USER /usr/local/lib/android/sdk/ndk
+    - name: NDK Cache
+      id: ndk-cache
+      uses: actions/cache@v3
+      with:
+        path: /usr/local/lib/android/sdk/ndk
+        key: ndk-cache-${{ ndk_version }}
+    - name: Install NDK
+      if: steps.ndk-cache.outputs.cache-hit != "true"
+      run: echo "y" | sudo /usr/local/lib/android/sdk/tools/bin/sdkmanager --install "ndk;${{ ndk_version }}"
 
     - name: conan remote
       run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
@@ -102,7 +123,7 @@ jobs:
     - name: install brew
       run: ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null
     - name: fix ninja install
-      run: rm '/usr/local/bin/2to3'
+      run: rm /usr/local/bin/2to3
     - name: install ninja
       run: brew install ninja
     # https://stackoverflow.com/a/57758679/198996
