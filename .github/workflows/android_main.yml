@@ -137,7 +137,7 @@ jobs:
         path: |
           ~/.android/avd/*
           ~/.android/adb*
-        key: avd-${{ matrix.arch }}-${{ matrix.api-level }}-r2
+        key: avd-${{ matrix.arch }}-${{ matrix.api-level }}-r3
 
     - name: Create AVD and generate snapshot for caching
       if: steps.avd-cache.outputs.cache-hit != 'true'
@@ -146,8 +146,6 @@ jobs:
         api-level: ${{ matrix.api-level }}
         arch: ${{ matrix.arch }}
         target: google_apis
-        sdcard-path-or-size: 1G
-        disk-size: 8G
         script: echo "Generated AVD snapshot for caching."
 
     - name: Run tests
@@ -158,8 +156,6 @@ jobs:
         api-level: ${{ matrix.api-level }}
         arch: ${{ matrix.arch }}
         target: google_apis
-        sdcard-path-or-size: 1G
-        disk-size: 8G
         script: |
           mkdir -p testResults/screenshots
           adb logcat > testResults/logcat.txt &
