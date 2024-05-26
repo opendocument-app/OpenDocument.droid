@@ -22,7 +22,7 @@ task conanInstall {
     ["armv7", "armv8", "x86", "x86_64"].each { String arch ->
         exec {
             commandLine(
-                "conan", "install", ".",
+                "/Users/andreas/odr/venv2/bin/conan", "install", ".",
                 "--output-folder=build/conan/" + arch,
                 "--build=missing",
                 "--profile:host=build/conanprofile.txt",
