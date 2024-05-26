@@ -49,18 +49,19 @@ jobs:
     - name: install pip and conan
       run: python -m pip install --upgrade pip conan
 
-    - name: Prepare NDK dir for caching ( workaround for https://github.com/actions/virtual-environments/issues/1337 )
+    # workaround for https://github.com/actions/virtual-environments/issues/1337
+    - name: prepare ndk dir for caching
       run: |
         sudo mkdir -p /usr/local/lib/android/sdk/ndk
         sudo chmod -R 777 /usr/local/lib/android/sdk/ndk
         sudo chown -R $USER:$USER /usr/local/lib/android/sdk/ndk
-    - name: NDK Cache
+    - name: ndk cache
       id: ndk-cache
       uses: actions/cache@v3
       with:
         path: /usr/local/lib/android/sdk/ndk
         key: ndk-cache-${{ env.ndk_version }}
-    - name: Install NDK
+    - name: install ndk
       if: steps.ndk-cache.outputs.cache-hit != 'true'
       run: echo "y" | sudo /usr/local/lib/android/sdk/tools/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
 
