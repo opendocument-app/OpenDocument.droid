@@ -2,6 +2,5 @@
 odrcore/3.0.0@
 
 [generators]
-cmake
-cmake_paths
-cmake_find_package
+CMakeToolchain
+CMakeDeps
