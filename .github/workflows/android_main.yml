@@ -19,16 +19,19 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
+env:
+  ndk_version: 26.1.10909125
+
 jobs:
   build:
     runs-on: ubuntu-20.04
-
     steps:
     - name: checkout
       uses: actions/checkout@v4
 
     - name: install ninja
       run: sudo apt-get install -y ninja-build
+
     - name: setup java
       uses: actions/setup-java@v4
       with:
@@ -41,31 +44,24 @@ jobs:
         python-version: 3.8
 
     - name: install pip and conan
-      run: python -m pip install --upgrade pip conan==1.*
+      run: python -m pip install --upgrade pip conan
 
-    - name: conan config
-      run: conan config set general.revisions_enabled=1
+    - name: install ndk
+      run: echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
+
     - name: conan remote
-      run: |
-        conan remote clean
-        conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
-        conan remote add conancenter https://center.conan.io
+      run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
     - name: conan login
-      run: conan user --remote odr --password ${{ secrets.ARTIFACTORY }} admin
+      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
 
-    - name: tweak conan profile for build machine
-      run: |
-        echo "" >> conanprofile_build.txt
-        echo "[settings]" >> conanprofile_build.txt
-        echo "compiler=clang" >> conanprofile_build.txt
-        echo "compiler.libcxx=libstdc++11" >> conanprofile_build.txt
-        echo "" >> conanprofile_build.txt
+    - name: conan profile
+      run: conan profile detect
 
     - name: gradle
       run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
 
     - name: upload binaries to conan repo
-      run: conan upload "*" --remote odr --confirm --all --no-overwrite all
+      run: conan upload "*" --check --confirm --remote odr
 
     - name: upload apks
       uses: actions/upload-artifact@v4
@@ -112,7 +108,7 @@ jobs:
     - name: install brew
       run: ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null
     - name: fix ninja install
-      run: rm '/usr/local/bin/2to3'
+      run: rm /usr/local/bin/2to3
     - name: install ninja
       run: brew install ninja
     # https://stackoverflow.com/a/57758679/198996
@@ -124,25 +120,15 @@ jobs:
     - name: install pip
       run: python3 -m ensurepip
     - name: install conan
-      run: pip3 install --upgrade conan==1.*
+      run: pip3 install --upgrade conan
 
-    - name: conan config
-      run: conan config set general.revisions_enabled=1
     - name: conan remote
-      run: |
-        conan remote clean
-        conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
-        conan remote add conancenter https://center.conan.io
+      run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
     - name: conan login
-      run: conan user --remote odr --password ${{ secrets.ARTIFACTORY }} admin
+      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
 
-    - name: tweak conan profile for build machine
-      run: |
-        echo "" >> conanprofile_build.txt
-        echo "[settings]" >> conanprofile_build.txt
-        echo "compiler=clang" >> conanprofile_build.txt
-        echo "compiler.libcxx=libc++" >> conanprofile_build.txt
-        echo "" >> conanprofile_build.txt
+    - name: conan profile
+      run: conan profile detect
 
     - name: Android Virtual Device (AVD) cache
       uses: actions/cache@v4
@@ -151,7 +137,7 @@ jobs:
         path: |
           ~/.android/avd/*
           ~/.android/adb*
-        key: avd-${{ matrix.arch }}-${{ matrix.api-level }}
+        key: avd-${{ matrix.arch }}-${{ matrix.api-level }}-r3
 
     - name: Create AVD and generate snapshot for caching
       if: steps.avd-cache.outputs.cache-hit != 'true'
@@ -160,8 +146,6 @@ jobs:
         api-level: ${{ matrix.api-level }}
         arch: ${{ matrix.arch }}
         target: google_apis
-        sdcard-path-or-size: 1G
-        disk-size: 8G
         script: echo "Generated AVD snapshot for caching."
 
     - name: Run tests
@@ -172,8 +156,6 @@ jobs:
         api-level: ${{ matrix.api-level }}
         arch: ${{ matrix.arch }}
         target: google_apis
-        sdcard-path-or-size: 1G
-        disk-size: 8G
         script: |
           mkdir -p testResults/screenshots
           adb logcat > testResults/logcat.txt &
@@ -193,7 +175,7 @@ jobs:
           test ! -f sorry_but_tests_are_failing
 
     - name: upload binaries to conan repo
-      run: conan upload "*" --remote odr --confirm --all --no-overwrite all
+      run: conan upload "*" --check --confirm --remote odr
 
     - name: upload test results
       uses: actions/upload-artifact@v4

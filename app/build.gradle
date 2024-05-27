@@ -4,6 +4,37 @@ plugins {
     id 'com.google.firebase.crashlytics'
 }
 
+task conanProfile {
+    file("build").mkdirs()
+
+    copy {
+        from "conanprofile.txt"
+        into "build"
+    }
+
+    def file = file("build/conanprofile.txt")
+    def content = file.text
+    content = content.replace("<NDK_PATH>", android.ndkDirectory.toString())
+    file.write(content)
+}
+
+task conanInstall {
+    ["armv7", "armv8", "x86", "x86_64"].each { String arch ->
+        exec {
+            commandLine(
+                "conan", "install", ".",
+                "--output-folder=build/conan/" + arch,
+                "--build=missing",
+                "--profile:host=build/conanprofile.txt",
+                "-s", "arch=" + arch,
+                "-s", "build_type=Release",
+                "-s", "&:build_type=RelWithDebInfo",
+                "-s", "odrcore/*:build_type=RelWithDebInfo",
+            )
+        }
+    }
+}
+
 android {
     compileSdkVersion 34
     ndkVersion "26.1.10909125"
@@ -20,8 +51,15 @@ android {
 
         vectorDrawables.useSupportLibrary true
 
-        externalNativeBuild.cmake.targets "odr-core"
-        externalNativeBuild.cmake.arguments "-DANDROID_STL=c++_shared"
+        externalNativeBuild {
+            cmake {
+                targets "odr-core"
+                arguments(
+                    "-DCMAKE_TOOLCHAIN_FILE=conan_android_toolchain.cmake",
+                    "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
+                )
+            }
+        }
     }
 
     flavorDimensions "default"
@@ -80,7 +118,7 @@ android {
     externalNativeBuild {
         cmake {
             version "3.22.0+"
-            path file('../CMakeLists.txt')
+            path "CMakeLists.txt"
         }
     }
     lint {
