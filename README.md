@@ -10,7 +10,7 @@ Feel free to use it in your own project too, but please don't forget to tell us 
      alt="Get it on Google Play"
      height="80">](https://play.google.com/store/apps/details?id=at.tomtasche.reader)
 
-More information at http://reader.tomtasche.at/ and in the app itself.
+More information at https://opendocument.app/ and in the app itself.
 
 ## Setup
 
