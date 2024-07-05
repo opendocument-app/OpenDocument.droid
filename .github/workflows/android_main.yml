@@ -24,7 +24,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: checkout
       uses: actions/checkout@v4
@@ -38,13 +38,12 @@ jobs:
         distribution: 'zulu'
         java-version: 17
 
-    - name: setup python 3.8
+    - name: setup python 3.12
       uses: actions/setup-python@v5
       with:
-        python-version: 3.8
-
-    - name: install pip and conan
-      run: python -m pip install --upgrade pip conan
+        python-version: 3.12
+    - name: install python dependencies
+      run: pip install conan
 
     - name: install ndk
       run: echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
@@ -78,7 +77,7 @@ jobs:
         if-no-files-found: error
 
   test:
-    runs-on: macos-11
+    runs-on: macos-14
     strategy:
       fail-fast: false
       # Make sure the matrix here and in cache_AVD_images.yml is the same
@@ -107,20 +106,19 @@ jobs:
 
     - name: install brew
       run: ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null
-    - name: fix ninja install
-      run: rm /usr/local/bin/2to3
     - name: install ninja
       run: brew install ninja
-    # https://stackoverflow.com/a/57758679/198996
     - name: install bundler
-      run: gem install bundler:1.17.3
+      run: gem install bundler
     - name: install fastlane
       run: bundle install
 
-    - name: install pip
-      run: python3 -m ensurepip
-    - name: install conan
-      run: pip3 install --upgrade conan
+    - name: setup python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+    - name: install python dependencies
+      run: pip install conan
 
     - name: conan remote
       run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
@@ -137,7 +135,7 @@ jobs:
         path: |
           ~/.android/avd/*
           ~/.android/adb*
-        key: avd-${{ matrix.arch }}-${{ matrix.api-level }}-r3
+        key: avd-${{ matrix.arch }}-${{ matrix.api-level }}-r4
 
     - name: Create AVD and generate snapshot for caching
       if: steps.avd-cache.outputs.cache-hit != 'true'
