@@ -20,11 +20,11 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  ndk_version: 26.1.10909125
+  ndk_version: 25.2.9519653
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
     - name: checkout
       uses: actions/checkout@v4
@@ -77,7 +77,7 @@ jobs:
         if-no-files-found: error
 
   test:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       # Make sure the matrix here and in cache_AVD_images.yml is the same
