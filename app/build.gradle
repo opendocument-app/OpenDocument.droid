@@ -4,6 +4,10 @@ plugins {
     id 'com.google.firebase.crashlytics'
 }
 
+android {
+    ndkVersion "26.3.11579264"
+}
+
 task conanProfile {
     file("build").mkdirs()
 
@@ -36,13 +40,11 @@ task conanInstall {
 }
 
 android {
-    compileSdkVersion 34
-    ndkVersion "26.1.10909125"
-
     defaultConfig {
         applicationId "at.tomtasche.reader"
         minSdkVersion 23
         targetSdkVersion 33
+        compileSdkVersion 34
 
         testApplicationId "at.tomtasche.reader.test"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
