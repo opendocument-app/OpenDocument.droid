@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  ndk_version: 25.2.9519653
+  ndk_version: 26.3.11579264
 
 jobs:
   build:
@@ -52,7 +52,6 @@ jobs:
       run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
     - name: conan login
       run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
-
     - name: conan profile
       run: conan profile detect
 
@@ -98,6 +97,9 @@ jobs:
     - name: checkout
       uses: actions/checkout@v4
 
+    - name: install ninja
+      run: sudo apt-get install -y ninja-build
+
     - name: java
       uses: actions/setup-java@v4
       with:
@@ -119,11 +121,13 @@ jobs:
     - name: install python dependencies
       run: pip install conan
 
+    - name: install ndk
+      run: echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
+
     - name: conan remote
       run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
     - name: conan login
       run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
-
     - name: conan profile
       run: conan profile detect
 
