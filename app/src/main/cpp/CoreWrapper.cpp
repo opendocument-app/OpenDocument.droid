@@ -1,4 +1,4 @@
-#include "CoreWrapper.h"
+#include "CoreWrapper.hpp"
 
 #include <odr/document.hpp>
 #include <odr/file.hpp>
@@ -14,8 +14,8 @@
 std::optional<odr::Html> html;
 
 JNIEXPORT jobject JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject instance, jobject options)
-{
+Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject instance,
+                                                            jobject options) {
     jboolean isCopy;
 
     jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
@@ -45,7 +45,8 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jfieldID editableField = env->GetFieldID(optionsClass, "editable", "Z");
         jboolean editable = env->GetBooleanField(options, editableField);
 
-        jfieldID outputPathField = env->GetFieldID(optionsClass, "outputPath", "Ljava/lang/String;");
+        jfieldID outputPathField = env->GetFieldID(optionsClass, "outputPath",
+                                                   "Ljava/lang/String;");
         auto outputPath = (jstring) env->GetObjectField(options, outputPathField);
 
         const auto outputPathC = env->GetStringUTFChars(outputPath, &isCopy);
@@ -80,7 +81,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 }
 
                 fileType = types.back();
-            } catch (odr::UnsupportedFileType& e) {
+            } catch (odr::UnsupportedFileType &e) {
                 fileType = e.file_type;
             }
 
@@ -98,7 +99,10 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
             const auto fileCategory = odr::OpenDocumentReader::category_by_type(file.file_type());
 
             if (!ooxml &&
-                (file.file_type() == odr::FileType::office_open_xml_document || file.file_type() == odr::FileType::office_open_xml_workbook || file.file_type() == odr::FileType::office_open_xml_presentation || file.file_type() == odr::FileType::office_open_xml_encrypted)) {
+                (file.file_type() == odr::FileType::office_open_xml_document ||
+                 file.file_type() == odr::FileType::office_open_xml_workbook ||
+                 file.file_type() == odr::FileType::office_open_xml_presentation ||
+                 file.file_type() == odr::FileType::office_open_xml_encrypted)) {
                 env->SetIntField(result, errorField, -5);
                 return result;
             }
@@ -115,12 +119,12 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 config.text_document_margin = true;
             }
 
-            const char* passwordC = nullptr;
-            if (passwordCpp.has_value()) {
-                passwordC = passwordCpp.value().c_str();
-            }
-
-            html = odr::OpenDocumentReader::html(inputPathCpp, passwordC, outputPathCpp, config);
+            html = odr::OpenDocumentReader::html(inputPathCpp, [&passwordCpp]() -> const char * {
+                if (passwordCpp.has_value()) {
+                    return passwordCpp.value().c_str();
+                }
+                return nullptr;
+            }, outputPathCpp, config);
 
             {
                 const auto extensionCpp = odr::OpenDocumentReader::type_to_string(
@@ -133,20 +137,20 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 env->SetObjectField(result, extensionField, extension);
             }
 
-            for (auto &&page : html->pages()) {
+            for (auto &&page: html->pages()) {
                 jstring pageName = env->NewStringUTF(page.name.c_str());
                 env->CallBooleanMethod(pageNames, addMethod, pageName);
 
                 jstring pagePath = env->NewStringUTF(page.path.c_str());
                 env->CallBooleanMethod(pagePaths, addMethod, pagePath);
             }
-        } catch (odr::UnknownFileType&) {
+        } catch (odr::UnknownFileType &) {
             env->SetIntField(result, errorField, -5);
             return result;
-        } catch (odr::WrongPassword&) {
+        } catch (odr::WrongPassword &) {
             env->SetIntField(result, errorField, -2);
             return result;
-        } catch (odr::UnsupportedFileType&) {
+        } catch (odr::UnsupportedFileType &) {
             env->SetIntField(result, errorField, -5);
             return result;
         } catch (...) {
@@ -163,8 +167,9 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
 }
 
 JNIEXPORT jobject JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env, jobject instance, jobject options, jstring htmlDiff)
-{
+Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env, jobject instance,
+                                                                    jobject options,
+                                                                    jstring htmlDiff) {
     jboolean isCopy;
 
     jclass optionsClass = env->GetObjectClass(options);
@@ -176,11 +181,13 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
     jfieldID errorField = env->GetFieldID(resultClass, "errorCode", "I");
 
     try {
-        jfieldID outputPathPrefixField = env->GetFieldID(optionsClass, "outputPath", "Ljava/lang/String;");
+        jfieldID outputPathPrefixField = env->GetFieldID(optionsClass, "outputPath",
+                                                         "Ljava/lang/String;");
         jstring outputPathPrefix = (jstring) env->GetObjectField(options, outputPathPrefixField);
 
         const auto outputPathPrefixC = env->GetStringUTFChars(outputPathPrefix, &isCopy);
-        auto outputPathPrefixCpp = std::string(outputPathPrefixC, env->GetStringUTFLength(outputPathPrefix));
+        auto outputPathPrefixCpp = std::string(outputPathPrefixC,
+                                               env->GetStringUTFLength(outputPathPrefix));
         env->ReleaseStringUTFChars(outputPathPrefix, outputPathPrefixC);
 
         const auto htmlDiffC = env->GetStringUTFChars(htmlDiff, &isCopy);
@@ -220,7 +227,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
 }
 
 JNIEXPORT void JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jobject instance, jobject options)
-{
+Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jobject instance,
+                                                            jobject options) {
     html.reset();
 }
