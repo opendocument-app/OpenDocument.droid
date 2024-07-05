@@ -24,7 +24,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: checkout
       uses: actions/checkout@v4
@@ -78,7 +78,7 @@ jobs:
         if-no-files-found: error
 
   test:
-    runs-on: macos-11
+    runs-on: macos-14
     strategy:
       fail-fast: false
       # Make sure the matrix here and in cache_AVD_images.yml is the same
