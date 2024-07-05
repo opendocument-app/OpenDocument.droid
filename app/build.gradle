@@ -36,13 +36,13 @@ task conanInstall {
 }
 
 android {
-    compileSdkVersion 34
-    ndkVersion "26.1.10909125"
+    ndkVersion "25.2.9519653"
 
     defaultConfig {
         applicationId "at.tomtasche.reader"
         minSdkVersion 23
         targetSdkVersion 33
+        compileSdk 34
 
         testApplicationId "at.tomtasche.reader.test"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
