@@ -24,7 +24,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: checkout
       uses: actions/checkout@v4
@@ -77,7 +77,7 @@ jobs:
         if-no-files-found: error
 
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       # Make sure the matrix here and in cache_AVD_images.yml is the same
@@ -89,7 +89,7 @@ jobs:
           - arch: x86_64
             api-level: 29
           # API-30+ tests are failing because play services init something something
-          - arch: x86
+          - arch: x86_64
             api-level: 30
           # API-32+ tests are failing because storage permissions something something
           - arch: x86_64
