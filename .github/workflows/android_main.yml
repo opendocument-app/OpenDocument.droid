@@ -81,10 +81,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { arch: x86, api-level: 23 }
-          - { arch: x86, api-level: 29 }
-          - { arch: x86, api-level: 30 }
-          - { arch: x86, api-level: 32 }
+          - { arch: x86_64, api-level: 23 }
+          - { arch: x86_64, api-level: 29 }
+          - { arch: x86_64, api-level: 30 }
+          - { arch: x86_64, api-level: 32 }
     steps:
     - name: checkout
       uses: actions/checkout@v4
