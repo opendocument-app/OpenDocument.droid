@@ -319,13 +319,13 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         analyticsManager.report("in_app_review_eligible");
 
         ReviewManager manager = ReviewManagerFactory.create(activity);
-        com.google.android.play.core.tasks.Task<ReviewInfo> request = manager.requestReviewFlow();
+        com.google.android.gms.tasks.Task<ReviewInfo> request = manager.requestReviewFlow();
         request.addOnCompleteListener(reviewInfoTask -> {
             if (reviewInfoTask.isSuccessful()) {
                 analyticsManager.report("in_app_review_start");
 
                 ReviewInfo reviewInfo = reviewInfoTask.getResult();
-                com.google.android.play.core.tasks.Task<Void> flow = manager.launchReviewFlow(activity, reviewInfo);
+                com.google.android.gms.tasks.Task<Void> flow = manager.launchReviewFlow(activity, reviewInfo);
                 flow.addOnCompleteListener(reviewTask -> {
                     analyticsManager.report("in_app_review_done");
                 });

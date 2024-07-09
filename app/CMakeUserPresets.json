@@ -1,0 +1,12 @@
+{
+    "version": 4,
+    "vendor": {
+        "conan": {}
+    },
+    "include": [
+        "build/conan/armv7/CMakePresets.json",
+        "build/conan/armv8/CMakePresets.json",
+        "build/conan/x86/CMakePresets.json",
+        "build/conan/x86_64/CMakePresets.json"
+    ]
+}
