@@ -43,8 +43,8 @@ android {
     defaultConfig {
         applicationId "at.tomtasche.reader"
         minSdkVersion 23
-        targetSdkVersion 33
         compileSdkVersion 34
+        targetSdkVersion 34
 
         testApplicationId "at.tomtasche.reader.test"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -139,18 +139,18 @@ android {
 }
 
 dependencies {
-    implementation platform('com.google.firebase:firebase-bom:33.0.0')
+    implementation platform('com.google.firebase:firebase-bom:33.1.1')
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-crashlytics-ndk'
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-config'
 
-    implementation 'com.google.android.gms:play-services-ads:23.1.0'
-    implementation 'com.google.android.play:core:1.10.3'
+    implementation 'com.google.android.gms:play-services-ads:23.2.0'
+    implementation 'com.google.android.play:review:2.0.1'
     implementation 'com.google.android.ump:user-messaging-platform:2.2.0'
 
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.core:core:1.13.1'
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.webkit:webkit:1.11.0'

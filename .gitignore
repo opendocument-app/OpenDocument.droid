@@ -66,3 +66,5 @@ app/lite/release/
 fastlane/report.xml
 
 .idea/
+
+app/CMakeUserPresets.json
