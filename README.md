@@ -15,3 +15,4 @@ More information at https://opendocument.app/ and in the app itself.
 ## Setup
 
 - `conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan`
+- make sure `conan` is in your $PATH or replace conan-call in `app/build.gradle`

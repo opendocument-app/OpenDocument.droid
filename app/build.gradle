@@ -25,7 +25,6 @@ task conanProfile {
 task conanInstall {
     ["armv7", "armv8", "x86", "x86_64"].each { String arch ->
         exec {
-            // replace with local path to conan-binary
             commandLine(
                 "conan", "install", ".",
                 "--output-folder=build/conan/" + arch,
