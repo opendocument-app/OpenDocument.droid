@@ -8,21 +8,21 @@ android {
     ndkVersion "26.3.11579264"
 }
 
-task conanProfile {
-    file("build").mkdirs()
+task conanProfile(type: Copy) {
+    from "conanprofile.txt"
+    into "build/"
 
-    copy {
-        from "conanprofile.txt"
-        into "build"
-    }
-
+    doLast {
     def file = file("build/conanprofile.txt")
     def content = file.text
     content = content.replace("<NDK_PATH>", android.ndkDirectory.toString())
     file.write(content)
+    }
 }
 
 task conanInstall {
+    dependsOn(conanProfile)
+    doFirst {
     ["armv7", "armv8", "x86", "x86_64"].each { String arch ->
         exec {
             commandLine(
@@ -37,7 +37,9 @@ task conanInstall {
             )
         }
     }
+    }
 }
+preBuild.dependsOn conanInstall
 
 android {
     defaultConfig {
