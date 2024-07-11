@@ -50,11 +50,11 @@ jobs:
 
     - name: conan remote
       run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
-    - name: conan login
-      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
     - name: conan profile
       run: conan profile detect
 
+    - name: conan login
+      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
     - name: gradle
       run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
 
@@ -118,8 +118,6 @@ jobs:
 
     - name: conan remote
       run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
-    - name: conan login
-      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
     - name: conan profile
       run: conan profile detect
 
