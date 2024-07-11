@@ -53,10 +53,11 @@ jobs:
     - name: conan profile
       run: conan profile detect
 
-    - name: conan login
-      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
     - name: gradle
       run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
+
+    - name: conan login
+      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
 
     - name: upload binaries to conan repo
       run: conan upload "*" --check --confirm --remote odr
