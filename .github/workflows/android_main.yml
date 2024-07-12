@@ -172,8 +172,8 @@ jobs:
 
           test ! -f sorry_but_tests_are_failing
 
-    - name: conan remote
-      run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
+    - name: conan login
+      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
 
     - name: upload binaries to conan repo
       run: conan upload "*" --check --confirm --remote odr
