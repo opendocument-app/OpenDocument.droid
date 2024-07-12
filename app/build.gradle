@@ -171,6 +171,8 @@ dependencies {
     implementation 'androidx.annotation:annotation:1.8.0'
 }
 
+// Without removing .cxx dir on cleanup, double gradle clean is erroring out.
+// Before removing this workaround, check if "./gradlew assembleDebug; ./gradlew clean; ./gradlew clean" works
 tasks.named("clean") {
     doFirst {
         delete getLayout().getProjectDirectory().dir(".cxx")
