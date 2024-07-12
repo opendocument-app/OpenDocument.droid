@@ -21,7 +21,7 @@ tasks.register('conanProfile', Copy) {
 }
 
 tasks.register('conanInstall') {
-    dependsOn(conanProfile)
+    dependsOn(tasks.named("conanProfile"))
     doFirst {
         ["armv7", "armv8", "x86", "x86_64"].each { String arch ->
             exec {
@@ -39,7 +39,9 @@ tasks.register('conanInstall') {
         }
     }
 }
-preBuild.dependsOn conanInstall
+tasks.named("preBuild").configure { preBuildTask ->
+    preBuildTask.dependsOn(tasks.named("conanInstall"))
+}
 
 android {
     defaultConfig {
