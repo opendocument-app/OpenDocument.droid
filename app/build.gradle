@@ -176,3 +176,25 @@ tasks.named("clean") {
         delete(new File(projectDir, ".cxx"))
     }
 }
+
+// This is needed because task "clean" depends on these tasks:
+//:app:externalNativeBuildCleanLiteDebug
+//:app:externalNativeBuildCleanLiteRelease
+//:app:externalNativeBuildCleanProDebug
+//:app:externalNativeBuildCleanProRelease
+// And these tasks expect to find build/conan/[ABI]/conan_toolchain.cmake files
+//
+// If build folder is malformed, we can't run `gradle clean` without this workaround.
+// This is because we supply our (conan's) CMAKE_TOOLCHAIN_FILE.
+// This workaround removes these "clean" task dependencies if conan_toolchain.cmake is not found (malformed build dir)
+project.afterEvaluate {
+    ["armv7", "armv8", "x86", "x86_64"].each { String arch ->
+        if (!new File(projectDir, 'build/conan/' + arch + 'conan_toolchain.cmake').exists()) {
+            def cleanTask = tasks.named("clean").get()
+            cleanTask.dependsOn -= tasks.named('externalNativeBuildCleanLiteDebug')
+            cleanTask.dependsOn -= tasks.named('externalNativeBuildCleanLiteRelease')
+            cleanTask.dependsOn -= tasks.named('externalNativeBuildCleanProDebug')
+            cleanTask.dependsOn -= tasks.named('externalNativeBuildCleanProRelease')
+        }
+    }
+}
