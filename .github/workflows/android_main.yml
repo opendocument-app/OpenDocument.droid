@@ -50,13 +50,14 @@ jobs:
 
     - name: conan remote
       run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
-    - name: conan login
-      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
     - name: conan profile
       run: conan profile detect
 
     - name: gradle
       run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
+
+    - name: conan login
+      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
 
     - name: upload binaries to conan repo
       run: conan upload "*" --check --confirm --remote odr
@@ -118,8 +119,6 @@ jobs:
 
     - name: conan remote
       run: conan remote add --index 0 odr https://artifactory.opendocument.app/artifactory/api/conan/conan
-    - name: conan login
-      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
     - name: conan profile
       run: conan profile detect
 
@@ -172,6 +171,9 @@ jobs:
           mv app/build/outputs/androidTest-results testResults/
 
           test ! -f sorry_but_tests_are_failing
+
+    - name: conan login
+      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
 
     - name: upload binaries to conan repo
       run: conan upload "*" --check --confirm --remote odr

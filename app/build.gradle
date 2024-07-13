@@ -8,35 +8,39 @@ android {
     ndkVersion "26.3.11579264"
 }
 
-task conanProfile {
-    file("build").mkdirs()
+tasks.register('conanProfile', Copy) {
+    from "conanprofile.txt"
+    into "build/"
 
-    copy {
-        from "conanprofile.txt"
-        into "build"
+    doLast {
+        def file = file("build/conanprofile.txt")
+        def content = file.text
+        content = content.replace("<NDK_PATH>", android.ndkDirectory.toString())
+        file.write(content)
     }
-
-    def file = file("build/conanprofile.txt")
-    def content = file.text
-    content = content.replace("<NDK_PATH>", android.ndkDirectory.toString())
-    file.write(content)
 }
 
-task conanInstall {
-    ["armv7", "armv8", "x86", "x86_64"].each { String arch ->
-        exec {
-            commandLine(
-                "conan", "install", ".",
-                "--output-folder=build/conan/" + arch,
-                "--build=missing",
-                "--profile:host=build/conanprofile.txt",
-                "-s", "arch=" + arch,
-                "-s", "build_type=Release",
-                "-s", "&:build_type=RelWithDebInfo",
-                "-s", "odrcore/*:build_type=RelWithDebInfo",
-            )
+tasks.register('conanInstall') {
+    dependsOn(tasks.named("conanProfile"))
+    doFirst {
+        ["armv7", "armv8", "x86", "x86_64"].each { String arch ->
+            exec {
+                commandLine(
+                    "conan", "install", ".",
+                    "--output-folder=build/conan/" + arch,
+                    "--build=missing",
+                    "--profile:host=build/conanprofile.txt",
+                    "-s", "arch=" + arch,
+                    "-s", "build_type=Release",
+                    "-s", "&:build_type=RelWithDebInfo",
+                    "-s", "odrcore/*:build_type=RelWithDebInfo",
+                )
+            }
         }
     }
+}
+tasks.named("preBuild").configure { preBuildTask ->
+    preBuildTask.dependsOn(tasks.named("conanInstall"))
 }
 
 android {
@@ -167,4 +171,12 @@ dependencies {
     // espresso-idling-resource is used in main sourceSet as well. cannot be just androidTestImplementation
     implementation 'androidx.test.espresso:espresso-idling-resource:3.5.1'
     implementation 'androidx.annotation:annotation:1.8.0'
+}
+
+// Without removing .cxx dir on cleanup, double gradle clean is erroring out.
+// Before removing this workaround, check if "./gradlew assembleDebug; ./gradlew clean; ./gradlew clean" works
+tasks.named("clean") {
+    doFirst {
+        delete getLayout().getProjectDirectory().dir(".cxx")
+    }
 }
