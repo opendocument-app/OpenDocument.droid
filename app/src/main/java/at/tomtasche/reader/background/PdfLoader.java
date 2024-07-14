@@ -4,7 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
-import com.viliussutkus89.android.pdf2htmlex.pdf2htmlEX;
+import app.opendocument.android.pdf2htmlex.pdf2htmlEX;
 import com.viliussutkus89.android.wvware.wvWare;
 
 import java.io.File;
