@@ -119,11 +119,11 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 config.text_document_margin = true;
             }
 
-            html = odr::OpenDocumentReader::html(inputPathCpp, [&passwordCpp]() -> const char * {
+            html = odr::OpenDocumentReader::html(inputPathCpp, [&passwordCpp]() -> std::string {
                 if (passwordCpp.has_value()) {
-                    return passwordCpp.value().c_str();
+                    return passwordCpp.value();
                 }
-                return nullptr;
+                return "";
             }, outputPathCpp, config);
 
             {
