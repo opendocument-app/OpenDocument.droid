@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 plugins {
     id 'com.android.application'
     id 'com.google.gms.google-services'
@@ -10,14 +12,8 @@ android {
 
 tasks.register('conanProfile', Copy) {
     from "conanprofile.txt"
-    into "build/"
-
-    doLast {
-        def file = file("build/conanprofile.txt")
-        def content = file.text
-        content = content.replace("<NDK_PATH>", android.ndkDirectory.toString())
-        file.write(content)
-    }
+    into project.layout.buildDirectory
+    filter(ReplaceTokens, tokens: ["NDK_PATH": android.ndkDirectory.toString()])
 }
 
 tasks.register('conanInstall') {
