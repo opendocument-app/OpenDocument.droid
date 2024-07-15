@@ -43,11 +43,18 @@ abstract class ConanInstallTask extends Exec {
     }
 }
 
-["armv7", "armv8", "x86", "x86_64"].each { architecture ->
+["armv8", "armv7", "x86", "x86_64"].each { architecture ->
     tasks.register('conanInstall-' + architecture, ConanInstallTask) {
         setArch(architecture)
         setArchBuildDirPath(new File(project.layout.buildDirectory.get().toString(), 'conan/' + architecture).absolutePath)
         dependsOn(tasks.named("conanProfile"))
+
+        // Execute at least one conanInstall before running all three others in parallel.
+        // Some issue with conan's local cache
+        // @TODO: isolate and report to conan-client bugtracker
+        if (architecture != "armv8") {
+            dependsOn(tasks.named("conanInstall-armv8"))
+        }
     }
 }
 tasks.register("conanInstall") {
