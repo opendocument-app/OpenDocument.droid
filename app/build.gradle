@@ -172,7 +172,8 @@ dependencies {
 // Without removing .cxx dir on cleanup, double gradle clean is erroring out.
 // Before removing this workaround, check if "./gradlew assembleDebug; ./gradlew clean; ./gradlew clean" works
 tasks.named("clean") {
+    def dotCxxDir = layout.projectDirectory.dir(".cxx")
     doFirst {
-        delete getLayout().getProjectDirectory().dir(".cxx")
+        delete dotCxxDir
     }
 }
