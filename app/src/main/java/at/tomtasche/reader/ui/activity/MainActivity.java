@@ -21,6 +21,7 @@ import android.preference.PreferenceManager;
 import android.view.ActionMode;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
@@ -33,6 +34,7 @@ import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.test.espresso.IdlingResource;
@@ -60,7 +62,7 @@ import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MenuProvider {
 
     // taken from: https://stackoverflow.com/a/36829889/198996
     private static boolean isTesting() {
@@ -190,6 +192,8 @@ public class MainActivity extends AppCompatActivity {
 
             analyticsManager.setCurrentScreen(this, "screen_main");
         }
+
+        addMenuProvider(this, this);
     }
 
     @Override
@@ -324,16 +328,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+    public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+        menuInflater.inflate(R.menu.menu_main, menu);
 
         if (billingManager.hasPurchased()) {
             menu.findItem(R.id.menu_remove_ads).setVisible(false);
         }
-
-        return true;
     }
 
     @Override
@@ -397,7 +397,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onMenuItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == R.id.menu_search) {
             FindActionModeCallback findActionModeCallback = new FindActionModeCallback(this);

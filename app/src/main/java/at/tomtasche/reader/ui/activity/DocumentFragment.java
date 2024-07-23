@@ -31,6 +31,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import at.tomtasche.reader.R;
@@ -46,7 +47,7 @@ import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.widget.PageView;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
 
-public class DocumentFragment extends Fragment implements LoaderService.LoaderListener, ActionBar.TabListener {
+public class DocumentFragment extends Fragment implements LoaderService.LoaderListener, ActionBar.TabListener, MenuProvider {
 
     private static final String SAVED_KEY_LAST_RESULT = "LAST_RESULT";
     private static final String SAVED_KEY_CURRENT_HTML_DIFF = "CURRENT_HTML_DIFF";
@@ -79,6 +80,8 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         this.container = container;
+
+        getActivity().addMenuProvider(this, getActivity());
 
         return super.onCreateView(inflater, container, savedInstanceState);
     }
@@ -113,8 +116,6 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         super.onActivityCreated(savedInstanceState);
 
         mainHandler = new Handler();
-
-        setHasOptionsMenu(true);
 
         MainActivity mainActivity = (MainActivity) getActivity();
         analyticsManager = mainActivity.getAnalyticsManager();
@@ -154,9 +155,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-
+    public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         this.menu = menu;
 
         menu.findItem(R.id.menu_fullscreen).setVisible(true);
@@ -164,7 +163,17 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         menu.findItem(R.id.menu_share).setVisible(true);
         menu.findItem(R.id.menu_save).setVisible(true);
         menu.findItem(R.id.menu_print).setVisible(true);
-        // the other menu items are dynamically enabled on document load
+
+        // the other menu items are dynamically enabled based on the loaded document
+        if (lastResult != null) {
+            prepareMenu(lastResult.loaderType);
+        }
+    }
+
+    @Override
+    public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
+        // TODO: handle menu item clicks here. currently done in Activity for historical reasons
+        return false;
     }
 
     @Override
@@ -378,11 +387,8 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             return;
         }
 
-
         Activity activity = getActivity();
         FileLoader.Options options = result.options;
-
-        prepareMenu(result.loaderType);
 
         analyticsManager.setCurrentScreen(activity, result.loaderType.toString() + "_" + options.fileType);
 
