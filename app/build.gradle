@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 plugins {
     id 'com.android.application'
     id 'com.google.gms.google-services'
@@ -10,35 +12,57 @@ android {
 
 tasks.register('conanProfile', Copy) {
     from "conanprofile.txt"
-    into "build/"
+    into project.layout.buildDirectory
+    filter(ReplaceTokens, tokens: ["NDK_PATH": android.ndkDirectory.toString()])
+}
 
-    doLast {
-        def file = file("build/conanprofile.txt")
-        def content = file.text
-        content = content.replace("<NDK_PATH>", android.ndkDirectory.toString())
-        file.write(content)
+abstract class ConanInstallTask extends Exec {
+    @Input
+    abstract Property<String> getArch()
+
+    // Cannot read project.layout.buildDirectory when configuration-cache is enabled
+    @Input
+    abstract Property<String> getArchBuildDirPath()
+
+    @OutputDirectory
+    final Provider<Directory> outputDirectory = archBuildDirPath.map { new File(it) }
+
+    @Override
+    protected void exec() {
+        commandLine(
+            "conan", "install", ".",
+            "--output-folder=" + archBuildDirPath.get(),
+            "--build=missing",
+            "--profile:host=build/conanprofile.txt",
+            "-s", "arch=" + arch.get(),
+            "-s", "build_type=Release",
+            "-s", "&:build_type=RelWithDebInfo",
+            "-s", "odrcore/*:build_type=RelWithDebInfo",
+        )
+        super.exec()
     }
 }
 
-tasks.register('conanInstall') {
-    dependsOn(tasks.named("conanProfile"))
-    doFirst {
-        ["armv7", "armv8", "x86", "x86_64"].each { String arch ->
-            exec {
-                commandLine(
-                    "conan", "install", ".",
-                    "--output-folder=build/conan/" + arch,
-                    "--build=missing",
-                    "--profile:host=build/conanprofile.txt",
-                    "-s", "arch=" + arch,
-                    "-s", "build_type=Release",
-                    "-s", "&:build_type=RelWithDebInfo",
-                    "-s", "odrcore/*:build_type=RelWithDebInfo",
-                )
-            }
+["armv8", "armv7", "x86", "x86_64"].each { architecture ->
+    tasks.register('conanInstall-' + architecture, ConanInstallTask) {
+        setArch(architecture)
+        setArchBuildDirPath(new File(project.layout.buildDirectory.get().toString(), 'conan/' + architecture).absolutePath)
+        dependsOn(tasks.named("conanProfile"))
+
+        // Execute at least one conanInstall before running all three others in parallel.
+        // Some issue with conan's local cache
+        // @TODO: isolate and report to conan-client bugtracker
+        if (architecture != "armv8") {
+            dependsOn(tasks.named("conanInstall-armv8"))
         }
     }
 }
+tasks.register("conanInstall") {
+    ["armv7", "armv8", "x86", "x86_64"].each { arch ->
+        dependsOn tasks.named('conanInstall-' + arch)
+    }
+}
+
 tasks.named("preBuild").configure { preBuildTask ->
     preBuildTask.dependsOn(tasks.named("conanInstall"))
 }
@@ -176,7 +200,8 @@ dependencies {
 // Without removing .cxx dir on cleanup, double gradle clean is erroring out.
 // Before removing this workaround, check if "./gradlew assembleDebug; ./gradlew clean; ./gradlew clean" works
 tasks.named("clean") {
+    def dotCxxDir = layout.projectDirectory.dir(".cxx")
     doFirst {
-        delete getLayout().getProjectDirectory().dir(".cxx")
+        delete dotCxxDir
     }
 }

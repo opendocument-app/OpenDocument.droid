@@ -9,5 +9,5 @@ compiler.cppstd=17
 compiler.libcxx=c++_shared
 
 [conf]
-tools.android:ndk_path=<NDK_PATH>
+tools.android:ndk_path=@NDK_PATH@
 tools.build:skip_test=True
