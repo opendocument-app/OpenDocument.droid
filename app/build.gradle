@@ -4,6 +4,7 @@ plugins {
     id 'com.android.application'
     id 'com.google.gms.google-services'
     id 'com.google.firebase.crashlytics'
+    id 'app.opendocument.conanandroidgradleplugin'
 }
 
 android {
@@ -16,55 +17,11 @@ tasks.register('conanProfile', Copy) {
     filter(ReplaceTokens, tokens: ["NDK_PATH": android.ndkDirectory.toString()])
 }
 
-abstract class ConanInstallTask extends Exec {
-    @Input
-    abstract Property<String> getArch()
-
-    // Cannot read project.layout.buildDirectory when configuration-cache is enabled
-    @Input
-    abstract Property<String> getArchBuildDirPath()
-
-    @OutputDirectory
-    final Provider<Directory> outputDirectory = archBuildDirPath.map { new File(it) }
-
-    @Override
-    protected void exec() {
-        commandLine(
-            "conan", "install", ".",
-            "--output-folder=" + archBuildDirPath.get(),
-            "--build=missing",
-            "--profile:host=build/conanprofile.txt",
-            "-s", "arch=" + arch.get(),
-            "-s", "build_type=Release",
-            "-s", "&:build_type=RelWithDebInfo",
-            "-s", "odrcore/*:build_type=RelWithDebInfo",
-        )
-        super.exec()
-    }
-}
-
 ["armv8", "armv7", "x86", "x86_64"].each { architecture ->
-    tasks.register('conanInstall-' + architecture, ConanInstallTask) {
-        setArch(architecture)
-        setArchBuildDirPath(new File(project.layout.buildDirectory.get().toString(), 'conan/' + architecture).absolutePath)
-        dependsOn(tasks.named("conanProfile"))
-
-        // Execute at least one conanInstall before running all three others in parallel.
-        // Some issue with conan's local cache
-        // @TODO: isolate and report to conan-client bugtracker
-        if (architecture != "armv8") {
-            dependsOn(tasks.named("conanInstall-armv8"))
-        }
+    tasks.named("conanInstall-" + architecture) {
+        profile.set('build/conanprofile.txt')
+        dependsOn(tasks.named('conanProfile'))
     }
-}
-tasks.register("conanInstall") {
-    ["armv7", "armv8", "x86", "x86_64"].each { arch ->
-        dependsOn tasks.named('conanInstall-' + arch)
-    }
-}
-
-tasks.named("preBuild").configure { preBuildTask ->
-    preBuildTask.dependsOn(tasks.named("conanInstall"))
 }
 
 android {

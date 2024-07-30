@@ -2,11 +2,5 @@ plugins {
     id 'com.android.application' version '8.4.1' apply false
     id 'com.google.gms.google-services'version '4.4.1' apply false
     id 'com.google.firebase.crashlytics' version '3.0.1' apply false
-}
-
-// Android Studio's sync task expects CMake to work properly
-// Proper CMake, due to our supplied conan_toolchain.cmake, requires conan to be
-// done as a dependency of Android Studio sync
-tasks.named('prepareKotlinBuildScriptModel').configure { prepareKotlinBuildScriptModelTask ->
-    prepareKotlinBuildScriptModelTask.dependsOn(project("app").tasks.named("conanInstall"))
+    id 'app.opendocument.conanandroidgradleplugin' version "0.9.0" apply false
 }
