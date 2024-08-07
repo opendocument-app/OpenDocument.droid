@@ -1,0 +1,10 @@
+This package contains two fonts:
+
+    s050000l.pfb -- Symbol
+    d050000l.pfb -- Zapf Dingbats
+
+These fonts are substitutes for the corresponding Base-14 fonts.  They
+are part of the font set contributed to the ghostscript project by
+URW++ Design and Development Incorporated of Hamburg, Germany
+(http://www.urwpp.de/).  They have been released under the GNU General
+Public License (GPL) v2 -- see the "COPYING" file.
