@@ -1,0 +1,6 @@
+[options]
+# @TODO: Fix linker errors caused by the absense of these options
+# Fontforge build failure if GLib built with mount
+glib/*:with_mount=False
+# Fontforge build failure if FreeType built with Brotli
+freetype/*:with_brotli=False

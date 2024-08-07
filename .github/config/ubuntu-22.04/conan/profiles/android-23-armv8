@@ -1,0 +1,37 @@
+include(pdf2htmlEX-config)
+
+{% set android_home = os.getenv("ANDROID_HOME") %}
+{% set ndk_version = "26.3.11579264" %}
+{% set api_level = "23" %}
+{% set arch = "armv8" %}
+{% set cc = {
+    "armv7": "armv7a-linux-androideabi" + api_level + "-clang",
+    "armv8": "aarch64-linux-android" + api_level + "-clang",
+    "x86": "i686-linux-android" + api_level + "-clang",
+    "x86_64": "x86_64-linux-android" + api_level + "-clang",
+}[arch] %}
+
+[settings]
+os=Android
+os.api_level={{api_level}}
+arch={{arch}}
+build_type=RelWithDebInfo
+compiler=clang
+compiler.version=17
+compiler.cppstd=20
+compiler.libcxx=c++_static
+
+[conf]
+tools.android:ndk_path={{android_home}}/ndk/{{ndk_version}}
+
+[buildenv]
+# Cross compile toolchain evn vars are required to build
+# libffi, libgettext, libiconv, libxml2 and other autotools packages for Android
+# https://github.com/conan-io/conan/issues/16493
+AR={{android_home}}/ndk/{{ndk_version}}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
+AS={{android_home}}/ndk/{{ndk_version}}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-as
+RANLIB={{android_home}}/ndk/{{ndk_version}}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ranlib
+CC={{android_home}}/ndk/{{ndk_version}}/toolchains/llvm/prebuilt/linux-x86_64/bin/{{cc}}
+CXX={{android_home}}/ndk/{{ndk_version}}/toolchains/llvm/prebuilt/linux-x86_64/bin/{{cc}}++
+LD={{android_home}}/ndk/{{ndk_version}}/toolchains/llvm/prebuilt/linux-x86_64/bin/ld
+STRIP={{android_home}}/ndk/{{ndk_version}}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip

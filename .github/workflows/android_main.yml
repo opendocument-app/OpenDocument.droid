@@ -50,8 +50,9 @@ jobs:
 
     - name: conan remote
       run: conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
-    - name: conan profile
-      run: conan profile detect
+
+    - name: conan config
+      run: conan config install .github/config/ubuntu-22.04/conan
 
     - name: gradle
       run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
@@ -119,8 +120,9 @@ jobs:
 
     - name: conan remote
       run: conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
-    - name: conan profile
-      run: conan profile detect
+
+    - name: conan config
+      run: conan config install .github/config/ubuntu-22.04/conan
 
     - name: Android Virtual Device (AVD) cache
       uses: actions/cache@v4
