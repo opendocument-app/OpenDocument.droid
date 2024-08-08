@@ -19,7 +19,7 @@ build_type=RelWithDebInfo
 compiler=clang
 compiler.version=17
 compiler.cppstd=20
-compiler.libcxx=c++_static
+compiler.libcxx=c++_shared
 
 [conf]
 tools.android:ndk_path={{android_home}}/ndk/{{ndk_version}}
