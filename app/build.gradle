@@ -33,7 +33,7 @@ android {
             cmake {
                 targets "odr-core", "envvar", "pdf2htmlEX-android"
                 arguments(
-                    "-DCMAKE_TOOLCHAIN_FILE=conan_android_toolchain.cmake",
+                    "-DCMAKE_TOOLCHAIN_FILE=build/conan/android_toolchain.cmake",
                     // We can migrate to static STL once all C++ deps are in conan and linked as one .so library
                     "-DANDROID_STL=c++_shared",
                     "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
