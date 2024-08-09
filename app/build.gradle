@@ -42,7 +42,7 @@ android {
             cmake {
                 targets "odr-core"
                 arguments(
-                    "-DCMAKE_TOOLCHAIN_FILE=conan_android_toolchain.cmake",
+                    "-DCMAKE_TOOLCHAIN_FILE=build/conan/android_toolchain.cmake",
                     "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
                 )
             }
