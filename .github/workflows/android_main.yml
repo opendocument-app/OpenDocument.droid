@@ -63,8 +63,15 @@ jobs:
         path: app/build/reports/lint-results-*.html
         if-no-files-found: error
 
+    - uses: actions/upload-artifact@v4
+      with:
+        name: dotconan2
+        path: ~/.conan2
+        if-no-files-found: error
+
   test:
     runs-on: ubuntu-22.04
+    needs: build
     strategy:
       fail-fast: false
       matrix:
@@ -104,10 +111,10 @@ jobs:
     - name: install ndk
       run: echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
 
-    - name: conan remote
-      run: conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
-    - name: conan profile
-      run: conan profile detect
+    - uses: actions/download-artifact@v4
+      with:
+        name: dotconan2
+        path: ~/.conan2
 
     - name: Android Virtual Device (AVD) cache
       uses: actions/cache@v4
