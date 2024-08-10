@@ -4,8 +4,8 @@ include(default)
 os=Android
 os.api_level=23
 compiler=clang
-compiler.version=12
-compiler.cppstd=17
+compiler.version=17
+compiler.cppstd=20
 compiler.libcxx=c++_shared
 build_type=RelWithDebInfo
 
