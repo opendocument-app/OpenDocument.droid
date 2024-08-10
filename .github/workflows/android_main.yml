@@ -7,13 +7,6 @@ on:
       - '**.md'
       - '.github/**'
       - '!.github/workflows/android_main.yml'
-    branches:
-      - main
-  pull_request:
-    paths-ignore:
-      - '**.md'
-      - '.github/**'
-      - '!.github/workflows/android_main.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -56,12 +49,6 @@ jobs:
 
     - name: gradle
       run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
-
-    - name: conan login
-      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
-
-    - name: upload binaries to conan repo
-      run: conan upload "*" --check --confirm --remote odr
 
     - name: upload apks
       uses: actions/upload-artifact@v4
@@ -130,29 +117,11 @@ jobs:
         name: dotconan2
         path: ~/.conan2
 
-    - name: Android Virtual Device (AVD) cache
-      uses: actions/cache@v4
-      id: avd-cache
-      with:
-        path: |
-          ~/.android/avd/*
-          ~/.android/adb*
-        key: avd-${{ matrix.arch }}-${{ matrix.api-level }}-r4
-
     - name: Enable KVM group perms
       run: |
         echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
         sudo udevadm control --reload-rules
         sudo udevadm trigger --name-match=kvm
-
-    - name: Create AVD and generate snapshot for caching
-      if: steps.avd-cache.outputs.cache-hit != 'true'
-      uses: reactivecircus/android-emulator-runner@v2
-      with:
-        api-level: ${{ matrix.api-level }}
-        arch: ${{ matrix.arch }}
-        target: google_apis
-        script: echo "Generated AVD snapshot for caching."
 
     - name: Run tests
       uses: reactivecircus/android-emulator-runner@v2
@@ -179,12 +148,6 @@ jobs:
           mv app/build/outputs/androidTest-results testResults/
 
           test ! -f sorry_but_tests_are_failing
-
-    - name: conan login
-      run: conan remote login odr admin --password ${{ secrets.ARTIFACTORY }}
-
-    - name: upload binaries to conan repo
-      run: conan upload "*" --check --confirm --remote odr
 
     - name: upload test results
       uses: actions/upload-artifact@v4
