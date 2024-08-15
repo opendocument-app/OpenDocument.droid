@@ -31,7 +31,7 @@ android {
 
         externalNativeBuild {
             cmake {
-                targets "odr-core", "envvar", "pdf2htmlEX-android"
+                targets "odr-core", "envvar"
                 arguments(
                     "-DCMAKE_TOOLCHAIN_FILE=build/conan/android_toolchain.cmake",
                     // We can migrate to static STL once all C++ deps are in conan and linked as one .so library

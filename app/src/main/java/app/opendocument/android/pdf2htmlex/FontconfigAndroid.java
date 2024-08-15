@@ -11,8 +11,8 @@ import com.viliussutkus89.android.fontconfigtranslator.FontconfigTranslator;
 import java.io.File;
 
 
-final class FontconfigAndroid {
-    static void init(@NonNull AssetManager assetManager, @NonNull File cacheDir, @NonNull File filesDir) {
+public final class FontconfigAndroid {
+    public static void init(@NonNull AssetManager assetManager, @NonNull File cacheDir, @NonNull File filesDir) {
         File xdgCache = new File(cacheDir, "xdg-cache");
         xdgCache.mkdir();
         EnvVar.set("XDG_CACHE_HOME", xdgCache.getAbsolutePath());

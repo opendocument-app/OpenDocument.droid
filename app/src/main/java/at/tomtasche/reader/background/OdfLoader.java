@@ -4,8 +4,12 @@ import android.content.Context;
 import android.net.Uri;
 import android.webkit.MimeTypeMap;
 
+import com.viliussutkus89.android.assetextractor.AssetExtractor;
+
 import java.io.File;
 
+import app.opendocument.android.pdf2htmlex.EnvVar;
+import app.opendocument.android.pdf2htmlex.FontconfigAndroid;
 import at.tomtasche.reader.nonfree.ConfigManager;
 
 public class OdfLoader extends FileLoader {
@@ -28,6 +32,34 @@ public class OdfLoader extends FileLoader {
 
     @Override
     public void loadSync(Options options) {
+        if (type == LoaderType.PDF) {
+            AssetExtractor ae = new AssetExtractor(context.getAssets()).setNoOverwrite();
+
+            File cacheDir = new File(context.getCacheDir(), "pdf2htmlEX");
+            cacheDir.mkdir();
+
+            File envTMPDIR = new File(cacheDir, "tmp");
+            envTMPDIR.mkdir();
+            EnvVar.set("TMPDIR", envTMPDIR.getAbsolutePath());
+
+            File fontforgeHome = new File(cacheDir, "FontforgeHome");
+            fontforgeHome.mkdir();
+            EnvVar.set("HOME", fontforgeHome.getAbsolutePath());
+
+            File shareDir = new File(context.getFilesDir(), "share");
+            // @TODO: https://github.com/ViliusSutkus89/pdf2htmlEX-Android/issues/9
+            File pdf2htmlEX_dataDir = ae.extract(shareDir, "pdf2htmlEX");
+            EnvVar.set("PDF2HTMLEX_DATA_DIR", pdf2htmlEX_dataDir.getAbsolutePath());
+
+            // @TODO: https://github.com/ViliusSutkus89/pdf2htmlEX-Android/issues/10
+            File poppler_dataDir = ae.extract(new File(shareDir, "share"), "poppler-data");
+            EnvVar.set("POPPLER_DATA_DIR", poppler_dataDir.getAbsolutePath());
+
+            FontconfigAndroid.init(context.getAssets(), context.getCacheDir(), context.getFilesDir());
+
+            EnvVar.set("USER", android.os.Build.MODEL);
+        }
+
         final Result result = new Result();
         result.options = options;
         result.loaderType = type;

@@ -17,13 +17,6 @@ target_link_libraries(odr-core
 add_library(envvar SHARED src/main/cpp/EnvVar.c)
 set_target_properties(envvar PROPERTIES LINKER_LANGUAGE C)
 
-add_library(pdf2htmlEX-android SHARED src/main/cpp/pdf2htmlEX.cc src/main/cpp/CCharGC.h)
-find_package(pdf2htmlEX REQUIRED CONFIG)
-target_link_libraries(pdf2htmlEX-android
-  pdf2htmlex::pdf2htmlex
-  log
-)
-
 FILE(MAKE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/build/assets")
 function(copy_assets sourcevar dstsubdir)
   if(DEFINED "${sourcevar}")

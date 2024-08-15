@@ -131,7 +131,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
                 loader = ooxmlLoader;
                 break;
             case PDF:
-                loader = pdfLoader;
+                loader = odfLoader;
                 break;
             case ONLINE:
                 loader = onlineLoader;

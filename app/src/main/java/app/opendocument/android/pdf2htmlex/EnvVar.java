@@ -1,6 +1,6 @@
 package app.opendocument.android.pdf2htmlex;
 
-final class EnvVar {
+public final class EnvVar {
     static {
         System.loadLibrary("envvar");
     }
