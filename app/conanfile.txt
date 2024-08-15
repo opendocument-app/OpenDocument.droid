@@ -1,8 +1,0 @@
-[requires]
-odrcore/4.1.1@
-# Remove once https://github.com/opendocument-app/OpenDocument.core/pull/380 is merged
-pdf2htmlex/0.18.8.rc1-20240805-git
-
-[generators]
-CMakeToolchain
-CMakeDeps
