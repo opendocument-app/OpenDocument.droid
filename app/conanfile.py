@@ -6,7 +6,7 @@ required_conan_version = ">=2.0.6"
 
 class OdrDroidConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
-    requires = "odrcore/4.1.0-pdf2htmlex-20240815-git"
+    requires = "odrcore/4.1.0-pdf2htmlex-git"
 
     def generate(self):
         deps = CMakeDeps(self)
