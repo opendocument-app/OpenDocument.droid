@@ -27,38 +27,38 @@ public class OdfLoader extends FileLoader {
 
     @Override
     public boolean isSupported(Options options) {
-        return options.fileType.startsWith("application/vnd.oasis.opendocument") || options.fileType.startsWith("application/x-vnd.oasis.opendocument") || options.fileType.startsWith("application/vnd.oasis.opendocument.text-master");
+        return options.fileType.startsWith("application/vnd.oasis.opendocument") || options.fileType.startsWith("application/x-vnd.oasis.opendocument") || options.fileType.startsWith("application/vnd.oasis.opendocument.text-master") ||
+            // pdf: https://filext.com/file-extension/PDF
+            options.fileType.startsWith("application/pdf") || options.fileType.startsWith("application/x-pdf") || options.fileType.startsWith("application/acrobat") || options.fileType.startsWith("applications/vnd.pdf") || options.fileType.startsWith("text/pdf") || options.fileType.startsWith("text/x-pdf");
     }
 
     @Override
     public void loadSync(Options options) {
-        if (type == LoaderType.PDF) {
-            AssetExtractor ae = new AssetExtractor(context.getAssets()).setNoOverwrite();
+        AssetExtractor ae = new AssetExtractor(context.getAssets()).setNoOverwrite();
 
-            File cacheDir = new File(context.getCacheDir(), "pdf2htmlEX");
-            cacheDir.mkdir();
+        File cacheDir = new File(context.getCacheDir(), "pdf2htmlEX");
+        cacheDir.mkdir();
 
-            File envTMPDIR = new File(cacheDir, "tmp");
-            envTMPDIR.mkdir();
-            EnvVar.set("TMPDIR", envTMPDIR.getAbsolutePath());
+        File envTMPDIR = new File(cacheDir, "tmp");
+        envTMPDIR.mkdir();
+        EnvVar.set("TMPDIR", envTMPDIR.getAbsolutePath());
 
-            File fontforgeHome = new File(cacheDir, "FontforgeHome");
-            fontforgeHome.mkdir();
-            EnvVar.set("HOME", fontforgeHome.getAbsolutePath());
+        File fontforgeHome = new File(cacheDir, "FontforgeHome");
+        fontforgeHome.mkdir();
+        EnvVar.set("HOME", fontforgeHome.getAbsolutePath());
 
-            File shareDir = new File(context.getFilesDir(), "share");
-            // @TODO: https://github.com/ViliusSutkus89/pdf2htmlEX-Android/issues/9
-            File pdf2htmlEX_dataDir = ae.extract(shareDir, "pdf2htmlEX");
-            EnvVar.set("PDF2HTMLEX_DATA_DIR", pdf2htmlEX_dataDir.getAbsolutePath());
+        File shareDir = new File(context.getFilesDir(), "share");
+        // @TODO: https://github.com/ViliusSutkus89/pdf2htmlEX-Android/issues/9
+        File pdf2htmlEX_dataDir = ae.extract(shareDir, "pdf2htmlEX");
+        EnvVar.set("PDF2HTMLEX_DATA_DIR", pdf2htmlEX_dataDir.getAbsolutePath());
 
-            // @TODO: https://github.com/ViliusSutkus89/pdf2htmlEX-Android/issues/10
-            File poppler_dataDir = ae.extract(new File(shareDir, "share"), "poppler-data");
-            EnvVar.set("POPPLER_DATA_DIR", poppler_dataDir.getAbsolutePath());
+        // @TODO: https://github.com/ViliusSutkus89/pdf2htmlEX-Android/issues/10
+        File poppler_dataDir = ae.extract(shareDir, "poppler-data");
+        EnvVar.set("POPPLER_DATA_DIR", poppler_dataDir.getAbsolutePath());
 
-            FontconfigAndroid.init(context.getAssets(), context.getCacheDir(), context.getFilesDir());
+        FontconfigAndroid.init(context.getAssets(), context.getCacheDir(), context.getFilesDir());
 
-            EnvVar.set("USER", android.os.Build.MODEL);
-        }
+        EnvVar.set("USER", android.os.Build.MODEL);
 
         final Result result = new Result();
         result.options = options;

@@ -19,10 +19,10 @@ public final class FontconfigAndroid {
 
         AssetExtractor ae = new AssetExtractor(assetManager).setNoOverwrite();
         File fontsConfigDir = ae.extract(new File(filesDir, "etc"), "fontconfig/fontconfig/conf.avail");
-        ae.extract(fontsConfigDir, "pdf2htmlEX/etc/fonts/local.conf");
+        ae.extract(fontsConfigDir, "etc/fonts/local.conf");
         EnvVar.set("FONTCONFIG_PATH", fontsConfigDir.getAbsolutePath());
 
-        ae.extract(new File(filesDir, "share"), "pdf2htmlEX/share/fonts");
+        ae.extract(new File(filesDir, "share"), "share/fonts");
 
         try {
             File fontconfigGeneratedXml = new File(fontsConfigDir, "system-etc-fonts-xml-translated.conf");
