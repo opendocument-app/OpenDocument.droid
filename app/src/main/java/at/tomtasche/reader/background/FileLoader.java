@@ -21,6 +21,7 @@ public abstract class FileLoader {
         ODF,
         DOC,
         OOXML,
+        PDF,
         ONLINE,
         RAW,
         METADATA

@@ -370,6 +370,9 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             case OOXML:
                 isEditEnabled = true;
                 break;
+            case PDF:
+                isDarkModeSupported = false;
+                break;
             default:
                 break;
         }
@@ -498,6 +501,8 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
                             loadWithType(FileLoader.LoaderType.ODF, options);
                         } else if (result.loaderType == FileLoader.LoaderType.DOC) {
                             loadWithType(FileLoader.LoaderType.DOC, options);
+                        } else if (result.loaderType == FileLoader.LoaderType.PDF) {
+                            loadWithType(FileLoader.LoaderType.PDF, options);
                         } else {
                             throw new RuntimeException("encryption not supported for type: " + result.loaderType);
                         }
@@ -525,7 +530,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             } else {
                 offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
             }
-        } else if (result.loaderType == FileLoader.LoaderType.OOXML || result.loaderType == FileLoader.LoaderType.DOC) {
+        } else if (result.loaderType == FileLoader.LoaderType.PDF || result.loaderType == FileLoader.LoaderType.OOXML || result.loaderType == FileLoader.LoaderType.DOC) {
             offerUpload(activity, options, true);
         } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
             offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);

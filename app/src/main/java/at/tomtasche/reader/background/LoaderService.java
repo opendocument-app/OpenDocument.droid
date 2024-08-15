@@ -35,6 +35,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
     private MetadataLoader metadataLoader;
     private OdfLoader odfLoader;
+    private PdfLoader pdfLoader;
     private OoxmlLoader ooxmlLoader;
     private DocLoader docLoader;
     private RawLoader rawLoader;
@@ -62,6 +63,9 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
         odfLoader = new OdfLoader(context, configManager);
         odfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+
+        pdfLoader = new PdfLoader(context, configManager);
+        pdfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         ooxmlLoader = new OoxmlLoader(context);
         ooxmlLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
@@ -126,6 +130,9 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
             case OOXML:
                 loader = ooxmlLoader;
                 break;
+            case PDF:
+                loader = pdfLoader;
+                break;
             case ONLINE:
                 loader = onlineLoader;
                 break;
@@ -183,7 +190,9 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         if (result.loaderType == FileLoader.LoaderType.ODF) {
             analyticsManager.report("load_odf_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
 
-            if (ooxmlLoader.isSupported(options)) {
+            if (pdfLoader.isSupported(options)) {
+                loadWithType(FileLoader.LoaderType.PDF, options);
+            } else if (ooxmlLoader.isSupported(options)) {
                 loadWithType(FileLoader.LoaderType.OOXML, options);
             } else if (docLoader.isSupported(options)) {
                 loadWithType(FileLoader.LoaderType.DOC, options);
@@ -275,6 +284,10 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
         if (odfLoader != null) {
             odfLoader.close();
+        }
+
+        if (pdfLoader != null) {
+            pdfLoader.close();
         }
 
         if (ooxmlLoader != null) {
