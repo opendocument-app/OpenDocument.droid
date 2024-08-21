@@ -1,13 +1,11 @@
-include(pdf2htmlEX-config)
-
 [settings]
 os=Linux
 arch=x86_64
-build_type=RelWithDebInfo
-compiler=clang
-compiler.version=15
+build_type=Release
+compiler=gcc
+compiler.version=12
 compiler.cppstd=20
 compiler.libcxx=libstdc++11
 
 [conf]
-tools.build:compiler_executables={'c': 'clang-15', 'cpp': 'clang++-15'}
+tools.build:compiler_executables={'c': 'gcc-12', 'cpp': 'g++-12'}
