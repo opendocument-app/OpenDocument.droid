@@ -28,7 +28,7 @@ public class DocLoader extends FileLoader {
         AssetExtractor ae = new AssetExtractor(context.getAssets()).setNoOverwrite();
 
         // @TODO: use asset files without extracting
-        File wv_data_dir = ae.extract(context.getFilesDir(), "wv/share/wv");
+        File wv_data_dir = ae.extract(new File(context.getFilesDir(), "wv/share"), "wv");
         EnvVar.set("WVDATADIR", wv_data_dir.getAbsolutePath());
 
         final Result result = new Result();
