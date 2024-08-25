@@ -101,6 +101,7 @@ public class PdfLoader extends FileLoader {
         coreOptions.password = options.password;
         coreOptions.editable = options.translatable;
         coreOptions.ooxml = false;
+        coreOptions.pdf2htmlEX = true;
 
         Boolean usePaging = configManager.getBooleanConfig("use_paging");
         if (usePaging == null || usePaging) {

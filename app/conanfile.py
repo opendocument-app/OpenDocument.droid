@@ -6,7 +6,12 @@ required_conan_version = ">=2.0.6"
 
 class OdrDroidConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
-    requires = "odrcore/4.1.0-pdf2htmlex-git"
+
+    def requirements(self):
+        self.requires("odrcore/4.1.0-pdf2htmlex-git", options={
+            "with_pdf2htmlEX": True,
+            "with_wvWare": True,
+        })
 
     def generate(self):
         deps = CMakeDeps(self)
@@ -18,4 +23,3 @@ class OdrDroidConan(ConanFile):
         tc.variables["PDF2HTMLEX_RES_DIR"] = self.dependencies['pdf2htmlex'].cpp_info.resdirs[0]
         tc.variables["FONTCONFIG_RES_DIR"] = self.dependencies['fontconfig'].cpp_info.resdirs[0]
         tc.generate()
-

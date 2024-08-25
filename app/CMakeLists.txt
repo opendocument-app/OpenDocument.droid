@@ -27,4 +27,5 @@ endfunction()
 
 copy_assets("PDF2HTMLEX_RES_DIR" "pdf2htmlEX")
 copy_assets("POPPLER_DATA_RES_DIR" "poppler-data")
+copy_assets("WVWARE_RES_DIR" "wv")
 copy_assets("FONTCONFIG_RES_DIR" "fontconfig")
