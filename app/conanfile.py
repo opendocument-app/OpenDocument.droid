@@ -22,4 +22,5 @@ class OdrDroidConan(ConanFile):
         tc.variables["POPPLER_DATA_RES_DIR"] = self.dependencies['poppler-data'].cpp_info.resdirs[0]
         tc.variables["PDF2HTMLEX_RES_DIR"] = self.dependencies['pdf2htmlex'].cpp_info.resdirs[0]
         tc.variables["FONTCONFIG_RES_DIR"] = self.dependencies['fontconfig'].cpp_info.resdirs[0]
+        tc.variables["WVWARE_RES_DIR"] = self.dependencies['wvware'].cpp_info.resdirs[0]
         tc.generate()
