@@ -126,12 +126,10 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
             }
 
             if (pdf2htmlEX) {
-                // @TODO: pass password
-                html = odr::OpenDocumentReader::pdf2htmlEX(inputPathCpp, outputPathCpp, config);
+                html = odr::OpenDocumentReader::pdf2htmlEX(inputPathCpp, outputPathCpp, config, passwordCpp);
             }
             else if (wvWare) {
-                // @TODO: pass password
-                html = odr::OpenDocumentReader::wvHtml(inputPathCpp, outputPathCpp, config);
+                html = odr::OpenDocumentReader::wvHtml(inputPathCpp, outputPathCpp, config, passwordCpp);
             }
             else {
                 html = odr::OpenDocumentReader::html(inputPathCpp, [&passwordCpp]() -> std::string {
