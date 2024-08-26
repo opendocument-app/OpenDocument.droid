@@ -135,40 +135,6 @@ public class PdfLoader extends FileLoader {
         }
     }
 
-//    @Override
-//    public File retranslate(Options options, String htmlDiff) {
-//        if (lastCore == null) {
-//            // necessary if fragment was destroyed in the meanwhile - meaning the Loader is reinstantiated
-//
-//            Result result = new Result();
-//            result.options = options;
-//
-//            try {
-//                translate(options, result);
-//            } catch (Exception e) {
-//                crashManager.log(e);
-//
-//                return null;
-//            }
-//        }
-//
-//        File inputFile = new File(lastCoreOptions.inputPath);
-//        File inputCacheDirectory = AndroidFileCache.getCacheDirectory(inputFile);
-//        File tempFilePrefix = new File(inputCacheDirectory, "retranslate");
-//
-//        lastCoreOptions.outputPath = tempFilePrefix.getPath();
-//
-//        try {
-//            CoreWrapper.CoreResult result = lastCore.backtranslate(lastCoreOptions, htmlDiff);
-//
-//            return new File(result.outputPath);
-//        } catch (Throwable e) {
-//            crashManager.log(e);
-//
-//            return null;
-//        }
-//    }
-
     @Override
     public void close() {
         super.close();
