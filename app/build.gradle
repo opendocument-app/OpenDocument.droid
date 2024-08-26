@@ -40,7 +40,7 @@ android {
                 )
             }
         }
-        sourceSets.main.assets.srcDirs += "build/assets"
+        sourceSets.main.assets.srcDirs += "build/conan/armv8/assets"
     }
 
     flavorDimensions "default"
@@ -117,19 +117,19 @@ android {
     namespace 'at.tomtasche.reader'
 }
 
-// Assets delivered by conan are gathered by CMake
+// Make sure the assets are installed when needed
 afterEvaluate {
     tasks.named("generateProDebugAssets").configure {
-        dependsOn(tasks.named("mergeProDebugNativeLibs"))
+        dependsOn(tasks.named("conanInstall-armv8"))
     }
     tasks.named("generateProReleaseAssets").configure {
-        dependsOn(tasks.named("mergeProReleaseNativeLibs"))
+        dependsOn(tasks.named("conanInstall-armv8"))
     }
     tasks.named("generateLiteDebugAssets").configure {
-        dependsOn(tasks.named("mergeLiteDebugNativeLibs"))
+        dependsOn(tasks.named("conanInstall-armv8"))
     }
     tasks.named("generateLiteReleaseAssets").configure {
-        dependsOn(tasks.named("mergeLiteReleaseNativeLibs"))
+        dependsOn(tasks.named("conanInstall-armv8"))
     }
 }
 

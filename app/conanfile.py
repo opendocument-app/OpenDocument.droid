@@ -1,3 +1,5 @@
+import os
+
 from conan import ConanFile
 from conan.tools.cmake import CMakeToolchain, CMakeDeps
 
@@ -18,9 +20,11 @@ class OdrDroidConan(ConanFile):
         deps.generate()
 
         tc = CMakeToolchain(self)
-        # @TODO: figure out how to use POPPLER_DATA_DIR exported by poppler-data
-        tc.variables["POPPLER_DATA_RES_DIR"] = self.dependencies['poppler-data'].cpp_info.resdirs[0]
-        tc.variables["PDF2HTMLEX_RES_DIR"] = self.dependencies['pdf2htmlex'].cpp_info.resdirs[0]
-        tc.variables["FONTCONFIG_RES_DIR"] = self.dependencies['fontconfig'].cpp_info.resdirs[0]
-        tc.variables["WVWARE_RES_DIR"] = self.dependencies['wvware'].cpp_info.resdirs[0]
         tc.generate()
+
+        asset_dir = os.path.join(self.build_folder, 'assets')
+        os.mkdir(asset_dir)
+        os.symlink(self.dependencies['pdf2htmlex'].cpp_info.resdirs[0], os.path.join(asset_dir, 'pdf2htmlEX'))
+        os.symlink(self.dependencies['poppler-data'].cpp_info.resdirs[0], os.path.join(asset_dir, 'poppler-data'))
+        os.symlink(self.dependencies['fontconfig'].cpp_info.resdirs[0], os.path.join(asset_dir, 'fontconfig'))
+        os.symlink(self.dependencies['wvware'].cpp_info.resdirs[0], os.path.join(asset_dir, 'wv'))
