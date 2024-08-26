@@ -105,15 +105,6 @@ android {
     lint {
         abortOnError false
     }
-    packagingOptions {
-        jniLibs {
-            // No need to pickFirst libc++_shared.so if all files are identical.
-            // They will be identical if NDK major version matches.
-            // NDK runtime problems may occur if NDK version mismatches,
-            // so comment this out, to get a compile error instead
-            // pickFirsts += ['**/libc++_shared.so']
-        }
-    }
     namespace 'at.tomtasche.reader'
 }
 
