@@ -49,25 +49,29 @@ jobs:
     - name: gradle
       run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
 
-    - name: upload apks
+    - name: Artifact APKs
       uses: actions/upload-artifact@v4
       with:
         name: APKs
         path: app/build/outputs/apk/**/*.apk
         if-no-files-found: error
+        compression-level: 0
 
-    - name: upload lint results
+    - name: Artifact lint results
       uses: actions/upload-artifact@v4
       with:
         name: lint-report
         path: app/build/reports/lint-results-*.html
         if-no-files-found: error
 
-    - uses: actions/upload-artifact@v4
+    - name: Artifact dotconan2
+      uses: actions/upload-artifact@v4
       with:
         name: dotconan2
         path: ~/.conan2
         if-no-files-found: error
+        compression-level: 0
+        include-hidden-files: true
 
   test:
     runs-on: ubuntu-22.04
