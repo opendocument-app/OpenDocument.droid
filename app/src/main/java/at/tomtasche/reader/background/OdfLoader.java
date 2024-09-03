@@ -4,8 +4,12 @@ import android.content.Context;
 import android.net.Uri;
 import android.webkit.MimeTypeMap;
 
+import com.viliussutkus89.android.assetextractor.AssetExtractor;
+
 import java.io.File;
 
+import app.opendocument.android.pdf2htmlex.EnvVar;
+import app.opendocument.android.pdf2htmlex.FontconfigAndroid;
 import at.tomtasche.reader.nonfree.ConfigManager;
 
 public class OdfLoader extends FileLoader {

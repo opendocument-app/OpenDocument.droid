@@ -1,5 +1,3 @@
-import org.apache.tools.ant.filters.ReplaceTokens
-
 plugins {
     id 'com.android.application'
     id 'com.google.gms.google-services'
@@ -11,16 +9,9 @@ android {
     ndkVersion "26.3.11579264"
 }
 
-tasks.register('conanProfile', Copy) {
-    from "conanprofile.txt"
-    into project.layout.buildDirectory
-    filter(ReplaceTokens, tokens: ["NDK_PATH": android.ndkDirectory.toString()])
-}
-
 ["armv8", "armv7", "x86", "x86_64"].each { architecture ->
     tasks.named("conanInstall-" + architecture) {
-        profile.set('build/conanprofile.txt')
-        dependsOn(tasks.named('conanProfile'))
+        profile.set('../.github/config/ubuntu-22.04/conan/profiles/android-23-' + architecture)
     }
 }
 
@@ -40,13 +31,16 @@ android {
 
         externalNativeBuild {
             cmake {
-                targets "odr-core"
+                targets "odr-core", "envvar"
                 arguments(
                     "-DCMAKE_TOOLCHAIN_FILE=build/conan/android_toolchain.cmake",
+                    // We can migrate to static STL once all C++ deps are in conan and linked as one .so library
+                    "-DANDROID_STL=c++_shared",
                     "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
                 )
             }
         }
+        sourceSets.main.assets.srcDirs += "build/conan/armv8/assets"
     }
 
     flavorDimensions "default"
@@ -111,16 +105,23 @@ android {
     lint {
         abortOnError false
     }
-    packagingOptions {
-        jniLibs {
-            // No need to pickFirst libc++_shared.so if all files are identical.
-            // They will be identical if NDK major version matches.
-            // NDK runtime problems may occur if NDK version mismatches,
-            // so comment this out, to get a compile error instead
-            // pickFirsts += ['**/libc++_shared.so']
-        }
-    }
     namespace 'at.tomtasche.reader'
+}
+
+// Make sure the assets are installed when needed
+afterEvaluate {
+    tasks.named("generateProDebugAssets").configure {
+        dependsOn(tasks.named("conanInstall-armv8"))
+    }
+    tasks.named("generateProReleaseAssets").configure {
+        dependsOn(tasks.named("conanInstall-armv8"))
+    }
+    tasks.named("generateLiteDebugAssets").configure {
+        dependsOn(tasks.named("conanInstall-armv8"))
+    }
+    tasks.named("generateLiteReleaseAssets").configure {
+        dependsOn(tasks.named("conanInstall-armv8"))
+    }
 }
 
 dependencies {
@@ -140,8 +141,8 @@ dependencies {
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.webkit:webkit:1.11.0'
 
-    implementation 'app.opendocument:pdf2htmlex-android:0.18.25'
-    implementation 'com.viliussutkus89:wvware-android:1.2.9'
+    implementation 'com.viliussutkus89:fontconfig-android-translator:1.0.2'
+    implementation 'com.viliussutkus89:assetextractor-android:1.3.3'
     implementation 'com.github.huzongyao:AndroidMagic:v1.1.2'
 
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'

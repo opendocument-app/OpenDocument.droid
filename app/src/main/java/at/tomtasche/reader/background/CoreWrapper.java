@@ -82,6 +82,8 @@ public class CoreWrapper {
 
         public boolean ooxml;
         public boolean txt;
+        public boolean pdf2htmlEX;
+        public boolean wvWare;
 
         public boolean editable;
 
