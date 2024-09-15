@@ -124,16 +124,16 @@ android {
 }
 
 dependencies {
-    implementation platform('com.google.firebase:firebase-bom:33.1.1')
+    implementation platform('com.google.firebase:firebase-bom:33.3.0')
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-crashlytics-ndk'
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-config'
 
-    implementation 'com.google.android.gms:play-services-ads:23.2.0'
+    implementation 'com.google.android.gms:play-services-ads:23.3.0'
     implementation 'com.google.android.play:review:2.0.1'
-    implementation 'com.google.android.ump:user-messaging-platform:2.2.0'
+    implementation 'com.google.android.ump:user-messaging-platform:3.0.0'
 
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.core:core:1.13.1'
@@ -144,14 +144,14 @@ dependencies {
     implementation 'com.viliussutkus89:wvware-android:1.2.9'
     implementation 'com.github.huzongyao:AndroidMagic:v1.1.2'
 
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    androidTestImplementation 'androidx.test:rules:1.5.0'
-    androidTestImplementation 'androidx.test:runner:1.5.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.5.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+    androidTestImplementation 'androidx.test:rules:1.6.1'
+    androidTestImplementation 'androidx.test:runner:1.6.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.6.1'
     // espresso-idling-resource is used in main sourceSet as well. cannot be just androidTestImplementation
-    implementation 'androidx.test.espresso:espresso-idling-resource:3.5.1'
-    implementation 'androidx.annotation:annotation:1.8.0'
+    implementation 'androidx.test.espresso:espresso-idling-resource:3.6.1'
+    implementation 'androidx.annotation:annotation:1.8.2'
 }
 
 // Without removing .cxx dir on cleanup, double gradle clean is erroring out.
