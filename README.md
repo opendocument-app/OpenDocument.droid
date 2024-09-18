@@ -1,6 +1,6 @@
 # It's Android's first OpenOffice Document Reader! ![](https://github.com/opendocument-app/OpenDocument.droid/actions/workflows/android_main.yml/badge.svg)
 
-This is an Android frontend for our C++ OpenDocument.core library Feel free to use it in your own project too, but please don't forget to tell us about it!
+This is an Android frontend for our C++ OpenDocument.core library. Feel free to use it in your own project too, but please don't forget to tell us about it!
 
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
      alt="Get it on F-Droid"
