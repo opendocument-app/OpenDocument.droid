@@ -64,7 +64,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         odfLoader = new OdfLoader(context, configManager);
         odfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
-        pdfLoader = new PdfLoader(context);
+        pdfLoader = new PdfLoader(context, configManager);
         pdfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         ooxmlLoader = new OoxmlLoader(context);

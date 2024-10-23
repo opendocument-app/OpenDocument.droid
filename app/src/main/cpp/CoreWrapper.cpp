@@ -68,6 +68,12 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         jfieldID txtField = env->GetFieldID(optionsClass, "txt", "Z");
         jboolean txt = env->GetBooleanField(options, txtField);
 
+        jfieldID pdf2htmlEXField = env->GetFieldID(optionsClass, "pdf2htmlEX", "Z");
+        jboolean pdf2htmlEX = env->GetBooleanField(options, pdf2htmlEXField);
+
+        jfieldID wvWareField = env->GetFieldID(optionsClass, "wvWare", "Z");
+        jboolean wvWare = env->GetBooleanField(options, wvWareField);
+
         jfieldID pagingField = env->GetFieldID(optionsClass, "paging", "Z");
         jboolean paging = env->GetBooleanField(options, pagingField);
 
@@ -119,12 +125,20 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 config.text_document_margin = true;
             }
 
-            html = odr::OpenDocumentReader::html(inputPathCpp, [&passwordCpp]() -> std::string {
-                if (passwordCpp.has_value()) {
-                    return passwordCpp.value();
-                }
-                return "";
-            }, outputPathCpp, config);
+            if (pdf2htmlEX) {
+                html = odr::OpenDocumentReader::pdf2htmlEX(inputPathCpp, outputPathCpp, config, passwordCpp);
+            }
+            else if (wvWare) {
+                html = odr::OpenDocumentReader::wvHtml(inputPathCpp, outputPathCpp, config, passwordCpp);
+            }
+            else {
+                html = odr::OpenDocumentReader::html(inputPathCpp, [&passwordCpp]() -> std::string {
+                    if (passwordCpp.has_value()) {
+                        return passwordCpp.value();
+                    }
+                    return "";
+                }, outputPathCpp, config);
+            }
 
             {
                 const auto extensionCpp = odr::OpenDocumentReader::type_to_string(
