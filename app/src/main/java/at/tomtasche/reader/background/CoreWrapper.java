@@ -107,20 +107,20 @@ public class CoreWrapper {
         public String extension;
     }
 
-    public class CoreCouldNotOpenException extends RuntimeException {}
+    public static class CoreCouldNotOpenException extends RuntimeException {}
 
-    public class CoreEncryptedException extends RuntimeException {}
+    public static class CoreEncryptedException extends RuntimeException {}
 
-    public class CoreCouldNotTranslateException extends RuntimeException {}
+    public static class CoreCouldNotTranslateException extends RuntimeException {}
 
-    public class CoreUnexpectedFormatException extends RuntimeException {}
+    public static class CoreUnexpectedFormatException extends RuntimeException {}
 
-    public class CoreUnexpectedErrorCodeException extends RuntimeException {}
+    public static class CoreUnexpectedErrorCodeException extends RuntimeException {}
 
-    public class CoreUnknownErrorException extends RuntimeException {}
+    public static class CoreUnknownErrorException extends RuntimeException {}
 
-    public class CoreCouldNotEditException extends RuntimeException {}
+    public static class CoreCouldNotEditException extends RuntimeException {}
 
-    public class CoreCouldNotSaveException extends RuntimeException {}
+    public static class CoreCouldNotSaveException extends RuntimeException {}
 
 }

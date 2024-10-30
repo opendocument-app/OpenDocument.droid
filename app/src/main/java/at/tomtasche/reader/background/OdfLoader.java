@@ -81,8 +81,12 @@ public class OdfLoader extends FileLoader {
         CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
 
         String coreExtension = coreResult.extension;
-        // "unnamed" refers to default of Meta::typeToString
-        if (coreExtension != null && !coreExtension.equals("unnamed")) {
+        if (coreResult.exception == null && "pdf".equals(coreExtension)) {
+            // some PDFs do not cause an error in the core
+            // https://github.com/opendocument-app/OpenDocument.droid/issues/348#issuecomment-2446888981
+            throw new CoreWrapper.CoreCouldNotTranslateException();
+        } else if (!"unnamed".equals(coreExtension)) {
+            // "unnamed" refers to default of Meta::typeToString
             options.fileExtension = coreExtension;
 
             String fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreExtension);
