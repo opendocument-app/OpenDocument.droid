@@ -141,7 +141,7 @@ dependencies {
     implementation 'androidx.webkit:webkit:1.11.0'
 
     implementation 'app.opendocument:pdf2htmlex-android:0.18.26'
-    implementation 'com.viliussutkus89:wvware-android:1.2.9'
+    implementation 'app.opendocument:wvware-android:1.2.11'
     implementation 'com.github.huzongyao:AndroidMagic:v1.1.2'
 
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
