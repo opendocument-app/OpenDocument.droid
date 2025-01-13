@@ -78,6 +78,30 @@ public class CoreWrapper {
 
     private native void closeNative(CoreOptions options);
 
+    public void createServer() {
+        createServerNative();
+    }
+
+    private native void createServerNative();
+
+    public String hostFile(CoreOptions options) {
+        return hostFileNative(options);
+    }
+
+    private native String hostFileNative(CoreOptions options);
+
+    public void listenServer() {
+        listenServerNative();
+    }
+
+    private native void listenServerNative();
+
+    public void stopServer() {
+        stopServerNative();
+    }
+
+    private native void stopServerNative();
+
     public static class CoreOptions {
 
         public boolean ooxml;
