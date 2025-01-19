@@ -11,11 +11,12 @@
 
 #include <string>
 #include <optional>
+#include <filesystem>
 
 std::optional<odr::Html> s_html;
 
 JNIEXPORT jobject JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject instance,
+Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass clazz,
                                                             jobject options) {
     jboolean isCopy;
 
@@ -168,7 +169,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
 }
 
 JNIEXPORT jobject JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env, jobject instance,
+Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env, jclass clazz,
                                                                     jobject options,
                                                                     jstring htmlDiff) {
     jboolean isCopy;
@@ -228,7 +229,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
 }
 
 JNIEXPORT void JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jobject instance,
+Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jclass clazz,
                                                             jobject options) {
     s_html.reset();
 }
@@ -236,13 +237,20 @@ Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jobject
 std::optional<odr::HttpServer> s_server;
 
 JNIEXPORT void JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_createServerNative(JNIEnv *env, jobject instance) {
+Java_at_tomtasche_reader_background_CoreWrapper_createServerNative(JNIEnv *env, jclass clazz, jstring outputPath) {
+    const char* outputPathC = env->GetStringUTFChars(outputPath, nullptr);
+    std::string output_path = outputPathC;
+    env->ReleaseStringUTFChars(outputPath, outputPathC);
+
+    std::filesystem::create_directories(output_path);
+
     odr::HttpServer::Config config;
+    config.output_path = output_path;
     s_server = odr::HttpServer(config);
 }
 
 JNIEXPORT jstring JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jobject instance, jobject options) {
+Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jclass clazz, jobject options) {
     jboolean isCopy;
 
     jclass optionsClass = env->GetObjectClass(options);
@@ -253,23 +261,29 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jobj
     auto inputPathCpp = std::string(inputPathC, env->GetStringUTFLength(inputPath));
     env->ReleaseStringUTFChars(inputPath, inputPathC);
 
-    odr::DecodePreference decode_preference;
-    decode_preference.engine_priority = {
+    odr::DecodePreference decodePreference;
+decodePreference.engine_priority = {
         odr::DecoderEngine::poppler, odr::DecoderEngine::wvware, odr::DecoderEngine::odr};
-    odr::DecodedFile file = odr::OpenDocumentReader::open(inputPathCpp, decode_preference);
+    odr::DecodedFile file = odr::OpenDocumentReader::open(inputPathCpp, decodePreference);
 
-    std::string id = s_server->host_file(file);
+    __android_log_print(ANDROID_LOG_INFO, "smn", "file type %i", file.file_type());
 
-    return env->NewStringUTF(id.c_str());
+    try {
+        std::string id = s_server->host_file(file);
+        return env->NewStringUTF(id.c_str());
+    } catch (...) {
+        __android_log_print(ANDROID_LOG_ERROR, "smn", "error");
+        return env->NewStringUTF("error");
+    }
 }
 
 JNIEXPORT void JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_listenServerNative(JNIEnv *env, jobject instance) {
-    s_server->listen("0.0.0.0", 8080);
+Java_at_tomtasche_reader_background_CoreWrapper_listenServerNative(JNIEnv *env, jclass clazz) {
+    s_server->listen("127.0.0.1", 29665);
 }
 
 JNIEXPORT void JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_stopServerNative(JNIEnv *env, jobject instance) {
+Java_at_tomtasche_reader_background_CoreWrapper_stopServerNative(JNIEnv *env, jclass clazz) {
     s_server->stop();
     s_server.reset();
 }

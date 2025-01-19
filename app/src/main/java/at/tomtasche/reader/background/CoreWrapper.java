@@ -5,11 +5,11 @@ import java.util.List;
 
 public class CoreWrapper {
 
-    public void initialize() {
+    static {
         System.loadLibrary("odr-core");
     }
 
-    public CoreResult parse(CoreOptions options) {
+    public static CoreResult parse(CoreOptions options) {
         CoreResult result = parseNative(options);
 
         switch (result.errorCode) {
@@ -43,9 +43,9 @@ public class CoreWrapper {
         return result;
     }
 
-    private native CoreResult parseNative(CoreOptions options);
+    private static native CoreResult parseNative(CoreOptions options);
 
-    public CoreResult backtranslate(CoreOptions options, String htmlDiff) {
+    public static CoreResult backtranslate(CoreOptions options, String htmlDiff) {
         CoreResult result = backtranslateNative(options, htmlDiff);
 
         switch (result.errorCode) {
@@ -68,39 +68,39 @@ public class CoreWrapper {
         return result;
     }
 
-    private native CoreResult backtranslateNative(CoreOptions options, String htmlDiff);
+    private static native CoreResult backtranslateNative(CoreOptions options, String htmlDiff);
 
-    public void close() {
+    public static void close() {
         CoreOptions options = new CoreOptions();
 
         closeNative(options);
     }
 
-    private native void closeNative(CoreOptions options);
+    private static native void closeNative(CoreOptions options);
 
-    public void createServer() {
-        createServerNative();
+    public static void createServer(String outputPath) {
+        createServerNative(outputPath);
     }
 
-    private native void createServerNative();
+    private static native void createServerNative(String outputPath);
 
-    public String hostFile(CoreOptions options) {
+    public static String hostFile(CoreOptions options) {
         return hostFileNative(options);
     }
 
-    private native String hostFileNative(CoreOptions options);
+    private static native String hostFileNative(CoreOptions options);
 
-    public void listenServer() {
+    public static void listenServer() {
         listenServerNative();
     }
 
-    private native void listenServerNative();
+    private static native void listenServerNative();
 
-    public void stopServer() {
+    public static void stopServer() {
         stopServerNative();
     }
 
-    private native void stopServerNative();
+    private static native void stopServerNative();
 
     public static class CoreOptions {
 
