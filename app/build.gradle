@@ -21,7 +21,6 @@ tasks.register('conanProfile', Copy) {
     tasks.named("conanInstall-" + architecture) {
         profile.set('build/conanprofile.txt')
         dependsOn(tasks.named('conanProfile'))
-        conanExecutable.set('/Users/andreas/odr/venv/bin/conan')
     }
 }
 
