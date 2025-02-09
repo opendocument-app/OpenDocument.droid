@@ -140,7 +140,9 @@ public class RawLoader extends FileLoader {
                 CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
                 coreOptions.inputPath = cacheFile.getPath();
                 coreOptions.outputPath = cacheDirectory.getPath();
+                coreOptions.ooxml = false;
                 coreOptions.txt = true;
+                coreOptions.pdf = false;
 
                 lastCoreOptions = coreOptions;
 
