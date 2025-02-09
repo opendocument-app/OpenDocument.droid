@@ -2,23 +2,20 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 
 import app.opendocument.android.pdf2htmlex.pdf2htmlEX;
-import com.viliussutkus89.android.wvware.wvWare;
 
 import java.io.File;
-import java.io.InputStream;
 
-public class PdfLoader extends FileLoader {
+public class Pdf2htmlExLoader extends FileLoader {
 
     private static final String[] MIME_WHITELIST = {
             // pdf: https://filext.com/file-extension/PDF
             "application/pdf", "application/x-pdf", "application/acrobat", "applications/vnd.pdf", "text/pdf", "text/x-pdf",
     };
 
-    public PdfLoader(Context context) {
-        super(context, LoaderType.PDF);
+    public Pdf2htmlExLoader(Context context) {
+        super(context, LoaderType.PDF2HTMLEX);
     }
 
     @Override

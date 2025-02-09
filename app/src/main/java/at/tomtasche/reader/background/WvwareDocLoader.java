@@ -7,10 +7,10 @@ import com.viliussutkus89.android.wvware.wvWare;
 
 import java.io.File;
 
-public class DocLoader extends FileLoader {
+public class WvwareDocLoader extends FileLoader {
 
-    public DocLoader(Context context) {
-        super(context, LoaderType.DOC);
+    public WvwareDocLoader(Context context) {
+        super(context, LoaderType.WVWARE);
     }
 
     @Override
