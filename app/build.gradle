@@ -20,6 +20,9 @@ tasks.register('conanProfile', Copy) {
 ["armv8", "armv7", "x86", "x86_64"].each { architecture ->
     tasks.named("conanInstall-" + architecture) {
         profile.set('build/conanprofile.txt')
+        deployer.set('conandeployer.py')
+        deployerFolder.set(outputDirectory.get().asFile.toString() + "/assets")
+        conanExecutable.set('/Users/andreas/odr/venv/bin/conan')
         dependsOn(tasks.named('conanProfile'))
     }
 }
@@ -121,6 +124,11 @@ android {
         }
     }
     namespace 'at.tomtasche.reader'
+    compileSdk 35
+    buildToolsVersion '34.0.0'
+
+    // TODO can and should this be architecture dependent?
+    sourceSets.main.assets.srcDirs += "build/conan/armv8/assets"
 }
 
 dependencies {

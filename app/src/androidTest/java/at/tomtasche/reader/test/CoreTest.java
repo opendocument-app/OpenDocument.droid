@@ -59,7 +59,6 @@ public class CoreTest {
     @Test
     public void test() {
         CoreWrapper core = new CoreWrapper();
-        core.initialize();
 
         File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
         File htmlFile = new File(cacheDir, "html");

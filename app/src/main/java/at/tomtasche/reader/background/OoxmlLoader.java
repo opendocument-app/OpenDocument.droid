@@ -60,8 +60,6 @@ public class OoxmlLoader extends FileLoader {
 
         CoreWrapper core = new CoreWrapper();
         try {
-            core.initialize();
-
             lastCore = core;
         } catch (Throwable e) {
             crashManager.log(e);

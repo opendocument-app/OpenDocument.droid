@@ -40,8 +40,11 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
     private DocLoader docLoader;
     private RawLoader rawLoader;
     private OnlineLoader onlineLoader;
+    private CoreHttpLoader coreHttpLoader;
 
     private LoaderListener currentListener;
+
+    private Thread httpThread;
 
     @Override
     public synchronized void onCreate() {
@@ -78,6 +81,20 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
         onlineLoader = new OnlineLoader(context, odfLoader);
         onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+
+        coreHttpLoader = new CoreHttpLoader(context, configManager);
+        coreHttpLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+
+        CoreWrapper.createServer(context.getCacheDir().getAbsolutePath() + "/core");
+
+        httpThread = new Thread(() -> {
+            try {
+                CoreWrapper.listenServer();
+            } catch (Throwable e) {
+                crashManager.log(e);
+            }
+        });
+        httpThread.start();
     }
 
     // copied from MainActivity, consider how to deduplicate
@@ -122,16 +139,16 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         FileLoader loader;
         switch (loaderType) {
             case ODF:
-                loader = odfLoader;
+                loader = coreHttpLoader;
                 break;
             case DOC:
-                loader = docLoader;
+                loader = coreHttpLoader;
                 break;
             case OOXML:
-                loader = ooxmlLoader;
+                loader = coreHttpLoader;
                 break;
             case PDF:
-                loader = pdfLoader;
+                loader = coreHttpLoader;
                 break;
             case ONLINE:
                 loader = onlineLoader;
@@ -306,7 +323,17 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
             onlineLoader.close();
         }
 
+        if (coreHttpLoader != null) {
+            coreHttpLoader.close();
+        }
+
         backgroundThread.quit();
+
+        if (httpThread != null) {
+            CoreWrapper.stopServer();
+            httpThread.interrupt();
+            httpThread = null;
+        }
 
         super.onDestroy();
     }

@@ -5,16 +5,18 @@
 #include <odr/html.hpp>
 #include <odr/open_document_reader.hpp>
 #include <odr/exceptions.hpp>
+#include <odr/http_server.hpp>
 
 #include <android/log.h>
 
 #include <string>
 #include <optional>
+#include <filesystem>
 
-std::optional<odr::Html> html;
+std::optional<odr::Html> s_html;
 
 JNIEXPORT jobject JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject instance,
+Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass clazz,
                                                             jobject options) {
     jboolean isCopy;
 
@@ -127,7 +129,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 config.text_document_margin = true;
             }
 
-            html = odr::OpenDocumentReader::html(inputPathCpp, [&passwordCpp]() -> std::string {
+            s_html = odr::OpenDocumentReader::html(inputPathCpp, [&passwordCpp]() -> std::string {
                 if (passwordCpp.has_value()) {
                     return passwordCpp.value();
                 }
@@ -136,7 +138,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
 
             {
                 const auto extensionCpp = odr::OpenDocumentReader::type_to_string(
-                        html->file_type());
+                        s_html->file_type());
                 const auto extensionC = extensionCpp.c_str();
                 jstring extension = env->NewStringUTF(extensionC);
 
@@ -145,7 +147,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 env->SetObjectField(result, extensionField, extension);
             }
 
-            for (auto &&page: html->pages()) {
+            for (auto &&page: s_html->pages()) {
                 jstring pageName = env->NewStringUTF(page.name.c_str());
                 env->CallBooleanMethod(pageNames, addMethod, pageName);
 
@@ -175,7 +177,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
 }
 
 JNIEXPORT jobject JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env, jobject instance,
+Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env, jclass clazz,
                                                                     jobject options,
                                                                     jstring htmlDiff) {
     jboolean isCopy;
@@ -200,7 +202,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
 
         const auto htmlDiffC = env->GetStringUTFChars(htmlDiff, &isCopy);
 
-        const auto extension = odr::OpenDocumentReader::type_to_string(html->file_type());
+        const auto extension = odr::OpenDocumentReader::type_to_string(s_html->file_type());
         const auto outputPathCpp = outputPathPrefixCpp + "." + extension;
         const char *outputPathC = outputPathCpp.c_str();
         jstring outputPath = env->NewStringUTF(outputPathC);
@@ -209,7 +211,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
         env->SetObjectField(result, outputPathField, outputPath);
 
         try {
-            html->edit(htmlDiffC);
+            s_html->edit(htmlDiffC);
 
             env->ReleaseStringUTFChars(htmlDiff, htmlDiffC);
         } catch (...) {
@@ -220,7 +222,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
         }
 
         try {
-            html->save(outputPathCpp);
+            s_html->save(outputPathCpp);
         } catch (...) {
             env->SetIntField(result, errorField, -7);
             return result;
@@ -235,7 +237,61 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
 }
 
 JNIEXPORT void JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jobject instance,
+Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jclass clazz,
                                                             jobject options) {
-    html.reset();
+    s_html.reset();
+}
+
+std::optional<odr::HttpServer> s_server;
+
+JNIEXPORT void JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_createServerNative(JNIEnv *env, jclass clazz, jstring outputPath) {
+    const char* outputPathC = env->GetStringUTFChars(outputPath, nullptr);
+    std::string output_path = outputPathC;
+    env->ReleaseStringUTFChars(outputPath, outputPathC);
+
+    std::filesystem::create_directories(output_path);
+
+    odr::HttpServer::Config config;
+    config.output_path = output_path;
+    s_server = odr::HttpServer(config);
+}
+
+JNIEXPORT jstring JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jclass clazz, jobject options) {
+    jboolean isCopy;
+
+    jclass optionsClass = env->GetObjectClass(options);
+    jfieldID inputPathField = env->GetFieldID(optionsClass, "inputPath", "Ljava/lang/String;");
+    auto inputPath = (jstring) env->GetObjectField(options, inputPathField);
+
+    const auto inputPathC = env->GetStringUTFChars(inputPath, &isCopy);
+    auto inputPathCpp = std::string(inputPathC, env->GetStringUTFLength(inputPath));
+    env->ReleaseStringUTFChars(inputPath, inputPathC);
+
+    odr::DecodePreference decodePreference;
+decodePreference.engine_priority = {
+        odr::DecoderEngine::poppler, odr::DecoderEngine::wvware, odr::DecoderEngine::odr};
+    odr::DecodedFile file = odr::OpenDocumentReader::open(inputPathCpp, decodePreference);
+
+    __android_log_print(ANDROID_LOG_INFO, "smn", "file type %i", file.file_type());
+
+    try {
+        std::string id = s_server->host_file(file);
+        return env->NewStringUTF(id.c_str());
+    } catch (...) {
+        __android_log_print(ANDROID_LOG_ERROR, "smn", "error");
+        return env->NewStringUTF("error");
+    }
+}
+
+JNIEXPORT void JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_listenServerNative(JNIEnv *env, jclass clazz) {
+    s_server->listen("127.0.0.1", 29665);
+}
+
+JNIEXPORT void JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_stopServerNative(JNIEnv *env, jclass clazz) {
+    s_server->stop();
+    s_server.reset();
 }
