@@ -81,6 +81,8 @@ public class OdrCoreLoader extends FileLoader {
         coreOptions.password = options.password;
         coreOptions.editable = options.translatable;
         coreOptions.ooxml = doOoxml;
+        coreOptions.txt = false;
+        coreOptions.pdf = false;
 
         Boolean usePaging = configManager.getBooleanConfig("use_paging");
         if (usePaging == null || usePaging) {
