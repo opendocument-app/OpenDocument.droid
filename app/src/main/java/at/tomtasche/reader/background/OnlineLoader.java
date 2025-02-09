@@ -23,16 +23,13 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import at.tomtasche.reader.nonfree.AnalyticsManager;
-import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 
 public class OnlineLoader extends FileLoader {
@@ -77,14 +74,14 @@ public class OnlineLoader extends FileLoader {
     public static final String GOOGLE_VIEWER_URL = "https://docs.google.com/viewer?embedded=true&url=";
     public static final String MICROSOFT_VIEWER_URL = "https://view.officeapps.live.com/op/view.aspx?src=";
 
-    private final OdfLoader odfLoader;
+    private final OdrCoreLoader odrCoreLoader;
 
     private StorageReference storage;
     private FirebaseAuth auth;
 
-    public OnlineLoader(Context context, OdfLoader odfLoader) {
+    public OnlineLoader(Context context, OdrCoreLoader odrCoreLoader) {
         super(context, LoaderType.ONLINE);
-        this.odfLoader = odfLoader;
+        this.odrCoreLoader = odrCoreLoader;
     }
 
     @Override
@@ -129,7 +126,7 @@ public class OnlineLoader extends FileLoader {
         try {
             Uri viewerUri;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                    ("text/rtf".equals(options.fileType) || "application/vnd.wordperfect".equals(options.fileType) || odfLoader.isSupported(options) || "application/vnd.ms-excel".equals(options.fileType) || "application/msword".equals(options.fileType) || "application/vnd.ms-powerpoint".equals(options.fileType) || options.fileType.startsWith("application/vnd.openxmlformats-officedocument.") || options.fileType.equals("application/pdf"))) {
+                    ("text/rtf".equals(options.fileType) || "application/vnd.wordperfect".equals(options.fileType) || odrCoreLoader.isSupported(options) || "application/vnd.ms-excel".equals(options.fileType) || "application/msword".equals(options.fileType) || "application/vnd.ms-powerpoint".equals(options.fileType) || options.fileType.startsWith("application/vnd.openxmlformats-officedocument.") || options.fileType.equals("application/pdf"))) {
                 viewerUri = doOnlineConvert(options);
             } else {
                 viewerUri = doFirebaseConvert(options);
@@ -209,7 +206,7 @@ public class OnlineLoader extends FileLoader {
 
         if (uploadTask.isSuccessful()) {
             Uri viewerUri;
-            if (odfLoader.isSupported(options)) {
+            if (odrCoreLoader.isSupported(options)) {
                 // ODF does not seem to be supported by google docs viewer
                 String downloadUrl = "https://us-central1-admob-app-id-9025061963.cloudfunctions.net/download?filePath=" + filePath;
 

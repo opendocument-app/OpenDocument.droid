@@ -34,10 +34,9 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
     private AnalyticsManager analyticsManager;
 
     private MetadataLoader metadataLoader;
-    private OdfLoader odfLoader;
-    private PdfLoader pdfLoader;
-    private OoxmlLoader ooxmlLoader;
-    private DocLoader docLoader;
+    private OdrCoreLoader odrCoreLoader;
+    private Pdf2htmlExLoader pdf2htmlExLoader;
+    private WvwareDocLoader wvwareDocLoader;
     private RawLoader rawLoader;
     private OnlineLoader onlineLoader;
 
@@ -61,22 +60,19 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         metadataLoader = new MetadataLoader(context);
         metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
-        odfLoader = new OdfLoader(context, configManager);
-        odfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+        odrCoreLoader = new OdrCoreLoader(context, configManager, true);
+        odrCoreLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
-        pdfLoader = new PdfLoader(context);
-        pdfLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+        pdf2htmlExLoader = new Pdf2htmlExLoader(context);
+        pdf2htmlExLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
-        ooxmlLoader = new OoxmlLoader(context);
-        ooxmlLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
-
-        docLoader = new DocLoader(context);
-        docLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+        wvwareDocLoader = new WvwareDocLoader(context);
+        wvwareDocLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         rawLoader = new RawLoader(context);
         rawLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
-        onlineLoader = new OnlineLoader(context, odfLoader);
+        onlineLoader = new OnlineLoader(context, odrCoreLoader);
         onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
     }
 
@@ -121,17 +117,14 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
     public synchronized void loadWithType(FileLoader.LoaderType loaderType, FileLoader.Options options) {
         FileLoader loader;
         switch (loaderType) {
-            case ODF:
-                loader = odfLoader;
+            case CORE:
+                loader = odrCoreLoader;
                 break;
-            case DOC:
-                loader = docLoader;
+            case WVWARE:
+                loader = wvwareDocLoader;
                 break;
-            case OOXML:
-                loader = ooxmlLoader;
-                break;
-            case PDF:
-                loader = pdfLoader;
+            case PDF2HTMLEX:
+                loader = pdf2htmlExLoader;
                 break;
             case ONLINE:
                 loader = onlineLoader;
@@ -153,12 +146,12 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
     public void onSuccess(FileLoader.Result result) {
         FileLoader.Options options = result.options;
         if (result.loaderType == FileLoader.LoaderType.METADATA) {
-            if (!odfLoader.isSupported(options)) {
+            if (!odrCoreLoader.isSupported(options)) {
                 crashManager.log("we do not expect this file to be an ODF: " + options.originalUri.toString());
                 analyticsManager.report("load_odf_error_expected", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
             }
 
-            loadWithType(FileLoader.LoaderType.ODF, options);
+            loadWithType(FileLoader.LoaderType.CORE, options);
         } else {
             analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
 
@@ -187,15 +180,13 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
             return;
         }
 
-        if (result.loaderType == FileLoader.LoaderType.ODF) {
+        if (result.loaderType == FileLoader.LoaderType.CORE) {
             analyticsManager.report("load_odf_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
 
-            if (pdfLoader.isSupported(options)) {
-                loadWithType(FileLoader.LoaderType.PDF, options);
-            } else if (ooxmlLoader.isSupported(options)) {
-                loadWithType(FileLoader.LoaderType.OOXML, options);
-            } else if (docLoader.isSupported(options)) {
-                loadWithType(FileLoader.LoaderType.DOC, options);
+            if (pdf2htmlExLoader.isSupported(options)) {
+                loadWithType(FileLoader.LoaderType.PDF2HTMLEX, options);
+            } else if (wvwareDocLoader.isSupported(options)) {
+                loadWithType(FileLoader.LoaderType.WVWARE, options);
             } else if (rawLoader.isSupported(options)) {
                 loadWithType(FileLoader.LoaderType.RAW, options);
             } else {
@@ -240,7 +231,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         try {
             File fileToSave;
             if (htmlDiff != null) {
-                fileToSave = odfLoader.retranslate(lastResult.options, htmlDiff);
+                fileToSave = odrCoreLoader.retranslate(lastResult.options, htmlDiff);
                 if (fileToSave == null) {
                     throw new RuntimeException("retranslate failed");
                 }
@@ -282,20 +273,16 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
             metadataLoader.close();
         }
 
-        if (odfLoader != null) {
-            odfLoader.close();
+        if (odrCoreLoader != null) {
+            odrCoreLoader.close();
         }
 
-        if (pdfLoader != null) {
-            pdfLoader.close();
+        if (pdf2htmlExLoader != null) {
+            pdf2htmlExLoader.close();
         }
 
-        if (ooxmlLoader != null) {
-            ooxmlLoader.close();
-        }
-
-        if (docLoader != null) {
-            docLoader.close();
+        if (wvwareDocLoader != null) {
+            wvwareDocLoader.close();
         }
 
         if (rawLoader != null) {

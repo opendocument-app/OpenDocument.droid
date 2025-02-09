@@ -8,22 +8,33 @@ import java.io.File;
 
 import at.tomtasche.reader.nonfree.ConfigManager;
 
-public class OdfLoader extends FileLoader {
+public class OdrCoreLoader extends FileLoader {
 
     private final ConfigManager configManager;
 
     private CoreWrapper lastCore;
     private CoreWrapper.CoreOptions lastCoreOptions;
 
-    public OdfLoader(Context context, ConfigManager configManager) {
-        super(context, LoaderType.ODF);
+    private final boolean doOoxml;
+
+    public OdrCoreLoader(Context context, ConfigManager configManager, boolean doOOXML) {
+        super(context, LoaderType.CORE);
 
         this.configManager = configManager;
+        this.doOoxml = doOOXML;
     }
 
     @Override
     public boolean isSupported(Options options) {
-        return options.fileType.startsWith("application/vnd.oasis.opendocument") || options.fileType.startsWith("application/x-vnd.oasis.opendocument") || options.fileType.startsWith("application/vnd.oasis.opendocument.text-master");
+        return options.fileType.startsWith("application/vnd.oasis.opendocument") ||
+                options.fileType.startsWith("application/x-vnd.oasis.opendocument") ||
+                options.fileType.startsWith("application/vnd.oasis.opendocument.text-master") ||
+                (this.doOoxml && (
+                        options.fileType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                        // TODO: enable xlsx and pptx too
+                        //options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ||
+                        //options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.presentation");
+                ));
     }
 
     @Override
@@ -69,7 +80,9 @@ public class OdfLoader extends FileLoader {
         coreOptions.outputPath = cacheDirectory.getPath();
         coreOptions.password = options.password;
         coreOptions.editable = options.translatable;
-        coreOptions.ooxml = false;
+        coreOptions.ooxml = doOoxml;
+        coreOptions.txt = false;
+        coreOptions.pdf = false;
 
         Boolean usePaging = configManager.getBooleanConfig("use_paging");
         if (usePaging == null || usePaging) {

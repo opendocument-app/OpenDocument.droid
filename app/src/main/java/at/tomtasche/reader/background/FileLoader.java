@@ -18,10 +18,9 @@ import at.tomtasche.reader.nonfree.CrashManager;
 public abstract class FileLoader {
 
     public enum LoaderType {
-        ODF,
-        DOC,
-        OOXML,
-        PDF,
+        CORE,
+        WVWARE,
+        PDF2HTMLEX,
         ONLINE,
         RAW,
         METADATA
