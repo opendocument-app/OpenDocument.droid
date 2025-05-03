@@ -3,7 +3,7 @@
 #include <odr/document.hpp>
 #include <odr/file.hpp>
 #include <odr/html.hpp>
-#include <odr/open_document_reader.hpp>
+#include <odr/odr.hpp>
 #include <odr/exceptions.hpp>
 #include <odr/http_server.hpp>
 
@@ -79,7 +79,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
         try {
             odr::FileType fileType;
             try {
-                const auto types = odr::OpenDocumentReader::types(inputPathCpp);
+                const auto types = odr::types(inputPathCpp);
                 if (types.empty()) {
                     env->SetIntField(result, errorField, -5);
                     return result;
@@ -90,7 +90,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
                 fileType = e.file_type;
             }
 
-            const auto extensionCpp = odr::OpenDocumentReader::type_to_string(fileType);
+            const auto extensionCpp = odr::type_to_string(fileType);
             const auto extensionC = extensionCpp.c_str();
             jstring extension = env->NewStringUTF(extensionC);
 
@@ -100,8 +100,8 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
 
             // __android_log_print(ANDROID_LOG_VERBOSE, "smn", "%s", extensionCpp.c_str());
 
-            const auto file = odr::OpenDocumentReader::open(inputPathCpp);
-            const auto fileCategory = odr::OpenDocumentReader::category_by_type(file.file_type());
+            const auto file = odr::open(inputPathCpp);
+            const auto fileCategory = odr::category_by_type(file.file_type());
 
             if (!ooxml &&
                 (file.file_type() == odr::FileType::office_open_xml_document ||
@@ -129,15 +129,16 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
                 config.text_document_margin = true;
             }
 
-            s_html = odr::OpenDocumentReader::html(inputPathCpp, [&passwordCpp]() -> std::string {
+            s_html = odr::html::translate(odr::File(inputPathCpp), outputPathCpp, config,
+                                          [&passwordCpp]() -> std::string {
                 if (passwordCpp.has_value()) {
                     return passwordCpp.value();
                 }
                 return "";
-            }, outputPathCpp, config);
+            });
 
             {
-                const auto extensionCpp = odr::OpenDocumentReader::type_to_string(
+                const auto extensionCpp = odr::type_to_string(
                         s_html->file_type());
                 const auto extensionC = extensionCpp.c_str();
                 jstring extension = env->NewStringUTF(extensionC);
@@ -202,7 +203,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
 
         const auto htmlDiffC = env->GetStringUTFChars(htmlDiff, &isCopy);
 
-        const auto extension = odr::OpenDocumentReader::type_to_string(s_html->file_type());
+        const auto extension = odr::type_to_string(s_html->file_type());
         const auto outputPathCpp = outputPathPrefixCpp + "." + extension;
         const char *outputPathC = outputPathCpp.c_str();
         jstring outputPath = env->NewStringUTF(outputPathC);
@@ -272,13 +273,14 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jcla
     odr::DecodePreference decodePreference;
 decodePreference.engine_priority = {
         odr::DecoderEngine::poppler, odr::DecoderEngine::wvware, odr::DecoderEngine::odr};
-    odr::DecodedFile file = odr::OpenDocumentReader::open(inputPathCpp, decodePreference);
+    odr::DecodedFile file = odr::open(inputPathCpp, decodePreference);
 
     __android_log_print(ANDROID_LOG_INFO, "smn", "file type %i", file.file_type());
 
     try {
-        std::string id = s_server->host_file(file);
-        return env->NewStringUTF(id.c_str());
+        std::string prefix = "hi";
+        s_server->serve_file(file, prefix, odr::HtmlConfig());
+        return env->NewStringUTF(prefix.c_str());
     } catch (...) {
         __android_log_print(ANDROID_LOG_ERROR, "smn", "error");
         return env->NewStringUTF("error");

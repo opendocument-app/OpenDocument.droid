@@ -14,7 +14,7 @@ public class CoreHttpLoader extends FileLoader {
     private CoreWrapper lastCore;
 
     public CoreHttpLoader(Context context, ConfigManager configManager) {
-        super(context, LoaderType.ODF);
+        super(context, LoaderType.CORE);
 
         this.configManager = configManager;
     }
