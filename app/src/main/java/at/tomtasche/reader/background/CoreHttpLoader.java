@@ -3,6 +3,8 @@ package at.tomtasche.reader.background;
 import android.content.Context;
 import android.net.Uri;
 
+import com.viliussutkus89.android.assetextractor.AssetExtractor;
+
 import java.io.File;
 
 import at.tomtasche.reader.nonfree.ConfigManager;
@@ -17,6 +19,10 @@ public class CoreHttpLoader extends FileLoader {
         super(context, LoaderType.CORE);
 
         this.configManager = configManager;
+
+        AssetExtractor ae = new AssetExtractor(context.getAssets());
+        ae.setNoOverwrite();
+        ae.extract(new File(context.getFilesDir(), "assets"), ".");
     }
 
     @Override

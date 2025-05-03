@@ -22,7 +22,6 @@ tasks.register('conanProfile', Copy) {
         profile.set('build/conanprofile.txt')
         deployer.set('conandeployer.py')
         deployerFolder.set(outputDirectory.get().asFile.toString() + "/assets")
-        conanExecutable.set('/Users/andreas/odr/venv/bin/conan')
         dependsOn(tasks.named('conanProfile'))
     }
 }
@@ -151,6 +150,7 @@ dependencies {
     implementation 'app.opendocument:pdf2htmlex-android:0.18.26'
     implementation 'app.opendocument:wvware-android:1.2.11'
     implementation 'com.github.huzongyao:AndroidMagic:v1.1.2'
+    implementation 'com.viliussutkus89:assetextractor-android:1.3.3'
 
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
     androidTestImplementation 'androidx.test:rules:1.6.1'

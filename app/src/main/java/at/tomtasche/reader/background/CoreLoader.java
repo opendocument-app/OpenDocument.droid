@@ -4,11 +4,13 @@ import android.content.Context;
 import android.net.Uri;
 import android.webkit.MimeTypeMap;
 
+import com.viliussutkus89.android.assetextractor.AssetExtractor;
+
 import java.io.File;
 
 import at.tomtasche.reader.nonfree.ConfigManager;
 
-public class OdrCoreLoader extends FileLoader {
+public class CoreLoader extends FileLoader {
 
     private final ConfigManager configManager;
 
@@ -17,11 +19,15 @@ public class OdrCoreLoader extends FileLoader {
 
     private final boolean doOoxml;
 
-    public OdrCoreLoader(Context context, ConfigManager configManager, boolean doOOXML) {
+    public CoreLoader(Context context, ConfigManager configManager, boolean doOOXML) {
         super(context, LoaderType.CORE);
 
         this.configManager = configManager;
         this.doOoxml = doOOXML;
+
+        AssetExtractor ae = new AssetExtractor(context.getAssets());
+        ae.setNoOverwrite();
+        ae.extract(new File(context.getFilesDir(), "assets"), ".");
     }
 
     @Override

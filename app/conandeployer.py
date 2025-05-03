@@ -15,12 +15,16 @@ def deploy(graph, output_folder: str, **kwargs):
 
     print(f"Dependencies: {list(deps.keys())}")
 
+    copytree_kwargs = {"symlinks": symlinks, "dirs_exist_ok": True}
+
     if "odrcore" in deps:
         dep = deps["odrcore"]
         conanfile.output.info(f"Deploying odrcore to {output_folder}")
-        # nothing to deploy so far
-
-    copytree_kwargs = {"symlinks": symlinks, "dirs_exist_ok": True}
+        shutil.copytree(
+            f"{dep.package_folder}/share",
+            f"{output_folder}/odrcore",
+            **copytree_kwargs,
+        )
 
     if "pdf2htmlex" in deps:
         dep = deps["pdf2htmlex"]
