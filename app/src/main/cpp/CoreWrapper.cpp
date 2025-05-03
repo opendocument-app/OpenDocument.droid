@@ -70,6 +70,9 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
         jfieldID txtField = env->GetFieldID(optionsClass, "txt", "Z");
         jboolean txt = env->GetBooleanField(options, txtField);
 
+        jfieldID pdfField = env->GetFieldID(optionsClass, "pdf", "Z");
+        jboolean pdf = env->GetBooleanField(options, pdfField);
+
         jfieldID pagingField = env->GetFieldID(optionsClass, "paging", "Z");
         jboolean paging = env->GetBooleanField(options, pagingField);
 
@@ -110,6 +113,11 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
             }
 
             if (!txt && fileCategory == odr::FileCategory::text) {
+                env->SetIntField(result, errorField, -5);
+                return result;
+            }
+
+            if (!pdf && file.file_type() == odr::FileType::portable_document_format) {
                 env->SetIntField(result, errorField, -5);
                 return result;
             }

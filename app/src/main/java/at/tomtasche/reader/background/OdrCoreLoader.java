@@ -2,34 +2,39 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Environment;
-import android.os.Handler;
 import android.webkit.MimeTypeMap;
 
 import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-import java.util.concurrent.TimeoutException;
 
-import at.tomtasche.reader.nonfree.AnalyticsManager;
-import at.tomtasche.reader.nonfree.CrashManager;
+import at.tomtasche.reader.nonfree.ConfigManager;
 
-public class OoxmlLoader extends FileLoader {
+public class OdrCoreLoader extends FileLoader {
+
+    private final ConfigManager configManager;
 
     private CoreWrapper lastCore;
     private CoreWrapper.CoreOptions lastCoreOptions;
 
-    public OoxmlLoader(Context context) {
-        super(context, LoaderType.OOXML);
+    private final boolean doOoxml;
+
+    public OdrCoreLoader(Context context, ConfigManager configManager, boolean doOOXML) {
+        super(context, LoaderType.CORE);
+
+        this.configManager = configManager;
+        this.doOoxml = doOOXML;
     }
 
     @Override
     public boolean isSupported(Options options) {
-        // TODO: enable xlsx and pptx too
-        return options.fileType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document") /*|| options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") || options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.presentation")*/;
+        return options.fileType.startsWith("application/vnd.oasis.opendocument") ||
+                options.fileType.startsWith("application/x-vnd.oasis.opendocument") ||
+                options.fileType.startsWith("application/vnd.oasis.opendocument.text-master") ||
+                (this.doOoxml && (
+                        options.fileType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                        // TODO: enable xlsx and pptx too
+                        //options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ||
+                        //options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.presentation");
+                ));
     }
 
     @Override
@@ -52,10 +57,11 @@ public class OoxmlLoader extends FileLoader {
     }
 
     private void translate(Options options, Result result) throws Exception {
-        File cacheFile = AndroidFileCache.getCacheFile(context, options.cacheUri);
+        File cachedFile = AndroidFileCache.getCacheFile(context, options.cacheUri);
 
         if (lastCore != null) {
             lastCore.close();
+            lastCore = null;
         }
 
         CoreWrapper core = new CoreWrapper();
@@ -65,25 +71,44 @@ public class OoxmlLoader extends FileLoader {
             crashManager.log(e);
         }
 
-        File cacheDirectory = AndroidFileCache.getCacheDirectory(cacheFile);
+        File cacheDirectory = AndroidFileCache.getCacheDirectory(cachedFile);
 
         CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
-        coreOptions.inputPath = cacheFile.getPath();
+        coreOptions.inputPath = cachedFile.getPath();
         coreOptions.outputPath = cacheDirectory.getPath();
         coreOptions.password = options.password;
         coreOptions.editable = options.translatable;
-        coreOptions.ooxml = true;
+        coreOptions.ooxml = doOoxml;
+        coreOptions.txt = false;
+        coreOptions.pdf = false;
+
+        Boolean usePaging = configManager.getBooleanConfig("use_paging");
+        if (usePaging == null || usePaging) {
+            coreOptions.paging = true;
+        }
 
         lastCoreOptions = coreOptions;
 
         CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
+
+        String coreExtension = coreResult.extension;
+        if (coreResult.exception == null && "pdf".equals(coreExtension)) {
+            // some PDFs do not cause an error in the core
+            // https://github.com/opendocument-app/OpenDocument.droid/issues/348#issuecomment-2446888981
+            throw new CoreWrapper.CoreCouldNotTranslateException();
+        } else if (!"unnamed".equals(coreExtension)) {
+            // "unnamed" refers to default of Meta::typeToString
+            options.fileExtension = coreExtension;
+
+            String fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreExtension);
+            if (fileType != null) {
+                options.fileType = fileType;
+            }
+        }
+
         if (coreResult.exception != null) {
             throw coreResult.exception;
         }
-
-        // fileType could potentially change after decrypting DOCX successfully for the first time
-        //  (not reported as DOCX prior)
-        options.fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreResult.extension);
 
         for (int i = 0; i < coreResult.pagePaths.size(); i++) {
             File entryFile = new File(coreResult.pagePaths.get(i));

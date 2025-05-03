@@ -366,11 +366,10 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         boolean isDarkModeSupported = true;
 
         switch (loaderType) {
-            case ODF:
-            case OOXML:
+            case CORE:
                 isEditEnabled = true;
                 break;
-            case PDF:
+            case PDF2HTMLEX:
                 isDarkModeSupported = false;
                 break;
             default:
@@ -421,7 +420,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
         if (result.loaderType == FileLoader.LoaderType.RAW || result.loaderType == FileLoader.LoaderType.ONLINE) {
             offerReopen(activity, options, R.string.toast_hint_unsupported_file, false);
-        } else if (result.loaderType == FileLoader.LoaderType.DOC || result.loaderType == FileLoader.LoaderType.OOXML || result.loaderType == FileLoader.LoaderType.PDF || result.loaderType == FileLoader.LoaderType.ODF) {
+        } else if (result.loaderType == FileLoader.LoaderType.CORE || result.loaderType == FileLoader.LoaderType.WVWARE || result.loaderType == FileLoader.LoaderType.PDF2HTMLEX) {
             offerUpload(activity, options, false);
         }
 
@@ -497,12 +496,12 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
                         // close dialog before progress is shown again
                         dialog.dismiss();
 
-                        if (result.loaderType == FileLoader.LoaderType.ODF) {
-                            loadWithType(FileLoader.LoaderType.ODF, options);
-                        } else if (result.loaderType == FileLoader.LoaderType.DOC) {
-                            loadWithType(FileLoader.LoaderType.DOC, options);
-                        } else if (result.loaderType == FileLoader.LoaderType.PDF) {
-                            loadWithType(FileLoader.LoaderType.PDF, options);
+                        if (result.loaderType == FileLoader.LoaderType.CORE) {
+                            loadWithType(FileLoader.LoaderType.CORE, options);
+                        } else if (result.loaderType == FileLoader.LoaderType.WVWARE) {
+                            loadWithType(FileLoader.LoaderType.WVWARE, options);
+                        } else if (result.loaderType == FileLoader.LoaderType.PDF2HTMLEX) {
+                            loadWithType(FileLoader.LoaderType.PDF2HTMLEX, options);
                         } else {
                             throw new RuntimeException("encryption not supported for type: " + result.loaderType);
                         }
@@ -524,13 +523,13 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         unload();
         dismissProgress();
 
-        if (result.loaderType == FileLoader.LoaderType.ODF) {
+        if (result.loaderType == FileLoader.LoaderType.CORE) {
             if (serviceQueue.getService().isOnlineSupported(options)) {
                 offerUpload(activity, options, true);
             } else {
                 offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
             }
-        } else if (result.loaderType == FileLoader.LoaderType.PDF || result.loaderType == FileLoader.LoaderType.OOXML || result.loaderType == FileLoader.LoaderType.DOC) {
+        } else if (result.loaderType == FileLoader.LoaderType.PDF2HTMLEX || result.loaderType == FileLoader.LoaderType.WVWARE) {
             offerUpload(activity, options, true);
         } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
             offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
