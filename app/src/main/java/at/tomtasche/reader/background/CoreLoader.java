@@ -2,13 +2,14 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
 import android.webkit.MimeTypeMap;
-
-import com.viliussutkus89.android.assetextractor.AssetExtractor;
 
 import java.io.File;
 
+import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.ConfigManager;
+import at.tomtasche.reader.nonfree.CrashManager;
 
 public class CoreLoader extends FileLoader {
 
@@ -18,24 +19,36 @@ public class CoreLoader extends FileLoader {
     private CoreWrapper.CoreOptions lastCoreOptions;
 
     private final boolean doOoxml;
+    private final boolean doHttp;
 
-    public CoreLoader(Context context, ConfigManager configManager, boolean doOOXML) {
+    private Thread httpThread;
+
+    public CoreLoader(Context context, ConfigManager configManager, boolean doOoxml, boolean doHttp) {
         super(context, LoaderType.CORE);
 
         this.configManager = configManager;
-        this.doOoxml = doOOXML;
+        this.doOoxml = doOoxml;
+        this.doHttp = doHttp;
 
-        File assetsDirectory = new File(context.getFilesDir(), "assets");
+        CoreWrapper.initialize(context);
+    }
 
-        AssetExtractor ae = new AssetExtractor(context.getAssets());
-        ae.setNoOverwrite();
-        ae.extract(assetsDirectory, "");
+    @Override
+    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager, CrashManager crashManager) {
+        if (doHttp) {
+            CoreWrapper.createServer(context.getCacheDir().getAbsolutePath() + "/core");
 
-        CoreWrapper.GlobalParams globalParams = new CoreWrapper.GlobalParams();
-        globalParams.coreDataPath = new File(assetsDirectory, "odrcore").getPath();
-        globalParams.fontconfigDataPath = new File(assetsDirectory, "fontconfig").getPath();
-        globalParams.popplerDataPath = new File(assetsDirectory, "poppler").getPath();
-        globalParams.pdf2htmlexDataPath = new File(assetsDirectory, "pdf2htmlex").getPath();
+            httpThread = new Thread(() -> {
+                try {
+                    CoreWrapper.listenServer(29665);
+                } catch (Throwable e) {
+                    crashManager.log(e);
+                }
+            });
+            httpThread.start();
+        }
+
+        super.initialize(listener, mainHandler, backgroundHandler, analyticsManager, crashManager);
     }
 
     @Override
@@ -103,6 +116,16 @@ public class CoreLoader extends FileLoader {
 
         lastCoreOptions = coreOptions;
 
+        if (doHttp) {
+            String prefix = "hi";
+            CoreWrapper.hostFile(prefix, coreOptions);
+
+            result.partTitles.add("document");
+            result.partUris.add(Uri.parse("http://localhost:29665/file/" + prefix + "/document"));
+
+            return;
+        }
+
         CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
 
         String coreExtension = coreResult.extension;
@@ -134,6 +157,10 @@ public class CoreLoader extends FileLoader {
 
     @Override
     public File retranslate(Options options, String htmlDiff) {
+        if (doHttp) {
+            return null; // TODO
+        }
+
         if (lastCore == null) {
             // necessary if fragment was destroyed in the meanwhile - meaning the Loader is reinstantiated
 
@@ -169,6 +196,16 @@ public class CoreLoader extends FileLoader {
     @Override
     public void close() {
         super.close();
+
+        if (httpThread != null) {
+            CoreWrapper.stopServer();
+            try {
+                httpThread.join(1000);
+            } catch (InterruptedException e) {
+                crashManager.log(e);
+            }
+            httpThread = null;
+        }
 
         if (lastCore != null) {
             lastCore.close();

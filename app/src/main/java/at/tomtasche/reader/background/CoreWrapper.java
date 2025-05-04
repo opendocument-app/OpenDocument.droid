@@ -1,5 +1,10 @@
 package at.tomtasche.reader.background;
 
+import android.content.Context;
+
+import com.viliussutkus89.android.assetextractor.AssetExtractor;
+
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,7 +22,28 @@ public class CoreWrapper {
         public String pdf2htmlexDataPath;
     }
 
-    private static native void setGlobalParams(GlobalParams params);
+    public static native void setGlobalParams(GlobalParams params);
+
+    public static void initialize(Context context) {
+        File assetsDirectory = new File(context.getFilesDir(), "assets");
+        File odrCoreDataDirectory = new File(assetsDirectory, "odrcore");
+        File fontconfigDataDirectory = new File(assetsDirectory, "fontconfig");
+        File popplerDataDirectory = new File(assetsDirectory, "poppler");
+        File pdf2htmlexDataDirectory = new File(assetsDirectory, "pdf2htmlex");
+
+        AssetExtractor ae = new AssetExtractor(context.getAssets());
+        ae.extract(assetsDirectory, "odrcore");
+        ae.extract(assetsDirectory, "fontconfig");
+        ae.extract(assetsDirectory, "poppler");
+        ae.extract(assetsDirectory, "pdf2htmlex");
+
+        CoreWrapper.GlobalParams globalParams = new CoreWrapper.GlobalParams();
+        globalParams.coreDataPath = odrCoreDataDirectory.getAbsolutePath();
+        globalParams.fontconfigDataPath = fontconfigDataDirectory.getAbsolutePath();
+        globalParams.popplerDataPath = popplerDataDirectory.getAbsolutePath();
+        globalParams.pdf2htmlexDataPath = pdf2htmlexDataDirectory.getAbsolutePath();
+        CoreWrapper.setGlobalParams(globalParams);
+    }
 
     public static class CoreOptions {
 

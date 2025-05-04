@@ -39,11 +39,8 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
     private WvwareDocLoader wvwareDocLoader;
     private RawLoader rawLoader;
     private OnlineLoader onlineLoader;
-    private CoreHttpLoader coreHttpLoader;
 
     private LoaderListener currentListener;
-
-    private Thread httpThread;
 
     @Override
     public synchronized void onCreate() {
@@ -63,7 +60,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         metadataLoader = new MetadataLoader(context);
         metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
-        coreLoader = new CoreLoader(context, configManager, true);
+        coreLoader = new CoreLoader(context, configManager, true, true);
         coreLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         pdf2htmlExLoader = new Pdf2htmlExLoader(context);
@@ -77,20 +74,6 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
         onlineLoader = new OnlineLoader(context, coreLoader);
         onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
-
-        coreHttpLoader = new CoreHttpLoader(context, configManager);
-        coreHttpLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
-
-        CoreWrapper.createServer(context.getCacheDir().getAbsolutePath() + "/core");
-
-        httpThread = new Thread(() -> {
-            try {
-                CoreWrapper.listenServer(29665);
-            } catch (Throwable e) {
-                crashManager.log(e);
-            }
-        });
-        httpThread.start();
     }
 
     // copied from MainActivity, consider how to deduplicate
