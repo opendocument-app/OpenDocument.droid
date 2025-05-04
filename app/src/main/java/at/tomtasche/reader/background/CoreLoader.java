@@ -3,6 +3,7 @@ package at.tomtasche.reader.background;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
+import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import java.io.File;
@@ -36,7 +37,11 @@ public class CoreLoader extends FileLoader {
     @Override
     public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager, CrashManager crashManager) {
         if (doHttp) {
-            CoreWrapper.createServer(context.getCacheDir().getAbsolutePath() + "/core");
+            File serverCacheDir = new File(context.getCacheDir(), "core");
+            if (!serverCacheDir.mkdirs()) {
+                Log.e("CoreLoader", "Failed to create cache directory for CoreWrapper server: " + serverCacheDir.getAbsolutePath());
+            }
+            CoreWrapper.createServer(serverCacheDir.getAbsolutePath());
 
             httpThread = new Thread(() -> {
                 try {
@@ -117,11 +122,11 @@ public class CoreLoader extends FileLoader {
         lastCoreOptions = coreOptions;
 
         if (doHttp) {
-            String prefix = "hi";
+            String prefix = "odr";
             CoreWrapper.hostFile(prefix, coreOptions);
 
             result.partTitles.add("document");
-            result.partUris.add(Uri.parse("http://localhost:29665/file/" + prefix + "/document"));
+            result.partUris.add(Uri.parse("http://localhost:29665/file/" + prefix + "/document.html"));
 
             return;
         }

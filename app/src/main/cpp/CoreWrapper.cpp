@@ -287,6 +287,10 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFile(JNIEnv *env, jclass cla
     decodePreference.engine_priority = {odr::DecoderEngine::poppler, odr::DecoderEngine::wvware, odr::DecoderEngine::odr};
     odr::DecodedFile file = odr::open(inputPathCpp, decodePreference);
 
+    odr::HtmlConfig htmlConfig;
+    htmlConfig.embed_images = false;
+    htmlConfig.embed_shipped_resources = false;
+
     try {
         s_server->serve_file(file, prefixCpp, odr::HtmlConfig());
     } catch (const std::exception &e) {
