@@ -132,7 +132,7 @@ public class CoreWrapper {
 
     public static native void createServer(String outputPath);
 
-    public static native void hostFile(String prefix, CoreOptions options);
+    public static native CoreResult hostFile(String prefix, CoreOptions options);
 
     public static native void listenServer(int port);
 

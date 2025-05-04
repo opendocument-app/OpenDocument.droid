@@ -276,9 +276,24 @@ Java_at_tomtasche_reader_background_CoreWrapper_createServer(JNIEnv *env, jclass
     s_server = odr::HttpServer(config);
 }
 
-JNIEXPORT void JNICALL
+JNIEXPORT jobject JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_hostFile(JNIEnv *env, jclass clazz, jstring prefix, jobject options) {
     __android_log_print(ANDROID_LOG_INFO, "smn", "host file");
+
+    jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
+    jmethodID resultConstructor = env->GetMethodID(resultClass, "<init>", "()V");
+    jobject result = env->NewObject(resultClass, resultConstructor);
+
+    jfieldID errorField = env->GetFieldID(resultClass, "errorCode", "I");
+
+    jclass listClass = env->FindClass("java/util/List");
+    jmethodID addMethod = env->GetMethodID(listClass, "add", "(Ljava/lang/Object;)Z");
+
+    jfieldID pageNamesField = env->GetFieldID(resultClass, "pageNames", "Ljava/util/List;");
+    auto pageNames = (jobject) env->GetObjectField(result, pageNamesField);
+
+    jfieldID pagePathsField = env->GetFieldID(resultClass, "pagePaths", "Ljava/util/List;");
+    auto pagePaths = (jobject) env->GetObjectField(result, pagePathsField);
 
     std::string inputPathCpp = getStringField(env, options, "inputPath");
     std::string prefixCpp = convertString(env, prefix);
@@ -292,12 +307,29 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFile(JNIEnv *env, jclass cla
     htmlConfig.embed_shipped_resources = false;
 
     try {
-        s_server->serve_file(file, prefixCpp, odr::HtmlConfig());
+        odr::HtmlViews htmlViews = s_server->serve_file(file, prefixCpp, odr::HtmlConfig());
+
+        for (const auto &view: htmlViews) {
+            if (file.is_document_file() &&
+                file.document_file().document_type() != odr::DocumentType::text &&
+                view.name() == "document") {
+                continue;
+            }
+
+            jstring pageName = env->NewStringUTF(view.name().c_str());
+            env->CallBooleanMethod(pageNames, addMethod, pageName);
+
+            std::string pagePathCpp = "http://localhost:29665/file/" + prefixCpp + "/" + view.path();
+            jstring pagePath = env->NewStringUTF(pagePathCpp.c_str());
+            env->CallBooleanMethod(pagePaths, addMethod, pagePath);
+        }
     } catch (const std::exception &e) {
         __android_log_print(ANDROID_LOG_ERROR, "smn", "Unhandled C++ exception: %s", e.what());
     } catch (...) {
         __android_log_print(ANDROID_LOG_ERROR, "smn", "Unhandled C++ exception without further information");
     }
+
+    return result;
 }
 
 JNIEXPORT void JNICALL

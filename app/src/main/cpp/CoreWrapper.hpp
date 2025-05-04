@@ -21,7 +21,7 @@ extern "C" {
     JNIEXPORT void JNICALL
     Java_at_tomtasche_reader_background_CoreWrapper_createServer(JNIEnv *env, jclass clazz, jstring outputPath);
 
-    JNIEXPORT void JNICALL
+    JNIEXPORT jobject JNICALL
     Java_at_tomtasche_reader_background_CoreWrapper_hostFile(JNIEnv *env, jclass clazz, jstring prefix, jobject options);
 
     JNIEXPORT void JNICALL

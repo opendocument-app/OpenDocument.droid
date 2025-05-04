@@ -122,41 +122,44 @@ public class CoreLoader extends FileLoader {
         lastCoreOptions = coreOptions;
 
         if (doHttp) {
-            String prefix = "odr";
-            CoreWrapper.hostFile(prefix, coreOptions);
+            CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("odr", coreOptions);
 
-            result.partTitles.add("document");
-            result.partUris.add(Uri.parse("http://localhost:29665/file/" + prefix + "/document.html"));
-
-            return;
-        }
-
-        CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
-
-        String coreExtension = coreResult.extension;
-        if (coreResult.exception == null && "pdf".equals(coreExtension)) {
-            // some PDFs do not cause an error in the core
-            // https://github.com/opendocument-app/OpenDocument.droid/issues/348#issuecomment-2446888981
-            throw new CoreWrapper.CoreCouldNotTranslateException();
-        } else if (!"unnamed".equals(coreExtension)) {
-            // "unnamed" refers to default of Meta::typeToString
-            options.fileExtension = coreExtension;
-
-            String fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreExtension);
-            if (fileType != null) {
-                options.fileType = fileType;
+            if (coreResult.exception != null) {
+                throw coreResult.exception;
             }
-        }
 
-        if (coreResult.exception != null) {
-            throw coreResult.exception;
-        }
+            for (int i = 0; i < coreResult.pagePaths.size(); i++) {
+                result.partTitles.add(coreResult.pageNames.get(i));
+                result.partUris.add(Uri.parse(coreResult.pagePaths.get(i)));
+            }
+        } else {
+            CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
 
-        for (int i = 0; i < coreResult.pagePaths.size(); i++) {
-            File entryFile = new File(coreResult.pagePaths.get(i));
+            String coreExtension = coreResult.extension;
+            if (coreResult.exception == null && "pdf".equals(coreExtension)) {
+                // some PDFs do not cause an error in the core
+                // https://github.com/opendocument-app/OpenDocument.droid/issues/348#issuecomment-2446888981
+                throw new CoreWrapper.CoreCouldNotTranslateException();
+            } else if (!"unnamed".equals(coreExtension)) {
+                // "unnamed" refers to default of Meta::typeToString
+                options.fileExtension = coreExtension;
 
-            result.partTitles.add(coreResult.pageNames.get(i));
-            result.partUris.add(Uri.fromFile(entryFile));
+                String fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreExtension);
+                if (fileType != null) {
+                    options.fileType = fileType;
+                }
+            }
+
+            if (coreResult.exception != null) {
+                throw coreResult.exception;
+            }
+
+            for (int i = 0; i < coreResult.pagePaths.size(); i++) {
+                File entryFile = new File(coreResult.pagePaths.get(i));
+
+                result.partTitles.add(coreResult.pageNames.get(i));
+                result.partUris.add(Uri.fromFile(entryFile));
+            }
         }
     }
 
