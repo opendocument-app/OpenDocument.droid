@@ -20,9 +20,17 @@ public class CoreHttpLoader extends FileLoader {
 
         this.configManager = configManager;
 
+        File assetsDirectory = new File(context.getFilesDir(), "assets");
+
         AssetExtractor ae = new AssetExtractor(context.getAssets());
         ae.setNoOverwrite();
-        ae.extract(new File(context.getFilesDir(), "assets"), ".");
+        ae.extract(assetsDirectory, "");
+
+        CoreWrapper.GlobalParams globalParams = new CoreWrapper.GlobalParams();
+        globalParams.coreDataPath = new File(assetsDirectory, "odrcore").getPath();
+        globalParams.fontconfigDataPath = new File(assetsDirectory, "fontconfig").getPath();
+        globalParams.popplerDataPath = new File(assetsDirectory, "poppler").getPath();
+        globalParams.pdf2htmlexDataPath = new File(assetsDirectory, "pdf2htmlex").getPath();
     }
 
     @Override
@@ -78,10 +86,11 @@ public class CoreHttpLoader extends FileLoader {
             coreOptions.paging = true;
         }
 
-        String id = CoreWrapper.hostFile(coreOptions);
+        String prefix = "hi";
+        CoreWrapper.hostFile(prefix, coreOptions);
 
         result.partTitles.add("document");
-        result.partUris.add(Uri.parse("http://localhost:29665/" + id + "/document.html"));
+        result.partUris.add(Uri.parse("http://localhost:29665/" + prefix + "/document.html"));
     }
 
     @Override

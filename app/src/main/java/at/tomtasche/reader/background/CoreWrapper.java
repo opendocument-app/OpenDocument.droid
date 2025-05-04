@@ -9,6 +9,32 @@ public class CoreWrapper {
         System.loadLibrary("odr-core");
     }
 
+    public static class GlobalParams {
+
+        public String coreDataPath;
+        public String fontconfigDataPath;
+        public String popplerDataPath;
+        public String pdf2htmlexDataPath;
+    }
+
+    private static native void setGlobalParams(GlobalParams params);
+
+    public static class CoreOptions {
+
+        public boolean ooxml;
+        public boolean txt;
+        public boolean pdf;
+
+        public boolean editable;
+
+        public boolean paging;
+
+        public String password;
+
+        public String inputPath;
+        public String outputPath;
+    }
+
     public static CoreResult parse(CoreOptions options) {
         CoreResult result = parseNative(options);
 
@@ -78,45 +104,13 @@ public class CoreWrapper {
 
     private static native void closeNative(CoreOptions options);
 
-    public static void createServer(String outputPath) {
-        createServerNative(outputPath);
-    }
+    public static native void createServer(String outputPath);
 
-    private static native void createServerNative(String outputPath);
+    public static native void hostFile(String prefix, CoreOptions options);
 
-    public static String hostFile(CoreOptions options) {
-        return hostFileNative(options);
-    }
+    public static native void listenServer(int port);
 
-    private static native String hostFileNative(CoreOptions options);
-
-    public static void listenServer() {
-        listenServerNative();
-    }
-
-    private static native void listenServerNative();
-
-    public static void stopServer() {
-        stopServerNative();
-    }
-
-    private static native void stopServerNative();
-
-    public static class CoreOptions {
-
-        public boolean ooxml;
-        public boolean txt;
-        public boolean pdf;
-
-        public boolean editable;
-
-        public boolean paging;
-
-        public String password;
-
-        public String inputPath;
-        public String outputPath;
-    }
+    public static native void stopServer();
 
     public static class CoreResult {
 

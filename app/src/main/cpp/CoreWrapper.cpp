@@ -6,6 +6,7 @@
 #include <odr/odr.hpp>
 #include <odr/exceptions.hpp>
 #include <odr/http_server.hpp>
+#include <odr/global_params.hpp>
 
 #include <android/log.h>
 
@@ -13,13 +14,47 @@
 #include <optional>
 #include <filesystem>
 
+namespace {
+
+std::string convertString(JNIEnv *env, jstring string) {
+    jboolean isCopy;
+    const char* cstring = env->GetStringUTFChars(string, &isCopy);
+    auto cppstring = std::string(cstring, env->GetStringUTFLength(string));
+    env->ReleaseStringUTFChars(string, cstring);
+    return cppstring;
+}
+
+std::string getStringField(JNIEnv *env, jclass clazz, const char *name) {
+    jfieldID field = env->GetFieldID(clazz, name, "Ljava/lang/String;");
+    auto string = (jstring) env->GetObjectField(clazz, field);
+    return convertString(env, string);
+}
+
+}
+
 std::optional<odr::Html> s_html;
+
+JNIEXPORT void JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jclass clazz,
+                                                                jobject params) {
+    jboolean isCopy;
+
+    jclass paramsClass = env->GetObjectClass(params);
+
+    std::string odrCoreDataPath = getStringField(env, paramsClass, "coreDataPath");
+    std::string fontconfigDataPath = getStringField(env, paramsClass, "fontconfigDataPath");
+    std::string popplerDataPath = getStringField(env, paramsClass, "popplerDataPath");
+    std::string pdf2htmlexDataPath = getStringField(env, paramsClass, "pdf2htmlexDataPath");
+
+    odr::GlobalParams::set_odr_core_data_path(odrCoreDataPath);
+    odr::GlobalParams::set_fontconfig_data_path(fontconfigDataPath);
+    odr::GlobalParams::set_poppler_data_path(popplerDataPath);
+    odr::GlobalParams::set_pdf2htmlex_data_path(pdf2htmlexDataPath);
+}
 
 JNIEXPORT jobject JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass clazz,
                                                             jobject options) {
-    jboolean isCopy;
-
     jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
     jmethodID resultConstructor = env->GetMethodID(resultClass, "<init>", "()V");
     jobject result = env->NewObject(resultClass, resultConstructor);
@@ -27,33 +62,20 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
     jfieldID errorField = env->GetFieldID(resultClass, "errorCode", "I");
 
     jclass optionsClass = env->GetObjectClass(options);
-    jfieldID inputPathField = env->GetFieldID(optionsClass, "inputPath", "Ljava/lang/String;");
-    auto inputPath = (jstring) env->GetObjectField(options, inputPathField);
-
-    const auto inputPathC = env->GetStringUTFChars(inputPath, &isCopy);
-    auto inputPathCpp = std::string(inputPathC, env->GetStringUTFLength(inputPath));
-    env->ReleaseStringUTFChars(inputPath, inputPathC);
+    std::string inputPathCpp = getStringField(env, optionsClass, "inputPath");
 
     try {
         std::optional<std::string> passwordCpp;
         jfieldID passwordField = env->GetFieldID(optionsClass, "password", "Ljava/lang/String;");
         auto password = (jstring) env->GetObjectField(options, passwordField);
         if (password != nullptr) {
-            const auto passwordC = env->GetStringUTFChars(password, &isCopy);
-            passwordCpp = std::string(passwordC, env->GetStringUTFLength(password));
-            env->ReleaseStringUTFChars(password, passwordC);
+            passwordCpp = convertString(env, password);
         }
 
         jfieldID editableField = env->GetFieldID(optionsClass, "editable", "Z");
         jboolean editable = env->GetBooleanField(options, editableField);
 
-        jfieldID outputPathField = env->GetFieldID(optionsClass, "outputPath",
-                                                   "Ljava/lang/String;");
-        auto outputPath = (jstring) env->GetObjectField(options, outputPathField);
-
-        const auto outputPathC = env->GetStringUTFChars(outputPath, &isCopy);
-        auto outputPathCpp = std::string(outputPathC, env->GetStringUTFLength(outputPath));
-        env->ReleaseStringUTFChars(outputPath, outputPathC);
+        std::string outputPathCpp = getStringField(env, optionsClass, "outputPath");
 
         jclass listClass = env->FindClass("java/util/List");
         jmethodID addMethod = env->GetMethodID(listClass, "add", "(Ljava/lang/Object;)Z");
@@ -122,6 +144,16 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
                 return result;
             }
 
+            if (file.is_document_file()) {
+                odr::DocumentFile document_file = file.document_file();
+                if (document_file.password_encrypted()) {
+                    if (!passwordCpp.has_value() || !document_file.decrypt(passwordCpp.value())) {
+                        env->SetIntField(result, errorField, -2);
+                        return result;
+                    }
+                }
+            }
+
             odr::HtmlConfig config;
             config.editable = editable;
 
@@ -129,13 +161,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
                 config.text_document_margin = true;
             }
 
-            s_html = odr::html::translate(odr::File(inputPathCpp), outputPathCpp, config,
-                                          [&passwordCpp]() -> std::string {
-                if (passwordCpp.has_value()) {
-                    return passwordCpp.value();
-                }
-                return "";
-            });
+            s_html = odr::html::translate(file, outputPathCpp, config);
 
             {
                 const auto extensionCpp = odr::type_to_string(
@@ -158,9 +184,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
         } catch (odr::UnknownFileType &) {
             env->SetIntField(result, errorField, -5);
             return result;
-        } catch (odr::WrongPassword &) {
-            env->SetIntField(result, errorField, -2);
-            return result;
         } catch (odr::UnsupportedFileType &) {
             env->SetIntField(result, errorField, -5);
             return result;
@@ -181,8 +204,6 @@ JNIEXPORT jobject JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env, jclass clazz,
                                                                     jobject options,
                                                                     jstring htmlDiff) {
-    jboolean isCopy;
-
     jclass optionsClass = env->GetObjectClass(options);
 
     jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
@@ -192,15 +213,9 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
     jfieldID errorField = env->GetFieldID(resultClass, "errorCode", "I");
 
     try {
-        jfieldID outputPathPrefixField = env->GetFieldID(optionsClass, "outputPath",
-                                                         "Ljava/lang/String;");
-        jstring outputPathPrefix = (jstring) env->GetObjectField(options, outputPathPrefixField);
+        std::string outputPathPrefixCpp = getStringField(env, optionsClass, "outputPath");
 
-        const auto outputPathPrefixC = env->GetStringUTFChars(outputPathPrefix, &isCopy);
-        auto outputPathPrefixCpp = std::string(outputPathPrefixC,
-                                               env->GetStringUTFLength(outputPathPrefix));
-        env->ReleaseStringUTFChars(outputPathPrefix, outputPathPrefixC);
-
+        jboolean isCopy;
         const auto htmlDiffC = env->GetStringUTFChars(htmlDiff, &isCopy);
 
         const auto extension = odr::type_to_string(s_html->file_type());
@@ -246,10 +261,8 @@ Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jclass 
 std::optional<odr::HttpServer> s_server;
 
 JNIEXPORT void JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_createServerNative(JNIEnv *env, jclass clazz, jstring outputPath) {
-    const char* outputPathC = env->GetStringUTFChars(outputPath, nullptr);
-    std::string output_path = outputPathC;
-    env->ReleaseStringUTFChars(outputPath, outputPathC);
+Java_at_tomtasche_reader_background_CoreWrapper_createServer(JNIEnv *env, jclass clazz, jstring outputPath) {
+    std::string output_path = convertString(env, outputPath);
 
     std::filesystem::create_directories(output_path);
 
@@ -258,17 +271,14 @@ Java_at_tomtasche_reader_background_CoreWrapper_createServerNative(JNIEnv *env, 
     s_server = odr::HttpServer(config);
 }
 
-JNIEXPORT jstring JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jclass clazz, jobject options) {
+JNIEXPORT void JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_hostFile(JNIEnv *env, jclass clazz, jstring prefix, jobject options) {
     jboolean isCopy;
 
     jclass optionsClass = env->GetObjectClass(options);
-    jfieldID inputPathField = env->GetFieldID(optionsClass, "inputPath", "Ljava/lang/String;");
-    auto inputPath = (jstring) env->GetObjectField(options, inputPathField);
 
-    const auto inputPathC = env->GetStringUTFChars(inputPath, &isCopy);
-    auto inputPathCpp = std::string(inputPathC, env->GetStringUTFLength(inputPath));
-    env->ReleaseStringUTFChars(inputPath, inputPathC);
+    std::string inputPathCpp = getStringField(env, optionsClass, "inputPath");
+    std::string prefixCpp = convertString(env, prefix);
 
     odr::DecodePreference decodePreference;
 decodePreference.engine_priority = {
@@ -278,22 +288,19 @@ decodePreference.engine_priority = {
     __android_log_print(ANDROID_LOG_INFO, "smn", "file type %i", file.file_type());
 
     try {
-        std::string prefix = "hi";
-        s_server->serve_file(file, prefix, odr::HtmlConfig());
-        return env->NewStringUTF(prefix.c_str());
+        s_server->serve_file(file, prefixCpp, odr::HtmlConfig());
     } catch (...) {
         __android_log_print(ANDROID_LOG_ERROR, "smn", "error");
-        return env->NewStringUTF("error");
     }
 }
 
 JNIEXPORT void JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_listenServerNative(JNIEnv *env, jclass clazz) {
-    s_server->listen("127.0.0.1", 29665);
+Java_at_tomtasche_reader_background_CoreWrapper_listenServer(JNIEnv *env, jclass clazz, jint port) {
+    s_server->listen("127.0.0.1", port);
 }
 
 JNIEXPORT void JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_stopServerNative(JNIEnv *env, jclass clazz) {
+Java_at_tomtasche_reader_background_CoreWrapper_stopServer(JNIEnv *env, jclass clazz) {
     s_server->stop();
     s_server.reset();
 }

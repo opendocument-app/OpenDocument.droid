@@ -25,9 +25,17 @@ public class CoreLoader extends FileLoader {
         this.configManager = configManager;
         this.doOoxml = doOOXML;
 
+        File assetsDirectory = new File(context.getFilesDir(), "assets");
+
         AssetExtractor ae = new AssetExtractor(context.getAssets());
         ae.setNoOverwrite();
-        ae.extract(new File(context.getFilesDir(), "assets"), ".");
+        ae.extract(assetsDirectory, "");
+
+        CoreWrapper.GlobalParams globalParams = new CoreWrapper.GlobalParams();
+        globalParams.coreDataPath = new File(assetsDirectory, "odrcore").getPath();
+        globalParams.fontconfigDataPath = new File(assetsDirectory, "fontconfig").getPath();
+        globalParams.popplerDataPath = new File(assetsDirectory, "poppler").getPath();
+        globalParams.pdf2htmlexDataPath = new File(assetsDirectory, "pdf2htmlex").getPath();
     }
 
     @Override

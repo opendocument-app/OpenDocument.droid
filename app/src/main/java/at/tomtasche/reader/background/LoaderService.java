@@ -85,7 +85,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
         httpThread = new Thread(() -> {
             try {
-                CoreWrapper.listenServer();
+                CoreWrapper.listenServer(29665);
             } catch (Throwable e) {
                 crashManager.log(e);
             }
