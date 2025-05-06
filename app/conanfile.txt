@@ -1,5 +1,5 @@
 [requires]
-odrcore/5.0.0-pre5
+odrcore/5.0.0-pre6
 
 [generators]
 CMakeToolchain
