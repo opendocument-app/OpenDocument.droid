@@ -32,6 +32,7 @@ public class CoreWrapper {
         File pdf2htmlexDataDirectory = new File(assetsDirectory, "pdf2htmlex");
 
         AssetExtractor ae = new AssetExtractor(context.getAssets());
+        ae.setOverwrite();
         ae.extract(assetsDirectory, "odrcore");
         ae.extract(assetsDirectory, "fontconfig");
         ae.extract(assetsDirectory, "poppler");
@@ -130,7 +131,7 @@ public class CoreWrapper {
 
     private static native void closeNative(CoreOptions options);
 
-    public static native void createServer(String outputPath);
+    public static native void createServer(String cachePath);
 
     public static native CoreResult hostFile(String prefix, CoreOptions options);
 

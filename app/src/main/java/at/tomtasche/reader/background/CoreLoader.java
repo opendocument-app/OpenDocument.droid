@@ -16,7 +16,6 @@ public class CoreLoader extends FileLoader {
 
     private final ConfigManager configManager;
 
-    private CoreWrapper lastCore;
     private CoreWrapper.CoreOptions lastCoreOptions;
 
     private final boolean doOoxml;
@@ -37,7 +36,7 @@ public class CoreLoader extends FileLoader {
     @Override
     public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager, CrashManager crashManager) {
         if (doHttp) {
-            File serverCacheDir = new File(context.getCacheDir(), "core");
+            File serverCacheDir = new File(context.getCacheDir(), "core/server");
             if (!serverCacheDir.mkdirs()) {
                 Log.e("CoreLoader", "Failed to create cache directory for CoreWrapper server: " + serverCacheDir.getAbsolutePath());
             }
@@ -90,18 +89,6 @@ public class CoreLoader extends FileLoader {
 
     private void translate(Options options, Result result) throws Exception {
         File cachedFile = AndroidFileCache.getCacheFile(context, options.cacheUri);
-
-        if (lastCore != null) {
-            lastCore.close();
-            lastCore = null;
-        }
-
-        CoreWrapper core = new CoreWrapper();
-        try {
-            lastCore = core;
-        } catch (Throwable e) {
-            crashManager.log(e);
-        }
 
         File cacheDirectory = AndroidFileCache.getCacheDirectory(cachedFile);
 
@@ -169,7 +156,7 @@ public class CoreLoader extends FileLoader {
             return null; // TODO
         }
 
-        if (lastCore == null) {
+        if (lastCoreOptions == null) {
             // necessary if fragment was destroyed in the meanwhile - meaning the Loader is reinstantiated
 
             Result result = new Result();
@@ -191,7 +178,7 @@ public class CoreLoader extends FileLoader {
         lastCoreOptions.outputPath = tempFilePrefix.getPath();
 
         try {
-            CoreWrapper.CoreResult result = lastCore.backtranslate(lastCoreOptions, htmlDiff);
+            CoreWrapper.CoreResult result = CoreWrapper.backtranslate(lastCoreOptions, htmlDiff);
 
             return new File(result.outputPath);
         } catch (Throwable e) {
@@ -215,9 +202,6 @@ public class CoreLoader extends FileLoader {
             httpThread = null;
         }
 
-        if (lastCore != null) {
-            lastCore.close();
-            lastCore = null;
-        }
+        CoreWrapper.close();
     }
 }
