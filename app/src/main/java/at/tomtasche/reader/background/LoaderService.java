@@ -35,7 +35,6 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
     private MetadataLoader metadataLoader;
     private CoreLoader coreLoader;
-    private Pdf2htmlExLoader pdf2htmlExLoader;
     private WvwareDocLoader wvwareDocLoader;
     private RawLoader rawLoader;
     private OnlineLoader onlineLoader;
@@ -62,9 +61,6 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
         coreLoader = new CoreLoader(context, configManager, true, true);
         coreLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
-
-        pdf2htmlExLoader = new Pdf2htmlExLoader(context);
-        pdf2htmlExLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         wvwareDocLoader = new WvwareDocLoader(context);
         wvwareDocLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
@@ -123,9 +119,6 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
             case WVWARE:
                 loader = wvwareDocLoader;
                 break;
-            case PDF2HTMLEX:
-                loader = pdf2htmlExLoader;
-                break;
             case ONLINE:
                 loader = onlineLoader;
                 break;
@@ -183,9 +176,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         if (result.loaderType == FileLoader.LoaderType.CORE) {
             analyticsManager.report("load_odf_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
 
-            if (pdf2htmlExLoader.isSupported(options)) {
-                loadWithType(FileLoader.LoaderType.PDF2HTMLEX, options);
-            } else if (wvwareDocLoader.isSupported(options)) {
+            if (wvwareDocLoader.isSupported(options)) {
                 loadWithType(FileLoader.LoaderType.WVWARE, options);
             } else if (rawLoader.isSupported(options)) {
                 loadWithType(FileLoader.LoaderType.RAW, options);
@@ -275,10 +266,6 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
         if (coreLoader != null) {
             coreLoader.close();
-        }
-
-        if (pdf2htmlExLoader != null) {
-            pdf2htmlExLoader.close();
         }
 
         if (wvwareDocLoader != null) {
