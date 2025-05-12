@@ -140,6 +140,10 @@ public class PageView extends WebView implements ParagraphListener {
     public void toggleDarkMode(boolean isDarkEnabled) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             setForceDarkAllowed(isDarkEnabled);
+        }
+
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+            WebSettingsCompat.setAlgorithmicDarkeningAllowed(getSettings(), isDarkEnabled);
         } else if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
             WebSettingsCompat.setForceDark(getSettings(), isDarkEnabled ? WebSettingsCompat.FORCE_DARK_AUTO : WebSettingsCompat.FORCE_DARK_OFF);
         }

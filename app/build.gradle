@@ -21,8 +21,9 @@ tasks.register('conanProfile', Copy) {
     tasks.named("conanInstall-" + architecture) {
         profile.set('build/conanprofile.txt')
         deployer.set('conandeployer.py')
-        deployerFolder.set(outputDirectory.get().asFile.toString() + "/assets")
+        deployerFolder.set(outputDirectory.get().asFile.toString() + "/assets/core")
         dependsOn(tasks.named('conanProfile'))
+        conanExecutable.set('/Users/andreas/odr/venv/bin/conan')
     }
 }
 

@@ -360,9 +360,21 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFile(JNIEnv *env, jclass cla
         }
     } catch (const std::exception &e) {
         __android_log_print(ANDROID_LOG_ERROR, "smn", "Unhandled C++ exception: %s", e.what());
+        env->SetIntField(result, errorField, -1);
+        return result;
+    } catch (const std::string &s) {
+        __android_log_print(ANDROID_LOG_ERROR, "smn", "Unhandled C++ string exception: %s", s.c_str());
+        env->SetIntField(result, errorField, -1);
+        return result;
+    } catch (int i) {
+        __android_log_print(ANDROID_LOG_ERROR, "smn", "Unhandled C++ int exception: %i", i);
+        env->SetIntField(result, errorField, -1);
+        return result;
     } catch (...) {
         __android_log_print(ANDROID_LOG_ERROR, "smn",
                             "Unhandled C++ exception without further information");
+        env->SetIntField(result, errorField, -1);
+        return result;
     }
 
     return result;

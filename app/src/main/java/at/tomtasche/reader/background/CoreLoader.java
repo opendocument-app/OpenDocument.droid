@@ -37,7 +37,7 @@ public class CoreLoader extends FileLoader {
     public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager, CrashManager crashManager) {
         if (doHttp) {
             File serverCacheDir = new File(context.getCacheDir(), "core/server");
-            if (!serverCacheDir.mkdirs()) {
+            if (!serverCacheDir.isDirectory() && !serverCacheDir.mkdirs()) {
                 Log.e("CoreLoader", "Failed to create cache directory for CoreWrapper server: " + serverCacheDir.getAbsolutePath());
             }
             CoreWrapper.createServer(serverCacheDir.getAbsolutePath());

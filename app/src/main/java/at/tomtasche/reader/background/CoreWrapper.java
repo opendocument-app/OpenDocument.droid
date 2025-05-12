@@ -25,7 +25,7 @@ public class CoreWrapper {
     public static native void setGlobalParams(GlobalParams params);
 
     public static void initialize(Context context) {
-        File assetsDirectory = new File(context.getFilesDir(), "assets");
+        File assetsDirectory = new File(context.getFilesDir(), "assets/core");
         File odrCoreDataDirectory = new File(assetsDirectory, "odrcore");
         File fontconfigDataDirectory = new File(assetsDirectory, "fontconfig");
         File popplerDataDirectory = new File(assetsDirectory, "poppler");
@@ -33,10 +33,10 @@ public class CoreWrapper {
 
         AssetExtractor ae = new AssetExtractor(context.getAssets());
         ae.setOverwrite();
-        ae.extract(assetsDirectory, "odrcore");
-        ae.extract(assetsDirectory, "fontconfig");
-        ae.extract(assetsDirectory, "poppler");
-        ae.extract(assetsDirectory, "pdf2htmlex");
+        ae.extract(assetsDirectory, "core/odrcore");
+        ae.extract(assetsDirectory, "core/fontconfig");
+        ae.extract(assetsDirectory, "core/poppler");
+        ae.extract(assetsDirectory, "core/pdf2htmlex");
 
         CoreWrapper.GlobalParams globalParams = new CoreWrapper.GlobalParams();
         globalParams.coreDataPath = odrCoreDataDirectory.getAbsolutePath();
