@@ -30,7 +30,7 @@ def deploy(graph, output_folder: str, **kwargs):
         dep = deps["pdf2htmlex"]
         conanfile.output.info(f"Deploying pdf2htmlex to {output_folder}")
         shutil.copytree(
-            f"{dep.package_folder}/share/pdf2htmlex",
+            f"{dep.package_folder}/share/pdf2htmlEX",
             f"{output_folder}/pdf2htmlex",
             **copytree_kwargs,
         )
