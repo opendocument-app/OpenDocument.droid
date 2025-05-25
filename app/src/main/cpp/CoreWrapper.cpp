@@ -126,18 +126,24 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
 
             __android_log_print(ANDROID_LOG_VERBOSE, "smn", "Open %s", inputPathCpp.c_str());
 
-            const auto file = odr::open(inputPathCpp);
+            auto file = odr::open(inputPathCpp);
+
+            if (file.password_encrypted()) {
+                if (!passwordCpp.has_value()) {
+                    env->SetIntField(result, errorField, -2);
+                    return result;
+                }
+                try {
+                    file = file.decrypt(passwordCpp.value());
+                } catch (...) {
+                    env->SetIntField(result, errorField, -2);
+                    return result;
+                }
+            }
 
             if (file.is_document_file()) {
-                odr::DocumentFile document_file = file.document_file();
-                if (document_file.password_encrypted()) {
-                    if (!passwordCpp.has_value() || !document_file.decrypt(passwordCpp.value())) {
-                        env->SetIntField(result, errorField, -2);
-                        return result;
-                    }
-                }
                 // TODO this will cause a second load
-                s_document = document_file.document();
+                s_document = file.document_file().document();
             }
 
             extensionCpp = odr::type_to_string(file.file_type());
@@ -317,16 +323,22 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFile(JNIEnv *env, jclass cla
                                         odr::DecoderEngine::odr};
     odr::DecodedFile file = odr::open(inputPathCpp, decodePreference);
 
-    if (file.is_document_file()) {
-        odr::DocumentFile document_file = file.document_file();
-        if (document_file.password_encrypted()) {
-            if (!passwordCpp.has_value() || !document_file.decrypt(passwordCpp.value())) {
-                env->SetIntField(result, errorField, -2);
-                return result;
-            }
+    if (file.password_encrypted()) {
+        if (!passwordCpp.has_value()) {
+            env->SetIntField(result, errorField, -2);
+            return result;
         }
+        try {
+            file = file.decrypt(passwordCpp.value());
+        } catch (...) {
+            env->SetIntField(result, errorField, -2);
+            return result;
+        }
+    }
+
+    if (file.is_document_file()) {
         // TODO this will cause a second load
-        s_document = document_file.document();
+        s_document = file.document_file().document();
     }
 
     odr::HtmlConfig htmlConfig;
