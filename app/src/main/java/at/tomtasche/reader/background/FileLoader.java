@@ -20,7 +20,6 @@ public abstract class FileLoader {
     public enum LoaderType {
         CORE,
         WVWARE,
-        PDF2HTMLEX,
         ONLINE,
         RAW,
         METADATA

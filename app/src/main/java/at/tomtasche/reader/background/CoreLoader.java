@@ -2,26 +2,57 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
+import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import java.io.File;
 
+import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.ConfigManager;
+import at.tomtasche.reader.nonfree.CrashManager;
 
-public class OdrCoreLoader extends FileLoader {
+public class CoreLoader extends FileLoader {
 
     private final ConfigManager configManager;
 
-    private CoreWrapper lastCore;
     private CoreWrapper.CoreOptions lastCoreOptions;
 
     private final boolean doOoxml;
+    private final boolean doHttp;
 
-    public OdrCoreLoader(Context context, ConfigManager configManager, boolean doOOXML) {
+    private Thread httpThread;
+
+    public CoreLoader(Context context, ConfigManager configManager, boolean doOoxml, boolean doHttp) {
         super(context, LoaderType.CORE);
 
         this.configManager = configManager;
-        this.doOoxml = doOOXML;
+        this.doOoxml = doOoxml;
+        this.doHttp = doHttp;
+
+        CoreWrapper.initialize(context);
+    }
+
+    @Override
+    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager, CrashManager crashManager) {
+        if (doHttp) {
+            File serverCacheDir = new File(context.getCacheDir(), "core/server");
+            if (!serverCacheDir.isDirectory() && !serverCacheDir.mkdirs()) {
+                Log.e("CoreLoader", "Failed to create cache directory for CoreWrapper server: " + serverCacheDir.getAbsolutePath());
+            }
+            CoreWrapper.createServer(serverCacheDir.getAbsolutePath());
+
+            httpThread = new Thread(() -> {
+                try {
+                    CoreWrapper.listenServer(29665);
+                } catch (Throwable e) {
+                    crashManager.log(e);
+                }
+            });
+            httpThread.start();
+        }
+
+        super.initialize(listener, mainHandler, backgroundHandler, analyticsManager, crashManager);
     }
 
     @Override
@@ -59,20 +90,6 @@ public class OdrCoreLoader extends FileLoader {
     private void translate(Options options, Result result) throws Exception {
         File cachedFile = AndroidFileCache.getCacheFile(context, options.cacheUri);
 
-        if (lastCore != null) {
-            lastCore.close();
-            lastCore = null;
-        }
-
-        CoreWrapper core = new CoreWrapper();
-        try {
-            core.initialize();
-
-            lastCore = core;
-        } catch (Throwable e) {
-            crashManager.log(e);
-        }
-
         File cacheDirectory = AndroidFileCache.getCacheDirectory(cachedFile);
 
         CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
@@ -91,38 +108,51 @@ public class OdrCoreLoader extends FileLoader {
 
         lastCoreOptions = coreOptions;
 
-        CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
+        if (doHttp) {
+            CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("odr", coreOptions);
 
-        String coreExtension = coreResult.extension;
-        if (coreResult.exception == null && "pdf".equals(coreExtension)) {
-            // some PDFs do not cause an error in the core
-            // https://github.com/opendocument-app/OpenDocument.droid/issues/348#issuecomment-2446888981
-            throw new CoreWrapper.CoreCouldNotTranslateException();
-        } else if (!"unnamed".equals(coreExtension)) {
-            // "unnamed" refers to default of Meta::typeToString
-            options.fileExtension = coreExtension;
-
-            String fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreExtension);
-            if (fileType != null) {
-                options.fileType = fileType;
+            if (coreResult.exception != null) {
+                throw coreResult.exception;
             }
-        }
 
-        if (coreResult.exception != null) {
-            throw coreResult.exception;
-        }
+            for (int i = 0; i < coreResult.pagePaths.size(); i++) {
+                result.partTitles.add(coreResult.pageNames.get(i));
+                result.partUris.add(Uri.parse(coreResult.pagePaths.get(i)));
+            }
+        } else {
+            CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
 
-        for (int i = 0; i < coreResult.pagePaths.size(); i++) {
-            File entryFile = new File(coreResult.pagePaths.get(i));
+            String coreExtension = coreResult.extension;
+            if (coreResult.exception == null && "pdf".equals(coreExtension)) {
+                // some PDFs do not cause an error in the core
+                // https://github.com/opendocument-app/OpenDocument.droid/issues/348#issuecomment-2446888981
+                throw new CoreWrapper.CoreCouldNotTranslateException();
+            } else if (!"unnamed".equals(coreExtension)) {
+                // "unnamed" refers to default of Meta::typeToString
+                options.fileExtension = coreExtension;
 
-            result.partTitles.add(coreResult.pageNames.get(i));
-            result.partUris.add(Uri.fromFile(entryFile));
+                String fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreExtension);
+                if (fileType != null) {
+                    options.fileType = fileType;
+                }
+            }
+
+            if (coreResult.exception != null) {
+                throw coreResult.exception;
+            }
+
+            for (int i = 0; i < coreResult.pagePaths.size(); i++) {
+                File entryFile = new File(coreResult.pagePaths.get(i));
+
+                result.partTitles.add(coreResult.pageNames.get(i));
+                result.partUris.add(Uri.fromFile(entryFile));
+            }
         }
     }
 
     @Override
     public File retranslate(Options options, String htmlDiff) {
-        if (lastCore == null) {
+        if (lastCoreOptions == null) {
             // necessary if fragment was destroyed in the meanwhile - meaning the Loader is reinstantiated
 
             Result result = new Result();
@@ -144,7 +174,7 @@ public class OdrCoreLoader extends FileLoader {
         lastCoreOptions.outputPath = tempFilePrefix.getPath();
 
         try {
-            CoreWrapper.CoreResult result = lastCore.backtranslate(lastCoreOptions, htmlDiff);
+            CoreWrapper.CoreResult result = CoreWrapper.backtranslate(lastCoreOptions, htmlDiff);
 
             return new File(result.outputPath);
         } catch (Throwable e) {
@@ -158,9 +188,16 @@ public class OdrCoreLoader extends FileLoader {
     public void close() {
         super.close();
 
-        if (lastCore != null) {
-            lastCore.close();
-            lastCore = null;
+        if (httpThread != null) {
+            CoreWrapper.stopServer();
+            try {
+                httpThread.join(1000);
+            } catch (InterruptedException e) {
+                crashManager.log(e);
+            }
+            httpThread = null;
         }
+
+        CoreWrapper.close();
     }
 }

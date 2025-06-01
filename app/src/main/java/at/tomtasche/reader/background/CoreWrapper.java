@@ -1,15 +1,68 @@
 package at.tomtasche.reader.background;
 
+import android.content.Context;
+
+import com.viliussutkus89.android.assetextractor.AssetExtractor;
+
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
 public class CoreWrapper {
 
-    public void initialize() {
+    static {
         System.loadLibrary("odr-core");
     }
 
-    public CoreResult parse(CoreOptions options) {
+    public static class GlobalParams {
+
+        public String coreDataPath;
+        public String fontconfigDataPath;
+        public String popplerDataPath;
+        public String pdf2htmlexDataPath;
+    }
+
+    public static native void setGlobalParams(GlobalParams params);
+
+    public static void initialize(Context context) {
+        File assetsDirectory = new File(context.getFilesDir(), "assets");
+        File odrCoreDataDirectory = new File(assetsDirectory, "odrcore");
+        File fontconfigDataDirectory = new File(assetsDirectory, "fontconfig");
+        File popplerDataDirectory = new File(assetsDirectory, "poppler");
+        File pdf2htmlexDataDirectory = new File(assetsDirectory, "pdf2htmlex");
+
+        AssetExtractor ae = new AssetExtractor(context.getAssets());
+        ae.setOverwrite();
+        ae.extract(assetsDirectory, "odrcore");
+        ae.extract(assetsDirectory, "fontconfig");
+        ae.extract(assetsDirectory, "poppler");
+        ae.extract(assetsDirectory, "pdf2htmlex");
+
+        CoreWrapper.GlobalParams globalParams = new CoreWrapper.GlobalParams();
+        globalParams.coreDataPath = odrCoreDataDirectory.getAbsolutePath();
+        globalParams.fontconfigDataPath = fontconfigDataDirectory.getAbsolutePath();
+        globalParams.popplerDataPath = popplerDataDirectory.getAbsolutePath();
+        globalParams.pdf2htmlexDataPath = pdf2htmlexDataDirectory.getAbsolutePath();
+        CoreWrapper.setGlobalParams(globalParams);
+    }
+
+    public static class CoreOptions {
+
+        public boolean ooxml;
+        public boolean txt;
+        public boolean pdf;
+
+        public boolean editable;
+
+        public boolean paging;
+
+        public String password;
+
+        public String inputPath;
+        public String outputPath;
+    }
+
+    public static CoreResult parse(CoreOptions options) {
         CoreResult result = parseNative(options);
 
         switch (result.errorCode) {
@@ -43,9 +96,9 @@ public class CoreWrapper {
         return result;
     }
 
-    private native CoreResult parseNative(CoreOptions options);
+    private static native CoreResult parseNative(CoreOptions options);
 
-    public CoreResult backtranslate(CoreOptions options, String htmlDiff) {
+    public static CoreResult backtranslate(CoreOptions options, String htmlDiff) {
         CoreResult result = backtranslateNative(options, htmlDiff);
 
         switch (result.errorCode) {
@@ -68,31 +121,23 @@ public class CoreWrapper {
         return result;
     }
 
-    private native CoreResult backtranslateNative(CoreOptions options, String htmlDiff);
+    private static native CoreResult backtranslateNative(CoreOptions options, String htmlDiff);
 
-    public void close() {
+    public static void close() {
         CoreOptions options = new CoreOptions();
 
         closeNative(options);
     }
 
-    private native void closeNative(CoreOptions options);
+    private static native void closeNative(CoreOptions options);
 
-    public static class CoreOptions {
+    public static native void createServer(String cachePath);
 
-        public boolean ooxml;
-        public boolean txt;
-        public boolean pdf;
+    public static native CoreResult hostFile(String prefix, CoreOptions options);
 
-        public boolean editable;
+    public static native void listenServer(int port);
 
-        public boolean paging;
-
-        public String password;
-
-        public String inputPath;
-        public String outputPath;
-    }
+    public static native void stopServer();
 
     public static class CoreResult {
 

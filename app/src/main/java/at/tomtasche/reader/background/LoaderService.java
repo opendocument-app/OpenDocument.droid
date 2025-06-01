@@ -34,8 +34,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
     private AnalyticsManager analyticsManager;
 
     private MetadataLoader metadataLoader;
-    private OdrCoreLoader odrCoreLoader;
-    private Pdf2htmlExLoader pdf2htmlExLoader;
+    private CoreLoader coreLoader;
     private WvwareDocLoader wvwareDocLoader;
     private RawLoader rawLoader;
     private OnlineLoader onlineLoader;
@@ -60,11 +59,8 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         metadataLoader = new MetadataLoader(context);
         metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
-        odrCoreLoader = new OdrCoreLoader(context, configManager, true);
-        odrCoreLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
-
-        pdf2htmlExLoader = new Pdf2htmlExLoader(context);
-        pdf2htmlExLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+        coreLoader = new CoreLoader(context, configManager, true, true);
+        coreLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         wvwareDocLoader = new WvwareDocLoader(context);
         wvwareDocLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
@@ -72,7 +68,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         rawLoader = new RawLoader(context);
         rawLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
-        onlineLoader = new OnlineLoader(context, odrCoreLoader);
+        onlineLoader = new OnlineLoader(context, coreLoader);
         onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
     }
 
@@ -118,13 +114,10 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         FileLoader loader;
         switch (loaderType) {
             case CORE:
-                loader = odrCoreLoader;
+                loader = coreLoader;
                 break;
             case WVWARE:
                 loader = wvwareDocLoader;
-                break;
-            case PDF2HTMLEX:
-                loader = pdf2htmlExLoader;
                 break;
             case ONLINE:
                 loader = onlineLoader;
@@ -146,7 +139,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
     public void onSuccess(FileLoader.Result result) {
         FileLoader.Options options = result.options;
         if (result.loaderType == FileLoader.LoaderType.METADATA) {
-            if (!odrCoreLoader.isSupported(options)) {
+            if (!coreLoader.isSupported(options)) {
                 crashManager.log("we do not expect this file to be an ODF: " + options.originalUri.toString());
                 analyticsManager.report("load_odf_error_expected", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
             }
@@ -183,9 +176,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         if (result.loaderType == FileLoader.LoaderType.CORE) {
             analyticsManager.report("load_odf_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
 
-            if (pdf2htmlExLoader.isSupported(options)) {
-                loadWithType(FileLoader.LoaderType.PDF2HTMLEX, options);
-            } else if (wvwareDocLoader.isSupported(options)) {
+            if (wvwareDocLoader.isSupported(options)) {
                 loadWithType(FileLoader.LoaderType.WVWARE, options);
             } else if (rawLoader.isSupported(options)) {
                 loadWithType(FileLoader.LoaderType.RAW, options);
@@ -231,7 +222,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         try {
             File fileToSave;
             if (htmlDiff != null) {
-                fileToSave = odrCoreLoader.retranslate(lastResult.options, htmlDiff);
+                fileToSave = coreLoader.retranslate(lastResult.options, htmlDiff);
                 if (fileToSave == null) {
                     throw new RuntimeException("retranslate failed");
                 }
@@ -273,12 +264,8 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
             metadataLoader.close();
         }
 
-        if (odrCoreLoader != null) {
-            odrCoreLoader.close();
-        }
-
-        if (pdf2htmlExLoader != null) {
-            pdf2htmlExLoader.close();
+        if (coreLoader != null) {
+            coreLoader.close();
         }
 
         if (wvwareDocLoader != null) {

@@ -166,7 +166,8 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
         // the other menu items are dynamically enabled based on the loaded document
         if (lastResult != null) {
-            prepareMenu(lastResult.loaderType);
+            // TODO
+            toggleDocumentMenu(true, true);
         }
     }
 
@@ -361,25 +362,6 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         return true;
     }
 
-    private void prepareMenu(FileLoader.LoaderType loaderType) {
-        boolean isEditEnabled = false;
-        boolean isDarkModeSupported = true;
-
-        switch (loaderType) {
-            case CORE:
-                isEditEnabled = true;
-                break;
-            case PDF2HTMLEX:
-                isDarkModeSupported = false;
-                break;
-            default:
-                break;
-        }
-
-        toggleDocumentMenu(true, isEditEnabled);
-        pageView.toggleDarkMode(isDarkModeSupported);
-    }
-
     @Override
     public void onLoadSuccess(FileLoader.Result result) {
         if (!isActivityReadyForResult(result)) {
@@ -420,7 +402,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
         if (result.loaderType == FileLoader.LoaderType.RAW || result.loaderType == FileLoader.LoaderType.ONLINE) {
             offerReopen(activity, options, R.string.toast_hint_unsupported_file, false);
-        } else if (result.loaderType == FileLoader.LoaderType.CORE || result.loaderType == FileLoader.LoaderType.WVWARE || result.loaderType == FileLoader.LoaderType.PDF2HTMLEX) {
+        } else if (result.loaderType == FileLoader.LoaderType.CORE || result.loaderType == FileLoader.LoaderType.WVWARE) {
             offerUpload(activity, options, false);
         }
 
@@ -486,25 +468,18 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         builder.setView(input);
 
         builder.setPositiveButton(getString(android.R.string.ok),
-                new DialogInterface.OnClickListener() {
+                (dialog, whichButton) -> {
+                    options.password = input.getText().toString();
 
-                    @Override
-                    public void onClick(DialogInterface dialog,
-                                        int whichButton) {
-                        options.password = input.getText().toString();
+                    // close dialog before progress is shown again
+                    dialog.dismiss();
 
-                        // close dialog before progress is shown again
-                        dialog.dismiss();
-
-                        if (result.loaderType == FileLoader.LoaderType.CORE) {
-                            loadWithType(FileLoader.LoaderType.CORE, options);
-                        } else if (result.loaderType == FileLoader.LoaderType.WVWARE) {
-                            loadWithType(FileLoader.LoaderType.WVWARE, options);
-                        } else if (result.loaderType == FileLoader.LoaderType.PDF2HTMLEX) {
-                            loadWithType(FileLoader.LoaderType.PDF2HTMLEX, options);
-                        } else {
-                            throw new RuntimeException("encryption not supported for type: " + result.loaderType);
-                        }
+                    if (result.loaderType == FileLoader.LoaderType.CORE) {
+                        loadWithType(FileLoader.LoaderType.CORE, options);
+                    } else if (result.loaderType == FileLoader.LoaderType.WVWARE) {
+                        loadWithType(FileLoader.LoaderType.WVWARE, options);
+                    } else {
+                        throw new RuntimeException("encryption not supported for type: " + result.loaderType);
                     }
                 });
         builder.setNegativeButton(getString(android.R.string.cancel), null);
@@ -529,7 +504,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             } else {
                 offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
             }
-        } else if (result.loaderType == FileLoader.LoaderType.PDF2HTMLEX || result.loaderType == FileLoader.LoaderType.WVWARE) {
+        } else if (result.loaderType == FileLoader.LoaderType.WVWARE) {
             offerUpload(activity, options, true);
         } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
             offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);

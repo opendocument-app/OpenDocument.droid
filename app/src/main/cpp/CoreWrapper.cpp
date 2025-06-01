@@ -3,21 +3,64 @@
 #include <odr/document.hpp>
 #include <odr/file.hpp>
 #include <odr/html.hpp>
-#include <odr/open_document_reader.hpp>
+#include <odr/odr.hpp>
 #include <odr/exceptions.hpp>
+#include <odr/html_service.hpp>
+#include <odr/http_server.hpp>
+#include <odr/global_params.hpp>
 
 #include <android/log.h>
 
 #include <string>
 #include <optional>
+#include <filesystem>
 
-std::optional<odr::Html> html;
+namespace {
 
-JNIEXPORT jobject JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject instance,
-                                                            jobject options) {
+std::string convertString(JNIEnv *env, jstring string) {
+    jboolean isCopy;
+    const char *cstring = env->GetStringUTFChars(string, &isCopy);
+    auto cppstring = std::string(cstring, env->GetStringUTFLength(string));
+    env->ReleaseStringUTFChars(string, cstring);
+    return cppstring;
+}
+
+std::string getStringField(JNIEnv *env, jclass clazz, jobject object, const char *name) {
+    jfieldID field = env->GetFieldID(clazz, name, "Ljava/lang/String;");
+    auto string = (jstring) env->GetObjectField(object, field);
+    return convertString(env, string);
+}
+
+std::string getStringField(JNIEnv *env, jobject object, const char *name) {
+    jclass clazz = env->GetObjectClass(object);
+    return getStringField(env, clazz, object, name);
+}
+
+}
+
+std::optional<odr::Document> s_document;
+
+JNIEXPORT void JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jclass clazz,
+                                                                jobject params) {
     jboolean isCopy;
 
+    jclass paramsClass = env->GetObjectClass(params);
+
+    std::string odrCoreDataPath = getStringField(env, paramsClass, params, "coreDataPath");
+    std::string fontconfigDataPath = getStringField(env, paramsClass, params, "fontconfigDataPath");
+    std::string popplerDataPath = getStringField(env, paramsClass, params, "popplerDataPath");
+    std::string pdf2htmlexDataPath = getStringField(env, paramsClass, params, "pdf2htmlexDataPath");
+
+    odr::GlobalParams::set_odr_core_data_path(odrCoreDataPath);
+    odr::GlobalParams::set_fontconfig_data_path(fontconfigDataPath);
+    odr::GlobalParams::set_poppler_data_path(popplerDataPath);
+    odr::GlobalParams::set_pdf2htmlex_data_path(pdf2htmlexDataPath);
+}
+
+JNIEXPORT jobject JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass clazz,
+                                                            jobject options) {
     jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
     jmethodID resultConstructor = env->GetMethodID(resultClass, "<init>", "()V");
     jobject result = env->NewObject(resultClass, resultConstructor);
@@ -25,33 +68,20 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
     jfieldID errorField = env->GetFieldID(resultClass, "errorCode", "I");
 
     jclass optionsClass = env->GetObjectClass(options);
-    jfieldID inputPathField = env->GetFieldID(optionsClass, "inputPath", "Ljava/lang/String;");
-    auto inputPath = (jstring) env->GetObjectField(options, inputPathField);
-
-    const auto inputPathC = env->GetStringUTFChars(inputPath, &isCopy);
-    auto inputPathCpp = std::string(inputPathC, env->GetStringUTFLength(inputPath));
-    env->ReleaseStringUTFChars(inputPath, inputPathC);
+    std::string inputPathCpp = getStringField(env, optionsClass, options, "inputPath");
 
     try {
         std::optional<std::string> passwordCpp;
         jfieldID passwordField = env->GetFieldID(optionsClass, "password", "Ljava/lang/String;");
         auto password = (jstring) env->GetObjectField(options, passwordField);
         if (password != nullptr) {
-            const auto passwordC = env->GetStringUTFChars(password, &isCopy);
-            passwordCpp = std::string(passwordC, env->GetStringUTFLength(password));
-            env->ReleaseStringUTFChars(password, passwordC);
+            passwordCpp = convertString(env, password);
         }
 
         jfieldID editableField = env->GetFieldID(optionsClass, "editable", "Z");
         jboolean editable = env->GetBooleanField(options, editableField);
 
-        jfieldID outputPathField = env->GetFieldID(optionsClass, "outputPath",
-                                                   "Ljava/lang/String;");
-        auto outputPath = (jstring) env->GetObjectField(options, outputPathField);
-
-        const auto outputPathC = env->GetStringUTFChars(outputPath, &isCopy);
-        auto outputPathCpp = std::string(outputPathC, env->GetStringUTFLength(outputPath));
-        env->ReleaseStringUTFChars(outputPath, outputPathC);
+        std::string outputPathCpp = getStringField(env, optionsClass, options, "outputPath");
 
         jclass listClass = env->FindClass("java/util/List");
         jmethodID addMethod = env->GetMethodID(listClass, "add", "(Ljava/lang/Object;)Z");
@@ -77,7 +107,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
         try {
             odr::FileType fileType;
             try {
-                const auto types = odr::OpenDocumentReader::types(inputPathCpp);
+                const auto types = odr::types(inputPathCpp);
                 if (types.empty()) {
                     env->SetIntField(result, errorField, -5);
                     return result;
@@ -88,80 +118,72 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
                 fileType = e.file_type;
             }
 
-            const auto extensionCpp = odr::OpenDocumentReader::type_to_string(fileType);
-            const auto extensionC = extensionCpp.c_str();
-            jstring extension = env->NewStringUTF(extensionC);
-
+            std::string extensionCpp = odr::type_to_string(fileType);
+            jstring extension = env->NewStringUTF(extensionCpp.c_str());
             jfieldID extensionField = env->GetFieldID(resultClass, "extension",
                                                       "Ljava/lang/String;");
             env->SetObjectField(result, extensionField, extension);
 
-            // __android_log_print(ANDROID_LOG_VERBOSE, "smn", "%s", extensionCpp.c_str());
+            __android_log_print(ANDROID_LOG_VERBOSE, "smn", "Open %s", inputPathCpp.c_str());
 
-            const auto file = odr::OpenDocumentReader::open(inputPathCpp);
-            const auto fileCategory = odr::OpenDocumentReader::category_by_type(file.file_type());
+            auto file = odr::open(inputPathCpp);
 
-            if (!ooxml &&
-                (file.file_type() == odr::FileType::office_open_xml_document ||
-                 file.file_type() == odr::FileType::office_open_xml_workbook ||
-                 file.file_type() == odr::FileType::office_open_xml_presentation ||
-                 file.file_type() == odr::FileType::office_open_xml_encrypted)) {
-                env->SetIntField(result, errorField, -5);
-                return result;
+            if (file.password_encrypted()) {
+                if (!passwordCpp.has_value()) {
+                    env->SetIntField(result, errorField, -2);
+                    return result;
+                }
+                try {
+                    file = file.decrypt(passwordCpp.value());
+                } catch (...) {
+                    env->SetIntField(result, errorField, -2);
+                    return result;
+                }
             }
 
-            if (!txt && fileCategory == odr::FileCategory::text) {
-                env->SetIntField(result, errorField, -5);
-                return result;
+            if (file.is_document_file()) {
+                // TODO this will cause a second load
+                s_document = file.document_file().document();
             }
 
-            if (!pdf && file.file_type() == odr::FileType::portable_document_format) {
-                env->SetIntField(result, errorField, -5);
-                return result;
-            }
+            extensionCpp = odr::type_to_string(file.file_type());
+            extension = env->NewStringUTF(extensionCpp.c_str());
+            env->SetObjectField(result, extensionField, extension);
 
             odr::HtmlConfig config;
             config.editable = editable;
+            config.text_document_margin = paging;
 
-            if (paging) {
-                config.text_document_margin = true;
-            }
+            __android_log_print(ANDROID_LOG_VERBOSE, "smn", "Translate to HTML");
 
-            html = odr::OpenDocumentReader::html(inputPathCpp, [&passwordCpp]() -> std::string {
-                if (passwordCpp.has_value()) {
-                    return passwordCpp.value();
-                }
-                return "";
-            }, outputPathCpp, config);
+            std::string output_tmp = outputPathCpp + "/tmp";
+            std::filesystem::create_directories(output_tmp);
+            odr::HtmlService service = odr::html::translate(file, output_tmp, config);
+            odr::Html html = service.bring_offline(outputPathCpp);
+            std::filesystem::remove_all(output_tmp);
 
-            {
-                const auto extensionCpp = odr::OpenDocumentReader::type_to_string(
-                        html->file_type());
-                const auto extensionC = extensionCpp.c_str();
-                jstring extension = env->NewStringUTF(extensionC);
-
-                jfieldID extensionField = env->GetFieldID(resultClass, "extension",
-                                                          "Ljava/lang/String;");
-                env->SetObjectField(result, extensionField, extension);
-            }
-
-            for (auto &&page: html->pages()) {
+            for (const odr::HtmlPage &page: html.pages()) {
                 jstring pageName = env->NewStringUTF(page.name.c_str());
                 env->CallBooleanMethod(pageNames, addMethod, pageName);
 
                 jstring pagePath = env->NewStringUTF(page.path.c_str());
                 env->CallBooleanMethod(pagePaths, addMethod, pagePath);
             }
-        } catch (odr::UnknownFileType &) {
+        } catch (const odr::UnknownFileType &e) {
+            __android_log_print(ANDROID_LOG_ERROR, "smn", "Unknown file type: %s", e.what());
             env->SetIntField(result, errorField, -5);
             return result;
-        } catch (odr::WrongPassword &) {
-            env->SetIntField(result, errorField, -2);
-            return result;
-        } catch (odr::UnsupportedFileType &) {
+        } catch (const odr::UnsupportedFileType &e) {
+            __android_log_print(ANDROID_LOG_ERROR, "smn", "Unsupported file type: %s", e.what());
             env->SetIntField(result, errorField, -5);
+            return result;
+        } catch (const std::exception &e) {
+            __android_log_print(ANDROID_LOG_ERROR, "smn", "Unhandled C++ exception: %s", e.what());
+            env->SetIntField(result, errorField, -4);
             return result;
         } catch (...) {
+            __android_log_print(ANDROID_LOG_ERROR, "smn",
+                                "Unhandled C++ exception without further information");
             env->SetIntField(result, errorField, -4);
             return result;
         }
@@ -175,32 +197,27 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jobject
 }
 
 JNIEXPORT jobject JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env, jobject instance,
+Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env, jclass clazz,
                                                                     jobject options,
                                                                     jstring htmlDiff) {
-    jboolean isCopy;
-
-    jclass optionsClass = env->GetObjectClass(options);
-
     jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
     jmethodID resultConstructor = env->GetMethodID(resultClass, "<init>", "()V");
     jobject result = env->NewObject(resultClass, resultConstructor);
 
     jfieldID errorField = env->GetFieldID(resultClass, "errorCode", "I");
 
+    if (!s_document.has_value()) {
+        env->SetIntField(result, errorField, -1);
+        return result;
+    }
+
     try {
-        jfieldID outputPathPrefixField = env->GetFieldID(optionsClass, "outputPath",
-                                                         "Ljava/lang/String;");
-        jstring outputPathPrefix = (jstring) env->GetObjectField(options, outputPathPrefixField);
+        std::string outputPathPrefixCpp = getStringField(env, options, "outputPath");
 
-        const auto outputPathPrefixC = env->GetStringUTFChars(outputPathPrefix, &isCopy);
-        auto outputPathPrefixCpp = std::string(outputPathPrefixC,
-                                               env->GetStringUTFLength(outputPathPrefix));
-        env->ReleaseStringUTFChars(outputPathPrefix, outputPathPrefixC);
-
+        jboolean isCopy;
         const auto htmlDiffC = env->GetStringUTFChars(htmlDiff, &isCopy);
 
-        const auto extension = odr::OpenDocumentReader::type_to_string(html->file_type());
+        const auto extension = odr::type_to_string(s_document->file_type());
         const auto outputPathCpp = outputPathPrefixCpp + "." + extension;
         const char *outputPathC = outputPathCpp.c_str();
         jstring outputPath = env->NewStringUTF(outputPathC);
@@ -209,7 +226,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
         env->SetObjectField(result, outputPathField, outputPath);
 
         try {
-            html->edit(htmlDiffC);
+            odr::html::edit(*s_document, htmlDiffC);
 
             env->ReleaseStringUTFChars(htmlDiff, htmlDiffC);
         } catch (...) {
@@ -220,7 +237,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
         }
 
         try {
-            html->save(outputPathCpp);
+            s_document->save(outputPathCpp);
         } catch (...) {
             env->SetIntField(result, errorField, -7);
             return result;
@@ -235,7 +252,159 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
 }
 
 JNIEXPORT void JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jobject instance,
+Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jclass clazz,
                                                             jobject options) {
-    html.reset();
+    s_document.reset();
+}
+
+std::optional<odr::HttpServer> s_server;
+
+JNIEXPORT void JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_createServer(JNIEnv *env, jclass clazz,
+                                                             jstring cachePath) {
+    __android_log_print(ANDROID_LOG_INFO, "smn", "create server");
+
+    std::string cachePathCpp = convertString(env, cachePath);
+
+    std::filesystem::create_directories(cachePathCpp);
+
+    odr::HttpServer::Config config;
+    config.cache_path = cachePathCpp;
+    s_server = odr::HttpServer(config);
+}
+
+JNIEXPORT jobject JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_hostFile(JNIEnv *env, jclass clazz, jstring prefix,
+                                                         jobject options) {
+    __android_log_print(ANDROID_LOG_INFO, "smn", "host file");
+
+    jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
+    jmethodID resultConstructor = env->GetMethodID(resultClass, "<init>", "()V");
+    jobject result = env->NewObject(resultClass, resultConstructor);
+
+    jfieldID errorField = env->GetFieldID(resultClass, "errorCode", "I");
+
+    if (!s_server.has_value()) {
+        env->SetIntField(result, errorField, -1);
+        return result;
+    }
+
+    s_server->clear();
+
+    jclass optionsClass = env->GetObjectClass(options);
+
+    std::optional<std::string> passwordCpp;
+    jfieldID passwordField = env->GetFieldID(optionsClass, "password", "Ljava/lang/String;");
+    auto password = (jstring) env->GetObjectField(options, passwordField);
+    if (password != nullptr) {
+        passwordCpp = convertString(env, password);
+    }
+
+    jfieldID pagingField = env->GetFieldID(optionsClass, "paging", "Z");
+    jboolean paging = env->GetBooleanField(options, pagingField);
+
+    jfieldID editableField = env->GetFieldID(optionsClass, "editable", "Z");
+    jboolean editable = env->GetBooleanField(options, editableField);
+
+    jclass listClass = env->FindClass("java/util/List");
+    jmethodID addMethod = env->GetMethodID(listClass, "add", "(Ljava/lang/Object;)Z");
+
+    jfieldID pageNamesField = env->GetFieldID(resultClass, "pageNames", "Ljava/util/List;");
+    auto pageNames = (jobject) env->GetObjectField(result, pageNamesField);
+
+    jfieldID pagePathsField = env->GetFieldID(resultClass, "pagePaths", "Ljava/util/List;");
+    auto pagePaths = (jobject) env->GetObjectField(result, pagePathsField);
+
+    std::string inputPathCpp = getStringField(env, options, "inputPath");
+    std::string prefixCpp = convertString(env, prefix);
+
+    odr::DecodePreference decodePreference;
+    decodePreference.engine_priority = {odr::DecoderEngine::poppler, odr::DecoderEngine::wvware,
+                                        odr::DecoderEngine::odr};
+    odr::DecodedFile file = odr::open(inputPathCpp, decodePreference);
+
+    if (file.password_encrypted()) {
+        if (!passwordCpp.has_value()) {
+            env->SetIntField(result, errorField, -2);
+            return result;
+        }
+        try {
+            file = file.decrypt(passwordCpp.value());
+        } catch (...) {
+            env->SetIntField(result, errorField, -2);
+            return result;
+        }
+    }
+
+    if (file.is_document_file()) {
+        // TODO this will cause a second load
+        s_document = file.document_file().document();
+    }
+
+    odr::HtmlConfig htmlConfig;
+    htmlConfig.embed_images = false;
+    htmlConfig.embed_shipped_resources = true;
+    htmlConfig.relative_resource_paths = false;
+    htmlConfig.text_document_margin = paging;
+    htmlConfig.editable = editable;
+
+    try {
+        odr::HtmlViews htmlViews = s_server->serve_file(file, prefixCpp, htmlConfig);
+
+        for (const auto &view: htmlViews) {
+            __android_log_print(ANDROID_LOG_INFO, "smn", "view name=%s path=%s", view.name().c_str(), view.path().c_str());
+            if (file.is_document_file() && (
+                    (((file.document_file().document_type() == odr::DocumentType::presentation) ||
+                      (file.document_file().document_type() == odr::DocumentType::drawing)) &&
+                     (view.name() != "document")) ||
+                    ((file.document_file().document_type() == odr::DocumentType::spreadsheet) &&
+                     (view.name() == "document")))) {
+                continue;
+            }
+
+            jstring pageName = env->NewStringUTF(view.name().c_str());
+            env->CallBooleanMethod(pageNames, addMethod, pageName);
+
+            std::string pagePathCpp =
+                    "http://localhost:29665/file/" + prefixCpp + "/" + view.path();
+            jstring pagePath = env->NewStringUTF(pagePathCpp.c_str());
+            env->CallBooleanMethod(pagePaths, addMethod, pagePath);
+        }
+    } catch (const std::exception &e) {
+        __android_log_print(ANDROID_LOG_ERROR, "smn", "Unhandled C++ exception: %s", e.what());
+        env->SetIntField(result, errorField, -1);
+        return result;
+    } catch (const std::string &s) {
+        __android_log_print(ANDROID_LOG_ERROR, "smn", "Unhandled C++ string exception: %s", s.c_str());
+        env->SetIntField(result, errorField, -1);
+        return result;
+    } catch (int i) {
+        __android_log_print(ANDROID_LOG_ERROR, "smn", "Unhandled C++ int exception: %i", i);
+        env->SetIntField(result, errorField, -1);
+        return result;
+    } catch (...) {
+        __android_log_print(ANDROID_LOG_ERROR, "smn",
+                            "Unhandled C++ exception without further information");
+        env->SetIntField(result, errorField, -1);
+        return result;
+    }
+
+    return result;
+}
+
+JNIEXPORT void JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_listenServer(JNIEnv *env, jclass clazz, jint port) {
+    __android_log_print(ANDROID_LOG_INFO, "smn", "listen ...");
+
+    s_server->listen("127.0.0.1", port);
+
+    __android_log_print(ANDROID_LOG_INFO, "smn", "done listening");
+}
+
+JNIEXPORT void JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_stopServer(JNIEnv *env, jclass clazz) {
+    __android_log_print(ANDROID_LOG_INFO, "smn", "stop server");
+
+    s_server->stop();
+    s_server.reset();
 }
