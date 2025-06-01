@@ -152,10 +152,6 @@ public class CoreLoader extends FileLoader {
 
     @Override
     public File retranslate(Options options, String htmlDiff) {
-        if (doHttp) {
-            return null; // TODO
-        }
-
         if (lastCoreOptions == null) {
             // necessary if fragment was destroyed in the meanwhile - meaning the Loader is reinstantiated
 
