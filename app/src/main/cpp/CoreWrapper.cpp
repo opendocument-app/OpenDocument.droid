@@ -5,7 +5,6 @@
 #include <odr/html.hpp>
 #include <odr/odr.hpp>
 #include <odr/exceptions.hpp>
-#include <odr/html_service.hpp>
 #include <odr/http_server.hpp>
 #include <odr/global_params.hpp>
 
