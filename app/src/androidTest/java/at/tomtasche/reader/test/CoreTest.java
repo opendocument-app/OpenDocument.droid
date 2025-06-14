@@ -18,7 +18,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
 
 import at.tomtasche.reader.background.CoreWrapper;
 
@@ -54,7 +53,7 @@ public class CoreTest {
     }
 
     private static void copy(InputStream src, File dst) throws IOException {
-        try (OutputStream out = Files.newOutputStream(dst.toPath())) {
+        try (OutputStream out = new FileOutputStream(dst)) {
             byte[] buf = new byte[1024];
             int len;
             while ((len = src.read(buf)) > 0) {
