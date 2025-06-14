@@ -106,7 +106,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
         try {
             odr::FileType fileType;
             try {
-                const auto types = odr::types(inputPathCpp);
+                const auto types = odr::list_file_types(inputPathCpp);
                 if (types.empty()) {
                     env->SetIntField(result, errorField, -5);
                     return result;
@@ -117,7 +117,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
                 fileType = e.file_type;
             }
 
-            std::string extensionCpp = odr::type_to_string(fileType);
+            std::string extensionCpp = odr::file_type_to_string(fileType);
             jstring extension = env->NewStringUTF(extensionCpp.c_str());
             jfieldID extensionField = env->GetFieldID(resultClass, "extension",
                                                       "Ljava/lang/String;");
@@ -142,10 +142,10 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
 
             if (file.is_document_file()) {
                 // TODO this will cause a second load
-                s_document = file.document_file().document();
+                s_document = file.as_document_file().document();
             }
 
-            extensionCpp = odr::type_to_string(file.file_type());
+            extensionCpp = odr::file_type_to_string(file.file_type());
             extension = env->NewStringUTF(extensionCpp.c_str());
             env->SetObjectField(result, extensionField, extension);
 
@@ -216,7 +216,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
         jboolean isCopy;
         const auto htmlDiffC = env->GetStringUTFChars(htmlDiff, &isCopy);
 
-        const auto extension = odr::type_to_string(s_document->file_type());
+        const auto extension = odr::file_type_to_string(s_document->file_type());
         const auto outputPathCpp = outputPathPrefixCpp + "." + extension;
         const char *outputPathC = outputPathCpp.c_str();
         jstring outputPath = env->NewStringUTF(outputPathC);
@@ -337,7 +337,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFile(JNIEnv *env, jclass cla
 
     if (file.is_document_file()) {
         // TODO this will cause a second load
-        s_document = file.document_file().document();
+        s_document = file.as_document_file().document();
     }
 
     odr::HtmlConfig htmlConfig;
@@ -353,10 +353,10 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFile(JNIEnv *env, jclass cla
         for (const auto &view: htmlViews) {
             __android_log_print(ANDROID_LOG_INFO, "smn", "view name=%s path=%s", view.name().c_str(), view.path().c_str());
             if (file.is_document_file() && (
-                    (((file.document_file().document_type() == odr::DocumentType::presentation) ||
-                      (file.document_file().document_type() == odr::DocumentType::drawing)) &&
+                    (((file.as_document_file().document_type() == odr::DocumentType::presentation) ||
+                      (file.as_document_file().document_type() == odr::DocumentType::drawing)) &&
                      (view.name() != "document")) ||
-                    ((file.document_file().document_type() == odr::DocumentType::spreadsheet) &&
+                    ((file.as_document_file().document_type() == odr::DocumentType::spreadsheet) &&
                      (view.name() == "document")))) {
                 continue;
             }
