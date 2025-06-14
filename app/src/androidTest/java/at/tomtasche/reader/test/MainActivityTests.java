@@ -50,7 +50,6 @@ import at.tomtasche.reader.ui.activity.MainActivity;
 @LargeTest
 @RunWith(AndroidJUnit4.class)
 public class MainActivityTests {
-
     private IdlingResource m_idlingResource;
     private static final Map<String, File> s_testFiles = new ArrayMap<>();
 
@@ -185,6 +184,4 @@ public class MainActivityTests {
                         .perform(click());
             });
     }
-
-
 }

@@ -24,13 +24,12 @@ import at.tomtasche.reader.background.CoreWrapper;
 @LargeTest
 @RunWith(AndroidJUnit4.class)
 public class CoreTest {
-
     private File m_testFile;
 
     @Before
     public void initializeCore() {
-        Context testCtx = InstrumentationRegistry.getInstrumentation().getContext();
-        CoreWrapper.initialize(testCtx);
+        Context appCtx = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        CoreWrapper.initialize(appCtx);
     }
 
     @Before
@@ -65,11 +64,11 @@ public class CoreTest {
     @Test
     public void test() {
         File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
-        File htmlFile = new File(cacheDir, "html");
+        File outputDir = new File(cacheDir, "output");
 
         CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
         coreOptions.inputPath = m_testFile.getAbsolutePath();
-        coreOptions.outputPath = htmlFile.getPath();
+        coreOptions.outputPath = outputDir.getPath();
         coreOptions.editable = true;
 
         CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);

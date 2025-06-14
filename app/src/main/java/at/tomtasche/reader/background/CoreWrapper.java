@@ -31,10 +31,10 @@ public class CoreWrapper {
 
         AssetExtractor ae = new AssetExtractor(context.getAssets());
         ae.setOverwrite();
-        ae.extract(assetsDirectory, "odrcore");
-        ae.extract(assetsDirectory, "fontconfig");
-        ae.extract(assetsDirectory, "poppler");
-        ae.extract(assetsDirectory, "pdf2htmlex");
+        ae.extract(assetsDirectory, "core/odrcore");
+        ae.extract(assetsDirectory, "core/fontconfig");
+        ae.extract(assetsDirectory, "core/poppler");
+        ae.extract(assetsDirectory, "core/pdf2htmlex");
 
         CoreWrapper.GlobalParams globalParams = new CoreWrapper.GlobalParams();
         globalParams.coreDataPath = odrCoreDataDirectory.getAbsolutePath();
