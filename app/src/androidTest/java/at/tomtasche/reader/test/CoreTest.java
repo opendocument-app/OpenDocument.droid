@@ -24,8 +24,13 @@ import at.tomtasche.reader.background.CoreWrapper;
 @LargeTest
 @RunWith(AndroidJUnit4.class)
 public class CoreTest {
-
     private File m_testFile;
+
+    @Before
+    public void initializeCore() {
+        Context appCtx = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        CoreWrapper.initialize(appCtx);
+    }
 
     @Before
     public void extractTestFile() throws IOException {
@@ -58,17 +63,15 @@ public class CoreTest {
 
     @Test
     public void test() {
-        CoreWrapper core = new CoreWrapper();
-
         File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
-        File htmlFile = new File(cacheDir, "html");
+        File outputDir = new File(cacheDir, "output");
 
         CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
         coreOptions.inputPath = m_testFile.getAbsolutePath();
-        coreOptions.outputPath = htmlFile.getPath();
+        coreOptions.outputPath = outputDir.getPath();
         coreOptions.editable = true;
 
-        CoreWrapper.CoreResult coreResult = core.parse(coreOptions);
+        CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
         Assert.assertEquals(0, coreResult.errorCode);
 
         File resultFile = new File(cacheDir, "result");
@@ -76,7 +79,7 @@ public class CoreTest {
 
         String htmlDiff = "{\"modifiedText\":{\"3\":\"This is a simple test document to demonstrate the DocumentLoadewwwwr example!\"}}";
 
-        CoreWrapper.CoreResult result = core.backtranslate(coreOptions, htmlDiff);
+        CoreWrapper.CoreResult result = CoreWrapper.backtranslate(coreOptions, htmlDiff);
         Assert.assertEquals(0, coreResult.errorCode);
     }
 }

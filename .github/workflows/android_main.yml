@@ -67,15 +67,6 @@ jobs:
         path: app/build/reports/lint-results-*.html
         if-no-files-found: error
 
-    - name: Artifact dotconan2
-      uses: actions/upload-artifact@v4
-      with:
-        name: dotconan2
-        path: ~/.conan2
-        if-no-files-found: error
-        compression-level: 0
-        include-hidden-files: true
-
   test:
     runs-on: ubuntu-22.04
     needs: build
@@ -118,10 +109,13 @@ jobs:
     - name: install ndk
       run: echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
 
-    - uses: actions/download-artifact@v4
-      with:
-        name: dotconan2
-        path: ~/.conan2
+    - name: conan remote
+      run: |
+        conan remote remove "*"
+        conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
+        conan remote add conancenter https://center2.conan.io
+    - name: conan profile
+      run: conan profile detect
 
     - name: Enable KVM group perms
       run: |
