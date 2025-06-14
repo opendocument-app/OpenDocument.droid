@@ -18,6 +18,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 
 import at.tomtasche.reader.background.CoreWrapper;
 
@@ -26,6 +27,12 @@ import at.tomtasche.reader.background.CoreWrapper;
 public class CoreTest {
 
     private File m_testFile;
+
+    @Before
+    public void initializeCore() {
+        Context testCtx = InstrumentationRegistry.getInstrumentation().getContext();
+        CoreWrapper.initialize(testCtx);
+    }
 
     @Before
     public void extractTestFile() throws IOException {
@@ -47,7 +54,7 @@ public class CoreTest {
     }
 
     private static void copy(InputStream src, File dst) throws IOException {
-        try (OutputStream out = new FileOutputStream(dst)) {
+        try (OutputStream out = Files.newOutputStream(dst.toPath())) {
             byte[] buf = new byte[1024];
             int len;
             while ((len = src.read(buf)) > 0) {
@@ -58,8 +65,6 @@ public class CoreTest {
 
     @Test
     public void test() {
-        CoreWrapper core = new CoreWrapper();
-
         File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
         File htmlFile = new File(cacheDir, "html");
 
@@ -68,7 +73,7 @@ public class CoreTest {
         coreOptions.outputPath = htmlFile.getPath();
         coreOptions.editable = true;
 
-        CoreWrapper.CoreResult coreResult = core.parse(coreOptions);
+        CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
         Assert.assertEquals(0, coreResult.errorCode);
 
         File resultFile = new File(cacheDir, "result");
@@ -76,7 +81,7 @@ public class CoreTest {
 
         String htmlDiff = "{\"modifiedText\":{\"3\":\"This is a simple test document to demonstrate the DocumentLoadewwwwr example!\"}}";
 
-        CoreWrapper.CoreResult result = core.backtranslate(coreOptions, htmlDiff);
+        CoreWrapper.CoreResult result = CoreWrapper.backtranslate(coreOptions, htmlDiff);
         Assert.assertEquals(0, coreResult.errorCode);
     }
 }

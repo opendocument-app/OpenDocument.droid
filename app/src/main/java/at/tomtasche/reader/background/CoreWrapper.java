@@ -9,13 +9,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class CoreWrapper {
-
     static {
         System.loadLibrary("odr-core");
     }
 
     public static class GlobalParams {
-
         public String coreDataPath;
         public String fontconfigDataPath;
         public String popplerDataPath;
@@ -47,7 +45,6 @@ public class CoreWrapper {
     }
 
     public static class CoreOptions {
-
         public boolean ooxml;
         public boolean txt;
         public boolean pdf;
@@ -68,27 +65,21 @@ public class CoreWrapper {
         switch (result.errorCode) {
             case 0:
                 break;
-
             case -1:
                 result.exception = new CoreCouldNotOpenException();
                 break;
-
             case -2:
                 result.exception = new CoreEncryptedException();
                 break;
-
             case -3:
                 result.exception = new CoreUnknownErrorException();
                 break;
-
             case -4:
                 result.exception = new CoreCouldNotTranslateException();
                 break;
-
             case -5:
                 result.exception = new CoreUnexpectedFormatException();
                 break;
-
             default:
                 result.exception = new CoreUnexpectedErrorCodeException();
         }
@@ -140,7 +131,6 @@ public class CoreWrapper {
     public static native void stopServer();
 
     public static class CoreResult {
-
         public int errorCode;
 
         public Exception exception;
@@ -168,5 +158,4 @@ public class CoreWrapper {
     public static class CoreCouldNotEditException extends RuntimeException {}
 
     public static class CoreCouldNotSaveException extends RuntimeException {}
-
 }
