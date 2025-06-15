@@ -49,11 +49,18 @@ jobs:
     - name: conan profile
       run: conan profile detect
 
+    - name: Gradle cache
+      uses: gradle/actions/setup-gradle@v3
+
     - name: gradle
       run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
 
-    - name: print conan cache size
+    - name: conan cache size
       run: du -h -d1 ~/.conan2/p
+    - name: conan login
+      run: conan remote login odr admin --password '${{ secrets.ARTIFACTORY }}'
+    - name: conan upload
+      run: conan upload "*" --check --confirm --remote odr
 
     - name: Artifact APKs
       uses: actions/upload-artifact@v4
@@ -120,14 +127,16 @@ jobs:
     - name: conan profile
       run: conan profile detect
 
-    - name: Enable KVM group perms
-      run: |
-        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-        sudo udevadm control --reload-rules
-        sudo udevadm trigger --name-match=kvm
-
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v3
+
+    - name: Download APKs
+      uses: actions/download-artifact@v4
+      with:
+        name: APKs
+
+    - name: gradle
+      run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
 
     - name: AVD cache
       uses: actions/cache@v4
@@ -137,6 +146,12 @@ jobs:
           ~/.android/avd/*
           ~/.android/adb*
         key: avd-${{ matrix.api-level }}-v1
+
+    - name: Enable KVM group perms
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
 
     - name: Create AVD and generate snapshot for caching
       if: steps.avd-cache.outputs.cache-hit != 'true'
