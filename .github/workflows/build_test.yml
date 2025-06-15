@@ -1,12 +1,8 @@
-name: OpenDocument-Reader-Android
+name: build_test
 
 on:
   workflow_dispatch:
   push:
-    paths-ignore:
-      - '**.md'
-      - '.github/**'
-      - '!.github/workflows/android_main.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
