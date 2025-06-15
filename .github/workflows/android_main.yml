@@ -52,6 +52,9 @@ jobs:
     - name: gradle
       run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
 
+    - name: print conan cache size
+      run: du -h -d1 ~/.conan2/p
+
     - name: Artifact APKs
       uses: actions/upload-artifact@v4
       with:
