@@ -159,6 +159,8 @@ jobs:
         disable-animations: true
         target: google_apis
         script: |
+          ./gradlew connectedCheck
+
           mkdir -p testResults/screenshots
           adb logcat > testResults/logcat.txt &
 
