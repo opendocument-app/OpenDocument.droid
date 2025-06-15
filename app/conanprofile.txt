@@ -7,7 +7,9 @@ compiler=clang
 compiler.version=17
 compiler.cppstd=20
 compiler.libcxx=c++_shared
-build_type=RelWithDebInfo
+&:build_type=RelWithDebInfo
+odrcore/*:build_type=RelWithDebInfo
+build_type=Release
 
 [conf]
 tools.android:ndk_path=@NDK_PATH@
