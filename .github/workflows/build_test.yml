@@ -126,14 +126,6 @@ jobs:
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Download APKs
-      uses: actions/download-artifact@v4
-      with:
-        name: APKs
-
-    - name: gradle
-      run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
-
     - name: AVD cache
       uses: actions/cache@v4
       id: avd-cache
