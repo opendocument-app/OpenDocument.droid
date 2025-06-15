@@ -161,28 +161,4 @@ jobs:
         emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot-save
         disable-animations: true
         target: google_apis
-        script: |
-          mkdir -p testResults/screenshots
-          adb logcat > testResults/logcat.txt &
-
-          adb shell screencap /data/local/tmp/beforeTests.png
-          adb pull /data/local/tmp/beforeTests.png testResults/screenshots/
-
-          bundle exec fastlane tests || touch sorry_but_tests_are_failing
-          adb pull /sdcard/Pictures/screenshots testResults/ || true
-
-          adb shell screencap /data/local/tmp/afterTests.png
-          adb pull /data/local/tmp/afterTests.png testResults/screenshots/
-
-          mv app/build/reports/androidTests/connected testResults/
-          mv app/build/outputs/androidTest-results testResults/
-
-          test ! -f sorry_but_tests_are_failing
-
-    - name: upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: testResults-${{ matrix.api-level }}-${{ matrix.arch }}
-        path: testResults
-        if-no-files-found: error
+        script: ./gradlew connectedCheck
