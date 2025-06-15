@@ -14,3 +14,4 @@ build_type=Release
 [conf]
 tools.android:ndk_path=@NDK_PATH@
 tools.build:skip_test=True
+tools.graph:skip_binaries=False
