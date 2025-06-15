@@ -39,7 +39,7 @@ jobs:
       run: pip install conan
 
     - name: install ndk
-      run: echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
+      run: yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
 
     - name: conan remote
       run: |
@@ -107,7 +107,7 @@ jobs:
       run: pip install conan
 
     - name: install ndk
-      run: echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
+      run: yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
 
     - name: conan remote
       run: |
