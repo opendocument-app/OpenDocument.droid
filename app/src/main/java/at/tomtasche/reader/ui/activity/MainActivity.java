@@ -394,6 +394,12 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         }
 
         documentFragment.loadUri(uri, isPersistentUri);
+
+        try {
+            getContentResolver().releasePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        } catch (Exception e) {
+            crashManager.log(e);
+        }
     }
 
     @Override
