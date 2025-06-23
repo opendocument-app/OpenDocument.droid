@@ -133,7 +133,7 @@ jobs:
         path: |
           ~/.android/avd/*
           ~/.android/adb*
-        key: avd-${{ matrix.api-level }}-v1
+        key: avd-${{ matrix.api-level }}-v2
 
     - name: Enable KVM group perms
       run: |
@@ -147,6 +147,7 @@ jobs:
       with:
         api-level: ${{ matrix.api-level }}
         arch: ${{ matrix.arch }}
+        target: google_apis
         force-avd-creation: false
         emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
         disable-animations: false
@@ -157,8 +158,8 @@ jobs:
       with:
         api-level: ${{ matrix.api-level }}
         arch: ${{ matrix.arch }}
-        force-avd-creation: false
-        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot-save
-        disable-animations: true
         target: google_apis
+        force-avd-creation: false
+        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: true
         script: ./gradlew connectedCheck
