@@ -1,12 +1,8 @@
-name: OpenDocument-Reader-Android
+name: build_test
 
 on:
   workflow_dispatch:
   push:
-    paths-ignore:
-      - '**.md'
-      - '.github/**'
-      - '!.github/workflows/android_main.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -49,8 +45,18 @@ jobs:
     - name: conan profile
       run: conan profile detect
 
+    - name: Gradle cache
+      uses: gradle/actions/setup-gradle@v3
+
     - name: gradle
       run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
+
+    - name: conan cache size
+      run: du -h -d1 ~/.conan2/p
+    - name: conan login
+      run: conan remote login odr admin --password '${{ secrets.ARTIFACTORY }}'
+    - name: conan upload
+      run: conan upload "*" --check --confirm --remote odr
 
     - name: Artifact APKs
       uses: actions/upload-artifact@v4
@@ -117,42 +123,43 @@ jobs:
     - name: conan profile
       run: conan profile detect
 
+    - name: Gradle cache
+      uses: gradle/actions/setup-gradle@v3
+
+    - name: AVD cache
+      uses: actions/cache@v4
+      id: avd-cache
+      with:
+        path: |
+          ~/.android/avd/*
+          ~/.android/adb*
+        key: avd-${{ matrix.api-level }}-v2
+
     - name: Enable KVM group perms
       run: |
         echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
         sudo udevadm control --reload-rules
         sudo udevadm trigger --name-match=kvm
 
-    - name: Run tests
+    - name: Create AVD and generate snapshot for caching
+      if: steps.avd-cache.outputs.cache-hit != 'true'
       uses: reactivecircus/android-emulator-runner@v2
       with:
-        force-avd-creation: false
-        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot-save
         api-level: ${{ matrix.api-level }}
         arch: ${{ matrix.arch }}
         target: google_apis
-        script: |
-          mkdir -p testResults/screenshots
-          adb logcat > testResults/logcat.txt &
+        force-avd-creation: false
+        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: false
+        script: echo "Generated AVD snapshot for caching."
 
-          adb shell screencap /data/local/tmp/beforeTests.png
-          adb pull /data/local/tmp/beforeTests.png testResults/screenshots/
-
-          bundle exec fastlane tests || touch sorry_but_tests_are_failing
-          adb pull /sdcard/Pictures/screenshots testResults/ || true
-
-          adb shell screencap /data/local/tmp/afterTests.png
-          adb pull /data/local/tmp/afterTests.png testResults/screenshots/
-
-          mv app/build/reports/androidTests/connected testResults/
-          mv app/build/outputs/androidTest-results testResults/
-
-          test ! -f sorry_but_tests_are_failing
-
-    - name: upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
+    - name: Run tests
+      uses: reactivecircus/android-emulator-runner@v2
       with:
-        name: testResults-${{ matrix.api-level }}-${{ matrix.arch }}
-        path: testResults
-        if-no-files-found: error
+        api-level: ${{ matrix.api-level }}
+        arch: ${{ matrix.arch }}
+        target: google_apis
+        force-avd-creation: false
+        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: true
+        script: ./gradlew connectedCheck
