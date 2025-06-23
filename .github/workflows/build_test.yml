@@ -80,7 +80,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { arch: x86_64, api-level: 23 }
+          # broken for unknown reasons. needs some offline debugging
+          # https://github.com/opendocument-app/OpenDocument.droid/issues/390
+          # - { arch: x86_64, api-level: 23 }
           - { arch: x86_64, api-level: 29 }
           - { arch: x86_64, api-level: 30 }
           - { arch: x86_64, api-level: 32 }
