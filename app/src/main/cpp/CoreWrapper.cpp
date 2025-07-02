@@ -189,15 +189,15 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
             extension = env->NewStringUTF(extensionCpp.c_str());
             env->SetObjectField(result, extensionField, extension);
 
-            odr::HtmlConfig config;
-            config.editable = editable;
-            config.text_document_margin = paging;
+            odr::HtmlConfig htmlConfig;
+            htmlConfig.editable = editable;
+            htmlConfig.text_document_margin = paging;
 
             __android_log_print(ANDROID_LOG_VERBOSE, "smn", "Translate to HTML");
 
             std::string output_tmp = outputPathCpp + "/tmp";
             std::filesystem::create_directories(output_tmp);
-            odr::HtmlService service = odr::html::translate(file, output_tmp, config, logger);
+            odr::HtmlService service = odr::html::translate(file, output_tmp, htmlConfig, logger);
             odr::Html html = service.bring_offline(outputPathCpp);
             std::filesystem::remove_all(output_tmp);
 
@@ -347,6 +347,8 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jcla
     jfieldID editableField = env->GetFieldID(optionsClass, "editable", "Z");
     jboolean editable = env->GetBooleanField(options, editableField);
 
+    std::string outputPathCpp = getStringField(env, optionsClass, options, "outputPath");
+
     jclass listClass = env->FindClass("java/util/List");
     jmethodID addMethod = env->GetMethodID(listClass, "add", "(Ljava/lang/Object;)Z");
 
@@ -390,7 +392,11 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jcla
     htmlConfig.editable = editable;
 
     try {
-        odr::HtmlViews htmlViews = s_server->serve_file(file, prefixCpp, htmlConfig);
+        std::string output_tmp = outputPathCpp + "/tmp";
+        std::filesystem::create_directories(output_tmp);
+        odr::HtmlService service = odr::html::translate(file, output_tmp, htmlConfig, logger);
+        s_server->connect_service(service, prefixCpp);
+        odr::HtmlViews htmlViews = service.list_views();
 
         for (const auto &view: htmlViews) {
             __android_log_print(ANDROID_LOG_INFO, "smn", "view name=%s path=%s", view.name().c_str(), view.path().c_str());
