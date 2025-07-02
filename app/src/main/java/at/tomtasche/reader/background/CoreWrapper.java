@@ -82,6 +82,7 @@ public class CoreWrapper {
                 break;
             default:
                 result.exception = new CoreUnexpectedErrorCodeException();
+                break;
         }
 
         return result;
@@ -95,18 +96,18 @@ public class CoreWrapper {
         switch (result.errorCode) {
             case 0:
                 break;
-
             case -3:
                 result.exception = new CoreUnknownErrorException();
-
+                break;
             case -6:
                 result.exception = new CoreCouldNotEditException();
-
+                break;
             case -7:
                 result.exception = new CoreCouldNotSaveException();
-
+                break;
             default:
                 result.exception = new CoreUnexpectedErrorCodeException();
+                break;
         }
 
         return result;
@@ -122,13 +123,54 @@ public class CoreWrapper {
 
     private static native void closeNative(CoreOptions options);
 
-    public static native void createServer(String cachePath);
+    public static void createServer(String cachePath) {
+        createServerNative(cachePath);
+    }
 
-    public static native CoreResult hostFile(String prefix, CoreOptions options);
+    private static native void createServerNative(String cachePath);
 
-    public static native void listenServer(int port);
+    public static CoreResult hostFile(String prefix, CoreOptions options) {
+        CoreResult result = hostFileNative(prefix, options);
 
-    public static native void stopServer();
+        switch (result.errorCode) {
+            case 0:
+                break;
+            case -1:
+                result.exception = new CoreCouldNotOpenException();
+                break;
+            case -2:
+                result.exception = new CoreEncryptedException();
+                break;
+            case -3:
+                result.exception = new CoreUnknownErrorException();
+                break;
+            case -4:
+                result.exception = new CoreCouldNotTranslateException();
+                break;
+            case -5:
+                result.exception = new CoreUnexpectedFormatException();
+                break;
+            default:
+                result.exception = new CoreUnexpectedErrorCodeException();
+                break;
+        }
+
+        return result;
+    }
+
+    private static native CoreResult hostFileNative(String prefix, CoreOptions options);
+
+    public static void listenServer(int port) {
+        listenServerNative(port);
+    }
+
+    private static native void listenServerNative(int port);
+
+    public static void stopServer() {
+        stopServerNative();
+    }
+
+    private static native void stopServerNative();
 
     public static class CoreResult {
         public int errorCode;
@@ -143,19 +185,27 @@ public class CoreWrapper {
         public String extension;
     }
 
-    public static class CoreCouldNotOpenException extends RuntimeException {}
+    public static class CoreCouldNotOpenException extends RuntimeException {
+    }
 
-    public static class CoreEncryptedException extends RuntimeException {}
+    public static class CoreEncryptedException extends RuntimeException {
+    }
 
-    public static class CoreCouldNotTranslateException extends RuntimeException {}
+    public static class CoreCouldNotTranslateException extends RuntimeException {
+    }
 
-    public static class CoreUnexpectedFormatException extends RuntimeException {}
+    public static class CoreUnexpectedFormatException extends RuntimeException {
+    }
 
-    public static class CoreUnexpectedErrorCodeException extends RuntimeException {}
+    public static class CoreUnexpectedErrorCodeException extends RuntimeException {
+    }
 
-    public static class CoreUnknownErrorException extends RuntimeException {}
+    public static class CoreUnknownErrorException extends RuntimeException {
+    }
 
-    public static class CoreCouldNotEditException extends RuntimeException {}
+    public static class CoreCouldNotEditException extends RuntimeException {
+    }
 
-    public static class CoreCouldNotSaveException extends RuntimeException {}
+    public static class CoreCouldNotSaveException extends RuntimeException {
+    }
 }

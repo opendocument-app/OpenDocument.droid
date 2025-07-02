@@ -23,7 +23,7 @@ tasks.register('conanProfile', Copy) {
         deployer.set('conandeployer.py')
         deployerFolder.set(outputDirectory.get().asFile.toString() + "/assets/core")
         dependsOn(tasks.named('conanProfile'))
-        conanExecutable.set('conan')
+        conanExecutable.set('/Users/andreas/odr/venv/bin/conan')
     }
 }
 
