@@ -19,16 +19,16 @@ extern "C" {
     Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jclass clazz, jobject options);
 
     JNIEXPORT void JNICALL
-    Java_at_tomtasche_reader_background_CoreWrapper_createServer(JNIEnv *env, jclass clazz, jstring outputPath);
+    Java_at_tomtasche_reader_background_CoreWrapper_createServerNative(JNIEnv *env, jclass clazz, jstring outputPath);
 
     JNIEXPORT jobject JNICALL
-    Java_at_tomtasche_reader_background_CoreWrapper_hostFile(JNIEnv *env, jclass clazz, jstring prefix, jobject options);
+    Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jclass clazz, jstring prefix, jobject options);
 
     JNIEXPORT void JNICALL
-    Java_at_tomtasche_reader_background_CoreWrapper_listenServer(JNIEnv *env, jclass clazz, jint port);
+    Java_at_tomtasche_reader_background_CoreWrapper_listenServerNative(JNIEnv *env, jclass clazz, jint port);
 
     JNIEXPORT void JNICALL
-    Java_at_tomtasche_reader_background_CoreWrapper_stopServer(JNIEnv *env, jclass clazz);
+    Java_at_tomtasche_reader_background_CoreWrapper_stopServerNative(JNIEnv *env, jclass clazz);
 }
 
 #endif //ANDROID_CORE_WRAPPER_H
