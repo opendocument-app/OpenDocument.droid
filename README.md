@@ -11,6 +11,9 @@ This is an Android frontend for our C++ OpenDocument.core library. Feel free to 
 
 More information at https://opendocument.app/ and in the app itself.
 
+## Translations
+Please help to translate on the https://crowdin.com/project/opendocument
+
 ## Setup
 
 - `conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan`
