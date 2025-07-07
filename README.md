@@ -16,5 +16,8 @@ Please help to translate on the https://crowdin.com/project/opendocument
 
 ## Setup
 
+- install conan using pip in a venv
+- `conan profile detect --force`
 - `conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan`
+- move odr-repository to first index in .conan2/remotes.json
 - make sure `conan` is in your $PATH or replace conan-call in `app/build.gradle`
