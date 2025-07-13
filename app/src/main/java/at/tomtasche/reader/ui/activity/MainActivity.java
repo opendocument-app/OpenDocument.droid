@@ -224,16 +224,23 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         // Determine current mode based on enabled components
         boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(catchAllComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
         boolean isCommonTypesEnabled = getPackageManager().getComponentEnabledSetting(commonTypesComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        boolean isStrictEnabled = getPackageManager().getComponentEnabledSetting(strictCatchComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
         
-        // Default to common types if this is first run (all are disabled)
-        if (!isCatchAllEnabled && !isCommonTypesEnabled) {
-            isCommonTypesEnabled = true;
+        // Determine current mode - prioritize in order: CATCH_ALL -> COMMON_TYPES -> STRICT
+        String currentMode;
+        if (isCatchAllEnabled) {
+            currentMode = "CATCH_ALL";
+        } else if (isCommonTypesEnabled) {
+            currentMode = "COMMON_TYPES";
+        } else if (isStrictEnabled) {
+            currentMode = "STRICT";
+        } else {
+            // Default for new installations or if all are disabled
+            currentMode = "COMMON_TYPES";
         }
-
-        // Ensure only one mode is enabled
-        toggleComponent(catchAllComponent, isCatchAllEnabled && !isCommonTypesEnabled);
-        toggleComponent(commonTypesComponent, isCommonTypesEnabled && !isCatchAllEnabled);
-        toggleComponent(strictCatchComponent, !isCatchAllEnabled && !isCommonTypesEnabled);
+        
+        // Set the appropriate mode
+        setFileTypeMode(currentMode);
 
         SwitchCompat catchAllSwitch = findViewById(R.id.landing_catch_all);
 
@@ -242,30 +249,47 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     // Switch to common types mode
-                    toggleComponent(catchAllComponent, false);
-                    toggleComponent(commonTypesComponent, true);
-                    toggleComponent(strictCatchComponent, false);
+                    setFileTypeMode("COMMON_TYPES");
                 } else {
                     // Switch to strict mode  
-                    toggleComponent(catchAllComponent, false);
-                    toggleComponent(commonTypesComponent, false);
-                    toggleComponent(strictCatchComponent, true);
+                    setFileTypeMode("STRICT");
                 }
             }
         });
 
         // Set switch state: checked if common types is enabled, unchecked if strict is enabled
-        catchAllSwitch.setChecked(isCommonTypesEnabled);
+        // Note: We don't expose CATCH_ALL mode in the UI anymore, as per issue #374 request
+        catchAllSwitch.setChecked(currentMode.equals("COMMON_TYPES"));
 
-        String analyticsEvent;
-        if (isCatchAllEnabled) {
-            analyticsEvent = "catch_all_enabled";
-        } else if (isCommonTypesEnabled) {
-            analyticsEvent = "common_types_enabled";
-        } else {
-            analyticsEvent = "strict_enabled";
+        analyticsManager.report("file_mode_" + currentMode.toLowerCase());
+    }
+    
+    private void setFileTypeMode(String mode) {
+        ComponentName catchAllComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL");
+        ComponentName commonTypesComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.COMMON_TYPES");
+        ComponentName strictCatchComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH");
+        
+        // Disable all components first
+        toggleComponent(catchAllComponent, false);
+        toggleComponent(commonTypesComponent, false);
+        toggleComponent(strictCatchComponent, false);
+        
+        // Enable the appropriate component
+        switch (mode) {
+            case "CATCH_ALL":
+                toggleComponent(catchAllComponent, true);
+                break;
+            case "COMMON_TYPES":
+                toggleComponent(commonTypesComponent, true);
+                break;
+            case "STRICT":
+                toggleComponent(strictCatchComponent, true);
+                break;
+            default:
+                // Default to common types
+                toggleComponent(commonTypesComponent, true);
+                break;
         }
-        analyticsManager.report(analyticsEvent);
     }
 
     private void toggleComponent(ComponentName component, boolean enabled) {

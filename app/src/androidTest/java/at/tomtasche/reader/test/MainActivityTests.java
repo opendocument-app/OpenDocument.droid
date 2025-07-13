@@ -19,6 +19,7 @@ import android.content.res.AssetManager;
 import android.net.Uri;
 import android.util.ArrayMap;
 
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.FileProvider;
 import androidx.test.espresso.IdlingRegistry;
 import androidx.test.espresso.IdlingResource;
@@ -183,5 +184,23 @@ public class MainActivityTests {
                 onView(allOf(withId(R.id.menu_edit), withContentDescription("Edit document"), isDisplayed()))
                         .perform(click());
             });
+    }
+
+    @Test
+    public void testFileTypeSwitch() {
+        // Test the file type registration switch functionality
+        SwitchCompat fileTypeSwitch = mainActivityActivityTestRule.getActivity().findViewById(R.id.landing_catch_all);
+        Assert.assertNotNull("File type switch should exist", fileTypeSwitch);
+        
+        // Test toggling the switch
+        onView(withId(R.id.landing_catch_all))
+                .perform(click());
+                
+        // Switch should now be in opposite state
+        onView(withId(R.id.landing_catch_all))
+                .perform(click());
+                
+        // Should be back to original state
+        // This test verifies the switch is functional and doesn't crash
     }
 }
