@@ -218,79 +218,29 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
 
     private void initializeCatchAllSwitch() {
         ComponentName catchAllComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL");
-        ComponentName commonTypesComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.COMMON_TYPES");
         ComponentName strictCatchComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH");
 
-        // Determine current mode based on enabled components
         boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(catchAllComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-        boolean isCommonTypesEnabled = getPackageManager().getComponentEnabledSetting(commonTypesComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-        boolean isStrictEnabled = getPackageManager().getComponentEnabledSetting(strictCatchComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-        
-        // Determine current mode - prioritize in order: CATCH_ALL -> COMMON_TYPES -> STRICT
-        String currentMode;
-        if (isCatchAllEnabled) {
-            currentMode = "CATCH_ALL";
-        } else if (isCommonTypesEnabled) {
-            currentMode = "COMMON_TYPES";
-        } else if (isStrictEnabled) {
-            currentMode = "STRICT";
-        } else {
-            // Default for new installations or if all are disabled
-            currentMode = "COMMON_TYPES";
-        }
-        
-        // Set the appropriate mode
-        setFileTypeMode(currentMode);
+
+        // retoggle components for users upgrading to latest version of app
+        toggleComponent(catchAllComponent, isCatchAllEnabled);
+        toggleComponent(strictCatchComponent, !isCatchAllEnabled);
 
         SwitchCompat catchAllSwitch = findViewById(R.id.landing_catch_all);
 
         catchAllSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    // Switch to common types mode
-                    setFileTypeMode("COMMON_TYPES");
-                } else {
-                    // Switch to strict mode  
-                    setFileTypeMode("STRICT");
-                }
+                toggleComponent(catchAllComponent, isChecked);
+                toggleComponent(strictCatchComponent, !isChecked);
             }
         });
 
-        // Set switch state: checked if common types is enabled, unchecked if strict is enabled
-        // Note: We don't expose CATCH_ALL mode in the UI anymore, as per issue #374 request
-        catchAllSwitch.setChecked(currentMode.equals("COMMON_TYPES"));
+        catchAllSwitch.setChecked(isCatchAllEnabled);
 
-        analyticsManager.report("file_mode_" + currentMode.toLowerCase());
+        analyticsManager.report(isCatchAllEnabled ? "catch_all_enabled" : "catch_all_disabled");
     }
-    
-    private void setFileTypeMode(String mode) {
-        ComponentName catchAllComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL");
-        ComponentName commonTypesComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.COMMON_TYPES");
-        ComponentName strictCatchComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH");
-        
-        // Disable all components first
-        toggleComponent(catchAllComponent, false);
-        toggleComponent(commonTypesComponent, false);
-        toggleComponent(strictCatchComponent, false);
-        
-        // Enable the appropriate component
-        switch (mode) {
-            case "CATCH_ALL":
-                toggleComponent(catchAllComponent, true);
-                break;
-            case "COMMON_TYPES":
-                toggleComponent(commonTypesComponent, true);
-                break;
-            case "STRICT":
-                toggleComponent(strictCatchComponent, true);
-                break;
-            default:
-                // Default to common types
-                toggleComponent(commonTypesComponent, true);
-                break;
-        }
-    }
+
 
     private void toggleComponent(ComponentName component, boolean enabled) {
         int newState = enabled ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
