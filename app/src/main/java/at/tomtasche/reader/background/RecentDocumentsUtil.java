@@ -30,7 +30,10 @@ public class RecentDocumentsUtil {
             String filename = document.getString("filename");
             String uri = document.getString("uri");
 
-            result.put(filename, uri);
+            // Only include URIs that are still accessible
+            if (isUriAccessible(context, Uri.parse(uri))) {
+                result.put(filename, uri);
+            }
         }
 
         return result;
@@ -133,5 +136,20 @@ public class RecentDocumentsUtil {
             }
         }
         return index;
+    }
+
+    /**
+     * Check if a URI is still accessible to the app.
+     * This helps filter out URIs that no longer have valid permissions.
+     */
+    private static boolean isUriAccessible(Context context, Uri uri) {
+        try {
+            // Try to open an input stream to test accessibility
+            context.getContentResolver().openInputStream(uri).close();
+            return true;
+        } catch (Exception e) {
+            // URI is not accessible (SecurityException, FileNotFoundException, etc.)
+            return false;
+        }
     }
 }
