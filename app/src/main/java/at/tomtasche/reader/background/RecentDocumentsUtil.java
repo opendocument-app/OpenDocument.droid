@@ -19,35 +19,62 @@ import java.util.Map;
 public class RecentDocumentsUtil {
 
     private static final String FILENAME = "recent_documents.json";
+    private static final String CLEANUP_PREF_KEY = "recent_docs_cleanup_v1_done";
 
     public static Map<String, String> getRecentDocuments(Context context)
             throws IOException, JSONException {
+        // Perform one-time cleanup of inaccessible documents
+        performOneTimeCleanupIfNeeded(context);
+
         Map<String, String> result = new HashMap<String, String>();
 
         JSONArray jsonArray = getRecentDocumentsJson(context);
-        JSONArray filteredArray = new JSONArray();
-        boolean hasInaccessibleDocuments = false;
 
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject document = jsonArray.getJSONObject(i);
             String filename = document.getString("filename");
             String uri = document.getString("uri");
 
-            // Only include URIs that are still accessible
-            if (isUriAccessible(context, Uri.parse(uri))) {
-                result.put(filename, uri);
-                filteredArray.put(document);
-            } else {
-                hasInaccessibleDocuments = true;
-            }
-        }
-
-        // Remove inaccessible documents from storage to avoid checking them again
-        if (hasInaccessibleDocuments) {
-            saveJson(context, filteredArray);
+            result.put(filename, uri);
         }
 
         return result;
+    }
+
+    private static void performOneTimeCleanupIfNeeded(Context context) {
+        // Check if cleanup has already been performed
+        android.content.SharedPreferences prefs = context.getSharedPreferences("recent_docs", Context.MODE_PRIVATE);
+        if (prefs.getBoolean(CLEANUP_PREF_KEY, false)) {
+            return; // Cleanup already done
+        }
+
+        try {
+            JSONArray jsonArray = getRecentDocumentsJson(context);
+            JSONArray filteredArray = new JSONArray();
+            boolean hasInaccessibleDocuments = false;
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject document = jsonArray.getJSONObject(i);
+                String uri = document.getString("uri");
+
+                // Remove documents that are no longer accessible
+                if (isUriAccessible(context, Uri.parse(uri))) {
+                    filteredArray.put(document);
+                } else {
+                    hasInaccessibleDocuments = true;
+                }
+            }
+
+            if (hasInaccessibleDocuments) {
+                saveJson(context, filteredArray);
+            }
+
+            // Mark cleanup as completed
+            prefs.edit().putBoolean(CLEANUP_PREF_KEY, true).apply();
+        } catch (Exception e) {
+            // If cleanup fails, mark it as done anyway to avoid repeated attempts
+            prefs.edit().putBoolean(CLEANUP_PREF_KEY, true).apply();
+        }
     }
 
     private static JSONArray getRecentDocumentsJson(Context context)
