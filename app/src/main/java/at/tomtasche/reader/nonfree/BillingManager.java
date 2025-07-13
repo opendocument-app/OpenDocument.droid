@@ -16,16 +16,15 @@ public class BillingManager {
     public void initialize(Context context, AnalyticsManager analyticsManager, AdManager adManager) {
         this.adManager = adManager;
 
-        if (!enabled) {
-            adManager.showGoogleAds();
-
-            return;
-        }
-
         billingPreferences = new BillingPreferences(context);
 
         if (BuildConfig.FLAVOR.equals("pro")) {
             billingPreferences.setPurchased(true);
+        }
+
+        if (!enabled) {
+            adManager.showGoogleAds();
+            return;
         }
 
         enforceAds();
