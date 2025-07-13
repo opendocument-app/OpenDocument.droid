@@ -218,27 +218,54 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
 
     private void initializeCatchAllSwitch() {
         ComponentName catchAllComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL");
+        ComponentName commonTypesComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.COMMON_TYPES");
         ComponentName strictCatchComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH");
 
+        // Determine current mode based on enabled components
         boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(catchAllComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        boolean isCommonTypesEnabled = getPackageManager().getComponentEnabledSetting(commonTypesComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        
+        // Default to common types if this is first run (all are disabled)
+        if (!isCatchAllEnabled && !isCommonTypesEnabled) {
+            isCommonTypesEnabled = true;
+        }
 
-        // retoggle components for users upgrading to latest version of app
-        toggleComponent(catchAllComponent, isCatchAllEnabled);
-        toggleComponent(strictCatchComponent, !isCatchAllEnabled);
+        // Ensure only one mode is enabled
+        toggleComponent(catchAllComponent, isCatchAllEnabled && !isCommonTypesEnabled);
+        toggleComponent(commonTypesComponent, isCommonTypesEnabled && !isCatchAllEnabled);
+        toggleComponent(strictCatchComponent, !isCatchAllEnabled && !isCommonTypesEnabled);
 
         SwitchCompat catchAllSwitch = findViewById(R.id.landing_catch_all);
 
         catchAllSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                toggleComponent(catchAllComponent, isChecked);
-                toggleComponent(strictCatchComponent, !isChecked);
+                if (isChecked) {
+                    // Switch to common types mode
+                    toggleComponent(catchAllComponent, false);
+                    toggleComponent(commonTypesComponent, true);
+                    toggleComponent(strictCatchComponent, false);
+                } else {
+                    // Switch to strict mode  
+                    toggleComponent(catchAllComponent, false);
+                    toggleComponent(commonTypesComponent, false);
+                    toggleComponent(strictCatchComponent, true);
+                }
             }
         });
 
-        catchAllSwitch.setChecked(isCatchAllEnabled);
+        // Set switch state: checked if common types is enabled, unchecked if strict is enabled
+        catchAllSwitch.setChecked(isCommonTypesEnabled);
 
-        analyticsManager.report(isCatchAllEnabled ? "catch_all_enabled" : "catch_all_disabled");
+        String analyticsEvent;
+        if (isCatchAllEnabled) {
+            analyticsEvent = "catch_all_enabled";
+        } else if (isCommonTypesEnabled) {
+            analyticsEvent = "common_types_enabled";
+        } else {
+            analyticsEvent = "strict_enabled";
+        }
+        analyticsManager.report(analyticsEvent);
     }
 
     private void toggleComponent(ComponentName component, boolean enabled) {
