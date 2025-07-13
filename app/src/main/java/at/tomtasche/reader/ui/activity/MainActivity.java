@@ -28,7 +28,6 @@ import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 
-import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
@@ -197,26 +196,6 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         }
 
         addMenuProvider(this, this);
-
-        // Set up back button handling
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                if (fullscreen) {
-                    leaveFullscreen();
-                    return;
-                }
-
-                // If document is currently displayed and was opened internally, go back to landing
-                if (documentContainer.getVisibility() == View.VISIBLE && documentOpenedInternally) {
-                    showLandingScreen();
-                } else {
-                    // For external launches or when already on landing screen, use default behavior (close app)
-                    setEnabled(false);
-                    getOnBackPressedDispatcher().onBackPressed();
-                }
-            }
-        });
     }
 
     @Override
@@ -385,6 +364,18 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     }
 
     public void loadUri(Uri uri) {
+        loadUriInternal(uri, false);
+    }
+    
+    public void loadUriFromInternalNavigation(Uri uri) {
+        loadUriInternal(uri, true);
+    }
+    
+    private void loadUriInternal(Uri uri, boolean isInternal) {
+        if (isInternal) {
+            documentOpenedInternally = true;
+        }
+        
         lastSaveUri = null;
         lastUri = uri;
 
@@ -579,6 +570,22 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         }
 
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (fullscreen) {
+            leaveFullscreen();
+            return;
+        }
+
+        // If document is currently displayed and was opened internally, go back to landing
+        if (documentContainer.getVisibility() == View.VISIBLE && documentOpenedInternally) {
+            showLandingScreen();
+        } else {
+            // For external launches or when already on landing screen, use default behavior (close app)
+            super.onBackPressed();
+        }
     }
 
     public void findDocument() {
