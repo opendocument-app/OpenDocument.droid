@@ -368,14 +368,14 @@
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.pdf" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.pdf" />
             </intent-filter>
-            <!-- Microsoft Office DOCX files -->
+            <!-- Microsoft Word DOC files -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+                <data android:mimeType="application/msword" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -386,13 +386,13 @@
                 <data android:scheme="content" />
                 <data android:scheme="file" />
                 <data android:host="*" />
-                <data android:pathPattern=".*\\.docx" />
-                <data android:pathPattern=".*\\..*\\.docx" />
-                <data android:pathPattern=".*\\..*\\..*\\.docx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.docx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.docx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.docx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.docx" />
+                <data android:pathPattern=".*\\.doc" />
+                <data android:pathPattern=".*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.doc" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -404,101 +404,13 @@
                 <data android:scheme="content" />
                 <data android:scheme="file" />
                 <data android:host="*" />
-                <data android:pathPattern=".*\\.docx" />
-                <data android:pathPattern=".*\\..*\\.docx" />
-                <data android:pathPattern=".*\\..*\\..*\\.docx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.docx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.docx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.docx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.docx" />
-            </intent-filter>
-            <!-- Microsoft Office PPTX files -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:mimeType="application/vnd.openxmlformats-officedocument.presentationml.presentation" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.BROWSABLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:scheme="content" />
-                <data android:scheme="file" />
-                <data android:host="*" />
-                <data android:pathPattern=".*\\.pptx" />
-                <data android:pathPattern=".*\\..*\\.pptx" />
-                <data android:pathPattern=".*\\..*\\..*\\.pptx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.pptx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.pptx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.pptx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.pptx" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.BROWSABLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:mimeType="*/*" />
-                <data android:scheme="content" />
-                <data android:scheme="file" />
-                <data android:host="*" />
-                <data android:pathPattern=".*\\.pptx" />
-                <data android:pathPattern=".*\\..*\\.pptx" />
-                <data android:pathPattern=".*\\..*\\..*\\.pptx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.pptx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.pptx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.pptx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.pptx" />
-            </intent-filter>
-            <!-- Microsoft Office XLSX files -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.BROWSABLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:scheme="content" />
-                <data android:scheme="file" />
-                <data android:host="*" />
-                <data android:pathPattern=".*\\.xlsx" />
-                <data android:pathPattern=".*\\..*\\.xlsx" />
-                <data android:pathPattern=".*\\..*\\..*\\.xlsx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.xlsx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.xlsx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.xlsx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.xlsx" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.BROWSABLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:mimeType="*/*" />
-                <data android:scheme="content" />
-                <data android:scheme="file" />
-                <data android:host="*" />
-                <data android:pathPattern=".*\\.xlsx" />
-                <data android:pathPattern=".*\\..*\\.xlsx" />
-                <data android:pathPattern=".*\\..*\\..*\\.xlsx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.xlsx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.xlsx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.xlsx" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.xlsx" />
+                <data android:pathPattern=".*\\.doc" />
+                <data android:pathPattern=".*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.doc" />
             </intent-filter>
             <!-- OpenDocument formats - copy from STRICT_CATCH -->
             <intent-filter>
