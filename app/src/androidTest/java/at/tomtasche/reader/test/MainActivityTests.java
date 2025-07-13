@@ -2,6 +2,8 @@ package at.tomtasche.reader.test;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.action.ViewActions.typeText;
+import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isEnabled;
@@ -104,7 +106,7 @@ public class MainActivityTests {
 
         AssetManager testAssetManager = instrumentation.getContext().getAssets();
 
-        for (String filename: new String[] {"test.odt", "dummy.pdf"}) {
+        for (String filename: new String[] {"test.odt", "dummy.pdf", "password-test.odt"}) {
             File targetFile = new File(testDocumentsDir, filename);
             try (InputStream inputStream = testAssetManager.open(filename)) {
                 copy(inputStream, targetFile);
@@ -178,6 +180,53 @@ public class MainActivityTests {
         onView(allOf(withId(R.id.menu_edit), withContentDescription("Edit document"), isEnabled()))
             .withFailureHandler((error, viewMatcher) -> {
                 // fails on small screens, try again with overflow menu
+                onView(allOf(withContentDescription("More options"), isDisplayed())).perform(click());
+
+                onView(allOf(withId(R.id.menu_edit), withContentDescription("Edit document"), isDisplayed()))
+                        .perform(click());
+            });
+    }
+
+    @Test
+    public void testPasswordProtectedODT() {
+        File testFile = s_testFiles.get("password-test.odt");
+        Assert.assertNotNull(testFile);
+        Context appCtx = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        Uri testFileUri = FileProvider.getUriForFile(appCtx, appCtx.getPackageName() + ".provider", testFile);
+        Intents.intending(hasAction(Intent.ACTION_OPEN_DOCUMENT)).respondWith(
+                new Instrumentation.ActivityResult(Activity.RESULT_OK,
+                        new Intent()
+                                .setData(testFileUri)
+                                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                )
+        );
+
+        onView(allOf(withId(R.id.menu_open), withContentDescription("Open document"), isDisplayed()))
+            .perform(click());
+
+        onView(allOf(withId(android.R.id.text1), anyOf(withText("Documents"), withText("Files")), isDisplayed()))
+                .perform(click());
+
+        onView(withText("This document is password-protected"))
+                .check(matches(isDisplayed()));
+
+        onView(withId(android.R.id.edit))
+                .perform(typeText("wrongpassword"));
+
+        onView(withId(android.R.id.button1))
+                .perform(click());
+
+        onView(withText("This document is password-protected"))
+                .check(matches(isDisplayed()));
+
+        onView(withId(android.R.id.edit))
+                .perform(typeText("passwort"));
+
+        onView(withId(android.R.id.button1))
+                .perform(click());
+
+        onView(allOf(withId(R.id.menu_edit), withContentDescription("Edit document"), isEnabled()))
+            .withFailureHandler((error, viewMatcher) -> {
                 onView(allOf(withContentDescription("More options"), isDisplayed())).perform(click());
 
                 onView(allOf(withId(R.id.menu_edit), withContentDescription("Edit document"), isDisplayed()))

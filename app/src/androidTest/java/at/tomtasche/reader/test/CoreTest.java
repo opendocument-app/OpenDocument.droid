@@ -25,6 +25,7 @@ import at.tomtasche.reader.background.CoreWrapper;
 @RunWith(AndroidJUnit4.class)
 public class CoreTest {
     private File m_testFile;
+    private File m_passwordTestFile;
 
     @Before
     public void initializeCore() {
@@ -36,11 +37,15 @@ public class CoreTest {
     public void extractTestFile() throws IOException {
         Context appCtx = InstrumentationRegistry.getInstrumentation().getTargetContext();
         m_testFile = new File(appCtx.getCacheDir(), "test.odt");
+        m_passwordTestFile = new File(appCtx.getCacheDir(), "password-test.odt");
 
         Context testCtx = InstrumentationRegistry.getInstrumentation().getContext();
         AssetManager assetManager = testCtx.getAssets();
         try (InputStream inputStream = assetManager.open("test.odt")) {
             copy(inputStream, m_testFile);
+        }
+        try (InputStream inputStream = assetManager.open("password-test.odt")) {
+            copy(inputStream, m_passwordTestFile);
         }
     }
 
@@ -48,6 +53,9 @@ public class CoreTest {
     public void cleanupTestFile() {
         if (null != m_testFile) {
             m_testFile.delete();
+        }
+        if (null != m_passwordTestFile) {
+            m_passwordTestFile.delete();
         }
     }
 
@@ -80,6 +88,50 @@ public class CoreTest {
         String htmlDiff = "{\"modifiedText\":{\"3\":\"This is a simple test document to demonstrate the DocumentLoadewwwwr example!\"}}";
 
         CoreWrapper.CoreResult result = CoreWrapper.backtranslate(coreOptions, htmlDiff);
+        Assert.assertEquals(0, coreResult.errorCode);
+    }
+
+    @Test
+    public void testPasswordProtectedDocumentWithoutPassword() {
+        File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
+        File outputDir = new File(cacheDir, "output_password_test");
+
+        CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
+        coreOptions.inputPath = m_passwordTestFile.getAbsolutePath();
+        coreOptions.outputPath = outputDir.getPath();
+        coreOptions.editable = false;
+
+        CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
+        Assert.assertEquals(-2, coreResult.errorCode);
+    }
+
+    @Test
+    public void testPasswordProtectedDocumentWithWrongPassword() {
+        File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
+        File outputDir = new File(cacheDir, "output_password_test");
+
+        CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
+        coreOptions.inputPath = m_passwordTestFile.getAbsolutePath();
+        coreOptions.outputPath = outputDir.getPath();
+        coreOptions.password = "wrongpassword";
+        coreOptions.editable = false;
+
+        CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
+        Assert.assertEquals(-2, coreResult.errorCode);
+    }
+
+    @Test
+    public void testPasswordProtectedDocumentWithCorrectPassword() {
+        File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
+        File outputDir = new File(cacheDir, "output_password_test");
+
+        CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
+        coreOptions.inputPath = m_passwordTestFile.getAbsolutePath();
+        coreOptions.outputPath = outputDir.getPath();
+        coreOptions.password = "passwort";
+        coreOptions.editable = false;
+
+        CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
         Assert.assertEquals(0, coreResult.errorCode);
     }
 }
