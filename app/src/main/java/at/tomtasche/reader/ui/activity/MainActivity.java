@@ -241,7 +241,6 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         analyticsManager.report(isCatchAllEnabled ? "catch_all_enabled" : "catch_all_disabled");
     }
 
-
     private void toggleComponent(ComponentName component, boolean enabled) {
         int newState = enabled ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
         getPackageManager().setComponentEnabledSetting(component, newState, PackageManager.DONT_KILL_APP);
