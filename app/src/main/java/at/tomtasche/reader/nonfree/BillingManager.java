@@ -16,10 +16,10 @@ public class BillingManager {
     public void initialize(Context context, AnalyticsManager analyticsManager, AdManager adManager) {
         this.adManager = adManager;
 
-        // Handle Pro flavor first, regardless of enabled state
+        billingPreferences = new BillingPreferences(context);
+
         if (BuildConfig.FLAVOR.equals("pro")) {
-            adManager.removeAds();
-            return;
+            billingPreferences.setPurchased(true);
         }
 
         if (!enabled) {
@@ -27,7 +27,6 @@ public class BillingManager {
             return;
         }
 
-        billingPreferences = new BillingPreferences(context);
         enforceAds();
     }
 
