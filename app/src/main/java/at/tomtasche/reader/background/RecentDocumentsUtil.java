@@ -25,6 +25,9 @@ public class RecentDocumentsUtil {
         Map<String, String> result = new HashMap<String, String>();
 
         JSONArray jsonArray = getRecentDocumentsJson(context);
+        JSONArray filteredArray = new JSONArray();
+        boolean hasInaccessibleDocuments = false;
+
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject document = jsonArray.getJSONObject(i);
             String filename = document.getString("filename");
@@ -33,7 +36,15 @@ public class RecentDocumentsUtil {
             // Only include URIs that are still accessible
             if (isUriAccessible(context, Uri.parse(uri))) {
                 result.put(filename, uri);
+                filteredArray.put(document);
+            } else {
+                hasInaccessibleDocuments = true;
             }
+        }
+
+        // Remove inaccessible documents from storage to avoid checking them again
+        if (hasInaccessibleDocuments) {
+            saveJson(context, filteredArray);
         }
 
         return result;
