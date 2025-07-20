@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.util.ArrayMap;
+import android.util.Log;
 
 import androidx.core.content.FileProvider;
 import androidx.test.espresso.IdlingRegistry;
@@ -198,6 +199,10 @@ public class MainActivityTests {
         // Check if the file exists and is readable
         Assert.assertTrue("Password test file does not exist: " + testFile.getAbsolutePath(), testFile.exists());
         Assert.assertTrue("Password test file is not readable: " + testFile.getAbsolutePath(), testFile.canRead());
+        
+        // Log file info for debugging CI issues
+        Log.d("MainActivityTests", "Password test file path: " + testFile.getAbsolutePath());
+        Log.d("MainActivityTests", "Password test file size: " + testFile.length());
         
         Context appCtx = InstrumentationRegistry.getInstrumentation().getTargetContext();
         Uri testFileUri = FileProvider.getUriForFile(appCtx, appCtx.getPackageName() + ".provider", testFile);

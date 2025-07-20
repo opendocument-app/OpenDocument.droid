@@ -164,4 +164,41 @@ jobs:
         force-avd-creation: false
         emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
         disable-animations: true
-        script: ./gradlew connectedCheck
+        script: |
+          adb logcat -c
+          adb logcat > logcat.txt &
+          LOGCAT_PID=$!
+          ./gradlew connectedCheck || TEST_RESULT=$?
+          kill $LOGCAT_PID || true
+          exit ${TEST_RESULT:-0}
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.api-level }}
+        path: |
+          app/build/reports/androidTests/
+          app/build/outputs/androidTest-results/
+        if-no-files-found: warn
+        
+    - name: Upload test logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-logs-${{ matrix.api-level }}
+        path: |
+          app/build/outputs/logs/
+          app/build/test-results/
+        if-no-files-found: warn
+
+    - name: Upload emulator logs
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: emulator-logs-${{ matrix.api-level }}
+        path: |
+          ~/.android/avd/*.avd/config.ini
+          ~/.android/avd/*.avd/*.log
+          logcat.txt
+        if-no-files-found: warn
