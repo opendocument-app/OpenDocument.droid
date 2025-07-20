@@ -218,6 +218,7 @@
             android:label="@string/app_title"
             android:targetActivity="at.tomtasche.reader.ui.activity.MainActivity"
             tools:ignore="AppLinkUrlError">
+            <!-- STRICT_CATCH: Supports ODT, ODS, ODP, ODG, PDF, DOCX, DOC -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -231,6 +232,9 @@
                 <data android:mimeType="application/vnd.oasis.opendocument.presentation" />
                 <data android:mimeType="application/vnd.oasis.opendocument.presentation-template" />
                 <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="application/pdf" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+                <data android:mimeType="application/msword" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -269,10 +273,27 @@
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.odg" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.odg" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.odg" />
-                <data android:pathPattern=".*\\.odt" />
-                <data android:pathPattern=".*\\.ods" />
-                <data android:pathPattern=".*\\.odp" />
-                <data android:pathPattern=".*\\.odg" />
+                <data android:pathPattern=".*\\.pdf" />
+                <data android:pathPattern=".*\\..*\\.pdf" />
+                <data android:pathPattern=".*\\..*\\..*\\.pdf" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.pdf" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.pdf" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.pdf" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.pdf" />
+                <data android:pathPattern=".*\\.docx" />
+                <data android:pathPattern=".*\\..*\\.docx" />
+                <data android:pathPattern=".*\\..*\\..*\\.docx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.docx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.docx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.docx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.docx" />
+                <data android:pathPattern=".*\\.doc" />
+                <data android:pathPattern=".*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.doc" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -312,6 +333,27 @@
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.odg" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.odg" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.odg" />
+                <data android:pathPattern=".*\\.pdf" />
+                <data android:pathPattern=".*\\..*\\.pdf" />
+                <data android:pathPattern=".*\\..*\\..*\\.pdf" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.pdf" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.pdf" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.pdf" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.pdf" />
+                <data android:pathPattern=".*\\.docx" />
+                <data android:pathPattern=".*\\..*\\.docx" />
+                <data android:pathPattern=".*\\..*\\..*\\.docx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.docx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.docx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.docx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.docx" />
+                <data android:pathPattern=".*\\.doc" />
+                <data android:pathPattern=".*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.doc" />
                 <data android:pathPattern=".*\\.odt" />
                 <data android:pathPattern=".*\\.ods" />
                 <data android:pathPattern=".*\\.odp" />
