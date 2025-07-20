@@ -165,12 +165,14 @@ jobs:
         emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
         disable-animations: true
         script: |
+          # Clear logcat before tests
           adb logcat -c
-          adb logcat > logcat.txt &
-          LOGCAT_PID=$!
-          ./gradlew connectedCheck || TEST_RESULT=$?
-          kill $LOGCAT_PID || true
-          exit ${TEST_RESULT:-0}
+          
+          # Run tests
+          ./gradlew connectedCheck
+          
+          # Dump logcat after tests
+          adb logcat -d > logcat.txt
 
     - name: Upload test results
       if: always()
