@@ -354,10 +354,6 @@
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.doc" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.doc" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.doc" />
-                <data android:pathPattern=".*\\.odt" />
-                <data android:pathPattern=".*\\.ods" />
-                <data android:pathPattern=".*\\.odp" />
-                <data android:pathPattern=".*\\.odg" />
             </intent-filter>
         </activity-alias>
 
