@@ -557,6 +557,36 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         return super.onKeyDown(keyCode, event);
     }
 
+    @Override
+    public void onBackPressed() {
+        // Check if document is displayed and was opened internally
+        if (documentFragment != null && documentContainer.getVisibility() == View.VISIBLE) {
+            // Check if the activity was launched without external data (internal file selection)
+            if (getIntent().getData() == null) {
+                // Return to landing screen instead of exiting
+                landingContainer.setVisibility(View.VISIBLE);
+                documentContainer.setVisibility(View.GONE);
+                
+                // Clear the document fragment
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .remove(documentFragment)
+                        .commitNow();
+                documentFragment = null;
+                
+                // Clear the lastUri to reset state
+                lastUri = null;
+                
+                analyticsManager.setCurrentScreen(this, "screen_main");
+                
+                return;
+            }
+        }
+        
+        // Default behavior for external files or when no document is shown
+        super.onBackPressed();
+    }
+
     public void findDocument() {
         final Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
