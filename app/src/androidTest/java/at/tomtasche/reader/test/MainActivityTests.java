@@ -76,15 +76,23 @@ public class MainActivityTests {
         mainActivity.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
 
         Intents.init();
+        
+        // Log test setup for debugging
+        Log.d("MainActivityTests", "setUp() called for test: " + getClass().getName());
     }
 
     @After
     public void tearDown() {
+        Log.d("MainActivityTests", "tearDown() called");
+        
         Intents.release();
 
         if (null != m_idlingResource) {
             IdlingRegistry.getInstance().unregister(m_idlingResource);
         }
+        
+        // Ensure activity is finished to reset state between tests
+        mainActivityActivityTestRule.getActivity().finish();
     }
 
     private static void copy(InputStream src, File dst) throws IOException {
@@ -203,6 +211,10 @@ public class MainActivityTests {
         // Log file info for debugging CI issues
         Log.d("MainActivityTests", "Password test file path: " + testFile.getAbsolutePath());
         Log.d("MainActivityTests", "Password test file size: " + testFile.length());
+        Log.d("MainActivityTests", "All test files: " + s_testFiles.keySet());
+        
+        // Double-check we're using the right file
+        Assert.assertEquals("password-test.odt file size mismatch", 12671L, testFile.length());
         
         Context appCtx = InstrumentationRegistry.getInstrumentation().getTargetContext();
         Uri testFileUri = FileProvider.getUriForFile(appCtx, appCtx.getPackageName() + ".provider", testFile);
