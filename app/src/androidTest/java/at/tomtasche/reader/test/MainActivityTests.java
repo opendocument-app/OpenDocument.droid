@@ -201,6 +201,15 @@ public class MainActivityTests {
 
     @Test
     public void testPasswordProtectedODT() {
+        Log.d("MainActivityTests", "=== Starting testPasswordProtectedODT ===");
+        
+        // Add delay to ensure previous tests are fully cleaned up
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            Log.e("MainActivityTests", "Sleep interrupted", e);
+        }
+        
         File testFile = s_testFiles.get("password-test.odt");
         Assert.assertNotNull(testFile);
         
@@ -226,6 +235,12 @@ public class MainActivityTests {
                 )
         );
 
+        // Check activity is alive before proceeding
+        MainActivity activity = mainActivityActivityTestRule.getActivity();
+        Assert.assertNotNull("Activity is null", activity);
+        Assert.assertFalse("Activity is finishing", activity.isFinishing());
+        Assert.assertFalse("Activity is destroyed", activity.isDestroyed());
+        
         onView(allOf(withId(R.id.menu_open), withContentDescription("Open document"), isDisplayed()))
             .perform(click());
 
