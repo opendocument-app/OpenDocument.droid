@@ -7,6 +7,7 @@ import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import java.io.File;
+import java.util.Objects;
 
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.ConfigManager;
@@ -92,9 +93,13 @@ public class CoreLoader extends FileLoader {
 
         File cacheDirectory = AndroidFileCache.getCacheDirectory(cachedFile);
 
+        File coreOutputDirectory = new File(cacheDirectory, "core_output");
+        File coreCacheDirectory = new File(cacheDirectory, "core_cache");
+
         CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
         coreOptions.inputPath = cachedFile.getPath();
-        coreOptions.outputPath = cacheDirectory.getPath();
+        coreOptions.outputPath = coreOutputDirectory.getPath();
+        coreOptions.cachePath = coreCacheDirectory.getPath();
         coreOptions.password = options.password;
         coreOptions.editable = options.translatable;
         coreOptions.ooxml = doOoxml;
