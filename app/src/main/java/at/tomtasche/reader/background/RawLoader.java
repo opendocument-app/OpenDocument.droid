@@ -21,7 +21,6 @@ public class RawLoader extends FileLoader {
     private static final String[] MIME_BLACKLIST = {"image/vnd.dwg", "image/g3fax", "image/tiff", "image/vnd.djvu", "image/x-eps", "image/x-tga", "image/x-tga", "audio/amr", "video/3gpp", "video/quicktime", "text/calendar", "text/vcard", "text/rtf"};
 
     private CoreWrapper lastCore;
-    private CoreWrapper.CoreOptions lastCoreOptions;
 
     public RawLoader(Context context) {
         super(context, LoaderType.RAW);
@@ -141,8 +140,6 @@ public class RawLoader extends FileLoader {
                 coreOptions.ooxml = false;
                 coreOptions.txt = true;
                 coreOptions.pdf = false;
-
-                lastCoreOptions = coreOptions;
 
                 CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
                 if (coreResult.exception != null) {
