@@ -30,7 +30,7 @@ tasks.register('conanProfile', Copy) {
 android {
     defaultConfig {
         applicationId "at.tomtasche.reader"
-        minSdkVersion 23
+        minSdkVersion 34
         compileSdkVersion 34
         targetSdkVersion 34
 
