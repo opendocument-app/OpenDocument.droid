@@ -98,6 +98,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jcl
 JNIEXPORT jobject JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass clazz,
                                                             jobject options) {
+    std::error_code ec;
     auto logger = std::make_shared<AndroidLogger>();
 
     jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
@@ -196,7 +197,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
 
             __android_log_print(ANDROID_LOG_VERBOSE, "smn", "Translate to HTML");
 
-            std::filesystem::remove_all(cachePathCpp);
+            std::filesystem::remove_all(cachePathCpp, ec);
             std::filesystem::create_directories(cachePathCpp);
             odr::HtmlService service = odr::html::translate(file, cachePathCpp, htmlConfig, logger);
             odr::Html html = service.bring_offline(outputPathCpp);
@@ -319,6 +320,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jcla
                                                                jobject options) {
     __android_log_print(ANDROID_LOG_INFO, "smn", "host file");
 
+    std::error_code ec;
     auto logger = std::make_shared<AndroidLogger>();
 
     jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
@@ -397,7 +399,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jcla
             htmlConfig.text_document_margin = paging;
             htmlConfig.editable = editable;
 
-            std::filesystem::remove_all(cachePathCpp);
+            std::filesystem::remove_all(cachePathCpp, ec);
             std::filesystem::create_directories(cachePathCpp);
             odr::HtmlService service = odr::html::translate(file, cachePathCpp, htmlConfig, logger);
             s_server->connect_service(service, prefixCpp);
