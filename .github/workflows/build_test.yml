@@ -83,10 +83,9 @@ jobs:
           # broken for unknown reasons. needs some offline debugging
           # https://github.com/opendocument-app/OpenDocument.droid/issues/390
           # - { arch: x86_64, api-level: 23 }
-          # disabled after https://github.com/opendocument-app/OpenDocument.droid/commit/48d718054f1667e4c0ab0016006c8b3f601d6a3a
-          # - { arch: x86_64, api-level: 29 }
-          # - { arch: x86_64, api-level: 30 }
-          # - { arch: x86_64, api-level: 32 }
+          - { arch: x86_64, api-level: 29 }
+          - { arch: x86_64, api-level: 30 }
+          - { arch: x86_64, api-level: 32 }
           - { arch: x86_64, api-level: 34 }
     steps:
     - name: checkout
