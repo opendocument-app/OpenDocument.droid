@@ -86,6 +86,7 @@ jobs:
           - { arch: x86_64, api-level: 29 }
           - { arch: x86_64, api-level: 30 }
           - { arch: x86_64, api-level: 32 }
+          - { arch: x86_64, api-level: 34 }
     steps:
     - name: checkout
       uses: actions/checkout@v4
