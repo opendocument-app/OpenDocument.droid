@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    ndkVersion "26.3.11579264"
+    ndkVersion "28.1.13356709"
 }
 
 tasks.register('conanProfile', Copy) {
@@ -30,7 +30,7 @@ tasks.register('conanProfile', Copy) {
 android {
     defaultConfig {
         applicationId "at.tomtasche.reader"
-        minSdkVersion 34
+        minSdkVersion 23
         compileSdkVersion 34
         targetSdkVersion 34
 
