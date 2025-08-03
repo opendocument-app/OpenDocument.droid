@@ -72,11 +72,13 @@ public class CoreTest {
     @Test
     public void test() {
         File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
-        File outputDir = new File(cacheDir, "output");
+        File outputPath = new File(cacheDir, "core_output");
+        File cachePath = new File(cacheDir, "core_cache");
 
         CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
         coreOptions.inputPath = m_testFile.getAbsolutePath();
-        coreOptions.outputPath = outputDir.getPath();
+        coreOptions.outputPath = outputPath.getPath();
+        coreOptions.cachePath = cachePath.getPath();
         coreOptions.editable = true;
 
         CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);

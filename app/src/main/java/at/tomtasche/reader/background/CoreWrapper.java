@@ -57,6 +57,7 @@ public class CoreWrapper {
 
         public String inputPath;
         public String outputPath;
+        public String cachePath;
     }
 
     public static CoreResult parse(CoreOptions options) {

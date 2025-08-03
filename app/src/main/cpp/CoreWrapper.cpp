@@ -98,6 +98,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jcl
 JNIEXPORT jobject JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass clazz,
                                                             jobject options) {
+    std::error_code ec;
     auto logger = std::make_shared<AndroidLogger>();
 
     jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
@@ -121,6 +122,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
         jboolean editable = env->GetBooleanField(options, editableField);
 
         std::string outputPathCpp = getStringField(env, optionsClass, options, "outputPath");
+        std::string cachePathCpp = getStringField(env, optionsClass, options, "cachePath");
 
         jclass listClass = env->FindClass("java/util/List");
         jmethodID addMethod = env->GetMethodID(listClass, "add", "(Ljava/lang/Object;)Z");
@@ -195,11 +197,11 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
 
             __android_log_print(ANDROID_LOG_VERBOSE, "smn", "Translate to HTML");
 
-            std::string output_tmp = outputPathCpp + "/tmp";
-            std::filesystem::create_directories(output_tmp);
-            odr::HtmlService service = odr::html::translate(file, output_tmp, htmlConfig, logger);
+            std::filesystem::remove_all(cachePathCpp, ec);
+            std::filesystem::create_directories(cachePathCpp);
+            odr::HtmlService service = odr::html::translate(file, cachePathCpp, htmlConfig, logger);
             odr::Html html = service.bring_offline(outputPathCpp);
-            std::filesystem::remove_all(output_tmp);
+            std::filesystem::remove_all(cachePathCpp);
 
             for (const odr::HtmlPage &page: html.pages()) {
                 jstring pageName = env->NewStringUTF(page.name.c_str());
@@ -318,6 +320,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jcla
                                                                jobject options) {
     __android_log_print(ANDROID_LOG_INFO, "smn", "host file");
 
+    std::error_code ec;
     auto logger = std::make_shared<AndroidLogger>();
 
     jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
@@ -350,6 +353,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jcla
         jboolean editable = env->GetBooleanField(options, editableField);
 
         std::string outputPathCpp = getStringField(env, optionsClass, options, "outputPath");
+        std::string cachePathCpp = getStringField(env, optionsClass, options, "cachePath");
 
         jclass listClass = env->FindClass("java/util/List");
         jmethodID addMethod = env->GetMethodID(listClass, "add", "(Ljava/lang/Object;)Z");
@@ -395,9 +399,9 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jcla
             htmlConfig.text_document_margin = paging;
             htmlConfig.editable = editable;
 
-            std::string output_tmp = outputPathCpp + "/tmp";
-            std::filesystem::create_directories(output_tmp);
-            odr::HtmlService service = odr::html::translate(file, output_tmp, htmlConfig, logger);
+            std::filesystem::remove_all(cachePathCpp, ec);
+            std::filesystem::create_directories(cachePathCpp);
+            odr::HtmlService service = odr::html::translate(file, cachePathCpp, htmlConfig, logger);
             s_server->connect_service(service, prefixCpp);
             odr::HtmlViews htmlViews = service.list_views();
 
