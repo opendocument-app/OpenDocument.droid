@@ -205,6 +205,12 @@ public class MainActivityTests {
                 onView(allOf(withId(R.id.menu_edit), withContentDescription("Edit document"), isDisplayed()))
                         .perform(click());
             });
+
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
