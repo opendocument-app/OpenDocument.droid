@@ -88,11 +88,15 @@ Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jcl
     std::string fontconfigDataPath = getStringField(env, paramsClass, params, "fontconfigDataPath");
     std::string popplerDataPath = getStringField(env, paramsClass, params, "popplerDataPath");
     std::string pdf2htmlexDataPath = getStringField(env, paramsClass, params, "pdf2htmlexDataPath");
+    std::string customTmpfilePath = getStringField(env, paramsClass, params, "customTmpfilePath");
 
     odr::GlobalParams::set_odr_core_data_path(odrCoreDataPath);
     odr::GlobalParams::set_fontconfig_data_path(fontconfigDataPath);
     odr::GlobalParams::set_poppler_data_path(popplerDataPath);
     odr::GlobalParams::set_pdf2htmlex_data_path(pdf2htmlexDataPath);
+    odr::GlobalParams::set_custom_tmpfile_path(customTmpfilePath);
+
+    setenv("TMPDIR", customTmpfilePath.c_str(), 1);
 }
 
 JNIEXPORT jobject JNICALL
