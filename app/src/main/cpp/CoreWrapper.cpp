@@ -80,8 +80,6 @@ std::optional<odr::Document> s_document;
 JNIEXPORT void JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jclass clazz,
                                                                 jobject params) {
-    jboolean isCopy;
-
     jclass paramsClass = env->GetObjectClass(params);
 
     std::string odrCoreDataPath = getStringField(env, paramsClass, params, "coreDataPath");
@@ -94,6 +92,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jcl
     odr::GlobalParams::set_fontconfig_data_path(fontconfigDataPath);
     odr::GlobalParams::set_poppler_data_path(popplerDataPath);
     odr::GlobalParams::set_pdf2htmlex_data_path(pdf2htmlexDataPath);
+    odr::GlobalParams::set_custom_tmpfile_path(customTmpfilePath);
 
     setenv("TMPDIR", customTmpfilePath.c_str(), 1);
 }
