@@ -19,7 +19,6 @@ public abstract class FileLoader {
 
     public enum LoaderType {
         CORE,
-        WVWARE,
         ONLINE,
         RAW,
         METADATA

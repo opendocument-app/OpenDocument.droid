@@ -35,7 +35,6 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
     private MetadataLoader metadataLoader;
     private CoreLoader coreLoader;
-    private WvwareDocLoader wvwareDocLoader;
     private RawLoader rawLoader;
     private OnlineLoader onlineLoader;
 
@@ -61,9 +60,6 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
         coreLoader = new CoreLoader(context, configManager, true, true);
         coreLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
-
-        wvwareDocLoader = new WvwareDocLoader(context);
-        wvwareDocLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         rawLoader = new RawLoader(context);
         rawLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
@@ -115,9 +111,6 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         switch (loaderType) {
             case CORE:
                 loader = coreLoader;
-                break;
-            case WVWARE:
-                loader = wvwareDocLoader;
                 break;
             case ONLINE:
                 loader = onlineLoader;
@@ -176,9 +169,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         if (result.loaderType == FileLoader.LoaderType.CORE) {
             analyticsManager.report("load_odf_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
 
-            if (wvwareDocLoader.isSupported(options)) {
-                loadWithType(FileLoader.LoaderType.WVWARE, options);
-            } else if (rawLoader.isSupported(options)) {
+            if (rawLoader.isSupported(options)) {
                 loadWithType(FileLoader.LoaderType.RAW, options);
             } else {
                 if (currentListener != null) {
@@ -266,10 +257,6 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
         if (coreLoader != null) {
             coreLoader.close();
-        }
-
-        if (wvwareDocLoader != null) {
-            wvwareDocLoader.close();
         }
 
         if (rawLoader != null) {

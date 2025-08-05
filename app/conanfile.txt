@@ -1,11 +1,11 @@
 [requires]
-odrcore/5.0.2
+odrcore/5.0.3
 
 [generators]
 CMakeToolchain
 CMakeDeps
 
 [options]
-odrcore/*:shared=True
+odrcore/*:shared=False
 odrcore/*:with_pdf2htmlEX=True
-odrcore/*:with_wvWare=False
+odrcore/*:with_wvWare=True
