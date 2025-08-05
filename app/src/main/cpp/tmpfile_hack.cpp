@@ -34,7 +34,7 @@ extern "C" {
 
 extern FILE *tmpfile() {
     std::string tmpfile_path =
-            get_tmpfile_directory() + "/" + std::string(s_filename_template);
+            tmpfile_hack::get_tmpfile_directory() + "/" + std::string(s_filename_template);
 
     int descriptor = mkstemp(tmpfile_path.data());
     if (descriptor == -1) {
