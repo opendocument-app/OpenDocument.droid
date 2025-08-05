@@ -1,4 +1,6 @@
-#include "CoreWrapper.hpp"
+#include "core_wrapper.hpp"
+
+#include "tmpfile_hack.hpp"
 
 #include <odr/document.hpp>
 #include <odr/file.hpp>
@@ -92,9 +94,8 @@ Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jcl
     odr::GlobalParams::set_fontconfig_data_path(fontconfigDataPath);
     odr::GlobalParams::set_poppler_data_path(popplerDataPath);
     odr::GlobalParams::set_pdf2htmlex_data_path(pdf2htmlexDataPath);
-    odr::GlobalParams::set_custom_tmpfile_path(customTmpfilePath);
 
-    setenv("TMPDIR", customTmpfilePath.c_str(), 1);
+    tmpfile_hack::set_tmpfile_directory(customTmpfilePath);
 }
 
 JNIEXPORT jobject JNICALL

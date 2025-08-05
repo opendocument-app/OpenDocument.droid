@@ -6,6 +6,6 @@ CMakeToolchain
 CMakeDeps
 
 [options]
-odrcore/*:shared=True
+odrcore/*:shared=False
 odrcore/*:with_pdf2htmlEX=True
 odrcore/*:with_wvWare=False
