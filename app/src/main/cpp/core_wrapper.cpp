@@ -1,4 +1,6 @@
-#include "CoreWrapper.hpp"
+#include "core_wrapper.hpp"
+
+#include "tmpfile_hack.hpp"
 
 #include <odr/document.hpp>
 #include <odr/file.hpp>
@@ -80,19 +82,20 @@ std::optional<odr::Document> s_document;
 JNIEXPORT void JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jclass clazz,
                                                                 jobject params) {
-    jboolean isCopy;
-
     jclass paramsClass = env->GetObjectClass(params);
 
     std::string odrCoreDataPath = getStringField(env, paramsClass, params, "coreDataPath");
     std::string fontconfigDataPath = getStringField(env, paramsClass, params, "fontconfigDataPath");
     std::string popplerDataPath = getStringField(env, paramsClass, params, "popplerDataPath");
     std::string pdf2htmlexDataPath = getStringField(env, paramsClass, params, "pdf2htmlexDataPath");
+    std::string customTmpfilePath = getStringField(env, paramsClass, params, "customTmpfilePath");
 
     odr::GlobalParams::set_odr_core_data_path(odrCoreDataPath);
     odr::GlobalParams::set_fontconfig_data_path(fontconfigDataPath);
     odr::GlobalParams::set_poppler_data_path(popplerDataPath);
     odr::GlobalParams::set_pdf2htmlex_data_path(pdf2htmlexDataPath);
+
+    tmpfile_hack::set_tmpfile_directory(customTmpfilePath);
 }
 
 JNIEXPORT jobject JNICALL
