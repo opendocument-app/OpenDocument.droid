@@ -8,4 +8,4 @@ CMakeDeps
 [options]
 odrcore/*:shared=False
 odrcore/*:with_pdf2htmlEX=True
-odrcore/*:with_wvWare=False
+odrcore/*:with_wvWare=True
