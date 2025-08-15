@@ -90,7 +90,7 @@ public class CoreTest {
         String htmlDiff = "{\"modifiedText\":{\"3\":\"This is a simple test document to demonstrate the DocumentLoadewwwwr example!\"}}";
 
         CoreWrapper.CoreResult result = CoreWrapper.backtranslate(coreOptions, htmlDiff);
-        Assert.assertEquals(0, coreResult.errorCode);
+        Assert.assertEquals(0, result.errorCode);
     }
 
     @Test
