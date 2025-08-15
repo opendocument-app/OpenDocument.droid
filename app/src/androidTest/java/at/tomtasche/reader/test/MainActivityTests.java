@@ -143,7 +143,7 @@ public class MainActivityTests {
     }
 
     @Test
-    public void testXODT() {
+    public void testODT() {
         File testFile = s_testFiles.get("test.odt");
         Assert.assertNotNull(testFile);
         Context appCtx = InstrumentationRegistry.getInstrumentation().getTargetContext();
