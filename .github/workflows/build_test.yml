@@ -136,7 +136,7 @@ jobs:
         path: |
           ~/.android/avd/*
           ~/.android/adb*
-        key: avd-${{ matrix.api-level }}-v2
+        key: avd-${{ matrix.api-level }}-v3
 
     - name: Enable KVM group perms
       run: |

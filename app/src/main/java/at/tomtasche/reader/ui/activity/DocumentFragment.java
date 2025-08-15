@@ -402,7 +402,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
         if (result.loaderType == FileLoader.LoaderType.RAW || result.loaderType == FileLoader.LoaderType.ONLINE) {
             offerReopen(activity, options, R.string.toast_hint_unsupported_file, false);
-        } else if (result.loaderType == FileLoader.LoaderType.CORE || result.loaderType == FileLoader.LoaderType.WVWARE) {
+        } else if (result.loaderType == FileLoader.LoaderType.CORE) {
             offerUpload(activity, options, false);
         }
 
@@ -476,8 +476,6 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
                     if (result.loaderType == FileLoader.LoaderType.CORE) {
                         loadWithType(FileLoader.LoaderType.CORE, options);
-                    } else if (result.loaderType == FileLoader.LoaderType.WVWARE) {
-                        loadWithType(FileLoader.LoaderType.WVWARE, options);
                     } else {
                         throw new RuntimeException("encryption not supported for type: " + result.loaderType);
                     }
@@ -504,8 +502,6 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             } else {
                 offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
             }
-        } else if (result.loaderType == FileLoader.LoaderType.WVWARE) {
-            offerUpload(activity, options, true);
         } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
             offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
         }

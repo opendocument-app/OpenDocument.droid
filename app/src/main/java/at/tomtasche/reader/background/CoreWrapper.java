@@ -18,6 +18,7 @@ public class CoreWrapper {
         public String fontconfigDataPath;
         public String popplerDataPath;
         public String pdf2htmlexDataPath;
+        public String customTmpfilePath;
     }
 
     public static native void setGlobalParams(GlobalParams params);
@@ -41,6 +42,7 @@ public class CoreWrapper {
         globalParams.fontconfigDataPath = fontconfigDataDirectory.getAbsolutePath();
         globalParams.popplerDataPath = popplerDataDirectory.getAbsolutePath();
         globalParams.pdf2htmlexDataPath = pdf2htmlexDataDirectory.getAbsolutePath();
+        globalParams.customTmpfilePath = context.getCacheDir().getAbsolutePath();
         CoreWrapper.setGlobalParams(globalParams);
     }
 
