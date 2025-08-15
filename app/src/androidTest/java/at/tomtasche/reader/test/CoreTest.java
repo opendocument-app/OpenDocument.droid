@@ -78,8 +78,8 @@ public class CoreTest {
         CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
         coreOptions.inputPath = m_testFile.getAbsolutePath();
         coreOptions.outputPath = outputPath.getPath();
-        coreOptions.cachePath = cachePath.getPath();
         coreOptions.editable = true;
+        coreOptions.cachePath = cachePath.getPath();
 
         CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
         Assert.assertEquals(0, coreResult.errorCode);
@@ -97,11 +97,13 @@ public class CoreTest {
     public void testPasswordProtectedDocumentWithoutPassword() {
         File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
         File outputDir = new File(cacheDir, "output_password_test");
+        File cachePath = new File(cacheDir, "core_cache");
 
         CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
         coreOptions.inputPath = m_passwordTestFile.getAbsolutePath();
         coreOptions.outputPath = outputDir.getPath();
         coreOptions.editable = false;
+        coreOptions.cachePath = cachePath.getPath();
 
         CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
         Assert.assertEquals(-2, coreResult.errorCode);
@@ -111,12 +113,14 @@ public class CoreTest {
     public void testPasswordProtectedDocumentWithWrongPassword() {
         File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
         File outputDir = new File(cacheDir, "output_password_test");
+        File cachePath = new File(cacheDir, "core_cache");
 
         CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
         coreOptions.inputPath = m_passwordTestFile.getAbsolutePath();
         coreOptions.outputPath = outputDir.getPath();
         coreOptions.password = "wrongpassword";
         coreOptions.editable = false;
+        coreOptions.cachePath = cachePath.getPath();
 
         CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
         Assert.assertEquals(-2, coreResult.errorCode);
@@ -126,12 +130,14 @@ public class CoreTest {
     public void testPasswordProtectedDocumentWithCorrectPassword() {
         File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
         File outputDir = new File(cacheDir, "output_password_test");
+        File cachePath = new File(cacheDir, "core_cache");
 
         CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
         coreOptions.inputPath = m_passwordTestFile.getAbsolutePath();
         coreOptions.outputPath = outputDir.getPath();
         coreOptions.password = "passwort";
         coreOptions.editable = false;
+        coreOptions.cachePath = cachePath.getPath();
 
         CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
         Assert.assertEquals(0, coreResult.errorCode);
