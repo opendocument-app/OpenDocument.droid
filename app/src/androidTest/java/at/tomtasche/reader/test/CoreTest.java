@@ -87,7 +87,7 @@ public class CoreTest {
         File resultFile = new File(cacheDir, "result");
         coreOptions.outputPath = resultFile.getPath();
 
-        String htmlDiff = "{\"modifiedText\":{\"3\":\"This is a simple test document to demonstrate the DocumentLoadewwwwr example!\"}}";
+        String htmlDiff = "{\"modifiedText\":{\"/column:2/column:0\":\"This is a simple testooo document to demonstrate the DocumentLoader example!\"}}";
 
         CoreWrapper.CoreResult result = CoreWrapper.backtranslate(coreOptions, htmlDiff);
         Assert.assertEquals(0, result.errorCode);
