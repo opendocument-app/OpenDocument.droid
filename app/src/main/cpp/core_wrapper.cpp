@@ -269,13 +269,22 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
         jfieldID outputPathField = env->GetFieldID(resultClass, "outputPath", "Ljava/lang/String;");
         env->SetObjectField(result, outputPathField, outputPath);
 
+        __android_log_print(ANDROID_LOG_DEBUG, "smn", "HTML diff: %s", htmlDiffC);
+
         try {
             odr::html::edit(*s_document, htmlDiffC);
 
             env->ReleaseStringUTFChars(htmlDiff, htmlDiffC);
+        } catch (const std::exception &e) {
+            env->ReleaseStringUTFChars(htmlDiff, htmlDiffC);
+
+            __android_log_print(ANDROID_LOG_ERROR, "smn", "Failed to edit document: %s", e.what());
+            env->SetIntField(result, errorField, -6);
+            return result;
         } catch (...) {
             env->ReleaseStringUTFChars(htmlDiff, htmlDiffC);
 
+            __android_log_print(ANDROID_LOG_ERROR, "smn", "Failed to edit document: unknown exception");
             env->SetIntField(result, errorField, -6);
             return result;
         }

@@ -49,6 +49,7 @@ public class CoreWrapper {
     public static class CoreOptions {
         public boolean ooxml;
         public boolean txt;
+        // TODO: remove
         public boolean pdf;
 
         public boolean editable;
