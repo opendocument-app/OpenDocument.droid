@@ -60,6 +60,7 @@ public class CoreLoader extends FileLoader {
         return options.fileType.startsWith("application/vnd.oasis.opendocument") ||
                 options.fileType.startsWith("application/x-vnd.oasis.opendocument") ||
                 options.fileType.startsWith("application/vnd.oasis.opendocument.text-master") ||
+                options.fileType.startsWith("application/msword") ||
                 (this.doOoxml && (
                         options.fileType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
                         // TODO: enable xlsx and pptx too
