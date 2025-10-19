@@ -89,8 +89,7 @@ public class MetadataLoader extends FileLoader {
 
             String mimetype = null;
             try {
-                // todo core get mimetype
-                //type = MagicApi.magicFile(cachedFile.getAbsolutePath());
+                mimetype = CoreWrapper.mimetype(cachedFile.getAbsolutePath());
             } catch (Throwable e) {
                 crashManager.log(e);
             }

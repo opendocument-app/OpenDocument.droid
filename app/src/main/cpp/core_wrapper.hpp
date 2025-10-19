@@ -8,6 +8,10 @@ JNIEXPORT void JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jclass clazz,
                                                                 jobject params);
 
+JNIEXPORT jstring JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_mimetypeNative(JNIEnv *env, jclass clazz,
+                                                               jstring path);
+
 JNIEXPORT jobject JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass clazz,
                                                             jobject options);

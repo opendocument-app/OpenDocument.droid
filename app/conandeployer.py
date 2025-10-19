@@ -52,3 +52,12 @@ def deploy(graph, output_folder: str, **kwargs):
             f"{output_folder}/fontconfig",
             **copytree_kwargs,
         )
+
+    if "libmagic" in deps:
+        dep = deps["libmagic"]
+        conanfile.output.info(f"Deploying libmagic to {output_folder}")
+        shutil.copytree(
+            f"{dep.package_folder}/res",
+            f"{output_folder}/libmagic",
+            **copytree_kwargs,
+        )

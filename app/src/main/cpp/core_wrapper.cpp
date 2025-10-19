@@ -88,14 +88,27 @@ Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jcl
     std::string fontconfigDataPath = getStringField(env, paramsClass, params, "fontconfigDataPath");
     std::string popplerDataPath = getStringField(env, paramsClass, params, "popplerDataPath");
     std::string pdf2htmlexDataPath = getStringField(env, paramsClass, params, "pdf2htmlexDataPath");
+    std::string libmagicDatabasePath = getStringField(env, paramsClass, params, "libmagicDatabasePath");
     std::string customTmpfilePath = getStringField(env, paramsClass, params, "customTmpfilePath");
 
     odr::GlobalParams::set_odr_core_data_path(odrCoreDataPath);
     odr::GlobalParams::set_fontconfig_data_path(fontconfigDataPath);
     odr::GlobalParams::set_poppler_data_path(popplerDataPath);
     odr::GlobalParams::set_pdf2htmlex_data_path(pdf2htmlexDataPath);
+    odr::GlobalParams::set_libmagic_database_path(libmagicDatabasePath);
 
     tmpfile_hack::set_tmpfile_directory(customTmpfilePath);
+}
+
+JNIEXPORT jstring JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_mimetypeNative(JNIEnv *env, jclass clazz, jstring path) {
+    auto logger = std::make_shared<AndroidLogger>();
+
+    std::string pathCpp = convertString(env, path);
+    std::string mimetypeCpp = std::string(odr::mimetype(pathCpp));
+    jstring mimetype = env->NewStringUTF(mimetypeCpp.c_str());
+
+    return mimetype;
 }
 
 JNIEXPORT jobject JNICALL
