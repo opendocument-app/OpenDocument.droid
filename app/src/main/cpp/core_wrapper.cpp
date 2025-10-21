@@ -198,7 +198,8 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
                 }
             }
 
-            if (file.is_document_file()) {
+            // .doc-files are not real documents in core
+            if (file.is_document_file() && fileType != odr::FileType::legacy_word_document) {
                 // TODO this will cause a second load
                 s_document = file.as_document_file().document();
             }
@@ -412,7 +413,11 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jcla
                 }
             }
 
-            if (file.is_document_file()) {
+            __android_log_print(ANDROID_LOG_INFO, "smn", "type=%s",
+                                file_type_to_string(file.file_type()).c_str());
+
+            // .doc-files are not real documents in core
+            if (file.is_document_file() && file.file_type() != odr::FileType::legacy_word_document) {
                 // TODO this will cause a second load
                 s_document = file.as_document_file().document();
             }
