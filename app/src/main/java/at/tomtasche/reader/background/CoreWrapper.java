@@ -18,6 +18,8 @@ public class CoreWrapper {
         public String fontconfigDataPath;
         public String popplerDataPath;
         public String pdf2htmlexDataPath;
+        public String libmagicDatabasePath;
+
         public String customTmpfilePath;
     }
 
@@ -29,6 +31,7 @@ public class CoreWrapper {
         File fontconfigDataDirectory = new File(assetsDirectory, "fontconfig");
         File popplerDataDirectory = new File(assetsDirectory, "poppler");
         File pdf2htmlexDataDirectory = new File(assetsDirectory, "pdf2htmlex");
+        File libmagicDataDirectory = new File(assetsDirectory, "libmagic");
 
         AssetExtractor ae = new AssetExtractor(context.getAssets());
         ae.setOverwrite();
@@ -36,15 +39,23 @@ public class CoreWrapper {
         ae.extract(assetsDirectory, "core/fontconfig");
         ae.extract(assetsDirectory, "core/poppler");
         ae.extract(assetsDirectory, "core/pdf2htmlex");
+        ae.extract(assetsDirectory, "core/libmagic");
 
         CoreWrapper.GlobalParams globalParams = new CoreWrapper.GlobalParams();
         globalParams.coreDataPath = odrCoreDataDirectory.getAbsolutePath();
         globalParams.fontconfigDataPath = fontconfigDataDirectory.getAbsolutePath();
         globalParams.popplerDataPath = popplerDataDirectory.getAbsolutePath();
         globalParams.pdf2htmlexDataPath = pdf2htmlexDataDirectory.getAbsolutePath();
+        globalParams.libmagicDatabasePath = new File(libmagicDataDirectory, "magic.mgc").getAbsolutePath();
         globalParams.customTmpfilePath = context.getCacheDir().getAbsolutePath();
         CoreWrapper.setGlobalParams(globalParams);
     }
+
+    public static String mimetype(String path) {
+        return mimetypeNative(path);
+    }
+
+    private static native String mimetypeNative(String path);
 
     public static class CoreOptions {
         public boolean ooxml;

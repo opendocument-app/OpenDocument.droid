@@ -6,8 +6,6 @@ import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.webkit.MimeTypeMap;
 
-import com.hzy.libmagic.MagicApi;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -19,30 +17,6 @@ public class MetadataLoader extends FileLoader {
 
     public MetadataLoader(Context context) {
         super(context, LoaderType.METADATA);
-    }
-
-    private boolean initMagicFromAssets() {
-        InputStream inputStream = null;
-        try {
-            inputStream = context.getAssets().open("magic.mgc");
-            int length = inputStream.available();
-            byte[] buffer = new byte[length];
-            if (inputStream.read(buffer) > 0) {
-                return MagicApi.loadFromBytes(buffer, MagicApi.MAGIC_MIME_TYPE | MagicApi.MAGIC_COMPRESS_TRANSP) == 0;
-            }
-        } catch (Throwable e) {
-            crashManager.log(e);
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    crashManager.log(e);
-                }
-            }
-        }
-
-        return false;
     }
 
     @Override
@@ -113,22 +87,20 @@ public class MetadataLoader extends FileLoader {
             String[] fileSplit = options.filename.split("\\.");
             String extension = fileSplit.length > 0 ? fileSplit[fileSplit.length - 1] : "N/A";
 
-            String type = null;
+            String mimetype = null;
             try {
-                if (initMagicFromAssets()) {
-                    type = MagicApi.magicFile(cachedFile.getAbsolutePath());
-                }
+                mimetype = CoreWrapper.mimetype(cachedFile.getAbsolutePath());
             } catch (Throwable e) {
                 crashManager.log(e);
             }
 
-            if (type == null) {
-                type = context.getContentResolver().getType(uri);
+            if (mimetype == null) {
+                mimetype = context.getContentResolver().getType(uri);
             }
 
-            if (type == null) {
+            if (mimetype == null) {
                 try {
-                    type = URLConnection.guessContentTypeFromName(filename);
+                    mimetype = URLConnection.guessContentTypeFromName(filename);
                 } catch (Exception e) {
                     // Samsung S7 Edge crashes with java.lang.StringIndexOutOfBoundsException
                     crashManager.log(e);
@@ -138,7 +110,7 @@ public class MetadataLoader extends FileLoader {
             if (type == null) {
                 try {
                     try (InputStream tempStream = new FileInputStream(cachedFile)) {
-                        type = URLConnection.guessContentTypeFromStream(tempStream);
+                        mimetype = URLConnection.guessContentTypeFromStream(tempStream);
                     }
                 } catch (Exception e) {
                     crashManager.log(e);
@@ -146,19 +118,19 @@ public class MetadataLoader extends FileLoader {
             }
 
             if (type != null) {
-                extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(type);
+                extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimetype);
             } else {
-                type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(options.fileExtension);
+                mimetype = MimeTypeMap.getSingleton().getMimeTypeFromExtension(options.fileExtension);
             }
 
             if (extension != null) {
                 options.fileExtension = extension;
             }
-            if (type != null) {
-                options.fileType = type;
+            if (mimetype != null) {
+                options.fileType = mimetype;
             }
 
-            if ("inode/x-empty".equals(type)) {
+            if ("inode/x-empty".equals(mimetype)) {
                 throw new FileNotFoundException();
             }
 
@@ -182,21 +154,5 @@ public class MetadataLoader extends FileLoader {
 
             callOnError(result, e);
         }
-    }
-
-    @Override
-    public void close() {
-        super.close();
-
-        backgroundHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    MagicApi.close();
-                } catch (Throwable e) {
-                    crashManager.log(e);
-                }
-            }
-        });
     }
 }
