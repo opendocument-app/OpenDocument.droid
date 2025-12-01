@@ -31,8 +31,8 @@ android {
     defaultConfig {
         applicationId "at.tomtasche.reader"
         minSdkVersion 23
-        compileSdkVersion 34
-        targetSdkVersion 34
+        compileSdkVersion 35
+        targetSdkVersion 35
 
         testApplicationId "at.tomtasche.reader.test"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
