@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:installLocation="auto"
-    android:versionCode="196"
-    android:versionName="4.0"
+    android:versionCode="197"
+    android:versionName="4.1"
     tools:ignore="GoogleAppIndexingWarning">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -51,12 +51,6 @@
         android:theme="@style/MainTheme"
         android:networkSecurityConfig="@xml/network_security_config"
         tools:replace="android:label">
-
-        <!-- https://stackoverflow.com/a/78086604/198996 -->
-        <property
-            android:name="android.adservices.AD_SERVICES_CONFIG"
-            android:resource="@xml/gma_ad_services_config"
-            tools:replace="android:resource" />
 
         <service
             android:name="at.tomtasche.reader.background.LoaderService"
