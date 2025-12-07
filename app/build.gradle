@@ -139,8 +139,6 @@ dependencies {
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-crashlytics-ndk'
-    implementation 'com.google.firebase:firebase-analytics'
-    implementation 'com.google.firebase:firebase-config'
 
     implementation 'com.google.android.gms:play-services-ads:24.3.0'
     implementation 'com.google.android.play:review:2.0.2'
