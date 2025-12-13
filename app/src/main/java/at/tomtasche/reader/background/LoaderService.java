@@ -11,12 +11,11 @@ import android.os.IBinder;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.firebase.analytics.FirebaseAnalytics;
-
 import java.io.File;
 import java.io.OutputStream;
 
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.nonfree.AnalyticsConstants;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
@@ -134,12 +133,12 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         if (result.loaderType == FileLoader.LoaderType.METADATA) {
             if (!coreLoader.isSupported(options)) {
                 crashManager.log("we do not expect this file to be an ODF: " + options.originalUri.toString());
-                analyticsManager.report("load_odf_error_expected", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
+                analyticsManager.report("load_odf_error_expected", AnalyticsConstants.PARAM_CONTENT_TYPE, options.fileType);
             }
 
             loadWithType(FileLoader.LoaderType.CORE, options);
         } else {
-            analyticsManager.report("load_success", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
+            analyticsManager.report("load_success", AnalyticsConstants.PARAM_CONTENT_TYPE, options.fileType, AnalyticsConstants.PARAM_CONTENT, result.loaderType.toString());
 
             if (currentListener != null) {
                 currentListener.onLoadSuccess(result);
@@ -167,7 +166,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         }
 
         if (result.loaderType == FileLoader.LoaderType.CORE) {
-            analyticsManager.report("load_odf_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType);
+            analyticsManager.report("load_odf_error", AnalyticsConstants.PARAM_CONTENT_TYPE, options.fileType);
 
             if (rawLoader.isSupported(options)) {
                 loadWithType(FileLoader.LoaderType.RAW, options);
@@ -192,7 +191,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
         // MetadataLoader failed, so there's no point in trying to parse or upload the file
 
-        analyticsManager.report("load_error", FirebaseAnalytics.Param.CONTENT_TYPE, options.fileType, FirebaseAnalytics.Param.CONTENT, result.loaderType.toString());
+        analyticsManager.report("load_error", AnalyticsConstants.PARAM_CONTENT_TYPE, options.fileType, AnalyticsConstants.PARAM_CONTENT, result.loaderType.toString());
 
         if (currentListener != null) {
             currentListener.onError(result, error);
@@ -238,7 +237,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
                 }
             });
         } catch (Throwable e) {
-            analyticsManager.report("save_error", FirebaseAnalytics.Param.CONTENT_TYPE, lastResult.options.fileType);
+            analyticsManager.report("save_error", AnalyticsConstants.PARAM_CONTENT_TYPE, lastResult.options.fileType);
             crashManager.log(e, lastResult.options.originalUri);
 
             if (currentListener != null) {

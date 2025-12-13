@@ -42,7 +42,6 @@ import androidx.test.espresso.idling.CountingIdlingResource;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -52,6 +51,7 @@ import at.tomtasche.reader.background.LoaderService;
 import at.tomtasche.reader.background.LoaderServiceQueue;
 import at.tomtasche.reader.background.PrintingManager;
 import at.tomtasche.reader.nonfree.AdManager;
+import at.tomtasche.reader.nonfree.AnalyticsConstants;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.BillingManager;
 import at.tomtasche.reader.nonfree.ConfigManager;
@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
             if (getIntent().getData() != null) {
                 loadOnStart = getIntent().getData();
 
-                analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "other");
+                analyticsManager.report(AnalyticsConstants.EVENT_SELECT_CONTENT, AnalyticsConstants.PARAM_CONTENT_TYPE, "other");
             } else {
                 analyticsManager.setCurrentScreen(this, "screen_main");
             }
@@ -323,7 +323,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
 
             loadUri(intent.getData());
 
-            analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "other");
+            analyticsManager.report(AnalyticsConstants.EVENT_SELECT_CONTENT, AnalyticsConstants.PARAM_CONTENT_TYPE, "other");
         }
     }
 
@@ -380,7 +380,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         }
 
         crashManager.log("loading document at: " + uri.toString());
-        analyticsManager.report(FirebaseAnalytics.Event.VIEW_ITEM, FirebaseAnalytics.Param.ITEM_NAME, uri.toString());
+        analyticsManager.report(AnalyticsConstants.EVENT_VIEW_ITEM, AnalyticsConstants.PARAM_ITEM_NAME, uri.toString());
 
         boolean isPersistentUri = false;
         try {
@@ -411,12 +411,12 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
             startSupportActionMode(findActionModeCallback);
 
             analyticsManager.report("menu_search");
-            analyticsManager.report(FirebaseAnalytics.Event.SEARCH);
+            analyticsManager.report(AnalyticsConstants.EVENT_SEARCH);
         } else if (itemId == R.id.menu_open) {
             findDocument();
 
             analyticsManager.report("menu_open");
-            analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "choose");
+            analyticsManager.report(AnalyticsConstants.EVENT_SELECT_CONTENT, AnalyticsConstants.PARAM_CONTENT_TYPE, "choose");
         } else if (itemId == R.id.menu_open_with) {
             documentFragment.openWith(this);
 
@@ -521,11 +521,11 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         DialogFragment chooserDialog = new RecentDocumentDialogFragment();
         chooserDialog.show(transaction, RecentDocumentDialogFragment.FRAGMENT_TAG);
 
-        analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, "recent");
+        analyticsManager.report(AnalyticsConstants.EVENT_SELECT_CONTENT, AnalyticsConstants.PARAM_CONTENT_TYPE, "recent");
     }
 
     private void buyAdRemoval() {
-        analyticsManager.report(FirebaseAnalytics.Event.ADD_TO_CART);
+        analyticsManager.report(AnalyticsConstants.EVENT_ADD_TO_CART);
 
         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=at.tomtasche.reader.pro")));
     }
@@ -623,7 +623,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
                     }, true, true);
                 }
 
-                analyticsManager.report(FirebaseAnalytics.Event.SELECT_CONTENT, FirebaseAnalytics.Param.CONTENT_TYPE, target.activityInfo.packageName);
+                analyticsManager.report(AnalyticsConstants.EVENT_SELECT_CONTENT, AnalyticsConstants.PARAM_CONTENT_TYPE, target.activityInfo.packageName);
 
                 dialog.dismiss();
             }

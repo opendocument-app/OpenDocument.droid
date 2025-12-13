@@ -68,3 +68,9 @@ fastlane/report.xml
 .idea/
 
 app/CMakeUserPresets.json
+
+infra/scw-transfer/terraform.tfvars
+
+venv/
+
+infra/scw-transfer/.terraform/

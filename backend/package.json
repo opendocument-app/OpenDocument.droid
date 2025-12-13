@@ -1,0 +1,17 @@
+{
+  "name": "odr-upload-backend",
+  "version": "0.1.0",
+  "description": "Ephemeral upload backend for OpenDocument Reader that expires files after 5 hours.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "GPL-3.0-or-later"
+}
