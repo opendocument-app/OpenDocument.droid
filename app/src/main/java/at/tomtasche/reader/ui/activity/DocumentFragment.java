@@ -19,7 +19,6 @@ import android.widget.Toast;
 import com.google.android.play.core.review.ReviewInfo;
 import com.google.android.play.core.review.ReviewManager;
 import com.google.android.play.core.review.ReviewManagerFactory;
-import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -40,6 +39,7 @@ import at.tomtasche.reader.background.FileLoader;
 import at.tomtasche.reader.background.LoaderService;
 import at.tomtasche.reader.background.LoaderServiceQueue;
 import at.tomtasche.reader.background.StreamUtil;
+import at.tomtasche.reader.nonfree.AnalyticsConstants;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
@@ -526,7 +526,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
     private void offerUpload(Activity activity, FileLoader.Options options, boolean invasive) {
         String fileType = options.fileType;
         if (invasive) {
-            analyticsManager.report("upload_offer_invasive", FirebaseAnalytics.Param.CONTENT_TYPE, fileType, FirebaseAnalytics.Param.CONTENT, options.originalUri);
+            analyticsManager.report("upload_offer_invasive", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType, AnalyticsConstants.PARAM_CONTENT, options.originalUri);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.toast_error_illegal_file);
@@ -538,7 +538,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
                         @Override
                         public void onClick(DialogInterface dialog,
                                             int whichButton) {
-                            analyticsManager.report("load_upload", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
+                            analyticsManager.report("load_upload", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType);
 
                             loadWithType(FileLoader.LoaderType.ONLINE, options);
 
@@ -548,7 +548,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             builder.setNegativeButton(getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int i) {
-                    analyticsManager.report("load_upload_cancel", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
+                    analyticsManager.report("load_upload_cancel", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType);
 
                     offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
 
@@ -558,7 +558,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
             builder.show();
         } else {
-            analyticsManager.report("upload_offer_subtle", FirebaseAnalytics.Param.CONTENT_TYPE, fileType, FirebaseAnalytics.Param.CONTENT, options.originalUri);
+            analyticsManager.report("upload_offer_subtle", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType, AnalyticsConstants.PARAM_CONTENT, options.originalUri);
 
             SnackbarHelper.show(activity, R.string.toast_hint_upload_file, new Runnable() {
                 @Override
@@ -572,7 +572,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
     private void offerReopen(Activity activity, FileLoader.Options options, int description, boolean isIndefinite) {
         String fileType = options.fileType;
 
-        analyticsManager.report("reopen_offer", FirebaseAnalytics.Param.CONTENT_TYPE, fileType, FirebaseAnalytics.Param.CONTENT, options.originalUri);
+        analyticsManager.report("reopen_offer", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType, AnalyticsConstants.PARAM_CONTENT, options.originalUri);
 
         SnackbarHelper.show(activity, description, new Runnable() {
             @Override
@@ -640,11 +640,11 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         try {
             activity.startActivity(chooserIntent);
 
-            analyticsManager.report(logPrefix + "_success", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
+            analyticsManager.report(logPrefix + "_success", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType);
         } catch (Throwable e) {
             crashManager.log(e);
 
-            analyticsManager.report(logPrefix + "_failed", FirebaseAnalytics.Param.CONTENT_TYPE, fileType);
+            analyticsManager.report(logPrefix + "_failed", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType);
 
             if (grantPermission) {
                 // if we're trying to reopen the originalUri, the provider might decline the request
