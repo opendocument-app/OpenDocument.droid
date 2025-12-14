@@ -20,7 +20,7 @@ import java.nio.file.Files;
 
 public class OnlineLoader extends FileLoader {
 
-    private static final String TRANSFER_BASE_URL = "https://transfershxuil1jyq-transfer-sh.functions.fnc.nl-ams.scw.cloud";
+    private static final String TRANSFER_BASE_URL = "https://transfer.opendocument.app/";
 
     // https://help.joomlatools.com/article/169-google-viewer
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types
@@ -99,7 +99,7 @@ public class OnlineLoader extends FileLoader {
         try {
             Uri viewerUri;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                    ("text/rtf".equals(options.fileType))) {
+                    ("text/rtf".equals(options.fileType) || "application/vnd.wordperfect".equals(options.fileType) || coreLoader.isSupported(options) || "application/vnd.ms-excel".equals(options.fileType) || "application/msword".equals(options.fileType) || "application/vnd.ms-powerpoint".equals(options.fileType) || options.fileType.startsWith("application/vnd.openxmlformats-officedocument.") || options.fileType.equals("application/pdf"))) {
                 viewerUri = doOnlineConvert(options);
             } else {
                 viewerUri = doTransferUpload(options);
@@ -151,19 +151,12 @@ public class OnlineLoader extends FileLoader {
     private Uri doTransferUpload(Options options) throws IOException {
         File binaryFile = AndroidFileCache.getCacheFile(context, options.cacheUri);
         String filename = options.filename;
-        if (filename == null || filename.isEmpty()) {
-            filename = "document." + options.fileExtension;
-        }
-
         String encodedFilename = URLEncoder.encode(filename, StreamUtil.ENCODING);
-        String basePath = ensureTrailingSlash(TRANSFER_BASE_URL);
-        HttpURLConnection connection = (HttpURLConnection) new URL(basePath + encodedFilename).openConnection();
+
+        HttpURLConnection connection = (HttpURLConnection) new URL(TRANSFER_BASE_URL + encodedFilename).openConnection();
         connection.setRequestMethod("PUT");
         connection.setDoOutput(true);
         connection.setInstanceFollowRedirects(false);
-        if (!"N/A".equals(options.fileType)) {
-            connection.setRequestProperty("Content-Type", options.fileType);
-        }
 
         try (OutputStream outputStream = connection.getOutputStream()) {
             Files.copy(binaryFile.toPath(), outputStream);
@@ -173,10 +166,6 @@ public class OnlineLoader extends FileLoader {
         int responseCode = connection.getResponseCode();
         if (responseCode >= 200 && responseCode < 300) {
             String downloadUrl = readBody(connection);
-            if (downloadUrl == null || downloadUrl.isEmpty()) {
-                downloadUrl = connection.getHeaderField("Location");
-            }
-
             if (downloadUrl == null || downloadUrl.isEmpty()) {
                 throw new IOException("server couldn't handle request");
             }
@@ -195,14 +184,6 @@ public class OnlineLoader extends FileLoader {
         } else {
             return Uri.parse(GOOGLE_VIEWER_URL + URLEncoder.encode(downloadUrl, StreamUtil.ENCODING));
         }
-    }
-
-    private String ensureTrailingSlash(String base) {
-        if (base.endsWith("/")) {
-            return base;
-        }
-
-        return base + "/";
     }
 
     private String readBody(HttpURLConnection connection) throws IOException {
