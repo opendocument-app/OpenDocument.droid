@@ -2,7 +2,6 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
     id 'com.android.application'
-    id 'com.google.gms.google-services'
     id 'app.opendocument.conanandroidgradleplugin'
 }
 
