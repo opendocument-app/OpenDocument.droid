@@ -2,8 +2,6 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
     id 'com.android.application'
-    id 'com.google.gms.google-services'
-    id 'com.google.firebase.crashlytics'
     id 'app.opendocument.conanandroidgradleplugin'
 }
 
@@ -93,8 +91,6 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.txt'
-
-            firebaseCrashlytics.nativeSymbolUploadEnabled true
             ndk.debugSymbolLevel = "full"
         }
     }
@@ -135,13 +131,6 @@ android {
 }
 
 dependencies {
-    implementation platform('com.google.firebase:firebase-bom:34.1.0')
-    implementation 'com.google.firebase:firebase-storage'
-    implementation 'com.google.firebase:firebase-auth'
-    implementation 'com.google.firebase:firebase-crashlytics-ndk'
-    implementation 'com.google.firebase:firebase-analytics'
-    implementation 'com.google.firebase:firebase-config'
-
     implementation 'com.google.android.gms:play-services-ads:24.3.0'
     implementation 'com.google.android.play:review:2.0.2'
     implementation 'com.google.android.ump:user-messaging-platform:3.1.0'

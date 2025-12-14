@@ -3,21 +3,12 @@ package at.tomtasche.reader.background;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Handler;
 
 import androidx.annotation.RequiresApi;
 
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageMetadata;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
-
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -26,13 +17,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.file.Files;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-
-import at.tomtasche.reader.nonfree.AnalyticsManager;
-import at.tomtasche.reader.nonfree.CrashManager;
 
 public class OnlineLoader extends FileLoader {
+
+    private static final String TRANSFER_BASE_URL = "https://transfer.opendocument.app/";
 
     // https://help.joomlatools.com/article/169-google-viewer
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types
@@ -76,24 +64,9 @@ public class OnlineLoader extends FileLoader {
 
     private final CoreLoader coreLoader;
 
-    private StorageReference storage;
-    private FirebaseAuth auth;
-
     public OnlineLoader(Context context, CoreLoader coreLoader) {
         super(context, LoaderType.ONLINE);
         this.coreLoader = coreLoader;
-    }
-
-    @Override
-    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager, CrashManager crashManager) {
-        super.initialize(listener, mainHandler, backgroundHandler, analyticsManager, crashManager);
-
-        try {
-            storage = FirebaseStorage.getInstance().getReference();
-            auth = FirebaseAuth.getInstance();
-        } catch (Throwable e) {
-            crashManager.log(e);
-        }
     }
 
     @Override
@@ -129,7 +102,7 @@ public class OnlineLoader extends FileLoader {
                     ("text/rtf".equals(options.fileType) || "application/vnd.wordperfect".equals(options.fileType) || coreLoader.isSupported(options) || "application/vnd.ms-excel".equals(options.fileType) || "application/msword".equals(options.fileType) || "application/vnd.ms-powerpoint".equals(options.fileType) || options.fileType.startsWith("application/vnd.openxmlformats-officedocument.") || options.fileType.equals("application/pdf"))) {
                 viewerUri = doOnlineConvert(options);
             } else {
-                viewerUri = doFirebaseConvert(options);
+                viewerUri = doTransferUpload(options);
             }
 
             result.partTitles.add(null);
@@ -175,66 +148,63 @@ public class OnlineLoader extends FileLoader {
         return Uri.parse(basePath + redirectUrl);
     }
 
-    private Uri doFirebaseConvert(Options options) throws ExecutionException, InterruptedException, UnsupportedEncodingException {
-        if (auth == null || storage == null) {
-            throw new RuntimeException("firebase not initialized");
+    private Uri doTransferUpload(Options options) throws IOException {
+        File binaryFile = AndroidFileCache.getCacheFile(context, options.cacheUri);
+        String filename = options.filename;
+        String encodedFilename = URLEncoder.encode(filename, StreamUtil.ENCODING);
+
+        HttpURLConnection connection = (HttpURLConnection) new URL(TRANSFER_BASE_URL + encodedFilename).openConnection();
+        connection.setRequestMethod("PUT");
+        connection.setDoOutput(true);
+        connection.setInstanceFollowRedirects(false);
+
+        try (OutputStream outputStream = connection.getOutputStream()) {
+            Files.copy(binaryFile.toPath(), outputStream);
+            outputStream.flush();
         }
 
-        Task<AuthResult> authenticationTask = null;
-        String currentUserId = null;
-        if (auth.getCurrentUser() != null) {
-            currentUserId = auth.getCurrentUser().getUid();
-        } else {
-            authenticationTask = auth.signInAnonymously();
-        }
-
-        if (authenticationTask != null) {
-            Tasks.await(authenticationTask);
-
-            currentUserId = authenticationTask.getResult().getUser().getUid();
-        }
-
-        StorageMetadata.Builder metadataBuilder = new StorageMetadata.Builder();
-        if (!"N/A".equals(options.fileType)) {
-            metadataBuilder.setContentType(options.fileType);
-        }
-
-        String filePath = currentUserId + "/" + UUID.randomUUID() + "." + options.fileExtension;
-        StorageReference reference = storage.child("uploads/" + filePath);
-        UploadTask uploadTask = reference.putFile(options.cacheUri, metadataBuilder.build());
-        Tasks.await(uploadTask);
-
-        if (uploadTask.isSuccessful()) {
-            Uri viewerUri;
-            if (coreLoader.isSupported(options)) {
-                // ODF does not seem to be supported by google docs viewer
-                String downloadUrl = "https://us-central1-admob-app-id-9025061963.cloudfunctions.net/download?filePath=" + filePath;
-
-                viewerUri = Uri.parse(MICROSOFT_VIEWER_URL + downloadUrl);
-            } else {
-                Task<Uri> urlTask = reference.getDownloadUrl();
-                Tasks.await(urlTask);
-                String downloadUrl = urlTask.getResult().toString();
-
-                viewerUri = Uri.parse(GOOGLE_VIEWER_URL + URLEncoder.encode(downloadUrl, StreamUtil.ENCODING));
+        int responseCode = connection.getResponseCode();
+        if (responseCode >= 200 && responseCode < 300) {
+            String downloadUrl = readBody(connection);
+            if (downloadUrl == null || downloadUrl.isEmpty()) {
+                throw new IOException("server couldn't handle request");
             }
 
-            return viewerUri;
+            return buildViewerUri(options, downloadUrl.trim());
         } else {
-            throw new RuntimeException("server couldn't handle request");
+            String error = readError(connection);
+            throw new IOException("server couldn't handle request: " + responseCode + " " + error);
         }
     }
 
-    @Override
-    public void close() {
-        super.close();
+    private Uri buildViewerUri(Options options, String downloadUrl) throws UnsupportedEncodingException {
+        if (coreLoader.isSupported(options)) {
+            // ODF does not seem to be supported by google docs viewer
+            return Uri.parse(MICROSOFT_VIEWER_URL + downloadUrl);
+        } else {
+            return Uri.parse(GOOGLE_VIEWER_URL + URLEncoder.encode(downloadUrl, StreamUtil.ENCODING));
+        }
+    }
 
-        backgroundHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                auth = null;
-                storage = null;
+    private String readBody(HttpURLConnection connection) throws IOException {
+        InputStream inputStream = connection.getInputStream();
+        if (inputStream == null) {
+            return null;
+        }
+
+        return StreamUtil.readFully(inputStream);
+    }
+
+    private String readError(HttpURLConnection connection) {
+        try {
+            InputStream errorStream = connection.getErrorStream();
+            if (errorStream == null) {
+                return null;
             }
-        });
+
+            return StreamUtil.readFully(errorStream);
+        } catch (Throwable t) {
+            return null;
+        }
     }
 }

@@ -3,24 +3,16 @@ package at.tomtasche.reader.nonfree;
 import android.net.Uri;
 import android.util.Log;
 
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
-
 import java.util.concurrent.TimeoutException;
 
 public class CrashManager {
 
     private boolean enabled;
 
-    private FirebaseCrashlytics crashlytics;
-
     public void initialize() {
         if (!enabled) {
-            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
-
             return;
         }
-
-        crashlytics = FirebaseCrashlytics.getInstance();
 
         // mitigate TimeoutException on finalize
         // https://stackoverflow.com/a/55999687/198996
@@ -31,7 +23,7 @@ public class CrashManager {
             public void uncaughtException(Thread t, Throwable e) {
                 if (t.getName().equals("FinalizerWatchdogDaemon") && e instanceof TimeoutException) {
                     log(e);
-                } else {
+                } else if (defaultUncaughtExceptionHandler != null) {
                     defaultUncaughtExceptionHandler.uncaughtException(t, e);
                 }
             }
@@ -48,8 +40,6 @@ public class CrashManager {
         }
 
         Log.d("ODR", message);
-
-        crashlytics.log(message);
     }
 
     public void log(Throwable error, Uri uri) {
@@ -57,12 +47,9 @@ public class CrashManager {
             return;
         }
 
-        String uriString = "null";
-        if (uri != null) {
-            uriString = uri.toString();
-        }
+        String uriString = uri != null ? uri.toString() : "null";
 
-        crashlytics.log("could not load document at: " + uriString);
+        Log.d("ODR", "could not load document at: " + uriString);
         log(error);
     }
 
@@ -73,6 +60,6 @@ public class CrashManager {
             return;
         }
 
-        crashlytics.recordException(error);
+        Log.e("ODR", "Error reported", error);
     }
 }

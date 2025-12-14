@@ -1,27 +1,13 @@
 package at.tomtasche.reader.nonfree;
 
-import android.net.Uri;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
-
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
-
-import androidx.annotation.NonNull;
-
-import at.tomtasche.reader.R;
-import at.tomtasche.reader.ui.activity.MainActivity;
 
 public class ConfigManager {
 
     private boolean enabled;
 
     private boolean loaded;
-
-    private FirebaseRemoteConfig remoteConfig;
 
     private final List<Runnable> callbacks;
 
@@ -34,19 +20,13 @@ public class ConfigManager {
             return;
         }
 
-        remoteConfig = FirebaseRemoteConfig.getInstance();
-        remoteConfig.fetchAndActivate().addOnCompleteListener(new OnCompleteListener<Boolean>() {
-            @Override
-            public void onComplete(@NonNull Task<Boolean> task) {
-                synchronized (callbacks) {
-                    loaded = true;
+        synchronized (callbacks) {
+            loaded = true;
 
-                    for (Runnable callback : callbacks) {
-                        callback.run();
-                    }
-                }
+            for (Runnable callback : callbacks) {
+                callback.run();
             }
-        });
+        }
     }
 
     public boolean isLoaded() {
@@ -80,7 +60,7 @@ public class ConfigManager {
             }
         }
 
-        boolean value = remoteConfig.getBoolean(key);
+        boolean value = getBooleanConfig(key);
         configListener.onConfig(key, value);
     }
 
@@ -89,7 +69,7 @@ public class ConfigManager {
             return false;
         }
 
-        return remoteConfig.getBoolean(key);
+        return false;
     }
 
     public interface ConfigListener<T> {

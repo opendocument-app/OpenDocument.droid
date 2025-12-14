@@ -1,5 +1,6 @@
 package at.tomtasche.reader.background;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -25,6 +26,13 @@ public class StreamUtil {
         OutputStream out = new FileOutputStream(dst);
         copy(in, out);
         out.close();
+    }
+
+    public static String readFully(InputStream in) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        copy(in, out);
+
+        return out.toString(ENCODING);
     }
 
     // taken from: https://stackoverflow.com/a/9293885/198996

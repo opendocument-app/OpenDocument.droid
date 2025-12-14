@@ -5,22 +5,12 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.google.firebase.analytics.FirebaseAnalytics;
-
 public class AnalyticsManager {
 
     private boolean enabled;
 
-    private FirebaseAnalytics analytics;
-
     public void initialize(Context context) {
-        if (!enabled) {
-            FirebaseAnalytics.getInstance(context).setAnalyticsCollectionEnabled(false);
-
-            return;
-        }
-
-        analytics = FirebaseAnalytics.getInstance(context);
+        return;
     }
 
     public void setEnabled(boolean enabled) {
@@ -44,7 +34,7 @@ public class AnalyticsManager {
             bundle.putString(key2, String.valueOf(value2));
         }
 
-        analytics.logEvent(event, bundle);
+        Log.i("smn", event);
     }
 
     public void report(String event, String key, Object value) {
@@ -57,8 +47,9 @@ public class AnalyticsManager {
         }
 
         Bundle bundle = new Bundle();
-        bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, name);
-        bundle.putString(FirebaseAnalytics.Param.SCREEN_CLASS, activity.getClass().getSimpleName());
-        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle);
+        bundle.putString("screen_name", name);
+        bundle.putString("screen_class", activity.getClass().getSimpleName());
+
+        Log.i("smn", name);
     }
 }
