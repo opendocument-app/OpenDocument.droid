@@ -69,12 +69,11 @@ fastlane/report.xml
 
 app/CMakeUserPresets.json
 
-infra/scw-transfer/terraform.tfvars
-
 venv/
 
 infra/scw-transfer/.terraform/
 infra/scw-transfer/.terraform.lock.hcl
+infra/scw-transfer/secret.auto.tfvars
 
 # Terraform state files
 *.tfstate
