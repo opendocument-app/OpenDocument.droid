@@ -166,8 +166,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
         // the other menu items are dynamically enabled based on the loaded document
         if (lastResult != null) {
-            // TODO
-            toggleDocumentMenu(true, true);
+            prepareMenu(lastResult.loaderType, lastResult.options.fileType);
         }
     }
 
@@ -323,6 +322,30 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
         menu.findItem(R.id.menu_search).setVisible(enabled);
         menu.findItem(R.id.menu_tts).setVisible(enabled);
+    }
+
+    private void prepareMenu(FileLoader.LoaderType loaderType, String fileType) {
+        boolean isEditEnabled = false;
+        boolean isDarkModeSupported = true;
+
+        if (loaderType == FileLoader.LoaderType.CORE) {
+            isEditEnabled = true;
+
+            // Edit is currently broken for ODS spreadsheets
+            // See: https://github.com/opendocument-app/OpenDocument.droid/issues/442
+            if (fileType != null && fileType.startsWith("application/vnd.oasis.opendocument.spreadsheet")) {
+                isEditEnabled = false;
+            }
+
+            // Edit is not supported for PDF documents
+            if (fileType != null && fileType.startsWith("application/pdf")) {
+                isEditEnabled = false;
+                isDarkModeSupported = false;
+            }
+        }
+
+        toggleDocumentMenu(true, isEditEnabled);
+        pageView.toggleDarkMode(isDarkModeSupported);
     }
 
     private void requestInAppRating(Activity activity) {
