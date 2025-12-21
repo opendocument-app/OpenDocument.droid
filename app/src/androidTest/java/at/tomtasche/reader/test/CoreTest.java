@@ -30,6 +30,7 @@ public class CoreTest {
     private File m_testFile;
     private File m_passwordTestFile;
     private File m_spreadsheetTestFile;
+    private File m_docxTestFile;
 
     @BeforeClass
     public static void startServer() throws InterruptedException {
@@ -89,6 +90,10 @@ public class CoreTest {
         try (InputStream inputStream = assetManager.open("spreadsheet-test.ods")) {
             copy(inputStream, m_spreadsheetTestFile);
         }
+        m_docxTestFile = new File(appCtx.getCacheDir(), "style-various-1.docx");
+        try (InputStream inputStream = assetManager.open("style-various-1.docx")) {
+            copy(inputStream, m_docxTestFile);
+        }
     }
 
     @After
@@ -101,6 +106,9 @@ public class CoreTest {
         }
         if (null != m_spreadsheetTestFile) {
             m_spreadsheetTestFile.delete();
+        }
+        if (null != m_docxTestFile) {
+            m_docxTestFile.delete();
         }
     }
 
@@ -133,6 +141,30 @@ public class CoreTest {
         coreOptions.outputPath = resultFile.getPath();
 
         String htmlDiff = "{\"modifiedText\":{\"/child:1/child:0\":\"This is a simple testoooo document to demonstrate the DocumentLoader example!\",\"/child:3/child:0\":\"This is a simple testaaaa document to demonstrate the DocumentLoader example!\"}}";
+
+        CoreWrapper.CoreResult result = CoreWrapper.backtranslate(coreOptions, htmlDiff);
+        Assert.assertEquals(0, result.errorCode);
+    }
+
+    @Test
+    public void testDocxEdit() {
+        File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
+        File outputPath = new File(cacheDir, "core_output_docx");
+        File cachePath = new File(cacheDir, "core_cache");
+
+        CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
+        coreOptions.inputPath = m_docxTestFile.getAbsolutePath();
+        coreOptions.outputPath = outputPath.getPath();
+        coreOptions.editable = true;
+        coreOptions.cachePath = cachePath.getPath();
+
+        CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("docx-edit", coreOptions);
+        Assert.assertEquals(0, coreResult.errorCode);
+
+        File resultFile = new File(cacheDir, "result_docx");
+        coreOptions.outputPath = resultFile.getPath();
+
+        String htmlDiff = "{\"modifiedText\":{\"/child:16/child:0/child:0\":\"Outasdfsdafdline\",\"/child:24/child:0/child:0\":\"Colorasdfasdfasdfed Line\",\"/child:6/child:0/child:0\":\"Text hello world!\"}}";
 
         CoreWrapper.CoreResult result = CoreWrapper.backtranslate(coreOptions, htmlDiff);
         Assert.assertEquals(0, result.errorCode);
