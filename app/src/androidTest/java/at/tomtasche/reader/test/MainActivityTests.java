@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.net.Uri;
+import android.os.SystemClock;
 import android.util.ArrayMap;
 import android.util.Log;
 
@@ -49,9 +50,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.activity.MainActivity;
+import at.tomtasche.reader.ui.activity.DocumentFragment;
+import at.tomtasche.reader.ui.widget.PageView;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
@@ -126,7 +133,7 @@ public class MainActivityTests {
 
         AssetManager testAssetManager = instrumentation.getContext().getAssets();
 
-        for (String filename: new String[] {"test.odt", "dummy.pdf", "password-test.odt"}) {
+        for (String filename: new String[] {"test.odt", "dummy.pdf", "password-test.odt", "style-various-1.docx"}) {
             File targetFile = new File(testDocumentsDir, filename);
             try (InputStream inputStream = testAssetManager.open(filename)) {
                 copy(inputStream, targetFile);
@@ -276,5 +283,136 @@ public class MainActivityTests {
                     onView(allOf(withId(R.id.menu_edit), withContentDescription("Edit document"), isDisplayed()))
                             .perform(click());
                 });
+    }
+
+    @Test
+    public void testODTEditMode() throws InterruptedException {
+        File testFile = s_testFiles.get("test.odt");
+        Assert.assertNotNull(testFile);
+        MainActivity activity = mainActivityActivityTestRule.getActivity();
+        DocumentFragment documentFragment = loadDocument(activity, testFile);
+        enterEditMode(activity, documentFragment);
+
+        PageView pageView = documentFragment.getPageView();
+        Assert.assertNotNull(pageView);
+        Assert.assertTrue(
+                "ODT should become editable after entering edit mode",
+                waitForEditableState(pageView, true, 10000)
+        );
+    }
+
+    @Test
+    public void testDOCXEditMode() throws InterruptedException {
+        File testFile = s_testFiles.get("style-various-1.docx");
+        Assert.assertNotNull(testFile);
+        MainActivity activity = mainActivityActivityTestRule.getActivity();
+        DocumentFragment documentFragment = loadDocument(activity, testFile);
+        enterEditMode(activity, documentFragment);
+
+        PageView pageView = documentFragment.getPageView();
+        Assert.assertNotNull(pageView);
+
+        Assert.assertTrue(
+                "DOCX should become editable after entering edit mode",
+                waitForEditableState(pageView, true, 10000)
+        );
+    }
+
+    private DocumentFragment loadDocument(MainActivity activity, File testFile) throws InterruptedException {
+        Context appCtx = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        Uri testFileUri = FileProvider.getUriForFile(appCtx, appCtx.getPackageName() + ".provider", testFile);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> activity.loadUri(testFileUri));
+
+        DocumentFragment fragment = waitForDocumentFragment(activity, 10000);
+        Assert.assertNotNull(fragment);
+        Assert.assertTrue("Timed out waiting for document to load", waitForLastResult(fragment, 10000));
+        return fragment;
+    }
+
+    private DocumentFragment waitForDocumentFragment(MainActivity activity, long timeoutMs)
+            throws InterruptedException {
+        long startMs = SystemClock.elapsedRealtime();
+        DocumentFragment fragment;
+        do {
+            fragment = (DocumentFragment) activity.getSupportFragmentManager()
+                    .findFragmentByTag("document_fragment");
+            if (fragment != null) {
+                return fragment;
+            }
+            SystemClock.sleep(100);
+        } while (SystemClock.elapsedRealtime() - startMs < timeoutMs);
+        return null;
+    }
+
+    private boolean waitForLastResult(DocumentFragment fragment, long timeoutMs) throws InterruptedException {
+        long startMs = SystemClock.elapsedRealtime();
+        while (SystemClock.elapsedRealtime() - startMs < timeoutMs) {
+            if (fragment.hasLastResult()) {
+                return true;
+            }
+            SystemClock.sleep(100);
+        }
+        return false;
+    }
+
+    private void enterEditMode(MainActivity activity, DocumentFragment documentFragment) {
+        AtomicReference<Boolean> started = new AtomicReference<>(false);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            started.set(activity.startSupportActionMode(
+                    new EditActionModeCallback(activity, documentFragment)) != null);
+        });
+        Assert.assertTrue("Failed to enter edit mode", started.get());
+    }
+
+    private boolean waitForEditableState(PageView pageView, boolean expected, long timeoutMs)
+            throws InterruptedException {
+        long startMs = SystemClock.elapsedRealtime();
+        while (SystemClock.elapsedRealtime() - startMs < timeoutMs) {
+            if (expected == isEditableDom(pageView)) {
+                return true;
+            }
+            SystemClock.sleep(250);
+        }
+        return false;
+    }
+
+    private boolean waitForNonEditableState(PageView pageView, long timeoutMs) throws InterruptedException {
+        long startMs = SystemClock.elapsedRealtime();
+        while (SystemClock.elapsedRealtime() - startMs < timeoutMs) {
+            if (isEditableDom(pageView)) {
+                return false;
+            }
+            SystemClock.sleep(250);
+        }
+        return true;
+    }
+
+    private boolean isEditableDom(PageView pageView) throws InterruptedException {
+        String result = evaluateJavascript(pageView,
+                "(function(){"
+                        + "var bodyEditable = document.body && document.body.isContentEditable;"
+                        + "var editableNode = document.querySelector('[contenteditable=\"true\"], [contenteditable=\"plaintext-only\"]');"
+                        + "return !!(bodyEditable || editableNode);"
+                        + "})()");
+        if (result == null) {
+            return false;
+        }
+        String normalized = result.replace("\"", "");
+        return "true".equalsIgnoreCase(normalized);
+    }
+
+    private String evaluateJavascript(PageView pageView, String script) throws InterruptedException {
+        AtomicReference<String> result = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            pageView.evaluateJavascript(script, value -> {
+                result.set(value);
+                latch.countDown();
+            });
+        });
+        if (!latch.await(10, TimeUnit.SECONDS)) {
+            Assert.fail("Timed out waiting for JS evaluation result");
+        }
+        return result.get();
     }
 }
