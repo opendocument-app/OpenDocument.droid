@@ -141,13 +141,12 @@ public class RawLoader extends FileLoader {
                 coreOptions.txt = true;
                 coreOptions.pdf = false;
 
-                CoreWrapper.CoreResult coreResult = lastCore.parse(coreOptions);
+                CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("raw-text", coreOptions);
                 if (coreResult.exception != null) {
                     throw coreResult.exception;
                 }
 
-                File entryFile = new File(coreResult.pagePaths.get(0));
-                finalUri = Uri.fromFile(entryFile);
+                finalUri = Uri.parse(coreResult.pagePaths.get(0));
             } else if (fileType.startsWith("application/zip")) {
                 File htmlFile = new File(cacheDirectory, "zip.html");
                 InputStream htmlPrefixStream = context.getAssets().open("zip-prefix.html");
