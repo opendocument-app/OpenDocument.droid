@@ -62,10 +62,10 @@ public class CoreLoader extends FileLoader {
                 options.fileType.startsWith("application/vnd.oasis.opendocument.text-master") ||
                 options.fileType.startsWith("application/msword") ||
                 (this.doOoxml && (
-                        options.fileType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-                        // TODO: enable xlsx and pptx too
-                        //options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ||
-                        //options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.presentation");
+                        options.fileType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document") ||
+                        options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                        // TODO: enable pptx too
+                        //options.fileType.startsWith("application/vnd.openxmlformats-officedocument.presentationml.presentation");
                 ));
     }
 
