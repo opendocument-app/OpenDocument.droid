@@ -221,6 +221,19 @@ Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass 
             std::filesystem::remove_all(cachePathCpp);
 
             for (const odr::HtmlPage &page: html.pages()) {
+                // Filter out unwanted views based on document type
+                if (file.is_document_file() && (
+                        (((file.as_document_file().document_type() ==
+                           odr::DocumentType::presentation) ||
+                          (file.as_document_file().document_type() ==
+                           odr::DocumentType::drawing)) &&
+                         (page.name != "document")) ||
+                        ((file.as_document_file().document_type() ==
+                          odr::DocumentType::spreadsheet) &&
+                         (page.name == "document")))) {
+                    continue;
+                }
+
                 jstring pageName = env->NewStringUTF(page.name.c_str());
                 env->CallBooleanMethod(pageNames, addMethod, pageName);
 

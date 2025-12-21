@@ -26,6 +26,7 @@ import at.tomtasche.reader.background.CoreWrapper;
 public class CoreTest {
     private File m_testFile;
     private File m_passwordTestFile;
+    private File m_spreadsheetTestFile;
 
     @Before
     public void initializeCore() {
@@ -47,6 +48,10 @@ public class CoreTest {
         try (InputStream inputStream = assetManager.open("password-test.odt")) {
             copy(inputStream, m_passwordTestFile);
         }
+        m_spreadsheetTestFile = new File(appCtx.getCacheDir(), "spreadsheet-test.ods");
+        try (InputStream inputStream = assetManager.open("spreadsheet-test.ods")) {
+            copy(inputStream, m_spreadsheetTestFile);
+        }
     }
 
     @After
@@ -56,6 +61,9 @@ public class CoreTest {
         }
         if (null != m_passwordTestFile) {
             m_passwordTestFile.delete();
+        }
+        if (null != m_spreadsheetTestFile) {
+            m_spreadsheetTestFile.delete();
         }
     }
 
@@ -141,5 +149,29 @@ public class CoreTest {
 
         CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
         Assert.assertEquals(0, coreResult.errorCode);
+    }
+
+    @Test
+    public void testSpreadsheetSheetNames() {
+        File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
+        File outputPath = new File(cacheDir, "spreadsheet_output");
+        File cachePath = new File(cacheDir, "spreadsheet_cache");
+
+        CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
+        coreOptions.inputPath = m_spreadsheetTestFile.getAbsolutePath();
+        coreOptions.outputPath = outputPath.getPath();
+        coreOptions.editable = false;
+        coreOptions.cachePath = cachePath.getPath();
+
+        CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
+        Assert.assertEquals("CoreWrapper should successfully parse the ODS file", 0, coreResult.errorCode);
+
+        // Verify we have exactly 3 sheets
+        Assert.assertEquals("ODS file should contain 3 sheets", 3, coreResult.pageNames.size());
+
+        // Verify sheet names match the actual sheet names from the ODS file
+        Assert.assertEquals("First sheet should be named 'hey'", "hey", coreResult.pageNames.get(0));
+        Assert.assertEquals("Second sheet should be named 'ho'", "ho", coreResult.pageNames.get(1));
+        Assert.assertEquals("Third sheet should be named 'Sheet3'", "Sheet3", coreResult.pageNames.get(2));
     }
 }
