@@ -48,6 +48,10 @@ import at.tomtasche.reader.ui.widget.PageView;
 public class MainActivityTests {
     private IdlingResource m_idlingResource;
     private static final Map<String, File> s_testFiles = new ArrayMap<>();
+    private static final String EXPECTED_FIRST_WORD_ODT = "This";
+    private static final String EXPECTED_FIRST_WORD_PDF = "Dummy";
+    private static final String EXPECTED_FIRST_WORD_DOCX = "Table";
+    private static final String EXPECTED_FIRST_WORD_PASSWORD_ODT = "Hallo";
 
     // Yes, this is ActivityTestRule instead of ActivityScenario, because ActivityScenario does not actually work.
     // Issue ID may or may not be added later.
@@ -138,6 +142,7 @@ public class MainActivityTests {
         PageView pageView = documentFragment.getPageView();
         Assert.assertNotNull(pageView);
         Assert.assertTrue("ODT should load", waitForPageLoaded(pageView, 10000));
+        assertFirstWord(pageView, EXPECTED_FIRST_WORD_ODT, "ODT");
 
         String fileType = documentFragment.getLastFileType();
         Assert.assertNotNull(fileType);
@@ -154,6 +159,7 @@ public class MainActivityTests {
         PageView pageView = documentFragment.getPageView();
         Assert.assertNotNull(pageView);
         Assert.assertTrue("PDF should load", waitForPageLoaded(pageView, 10000));
+        assertFirstWord(pageView, EXPECTED_FIRST_WORD_PDF, "PDF");
 
         String fileType = documentFragment.getLastFileType();
         Assert.assertNotNull(fileType);
@@ -186,6 +192,7 @@ public class MainActivityTests {
         Assert.assertNotNull(pageView);
         Assert.assertTrue("Password-protected ODT should load with correct password",
                 waitForPageLoaded(pageView, 10000));
+        assertFirstWord(pageView, EXPECTED_FIRST_WORD_PASSWORD_ODT, "Password-protected ODT");
     }
 
     @Test
@@ -194,10 +201,12 @@ public class MainActivityTests {
         Assert.assertNotNull(testFile);
         MainActivity activity = mainActivityActivityTestRule.getActivity();
         DocumentFragment documentFragment = loadDocument(activity, testFile);
-        enterEditMode(activity, documentFragment);
 
         PageView pageView = documentFragment.getPageView();
         Assert.assertNotNull(pageView);
+        assertFirstWord(pageView, EXPECTED_FIRST_WORD_ODT, "ODT");
+
+        enterEditMode(activity, documentFragment);
         Assert.assertTrue(
                 "ODT should become editable after entering edit mode",
                 waitForEditableState(pageView, true, 10000)
@@ -210,11 +219,12 @@ public class MainActivityTests {
         Assert.assertNotNull(testFile);
         MainActivity activity = mainActivityActivityTestRule.getActivity();
         DocumentFragment documentFragment = loadDocument(activity, testFile);
-        enterEditMode(activity, documentFragment);
 
         PageView pageView = documentFragment.getPageView();
         Assert.assertNotNull(pageView);
+        assertFirstWord(pageView, EXPECTED_FIRST_WORD_DOCX, "DOCX");
 
+        enterEditMode(activity, documentFragment);
         Assert.assertTrue(
                 "DOCX should become editable after entering edit mode",
                 waitForEditableState(pageView, true, 10000)
@@ -296,6 +306,37 @@ public class MainActivityTests {
             SystemClock.sleep(250);
         }
         return false;
+    }
+
+    private void assertFirstWord(PageView pageView, String expected, String label) throws InterruptedException {
+        String firstWord = waitForFirstWord(pageView, 10000);
+        Assert.assertEquals(label + " first word mismatch", expected, firstWord);
+    }
+
+    private String waitForFirstWord(PageView pageView, long timeoutMs) throws InterruptedException {
+        long startMs = SystemClock.elapsedRealtime();
+        while (SystemClock.elapsedRealtime() - startMs < timeoutMs) {
+            String firstWord = getFirstWord(pageView);
+            if (!firstWord.isEmpty()) {
+                return firstWord;
+            }
+            SystemClock.sleep(250);
+        }
+        return "";
+    }
+
+    private String getFirstWord(PageView pageView) throws InterruptedException {
+        String result = evaluateJavascript(pageView,
+                "(function(){"
+                        + "var text = document.body ? (document.body.innerText || '') : '';"
+                        + "text = text.replace(/\\s+/g,' ').trim();"
+                        + "if (!text) return '';"
+                        + "return text.split(' ')[0];"
+                        + "})()");
+        if (result == null) {
+            return "";
+        }
+        return result.replace("\"", "").trim();
     }
 
     private String getPageViewUrl(PageView pageView) throws InterruptedException {
