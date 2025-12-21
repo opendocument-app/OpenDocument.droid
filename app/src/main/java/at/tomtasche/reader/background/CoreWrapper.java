@@ -74,37 +74,6 @@ public class CoreWrapper {
         public String cachePath;
     }
 
-    public static CoreResult parse(CoreOptions options) {
-        CoreResult result = parseNative(options);
-
-        switch (result.errorCode) {
-            case 0:
-                break;
-            case -1:
-                result.exception = new CoreCouldNotOpenException();
-                break;
-            case -2:
-                result.exception = new CoreEncryptedException();
-                break;
-            case -3:
-                result.exception = new CoreUnknownErrorException();
-                break;
-            case -4:
-                result.exception = new CoreCouldNotTranslateException();
-                break;
-            case -5:
-                result.exception = new CoreUnexpectedFormatException();
-                break;
-            default:
-                result.exception = new CoreUnexpectedErrorCodeException();
-                break;
-        }
-
-        return result;
-    }
-
-    private static native CoreResult parseNative(CoreOptions options);
-
     public static CoreResult backtranslate(CoreOptions options, String htmlDiff) {
         CoreResult result = backtranslateNative(options, htmlDiff);
 

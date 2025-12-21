@@ -13,10 +13,6 @@ Java_at_tomtasche_reader_background_CoreWrapper_mimetypeNative(JNIEnv *env, jcla
                                                                jstring path);
 
 JNIEXPORT jobject JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_parseNative(JNIEnv *env, jclass clazz,
-                                                            jobject options);
-
-JNIEXPORT jobject JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env, jclass clazz,
                                                                     jobject options,
                                                                     jstring htmlDiff);
