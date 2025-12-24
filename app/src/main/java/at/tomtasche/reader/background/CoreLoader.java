@@ -19,38 +19,34 @@ public class CoreLoader extends FileLoader {
     private CoreWrapper.CoreOptions lastCoreOptions;
 
     private final boolean doOoxml;
-    private final boolean doHttp;
 
     private Thread httpThread;
 
-    public CoreLoader(Context context, ConfigManager configManager, boolean doOoxml, boolean doHttp) {
+    public CoreLoader(Context context, ConfigManager configManager, boolean doOoxml) {
         super(context, LoaderType.CORE);
 
         this.configManager = configManager;
         this.doOoxml = doOoxml;
-        this.doHttp = doHttp;
 
         CoreWrapper.initialize(context);
     }
 
     @Override
     public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager, CrashManager crashManager) {
-        if (doHttp) {
-            File serverCacheDir = new File(context.getCacheDir(), "core/server");
-            if (!serverCacheDir.isDirectory() && !serverCacheDir.mkdirs()) {
-                Log.e("CoreLoader", "Failed to create cache directory for CoreWrapper server: " + serverCacheDir.getAbsolutePath());
-            }
-            CoreWrapper.createServer(serverCacheDir.getAbsolutePath());
-
-            httpThread = new Thread(() -> {
-                try {
-                    CoreWrapper.listenServer(29665);
-                } catch (Throwable e) {
-                    crashManager.log(e);
-                }
-            });
-            httpThread.start();
+        File serverCacheDir = new File(context.getCacheDir(), "core/server");
+        if (!serverCacheDir.isDirectory() && !serverCacheDir.mkdirs()) {
+            Log.e("CoreLoader", "Failed to create cache directory for CoreWrapper server: " + serverCacheDir.getAbsolutePath());
         }
+        CoreWrapper.createServer(serverCacheDir.getAbsolutePath());
+
+        httpThread = new Thread(() -> {
+            try {
+                CoreWrapper.listenServer(29665);
+            } catch (Throwable e) {
+                crashManager.log(e);
+            }
+        });
+        httpThread.start();
 
         super.initialize(listener, mainHandler, backgroundHandler, analyticsManager, crashManager);
     }
@@ -113,45 +109,15 @@ public class CoreLoader extends FileLoader {
 
         lastCoreOptions = coreOptions;
 
-        if (doHttp) {
-            CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("odr", coreOptions);
+        CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("odr", coreOptions);
 
-            if (coreResult.exception != null) {
-                throw coreResult.exception;
-            }
+        if (coreResult.exception != null) {
+            throw coreResult.exception;
+        }
 
-            for (int i = 0; i < coreResult.pagePaths.size(); i++) {
-                result.partTitles.add(coreResult.pageNames.get(i));
-                result.partUris.add(Uri.parse(coreResult.pagePaths.get(i)));
-            }
-        } else {
-            CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
-
-            String coreExtension = coreResult.extension;
-            if (coreResult.exception == null && "pdf".equals(coreExtension)) {
-                // some PDFs do not cause an error in the core
-                // https://github.com/opendocument-app/OpenDocument.droid/issues/348#issuecomment-2446888981
-                throw new CoreWrapper.CoreCouldNotTranslateException();
-            } else if (!"unnamed".equals(coreExtension)) {
-                // "unnamed" refers to default of Meta::typeToString
-                options.fileExtension = coreExtension;
-
-                String fileType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(coreExtension);
-                if (fileType != null) {
-                    options.fileType = fileType;
-                }
-            }
-
-            if (coreResult.exception != null) {
-                throw coreResult.exception;
-            }
-
-            for (int i = 0; i < coreResult.pagePaths.size(); i++) {
-                File entryFile = new File(coreResult.pagePaths.get(i));
-
-                result.partTitles.add(coreResult.pageNames.get(i));
-                result.partUris.add(Uri.fromFile(entryFile));
-            }
+        for (int i = 0; i < coreResult.pagePaths.size(); i++) {
+            result.partTitles.add(coreResult.pageNames.get(i));
+            result.partUris.add(Uri.parse(coreResult.pagePaths.get(i)));
         }
     }
 

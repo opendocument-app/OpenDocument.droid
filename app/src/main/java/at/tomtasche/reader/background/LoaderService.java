@@ -57,7 +57,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         metadataLoader = new MetadataLoader(context);
         metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
-        coreLoader = new CoreLoader(context, configManager, true, true);
+        coreLoader = new CoreLoader(context, configManager, true);
         coreLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         rawLoader = new RawLoader(context);

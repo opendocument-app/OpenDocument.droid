@@ -8,8 +8,10 @@ import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -24,14 +26,49 @@ import at.tomtasche.reader.background.CoreWrapper;
 @LargeTest
 @RunWith(AndroidJUnit4.class)
 public class CoreTest {
+    private static Thread serverThread;
     private File m_testFile;
     private File m_passwordTestFile;
     private File m_spreadsheetTestFile;
 
-    @Before
-    public void initializeCore() {
+    @BeforeClass
+    public static void startServer() throws InterruptedException {
         Context appCtx = InstrumentationRegistry.getInstrumentation().getTargetContext();
         CoreWrapper.initialize(appCtx);
+
+        // Create server cache directory
+        File serverCacheDir = new File(appCtx.getCacheDir(), "core/server");
+        if (!serverCacheDir.isDirectory()) {
+            serverCacheDir.mkdirs();
+        }
+        CoreWrapper.createServer(serverCacheDir.getAbsolutePath());
+
+        // Start server in background thread
+        serverThread = new Thread(() -> {
+            try {
+                CoreWrapper.listenServer(29665);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        serverThread.setDaemon(true);
+        serverThread.start();
+
+        // Give server time to start
+        Thread.sleep(1000);
+    }
+
+    @AfterClass
+    public static void stopServer() {
+        CoreWrapper.stopServer();
+        if (serverThread != null) {
+            serverThread.interrupt();
+        }
+    }
+
+    @Before
+    public void initializeCore() {
+        // Server is already initialized in @BeforeClass
     }
 
     @Before
@@ -89,7 +126,7 @@ public class CoreTest {
         coreOptions.editable = true;
         coreOptions.cachePath = cachePath.getPath();
 
-        CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
+        CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("test", coreOptions);
         Assert.assertEquals(0, coreResult.errorCode);
 
         File resultFile = new File(cacheDir, "result");
@@ -113,7 +150,7 @@ public class CoreTest {
         coreOptions.editable = false;
         coreOptions.cachePath = cachePath.getPath();
 
-        CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
+        CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("password-test-no-pw", coreOptions);
         Assert.assertEquals(-2, coreResult.errorCode);
     }
 
@@ -130,7 +167,7 @@ public class CoreTest {
         coreOptions.editable = false;
         coreOptions.cachePath = cachePath.getPath();
 
-        CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
+        CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("password-test-wrong-pw", coreOptions);
         Assert.assertEquals(-2, coreResult.errorCode);
     }
 
@@ -147,7 +184,7 @@ public class CoreTest {
         coreOptions.editable = false;
         coreOptions.cachePath = cachePath.getPath();
 
-        CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
+        CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("password-test-correct-pw", coreOptions);
         Assert.assertEquals(0, coreResult.errorCode);
     }
 
@@ -163,7 +200,7 @@ public class CoreTest {
         coreOptions.editable = false;
         coreOptions.cachePath = cachePath.getPath();
 
-        CoreWrapper.CoreResult coreResult = CoreWrapper.parse(coreOptions);
+        CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("spreadsheet-test", coreOptions);
         Assert.assertEquals("CoreWrapper should successfully parse the ODS file", 0, coreResult.errorCode);
 
         // Verify we have exactly 3 sheets
