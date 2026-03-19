@@ -555,7 +555,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             builder.setTitle(R.string.toast_error_illegal_file);
             builder.setMessage(R.string.dialog_upload_file);
 
-            builder.setPositiveButton(getString(android.R.string.ok),
+            builder.setPositiveButton(getString(R.string.action_upload),
                     new DialogInterface.OnClickListener() {
 
                         @Override
