@@ -28,6 +28,7 @@ import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
@@ -101,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     private Uri lastUri;
     private Uri loadOnStart;
     private Uri lastSaveUri;
+    private boolean documentOpenedInternally = false;
 
     @Nullable
     private CountingIdlingResource openFileIdlingResource;
@@ -182,6 +184,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
             // (i.e. after bringing app back from background)
             if (getIntent().getData() != null) {
                 loadOnStart = getIntent().getData();
+                documentOpenedInternally = false; // External launch
 
                 analyticsManager.report(AnalyticsConstants.EVENT_SELECT_CONTENT, AnalyticsConstants.PARAM_CONTENT_TYPE, "other");
             } else {
@@ -194,6 +197,26 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         }
 
         addMenuProvider(this, this);
+
+        // Set up modern back button handling
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (fullscreen) {
+                    leaveFullscreen();
+                    return;
+                }
+
+                // If document is currently displayed and was opened internally, go back to landing
+                if (documentContainer.getVisibility() == View.VISIBLE && documentOpenedInternally) {
+                    showLandingScreen();
+                } else {
+                    // For external launches or when already on landing screen, use default behavior (close app)
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
     }
 
     @Override
@@ -321,6 +344,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         if (intent.getData() != null) {
             crashManager.log("onNewIntent loadUri");
 
+            documentOpenedInternally = false; // External launch
             loadUri(intent.getData());
 
             analyticsManager.report(AnalyticsConstants.EVENT_SELECT_CONTENT, AnalyticsConstants.PARAM_CONTENT_TYPE, "other");
@@ -361,6 +385,18 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     }
 
     public void loadUri(Uri uri) {
+        loadUriInternal(uri, false);
+    }
+    
+    public void loadUriFromInternalNavigation(Uri uri) {
+        loadUriInternal(uri, true);
+    }
+    
+    private void loadUriInternal(Uri uri, boolean isInternal) {
+        if (isInternal) {
+            documentOpenedInternally = true;
+        }
+        
         lastSaveUri = null;
         lastUri = uri;
 
@@ -606,6 +642,8 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
                         openFileIdlingResource.increment();
                     }
 
+                    // Mark that the next document will be opened internally
+                    documentOpenedInternally = true;
                     startActivityForResult(intent, 42);
                 } catch (Exception e) {
                     if (null != openFileIdlingResource) {
@@ -661,6 +699,21 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         } catch (Exception e) {
             crashManager.log(e);
         }
+    }
+
+    private void showLandingScreen() {
+        landingContainer.setVisibility(View.VISIBLE);
+        documentContainer.setVisibility(View.GONE);
+        
+        // Clear the document state
+        lastUri = null;
+        lastSaveUri = null;
+        documentOpenedInternally = false;
+        
+        // Clear the action bar title
+        setTitle("");
+        
+        analyticsManager.setCurrentScreen(this, "screen_main");
     }
 
     public CrashManager getCrashManager() {
