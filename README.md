@@ -21,4 +21,4 @@ Please help to translate on the https://crowdin.com/project/opendocument
 - make sure `conan` is in your $PATH or replace conan-call in `app/build.gradle`
 - `git submodule update --init --depth 1 OpenDocument.core`
 - `cd OpenDocument.core; git submodule update --init --depth 1 conan-odr-index`
-- `python OpenDocument.core/conan-odr-index/scripts/conan_export_all_packages.py
+- `python OpenDocument.core/conan-odr-index/scripts/conan_export_all_packages.py`
