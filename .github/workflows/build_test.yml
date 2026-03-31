@@ -57,10 +57,6 @@ jobs:
 
     - name: conan cache size
       run: du -h -d1 ~/.conan2/p
-    - name: conan login
-      run: conan remote login odr admin --password '${{ secrets.ARTIFACTORY }}'
-    - name: conan upload
-      run: conan upload "*" --check --confirm --remote odr
 
     - name: Artifact APKs
       uses: actions/upload-artifact@v4
