@@ -37,13 +37,17 @@ jobs:
     - name: install ndk
       run: yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
 
-    - name: conan remote
-      run: |
-        conan remote remove "*"
-        conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
-        conan remote add conancenter https://center2.conan.io
     - name: conan profile
       run: conan profile detect
+
+    - name: checkout core
+      run: git submodule update --init --depth 1 OpenDocument.core
+
+    - name: checkout conan-index
+      run: cd OpenDocument.core; git submodule update --init --depth 1 conan-odr-index
+
+    - name: export conan-odr-index
+      run: python OpenDocument.core/conan-odr-index/scripts/conan_export_all_packages.py
 
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v3
