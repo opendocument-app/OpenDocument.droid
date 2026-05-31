@@ -1,0 +1,3 @@
+[submodule "OpenDocument.core"]
+	path = OpenDocument.core
+	url = https://github.com/opendocument-app/OpenDocument.core
