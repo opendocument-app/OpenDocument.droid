@@ -77,6 +77,7 @@
 
         <activity-alias
             android:name="at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL"
+            android:enabled="false"
             android:exported="true"
             android:label="@string/app_title"
             android:targetActivity="at.tomtasche.reader.ui.activity.MainActivity"
@@ -208,6 +209,7 @@
         </activity-alias>
         <activity-alias
             android:name="at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH"
+            android:enabled="true"
             android:exported="true"
             android:label="@string/app_title"
             android:targetActivity="at.tomtasche.reader.ui.activity.MainActivity"
@@ -225,10 +227,18 @@
                 <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet-template" />
                 <data android:mimeType="application/vnd.oasis.opendocument.presentation" />
                 <data android:mimeType="application/vnd.oasis.opendocument.presentation-template" />
+                <data android:mimeType="application/vnd.oasis.opendocument.graphics" />
+                <data android:mimeType="application/vnd.oasis.opendocument.graphics-template" />
                 <data android:mimeType="application/octet-stream" />
                 <data android:mimeType="application/pdf" />
                 <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
                 <data android:mimeType="application/msword" />
+                <!-- raw types handled by RawLoader; text/plain (not text/*) avoids re-matching text/vcard contacts (#477) -->
+                <data android:mimeType="text/plain" />
+                <data android:mimeType="text/csv" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="application/zip" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -288,6 +298,34 @@
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.doc" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.doc" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\.xlsx" />
+                <data android:pathPattern=".*\\..*\\.xlsx" />
+                <data android:pathPattern=".*\\..*\\..*\\.xlsx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.xlsx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.xlsx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.xlsx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.xlsx" />
+                <data android:pathPattern=".*\\.txt" />
+                <data android:pathPattern=".*\\..*\\.txt" />
+                <data android:pathPattern=".*\\..*\\..*\\.txt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.txt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.txt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.txt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.txt" />
+                <data android:pathPattern=".*\\.csv" />
+                <data android:pathPattern=".*\\..*\\.csv" />
+                <data android:pathPattern=".*\\..*\\..*\\.csv" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.csv" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.csv" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.csv" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.csv" />
+                <data android:pathPattern=".*\\.zip" />
+                <data android:pathPattern=".*\\..*\\.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.zip" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -348,6 +386,34 @@
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.doc" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.doc" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.doc" />
+                <data android:pathPattern=".*\\.xlsx" />
+                <data android:pathPattern=".*\\..*\\.xlsx" />
+                <data android:pathPattern=".*\\..*\\..*\\.xlsx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.xlsx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.xlsx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.xlsx" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.xlsx" />
+                <data android:pathPattern=".*\\.txt" />
+                <data android:pathPattern=".*\\..*\\.txt" />
+                <data android:pathPattern=".*\\..*\\..*\\.txt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.txt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.txt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.txt" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.txt" />
+                <data android:pathPattern=".*\\.csv" />
+                <data android:pathPattern=".*\\..*\\.csv" />
+                <data android:pathPattern=".*\\..*\\..*\\.csv" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.csv" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.csv" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.csv" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.csv" />
+                <data android:pathPattern=".*\\.zip" />
+                <data android:pathPattern=".*\\..*\\.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.zip" />
             </intent-filter>
         </activity-alias>
 
