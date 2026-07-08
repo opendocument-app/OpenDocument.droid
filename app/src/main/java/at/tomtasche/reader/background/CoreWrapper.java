@@ -15,9 +15,6 @@ public class CoreWrapper {
 
     public static class GlobalParams {
         public String coreDataPath;
-        public String fontconfigDataPath;
-        public String popplerDataPath;
-        public String pdf2htmlexDataPath;
         public String libmagicDatabasePath;
 
         public String customTmpfilePath;
@@ -28,24 +25,15 @@ public class CoreWrapper {
     public static void initialize(Context context) {
         File assetsDirectory = new File(context.getFilesDir(), "assets");
         File odrCoreDataDirectory = new File(assetsDirectory, "odrcore");
-        File fontconfigDataDirectory = new File(assetsDirectory, "fontconfig");
-        File popplerDataDirectory = new File(assetsDirectory, "poppler");
-        File pdf2htmlexDataDirectory = new File(assetsDirectory, "pdf2htmlex");
         File libmagicDataDirectory = new File(assetsDirectory, "libmagic");
 
         AssetExtractor ae = new AssetExtractor(context.getAssets());
         ae.setOverwrite();
         ae.extract(assetsDirectory, "core/odrcore");
-        ae.extract(assetsDirectory, "core/fontconfig");
-        ae.extract(assetsDirectory, "core/poppler");
-        ae.extract(assetsDirectory, "core/pdf2htmlex");
         ae.extract(assetsDirectory, "core/libmagic");
 
         CoreWrapper.GlobalParams globalParams = new CoreWrapper.GlobalParams();
         globalParams.coreDataPath = odrCoreDataDirectory.getAbsolutePath();
-        globalParams.fontconfigDataPath = fontconfigDataDirectory.getAbsolutePath();
-        globalParams.popplerDataPath = popplerDataDirectory.getAbsolutePath();
-        globalParams.pdf2htmlexDataPath = pdf2htmlexDataDirectory.getAbsolutePath();
         globalParams.libmagicDatabasePath = new File(libmagicDataDirectory, "magic.mgc").getAbsolutePath();
         globalParams.customTmpfilePath = context.getCacheDir().getAbsolutePath();
         CoreWrapper.setGlobalParams(globalParams);

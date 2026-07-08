@@ -67,7 +67,7 @@ namespace {
 
     protected:
         void log_impl(Time time, odr::LogLevel level, const std::string &message,
-                      const std::source_location &location) override {
+                      const std::source_location &location) const override {
             __android_log_print(to_android_log_level(level), "smn", "%s", message.c_str());
         }
 
@@ -85,16 +85,10 @@ Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jcl
     jclass paramsClass = env->GetObjectClass(params);
 
     std::string odrCoreDataPath = getStringField(env, paramsClass, params, "coreDataPath");
-    std::string fontconfigDataPath = getStringField(env, paramsClass, params, "fontconfigDataPath");
-    std::string popplerDataPath = getStringField(env, paramsClass, params, "popplerDataPath");
-    std::string pdf2htmlexDataPath = getStringField(env, paramsClass, params, "pdf2htmlexDataPath");
     std::string libmagicDatabasePath = getStringField(env, paramsClass, params, "libmagicDatabasePath");
     std::string customTmpfilePath = getStringField(env, paramsClass, params, "customTmpfilePath");
 
     odr::GlobalParams::set_odr_core_data_path(odrCoreDataPath);
-    odr::GlobalParams::set_fontconfig_data_path(fontconfigDataPath);
-    odr::GlobalParams::set_poppler_data_path(popplerDataPath);
-    odr::GlobalParams::set_pdf2htmlex_data_path(pdf2htmlexDataPath);
     odr::GlobalParams::set_libmagic_database_path(libmagicDatabasePath);
 
     tmpfile_hack::set_tmpfile_directory(customTmpfilePath);
@@ -252,9 +246,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jcla
 
         try {
             odr::DecodePreference decodePreference;
-            decodePreference.engine_priority = {odr::DecoderEngine::poppler,
-                                                odr::DecoderEngine::wvware,
-                                                odr::DecoderEngine::odr};
+            decodePreference.engine_priority = {odr::DecoderEngine::odr};
             odr::DecodedFile file = odr::open(inputPathCpp, decodePreference, *logger);
 
             if (file.password_encrypted()) {

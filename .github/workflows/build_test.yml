@@ -40,14 +40,11 @@ jobs:
     - name: conan profile
       run: conan profile detect
 
-    - name: checkout core
-      run: git submodule update --init --depth 1 OpenDocument.core
-
     - name: checkout conan-index
-      run: cd OpenDocument.core; git submodule update --init --depth 1 conan-odr-index
+      run: git submodule update --init --depth 1 conan-odr-index
 
     - name: export conan-odr-index
-      run: python OpenDocument.core/conan-odr-index/scripts/conan_export_all_packages.py
+      run: python conan-odr-index/scripts/conan_export_all_packages.py
 
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v3
