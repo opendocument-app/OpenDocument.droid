@@ -26,33 +26,6 @@ def deploy(graph, output_folder: str, **kwargs):
             **copytree_kwargs,
         )
 
-    if "pdf2htmlex" in deps:
-        dep = deps["pdf2htmlex"]
-        conanfile.output.info(f"Deploying pdf2htmlex to {output_folder}")
-        shutil.copytree(
-            f"{dep.package_folder}/share/pdf2htmlEX",
-            f"{output_folder}/pdf2htmlex",
-            **copytree_kwargs,
-        )
-
-    if "poppler-data" in deps:
-        dep = deps["poppler-data"]
-        conanfile.output.info(f"Deploying poppler-data to {output_folder}")
-        shutil.copytree(
-            f"{dep.package_folder}/share/poppler",
-            f"{output_folder}/poppler",
-            **copytree_kwargs,
-        )
-
-    if "fontconfig" in deps:
-        dep = deps["fontconfig"]
-        conanfile.output.info(f"Deploying fontconfig to {output_folder}")
-        shutil.copytree(
-            f"{dep.package_folder}/res/share",
-            f"{output_folder}/fontconfig",
-            **copytree_kwargs,
-        )
-
     if "libmagic" in deps:
         dep = deps["libmagic"]
         conanfile.output.info(f"Deploying libmagic to {output_folder}")

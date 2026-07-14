@@ -19,6 +19,5 @@ Please help to translate on the https://crowdin.com/project/opendocument
 - install conan using pip in a venv
 - `conan profile detect --force`
 - make sure `conan` is in your $PATH or replace conan-call in `app/build.gradle`
-- `git submodule update --init --depth 1 OpenDocument.core`
-- `cd OpenDocument.core; git submodule update --init --depth 1 conan-odr-index`
-- `python OpenDocument.core/conan-odr-index/scripts/conan_export_all_packages.py`
+- `git submodule update --init --depth 1 conan-odr-index`
+- `python conan-odr-index/scripts/conan_export_all_packages.py`

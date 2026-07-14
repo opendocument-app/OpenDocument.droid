@@ -1,5 +1,5 @@
 [requires]
-odrcore/5.2.0
+odrcore/5.4.0
 
 [generators]
 CMakeToolchain
@@ -7,5 +7,6 @@ CMakeDeps
 
 [options]
 odrcore/*:shared=False
-odrcore/*:with_pdf2htmlEX=True
-odrcore/*:with_wvWare=True
+odrcore/*:with_pdf2htmlEX=False
+odrcore/*:with_wvWare=False
+odrcore/*:bundle_assets=False
