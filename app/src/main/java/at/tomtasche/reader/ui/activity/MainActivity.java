@@ -216,11 +216,18 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         }
     }
 
+    private static final String PREF_CATCH_ALL_ENABLED = "catch_all_enabled";
+
     private void initializeCatchAllSwitch() {
         ComponentName catchAllComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL");
         ComponentName strictCatchComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH");
 
-        boolean isCatchAllEnabled = getPackageManager().getComponentEnabledSetting(catchAllComponent) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // catch-all is only active if the user explicitly opted in. new installs and
+        // existing users who never touched the switch default to STRICT_CATCH, so we
+        // no longer volunteer to open unrelated file types like contacts (issue #477).
+        boolean isCatchAllEnabled = preferences.getBoolean(PREF_CATCH_ALL_ENABLED, false);
 
         // retoggle components for users upgrading to latest version of app
         toggleComponent(catchAllComponent, isCatchAllEnabled);
@@ -231,6 +238,8 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         catchAllSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                preferences.edit().putBoolean(PREF_CATCH_ALL_ENABLED, isChecked).apply();
+
                 toggleComponent(catchAllComponent, isChecked);
                 toggleComponent(strictCatchComponent, !isChecked);
             }
