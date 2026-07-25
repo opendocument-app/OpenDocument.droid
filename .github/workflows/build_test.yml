@@ -45,13 +45,12 @@ jobs:
     - name: checkout conan-index
       run: git submodule update --init --depth 1 conan-odr-index
 
-    - name: export conan-odr-index
-      run: python conan-odr-index/scripts/conan_export_all_packages.py
-
     - name: conan cache key
       id: conan-cache-key
       run: echo "key=conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-index$(git rev-parse HEAD:conan-odr-index)-${{ hashFiles('app/conanfile.txt', 'app/conanprofile.txt') }}" >> "$GITHUB_OUTPUT"
 
+    # restore before exporting the recipes: the export must run on top of the
+    # restored cache so current recipes win over stale ones from the archive
     - name: conan cache
       uses: actions/cache@v4
       with:
@@ -59,6 +58,9 @@ jobs:
         key: ${{ steps.conan-cache-key.outputs.key }}
         restore-keys: |
           conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-
+
+    - name: export conan-odr-index
+      run: python conan-odr-index/scripts/conan_export_all_packages.py
 
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v4
@@ -139,12 +141,11 @@ jobs:
     - name: checkout conan-index
       run: git submodule update --init --depth 1 conan-odr-index
 
-    - name: export conan-odr-index
-      run: python conan-odr-index/scripts/conan_export_all_packages.py
-
     # restore the packages built by the build job. on a cache hit no conan
     # package needs to be rebuilt or downloaded; on a miss everything is
-    # built from source via the exported recipes (slow but reliable)
+    # built from source via the exported recipes (slow but reliable).
+    # restore before exporting the recipes so current recipes win over
+    # stale ones from the archive
     - name: conan cache
       uses: actions/cache/restore@v4
       with:
@@ -152,6 +153,9 @@ jobs:
         key: ${{ needs.build.outputs.conan-cache-key }}
         restore-keys: |
           conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-
+
+    - name: export conan-odr-index
+      run: python conan-odr-index/scripts/conan_export_all_packages.py
 
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v4
