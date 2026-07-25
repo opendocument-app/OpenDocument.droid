@@ -5,7 +5,6 @@
     <string name="toast_error_illegal_file">此文件格式似乎不受支持。</string>
     <string name="toast_error_illegal_file_reopen">不受支持的文件格式。请尝试在另一个应用程序中打开它。</string>
     <string name="toast_hint_unsupported_file">对文件的显示效果不满意？在另一个应用中打开它。</string>
-    <string name="toast_hint_upload_file">对文件的显示效果不满意？将其临时上传到云端服务器中，以改善其格式。</string>
     <string name="toast_error_save_nofile">没有地方保存选中的文件。</string>
     <string name="toast_error_save_failed">无法保存文件。请联系 support@opendocument.app</string>
     <string name="toast_error_out_of_memory">设备内存不足！可能是因为文件中的图片太多了，也可能是文件体积过大。</string>

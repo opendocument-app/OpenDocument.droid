@@ -5,7 +5,6 @@
     <string name="toast_error_illegal_file">지원하지 않는 파일입니다. </string>
     <string name="toast_error_illegal_file_reopen">지원하지 않는 파일입니다. 다른 앱에서 열어 보세요. </string>
     <string name="toast_hint_unsupported_file">열린 파일이 제대로 보여지지 않습니까? 다른 앱에서 여시겠습니까?</string>
-    <string name="toast_hint_upload_file">파일이 잘 보여지지 않는다면, 포맷을 제대로 보여주기 위해서 임시로 업로드하세요.</string>
     <string name="toast_error_save_nofile">선택한 파일을 저장할 위치가 없습니다.</string>
     <string name="toast_error_save_failed">파일이 저장되지 않았습니다. support@opendocument.app 으로 문의하세요.</string>
     <string name="toast_error_out_of_memory">메모리가 부족합니다! 사진이 너무 많거나 파일이 너무 큽니다.</string>
