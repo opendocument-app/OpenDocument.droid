@@ -31,6 +31,7 @@ import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     }
 
     private static final String SAVED_KEY_LAST_CACHE_URI = "LAST_CACHE_URI";
+    private static final String SAVED_KEY_OPENED_EXTERNALLY = "OPENED_EXTERNALLY";
     private static final boolean IS_TESTING = isTesting();
     private static final int GOOGLE_REQUEST_CODE = 1993;
     private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
@@ -101,6 +103,11 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     private Uri lastUri;
     private Uri loadOnStart;
     private Uri lastSaveUri;
+
+    // documents opened from another app keep the default back behavior (returning
+    // to that app), while documents opened from within the app go back to the
+    // landing screen instead of closing the app
+    private boolean documentOpenedExternally;
 
     @Nullable
     private CountingIdlingResource openFileIdlingResource;
@@ -167,6 +174,10 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
 
         documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
 
+        if (savedInstanceState != null) {
+            documentOpenedExternally = savedInstanceState.getBoolean(SAVED_KEY_OPENED_EXTERNALLY, false);
+        }
+
         if (documentFragment != null && documentFragment.hasLastResult()) {
             // nothing else to do
 
@@ -182,6 +193,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
             // (i.e. after bringing app back from background)
             if (getIntent().getData() != null) {
                 loadOnStart = getIntent().getData();
+                documentOpenedExternally = true;
 
                 analyticsManager.report(AnalyticsConstants.EVENT_SELECT_CONTENT, AnalyticsConstants.PARAM_CONTENT_TYPE, "other");
             } else {
@@ -210,7 +222,9 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         crashManager.log("onStart");
 
         if (loadOnStart != null) {
-            loadUri(loadOnStart);
+            // loadOnStart either came from an external intent or from a restored
+            // instance state, in which case documentOpenedExternally was restored too
+            loadUri(loadOnStart, documentOpenedExternally);
 
             loadOnStart = null;
         }
@@ -260,6 +274,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         super.onSaveInstanceState(outState);
 
         outState.putParcelable(SAVED_KEY_LAST_CACHE_URI, lastUri);
+        outState.putBoolean(SAVED_KEY_OPENED_EXTERNALLY, documentOpenedExternally);
     }
 
     @Override
@@ -330,7 +345,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         if (intent.getData() != null) {
             crashManager.log("onNewIntent loadUri");
 
-            loadUri(intent.getData());
+            loadUri(intent.getData(), true);
 
             analyticsManager.report(AnalyticsConstants.EVENT_SELECT_CONTENT, AnalyticsConstants.PARAM_CONTENT_TYPE, "other");
         }
@@ -370,6 +385,12 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     }
 
     public void loadUri(Uri uri) {
+        loadUri(uri, false);
+    }
+
+    private void loadUri(Uri uri, boolean openedExternally) {
+        documentOpenedExternally = openedExternally;
+
         lastSaveUri = null;
         lastUri = uri;
 
@@ -564,6 +585,43 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         }
 
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (documentFragment != null && !documentOpenedExternally) {
+            analyticsManager.report("back_to_landing");
+
+            closeDocument();
+
+            return;
+        }
+
+        super.onBackPressed();
+    }
+
+    private void closeDocument() {
+        if (documentFragment != null) {
+            removeMenuProvider(documentFragment);
+
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .remove(documentFragment)
+                    .commitNow();
+
+            documentFragment = null;
+        }
+
+        ActionBar bar = getSupportActionBar();
+        bar.removeAllTabs();
+        bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+
+        lastUri = null;
+
+        documentContainer.setVisibility(View.GONE);
+        landingContainer.setVisibility(View.VISIBLE);
+
+        analyticsManager.setCurrentScreen(this, "screen_main");
     }
 
     public void findDocument() {
