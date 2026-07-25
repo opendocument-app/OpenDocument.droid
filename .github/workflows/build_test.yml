@@ -5,7 +5,7 @@ on:
   push:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -14,6 +14,8 @@ env:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    outputs:
+      conan-cache-key: ${{ steps.conan-cache-key.outputs.key }}
     steps:
     - name: checkout
       uses: actions/checkout@v4
@@ -46,11 +48,27 @@ jobs:
     - name: export conan-odr-index
       run: python conan-odr-index/scripts/conan_export_all_packages.py
 
+    - name: conan cache key
+      id: conan-cache-key
+      run: echo "key=conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-index$(git rev-parse HEAD:conan-odr-index)-${{ hashFiles('app/conanfile.txt', 'app/conanprofile.txt') }}" >> "$GITHUB_OUTPUT"
+
+    - name: conan cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.conan2/p
+        key: ${{ steps.conan-cache-key.outputs.key }}
+        restore-keys: |
+          conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-
+
     - name: Gradle cache
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
 
     - name: gradle
-      run: ./gradlew assembleDebug lintProDebug lintLiteDebug --stacktrace
+      run: ./gradlew assembleDebug testProDebugUnitTest lintProDebug lintLiteDebug --stacktrace
+
+    # drop temporary download/source/build folders so only built packages get cached
+    - name: clean conan cache
+      run: conan cache clean "*"
 
     - name: conan cache size
       run: du -h -d1 ~/.conan2/p
@@ -69,6 +87,14 @@ jobs:
         name: lint-report
         path: app/build/reports/lint-results-*.html
         if-no-files-found: error
+
+    - name: Artifact unit test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: unit-test-results
+        path: app/build/reports/tests/
+        if-no-files-found: warn
 
   test:
     runs-on: ubuntu-24.04
@@ -97,14 +123,6 @@ jobs:
         distribution: 'zulu'
         java-version: 17
 
-    - uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '3.3'
-        bundler-cache: true
-
-    - name: install fastlane
-      run: bundle install
-
     - name: setup python 3.12
       uses: actions/setup-python@v5
       with:
@@ -115,16 +133,28 @@ jobs:
     - name: install ndk
       run: yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
 
-    - name: conan remote
-      run: |
-        conan remote remove "*"
-        conan remote add odr https://artifactory.opendocument.app/artifactory/api/conan/conan
-        conan remote add conancenter https://center2.conan.io
     - name: conan profile
       run: conan profile detect
 
+    - name: checkout conan-index
+      run: git submodule update --init --depth 1 conan-odr-index
+
+    - name: export conan-odr-index
+      run: python conan-odr-index/scripts/conan_export_all_packages.py
+
+    # restore the packages built by the build job. on a cache hit no conan
+    # package needs to be rebuilt or downloaded; on a miss everything is
+    # built from source via the exported recipes (slow but reliable)
+    - name: conan cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ~/.conan2/p
+        key: ${{ needs.build.outputs.conan-cache-key }}
+        restore-keys: |
+          conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-
+
     - name: Gradle cache
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v4
 
     - name: AVD cache
       uses: actions/cache@v4
@@ -165,10 +195,10 @@ jobs:
         script: |
           # Clear logcat before tests
           adb logcat -c
-          
+
           # Run tests
           ./gradlew connectedCheck
-          
+
           # Dump logcat after tests
           adb logcat -d > logcat.txt
 
@@ -181,7 +211,7 @@ jobs:
           app/build/reports/androidTests/
           app/build/outputs/androidTest-results/
         if-no-files-found: warn
-        
+
     - name: Upload test logs
       if: always()
       uses: actions/upload-artifact@v4
