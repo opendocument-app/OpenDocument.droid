@@ -15,3 +15,6 @@ build_type=RelWithDebInfo
 tools.android:ndk_path=@NDK_PATH@
 tools.build:skip_test=True
 tools.graph:skip_binaries=False
+# parallel per-arch conanInstall tasks race on the shared app/CMakeUserPresets.json;
+# the android build passes the toolchain file explicitly, so presets are unused
+tools.cmake.cmaketoolchain:user_presets=

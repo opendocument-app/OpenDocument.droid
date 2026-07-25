@@ -13,6 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `./build-test.sh` - Convenience script to build Pro debug and test APKs
 
 ### Testing
+- `./gradlew testProDebugUnitTest` - Run JVM unit tests (no device needed)
 - `./gradlew connectedAndroidTest` - Run instrumented tests on connected device
 - `fastlane android tests` - Alternative way to run connected tests
 
