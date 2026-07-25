@@ -32,7 +32,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Document Processing Pipeline:**
 - `CoreLoader` - Primary document processor using the native C++ ODR core library
-- `WvwareDocLoader` - MS Word document processor using wvware library
 - `RawLoader` - Plain text and other raw file processor  
 - `OnlineLoader` - Remote document fetcher
 - `MetadataLoader` - Document metadata extractor
@@ -57,7 +56,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Native Dependencies:**
 - Uses Conan package manager for C++ dependencies
 - CMake build system for native C++ core library (`odr-core`)
-- NDK version 26.3.11579264 required
+- NDK version 28.1.13356709 required
 - C++20 standard
 
 **Core Library Integration:**
@@ -77,11 +76,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Core Android:**
 - AndroidX libraries (AppCompat, Core, Material, WebKit)
-- Firebase (Analytics, Crashlytics, Storage, Auth, Remote Config)
 - Google Play Services (Ads, Review, User Messaging Platform)
 
 **Document Processing:**
-- `app.opendocument:wvware-android` - MS Word document support
 - Custom ODR core library via Conan
 
 **Testing:**
@@ -91,8 +88,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Configuration Notes
 
-- Minimum SDK: 23, Target SDK: 34
-- MultiDex enabled for large dependency set
+- Minimum SDK: 23, Target SDK: 36
 - R8/ProGuard enabled for release builds with resource shrinking
 - Configuration cache enabled for parallel Conan installs
 - Custom lint configuration allows non-fatal errors

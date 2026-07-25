@@ -29,15 +29,10 @@ android {
     defaultConfig {
         applicationId "at.tomtasche.reader"
         minSdkVersion 23
-        compileSdkVersion 35
-        targetSdkVersion 35
+        targetSdkVersion 36
 
         testApplicationId "at.tomtasche.reader.test"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-        multiDexEnabled true
-
-        vectorDrawables.useSupportLibrary true
 
         externalNativeBuild {
             cmake {
@@ -95,11 +90,15 @@ android {
         }
     }
 
-    android.bundle.language.enableSplit false
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     externalNativeBuild {
@@ -114,7 +113,7 @@ android {
     buildFeatures {
         buildConfig = true
     }
-    packagingOptions {
+    packaging {
         jniLibs {
             // No need to pickFirst libc++_shared.so if all files are identical.
             // They will be identical if NDK major version matches.
@@ -124,32 +123,33 @@ android {
         }
     }
     namespace 'at.tomtasche.reader'
-    compileSdk 35
+    compileSdk 36
 
     // TODO can and should this be architecture dependent?
     sourceSets.main.assets.srcDirs += "build/conan/armv8/assets"
 }
 
 dependencies {
-    implementation 'com.google.android.gms:play-services-ads:24.3.0'
+    implementation 'com.google.android.gms:play-services-ads:25.4.0'
     implementation 'com.google.android.play:review:2.0.2'
-    implementation 'com.google.android.ump:user-messaging-platform:3.1.0'
+    implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
 
-    implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'androidx.core:core:1.15.0'
-    implementation 'com.google.android.material:material:1.12.0'
-    implementation 'androidx.webkit:webkit:1.12.1'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.core:core:1.18.0'
+    implementation 'com.google.android.material:material:1.14.0'
+    // webkit 1.16.0+ requires minSdk 24
+    implementation 'androidx.webkit:webkit:1.15.0'
 
     implementation 'com.viliussutkus89:assetextractor-android:1.3.3'
 
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
-    androidTestImplementation 'androidx.test:rules:1.6.1'
-    androidTestImplementation 'androidx.test:runner:1.6.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.6.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
+    androidTestImplementation 'androidx.test:rules:1.7.0'
+    androidTestImplementation 'androidx.test:runner:1.7.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.7.0'
     // espresso-idling-resource is used in main sourceSet as well. cannot be just androidTestImplementation
-    implementation 'androidx.test.espresso:espresso-idling-resource:3.6.1'
-    implementation 'androidx.annotation:annotation:1.9.1'
+    implementation 'androidx.test.espresso:espresso-idling-resource:3.7.0'
+    implementation 'androidx.annotation:annotation:1.10.0'
 }
 
 // Without removing .cxx dir on cleanup, double gradle clean is erroring out.

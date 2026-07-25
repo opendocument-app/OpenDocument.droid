@@ -19,15 +19,14 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.ActionMode;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
@@ -35,7 +34,12 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.graphics.Insets;
 import androidx.core.view.MenuProvider;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.test.espresso.IdlingResource;
@@ -90,6 +94,32 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     private DocumentFragment documentFragment;
 
     private boolean fullscreen;
+    // With targetSdk 36 predictive back is enabled by default and neither KEYCODE_BACK
+    // nor onBackPressed() are delivered anymore, so back is intercepted via the
+    // OnBackPressedDispatcher instead.
+    private final OnBackPressedCallback backCallback = new OnBackPressedCallback(true) {
+        @Override
+        public void handleOnBackPressed() {
+            if (fullscreen) {
+                leaveFullscreen();
+
+                return;
+            }
+
+            if (documentFragment != null && !documentOpenedExternally) {
+                analyticsManager.report("back_to_landing");
+
+                closeDocument();
+
+                return;
+            }
+
+            // fall through to the default behavior (close the activity)
+            setEnabled(false);
+            getOnBackPressedDispatcher().onBackPressed();
+            setEnabled(true);
+        }
+    };
     private TtsActionModeCallback ttsActionMode;
     private EditActionModeCallback editActionMode;
 
@@ -138,7 +168,20 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
 
         setContentView(R.layout.main);
 
+        // Edge-to-edge is enforced from targetSdk 35 on: pad the root view so content
+        // stays clear of the system bars, display cutouts and the keyboard. On older
+        // devices the window does not extend under the bars and the insets are zero.
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_root), (view, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()
+                    | WindowInsetsCompat.Type.displayCutout()
+                    | WindowInsetsCompat.Type.ime());
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+            return WindowInsetsCompat.CONSUMED;
+        });
+
         setTitle("");
+
+        getOnBackPressedDispatcher().addCallback(this, backCallback);
 
         serviceQueue = new LoaderServiceQueue();
         Intent intent = new Intent(this, LoaderService.class);
@@ -476,9 +519,11 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
             } else {
                 analyticsManager.report("menu_fullscreen_enter");
 
-                getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                        WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+                WindowInsetsControllerCompat insetsController = WindowCompat
+                        .getInsetsController(getWindow(), getWindow().getDecorView());
+                insetsController.setSystemBarsBehavior(
+                        WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                insetsController.hide(WindowInsetsCompat.Type.statusBars());
 
                 getSupportActionBar().hide();
 
@@ -567,37 +612,12 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
 
         getSupportActionBar().show();
 
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView())
+                .show(WindowInsetsCompat.Type.statusBars());
 
         fullscreen = false;
 
         analyticsManager.report("fullscreen_end");
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (fullscreen && keyCode == KeyEvent.KEYCODE_BACK) {
-            leaveFullscreen();
-
-            return true;
-        }
-
-        return super.onKeyDown(keyCode, event);
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (documentFragment != null && !documentOpenedExternally) {
-            analyticsManager.report("back_to_landing");
-
-            closeDocument();
-
-            return;
-        }
-
-        super.onBackPressed();
     }
 
     private void closeDocument() {
