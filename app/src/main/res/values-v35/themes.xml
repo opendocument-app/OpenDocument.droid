@@ -8,6 +8,10 @@
         <item name="android:textColorPrimary">#6b6b6b</item>
         <item name="android:textColorSecondary">#b5b5b5</item>
         <item name="android:forceDarkAllowed">true</item>
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+        <!-- Edge-to-edge is enforced from targetSdk 35 on; system bars are transparent
+             over the app's light UI, so request dark icons. Insets are handled in
+             MainActivity. -->
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
 </resources>
