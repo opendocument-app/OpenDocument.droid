@@ -79,6 +79,12 @@ namespace {
 
 std::optional<odr::Document> s_document;
 
+JNIEXPORT jstring JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_versionStringNative(JNIEnv *env, jclass clazz) {
+    std::string versionString = "odrcore " + odr::identify();
+    return env->NewStringUTF(versionString.c_str());
+}
+
 JNIEXPORT void JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jclass clazz,
                                                                 jobject params) {
