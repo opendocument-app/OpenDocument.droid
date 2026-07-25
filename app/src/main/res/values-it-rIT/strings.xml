@@ -5,7 +5,6 @@
     <string name="toast_error_illegal_file">Questo non sembra essere un formato di file supportato.</string>
     <string name="toast_error_illegal_file_reopen">Formato file non supportato. Prova ad aprirlo in un\'altra app.</string>
     <string name="toast_hint_unsupported_file">Non sei soddisfatto di come viene visualizzato il documento? Aprilo in un\'altra app.</string>
-    <string name="toast_hint_upload_file">Non sei soddisfatto di come viene visualizzato il file? Caricalo temporaneamente per migliorare la formattazione.</string>
     <string name="toast_error_save_nofile">Nessun posto in cui salvare il file da scegliere.</string>
     <string name="toast_error_save_failed">Impossibile salvare il file. Si prega di contattare support@opendocument.app</string>
     <string name="toast_error_out_of_memory">Memoria del telefono esaurita! Troppe immagini o file troppo grandi.</string>

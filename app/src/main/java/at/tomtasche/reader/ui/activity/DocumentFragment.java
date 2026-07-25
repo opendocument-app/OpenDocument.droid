@@ -438,8 +438,6 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
         if (result.loaderType == FileLoader.LoaderType.RAW || result.loaderType == FileLoader.LoaderType.ONLINE) {
             offerReopen(activity, options, R.string.toast_hint_unsupported_file, false);
-        } else if (result.loaderType == FileLoader.LoaderType.CORE) {
-            offerUpload(activity, options, false);
         }
 
         dismissProgress();
@@ -534,7 +532,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
         if (result.loaderType == FileLoader.LoaderType.CORE) {
             if (serviceQueue.getService().isOnlineSupported(options)) {
-                offerUpload(activity, options, true);
+                offerUpload(activity, options);
             } else {
                 offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
             }
@@ -559,50 +557,40 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         SnackbarHelper.show(getActivity(), R.string.toast_error_save_failed, null, true, true);
     }
 
-    private void offerUpload(Activity activity, FileLoader.Options options, boolean invasive) {
+    private void offerUpload(Activity activity, FileLoader.Options options) {
         String fileType = options.fileType;
-        if (invasive) {
-            analyticsManager.report("upload_offer_invasive", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType, AnalyticsConstants.PARAM_CONTENT, options.originalUri);
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-            builder.setTitle(R.string.toast_error_illegal_file);
-            builder.setMessage(R.string.dialog_upload_file);
+        analyticsManager.report("upload_offer_invasive", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType, AnalyticsConstants.PARAM_CONTENT, options.originalUri);
 
-            builder.setPositiveButton(getString(R.string.action_upload),
-                    new DialogInterface.OnClickListener() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setTitle(R.string.toast_error_illegal_file);
+        builder.setMessage(R.string.dialog_upload_file);
 
-                        @Override
-                        public void onClick(DialogInterface dialog,
-                                            int whichButton) {
-                            analyticsManager.report("load_upload", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType);
+        builder.setPositiveButton(getString(R.string.action_upload),
+                new DialogInterface.OnClickListener() {
 
-                            loadWithType(FileLoader.LoaderType.ONLINE, options);
+                    @Override
+                    public void onClick(DialogInterface dialog,
+                                        int whichButton) {
+                        analyticsManager.report("load_upload", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType);
 
-                            dialog.dismiss();
-                        }
-                    });
-            builder.setNegativeButton(getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int i) {
-                    analyticsManager.report("load_upload_cancel", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType);
+                        loadWithType(FileLoader.LoaderType.ONLINE, options);
 
-                    offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
+                        dialog.dismiss();
+                    }
+                });
+        builder.setNegativeButton(getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int i) {
+                analyticsManager.report("load_upload_cancel", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType);
 
-                    dialog.dismiss();
-                }
-            });
+                offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
 
-            builder.show();
-        } else {
-            analyticsManager.report("upload_offer_subtle", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType, AnalyticsConstants.PARAM_CONTENT, options.originalUri);
+                dialog.dismiss();
+            }
+        });
 
-            SnackbarHelper.show(activity, R.string.toast_hint_upload_file, new Runnable() {
-                @Override
-                public void run() {
-                    loadWithType(FileLoader.LoaderType.ONLINE, options);
-                }
-            }, false, false);
-        }
+        builder.show();
     }
 
     private void offerReopen(Activity activity, FileLoader.Options options, int description, boolean isIndefinite) {
