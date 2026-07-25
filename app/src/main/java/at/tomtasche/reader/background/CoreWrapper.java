@@ -1,6 +1,7 @@
 package at.tomtasche.reader.background;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.viliussutkus89.android.assetextractor.AssetExtractor;
 
@@ -22,7 +23,15 @@ public class CoreWrapper {
 
     public static native void setGlobalParams(GlobalParams params);
 
+    public static String versionString() {
+        return versionStringNative();
+    }
+
+    private static native String versionStringNative();
+
     public static void initialize(Context context) {
+        Log.i("CoreWrapper", versionString());
+
         File assetsDirectory = new File(context.getFilesDir(), "assets");
         File odrCoreDataDirectory = new File(assetsDirectory, "odrcore");
         File libmagicDataDirectory = new File(assetsDirectory, "libmagic");

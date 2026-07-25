@@ -4,6 +4,9 @@
 
 extern "C" {
 
+JNIEXPORT jstring JNICALL
+Java_at_tomtasche_reader_background_CoreWrapper_versionStringNative(JNIEnv *env, jclass clazz);
+
 JNIEXPORT void JNICALL
 Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jclass clazz,
                                                                 jobject params);
