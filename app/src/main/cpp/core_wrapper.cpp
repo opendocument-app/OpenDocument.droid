@@ -13,6 +13,7 @@
 
 #include <android/log.h>
 
+#include <algorithm>
 #include <string>
 #include <optional>
 #include <filesystem>
@@ -284,18 +285,24 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jcla
             s_server->connect_service(service, prefixCpp);
             odr::HtmlViews htmlViews = service.list_views();
 
+            // spreadsheets show one tab per sheet; every other format only shows
+            // the full "document" view without tabs (if the service provides one -
+            // e.g. plain text and image files only have a single differently named view)
+            bool isSpreadsheet = file.is_document_file() &&
+                                 (file.as_document_file().document_type() ==
+                                  odr::DocumentType::spreadsheet);
+            bool hasDocumentView = std::any_of(
+                    htmlViews.begin(), htmlViews.end(),
+                    [](const odr::HtmlView &view) { return view.name() == "document"; });
+
             for (const auto &view: htmlViews) {
                 __android_log_print(ANDROID_LOG_INFO, "smn", "view name=%s path=%s",
                                     view.name().c_str(), view.path().c_str());
-                if (file.is_document_file() && (
-                        (((file.as_document_file().document_type() ==
-                           odr::DocumentType::presentation) ||
-                          (file.as_document_file().document_type() ==
-                           odr::DocumentType::drawing)) &&
-                         (view.name() != "document")) ||
-                        ((file.as_document_file().document_type() ==
-                          odr::DocumentType::spreadsheet) &&
-                         (view.name() == "document")))) {
+                if (isSpreadsheet) {
+                    if (view.name() == "document") {
+                        continue;
+                    }
+                } else if (hasDocumentView && (view.name() != "document")) {
                     continue;
                 }
 
