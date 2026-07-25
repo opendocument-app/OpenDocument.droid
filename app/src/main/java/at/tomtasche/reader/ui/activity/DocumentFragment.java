@@ -72,6 +72,11 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
     private FileLoader.Result resultOnStart;
     private Throwable errorOnStart;
 
+    // loads cannot be canceled once running, so results of abandoned loads
+    // (e.g. user navigated back while the document was still loading) are
+    // identified by their uri and dropped
+    private Uri lastRequestedUri;
+
     private int lastSelectedTab = -1;
 
     private LoaderServiceQueue serviceQueue;
@@ -237,6 +242,8 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
     public void loadUri(Uri uri, boolean persistentUri, boolean editable) {
         initializePageView();
 
+        lastRequestedUri = uri;
+
         FileLoader.Options options = new FileLoader.Options();
         options.originalUri = uri;
         options.persistentUri = persistentUri;
@@ -369,6 +376,12 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
     }
 
     private boolean isActivityReadyForResult(FileLoader.Result result) {
+        if (lastRequestedUri != null && !lastRequestedUri.equals(result.options.originalUri)) {
+            crashManager.log("dropping result of abandoned load: " + result.options.originalUri);
+
+            return false;
+        }
+
         Activity activity = getActivity();
         if (activity == null || isStateSaved()) {
             resultOnStart = result;
