@@ -2,6 +2,7 @@ package app.opendocument.droid.background
 
 import android.content.Context
 import android.content.Intent
+import android.content.UriPermission
 import android.net.Uri
 
 /**
@@ -17,16 +18,17 @@ object PersistedUriPermissions {
     private const val READ_FLAG = Intent.FLAG_GRANT_READ_URI_PERMISSION
 
     /**
-     * The grants taken during this process that the recent list does not name yet.
+     * The grants taken during this process that nothing on disk names yet.
      *
      * Taking a grant and writing down what needs it are not one step: a document only reaches the
-     * list once [MetadataLoader] has read it, which is long after [takeRead] ran - `loadUri` merely
-     * queues the load. A [prune] in that window would enumerate the fresh grant, find nothing
-     * referring to it and hand it straight back, leaving the entry that is about to be written
-     * unreadable on the next launch - the very failure releasing on close used to cause.
+     * recent list once [MetadataLoader] has read it, which is long after [takeRead] ran - `loadUri`
+     * merely queues the load - and a folder only reaches the tree list once the landing view
+     * model's executor gets to it. A [prune] in either window would enumerate the fresh grant, find
+     * nothing referring to it and hand it straight back, leaving the entry that is about to be
+     * written unreadable on the next launch - the very failure releasing on close used to cause.
      *
-     * Empty on a fresh process, so a grant whose document never made it onto the list is reclaimed
-     * on the next launch rather than leaking for good.
+     * Empty on a fresh process, so a grant whose document never made it onto a list is reclaimed on
+     * the next launch rather than leaking for good.
      */
     private val pendingGrants = HashSet<String>()
 
@@ -83,9 +85,9 @@ object PersistedUriPermissions {
      * Does file and binder work, so it must not run on the main thread.
      */
     fun prune(context: Context) {
-        // the three reads are in this order on purpose. a grant taken while this runs is either
-        // missing from the snapshot, or still pending when the pending set is read - which happens
-        // after the list that would have settled it, so it cannot fall through both
+        // the reads are in this order on purpose. a grant taken while this runs is either missing
+        // from the snapshot, or still pending when the pending set is read - which happens after
+        // the lists that would have settled it, so it cannot fall through both
         val held = context.contentResolver.persistedUriPermissions
 
         val keep = HashSet<String>()
@@ -93,32 +95,52 @@ object PersistedUriPermissions {
             keep.add(entry.uri)
         }
 
+        val trees = FolderTreesUtil.getFolderTrees(context).map { it.uri.toString() }
+        keep.addAll(trees)
+
         keep.addAll(settlePending(keep))
 
         for (permission in held) {
-            val uri = permission.uri.toString()
-            if (uri in keep) {
-                continue
-            }
-
-            var flags = 0
-            if (permission.isReadPermission) {
-                flags = flags or READ_FLAG
-            }
-            if (permission.isWritePermission) {
-                flags = flags or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-            }
-
-            try {
-                // releasing with flags we do not hold throws, hence taking them off the grant
-                context.contentResolver.releasePersistableUriPermission(permission.uri, flags)
-            } catch (e: Exception) {
-                // nothing to do about it, and it will be retried on the next launch
+            if (!isReferenced(permission.uri.toString(), keep, trees)) {
+                release(context, permission)
             }
         }
     }
 
-    /** Remembers a grant until the recent list names it. */
+    /**
+     * Whether [uri] is still spoken for, either by name or by sitting below a granted tree.
+     *
+     * [prune]'s whole decision, and free of android imports, so a plain jvm test can cover it.
+     */
+    internal fun isReferenced(uri: String, keep: Set<String>, trees: List<String>): Boolean {
+        if (uri in keep) {
+            return true
+        }
+
+        // a document below a granted tree is reachable through that grant, and its uri spells
+        // the tree out: content://authority/tree/<treeId>/document/<documentId>. so coverage
+        // can be recognised from the string, without recording where a document came from.
+        return trees.any { uri.startsWith("$it/") }
+    }
+
+    private fun release(context: Context, permission: UriPermission) {
+        var flags = 0
+        if (permission.isReadPermission) {
+            flags = flags or READ_FLAG
+        }
+        if (permission.isWritePermission) {
+            flags = flags or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        }
+
+        try {
+            // releasing with flags we do not hold throws, hence taking them off the grant
+            context.contentResolver.releasePersistableUriPermission(permission.uri, flags)
+        } catch (e: Exception) {
+            // nothing to do about it, and it will be retried on the next launch
+        }
+    }
+
+    /** Remembers a grant until one of the stored lists names it. */
     @Synchronized
     internal fun markPending(uri: String) {
         pendingGrants.add(uri)
@@ -126,7 +148,7 @@ object PersistedUriPermissions {
 
     /**
      * Drops the pending grants [keep] has caught up with - those are reclaimable the ordinary way
-     * from now on - and hands back the ones whose document is still on its way onto the list.
+     * from now on - and hands back the ones that are still in flight.
      */
     @Synchronized
     internal fun settlePending(keep: Set<String>): Set<String> {

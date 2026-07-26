@@ -145,6 +145,33 @@ the `.pro` suffix) differ on purpose - do not "fix" the mismatch:
   `AndroidFileCache`, the SharedPreferences name in `MainActivity`) follows
   `applicationId` and must stay that way, or existing users lose their saved prefs.
 
+### Supported file types are declared twice
+
+`SupportedDocumentTypes` (mime prefixes plus an extension fallback) and the `STRICT_CATCH`
+`activity-alias` in `AndroidManifest.xml` describe the same set from two directions - the manifest
+is what the system offers the app for, `SupportedDocumentTypes` is what the folder browser on the
+landing screen offers itself for. **Nothing keeps them in step, so change both.**
+
+The duplication is deliberate: `MetadataLoader` decides what is really supported by running
+libmagic over the file *after* copying it into the cache, and `CoreLoader.isSupported()` /
+`RawLoader.isSupported()` both take a filled-in `FileLoader.Options`. A folder listing only has a
+name and whatever mime type the provider volunteered, so it cannot ask them and has to guess.
+
+### Storage access
+
+The app declares **no storage permission at all** - only `INTERNET` - and it has to stay that way.
+`READ_EXTERNAL_STORAGE` has not reached documents since scoped storage, `READ_MEDIA_*` only covers
+images/video/audio, and Play restricts `MANAGE_EXTERNAL_STORAGE` to file managers and backup apps,
+so a document viewer asking for it gets the listing rejected.
+
+Everything therefore goes through SAF: `ACTION_OPEN_DOCUMENT` for a single file and
+`ACTION_OPEN_DOCUMENT_TREE` (read only, never `FLAG_GRANT_WRITE_URI_PERMISSION`) for the folders
+the landing screen browses. Those grants have to be persisted to survive a restart -
+`PersistedUriPermissions` takes them and reclaims them by reconciling against the recent list and
+the granted trees, rather than releasing on close. Do not add a release next to a
+`documentFragment.loadUri()`: that call only queues the load onto `LoaderService`, so the stream is
+opened long after it returns.
+
 ### Language
 
 Kotlin; support is built into AGP 9, no kotlin plugin is applied. The only java left is
