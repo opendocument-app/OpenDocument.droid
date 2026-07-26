@@ -1,0 +1,30 @@
+version: 2
+
+updates:
+  # reads gradle/libs.versions.toml, so a bump is a one line change in the catalog
+  - package-ecosystem: gradle
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      androidx:
+        patterns:
+          - "androidx.*"
+      test:
+        patterns:
+          - "androidx.test*"
+          - "junit*"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  # fastlane and its dependencies
+  - package-ecosystem: bundler
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

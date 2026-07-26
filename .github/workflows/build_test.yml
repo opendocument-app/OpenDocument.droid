@@ -27,7 +27,7 @@ permissions:
   security-events: write
 
 env:
-  ndk_version: 28.1.13356709
+  ndk_version: 28.2.13676358
 
 jobs:
   build:
@@ -45,7 +45,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
-        java-version: 17
+        java-version: 21
 
     - name: setup python 3.12
       uses: actions/setup-python@v5
@@ -154,7 +154,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
-        java-version: 17
+        java-version: 21
 
     - name: setup python 3.12
       uses: actions/setup-python@v5
