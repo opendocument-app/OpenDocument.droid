@@ -181,9 +181,14 @@ android {
 }
 
 dependencies {
-    // the java side of odrcore's JNI bindings. the matching libodr_jni.so is built by
-    // conan and deployed into jniLibs above, so this artifact is java classes only
-    implementation libs.odr.core.java
+    // the java side of odrcore's JNI bindings, taken from the same conan package that
+    // built the libodr_jni.so deployed into jniLibs above. the two are one ABI with no
+    // version negotiation, so sourcing both from one package is what keeps them in
+    // step. the jar is architecture independent - armv8 just happens to be the copy we
+    // read, like the assets source set above.
+    implementation files(layout.buildDirectory.file("conan/armv8/libs/odr-core-java.jar")) {
+        builtBy("conanInstall-armv8")
+    }
 
     implementation libs.play.services.ads
     implementation libs.play.review

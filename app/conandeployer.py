@@ -40,10 +40,23 @@ def deploy(graph, output_folder: str, **kwargs):
         shutil.copytree(
             f"{dep.package_folder}/share",
             f"{assets_folder}/odrcore",
-            # share/java holds odr-core-java.jar, which the app takes from github
-            # packages instead - shipping it as an asset would only bloat the apk
+            # share/java holds odr-core-java.jar, which is deployed as a library
+            # below - shipping it as an asset too would only bloat the apk
             ignore=shutil.ignore_patterns("java"),
             **copytree_kwargs,
+        )
+
+        # the java half of the JNI bindings. taking it from the very package that
+        # built libodr_jni.so is what keeps the two halves in lockstep: they are one
+        # ABI with no version negotiation, and a maven artifact resolved by version
+        # could drift from the .so. it also keeps the build credential-free, which
+        # f-droid and other clean source builders need
+        libs_folder = f"{output_folder}/libs"
+        os.makedirs(libs_folder, exist_ok=True)
+        conanfile.output.info(f"Deploying odr-core-java.jar to {libs_folder}")
+        shutil.copy2(
+            f"{dep.package_folder}/share/java/odr-core-java.jar",
+            f"{libs_folder}/odr-core-java.jar",
         )
 
     if "libmagic" in deps:
@@ -63,8 +76,8 @@ def deploy(graph, output_folder: str, **kwargs):
 
     if "odrcore" in deps:
         dep = deps["odrcore"]
-        # built by the recipe's with_jni option; the java side comes from the
-        # odr-core-java maven artifact of the very same odrcore version
+        # built by the recipe's with_jni option, alongside the odr-core-java.jar
+        # deployed above - both halves come out of this one package
         source = f"{dep.package_folder}/lib/libodr_jni.so"
         conanfile.output.info(f"Deploying libodr_jni.so to {jni_libs_folder}")
         shutil.copy2(source, f"{jni_libs_folder}/libodr_jni.so")

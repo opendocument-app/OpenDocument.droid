@@ -44,9 +44,6 @@ concurrency:
 
 permissions:
   contents: read
-  # odr-core-java is resolved from github packages, which needs a token even
-  # for public packages
-  packages: read
 
 env:
   ndk_version: 28.2.13676358
@@ -134,8 +131,6 @@ jobs:
         ODR_KEYSTORE_PASSWORD: ${{ secrets.ODR_KEYSTORE_PASSWORD }}
         ODR_KEY_PASSWORD_PRO: ${{ secrets.ODR_KEY_PASSWORD_PRO }}
         ODR_KEY_PASSWORD_LITE: ${{ secrets.ODR_KEY_PASSWORD_LITE }}
-        GITHUB_ACTOR: ${{ github.actor }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         tasks=""
         case "${{ env.flavor }}" in

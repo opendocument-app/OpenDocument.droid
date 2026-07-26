@@ -6,41 +6,16 @@ pluginManagement {
     }
 }
 
-// odr-core-java (the java half of odrcore's JNI bindings) is published to github
-// packages, which requires authentication even for public packages. supply a github
-// username and a token carrying the read:packages scope either as gradle properties
-// (in ~/.gradle/gradle.properties, never in the repo) or as environment variables:
-//
-//   odr.githubUser  / GITHUB_ACTOR
-//   odr.githubToken / GITHUB_TOKEN
-//
-// in github actions both are present by default and the workflow only has to ask for
-// the packages: read permission. without them the dependency fails to resolve with a
-// 401 instead of silently falling back to something else.
-def githubPackagesSetting = { String property, String environmentVariable ->
-    providers.gradleProperty(property)
-            .orElse(providers.environmentVariable(environmentVariable))
-            .filter { !it.isEmpty() }
-            .getOrElse("")
-}
-
+// odr-core-java (the java half of odrcore's JNI bindings) deliberately does not come
+// from a repository here: it is deployed out of the odrcore conan package that also
+// builds libodr_jni.so (see app/conandeployer.py). that keeps the two halves of one
+// ABI from drifting apart, and keeps the build resolvable without credentials - the
+// github packages copy needs authentication even though it is public, which no clean
+// source builder such as f-droid can supply.
 dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven {
-            name = "OpenDocumentCore"
-            url = uri("https://maven.pkg.github.com/opendocument-app/OpenDocument.core")
-            credentials {
-                username = githubPackagesSetting('odr.githubUser', 'GITHUB_ACTOR')
-                password = githubPackagesSetting('odr.githubToken', 'GITHUB_TOKEN')
-            }
-            // nothing else is published here, so keep this repository from answering
-            // for dependencies that belong to maven central or google
-            content {
-                includeModule("app.opendocument", "odr-core-java")
-            }
-        }
     }
 }
 

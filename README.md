@@ -25,18 +25,10 @@ Please help to translate on the https://crowdin.com/project/opendocument
   changing $PATH.
 - `git submodule update --init --depth 1 conan-odr-index`
 - `python conan-odr-index/scripts/conan_export_all_packages.py`
-- the java half of odrcore's JNI bindings (`app.opendocument:odr-core-java`) comes
-  from GitHub Packages, which needs authentication even though the package is
-  public. Create a personal access token with the `read:packages` scope and put it
-  in `~/.gradle/gradle.properties` (never in the repo):
-
-  ```properties
-  odr.githubUser=your-github-username
-  odr.githubToken=ghp_...
-  ```
-
-  The `GITHUB_ACTOR` and `GITHUB_TOKEN` environment variables work too, which is
-  what CI uses. Without them the build fails to resolve the dependency with a 401.
+- the java half of odrcore's JNI bindings (`odr-core-java.jar`) needs no setup: it
+  ships inside the odrcore conan package that also builds `libodr_jni.so`, and the
+  conan deployer puts it in `app/build/conan/armv8/libs`. No credentials are
+  involved anywhere in the build.
 
 ## Release signing
 

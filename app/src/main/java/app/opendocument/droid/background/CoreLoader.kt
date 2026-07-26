@@ -31,11 +31,11 @@ import java.io.File
 /**
  * Loads documents through odrcore and publishes them on a local http server.
  *
- * This talks to odrcore's own JNI bindings (`app.opendocument.core`, shipped as the
- * `app.opendocument:odr-core-java` artifact plus the `libodr_jni.so` that conan builds). It used to
- * go through `CoreWrapper` and a hand-written JNI layer in `src/main/cpp/core_wrapper.cpp` that
- * flattened every failure into an integer error code; the core reports typed [OdrException]s
- * instead, so the codes and their mirror exception types are gone.
+ * This talks to odrcore's own JNI bindings (`app.opendocument.core`, the `odr-core-java.jar` and
+ * the matching `libodr_jni.so`, both out of the odrcore conan package). It used to go through
+ * `CoreWrapper` and a hand-written JNI layer in `src/main/cpp/core_wrapper.cpp` that flattened
+ * every failure into an integer error code; the core reports typed [OdrException]s instead, so the
+ * codes and their mirror exception types are gone.
  *
  * The loader owns the process-wide core state: the one-time initialization, the single http server
  * (which [RawLoader] also publishes text files on) and the currently open [Document] that

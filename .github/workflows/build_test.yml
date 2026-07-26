@@ -25,9 +25,6 @@ permissions:
   contents: read
   # required to publish lint findings to the code scanning tab
   security-events: write
-  # odr-core-java is resolved from github packages, which needs a token even
-  # for public packages
-  packages: read
 
 env:
   ndk_version: 28.2.13676358
@@ -88,9 +85,6 @@ jobs:
 
     - name: gradle
       # spotlessCheck runs in the format workflow, which has no paths-ignore
-      env:
-        GITHUB_ACTOR: ${{ github.actor }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: ./gradlew assembleDebug testProDebugUnitTest lintProDebug lintLiteDebug --stacktrace
 
     # drop temporary download/source/build folders so only built packages get cached
@@ -227,9 +221,6 @@ jobs:
 
     - name: Run tests
       uses: reactivecircus/android-emulator-runner@v2
-      env:
-        GITHUB_ACTOR: ${{ github.actor }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         api-level: ${{ matrix.api-level }}
         arch: ${{ matrix.arch }}

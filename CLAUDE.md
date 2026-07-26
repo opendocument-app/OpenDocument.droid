@@ -70,14 +70,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   settings - run the conan install by hand to pick the change up locally.
 
 **Core Library Integration:**
-- The JNI interface comes from odrcore itself: java classes under `app.opendocument.core`
-  from the `app.opendocument:odr-core-java` maven artifact, and `libodr_jni.so` built by
-  conan from the recipe's `with_jni` option. `CoreLoader` is the only thing wrapping it.
-- The maven artifact ships java classes only, so its version must stay in lockstep with
-  the `odrcore/x.y.z` pin in `app/conanfile.txt` - handles cross as raw longs and enums as
-  ordinals, with no version negotiation
-- It lives on github packages, which requires authentication even for public packages;
-  see `settings.gradle` for the `odr.githubUser`/`odr.githubToken` settings
+- The JNI interface comes from odrcore itself, both halves out of the one conan package
+  built with the recipe's `with_jni` option: java classes under `app.opendocument.core`
+  from `share/java/odr-core-java.jar`, and the matching `libodr_jni.so`. `CoreLoader` is
+  the only thing wrapping it.
+- Taking both from the same package is deliberate and should stay that way - handles
+  cross as raw longs and enums as ordinals with no version negotiation, so a separately
+  versioned java artifact could drift from the `.so`. It also keeps the build free of
+  credentials, which f-droid and other clean source builders need. `conandeployer.py`
+  puts the jar in `build/conan/<arch>/libs` and `app/build.gradle` depends on the armv8
+  copy as a file, not through a repository.
 - Anything the bindings use must exist on **android API 26**, which is far below what
   their `--release 17` compiler accepts. That is a runtime-only failure, on device
   (`java.lang.ref.Cleaner` and `List.of` both had to be fixed upstream for this reason)
