@@ -22,8 +22,12 @@
 
 -keepnames class at.stefl.** { *; }
 
--keep class at.tomtasche.reader.background.CoreWrapper { *; }
--keep class at.tomtasche.reader.background.CoreWrapper$* { *; }
+# the c++ side looks these up by name through FindClass/GetFieldID in
+# src/main/cpp/core_wrapper.cpp, so r8 must not rename or strip them. keep these in sync
+# with the java package - a stale rule here only breaks minified builds, where the fields
+# get stripped and GetFieldID then returns null at runtime.
+-keep class app.opendocument.droid.background.CoreWrapper { *; }
+-keep class app.opendocument.droid.background.CoreWrapper$* { *; }
 
 -keepattributes *Annotation*
 -keepattributes SourceFile,LineNumberTable

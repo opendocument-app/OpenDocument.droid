@@ -65,10 +65,17 @@ tasks.register('conanProfile', Copy) {
 
 android {
     defaultConfig {
+        // NOT the java package (see namespace below) but the app identity on google play
+        // and f-droid, and it can never change: play has no rename path, so a new
+        // applicationId is a new listing that existing installs never update to, losing
+        // the install base, ratings and the pro entitlements. store-facing rebranding
+        // goes through the listing title under fastlane/metadata instead.
         applicationId = "at.tomtasche.reader"
         minSdk = 26
         targetSdk = 36
 
+        // likewise an applicationId, for the test apk. never published, so it is only
+        // pinned here to keep it from drifting with the namespace.
         testApplicationId = "at.tomtasche.reader.test"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -180,7 +187,10 @@ android {
             // pickFirsts += ['**/libc++_shared.so']
         }
     }
-    namespace = 'at.tomtasche.reader'
+    // the java/kotlin package, R and BuildConfig. deliberately different from
+    // applicationId above: this one is internal and free to rename, that one is not.
+    // testNamespace is left to default to namespace + ".test".
+    namespace = 'app.opendocument.droid'
     // ahead of targetSdk on purpose: compiling against newer APIs is independent of
     // opting in to their runtime behavior. androidx.core 1.19.0 requires 37.
     compileSdk = 37
