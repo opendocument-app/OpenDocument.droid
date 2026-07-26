@@ -1,0 +1,555 @@
+package app.opendocument.droid.test;
+
+import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.action.ViewActions.clearText;
+import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.action.ViewActions.typeText;
+import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.isEnabled;
+import static androidx.test.espresso.matcher.ViewMatchers.withClassName;
+import static androidx.test.espresso.matcher.ViewMatchers.withContentDescription;
+import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.equalTo;
+
+import android.app.Activity;
+import android.app.Instrumentation;
+import android.content.Context;
+import android.content.Intent;
+import android.content.res.AssetManager;
+import android.net.Uri;
+import android.os.SystemClock;
+import android.util.ArrayMap;
+import android.util.Log;
+import androidx.core.content.FileProvider;
+import androidx.test.espresso.IdlingRegistry;
+import androidx.test.espresso.IdlingResource;
+import androidx.test.espresso.intent.Intents;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.filters.LargeTest;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.rule.ActivityTestRule;
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
+import androidx.test.runner.lifecycle.Stage;
+import app.opendocument.droid.R;
+import app.opendocument.droid.background.FileLoader;
+import app.opendocument.droid.ui.EditActionModeCallback;
+import app.opendocument.droid.ui.OpenFileIdling;
+import app.opendocument.droid.ui.activity.DocumentFragment;
+import app.opendocument.droid.ui.activity.MainActivity;
+import app.opendocument.droid.ui.widget.PageView;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+@LargeTest
+@RunWith(AndroidJUnit4.class)
+public class MainActivityTests {
+    private IdlingResource m_idlingResource;
+    private static final Map<String, File> s_testFiles = new ArrayMap<>();
+
+    // Yes, this is ActivityTestRule instead of ActivityScenario, because ActivityScenario does not
+    // actually work.
+    // Issue ID may or may not be added later.
+    // Launch activity manually to ensure complete restart between tests
+    @Rule
+    public ActivityTestRule<MainActivity> mainActivityActivityTestRule =
+            new ActivityTestRule<>(MainActivity.class, false, false);
+
+    @Before
+    public void setUp() {
+        // Launch a fresh activity for each test
+        MainActivity mainActivity = mainActivityActivityTestRule.launchActivity(null);
+
+        m_idlingResource = OpenFileIdling.getIdlingResource();
+        IdlingRegistry.getInstance().register(m_idlingResource);
+
+        // Close system dialogs which may cover our Activity.
+        // Happens frequently on slow emulators.
+        mainActivity.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
+
+        Intents.init();
+
+        // Log test setup for debugging
+        Log.d("MainActivityTests", "setUp() called for test: " + getClass().getName());
+    }
+
+    @After
+    public void tearDown() {
+        Log.d("MainActivityTests", "tearDown() called");
+
+        Intents.release();
+
+        if (null != m_idlingResource) {
+            IdlingRegistry.getInstance().unregister(m_idlingResource);
+        }
+
+        // a test that recreated the activity left one behind that the rule does not know
+        // about, and it would still be around when the next test launches its own
+        MainActivity resumed = resumedMainActivity();
+        if (resumed != null && resumed != mainActivityActivityTestRule.getActivity()) {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(resumed::finish);
+        }
+
+        // Finish and wait for activity to be destroyed
+        MainActivity activity = mainActivityActivityTestRule.getActivity();
+        if (activity != null) {
+            mainActivityActivityTestRule.finishActivity();
+
+            // Use Instrumentation to wait until activity is destroyed
+            InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        }
+    }
+
+    private static void copy(InputStream src, File dst) throws IOException {
+        try (OutputStream out = new FileOutputStream(dst)) {
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = src.read(buf)) > 0) {
+                out.write(buf, 0, len);
+            }
+        }
+    }
+
+    @BeforeClass
+    public static void extractTestFiles() throws IOException {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        Context appContext = instrumentation.getTargetContext();
+
+        File appCacheDir = appContext.getCacheDir();
+        File testDocumentsDir = new File(appCacheDir, "test-documents");
+
+        testDocumentsDir.mkdirs();
+        Assert.assertTrue(testDocumentsDir.exists());
+
+        AssetManager testAssetManager = instrumentation.getContext().getAssets();
+
+        for (String filename :
+                new String[] {
+                    "test.odt", "dummy.pdf", "password-test.odt", "style-various-1.docx"
+                }) {
+            File targetFile = new File(testDocumentsDir, filename);
+            try (InputStream inputStream = testAssetManager.open(filename)) {
+                copy(inputStream, targetFile);
+            }
+            s_testFiles.put(filename, targetFile);
+        }
+    }
+
+    @AfterClass
+    public static void cleanupTestFiles() {
+        for (File file : s_testFiles.values()) {
+            file.delete();
+        }
+    }
+
+    @Test
+    public void testODT() {
+        File testFile = s_testFiles.get("test.odt");
+        Assert.assertNotNull(testFile);
+        Context appCtx = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        Uri testFileUri =
+                FileProvider.getUriForFile(appCtx, appCtx.getPackageName() + ".provider", testFile);
+        Intents.intending(hasAction(Intent.ACTION_OPEN_DOCUMENT))
+                .respondWith(
+                        new Instrumentation.ActivityResult(
+                                Activity.RESULT_OK,
+                                new Intent()
+                                        .setData(testFileUri)
+                                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)));
+
+        onView(
+                        allOf(
+                                withId(R.id.menu_open),
+                                withContentDescription("Open document"),
+                                isDisplayed()))
+                .perform(click());
+
+        // The menu item could be either Documents or Files.
+        onView(
+                        allOf(
+                                withId(android.R.id.text1),
+                                anyOf(withText("Documents"), withText("Files")),
+                                isDisplayed()))
+                .perform(click());
+
+        // next onView will be blocked until m_idlingResource is idle.
+        onView(allOf(withId(R.id.menu_edit), withContentDescription("Edit document"), isEnabled()))
+                .withFailureHandler(
+                        (error, viewMatcher) -> {
+                            // fails on small screens, try again with overflow menu
+                            onView(allOf(withContentDescription("More options"), isDisplayed()))
+                                    .perform(click());
+
+                            onView(
+                                            allOf(
+                                                    withId(R.id.menu_edit),
+                                                    withContentDescription("Edit document"),
+                                                    isDisplayed()))
+                                    .perform(click());
+                        });
+    }
+
+    @Test
+    public void testPDF() {
+        File testFile = s_testFiles.get("dummy.pdf");
+        Assert.assertNotNull(testFile);
+        Context appCtx = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        Uri testFileUri =
+                FileProvider.getUriForFile(appCtx, appCtx.getPackageName() + ".provider", testFile);
+        Intents.intending(hasAction(Intent.ACTION_OPEN_DOCUMENT))
+                .respondWith(
+                        new Instrumentation.ActivityResult(
+                                Activity.RESULT_OK,
+                                new Intent()
+                                        .setData(testFileUri)
+                                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)));
+
+        onView(
+                        allOf(
+                                withId(R.id.menu_open),
+                                withContentDescription("Open document"),
+                                isDisplayed()))
+                .perform(click());
+
+        // The menu item could be either Documents or Files.
+        onView(
+                        allOf(
+                                withId(android.R.id.text1),
+                                anyOf(withText("Documents"), withText("Files")),
+                                isDisplayed()))
+                .perform(click());
+
+        // next onView will be blocked until m_idlingResource is idle.
+
+        onView(allOf(withId(R.id.menu_edit), withContentDescription("Edit document"), isEnabled()))
+                .withFailureHandler(
+                        (error, viewMatcher) -> {
+                            // fails on small screens, try again with overflow menu
+                            onView(allOf(withContentDescription("More options"), isDisplayed()))
+                                    .perform(click());
+
+                            onView(
+                                            allOf(
+                                                    withId(R.id.menu_edit),
+                                                    withContentDescription("Edit document"),
+                                                    isDisplayed()))
+                                    .perform(click());
+                        });
+
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    public void testPasswordProtectedODT() {
+        File testFile = s_testFiles.get("password-test.odt");
+        Assert.assertNotNull(testFile);
+
+        // Check if the file exists and is readable
+        Assert.assertTrue(
+                "Password test file does not exist: " + testFile.getAbsolutePath(),
+                testFile.exists());
+        Assert.assertTrue(
+                "Password test file is not readable: " + testFile.getAbsolutePath(),
+                testFile.canRead());
+
+        // Log file info for debugging CI issues
+        Log.d("MainActivityTests", "Password test file path: " + testFile.getAbsolutePath());
+        Log.d("MainActivityTests", "Password test file size: " + testFile.length());
+        Log.d("MainActivityTests", "All test files: " + s_testFiles.keySet());
+
+        // Double-check we're using the right file
+        Assert.assertEquals("password-test.odt file size mismatch", 12671L, testFile.length());
+
+        Context appCtx = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        Uri testFileUri =
+                FileProvider.getUriForFile(appCtx, appCtx.getPackageName() + ".provider", testFile);
+        Intents.intending(hasAction(Intent.ACTION_OPEN_DOCUMENT))
+                .respondWith(
+                        new Instrumentation.ActivityResult(
+                                Activity.RESULT_OK,
+                                new Intent()
+                                        .setData(testFileUri)
+                                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)));
+
+        onView(
+                        allOf(
+                                withId(R.id.menu_open),
+                                withContentDescription("Open document"),
+                                isDisplayed()))
+                .perform(click());
+
+        onView(
+                        allOf(
+                                withId(android.R.id.text1),
+                                anyOf(withText("Documents"), withText("Files")),
+                                isDisplayed()))
+                .perform(click());
+
+        // Wait for the password dialog to appear
+        onView(withText("This document is password-protected")).check(matches(isDisplayed()));
+
+        // Enter wrong password first
+        onView(withClassName(equalTo("android.widget.EditText")))
+                .perform(typeText("wrongpassword"));
+
+        onView(withId(android.R.id.button1)).perform(click());
+
+        // Should show password dialog again for wrong password
+        onView(withText("This document is password-protected")).check(matches(isDisplayed()));
+
+        // Clear the text field and enter correct password
+        onView(withClassName(equalTo("android.widget.EditText")))
+                .perform(clearText(), typeText("passwort"));
+
+        onView(withId(android.R.id.button1)).perform(click());
+
+        // Check if edit button becomes available (indicating successful load)
+        onView(allOf(withId(R.id.menu_edit), withContentDescription("Edit document"), isEnabled()))
+                .withFailureHandler(
+                        (error, viewMatcher) -> {
+                            onView(allOf(withContentDescription("More options"), isDisplayed()))
+                                    .perform(click());
+
+                            onView(
+                                            allOf(
+                                                    withId(R.id.menu_edit),
+                                                    withContentDescription("Edit document"),
+                                                    isDisplayed()))
+                                    .perform(click());
+                        });
+    }
+
+    @Test
+    public void testODTEditMode() throws InterruptedException {
+        File testFile = s_testFiles.get("test.odt");
+        Assert.assertNotNull(testFile);
+        MainActivity activity = mainActivityActivityTestRule.getActivity();
+        DocumentFragment documentFragment = loadDocument(activity, testFile);
+        enterEditMode(activity, documentFragment);
+
+        PageView pageView = documentFragment.getPageView();
+        Assert.assertNotNull(pageView);
+        Assert.assertTrue(
+                "ODT should become editable after entering edit mode",
+                waitForEditableState(pageView, true, 10000));
+    }
+
+    @Test
+    public void testDOCXEditMode() throws InterruptedException {
+        File testFile = s_testFiles.get("style-various-1.docx");
+        Assert.assertNotNull(testFile);
+        MainActivity activity = mainActivityActivityTestRule.getActivity();
+        DocumentFragment documentFragment = loadDocument(activity, testFile);
+        enterEditMode(activity, documentFragment);
+
+        PageView pageView = documentFragment.getPageView();
+        Assert.assertNotNull(pageView);
+
+        Assert.assertTrue(
+                "DOCX should become editable after entering edit mode",
+                waitForEditableState(pageView, true, 10000));
+    }
+
+    @Test
+    public void testDocumentSurvivesRecreation() throws InterruptedException {
+        File testFile = s_testFiles.get("test.odt");
+        Assert.assertNotNull(testFile);
+        MainActivity activity = mainActivityActivityTestRule.getActivity();
+        DocumentFragment documentFragment = loadDocument(activity, testFile);
+        FileLoader.Result before = documentFragment.getLastResult();
+        Assert.assertNotNull(before);
+
+        // the document state used to be kept alive by setRetainInstance(true) and now
+        // lives in a ViewModel, so a configuration change must not drop it or reload.
+        // rotating is not enough to check that: MainActivity handles orientation and
+        // screenSize itself, so it is only reconfigured, never torn down. recreate() is
+        // what a locale or font scale change does, and that is the path the ViewModel and
+        // the saved instance state have to survive.
+        MainActivity recreated = recreate(activity);
+        Assert.assertNotNull("activity gone after recreation", recreated);
+        Assert.assertNotSame("activity was not recreated", activity, recreated);
+
+        DocumentFragment afterRecreation = waitForDocumentFragment(recreated, 10000);
+        Assert.assertNotNull("fragment gone after recreation", afterRecreation);
+        Assert.assertNotSame("fragment was not recreated", documentFragment, afterRecreation);
+        Assert.assertTrue(
+                "document state lost across recreation", waitForLastResult(afterRecreation, 10000));
+        Assert.assertEquals(
+                "document was reloaded instead of restored",
+                before.options.originalUri,
+                afterRecreation.getLastResult().options.originalUri);
+    }
+
+    private MainActivity recreate(MainActivity activity) {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(activity::recreate);
+
+        long startMs = SystemClock.elapsedRealtime();
+        do {
+            MainActivity current = resumedMainActivity();
+            if (current != null && current != activity) {
+                InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+                return current;
+            }
+            SystemClock.sleep(100);
+        } while (SystemClock.elapsedRealtime() - startMs < 10000);
+
+        return null;
+    }
+
+    private MainActivity resumedMainActivity() {
+        AtomicReference<MainActivity> current = new AtomicReference<>();
+        InstrumentationRegistry.getInstrumentation()
+                .runOnMainSync(
+                        () -> {
+                            for (Activity candidate :
+                                    ActivityLifecycleMonitorRegistry.getInstance()
+                                            .getActivitiesInStage(Stage.RESUMED)) {
+                                if (candidate instanceof MainActivity) {
+                                    current.set((MainActivity) candidate);
+                                }
+                            }
+                        });
+        return current.get();
+    }
+
+    private DocumentFragment loadDocument(MainActivity activity, File testFile)
+            throws InterruptedException {
+        Context appCtx = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        Uri testFileUri =
+                FileProvider.getUriForFile(appCtx, appCtx.getPackageName() + ".provider", testFile);
+        InstrumentationRegistry.getInstrumentation()
+                .runOnMainSync(() -> activity.loadUri(testFileUri));
+
+        DocumentFragment fragment = waitForDocumentFragment(activity, 10000);
+        Assert.assertNotNull(fragment);
+        Assert.assertTrue(
+                "Timed out waiting for document to load", waitForLastResult(fragment, 10000));
+        return fragment;
+    }
+
+    private DocumentFragment waitForDocumentFragment(MainActivity activity, long timeoutMs)
+            throws InterruptedException {
+        long startMs = SystemClock.elapsedRealtime();
+        DocumentFragment fragment;
+        do {
+            fragment =
+                    (DocumentFragment)
+                            activity.getSupportFragmentManager()
+                                    .findFragmentByTag("document_fragment");
+            if (fragment != null) {
+                return fragment;
+            }
+            SystemClock.sleep(100);
+        } while (SystemClock.elapsedRealtime() - startMs < timeoutMs);
+        return null;
+    }
+
+    private boolean waitForLastResult(DocumentFragment fragment, long timeoutMs)
+            throws InterruptedException {
+        long startMs = SystemClock.elapsedRealtime();
+        while (SystemClock.elapsedRealtime() - startMs < timeoutMs) {
+            if (fragment.hasLastResult()) {
+                return true;
+            }
+            SystemClock.sleep(100);
+        }
+        return false;
+    }
+
+    private void enterEditMode(MainActivity activity, DocumentFragment documentFragment) {
+        AtomicReference<Boolean> started = new AtomicReference<>(false);
+        InstrumentationRegistry.getInstrumentation()
+                .runOnMainSync(
+                        () -> {
+                            started.set(
+                                    activity.startSupportActionMode(
+                                                    new EditActionModeCallback(
+                                                            activity, documentFragment))
+                                            != null);
+                        });
+        Assert.assertTrue("Failed to enter edit mode", started.get());
+    }
+
+    private boolean waitForEditableState(PageView pageView, boolean expected, long timeoutMs)
+            throws InterruptedException {
+        long startMs = SystemClock.elapsedRealtime();
+        while (SystemClock.elapsedRealtime() - startMs < timeoutMs) {
+            if (expected == isEditableDom(pageView)) {
+                return true;
+            }
+            SystemClock.sleep(250);
+        }
+        return false;
+    }
+
+    private boolean waitForNonEditableState(PageView pageView, long timeoutMs)
+            throws InterruptedException {
+        long startMs = SystemClock.elapsedRealtime();
+        while (SystemClock.elapsedRealtime() - startMs < timeoutMs) {
+            if (isEditableDom(pageView)) {
+                return false;
+            }
+            SystemClock.sleep(250);
+        }
+        return true;
+    }
+
+    private boolean isEditableDom(PageView pageView) throws InterruptedException {
+        String result =
+                evaluateJavascript(
+                        pageView,
+                        "(function(){var bodyEditable = document.body &&"
+                            + " document.body.isContentEditable;var editableNode ="
+                            + " document.querySelector('[contenteditable=\"true\"],"
+                            + " [contenteditable=\"plaintext-only\"]');return !!(bodyEditable ||"
+                            + " editableNode);})()");
+        if (result == null) {
+            return false;
+        }
+        String normalized = result.replace("\"", "");
+        return "true".equalsIgnoreCase(normalized);
+    }
+
+    private String evaluateJavascript(PageView pageView, String script)
+            throws InterruptedException {
+        AtomicReference<String> result = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        InstrumentationRegistry.getInstrumentation()
+                .runOnMainSync(
+                        () -> {
+                            pageView.evaluateJavascript(
+                                    script,
+                                    value -> {
+                                        result.set(value);
+                                        latch.countDown();
+                                    });
+                        });
+        if (!latch.await(10, TimeUnit.SECONDS)) {
+            Assert.fail("Timed out waiting for JS evaluation result");
+        }
+        return result.get();
+    }
+}

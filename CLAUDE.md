@@ -74,9 +74,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Key Directories
 
-- `app/src/main/java/at/tomtasche/reader/background/` - Document processing services
-- `app/src/main/java/at/tomtasche/reader/ui/` - UI components and activities
-- `app/src/main/java/at/tomtasche/reader/nonfree/` - Analytics, billing, and ads
+- `app/src/main/java/app/opendocument/droid/background/` - Document processing services
+- `app/src/main/java/app/opendocument/droid/ui/` - UI components and activities
+- `app/src/main/java/app/opendocument/droid/nonfree/` - Analytics, billing, and ads
 - `app/src/main/cpp/` - Native C++ JNI wrapper
 - `app/src/main/assets/` - HTML templates and fonts for document rendering
 
@@ -103,13 +103,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Release signing credentials come from gradle properties or environment variables (see
   README); without them release variants build unsigned rather than failing
 
+### Package names
+
+`namespace` (`app.opendocument.droid`) and `applicationId` (`at.tomtasche.reader`, plus
+the `.pro` suffix) differ on purpose - do not "fix" the mismatch:
+
+- `namespace` is only the java/kotlin package plus `R`/`BuildConfig`, and is free to
+  rename. Renaming it means updating the JNI symbol names and `FindClass` strings in
+  `app/src/main/cpp/core_wrapper.{cpp,hpp}` and the `CoreWrapper` keeps in
+  `proguard-rules.txt` in lockstep - none of that is caught at compile time, and a stale
+  proguard keep only fails in minified builds.
+- `applicationId` is the identity on Play and F-Droid and can never change: Play has no
+  rename path, so a new one is a new listing that existing installs never update to.
+  Store-facing renaming goes through the listing title in `fastlane/metadata/`.
+- The component names in `AndroidManifest.xml` (`MainActivity` and the `CATCH_ALL` /
+  `STRICT_CATCH` aliases) also still read `at.tomtasche.reader.*` on purpose. The OS
+  persists those strings for pinned launcher icons and for "always open .odt with this
+  app", so they survive as `activity-alias` entries pointing at the relocated activity.
+  The `ComponentName` strings in `MainActivity` must keep matching them.
+- Anything reading `getPackageName()` at runtime (the FileProvider authority in
+  `AndroidFileCache`, the SharedPreferences name in `MainActivity`) follows
+  `applicationId` and must stay that way, or existing users lose their saved prefs.
+
 ### Language
 
 Mixed Java and Kotlin; Kotlin support is built into AGP 9, no kotlin plugin is applied.
 New code should be Kotlin. When converting an existing class, watch two things:
 
 - `CoreWrapper` and its nested `CoreOptions`/`CoreResult`/`GlobalParams` are read from C++
-  through `GetFieldID` in `app/src/main/cpp/core_wrapper.cpp`. Kotlin properties compile to
+  through `GetFieldID` in `app/src/main/cpp/core_wrapper.cpp` (see also Package names
+  above). Kotlin properties compile to
   private fields with accessors, which breaks those lookups - every field needs `@JvmField`.
   `proguard-rules.txt` keeps these classes for the same reason.
 - Java callers spell static helpers as `Foo.bar()`, so converted utility classes need

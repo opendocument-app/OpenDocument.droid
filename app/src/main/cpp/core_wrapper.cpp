@@ -81,13 +81,13 @@ namespace {
 std::optional<odr::Document> s_document;
 
 JNIEXPORT jstring JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_versionStringNative(JNIEnv *env, jclass clazz) {
+Java_app_opendocument_droid_background_CoreWrapper_versionStringNative(JNIEnv *env, jclass clazz) {
     std::string versionString = "odrcore " + odr::identify();
     return env->NewStringUTF(versionString.c_str());
 }
 
 JNIEXPORT void JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jclass clazz,
+Java_app_opendocument_droid_background_CoreWrapper_setGlobalParams(JNIEnv *env, jclass clazz,
                                                                 jobject params) {
     jclass paramsClass = env->GetObjectClass(params);
 
@@ -102,7 +102,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_setGlobalParams(JNIEnv *env, jcl
 }
 
 JNIEXPORT jstring JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_mimetypeNative(JNIEnv *env, jclass clazz, jstring path) {
+Java_app_opendocument_droid_background_CoreWrapper_mimetypeNative(JNIEnv *env, jclass clazz, jstring path) {
     auto logger = std::make_shared<AndroidLogger>();
 
     std::string pathCpp = convertString(env, path);
@@ -113,10 +113,10 @@ Java_at_tomtasche_reader_background_CoreWrapper_mimetypeNative(JNIEnv *env, jcla
 }
 
 JNIEXPORT jobject JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env, jclass clazz,
+Java_app_opendocument_droid_background_CoreWrapper_backtranslateNative(JNIEnv *env, jclass clazz,
                                                                     jobject options,
                                                                     jstring htmlDiff) {
-    jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
+    jclass resultClass = env->FindClass("app/opendocument/droid/background/CoreWrapper$CoreResult");
     jmethodID resultConstructor = env->GetMethodID(resultClass, "<init>", "()V");
     jobject result = env->NewObject(resultClass, resultConstructor);
 
@@ -177,7 +177,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_backtranslateNative(JNIEnv *env,
 }
 
 JNIEXPORT void JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jclass clazz,
+Java_app_opendocument_droid_background_CoreWrapper_closeNative(JNIEnv *env, jclass clazz,
                                                             jobject options) {
     s_document.reset();
 }
@@ -185,7 +185,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_closeNative(JNIEnv *env, jclass 
 std::optional<odr::HttpServer> s_server;
 
 JNIEXPORT void JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_createServerNative(JNIEnv *env, jclass clazz,
+Java_app_opendocument_droid_background_CoreWrapper_createServerNative(JNIEnv *env, jclass clazz,
                                                                    jstring cachePath) {
     __android_log_print(ANDROID_LOG_INFO, "smn", "create server");
 
@@ -199,7 +199,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_createServerNative(JNIEnv *env, 
 }
 
 JNIEXPORT jobject JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jclass clazz,
+Java_app_opendocument_droid_background_CoreWrapper_hostFileNative(JNIEnv *env, jclass clazz,
                                                                jstring prefix,
                                                                jobject options) {
     __android_log_print(ANDROID_LOG_INFO, "smn", "host file");
@@ -207,7 +207,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jcla
     std::error_code ec;
     auto logger = std::make_shared<AndroidLogger>();
 
-    jclass resultClass = env->FindClass("at/tomtasche/reader/background/CoreWrapper$CoreResult");
+    jclass resultClass = env->FindClass("app/opendocument/droid/background/CoreWrapper$CoreResult");
     jmethodID resultConstructor = env->GetMethodID(resultClass, "<init>", "()V");
     jobject result = env->NewObject(resultClass, resultConstructor);
 
@@ -348,7 +348,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_hostFileNative(JNIEnv *env, jcla
 }
 
 JNIEXPORT void JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_listenServerNative(JNIEnv *env, jclass clazz,
+Java_app_opendocument_droid_background_CoreWrapper_listenServerNative(JNIEnv *env, jclass clazz,
                                                                    jint port) {
     __android_log_print(ANDROID_LOG_INFO, "smn", "listen ...");
 
@@ -358,7 +358,7 @@ Java_at_tomtasche_reader_background_CoreWrapper_listenServerNative(JNIEnv *env, 
 }
 
 JNIEXPORT void JNICALL
-Java_at_tomtasche_reader_background_CoreWrapper_stopServerNative(JNIEnv *env, jclass clazz) {
+Java_app_opendocument_droid_background_CoreWrapper_stopServerNative(JNIEnv *env, jclass clazz) {
     __android_log_print(ANDROID_LOG_INFO, "smn", "stop server");
 
     s_server->stop();
