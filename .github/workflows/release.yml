@@ -89,6 +89,43 @@ jobs:
     # .ruby-version / .tool-versions file, neither of which this repo has, and it
     # does not read the `ruby ">= 3.2"` constraint in the Gemfile. 3.4 is what
     # Gemfile.lock was resolved with.
+    # the keystore is decoded and checked up front, before the conan and gradle
+    # setup: signing is the very last thing the build does, so a bad password
+    # otherwise only surfaces as a signProReleaseBundle failure six minutes in
+    - name: decode keystore
+      run: echo "${{ secrets.ODR_KEYSTORE_BASE64 }}" | base64 -d > "${RUNNER_TEMP}/google_play.keystore"
+
+    # keytool reports the same two failures in a second, and tells them apart, which
+    # gradle does not: it wraps both in "Failed to read key <alias> from store". A
+    # -list only proves the store password, so the key passwords get their own check
+    # via -certreq, which needs the private key itself. Neither writes to the keystore.
+    - name: verify keystore
+      env:
+        keystore_password: ${{ secrets.ODR_KEYSTORE_PASSWORD }}
+        key_password_pro: ${{ secrets.ODR_KEY_PASSWORD_PRO }}
+        key_password_lite: ${{ secrets.ODR_KEY_PASSWORD_LITE }}
+      run: |
+        keystore="${RUNNER_TEMP}/google_play.keystore"
+        if ! keytool -list -keystore "$keystore" -storepass "$keystore_password" > /dev/null; then
+          echo "::error::ODR_KEYSTORE_PASSWORD does not open the keystore, or ODR_KEYSTORE_BASE64 did not decode to it. A trailing newline in either secret is enough to do this."
+          exit 1
+        fi
+        # an unset key password falls back to the store one, the same way
+        # app/build.gradle resolves it
+        verify_key() {
+          if ! keytool -certreq -alias "$1" -keystore "$keystore" \
+              -storepass "$keystore_password" -keypass "${2:-$keystore_password}" > /dev/null; then
+            echo "::error::the $1 key cannot be used - check its key password secret"
+            exit 1
+          fi
+        }
+        case "${{ env.flavor }}" in
+          pro)  verify_key reader-pro "$key_password_pro" ;;
+          lite) verify_key reader "$key_password_lite" ;;
+          *)    verify_key reader-pro "$key_password_pro"
+                verify_key reader "$key_password_lite" ;;
+        esac
+
     - name: setup ruby
       uses: ruby/setup-ruby@v1
       with:
@@ -126,9 +163,6 @@ jobs:
 
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v4
-
-    - name: decode keystore
-      run: echo "${{ secrets.ODR_KEYSTORE_BASE64 }}" | base64 -d > "${RUNNER_TEMP}/google_play.keystore"
 
     - name: build bundles
       env:
