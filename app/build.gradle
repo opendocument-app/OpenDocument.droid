@@ -16,8 +16,13 @@ plugins {
 //
 // When they are absent the release variants build unsigned instead of failing, so
 // contributors and CI can still build them.
+// empty counts as absent: a github actions secret that is not set still reaches the
+// build as an empty environment variable, and taking that at face value would use an
+// empty key password instead of falling back to the store one
 def signingSetting = { String property, String environmentVariable ->
-    providers.gradleProperty(property).orElse(providers.environmentVariable(environmentVariable))
+    providers.gradleProperty(property)
+            .orElse(providers.environmentVariable(environmentVariable))
+            .filter { !it.isEmpty() }
 }
 def releaseKeystore = signingSetting('odr.keystore', 'ODR_KEYSTORE')
 def releaseKeystorePassword = signingSetting('odr.keystorePassword', 'ODR_KEYSTORE_PASSWORD')

@@ -9,8 +9,9 @@ name: release
 # README for what they mean):
 #   ODR_KEYSTORE_BASE64           base64 of google_play.keystore
 #   ODR_KEYSTORE_PASSWORD         keystore password
-#   ODR_KEY_PASSWORD_PRO          key password for the reader-pro alias
-#   ODR_KEY_PASSWORD_LITE         key password for the reader alias
+#   ODR_KEY_PASSWORD_PRO          key password for the reader-pro alias, optional:
+#                                 an unset one falls back to the store password
+#   ODR_KEY_PASSWORD_LITE         key password for the reader alias, same fallback
 #   GOOGLE_PLAY_SERVICE_ACCOUNT   json key of the play console service account
 #
 # Without them the workflow fails fast in the "check secrets" step instead of
