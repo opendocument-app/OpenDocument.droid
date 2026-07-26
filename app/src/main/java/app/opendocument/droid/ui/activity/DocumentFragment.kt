@@ -785,14 +785,17 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
     private fun requireLastResult(): FileLoader.Result =
         checkNotNull(state.lastResult) { "nothing was loaded yet" }
 
-    @VisibleForTesting fun getLastResult(): FileLoader.Result? = state.lastResult
+    @get:VisibleForTesting
+    val lastResult: FileLoader.Result?
+        get() = state.lastResult
 
     fun hasLastResult(): Boolean {
         // the activity can hold a freshly constructed fragment that has not been created yet
         return ::state.isInitialized && state.lastResult != null
     }
 
-    fun getLastFileType(): String? = requireLastResult().options.fileType
+    val lastFileType: String?
+        get() = requireLastResult().options.fileType
 
     override fun onDestroyView() {
         super.onDestroyView()
