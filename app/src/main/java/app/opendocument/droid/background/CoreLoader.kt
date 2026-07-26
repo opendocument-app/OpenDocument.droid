@@ -89,7 +89,7 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
     }
 
     override fun isSupported(options: Options): Boolean {
-        val fileType = options.fileType
+        val fileType = options.fileType ?: return false
         return fileType.startsWith("application/vnd.oasis.opendocument") ||
             fileType.startsWith("application/x-vnd.oasis.opendocument") ||
             fileType.startsWith("application/vnd.oasis.opendocument.text-master") ||
@@ -107,9 +107,7 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
     }
 
     override fun loadSync(options: Options) {
-        val result = Result()
-        result.options = options
-        result.loaderType = type
+        val result = Result(type, options)
 
         try {
             translate(options, result)
@@ -127,9 +125,10 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
     }
 
     private fun translate(options: Options, result: Result) {
+        val cacheUri = checkNotNull(options.cacheUri) { "nothing was cached to load" }
         val cachedFile =
-            checkNotNull(AndroidFileCache.getCacheFile(context, options.cacheUri)) {
-                "not a cached file: " + options.cacheUri
+            checkNotNull(AndroidFileCache.getCacheFile(context, cacheUri)) {
+                "not a cached file: $cacheUri"
             }
         val cacheDirectory = AndroidFileCache.getCacheDirectory(cachedFile)
 
@@ -225,7 +224,7 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
             if (document == null) {
                 // necessary if fragment was destroyed in the meanwhile - meaning the Loader is
                 // reinstantiated
-                translate(options, Result().also { it.options = options })
+                translate(options, Result(type, options))
             }
 
             val inputFile = File(checkNotNull(lastInputPath))
