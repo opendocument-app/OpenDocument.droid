@@ -20,7 +20,6 @@ import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.SystemClock;
@@ -34,6 +33,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
+import androidx.test.runner.lifecycle.Stage;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.FileLoader;
 import at.tomtasche.reader.ui.EditActionModeCallback;
@@ -99,6 +100,13 @@ public class MainActivityTests {
 
         if (null != m_idlingResource) {
             IdlingRegistry.getInstance().unregister(m_idlingResource);
+        }
+
+        // a test that recreated the activity left one behind that the rule does not know
+        // about, and it would still be around when the next test launches its own
+        MainActivity resumed = resumedMainActivity();
+        if (resumed != null && resumed != mainActivityActivityTestRule.getActivity()) {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(resumed::finish);
         }
 
         // Finish and wait for activity to be destroyed
@@ -366,7 +374,7 @@ public class MainActivityTests {
     }
 
     @Test
-    public void testDocumentSurvivesRotation() throws InterruptedException {
+    public void testDocumentSurvivesRecreation() throws InterruptedException {
         File testFile = s_testFiles.get("test.odt");
         Assert.assertNotNull(testFile);
         MainActivity activity = mainActivityActivityTestRule.getActivity();
@@ -375,26 +383,56 @@ public class MainActivityTests {
         Assert.assertNotNull(before);
 
         // the document state used to be kept alive by setRetainInstance(true) and now
-        // lives in a ViewModel, so a configuration change must not drop it or reload
-        rotate(activity, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        try {
-            DocumentFragment afterRotation = waitForDocumentFragment(activity, 10000);
-            Assert.assertNotNull("fragment gone after rotation", afterRotation);
-            Assert.assertTrue("document state lost across rotation", afterRotation.hasLastResult());
-            Assert.assertEquals(
-                    "document was reloaded instead of restored",
-                    before.options.originalUri,
-                    afterRotation.getLastResult().options.originalUri);
-        } finally {
-            rotate(activity, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        }
+        // lives in a ViewModel, so a configuration change must not drop it or reload.
+        // rotating is not enough to check that: MainActivity handles orientation and
+        // screenSize itself, so it is only reconfigured, never torn down. recreate() is
+        // what a locale or font scale change does, and that is the path the ViewModel and
+        // the saved instance state have to survive.
+        MainActivity recreated = recreate(activity);
+        Assert.assertNotNull("activity gone after recreation", recreated);
+        Assert.assertNotSame("activity was not recreated", activity, recreated);
+
+        DocumentFragment afterRecreation = waitForDocumentFragment(recreated, 10000);
+        Assert.assertNotNull("fragment gone after recreation", afterRecreation);
+        Assert.assertNotSame("fragment was not recreated", documentFragment, afterRecreation);
+        Assert.assertTrue(
+                "document state lost across recreation", waitForLastResult(afterRecreation, 10000));
+        Assert.assertEquals(
+                "document was reloaded instead of restored",
+                before.options.originalUri,
+                afterRecreation.getLastResult().options.originalUri);
     }
 
-    private void rotate(MainActivity activity, int orientation) {
+    private MainActivity recreate(MainActivity activity) {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(activity::recreate);
+
+        long startMs = SystemClock.elapsedRealtime();
+        do {
+            MainActivity current = resumedMainActivity();
+            if (current != null && current != activity) {
+                InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+                return current;
+            }
+            SystemClock.sleep(100);
+        } while (SystemClock.elapsedRealtime() - startMs < 10000);
+
+        return null;
+    }
+
+    private MainActivity resumedMainActivity() {
+        AtomicReference<MainActivity> current = new AtomicReference<>();
         InstrumentationRegistry.getInstrumentation()
-                .runOnMainSync(() -> activity.setRequestedOrientation(orientation));
-        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
-        SystemClock.sleep(2000);
+                .runOnMainSync(
+                        () -> {
+                            for (Activity candidate :
+                                    ActivityLifecycleMonitorRegistry.getInstance()
+                                            .getActivitiesInStage(Stage.RESUMED)) {
+                                if (candidate instanceof MainActivity) {
+                                    current.set((MainActivity) candidate);
+                                }
+                            }
+                        });
+        return current.get();
     }
 
     private DocumentFragment loadDocument(MainActivity activity, File testFile)

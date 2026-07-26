@@ -90,6 +90,15 @@ public class DocumentFragment extends Fragment
         int lastSelectedTab = -1;
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // not in onViewCreated: when the activity is recreated it asks a restored fragment
+        // for hasLastResult() from its own onCreate, which is before any view exists
+        state = new ViewModelProvider(this).get(DocumentViewModel.class);
+    }
+
     @Nullable @Override
     public View onCreateView(
             @NonNull LayoutInflater inflater,
@@ -136,8 +145,6 @@ public class DocumentFragment extends Fragment
 
         pageContainer = view.findViewById(R.id.page_container);
         tabLayout = view.findViewById(R.id.document_tabs);
-
-        state = new ViewModelProvider(this).get(DocumentViewModel.class);
 
         mainHandler = new Handler(Looper.getMainLooper());
 
@@ -809,24 +816,24 @@ public class DocumentFragment extends Fragment
                 public void onTabSelected(TabLayout.Tab tab) {
                     // an edited document must not switch away from the page being edited,
                     // so the previous tab is re-selected instead
-                    if (state.lastResult.options.translatable) {
-                        if (state.lastSelectedTab >= 0) {
-                            // reselecting from inside onTabSelected() does not take effect
-                            mainHandler.postDelayed(
-                                    () -> {
-                                        TabLayout.Tab previous =
-                                                tabLayout.getTabAt(state.lastSelectedTab);
-                                        if (previous != null) {
-                                            previous.select();
-                                        }
-                                    },
-                                    1);
+                    if (state.lastResult.options.translatable && state.lastSelectedTab >= 0) {
+                        // reselecting from inside onTabSelected() does not take effect
+                        mainHandler.postDelayed(
+                                () -> {
+                                    TabLayout.Tab previous =
+                                            tabLayout.getTabAt(state.lastSelectedTab);
+                                    if (previous != null) {
+                                        previous.select();
+                                    }
+                                },
+                                1);
 
-                            return;
-                        }
-
-                        state.lastSelectedTab = tab.getPosition();
+                        return;
                     }
+
+                    // in every mode, so restoreTabs() puts the indicator back on the page
+                    // the user was looking at after the view is recreated
+                    state.lastSelectedTab = tab.getPosition();
 
                     loadData(state.lastResult.partUris.get(tab.getPosition()).toString());
                 }
@@ -852,7 +859,8 @@ public class DocumentFragment extends Fragment
     }
 
     public boolean hasLastResult() {
-        return state.lastResult != null;
+        // the activity can hold a freshly constructed fragment that has not been created yet
+        return state != null && state.lastResult != null;
     }
 
     public String getLastFileType() {
