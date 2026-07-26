@@ -35,6 +35,7 @@ import androidx.fragment.app.DialogFragment
 import app.opendocument.droid.R
 import app.opendocument.droid.background.LoaderService
 import app.opendocument.droid.background.LoaderServiceQueue
+import app.opendocument.droid.background.PersistedUriPermissions
 import app.opendocument.droid.background.PrintingManager
 import app.opendocument.droid.nonfree.AdManager
 import app.opendocument.droid.nonfree.AnalyticsConstants
@@ -204,6 +205,10 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         initializeProprietaryLibraries()
 
         initializeCatchAllSwitch()
+
+        // reclaims the uri permissions of documents that have since dropped off the recently
+        // opened list. touches the filesystem and the permission binder, so not on the main thread
+        Thread { PersistedUriPermissions.prune(applicationContext) }.start()
 
         crashManager.log("onCreate")
 
@@ -470,27 +475,20 @@ class MainActivity : AppCompatActivity(), MenuProvider {
             uri.toString(),
         )
 
-        var isPersistentUri = false
-        try {
-            grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-
-            isPersistentUri = true
-        } catch (e: Exception) {
-            // some providers don't support persisted permissions
-            crashManager.log(e)
-        }
+        // the grant has to outlive this call: loadUri only queues the load onto LoaderService,
+        // so MetadataLoader opens the stream long after we return. releasing it here - as this
+        // used to - also dropped the persisted grant, which left every uri in the recently
+        // opened list unreadable on the next launch. PersistedUriPermissions.prune() reclaims
+        // them instead, once nothing refers to them any more.
+        //
+        // takeRead fails for a document below a directory tree we were granted, because only a
+        // uri that arrived on one of our own intents can be persisted - isRetained covers those,
+        // so browsing to a document still records it as recent
+        val isPersistentUri =
+            PersistedUriPermissions.takeRead(this, uri) ||
+                PersistedUriPermissions.isRetained(this, uri)
 
         documentFragment.loadUri(uri, isPersistentUri)
-
-        try {
-            contentResolver.releasePersistableUriPermission(
-                uri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION,
-            )
-        } catch (e: Exception) {
-            crashManager.log(e)
-        }
     }
 
     override fun onMenuItemSelected(item: MenuItem): Boolean {

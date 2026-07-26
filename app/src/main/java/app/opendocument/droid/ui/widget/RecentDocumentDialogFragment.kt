@@ -62,10 +62,8 @@ class RecentDocumentDialogFragment :
 
     private fun loadRecentDocuments() {
         items.clear()
-        try {
-            items.putAll(RecentDocumentsUtil.getRecentDocuments(requireActivity()))
-        } catch (e: Exception) {
-            e.printStackTrace()
+        for (entry in RecentDocumentsUtil.getRecentDocuments(requireActivity())) {
+            items[entry.filename] = entry.uri
         }
 
         if (items.isEmpty()) {
