@@ -15,6 +15,24 @@ import java.net.URLConnection;
 
 public class MetadataLoader extends FileLoader {
 
+    private static final MimeTypeResolver.ExtensionLookup MIME_TYPE_LOOKUP =
+            new MimeTypeResolver.ExtensionLookup() {
+
+                @Override
+                public String extensionFromMimeType(String mimeType) {
+                    return MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
+                }
+
+                @Override
+                public String mimeTypeFromExtension(String extension) {
+                    if (extension == null) {
+                        return null;
+                    }
+
+                    return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                }
+            };
+
     public MetadataLoader(Context context) {
         super(context, LoaderType.METADATA);
     }
@@ -36,8 +54,9 @@ public class MetadataLoader extends FileLoader {
 
         try {
             // cleanup uri
-            if ("/./".equals(uri.toString().substring(0, 2))) {
-                uri = Uri.parse(uri.toString().substring(2));
+            String uriString = uri.toString();
+            if (uriString.startsWith("/./")) {
+                uri = Uri.parse(uriString.substring(2));
             }
 
             AndroidFileCache.cleanup(context);
@@ -84,8 +103,7 @@ public class MetadataLoader extends FileLoader {
 
             options.cacheUri = AndroidFileCache.getCacheFileUri(context, cachedFile);
 
-            String[] fileSplit = options.filename.split("\\.");
-            String extension = fileSplit.length > 0 ? fileSplit[fileSplit.length - 1] : "N/A";
+            String extension = MimeTypeResolver.parseExtension(options.filename);
 
             String mimetype = null;
             try {
@@ -107,7 +125,7 @@ public class MetadataLoader extends FileLoader {
                 }
             }
 
-            if (type == null) {
+            if (mimetype == null) {
                 try {
                     try (InputStream tempStream = new FileInputStream(cachedFile)) {
                         mimetype = URLConnection.guessContentTypeFromStream(tempStream);
@@ -117,14 +135,11 @@ public class MetadataLoader extends FileLoader {
                 }
             }
 
-            if (type != null) {
-                extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimetype);
-            } else {
-                mimetype = MimeTypeMap.getSingleton().getMimeTypeFromExtension(options.fileExtension);
-            }
+            MimeTypeResolver.Resolution resolution = MimeTypeResolver.resolve(mimetype, extension, MIME_TYPE_LOOKUP);
+            mimetype = resolution.mimeType;
 
-            if (extension != null) {
-                options.fileExtension = extension;
+            if (resolution.extension != null) {
+                options.fileExtension = resolution.extension;
             }
             if (mimetype != null) {
                 options.fileType = mimetype;

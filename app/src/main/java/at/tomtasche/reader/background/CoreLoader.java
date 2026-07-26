@@ -4,17 +4,22 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
-import android.webkit.MimeTypeMap;
 
 import java.io.File;
 
 import at.tomtasche.reader.nonfree.AnalyticsManager;
-import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 
 public class CoreLoader extends FileLoader {
 
-    private final ConfigManager configManager;
+    /**
+     * Whether odrcore renders text documents with page margins. This used to be read
+     * from the "use_paging" remote config key, but that resolved to false for every
+     * user since firebase remote config was removed - the ConfigManager left behind is
+     * a stub without a backing store. Kept as an explicit constant so the shipped
+     * behavior is visible instead of hidden behind a lookup that cannot return a value.
+     */
+    private static final boolean USE_PAGING = false;
 
     private CoreWrapper.CoreOptions lastCoreOptions;
 
@@ -22,10 +27,9 @@ public class CoreLoader extends FileLoader {
 
     private Thread httpThread;
 
-    public CoreLoader(Context context, ConfigManager configManager, boolean doOoxml) {
+    public CoreLoader(Context context, boolean doOoxml) {
         super(context, LoaderType.CORE);
 
-        this.configManager = configManager;
         this.doOoxml = doOoxml;
 
         CoreWrapper.initialize(context);
@@ -102,10 +106,7 @@ public class CoreLoader extends FileLoader {
         coreOptions.txt = false;
         coreOptions.pdf = false;
 
-        Boolean usePaging = configManager.getBooleanConfig("use_paging");
-        if (usePaging == null || usePaging) {
-            coreOptions.paging = true;
-        }
+        coreOptions.paging = USE_PAGING;
 
         lastCoreOptions = coreOptions;
 
