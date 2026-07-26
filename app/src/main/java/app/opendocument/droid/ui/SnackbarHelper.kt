@@ -2,6 +2,8 @@ package app.opendocument.droid.ui
 
 import android.app.Activity
 import android.view.View
+import com.google.android.material.R
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 
 object SnackbarHelper {
@@ -49,7 +51,16 @@ object SnackbarHelper {
             }
 
             if (isError) {
-                snackbar.view.setBackgroundColor(0xffff4444.toInt())
+                val context = snackbar.view.context
+                snackbar.view.setBackgroundColor(
+                    MaterialColors.getColor(context, R.attr.colorErrorContainer, 0)
+                )
+                snackbar.setTextColor(
+                    MaterialColors.getColor(context, R.attr.colorOnErrorContainer, 0)
+                )
+                snackbar.setActionTextColor(
+                    MaterialColors.getColor(context, R.attr.colorOnErrorContainer, 0)
+                )
             }
 
             snackbar.view.setOnClickListener { snackbar.dismiss() }

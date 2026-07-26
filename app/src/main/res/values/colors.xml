@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Material 3 colour roles for the light theme; values-night holds the dark counterparts.
+    Seeded from the blue of the launcher icon, the only brand colour the app has.
+
+    Do not put ic_launcher_background in here - the adaptive icon must not follow night mode.
+-->
+<resources>
+
+    <color name="md_primary">#00658F</color>
+    <color name="md_on_primary">#FFFFFF</color>
+    <color name="md_primary_container">#C7E7FF</color>
+    <color name="md_on_primary_container">#001E2F</color>
+
+    <color name="md_secondary">#4F616E</color>
+    <color name="md_on_secondary">#FFFFFF</color>
+    <color name="md_secondary_container">#D2E5F5</color>
+    <color name="md_on_secondary_container">#0B1D29</color>
+
+    <color name="md_surface">#FCFCFF</color>
+    <color name="md_on_surface">#191C1E</color>
+    <color name="md_surface_variant">#DDE3EA</color>
+    <color name="md_on_surface_variant">#41484D</color>
+    <color name="md_surface_container">#ECEFF3</color>
+
+    <color name="md_tertiary">#63597C</color>
+    <color name="md_on_tertiary">#FFFFFF</color>
+    <color name="md_tertiary_container">#E9DDFF</color>
+    <color name="md_on_tertiary_container">#1F1635</color>
+
+    <!-- snackbars and other inverted surfaces fall back to material's own purple baseline
+         unless these are set, so they are not optional even though nothing names them -->
+    <color name="md_inverse_surface">#2E3133</color>
+    <color name="md_inverse_on_surface">#F0F1F3</color>
+    <color name="md_inverse_primary">#86CFFF</color>
+
+    <color name="md_outline">#71787E</color>
+    <color name="md_outline_variant">#C1C7CE</color>
+
+    <color name="md_error">#BA1A1A</color>
+    <color name="md_on_error">#FFFFFF</color>
+    <color name="md_error_container">#FFDAD6</color>
+    <color name="md_on_error_container">#410002</color>
+
+    <!--
+        Documents keep the background they were authored against in both themes: the app shell
+        follows night mode, the page does not. Deliberately has no values-night variant.
+    -->
+    <color name="document_background">#FFFFFF</color>
+
+</resources>
