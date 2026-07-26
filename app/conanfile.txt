@@ -12,4 +12,5 @@ odrcore/*:with_wvWare=False
 odrcore/*:with_libmagic=True
 odrcore/*:with_http_server=True
 odrcore/*:with_cli=False
+odrcore/*:with_jni=True
 odrcore/*:bundle_assets=False

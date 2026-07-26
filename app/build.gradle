@@ -57,7 +57,8 @@ tasks.register('conanProfile', Copy) {
     tasks.named("conanInstall-" + architecture) {
         profile.set('build/conanprofile.txt')
         deployer.set('conandeployer.py')
-        deployerFolder.set(outputDirectory.get().asFile.toString() + "/assets/core")
+        // the deployer lays out both assets/core and jniLibs/<abi> underneath this
+        deployerFolder.set(outputDirectory.get().asFile.toString())
         dependsOn(tasks.named('conanProfile'))
         conanExecutable.set(conanExecutable_)
     }
@@ -78,17 +79,6 @@ android {
         // pinned here to keep it from drifting with the namespace.
         testApplicationId = "at.tomtasche.reader.test"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        externalNativeBuild {
-            cmake {
-                targets = ["odr-core"]
-                arguments(
-                    "-DANDROID_STL=c++_shared",
-                    "-DCMAKE_TOOLCHAIN_FILE=build/conan/android_toolchain.cmake",
-                    "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
-                )
-            }
-        }
     }
 
     flavorDimensions = ["default"]
@@ -152,13 +142,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-
-    externalNativeBuild {
-        cmake {
-            version = "3.22.0+"
-            path = "CMakeLists.txt"
-        }
-    }
     lint {
         // lint errors are build failures. NewApi in particular is the check that
         // would have caught the java.nio.file usage below minSdk that shipped for
@@ -178,15 +161,6 @@ android {
         // AGP 9 makes resValue opt-in; the flavors use it for DISABLE_TRACKING
         resValues = true
     }
-    packaging {
-        jniLibs {
-            // No need to pickFirst libc++_shared.so if all files are identical.
-            // They will be identical if NDK major version matches.
-            // NDK runtime problems may occur if NDK version mismatches,
-            // so comment this out, to get a compile error instead
-            // pickFirsts += ['**/libc++_shared.so']
-        }
-    }
     // the java/kotlin package, R and BuildConfig. deliberately different from
     // applicationId above: this one is internal and free to rename, that one is not.
     // testNamespace is left to default to namespace + ".test".
@@ -197,9 +171,20 @@ android {
 
     // TODO can and should this be architecture dependent?
     sourceSets.main.assets.srcDirs += "build/conan/armv8/assets"
+
+    // libodr_jni.so (odrcore built with with_jni) plus the libc++_shared.so it links,
+    // both put there per architecture by conandeployer.py. these used to be produced by
+    // the app's own externalNativeBuild, which is gone now that the JNI layer comes
+    // from the core itself
+    sourceSets.main.jniLibs.srcDirs +=
+            ["armv8", "armv7", "x86", "x86_64"].collect { "build/conan/${it}/jniLibs" }
 }
 
 dependencies {
+    // the java side of odrcore's JNI bindings. the matching libodr_jni.so is built by
+    // conan and deployed into jniLibs above, so this artifact is java classes only
+    implementation libs.odr.core.java
+
     implementation libs.play.services.ads
     implementation libs.play.review
     implementation libs.user.messaging.platform
@@ -222,13 +207,4 @@ dependencies {
     // does not ship test infrastructure
     debugImplementation libs.espresso.idling.resource
     implementation libs.androidx.annotation
-}
-
-// Without removing .cxx dir on cleanup, double gradle clean is erroring out.
-// Before removing this workaround, check if "./gradlew assembleDebug; ./gradlew clean; ./gradlew clean" works
-tasks.named("clean") {
-    def dotCxxDir = layout.projectDirectory.dir(".cxx")
-    doFirst {
-        delete dotCxxDir
-    }
 }

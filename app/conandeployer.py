@@ -1,4 +1,17 @@
+import glob
+import os
 import shutil
+
+from conan.errors import ConanException
+
+# conan architecture -> android abi directory name expected under jniLibs, and the
+# ndk toolchain triple the matching libc++_shared.so lives under
+ANDROID_ABIS = {
+    "armv8": ("arm64-v8a", "aarch64-linux-android"),
+    "armv7": ("armeabi-v7a", "arm-linux-androideabi"),
+    "x86": ("x86", "i686-linux-android"),
+    "x86_64": ("x86_64", "x86_64-linux-android"),
+}
 
 
 def deploy(graph, output_folder: str, **kwargs):
@@ -17,20 +30,55 @@ def deploy(graph, output_folder: str, **kwargs):
 
     copytree_kwargs = {"symlinks": symlinks, "dirs_exist_ok": True}
 
+    # assets/ and jniLibs/ are separate android source sets, so the deployer writes the
+    # whole build/conan/<arch> tree rather than a single directory
+    assets_folder = f"{output_folder}/assets/core"
+
     if "odrcore" in deps:
         dep = deps["odrcore"]
-        conanfile.output.info(f"Deploying odrcore to {output_folder}")
+        conanfile.output.info(f"Deploying odrcore assets to {assets_folder}")
         shutil.copytree(
             f"{dep.package_folder}/share",
-            f"{output_folder}/odrcore",
+            f"{assets_folder}/odrcore",
+            # share/java holds odr-core-java.jar, which the app takes from github
+            # packages instead - shipping it as an asset would only bloat the apk
+            ignore=shutil.ignore_patterns("java"),
             **copytree_kwargs,
         )
 
     if "libmagic" in deps:
         dep = deps["libmagic"]
-        conanfile.output.info(f"Deploying libmagic to {output_folder}")
+        conanfile.output.info(f"Deploying libmagic assets to {assets_folder}")
         shutil.copytree(
             f"{dep.package_folder}/res",
-            f"{output_folder}/libmagic",
+            f"{assets_folder}/libmagic",
             **copytree_kwargs,
         )
+
+    if arch not in ANDROID_ABIS:
+        raise ConanException(f"No android abi known for arch {arch}")
+    abi, triple = ANDROID_ABIS[arch]
+    jni_libs_folder = f"{output_folder}/jniLibs/{abi}"
+    os.makedirs(jni_libs_folder, exist_ok=True)
+
+    if "odrcore" in deps:
+        dep = deps["odrcore"]
+        # built by the recipe's with_jni option; the java side comes from the
+        # odr-core-java maven artifact of the very same odrcore version
+        source = f"{dep.package_folder}/lib/libodr_jni.so"
+        conanfile.output.info(f"Deploying libodr_jni.so to {jni_libs_folder}")
+        shutil.copy2(source, f"{jni_libs_folder}/libodr_jni.so")
+
+    # libodr_jni.so links the shared c++ runtime (compiler.libcxx=c++_shared in
+    # conanprofile.txt). the app no longer builds any native code of its own, so
+    # nothing else would pull libc++_shared.so into the apk and the library would
+    # fail to load at runtime with "library libc++_shared.so not found"
+    ndk_path = conanfile.conf.get("tools.android:ndk_path")
+    if not ndk_path:
+        raise ConanException("tools.android:ndk_path is not set, cannot find libc++_shared.so")
+    pattern = f"{ndk_path}/toolchains/llvm/prebuilt/*/sysroot/usr/lib/{triple}/libc++_shared.so"
+    matches = glob.glob(pattern)
+    if not matches:
+        raise ConanException(f"No libc++_shared.so found at {pattern}")
+    conanfile.output.info(f"Deploying libc++_shared.so to {jni_libs_folder}")
+    shutil.copy2(matches[0], f"{jni_libs_folder}/libc++_shared.so")

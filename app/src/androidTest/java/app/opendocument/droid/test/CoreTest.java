@@ -2,15 +2,22 @@ package app.opendocument.droid.test;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.os.Handler;
+import android.os.Looper;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
-import app.opendocument.droid.background.CoreWrapper;
+import app.opendocument.core.OdrException;
+import app.opendocument.droid.background.CoreLoader;
+import app.opendocument.droid.background.FileLoader;
+import app.opendocument.droid.nonfree.AnalyticsManager;
+import app.opendocument.droid.nonfree.CrashManager;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -22,7 +29,8 @@ import org.junit.runner.RunWith;
 @LargeTest
 @RunWith(AndroidJUnit4.class)
 public class CoreTest {
-    private static Thread serverThread;
+    private static CoreLoader s_coreLoader;
+
     private File m_testFile;
     private File m_passwordTestFile;
     private File m_spreadsheetTestFile;
@@ -31,27 +39,24 @@ public class CoreTest {
     @BeforeClass
     public static void startServer() throws InterruptedException {
         Context appCtx = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        CoreWrapper.initialize(appCtx);
 
-        // Create server cache directory
-        File serverCacheDir = new File(appCtx.getCacheDir(), "core/server");
-        if (!serverCacheDir.isDirectory()) {
-            serverCacheDir.mkdirs();
-        }
-        CoreWrapper.createServer(serverCacheDir.getAbsolutePath());
+        // the loader owns the core lifecycle now, so the test drives a real one rather than a
+        // set of statics. nothing here goes through loadAsync, so both handlers can be the main
+        // looper and the listener is never called back
+        Handler handler = new Handler(Looper.getMainLooper());
+        s_coreLoader = new CoreLoader(appCtx, true);
+        s_coreLoader.initialize(
+                new FileLoader.FileLoaderListener() {
+                    @Override
+                    public void onSuccess(FileLoader.Result result) {}
 
-        // Start server in background thread
-        serverThread =
-                new Thread(
-                        () -> {
-                            try {
-                                CoreWrapper.listenServer(29665);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        });
-        serverThread.setDaemon(true);
-        serverThread.start();
+                    @Override
+                    public void onError(FileLoader.Result result, Throwable throwable) {}
+                },
+                handler,
+                handler,
+                new AnalyticsManager(),
+                new CrashManager());
 
         // Give server time to start
         Thread.sleep(1000);
@@ -59,15 +64,10 @@ public class CoreTest {
 
     @AfterClass
     public static void stopServer() {
-        CoreWrapper.stopServer();
-        if (serverThread != null) {
-            serverThread.interrupt();
+        if (s_coreLoader != null) {
+            s_coreLoader.close();
+            s_coreLoader = null;
         }
-    }
-
-    @Before
-    public void initializeCore() {
-        // Server is already initialized in @BeforeClass
     }
 
     @Before
@@ -120,142 +120,128 @@ public class CoreTest {
         }
     }
 
+    private static File cacheDir() {
+        return InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
+    }
+
     @Test
     public void test() {
-        File cacheDir =
-                InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
-        File outputPath = new File(cacheDir, "core_output");
-        File cachePath = new File(cacheDir, "core_cache");
+        File cachePath = new File(cacheDir(), "core_cache");
 
-        CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
-        coreOptions.inputPath = m_testFile.getAbsolutePath();
-        coreOptions.outputPath = outputPath.getPath();
-        coreOptions.editable = true;
-        coreOptions.cachePath = cachePath.getPath();
-
-        CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("test", coreOptions);
-        Assert.assertEquals(0, coreResult.errorCode);
-
-        File resultFile = new File(cacheDir, "result");
-        coreOptions.outputPath = resultFile.getPath();
+        List<CoreLoader.HostedView> views =
+                s_coreLoader.host(
+                        "test",
+                        m_testFile.getAbsolutePath(),
+                        cachePath.getPath(),
+                        null,
+                        true,
+                        false,
+                        true);
+        Assert.assertFalse("hosting the ODT file should produce a view", views.isEmpty());
 
         String htmlDiff =
                 "{\"modifiedText\":{\"/child:1/child:0\":\"This is a simple testoooo document to"
                     + " demonstrate the DocumentLoader example!\",\"/child:3/child:0\":\"This is a"
                     + " simple testaaaa document to demonstrate the DocumentLoader example!\"}}";
 
-        CoreWrapper.CoreResult result = CoreWrapper.backtranslate(coreOptions, htmlDiff);
-        Assert.assertEquals(0, result.errorCode);
+        File result = s_coreLoader.edit(htmlDiff, new File(cacheDir(), "result").getPath());
+        Assert.assertTrue("the edited document should have been saved", result.isFile());
     }
 
     @Test
     public void testDocxEdit() {
-        File cacheDir =
-                InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
-        File outputPath = new File(cacheDir, "core_output_docx");
-        File cachePath = new File(cacheDir, "core_cache");
+        File cachePath = new File(cacheDir(), "core_cache");
 
-        CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
-        coreOptions.inputPath = m_docxTestFile.getAbsolutePath();
-        coreOptions.outputPath = outputPath.getPath();
-        coreOptions.editable = true;
-        coreOptions.cachePath = cachePath.getPath();
-
-        CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("docx-edit", coreOptions);
-        Assert.assertEquals(0, coreResult.errorCode);
-
-        File resultFile = new File(cacheDir, "result_docx");
-        coreOptions.outputPath = resultFile.getPath();
+        List<CoreLoader.HostedView> views =
+                s_coreLoader.host(
+                        "docx-edit",
+                        m_docxTestFile.getAbsolutePath(),
+                        cachePath.getPath(),
+                        null,
+                        true,
+                        false,
+                        true);
+        Assert.assertFalse("hosting the DOCX file should produce a view", views.isEmpty());
 
         String htmlDiff =
                 "{\"modifiedText\":{\"/child:16/child:0/child:0\":\"Outasdfsdafdline\",\"/child:24/child:0/child:0\":\"Colorasdfasdfasdfed"
                     + " Line\",\"/child:6/child:0/child:0\":\"Text hello world!\"}}";
 
-        CoreWrapper.CoreResult result = CoreWrapper.backtranslate(coreOptions, htmlDiff);
-        Assert.assertEquals(0, result.errorCode);
+        File result = s_coreLoader.edit(htmlDiff, new File(cacheDir(), "result_docx").getPath());
+        Assert.assertTrue("the edited document should have been saved", result.isFile());
     }
 
     @Test
     public void testPasswordProtectedDocumentWithoutPassword() {
-        File cacheDir =
-                InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
-        File outputDir = new File(cacheDir, "output_password_test");
-        File cachePath = new File(cacheDir, "core_cache");
+        File cachePath = new File(cacheDir(), "core_cache");
 
-        CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
-        coreOptions.inputPath = m_passwordTestFile.getAbsolutePath();
-        coreOptions.outputPath = outputDir.getPath();
-        coreOptions.editable = false;
-        coreOptions.cachePath = cachePath.getPath();
-
-        CoreWrapper.CoreResult coreResult =
-                CoreWrapper.hostFile("password-test-no-pw", coreOptions);
-        Assert.assertEquals(-2, coreResult.errorCode);
+        Assert.assertThrows(
+                OdrException.FileEncrypted.class,
+                () ->
+                        s_coreLoader.host(
+                                "password-test-no-pw",
+                                m_passwordTestFile.getAbsolutePath(),
+                                cachePath.getPath(),
+                                null,
+                                false,
+                                false,
+                                false));
     }
 
     @Test
     public void testPasswordProtectedDocumentWithWrongPassword() {
-        File cacheDir =
-                InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
-        File outputDir = new File(cacheDir, "output_password_test");
-        File cachePath = new File(cacheDir, "core_cache");
+        File cachePath = new File(cacheDir(), "core_cache");
 
-        CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
-        coreOptions.inputPath = m_passwordTestFile.getAbsolutePath();
-        coreOptions.outputPath = outputDir.getPath();
-        coreOptions.password = "wrongpassword";
-        coreOptions.editable = false;
-        coreOptions.cachePath = cachePath.getPath();
-
-        CoreWrapper.CoreResult coreResult =
-                CoreWrapper.hostFile("password-test-wrong-pw", coreOptions);
-        Assert.assertEquals(-2, coreResult.errorCode);
+        Assert.assertThrows(
+                OdrException.class,
+                () ->
+                        s_coreLoader.host(
+                                "password-test-wrong-pw",
+                                m_passwordTestFile.getAbsolutePath(),
+                                cachePath.getPath(),
+                                "wrongpassword",
+                                false,
+                                false,
+                                false));
     }
 
     @Test
     public void testPasswordProtectedDocumentWithCorrectPassword() {
-        File cacheDir =
-                InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
-        File outputDir = new File(cacheDir, "output_password_test");
-        File cachePath = new File(cacheDir, "core_cache");
+        File cachePath = new File(cacheDir(), "core_cache");
 
-        CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
-        coreOptions.inputPath = m_passwordTestFile.getAbsolutePath();
-        coreOptions.outputPath = outputDir.getPath();
-        coreOptions.password = "passwort";
-        coreOptions.editable = false;
-        coreOptions.cachePath = cachePath.getPath();
-
-        CoreWrapper.CoreResult coreResult =
-                CoreWrapper.hostFile("password-test-correct-pw", coreOptions);
-        Assert.assertEquals(0, coreResult.errorCode);
+        List<CoreLoader.HostedView> views =
+                s_coreLoader.host(
+                        "password-test-correct-pw",
+                        m_passwordTestFile.getAbsolutePath(),
+                        cachePath.getPath(),
+                        "passwort",
+                        false,
+                        false,
+                        false);
+        Assert.assertFalse("the decrypted document should produce a view", views.isEmpty());
     }
 
     @Test
     public void testSpreadsheetSheetNames() {
-        File cacheDir =
-                InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
-        File outputPath = new File(cacheDir, "spreadsheet_output");
-        File cachePath = new File(cacheDir, "spreadsheet_cache");
+        File cachePath = new File(cacheDir(), "spreadsheet_cache");
 
-        CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
-        coreOptions.inputPath = m_spreadsheetTestFile.getAbsolutePath();
-        coreOptions.outputPath = outputPath.getPath();
-        coreOptions.editable = false;
-        coreOptions.cachePath = cachePath.getPath();
-
-        CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("spreadsheet-test", coreOptions);
-        Assert.assertEquals(
-                "CoreWrapper should successfully parse the ODS file", 0, coreResult.errorCode);
+        List<CoreLoader.HostedView> views =
+                s_coreLoader.host(
+                        "spreadsheet-test",
+                        m_spreadsheetTestFile.getAbsolutePath(),
+                        cachePath.getPath(),
+                        null,
+                        false,
+                        false,
+                        false);
 
         // Verify we have exactly 3 sheets
-        Assert.assertEquals("ODS file should contain 3 sheets", 3, coreResult.pageNames.size());
+        Assert.assertEquals("ODS file should contain 3 sheets", 3, views.size());
 
         // Verify sheet names match the actual sheet names from the ODS file
+        Assert.assertEquals("First sheet should be named 'hey'", "hey", views.get(0).getName());
+        Assert.assertEquals("Second sheet should be named 'ho'", "ho", views.get(1).getName());
         Assert.assertEquals(
-                "First sheet should be named 'hey'", "hey", coreResult.pageNames.get(0));
-        Assert.assertEquals("Second sheet should be named 'ho'", "ho", coreResult.pageNames.get(1));
-        Assert.assertEquals(
-                "Third sheet should be named 'Sheet3'", "Sheet3", coreResult.pageNames.get(2));
+                "Third sheet should be named 'Sheet3'", "Sheet3", views.get(2).getName());
     }
 }

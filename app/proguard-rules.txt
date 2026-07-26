@@ -22,12 +22,12 @@
 
 -keepnames class at.stefl.** { *; }
 
-# the c++ side looks these up by name through FindClass/GetFieldID in
-# src/main/cpp/core_wrapper.cpp, so r8 must not rename or strip them. keep these in sync
-# with the java package - a stale rule here only breaks minified builds, where the fields
-# get stripped and GetFieldID then returns null at runtime.
--keep class app.opendocument.droid.background.CoreWrapper { *; }
--keep class app.opendocument.droid.background.CoreWrapper$* { *; }
+# libodr_jni.so resolves these by name: FindClass for HtmlConfig, HtmlPage, HtmlResource
+# and the Html result holders, GetFieldID for every HtmlConfig field, and the native
+# methods are bound by signature. it also constructs the OdrException subclasses when
+# translating C++ exceptions. r8 must not rename or strip any of it - the failure only
+# shows up in minified builds, at runtime, as a null field id or a NoSuchMethodError.
+-keep class app.opendocument.core.** { *; }
 
 -keepattributes *Annotation*
 -keepattributes SourceFile,LineNumberTable
