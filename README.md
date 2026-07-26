@@ -40,3 +40,25 @@ or as environment variables:
 | `odr.keyPasswordLite`  | `ODR_KEY_PASSWORD_LITE`  | key password, defaults to store  |
 
 Without them `bundleProRelease` and friends still build, just unsigned.
+
+## Releasing
+
+Pushing a `v*` tag runs the `release` workflow, which builds both signed bundles and
+uploads them to the Play Store internal track - the same thing the fastlane lanes did
+from a laptop. Running the workflow manually additionally allows picking the flavor,
+the track, and a dry run that builds and attaches the bundles without uploading.
+
+It needs these repository secrets:
+
+| secret | contents |
+|---|---|
+| `ODR_KEYSTORE_BASE64` | `base64 -i google_play.keystore` |
+| `ODR_KEYSTORE_PASSWORD` | store password |
+| `ODR_KEY_PASSWORD_PRO` | key password for the `reader-pro` alias |
+| `ODR_KEY_PASSWORD_LITE` | key password for the `reader` alias |
+| `GOOGLE_PLAY_SERVICE_ACCOUNT` | play console service account json key |
+
+Releasing from a laptop still works: `fastlane android deployPro` builds and uploads,
+and takes an optional `track:` (`fastlane android deployPro track:beta`).
+
+Remember to raise `versionCode` in `app/src/main/AndroidManifest.xml` before tagging.

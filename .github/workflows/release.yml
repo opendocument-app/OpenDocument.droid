@@ -1,0 +1,187 @@
+name: release
+
+# Releases used to be built and uploaded from a maintainer laptop, which was the
+# only machine holding the keystore. This does the same steps in CI:
+#   1. build the signed app bundles with gradle
+#   2. hand them to fastlane, which uploads them to the play store
+#
+# Requires these repository secrets (see the "Release signing" section in the
+# README for what they mean):
+#   ODR_KEYSTORE_BASE64           base64 of google_play.keystore
+#   ODR_KEYSTORE_PASSWORD         keystore password
+#   ODR_KEY_PASSWORD_PRO          key password for the reader-pro alias
+#   ODR_KEY_PASSWORD_LITE         key password for the reader alias
+#   GOOGLE_PLAY_SERVICE_ACCOUNT   json key of the play console service account
+#
+# Without them the workflow fails fast in the "check secrets" step instead of
+# producing an unsigned bundle and trying to upload it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      flavor:
+        description: which flavor to release
+        type: choice
+        options: [both, pro, lite]
+        default: both
+      track:
+        description: play store track
+        type: choice
+        options: [internal, alpha, beta, production]
+        default: internal
+      dry_run:
+        description: build and attach the bundles, but do not upload
+        type: boolean
+        default: false
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  ndk_version: 28.2.13676358
+  # tag pushes go to the internal track, same as the manual lanes always did.
+  # anything wider has to be dispatched deliberately.
+  track: ${{ inputs.track || 'internal' }}
+  flavor: ${{ inputs.flavor || 'both' }}
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: check secrets
+      env:
+        keystore: ${{ secrets.ODR_KEYSTORE_BASE64 }}
+        keystore_password: ${{ secrets.ODR_KEYSTORE_PASSWORD }}
+        service_account: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+      run: |
+        missing=""
+        [ -n "$keystore" ] || missing="$missing ODR_KEYSTORE_BASE64"
+        [ -n "$keystore_password" ] || missing="$missing ODR_KEYSTORE_PASSWORD"
+        if [ "${{ inputs.dry_run }}" != "true" ]; then
+          [ -n "$service_account" ] || missing="$missing GOOGLE_PLAY_SERVICE_ACCOUNT"
+        fi
+        if [ -n "$missing" ]; then
+          echo "::error::missing repository secrets:$missing"
+          exit 1
+        fi
+
+    - name: checkout
+      uses: actions/checkout@v4
+
+    - name: install ninja
+      run: sudo apt-get install -y ninja-build
+
+    - name: setup java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: 21
+
+    - name: setup ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true
+
+    - name: setup python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+    - name: install python dependencies
+      run: pip install conan
+
+    - name: install ndk
+      run: yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
+
+    - name: conan profile
+      run: conan profile detect
+
+    - name: checkout conan-index
+      run: git submodule update --init --depth 1 conan-odr-index
+
+    # same cache the build workflow populates, so a release does not have to
+    # rebuild odrcore from source
+    - name: conan cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ~/.conan2/p
+        key: conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-index${{ hashFiles('.git/modules/conan-odr-index/HEAD') }}-${{ hashFiles('app/conanfile.txt', 'app/conanprofile.txt') }}
+        restore-keys: |
+          conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-
+
+    - name: export conan-odr-index
+      run: python conan-odr-index/scripts/conan_export_all_packages.py
+
+    - name: Gradle cache
+      uses: gradle/actions/setup-gradle@v4
+
+    - name: decode keystore
+      run: echo "${{ secrets.ODR_KEYSTORE_BASE64 }}" | base64 -d > "${RUNNER_TEMP}/google_play.keystore"
+
+    - name: build bundles
+      env:
+        ODR_KEYSTORE: ${{ runner.temp }}/google_play.keystore
+        ODR_KEYSTORE_PASSWORD: ${{ secrets.ODR_KEYSTORE_PASSWORD }}
+        ODR_KEY_PASSWORD_PRO: ${{ secrets.ODR_KEY_PASSWORD_PRO }}
+        ODR_KEY_PASSWORD_LITE: ${{ secrets.ODR_KEY_PASSWORD_LITE }}
+      run: |
+        tasks=""
+        case "${{ env.flavor }}" in
+          pro)  tasks="bundleProRelease" ;;
+          lite) tasks="bundleLiteRelease" ;;
+          *)    tasks="bundleProRelease bundleLiteRelease" ;;
+        esac
+        ./gradlew $tasks --stacktrace
+
+    # a release that silently produced an unsigned bundle would be rejected by
+    # the play store with a much less obvious error
+    - name: verify bundles are signed
+      run: |
+        for aab in app/build/outputs/bundle/*/*.aab; do
+          if unzip -l "$aab" | grep -qE " META-INF/[^/]+\.(RSA|DSA)$"; then
+            echo "signed: $aab"
+          else
+            echo "::error::$aab is not signed"
+            exit 1
+          fi
+        done
+
+    - name: Artifact bundles
+      uses: actions/upload-artifact@v4
+      with:
+        name: bundles
+        path: app/build/outputs/bundle/*/*.aab
+        if-no-files-found: error
+
+    - name: Artifact native debug symbols
+      uses: actions/upload-artifact@v4
+      with:
+        name: native-debug-symbols
+        path: app/build/outputs/native-debug-symbols/*/*.zip
+        if-no-files-found: warn
+
+    - name: play store credentials
+      if: ${{ inputs.dry_run != true }}
+      run: echo '${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}' > fastlane_google_play.json
+
+    - name: upload to play store
+      if: ${{ inputs.dry_run != true }}
+      run: |
+        case "${{ env.flavor }}" in
+          pro)  lanes="uploadPro" ;;
+          lite) lanes="uploadLite" ;;
+          *)    lanes="uploadPro uploadLite" ;;
+        esac
+        for lane in $lanes; do
+          bundle exec fastlane android "$lane" track:"${{ env.track }}"
+        done
+
+    - name: drop credentials
+      if: always()
+      run: rm -f fastlane_google_play.json "${RUNNER_TEMP}/google_play.keystore"
