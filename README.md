@@ -1,4 +1,4 @@
-# It's Android's first OpenOffice Document Reader! ![](https://github.com/opendocument-app/OpenDocument.droid/actions/workflows/android_main.yml/badge.svg)
+# It's Android's first OpenOffice Document Reader! ![](https://github.com/opendocument-app/OpenDocument.droid/actions/workflows/build_test.yml/badge.svg)
 
 This is an Android frontend for our C++ OpenDocument.core library. Feel free to use it in your own project too, but please don't forget to tell us about it!
 
@@ -18,6 +18,25 @@ Please help to translate on the https://crowdin.com/project/opendocument
 
 - install conan using pip in a venv
 - `conan profile detect --force`
-- make sure `conan` is in your $PATH or replace conan-call in `app/build.gradle`
+- make sure `conan` is in your $PATH, or point gradle at it with
+  `-Podr.conanExecutable=/path/to/venv/bin/conan` (the `ODR_CONAN` environment
+  variable works too). The gradle daemon captures its environment at startup, so
+  a venv activated afterwards is not visible to it - run `./gradlew --stop` after
+  changing $PATH.
 - `git submodule update --init --depth 1 conan-odr-index`
 - `python conan-odr-index/scripts/conan_export_all_packages.py`
+
+## Release signing
+
+Debug builds need no setup. Release variants are signed only if the credentials are
+supplied from outside the repository, as gradle properties in `~/.gradle/gradle.properties`
+or as environment variables:
+
+| gradle property        | environment variable     | meaning                          |
+|------------------------|--------------------------|----------------------------------|
+| `odr.keystore`         | `ODR_KEYSTORE`           | path to the keystore             |
+| `odr.keystorePassword` | `ODR_KEYSTORE_PASSWORD`  | store password                   |
+| `odr.keyPasswordPro`   | `ODR_KEY_PASSWORD_PRO`   | key password, defaults to store  |
+| `odr.keyPasswordLite`  | `ODR_KEY_PASSWORD_LITE`  | key password, defaults to store  |
+
+Without them `bundleProRelease` and friends still build, just unsigned.
