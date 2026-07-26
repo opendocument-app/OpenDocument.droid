@@ -152,6 +152,34 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    /**
+     * Puts a swiped away document back where it was.
+     *
+     * The grant it needs is still held: [prune] only runs after a removal that the user has had the
+     * chance to undo, so nothing has been handed back yet.
+     */
+    fun restoreRecentDocument(entry: RecentDocumentList.Entry, index: Int) {
+        executor.execute {
+            RecentDocumentsUtil.restoreRecentDocument(getApplication(), entry, index)
+
+            refresh()
+        }
+    }
+
+    /** Forgets a document without releasing its grant yet, so an undo can still put it back. */
+    fun removeRecentDocumentUndoably(uri: Uri) {
+        executor.execute {
+            RecentDocumentsUtil.removeRecentDocument(getApplication(), uri)
+
+            refresh()
+        }
+    }
+
+    /** Hands back the grants of everything that is no longer referenced. */
+    fun releaseUnusedGrants() {
+        executor.execute { PersistedUriPermissions.prune(getApplication()) }
+    }
+
     override fun onCleared() {
         super.onCleared()
 

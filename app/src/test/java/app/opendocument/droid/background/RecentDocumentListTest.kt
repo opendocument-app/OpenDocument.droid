@@ -96,5 +96,52 @@ class RecentDocumentListTest {
         assertTrue(RecentDocumentList.remove(emptyList(), "a").isEmpty())
     }
 
+    @Test
+    fun insertPutsADocumentBackWhereItWas() {
+        val current = listOf(entry("a"), entry("c"))
+
+        val restored = RecentDocumentList.insert(current, entry("b"), 1)
+
+        assertEquals(listOf("a", "b", "c"), restored.map { it.uri })
+    }
+
+    @Test
+    fun insertAtTheFrontAndAtTheEndBothWork() {
+        val current = listOf(entry("a"), entry("b"))
+
+        assertEquals(
+            listOf("x", "a", "b"),
+            RecentDocumentList.insert(current, entry("x"), 0).map { it.uri },
+        )
+        assertEquals(
+            listOf("a", "b", "x"),
+            RecentDocumentList.insert(current, entry("x"), 2).map { it.uri },
+        )
+    }
+
+    @Test
+    fun insertClampsAnIndexPastTheEnd() {
+        val current = listOf(entry("a"))
+
+        assertEquals(
+            listOf("a", "x"),
+            RecentDocumentList.insert(current, entry("x"), 99).map { it.uri },
+        )
+        assertEquals(
+            listOf("x", "a"),
+            RecentDocumentList.insert(current, entry("x"), -5).map { it.uri },
+        )
+    }
+
+    @Test
+    fun insertDoesNotDuplicateAKnownUri() {
+        val current = listOf(entry("a"), entry("b"))
+
+        assertEquals(
+            listOf("b", "a"),
+            RecentDocumentList.insert(current, entry("a"), 1).map { it.uri },
+        )
+    }
+
     private fun entry(uri: String) = RecentDocumentList.Entry("name of $uri", uri, 0)
 }

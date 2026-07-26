@@ -13,7 +13,9 @@ sealed class LandingItem {
         override val id: String = "header:$title"
     }
 
-    class Document(val filename: String, val uri: Uri) : LandingItem() {
+    /** [subtitle] is the second line, when there is something worth saying - a last opened time. */
+    class Document(val filename: String, val uri: Uri, val subtitle: String? = null) :
+        LandingItem() {
         override val id: String = "document:$uri"
     }
 
@@ -26,8 +28,14 @@ sealed class LandingItem {
         override val id: String = "action:$action"
     }
 
-    class CatchAll(val checked: Boolean) : LandingItem() {
-        override val id: String = "catch_all"
+    /** A switch under the settings header. */
+    class Setting(
+        val setting: Int,
+        @param:StringRes val title: Int,
+        @param:StringRes val body: Int,
+        val checked: Boolean,
+    ) : LandingItem() {
+        override val id: String = "setting:$setting"
     }
 
     /** An explanatory line, used for the empty states of a section. */
@@ -48,5 +56,7 @@ sealed class LandingItem {
     companion object {
         const val ACTION_ADD_FOLDER: Int = 1
         const val ACTION_UP: Int = 2
+
+        const val SETTING_CATCH_ALL: Int = 1
     }
 }
