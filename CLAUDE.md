@@ -59,8 +59,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Native Dependencies:**
 - Uses Conan package manager for C++ dependencies
-- CMake build system for native C++ core library (`odr-core`)
-- NDK version 28.2.13676358 required
+- The app compiles no native code itself; conan builds odrcore (including its JNI
+  bindings) and the deployer drops the resulting `.so` files into `jniLibs`
+- NDK version 28.2.13676358 required (for conan's cross build, and for the
+  `libc++_shared.so` that gets shipped alongside `libodr_jni.so`)
 - C++20 standard
 - `conan` is taken from PATH; override with `-Podr.conanExecutable=...` or `ODR_CONAN`.
   Note the conan gradle plugin does not track `app/conanprofile.txt` as a task input, so
@@ -68,16 +70,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   settings - run the conan install by hand to pick the change up locally.
 
 **Core Library Integration:**
-- Native C++ wrapper (`CoreWrapper.cpp`) provides JNI interface
+- The JNI interface comes from odrcore itself: java classes under `app.opendocument.core`
+  from the `app.opendocument:odr-core-java` maven artifact, and `libodr_jni.so` built by
+  conan from the recipe's `with_jni` option. `CoreLoader` is the only thing wrapping it.
+- The maven artifact ships java classes only, so its version must stay in lockstep with
+  the `odrcore/x.y.z` pin in `app/conanfile.txt` - handles cross as raw longs and enums as
+  ordinals, with no version negotiation
+- It lives on github packages, which requires authentication even for public packages;
+  see `settings.gradle` for the `odr.githubUser`/`odr.githubToken` settings
+- Anything the bindings use must exist on **android API 26**, which is far below what
+  their `--release 17` compiler accepts. That is a runtime-only failure, on device
+  (`java.lang.ref.Cleaner` and `List.of` both had to be fixed upstream for this reason)
 - Supports multiple architectures: armv8, armv7, x86, x86_64
-- Assets deployed to `assets/core` directory via custom Conan deployer
+- Assets deployed to `assets/core` and native libraries to `jniLibs/<abi>` via the custom
+  Conan deployer (`app/conandeployer.py`)
 
 ### Key Directories
 
 - `app/src/main/java/app/opendocument/droid/background/` - Document processing services
 - `app/src/main/java/app/opendocument/droid/ui/` - UI components and activities
 - `app/src/main/java/app/opendocument/droid/nonfree/` - Analytics, billing, and ads
-- `app/src/main/cpp/` - Native C++ JNI wrapper
 - `app/src/main/assets/` - HTML templates and fonts for document rendering
 
 ### Dependencies
@@ -109,10 +121,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 the `.pro` suffix) differ on purpose - do not "fix" the mismatch:
 
 - `namespace` is only the java/kotlin package plus `R`/`BuildConfig`, and is free to
-  rename. Renaming it means updating the JNI symbol names and `FindClass` strings in
-  `app/src/main/cpp/core_wrapper.{cpp,hpp}` and the `CoreWrapper` keeps in
-  `proguard-rules.txt` in lockstep - none of that is caught at compile time, and a stale
-  proguard keep only fails in minified builds.
+  rename. Nothing native is bound to it anymore - the JNI symbols live in odrcore's own
+  `app.opendocument.core` package, which the app does not rename - so the keeps in
+  `proguard-rules.txt` are about that package, not this one.
 - `applicationId` is the identity on Play and F-Droid and can never change: Play has no
   rename path, so a new one is a new listing that existing installs never update to.
   Store-facing renaming goes through the listing title in `fastlane/metadata/`.
@@ -130,10 +141,7 @@ the `.pro` suffix) differ on purpose - do not "fix" the mismatch:
 Mixed Java and Kotlin; Kotlin support is built into AGP 9, no kotlin plugin is applied.
 New code should be Kotlin. When converting an existing class, watch two things:
 
-- `CoreWrapper` and its nested `CoreOptions`/`CoreResult`/`GlobalParams` are read from C++
-  through `GetFieldID` in `app/src/main/cpp/core_wrapper.cpp` (see also Package names
-  above). Kotlin properties compile to
-  private fields with accessors, which breaks those lookups - every field needs `@JvmField`.
-  `proguard-rules.txt` keeps these classes for the same reason.
 - Java callers spell static helpers as `Foo.bar()`, so converted utility classes need
   `object` plus `@JvmStatic`, and public final fields need `@JvmField`.
+- Kotlin classes with default arguments are called from the remaining java loaders, which
+  cannot see defaults - either pass every argument or add `@JvmOverloads`.
