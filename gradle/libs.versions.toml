@@ -9,7 +9,7 @@ ktfmt = "0.64"
 # pinned in app/conanfile.txt: that conan build produces the matching libodr_jni.so,
 # and the java classes and the native library are one ABI with no version negotiation
 # (handles are raw longs, enums cross as ordinals).
-odrCoreJava = "5.7.0"
+odrCoreJava = "5.7.1"
 
 androidxAnnotation = "1.10.0"
 androidxAppcompat = "1.7.1"
