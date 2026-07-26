@@ -132,24 +132,22 @@ abstract class FileLoader(context: Context?, protected val type: LoaderType) {
     /**
      * What to load and everything the loaders found out about it along the way - [MetadataLoader]
      * fills most of these in before handing the same instance on to the loader that does the work.
-     *
-     * @JvmField so the remaining java call sites keep reading these as fields rather than getters.
      */
     class Options() : Parcelable {
 
-        @JvmField var originalUri: Uri? = null
-        @JvmField var cacheUri: Uri? = null
-        @JvmField var persistentUri: Boolean = false
+        var originalUri: Uri? = null
+        var cacheUri: Uri? = null
+        var persistentUri: Boolean = false
 
-        @JvmField var fileExists: Boolean = false
-        @JvmField var filename: String? = null
-        @JvmField var fileType: String? = null
-        @JvmField var fileExtension: String? = null
+        var fileExists: Boolean = false
+        var filename: String? = null
+        var fileType: String? = null
+        var fileExtension: String? = null
 
-        @JvmField var password: String? = null
+        var password: String? = null
 
-        @JvmField var limit: Boolean = false
-        @JvmField var translatable: Boolean = false
+        var limit: Boolean = false
+        var translatable: Boolean = false
 
         @Suppress("DEPRECATION") // the typed readParcelable overload only exists since API 33
         private constructor(parcel: Parcel) : this() {
@@ -182,6 +180,7 @@ abstract class FileLoader(context: Context?, protected val type: LoaderType) {
         }
 
         companion object {
+            // @JvmField because the framework looks CREATOR up as a static field
             @JvmField
             val CREATOR: Parcelable.Creator<Options> =
                 object : Parcelable.Creator<Options> {
@@ -196,11 +195,10 @@ abstract class FileLoader(context: Context?, protected val type: LoaderType) {
      * The outcome of one load: the [Options] it ran with plus one uri per part of the document
      * (spreadsheets have one per sheet, everything else a single one with a null title).
      */
-    class Result(@JvmField val loaderType: LoaderType, @JvmField val options: Options) :
-        Parcelable {
+    class Result(val loaderType: LoaderType, val options: Options) : Parcelable {
 
-        @JvmField val partTitles: MutableList<String?> = LinkedList()
-        @JvmField val partUris: MutableList<Uri> = LinkedList()
+        val partTitles: MutableList<String?> = LinkedList()
+        val partUris: MutableList<Uri> = LinkedList()
 
         override fun describeContents(): Int = 0
 
@@ -212,6 +210,7 @@ abstract class FileLoader(context: Context?, protected val type: LoaderType) {
         }
 
         companion object {
+            // @JvmField because the framework looks CREATOR up as a static field
             @JvmField
             val CREATOR: Parcelable.Creator<Result> =
                 object : Parcelable.Creator<Result> {

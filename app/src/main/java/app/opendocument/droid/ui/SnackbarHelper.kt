@@ -4,10 +4,8 @@ import android.app.Activity
 import android.view.View
 import com.google.android.material.snackbar.Snackbar
 
-/** @JvmStatic because the java callers still spell this as a static call. */
 object SnackbarHelper {
 
-    @JvmStatic
     fun show(
         activity: Activity,
         resId: Int,

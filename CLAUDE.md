@@ -140,10 +140,18 @@ the `.pro` suffix) differ on purpose - do not "fix" the mismatch:
 
 ### Language
 
-Mixed Java and Kotlin; Kotlin support is built into AGP 9, no kotlin plugin is applied.
-New code should be Kotlin. When converting an existing class, watch two things:
+Kotlin; support is built into AGP 9, no kotlin plugin is applied. The only java left is
+`com/commonsware/android/print`, which is vendored third party code with its own copyright
+header and stays java so it can still be diffed against upstream. It calls nothing of ours,
+so there is no java-to-kotlin call anywhere in the project.
 
-- Java callers spell static helpers as `Foo.bar()`, so converted utility classes need
-  `object` plus `@JvmStatic`, and public final fields need `@JvmField`.
-- Kotlin classes with default arguments are called from the remaining java loaders, which
-  cannot see defaults - either pass every argument or add `@JvmOverloads`.
+That means `@JvmStatic`, `@JvmField`, `@JvmOverloads` and `@Throws` are not needed for
+interop and should not be added back for it. What is left of them is there for a runtime
+that reflects over the bytecode, and each one says so:
+
+- `@JvmField` on the `CREATOR`s in `FileLoader`, which the parcelable contract requires to
+  be a static field.
+- `@JvmOverloads` on `ProgressDialogFragment`'s constructor, so the no-arg constructor the
+  fragment framework re-creates it with exists.
+- `@JvmStatic` on the `@BeforeClass` / `@AfterClass` methods in the instrumented tests,
+  which JUnit requires to be static.

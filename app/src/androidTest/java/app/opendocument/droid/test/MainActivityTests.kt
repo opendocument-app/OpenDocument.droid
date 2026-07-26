@@ -436,6 +436,7 @@ class MainActivityTests {
         // insertion ordered, so the "All test files" log below reads in extraction order
         private val testFiles = LinkedHashMap<String, File>()
 
+        // @JvmStatic because junit requires @BeforeClass / @AfterClass to be static
         @JvmStatic
         @BeforeClass
         fun extractTestFiles() {

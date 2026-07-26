@@ -69,7 +69,6 @@ class OnlineLoader(context: Context?, private val coreLoader: CoreLoader) :
             coreLoader.isSupported(options)
     }
 
-    @Throws(IOException::class)
     private fun doOnlineConvert(options: Options): Uri {
         // https://stackoverflow.com/a/2469587/198996
         val basePath = "https://use.opendocument.app"
@@ -103,7 +102,6 @@ class OnlineLoader(context: Context?, private val coreLoader: CoreLoader) :
         return Uri.parse(basePath + redirectUrl)
     }
 
-    @Throws(IOException::class)
     private fun doTransferUpload(options: Options): Uri {
         val binaryFile =
             checkNotNull(AndroidFileCache.getCacheFile(context, checkNotNull(options.cacheUri)))
@@ -143,7 +141,6 @@ class OnlineLoader(context: Context?, private val coreLoader: CoreLoader) :
         return Uri.parse(GOOGLE_VIEWER_URL + URLEncoder.encode(downloadUrl, StreamUtil.ENCODING))
     }
 
-    @Throws(IOException::class)
     private fun readBody(connection: HttpURLConnection): String? {
         val inputStream = connection.inputStream ?: return null
 

@@ -7,7 +7,7 @@ package app.opendocument.droid.ui
  */
 object OpenFileIdling {
 
-    @JvmStatic fun increment() {}
+    fun increment() {}
 
-    @JvmStatic fun decrement() {}
+    fun decrement() {}
 }

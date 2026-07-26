@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import java.io.File
 
-/** @JvmStatic throughout, because the java callers still spell these as static calls. */
 object AndroidFileCache {
 
     private const val CACHE_DIRECTORY_PREFIX = "cache."
@@ -26,7 +25,6 @@ object AndroidFileCache {
         return cache
     }
 
-    @JvmStatic
     fun getCacheDirectory(cacheFile: File): File {
         // !! rather than a graceful fallback: reaching the filesystem root means the file was
         // never below a cache directory, which the java version blew up on just as loudly
@@ -42,18 +40,15 @@ object AndroidFileCache {
         return path.substring(path.indexOf(CACHE_DIRECTORY_PREFIX))
     }
 
-    @JvmStatic
     fun getCacheFileUri(context: Context, file: File): Uri {
         return FileProvider.getUriForFile(context, getProviderAuthority(context), file)
     }
 
-    @JvmStatic
     fun isCached(context: Context, uri: Uri): Boolean {
         return uri.host == getProviderAuthority(context) &&
             uri.toString().contains(CACHE_DIRECTORY_PREFIX)
     }
 
-    @JvmStatic
     fun getCacheFile(context: Context, uri: Uri): File? {
         if (!isCached(context, uri)) {
             return null
@@ -64,7 +59,6 @@ object AndroidFileCache {
         return File(getRootCacheDirectory(context), cacheFileString)
     }
 
-    @JvmStatic
     fun createCacheFile(context: Context): File {
         val cacheRoot = getRootCacheDirectory(context)
         val cacheDirectory = File(cacheRoot, CACHE_DIRECTORY_PREFIX + System.currentTimeMillis())
@@ -74,7 +68,6 @@ object AndroidFileCache {
         return File(cacheDirectory, "cached-file.tmp")
     }
 
-    @JvmStatic
     fun cleanup(context: Context) {
         val cache = getRootCacheDirectory(context)
         val directories =
