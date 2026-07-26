@@ -18,7 +18,7 @@ import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.RecentDocumentsUtil;
 import at.tomtasche.reader.ui.activity.MainActivity;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class RecentDocumentDialogFragment extends DialogFragment
@@ -53,7 +53,9 @@ public class RecentDocumentDialogFragment extends DialogFragment
 
         setCancelable(true);
 
-        items = new HashMap<String, String>();
+        // insertion ordered: the adapter is built from keySet(), so a HashMap here would
+        // throw away the order RecentDocumentsUtil hands the documents back in
+        items = new LinkedHashMap<String, String>();
 
         loadRecentDocuments();
 
@@ -71,7 +73,7 @@ public class RecentDocumentDialogFragment extends DialogFragment
         }
 
         if (items.size() == 0) {
-            items = new HashMap<String, String>();
+            items = new LinkedHashMap<String, String>();
             items.put(getActivity().getString(R.string.dialog_list_no_documents_found), null);
         }
 
