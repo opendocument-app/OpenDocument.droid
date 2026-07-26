@@ -4,8 +4,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 
-import androidx.annotation.RequiresApi;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +14,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.file.Files;
 
 public class OnlineLoader extends FileLoader {
 
@@ -114,7 +111,6 @@ public class OnlineLoader extends FileLoader {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private Uri doOnlineConvert(Options options) throws IOException {
         // https://stackoverflow.com/a/2469587/198996
         String basePath = "https://use.opendocument.app";
@@ -137,7 +133,7 @@ public class OnlineLoader extends FileLoader {
             writer.append("--" + boundary).append(CRLF);
             writer.append("Content-Disposition: form-data; name=\"document\"; filename=\"document\"").append(CRLF);
             writer.append(CRLF).flush();
-            Files.copy(binaryFile.toPath(), output);
+            StreamUtil.copy(binaryFile, output);
             output.flush();
             writer.append(CRLF).flush();
 
@@ -159,7 +155,7 @@ public class OnlineLoader extends FileLoader {
         connection.setInstanceFollowRedirects(false);
 
         try (OutputStream outputStream = connection.getOutputStream()) {
-            Files.copy(binaryFile.toPath(), outputStream);
+            StreamUtil.copy(binaryFile, outputStream);
             outputStream.flush();
         }
 
