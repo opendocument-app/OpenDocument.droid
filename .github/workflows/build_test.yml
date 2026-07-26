@@ -48,7 +48,7 @@ jobs:
         java-version: 21
 
     - name: setup python 3.12
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: 3.12
     - name: install python dependencies
@@ -157,7 +157,7 @@ jobs:
         java-version: 21
 
     - name: setup python 3.12
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: 3.12
     - name: install python dependencies
