@@ -26,9 +26,7 @@ import android.print.PrintDocumentAdapter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import androidx.annotation.RequiresApi;
 
-@RequiresApi(api = Build.VERSION_CODES.KITKAT)
 abstract class ThreadedPrintDocumentAdapter extends
         PrintDocumentAdapter {
     abstract LayoutJob buildLayoutJob(PrintAttributes oldAttributes,

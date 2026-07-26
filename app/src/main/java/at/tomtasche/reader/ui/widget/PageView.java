@@ -83,19 +83,17 @@ public class PageView extends WebView implements ParagraphListener {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    buggyWebViewHandler.postDelayed(new Runnable() {
+                buggyWebViewHandler.postDelayed(new Runnable() {
 
-                        @Override
-                        public void run() {
-                            if (!wasCommitCalled) {
-                                crashManager.log(new RuntimeException("commit was not called"));
+                    @Override
+                    public void run() {
+                        if (!wasCommitCalled) {
+                            crashManager.log(new RuntimeException("commit was not called"));
 
-                                loadUrl(url);
-                            }
+                            loadUrl(url);
                         }
-                    }, 2500);
-                }
+                    }
+                }, 2500);
             }
 
             @Override

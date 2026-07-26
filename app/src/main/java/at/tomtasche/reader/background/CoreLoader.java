@@ -31,12 +31,15 @@ public class CoreLoader extends FileLoader {
         super(context, LoaderType.CORE);
 
         this.doOoxml = doOoxml;
-
-        CoreWrapper.initialize(context);
     }
 
     @Override
     public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager, CrashManager crashManager) {
+        // loads the native library and extracts the core assets. Kept out of the
+        // constructor so that constructing a CoreLoader stays side effect free -
+        // LoaderService calls initialize() right after new CoreLoader() anyway.
+        CoreWrapper.initialize(context);
+
         File serverCacheDir = new File(context.getCacheDir(), "core/server");
         if (!serverCacheDir.isDirectory() && !serverCacheDir.mkdirs()) {
             Log.e("CoreLoader", "Failed to create cache directory for CoreWrapper server: " + serverCacheDir.getAbsolutePath());

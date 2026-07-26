@@ -2,7 +2,6 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Build;
 
 import java.io.File;
 import java.io.IOException;
@@ -95,8 +94,7 @@ public class OnlineLoader extends FileLoader {
 
         try {
             Uri viewerUri;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                    ("text/rtf".equals(options.fileType) || "application/vnd.wordperfect".equals(options.fileType) || coreLoader.isSupported(options) || "application/vnd.ms-excel".equals(options.fileType) || "application/msword".equals(options.fileType) || "application/vnd.ms-powerpoint".equals(options.fileType) || options.fileType.startsWith("application/vnd.openxmlformats-officedocument.") || options.fileType.equals("application/pdf"))) {
+            if (isConvertible(options)) {
                 viewerUri = doOnlineConvert(options);
             } else {
                 viewerUri = doTransferUpload(options);
@@ -109,6 +107,23 @@ public class OnlineLoader extends FileLoader {
         } catch (Throwable e) {
             callOnError(result, e);
         }
+    }
+
+    /**
+     * Whether use.opendocument.app can convert this type itself. Everything else is
+     * uploaded and handed to a third party viewer instead.
+     */
+    boolean isConvertible(Options options) {
+        String fileType = options.fileType;
+
+        return "text/rtf".equals(fileType)
+                || "application/vnd.wordperfect".equals(fileType)
+                || "application/vnd.ms-excel".equals(fileType)
+                || "application/msword".equals(fileType)
+                || "application/vnd.ms-powerpoint".equals(fileType)
+                || "application/pdf".equals(fileType)
+                || fileType.startsWith("application/vnd.openxmlformats-officedocument.")
+                || coreLoader.isSupported(options);
     }
 
     private Uri doOnlineConvert(Options options) throws IOException {

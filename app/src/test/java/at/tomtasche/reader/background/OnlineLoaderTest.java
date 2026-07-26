@@ -10,13 +10,21 @@ public class OnlineLoaderTest {
 
     @Before
     public void setUp() {
-        onlineLoader = new OnlineLoader(null, null);
+        onlineLoader = new OnlineLoader(null, new CoreLoader(null, true));
+    }
+
+    private FileLoader.Options options(String fileType) {
+        FileLoader.Options options = new FileLoader.Options();
+        options.fileType = fileType;
+        return options;
     }
 
     private boolean isSupported(String fileType) {
-        FileLoader.Options options = new FileLoader.Options();
-        options.fileType = fileType;
-        return onlineLoader.isSupported(options);
+        return onlineLoader.isSupported(options(fileType));
+    }
+
+    private boolean isConvertible(String fileType) {
+        return onlineLoader.isConvertible(options(fileType));
     }
 
     @Test
@@ -53,5 +61,26 @@ public class OnlineLoaderTest {
     public void rejectsUnknownMimeTypes() {
         Assert.assertFalse(isSupported("application/octet-stream"));
         Assert.assertFalse(isSupported("application/x-made-up"));
+    }
+
+    @Test
+    public void convertsOfficeDocumentsItself() {
+        Assert.assertTrue(isConvertible("application/pdf"));
+        Assert.assertTrue(isConvertible("text/rtf"));
+        Assert.assertTrue(isConvertible("application/vnd.wordperfect"));
+        Assert.assertTrue(isConvertible("application/vnd.ms-excel"));
+        Assert.assertTrue(isConvertible("application/msword"));
+        Assert.assertTrue(isConvertible("application/vnd.ms-powerpoint"));
+        Assert.assertTrue(isConvertible("application/vnd.openxmlformats-officedocument.presentationml.presentation"));
+        // delegated to CoreLoader
+        Assert.assertTrue(isConvertible("application/vnd.oasis.opendocument.text"));
+    }
+
+    @Test
+    public void handsEverythingElseToAThirdPartyViewer() {
+        Assert.assertFalse(isConvertible("text/plain"));
+        Assert.assertFalse(isConvertible("image/png"));
+        Assert.assertFalse(isConvertible("application/zip"));
+        Assert.assertFalse(isConvertible("application/vnd.ms-excel.sheet.macroEnabled.12"));
     }
 }
