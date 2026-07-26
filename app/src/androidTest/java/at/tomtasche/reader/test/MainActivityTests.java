@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.SystemClock;
@@ -34,6 +35,7 @@ import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
 import at.tomtasche.reader.R;
+import at.tomtasche.reader.background.FileLoader;
 import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.OpenFileIdling;
 import at.tomtasche.reader.ui.activity.DocumentFragment;
@@ -361,6 +363,38 @@ public class MainActivityTests {
         Assert.assertTrue(
                 "DOCX should become editable after entering edit mode",
                 waitForEditableState(pageView, true, 10000));
+    }
+
+    @Test
+    public void testDocumentSurvivesRotation() throws InterruptedException {
+        File testFile = s_testFiles.get("test.odt");
+        Assert.assertNotNull(testFile);
+        MainActivity activity = mainActivityActivityTestRule.getActivity();
+        DocumentFragment documentFragment = loadDocument(activity, testFile);
+        FileLoader.Result before = documentFragment.getLastResult();
+        Assert.assertNotNull(before);
+
+        // the document state used to be kept alive by setRetainInstance(true) and now
+        // lives in a ViewModel, so a configuration change must not drop it or reload
+        rotate(activity, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        try {
+            DocumentFragment afterRotation = waitForDocumentFragment(activity, 10000);
+            Assert.assertNotNull("fragment gone after rotation", afterRotation);
+            Assert.assertTrue("document state lost across rotation", afterRotation.hasLastResult());
+            Assert.assertEquals(
+                    "document was reloaded instead of restored",
+                    before.options.originalUri,
+                    afterRotation.getLastResult().options.originalUri);
+        } finally {
+            rotate(activity, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
+    }
+
+    private void rotate(MainActivity activity, int orientation) {
+        InstrumentationRegistry.getInstrumentation()
+                .runOnMainSync(() -> activity.setRequestedOrientation(orientation));
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        SystemClock.sleep(2000);
     }
 
     private DocumentFragment loadDocument(MainActivity activity, File testFile)
