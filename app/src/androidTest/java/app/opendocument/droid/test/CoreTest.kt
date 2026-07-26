@@ -166,9 +166,9 @@ class CoreTest {
 
         private var sharedLoader: CoreLoader? = null
 
+        // @JvmStatic because junit requires @BeforeClass / @AfterClass to be static
         @JvmStatic
         @BeforeClass
-        @Throws(InterruptedException::class)
         fun startServer() {
             val appCtx = InstrumentationRegistry.getInstrumentation().targetContext
 

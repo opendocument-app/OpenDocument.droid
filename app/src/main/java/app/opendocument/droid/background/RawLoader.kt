@@ -7,7 +7,6 @@ import android.util.Base64OutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.IOException
 import java.io.OutputStream
 
 /**
@@ -162,7 +161,6 @@ class RawLoader(
         }
     }
 
-    @Throws(IOException::class)
     private fun writeBase64(cacheFile: File, cacheDirectory: File, outputStream: OutputStream) {
         // need to store it in a separate file first because BaseStream writes characters on close
         val baseFile = File(cacheDirectory, "tmp")

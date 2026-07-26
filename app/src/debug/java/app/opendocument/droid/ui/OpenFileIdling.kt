@@ -12,16 +12,13 @@ object OpenFileIdling {
 
     private val RESOURCE = CountingIdlingResource("MainActivity.openFileIdlingResource")
 
-    @JvmStatic
     val idlingResource: IdlingResource
         get() = RESOURCE
 
-    @JvmStatic
     fun increment() {
         RESOURCE.increment()
     }
 
-    @JvmStatic
     fun decrement() {
         if (!RESOURCE.isIdleNow) {
             RESOURCE.decrement()

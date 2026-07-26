@@ -20,7 +20,6 @@ class AnalyticsManager {
         this.enabled = enabled
     }
 
-    @JvmOverloads
     fun report(
         event: String,
         key1: String? = null,

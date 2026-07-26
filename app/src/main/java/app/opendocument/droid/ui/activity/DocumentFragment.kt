@@ -70,15 +70,15 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
      * included - alive instead.
      */
     class DocumentViewModel : ViewModel() {
-        @JvmField var lastResult: FileLoader.Result? = null
-        @JvmField var currentHtmlDiff: String? = null
+        var lastResult: FileLoader.Result? = null
+        var currentHtmlDiff: String? = null
 
         // loads cannot be canceled once running, so results of abandoned loads
         // (e.g. user navigated back while the document was still loading) are
         // identified by their uri and dropped
-        @JvmField var lastRequestedUri: Uri? = null
+        var lastRequestedUri: Uri? = null
 
-        @JvmField var lastSelectedTab: Int = -1
+        var lastSelectedTab: Int = -1
     }
 
     private lateinit var state: DocumentViewModel
@@ -261,7 +261,6 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         serviceQueue.addToQueue { service -> service.loadWithType(loaderType, options) }
     }
 
-    @JvmOverloads
     fun loadUri(uri: Uri, persistentUri: Boolean, editable: Boolean = false) {
         initializePageView()
 

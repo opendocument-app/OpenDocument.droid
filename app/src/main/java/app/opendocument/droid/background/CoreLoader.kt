@@ -319,7 +319,6 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
          * this has to have run before any document is loaded. LoaderService constructs and
          * initializes the CoreLoader while starting up, well before the first load request.
          */
-        @JvmStatic
         @Synchronized
         fun initializeCore(context: Context) {
             if (coreInitialized) {

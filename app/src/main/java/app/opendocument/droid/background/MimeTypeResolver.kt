@@ -17,15 +17,12 @@ object MimeTypeResolver {
         fun mimeTypeFromExtension(extension: String?): String?
     }
 
-    /** @JvmField so java call sites keep reading these as fields rather than getters. */
-    class Resolution
-    internal constructor(@JvmField val mimeType: String?, @JvmField val extension: String?)
+    class Resolution internal constructor(val mimeType: String?, val extension: String?)
 
     /**
      * Returns the extension of the given filename, or null if it does not have one. Dotfiles
      * (`.bashrc`) and trailing dots (`report.`) count as "no extension".
      */
-    @JvmStatic
     fun parseExtension(filename: String?): String? {
         if (filename == null) {
             return null
@@ -45,7 +42,6 @@ object MimeTypeResolver {
      * mime type could be detected it is looked up from the extension instead. Either field of the
      * result may be null.
      */
-    @JvmStatic
     fun resolve(
         mimeType: String?,
         filenameExtension: String?,
