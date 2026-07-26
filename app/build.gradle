@@ -145,6 +145,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+
     externalNativeBuild {
         cmake {
             version = "3.22.0+"

@@ -17,8 +17,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `./gradlew connectedAndroidTest` - Run instrumented tests on connected device
 - `fastlane android tests` - Alternative way to run connected tests
 
-### Linting
-- `./gradlew lint` - Run Android lint checks (configured to not abort on errors)
+### Linting and formatting
+- `./gradlew lintProDebug` - Run Android lint checks (errors fail the build)
+- `./gradlew spotlessApply` - Apply formatting (google-java-format AOSP for java,
+  ktfmt kotlinlang style for kotlin)
+- `./gradlew spotlessCheck` - Verify formatting; CI runs this first
 
 ### Deployment
 - `fastlane android deployPro` - Deploy Pro version to Google Play internal track
@@ -57,8 +60,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Native Dependencies:**
 - Uses Conan package manager for C++ dependencies
 - CMake build system for native C++ core library (`odr-core`)
-- NDK version 28.1.13356709 required
+- NDK version 28.2.13676358 required
 - C++20 standard
+- `conan` is taken from PATH; override with `-Podr.conanExecutable=...` or `ODR_CONAN`.
+  Note the conan gradle plugin does not track `app/conanprofile.txt` as a task input, so
+  after editing it `conanInstall-*` stays UP-TO-DATE and the native libs keep their old
+  settings - run the conan install by hand to pick the change up locally.
 
 **Core Library Integration:**
 - Native C++ wrapper (`CoreWrapper.cpp`) provides JNI interface
@@ -89,7 +96,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Configuration Notes
 
-- Minimum SDK: 23, Target SDK: 36
+- Minimum SDK: 26, Target SDK: 36, Compile SDK: 37 (ahead of target on purpose)
+- AGP 9 / Gradle 9, versions live in `gradle/libs.versions.toml`
 - R8/ProGuard enabled for release builds with resource shrinking
 - Configuration cache enabled for parallel Conan installs
-- Custom lint configuration allows non-fatal errors
+- Release signing credentials come from gradle properties or environment variables (see
+  README); without them release variants build unsigned rather than failing
+
+### Language
+
+Mixed Java and Kotlin; Kotlin support is built into AGP 9, no kotlin plugin is applied.
+New code should be Kotlin. When converting an existing class, watch two things:
+
+- `CoreWrapper` and its nested `CoreOptions`/`CoreResult`/`GlobalParams` are read from C++
+  through `GetFieldID` in `app/src/main/cpp/core_wrapper.cpp`. Kotlin properties compile to
+  private fields with accessors, which breaks those lookups - every field needs `@JvmField`.
+  `proguard-rules.txt` keeps these classes for the same reason.
+- Java callers spell static helpers as `Foo.bar()`, so converted utility classes need
+  `object` plus `@JvmStatic`, and public final fields need `@JvmField`.
