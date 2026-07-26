@@ -11,6 +11,7 @@ import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.RequestConfiguration;
 import com.google.android.ump.ConsentInformation;
 import com.google.android.ump.ConsentRequestParameters;
+import com.google.android.ump.FormError;
 import com.google.android.ump.UserMessagingPlatform;
 import java.util.List;
 
@@ -100,6 +101,15 @@ public class AdManager {
                             loadAndShowError -> {
                                 if (loadAndShowError != null
                                         || !consentInformation.canRequestAds()) {
+                                    // without this the banner just silently stays hidden,
+                                    // and the ump sdk only logs an unspecific "Error
+                                    // making request."
+                                    crashManager.log(
+                                            "consent form failed: "
+                                                    + describe(loadAndShowError)
+                                                    + ", canRequestAds="
+                                                    + consentInformation.canRequestAds());
+
                                     hideGoogleAds();
 
                                     return;
@@ -108,7 +118,22 @@ public class AdManager {
                                 activity.runOnUiThread(this::showAdaptiveBanner);
                             });
                 },
-                requestConsentError -> hideGoogleAds());
+                requestConsentError -> {
+                    // fires for the mundane offline case too - a device that was asleep
+                    // times out against fundingchoicesmessages.google.com
+                    crashManager.log(
+                            "consent info update failed: " + describe(requestConsentError));
+
+                    hideGoogleAds();
+                });
+    }
+
+    private static String describe(FormError error) {
+        if (error == null) {
+            return "no error";
+        }
+
+        return error.getErrorCode() + "/" + error.getMessage();
     }
 
     // https://developers.google.com/admob/android/banner/adaptive
