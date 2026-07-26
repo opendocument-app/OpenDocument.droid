@@ -108,7 +108,18 @@ android {
         }
     }
     lint {
-        abortOnError false
+        // lint errors are build failures. NewApi in particular is the check that
+        // would have caught the java.nio.file usage below minSdk that shipped for
+        // years while this was switched off.
+        abortOnError true
+
+        // warnings stay warnings for now - there is a backlog of them (unused
+        // resources, typography, rtl) that is not worth blocking builds on
+        warningsAsErrors false
+
+        // consumed by github code scanning, so findings show up inline on PRs
+        sarifReport true
+        htmlReport true
     }
     buildFeatures {
         buildConfig = true

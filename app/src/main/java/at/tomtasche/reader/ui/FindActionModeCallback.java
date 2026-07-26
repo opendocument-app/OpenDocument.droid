@@ -177,13 +177,11 @@ public class FindActionModeCallback implements ActionMode.Callback, TextWatcher,
 
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-        if (!mode.isUiFocusable()) {
-            // If the action mode we're running in is not focusable the user
-            // will not be able to type into the find on page field. This
-            // should only come up when we're running in a dialog which is
-            // already less than ideal; disable the option for now.
-            return false;
-        }
+        // the AOSP original this class is derived from bailed out here when
+        // mode.isUiFocusable() was false, to avoid an unusable find field inside a
+        // dialog. That method is @RestrictTo(LIBRARY_GROUP_PREFIX) on the appcompat
+        // ActionMode, so it is not ours to call. We only ever start this action mode
+        // from MainActivity via startSupportActionMode(), never from a dialog.
 
         mode.setCustomView(mCustomView);
         mode.getMenuInflater().inflate(R.menu.webview_find,

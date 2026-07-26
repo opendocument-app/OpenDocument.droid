@@ -2,11 +2,29 @@ name: build_test
 
 on:
   workflow_dispatch:
+  # branch pushes are covered by the pull_request trigger, so only main is built
+  # directly - otherwise every push to a branch with an open PR builds twice
   push:
+    branches:
+      - main
+    paths-ignore:
+      - '**/*.md'
+      - 'fastlane/metadata/**'
+      - '.github/FUNDING.yml'
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'fastlane/metadata/**'
+      - '.github/FUNDING.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
+  # required to publish lint findings to the code scanning tab
+  security-events: write
 
 env:
   ndk_version: 28.1.13356709
@@ -83,12 +101,24 @@ jobs:
         if-no-files-found: error
         compression-level: 0
 
+    # lint failures fail the gradle step above, so these have to run regardless
+    - name: Upload lint results to code scanning
+      if: always()
+      # fork PRs get a read-only token and cannot write code scanning results;
+      # the html artifact below is the fallback in that case
+      continue-on-error: true
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: app/build/reports
+        category: android-lint
+
     - name: Artifact lint results
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: lint-report
         path: app/build/reports/lint-results-*.html
-        if-no-files-found: error
+        if-no-files-found: warn
 
     - name: Artifact unit test results
       if: always()
