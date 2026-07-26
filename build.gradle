@@ -18,6 +18,14 @@ spotless {
         endWithNewline()
     }
 
+    kotlin {
+        target 'app/src/*/java/**/*.kt'
+
+        ktfmt(libs.versions.ktfmt.get()).kotlinlangStyle()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+
     format 'misc', {
         // deliberately explicit: a '**/*.yml' style glob also matches cmake and
         // conan output under build/ and .cxx/
