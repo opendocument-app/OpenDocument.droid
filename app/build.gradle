@@ -5,9 +5,37 @@ plugins {
     id 'app.opendocument.conanandroidgradleplugin'
 }
 
+// Release signing credentials are supplied out of band - they used to be committed
+// in plain text right here. Set them either as gradle properties (in
+// ~/.gradle/gradle.properties, never in the repo) or as environment variables:
+//
+//   odr.keystore         / ODR_KEYSTORE          path to the keystore
+//   odr.keystorePassword / ODR_KEYSTORE_PASSWORD store password
+//   odr.keyPasswordPro   / ODR_KEY_PASSWORD_PRO  key password, defaults to the store one
+//   odr.keyPasswordLite  / ODR_KEY_PASSWORD_LITE key password, defaults to the store one
+//
+// When they are absent the release variants build unsigned instead of failing, so
+// contributors and CI can still build them.
+def signingSetting = { String property, String environmentVariable ->
+    providers.gradleProperty(property).orElse(providers.environmentVariable(environmentVariable))
+}
+def releaseKeystore = signingSetting('odr.keystore', 'ODR_KEYSTORE')
+def releaseKeystorePassword = signingSetting('odr.keystorePassword', 'ODR_KEYSTORE_PASSWORD')
+def releaseKeyPasswordPro = signingSetting('odr.keyPasswordPro', 'ODR_KEY_PASSWORD_PRO')
+def releaseKeyPasswordLite = signingSetting('odr.keyPasswordLite', 'ODR_KEY_PASSWORD_LITE')
+def hasReleaseSigning = releaseKeystore.isPresent() && releaseKeystorePassword.isPresent()
+
 android {
     ndkVersion "28.1.13356709"
 }
+
+// conan is taken from PATH by default. Point odr.conanExecutable (or ODR_CONAN) at a
+// specific binary when it lives in a virtualenv that is not on the gradle daemon's
+// PATH - the daemon captures its environment at startup, so a venv activated in the
+// shell afterwards is not visible to it.
+def conanExecutable_ = providers.gradleProperty('odr.conanExecutable')
+        .orElse(providers.environmentVariable('ODR_CONAN'))
+        .getOrElse('conan')
 
 tasks.register('conanProfile', Copy) {
     from "conanprofile.txt"
@@ -21,7 +49,7 @@ tasks.register('conanProfile', Copy) {
         deployer.set('conandeployer.py')
         deployerFolder.set(outputDirectory.get().asFile.toString() + "/assets/core")
         dependsOn(tasks.named('conanProfile'))
-        conanExecutable.set('conan')
+        conanExecutable.set(conanExecutable_)
     }
 }
 
@@ -49,24 +77,28 @@ android {
     flavorDimensions "default"
 
     signingConfigs {
-        releasePro {
-            storeFile file("../../google_play.keystore")
-            storePassword "releaseme"
-            keyAlias "reader-pro"
-            keyPassword "releaseme"
-        }
+        if (hasReleaseSigning) {
+            releasePro {
+                storeFile file(releaseKeystore.get())
+                storePassword releaseKeystorePassword.get()
+                keyAlias "reader-pro"
+                keyPassword releaseKeyPasswordPro.getOrElse(releaseKeystorePassword.get())
+            }
 
-        releaseLite {
-            storeFile file("../../google_play.keystore")
-            storePassword "releaseme"
-            keyAlias "reader"
-            keyPassword "releaseme"
+            releaseLite {
+                storeFile file(releaseKeystore.get())
+                storePassword releaseKeystorePassword.get()
+                keyAlias "reader"
+                keyPassword releaseKeyPasswordLite.getOrElse(releaseKeystorePassword.get())
+            }
         }
     }
 
     productFlavors {
         lite {
-            signingConfig signingConfigs.releaseLite
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.releaseLite
+            }
 
             resValue("bool", "DISABLE_TRACKING", "false")
         }
@@ -75,7 +107,9 @@ android {
             applicationIdSuffix ".pro"
             versionNameSuffix "-pro"
 
-            signingConfig signingConfigs.releasePro
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.releasePro
+            }
 
             resValue("bool", "DISABLE_TRACKING", "true")
         }

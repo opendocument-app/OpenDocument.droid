@@ -20,7 +20,6 @@ platform :android do
       skip_upload_images: true,
       skip_upload_screenshots: true
     )
-    gradle(task: "app:uploadCrashlyticsSymbolFileProRelease")
   end
 
   desc "Deploy a new version to the Google Play"
@@ -42,7 +41,6 @@ platform :android do
       skip_upload_images: true,
       skip_upload_screenshots: true
     )
-    gradle(task: "app:uploadCrashlyticsSymbolFileLiteRelease")
   end
 
   lane :tests do
