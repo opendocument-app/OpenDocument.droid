@@ -85,9 +85,14 @@ jobs:
         distribution: 'zulu'
         java-version: 21
 
+    # the version has to be spelled out here: setup-ruby only infers one from a
+    # .ruby-version / .tool-versions file, neither of which this repo has, and it
+    # does not read the `ruby ">= 3.2"` constraint in the Gemfile. 3.4 is what
+    # Gemfile.lock was resolved with.
     - name: setup ruby
       uses: ruby/setup-ruby@v1
       with:
+        ruby-version: '3.4'
         bundler-cache: true
 
     - name: setup python 3.12
