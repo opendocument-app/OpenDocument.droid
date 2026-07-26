@@ -32,12 +32,15 @@ class AnalyticsManager {
             return
         }
 
+        // keys only: callers pass document uris as values, and those have no business in
+        // logcat. an analytics backend wired in here would get the values, a device log
+        // does not
         Log.i(
             TAG,
             buildString {
                 append(event)
-                if (key1 != null) append(" $key1=$value1")
-                if (key2 != null) append(" $key2=$value2")
+                if (key1 != null) append(" $key1")
+                if (key2 != null) append(" $key2")
             },
         )
     }
