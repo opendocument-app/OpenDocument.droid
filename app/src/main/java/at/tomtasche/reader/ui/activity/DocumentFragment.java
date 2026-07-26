@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -31,7 +32,6 @@ import at.tomtasche.reader.background.LoaderServiceQueue;
 import at.tomtasche.reader.background.StreamUtil;
 import at.tomtasche.reader.nonfree.AnalyticsConstants;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
-import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.widget.PageView;
@@ -53,7 +53,6 @@ public class DocumentFragment extends Fragment
     private Handler mainHandler;
 
     private AnalyticsManager analyticsManager;
-    private ConfigManager configManager;
     private CrashManager crashManager;
 
     private ProgressDialogFragment progressDialog;
@@ -128,11 +127,10 @@ public class DocumentFragment extends Fragment
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mainHandler = new Handler();
+        mainHandler = new Handler(Looper.getMainLooper());
 
         MainActivity mainActivity = (MainActivity) getActivity();
         analyticsManager = mainActivity.getAnalyticsManager();
-        configManager = mainActivity.getConfigManager();
         crashManager = mainActivity.getCrashManager();
 
         serviceQueue = mainActivity.getLoaderServiceQueue();
@@ -462,20 +460,11 @@ public class DocumentFragment extends Fragment
 
         dismissProgress();
 
-        boolean isPro = getResources().getBoolean(R.bool.DISABLE_TRACKING);
-        if (isPro) {
+        // in-app review is requested in the pro flavor only. The lite branch used to
+        // consult a "show_in_app_rating" remote config key, which has resolved to nothing
+        // since firebase remote config was removed, so lite never asked either way.
+        if (getResources().getBoolean(R.bool.DISABLE_TRACKING)) {
             requestInAppRating(activity);
-        } else {
-            configManager.getBooleanConfig(
-                    "show_in_app_rating",
-                    new ConfigManager.ConfigListener<Boolean>() {
-                        @Override
-                        public void onConfig(String key, Boolean showInAppRating) {
-                            if (showInAppRating != null && showInAppRating) {
-                                requestInAppRating(activity);
-                            }
-                        }
-                    });
         }
     }
 

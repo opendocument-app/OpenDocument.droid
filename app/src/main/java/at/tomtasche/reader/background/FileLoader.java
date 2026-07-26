@@ -142,13 +142,15 @@ public abstract class FileLoader {
 
     public static class Options implements Parcelable {
 
-        public static final Parcelable.Creator CREATOR =
-                new Parcelable.Creator() {
+        public static final Parcelable.Creator<Options> CREATOR =
+                new Parcelable.Creator<Options>() {
 
+                    @Override
                     public Options createFromParcel(Parcel in) {
                         return new Options(in);
                     }
 
+                    @Override
                     public Options[] newArray(int size) {
                         return new Options[size];
                     }
@@ -171,8 +173,9 @@ public abstract class FileLoader {
         public Options() {}
 
         public Options(Parcel parcel) {
-            originalUri = parcel.readParcelable(null);
-            cacheUri = parcel.readParcelable(null);
+            ClassLoader classLoader = Options.class.getClassLoader();
+            originalUri = parcel.readParcelable(classLoader);
+            cacheUri = parcel.readParcelable(classLoader);
             persistentUri = ParcelUtil.readBoolean(parcel);
             fileExists = ParcelUtil.readBoolean(parcel);
             filename = parcel.readString();
@@ -205,13 +208,15 @@ public abstract class FileLoader {
 
     public static class Result implements Parcelable {
 
-        public static final Parcelable.Creator CREATOR =
-                new Parcelable.Creator() {
+        public static final Parcelable.Creator<Result> CREATOR =
+                new Parcelable.Creator<Result>() {
 
+                    @Override
                     public Result createFromParcel(Parcel in) {
                         return new Result(in);
                     }
 
+                    @Override
                     public Result[] newArray(int size) {
                         return new Result[size];
                     }
@@ -227,9 +232,10 @@ public abstract class FileLoader {
 
         public Result(Parcel parcel) {
             loaderType = LoaderType.valueOf(parcel.readString());
-            options = parcel.readParcelable(getClass().getClassLoader());
-            parcel.readList(partTitles, null);
-            parcel.readList(partUris, null);
+            ClassLoader classLoader = Result.class.getClassLoader();
+            options = parcel.readParcelable(classLoader);
+            parcel.readList(partTitles, classLoader);
+            parcel.readList(partUris, classLoader);
         }
 
         @Override

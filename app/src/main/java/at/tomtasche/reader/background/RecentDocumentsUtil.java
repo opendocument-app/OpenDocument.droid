@@ -3,12 +3,14 @@ package at.tomtasche.reader.background;
 import android.content.Context;
 import android.net.Uri;
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.HashMap;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -18,17 +20,18 @@ public class RecentDocumentsUtil {
 
     private static final String FILENAME = "recent_documents.json";
 
+    /**
+     * The recently opened documents, oldest first. Insertion ordered - a HashMap used to hand them
+     * back in an arbitrary order, which made the "recent" list not actually ordered by recency.
+     */
     public static Map<String, String> getRecentDocuments(Context context)
             throws IOException, JSONException {
-        Map<String, String> result = new HashMap<String, String>();
+        Map<String, String> result = new LinkedHashMap<>();
 
         JSONArray jsonArray = getRecentDocumentsJson(context);
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject document = jsonArray.getJSONObject(i);
-            String filename = document.getString("filename");
-            String uri = document.getString("uri");
-
-            result.put(filename, uri);
+            result.put(document.getString("filename"), document.getString("uri"));
         }
 
         return result;
@@ -36,30 +39,23 @@ public class RecentDocumentsUtil {
 
     private static JSONArray getRecentDocumentsJson(Context context)
             throws IOException, JSONException {
-        FileInputStream input = null;
-        InputStreamReader reader = null;
-        BufferedReader bufferedReader = null;
-        try {
-            input = context.openFileInput(FILENAME);
-
-            reader = new InputStreamReader(input);
-            bufferedReader = new BufferedReader(reader);
+        try (InputStream input = context.openFileInput(FILENAME);
+                BufferedReader reader =
+                        new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
             StringBuilder builder = new StringBuilder();
-            for (String s = bufferedReader.readLine(); s != null; s = bufferedReader.readLine()) {
-                builder.append(s);
+            for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                builder.append(line);
             }
 
             return new JSONArray(builder.toString());
-        } finally {
-            if (bufferedReader != null) bufferedReader.close();
-            if (reader != null) reader.close();
-            if (input != null) input.close();
         }
     }
 
     public static void addRecentDocument(Context context, String title, Uri uri)
             throws IOException, JSONException {
-        if (title == null) return;
+        if (title == null) {
+            return;
+        }
 
         if (AndroidFileCache.isCached(context, uri)) {
             return;
@@ -85,27 +81,20 @@ public class RecentDocumentsUtil {
     }
 
     private static void saveJson(Context context, JSONArray jsonArray) throws IOException {
-        FileOutputStream output = null;
-        OutputStreamWriter writer = null;
-        try {
-            output = context.openFileOutput(FILENAME, Context.MODE_PRIVATE);
-            writer = new OutputStreamWriter(output);
+        try (OutputStream output = context.openFileOutput(FILENAME, Context.MODE_PRIVATE);
+                Writer writer = new OutputStreamWriter(output, StandardCharsets.UTF_8)) {
             writer.write(jsonArray.toString());
-            writer.flush();
-        } finally {
-            if (writer != null) writer.close();
-            if (output != null) output.close();
         }
     }
 
     public static void removeRecentDocument(Context context, String title, Uri uri)
             throws IOException, JSONException {
-        if (title == null) return;
-
-        String uriString = uri.toString();
+        if (title == null) {
+            return;
+        }
 
         JSONArray jsonArray = getRecentDocumentsJson(context);
-        int deleteIndex = findUriIndex(uriString, jsonArray);
+        int deleteIndex = findUriIndex(uri.toString(), jsonArray);
 
         if (deleteIndex >= 0) {
             jsonArray.remove(deleteIndex);

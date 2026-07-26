@@ -207,8 +207,9 @@ dependencies {
     androidTestImplementation libs.androidx.test.rules
     androidTestImplementation libs.androidx.test.runner
     androidTestImplementation libs.androidx.test.junit
-    // espresso-idling-resource is used in main sourceSet as well. cannot be just androidTestImplementation
-    implementation libs.espresso.idling.resource
+    // only the debug variant of OpenFileIdling touches espresso, so the release apk
+    // does not ship test infrastructure
+    debugImplementation libs.espresso.idling.resource
     implementation libs.androidx.annotation
 }
 

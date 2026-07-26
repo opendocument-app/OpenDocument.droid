@@ -16,7 +16,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
+import android.os.Looper;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,8 +26,6 @@ import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,8 +38,6 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.test.espresso.IdlingResource;
-import androidx.test.espresso.idling.CountingIdlingResource;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.LoaderService;
 import at.tomtasche.reader.background.LoaderServiceQueue;
@@ -50,10 +46,10 @@ import at.tomtasche.reader.nonfree.AdManager;
 import at.tomtasche.reader.nonfree.AnalyticsConstants;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.BillingManager;
-import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.EditActionModeCallback;
 import at.tomtasche.reader.ui.FindActionModeCallback;
+import at.tomtasche.reader.ui.OpenFileIdling;
 import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
@@ -120,7 +116,6 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     private EditActionModeCallback editActionMode;
 
     private CrashManager crashManager;
-    private ConfigManager configManager;
     private AnalyticsManager analyticsManager;
     private AdManager adManager;
     private BillingManager billingManager;
@@ -134,8 +129,6 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     // to that app), while documents opened from within the app go back to the
     // landing screen instead of closing the app
     private boolean documentOpenedExternally;
-
-    @Nullable private CountingIdlingResource openFileIdlingResource;
 
     private LoaderServiceQueue serviceQueue;
     private LoaderService service;
@@ -187,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         Intent intent = new Intent(this, LoaderService.class);
         bindService(intent, connection, Context.BIND_AUTO_CREATE);
 
-        handler = new Handler();
+        handler = new Handler(Looper.getMainLooper());
 
         adContainer = findViewById(R.id.ad_container);
         landingContainer = findViewById(R.id.landing_container);
@@ -295,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
                 new ComponentName(
                         this, "at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH");
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences preferences = getDefaultSharedPreferences();
 
         // catch-all is only active if the user explicitly opted in. new installs and
         // existing users who never touched the switch default to STRICT_CATCH, so we
@@ -322,6 +315,16 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         catchAllSwitch.setChecked(isCatchAllEnabled);
 
         analyticsManager.report(isCatchAllEnabled ? "catch_all_enabled" : "catch_all_disabled");
+    }
+
+    /**
+     * The preferences android.preference.PreferenceManager used to hand out. That class is
+     * deprecated and its androidx replacement lives in a whole preference-ui library we do not
+     * otherwise need, so the default file is opened by name instead - keeping the existing
+     * catch-all setting of users who upgrade.
+     */
+    private SharedPreferences getDefaultSharedPreferences() {
+        return getSharedPreferences(getPackageName() + "_preferences", Context.MODE_PRIVATE);
     }
 
     private void toggleComponent(ComponentName component, boolean enabled) {
@@ -388,14 +391,10 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         analyticsManager.setEnabled(useProprietaryLibraries);
         analyticsManager.initialize(this);
 
-        configManager = new ConfigManager();
-        configManager.setEnabled(useProprietaryLibraries);
-        configManager.initialize();
-
         adManager = new AdManager();
         adManager.setEnabled(!IS_TESTING && useProprietaryLibraries);
         adManager.setAdContainer(adContainer);
-        adManager.initialize(this, analyticsManager, crashManager, configManager);
+        adManager.initialize(this, analyticsManager, crashManager);
 
         billingManager = new BillingManager();
         billingManager.setEnabled(useProprietaryLibraries);
@@ -442,9 +441,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
 
             Uri uri = intent.getData();
             if (requestCode == 42 && resultCode == Activity.RESULT_OK && uri != null) {
-                if (null != openFileIdlingResource) {
-                    openFileIdlingResource.decrement();
-                }
+                OpenFileIdling.decrement();
 
                 loadUri(uri);
             }
@@ -741,15 +738,11 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
                                         target.activityInfo.packageName, target.activityInfo.name));
 
                         try {
-                            if (null != openFileIdlingResource) {
-                                openFileIdlingResource.increment();
-                            }
+                            OpenFileIdling.increment();
 
                             startActivityForResult(intent, 42);
                         } catch (Exception e) {
-                            if (null != openFileIdlingResource) {
-                                openFileIdlingResource.decrement();
-                            }
+                            OpenFileIdling.decrement();
 
                             crashManager.log(e);
 
@@ -818,20 +811,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         return analyticsManager;
     }
 
-    public ConfigManager getConfigManager() {
-        return configManager;
-    }
-
     public LoaderServiceQueue getLoaderServiceQueue() {
         return serviceQueue;
-    }
-
-    @VisibleForTesting
-    @NonNull public IdlingResource getOpenFileIdlingResource() {
-        if (null == openFileIdlingResource) {
-            openFileIdlingResource =
-                    new CountingIdlingResource("MainActivity.openFileIdlingResource");
-        }
-        return openFileIdlingResource;
     }
 }

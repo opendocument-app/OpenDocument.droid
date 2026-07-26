@@ -8,10 +8,10 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.nonfree.AnalyticsConstants;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
-import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.activity.DocumentFragment;
 import com.google.android.gms.common.ConnectionResult;
@@ -27,7 +27,6 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
     private Handler backgroundHandler;
 
     private CrashManager crashManager;
-    private ConfigManager configManager;
     private AnalyticsManager analyticsManager;
 
     private MetadataLoader metadataLoader;
@@ -41,7 +40,7 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
     public synchronized void onCreate() {
         super.onCreate();
 
-        mainHandler = new Handler();
+        mainHandler = new Handler(Looper.getMainLooper());
 
         backgroundThread = new HandlerThread(DocumentFragment.class.getSimpleName());
         backgroundThread.start();
@@ -86,10 +85,6 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         analyticsManager = new AnalyticsManager();
         analyticsManager.setEnabled(useProprietaryLibraries);
         analyticsManager.initialize(this);
-
-        configManager = new ConfigManager();
-        configManager.setEnabled(useProprietaryLibraries);
-        configManager.initialize();
     }
 
     @Override
