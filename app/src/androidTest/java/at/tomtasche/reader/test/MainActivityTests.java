@@ -35,6 +35,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.ui.EditActionModeCallback;
+import at.tomtasche.reader.ui.OpenFileIdling;
 import at.tomtasche.reader.ui.activity.DocumentFragment;
 import at.tomtasche.reader.ui.activity.MainActivity;
 import at.tomtasche.reader.ui.widget.PageView;
@@ -75,7 +76,7 @@ public class MainActivityTests {
         // Launch a fresh activity for each test
         MainActivity mainActivity = mainActivityActivityTestRule.launchActivity(null);
 
-        m_idlingResource = mainActivity.getOpenFileIdlingResource();
+        m_idlingResource = OpenFileIdling.getIdlingResource();
         IdlingRegistry.getInstance().register(m_idlingResource);
 
         // Close system dialogs which may cover our Activity.

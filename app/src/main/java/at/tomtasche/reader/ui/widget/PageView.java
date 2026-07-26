@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.util.Base64;
 import android.util.Base64InputStream;
@@ -53,7 +54,7 @@ public class PageView extends WebView implements ParagraphListener {
     public PageView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
 
-        buggyWebViewHandler = new Handler();
+        buggyWebViewHandler = new Handler(Looper.getMainLooper());
 
         WebSettings settings = getSettings();
         settings.setBuiltInZoomControls(true);
