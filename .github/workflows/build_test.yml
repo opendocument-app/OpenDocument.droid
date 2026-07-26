@@ -84,7 +84,8 @@ jobs:
       uses: gradle/actions/setup-gradle@v4
 
     - name: gradle
-      run: ./gradlew spotlessCheck assembleDebug testProDebugUnitTest lintProDebug lintLiteDebug --stacktrace
+      # spotlessCheck runs in the format workflow, which has no paths-ignore
+      run: ./gradlew assembleDebug testProDebugUnitTest lintProDebug lintLiteDebug --stacktrace
 
     # drop temporary download/source/build folders so only built packages get cached
     - name: clean conan cache
