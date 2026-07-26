@@ -42,7 +42,8 @@ class LoaderServiceQueue {
         queue.add(entry)
     }
 
-    interface QueueEntry {
+    /** fun interface, so the callers can queue a lambda instead of an anonymous object. */
+    fun interface QueueEntry {
         fun onService(service: LoaderService)
     }
 }
