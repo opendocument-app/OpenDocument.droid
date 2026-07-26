@@ -30,7 +30,9 @@ public class OnlineLoaderTest {
     @Test
     public void supportsOfficeDocuments() {
         Assert.assertTrue(isSupported("application/vnd.oasis.opendocument.text"));
-        Assert.assertTrue(isSupported("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
+        Assert.assertTrue(
+                isSupported(
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
         Assert.assertTrue(isSupported("application/msword"));
         Assert.assertTrue(isSupported("application/vnd.ms-excel"));
         Assert.assertTrue(isSupported("application/vnd.ms-powerpoint"));
@@ -71,7 +73,9 @@ public class OnlineLoaderTest {
         Assert.assertTrue(isConvertible("application/vnd.ms-excel"));
         Assert.assertTrue(isConvertible("application/msword"));
         Assert.assertTrue(isConvertible("application/vnd.ms-powerpoint"));
-        Assert.assertTrue(isConvertible("application/vnd.openxmlformats-officedocument.presentationml.presentation"));
+        Assert.assertTrue(
+                isConvertible(
+                        "application/vnd.openxmlformats-officedocument.presentationml.presentation"));
         // delegated to CoreLoader
         Assert.assertTrue(isConvertible("application/vnd.oasis.opendocument.text"));
     }

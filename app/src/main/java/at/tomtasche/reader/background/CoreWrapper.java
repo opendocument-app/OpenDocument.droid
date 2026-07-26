@@ -2,9 +2,7 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.util.Log;
-
 import com.viliussutkus89.android.assetextractor.AssetExtractor;
-
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,7 +41,8 @@ public class CoreWrapper {
 
         CoreWrapper.GlobalParams globalParams = new CoreWrapper.GlobalParams();
         globalParams.coreDataPath = odrCoreDataDirectory.getAbsolutePath();
-        globalParams.libmagicDatabasePath = new File(libmagicDataDirectory, "magic.mgc").getAbsolutePath();
+        globalParams.libmagicDatabasePath =
+                new File(libmagicDataDirectory, "magic.mgc").getAbsolutePath();
         globalParams.customTmpfilePath = context.getCacheDir().getAbsolutePath();
         CoreWrapper.setGlobalParams(globalParams);
     }
@@ -166,27 +165,19 @@ public class CoreWrapper {
         public String extension;
     }
 
-    public static class CoreCouldNotOpenException extends RuntimeException {
-    }
+    public static class CoreCouldNotOpenException extends RuntimeException {}
 
-    public static class CoreEncryptedException extends RuntimeException {
-    }
+    public static class CoreEncryptedException extends RuntimeException {}
 
-    public static class CoreCouldNotTranslateException extends RuntimeException {
-    }
+    public static class CoreCouldNotTranslateException extends RuntimeException {}
 
-    public static class CoreUnexpectedFormatException extends RuntimeException {
-    }
+    public static class CoreUnexpectedFormatException extends RuntimeException {}
 
-    public static class CoreUnexpectedErrorCodeException extends RuntimeException {
-    }
+    public static class CoreUnexpectedErrorCodeException extends RuntimeException {}
 
-    public static class CoreUnknownErrorException extends RuntimeException {
-    }
+    public static class CoreUnknownErrorException extends RuntimeException {}
 
-    public static class CoreCouldNotEditException extends RuntimeException {
-    }
+    public static class CoreCouldNotEditException extends RuntimeException {}
 
-    public static class CoreCouldNotSaveException extends RuntimeException {
-    }
+    public static class CoreCouldNotSaveException extends RuntimeException {}
 }

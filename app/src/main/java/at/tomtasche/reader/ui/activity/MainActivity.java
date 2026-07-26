@@ -13,7 +13,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -25,7 +24,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
-
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -36,21 +34,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.MenuProvider;
-import androidx.core.view.WindowCompat;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.test.espresso.IdlingResource;
 import androidx.test.espresso.idling.CountingIdlingResource;
-
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-
-import java.util.LinkedList;
-import java.util.List;
-
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.LoaderService;
 import at.tomtasche.reader.background.LoaderServiceQueue;
@@ -66,6 +57,10 @@ import at.tomtasche.reader.ui.FindActionModeCallback;
 import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.TtsActionModeCallback;
 import at.tomtasche.reader.ui.widget.RecentDocumentDialogFragment;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import java.util.LinkedList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements MenuProvider {
 
@@ -97,29 +92,30 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     // With targetSdk 36 predictive back is enabled by default and neither KEYCODE_BACK
     // nor onBackPressed() are delivered anymore, so back is intercepted via the
     // OnBackPressedDispatcher instead.
-    private final OnBackPressedCallback backCallback = new OnBackPressedCallback(true) {
-        @Override
-        public void handleOnBackPressed() {
-            if (fullscreen) {
-                leaveFullscreen();
+    private final OnBackPressedCallback backCallback =
+            new OnBackPressedCallback(true) {
+                @Override
+                public void handleOnBackPressed() {
+                    if (fullscreen) {
+                        leaveFullscreen();
 
-                return;
-            }
+                        return;
+                    }
 
-            if (documentFragment != null && !documentOpenedExternally) {
-                analyticsManager.report("back_to_landing");
+                    if (documentFragment != null && !documentOpenedExternally) {
+                        analyticsManager.report("back_to_landing");
 
-                closeDocument();
+                        closeDocument();
 
-                return;
-            }
+                        return;
+                    }
 
-            // fall through to the default behavior (close the activity)
-            setEnabled(false);
-            getOnBackPressedDispatcher().onBackPressed();
-            setEnabled(true);
-        }
-    };
+                    // fall through to the default behavior (close the activity)
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                    setEnabled(true);
+                }
+            };
     private TtsActionModeCallback ttsActionMode;
     private EditActionModeCallback editActionMode;
 
@@ -139,28 +135,28 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     // landing screen instead of closing the app
     private boolean documentOpenedExternally;
 
-    @Nullable
-    private CountingIdlingResource openFileIdlingResource;
+    @Nullable private CountingIdlingResource openFileIdlingResource;
 
     private LoaderServiceQueue serviceQueue;
     private LoaderService service;
-    private final ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            if (service != null) {
-                service.setListener(null);
-            }
+    private final ServiceConnection connection =
+            new ServiceConnection() {
+                @Override
+                public void onServiceDisconnected(ComponentName name) {
+                    if (service != null) {
+                        service.setListener(null);
+                    }
 
-            service = null;
-        }
+                    service = null;
+                }
 
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder binder) {
-            service = ((LoaderService.LoaderBinder) binder).getService();
+                @Override
+                public void onServiceConnected(ComponentName name, IBinder binder) {
+                    service = ((LoaderService.LoaderBinder) binder).getService();
 
-            serviceQueue.setService(service);
-        }
-    };
+                    serviceQueue.setService(service);
+                }
+            };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -171,13 +167,17 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         // Edge-to-edge is enforced from targetSdk 35 on: pad the root view so content
         // stays clear of the system bars, display cutouts and the keyboard. On older
         // devices the window does not extend under the bars and the insets are zero.
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_root), (view, windowInsets) -> {
-            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()
-                    | WindowInsetsCompat.Type.displayCutout()
-                    | WindowInsetsCompat.Type.ime());
-            view.setPadding(insets.left, insets.top, insets.right, insets.bottom);
-            return WindowInsetsCompat.CONSUMED;
-        });
+        ViewCompat.setOnApplyWindowInsetsListener(
+                findViewById(R.id.main_root),
+                (view, windowInsets) -> {
+                    Insets insets =
+                            windowInsets.getInsets(
+                                    WindowInsetsCompat.Type.systemBars()
+                                            | WindowInsetsCompat.Type.displayCutout()
+                                            | WindowInsetsCompat.Type.ime());
+                    view.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+                    return WindowInsetsCompat.CONSUMED;
+                });
 
         setTitle("");
 
@@ -193,20 +193,24 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         landingContainer = findViewById(R.id.landing_container);
         documentContainer = findViewById(R.id.document_container);
 
-        findViewById(R.id.landing_intro_open).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                analyticsManager.report("intro_open");
-                findDocument();
-            }
-        });
-        findViewById(R.id.landing_open_fab).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                analyticsManager.report("fab_open");
-                findDocument();
-            }
-        });
+        findViewById(R.id.landing_intro_open)
+                .setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                analyticsManager.report("intro_open");
+                                findDocument();
+                            }
+                        });
+        findViewById(R.id.landing_open_fab)
+                .setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                analyticsManager.report("fab_open");
+                                findDocument();
+                            }
+                        });
 
         printingManager = new PrintingManager();
         initializeProprietaryLibraries();
@@ -215,17 +219,21 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
 
         crashManager.log("onCreate");
 
-        documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
+        documentFragment =
+                (DocumentFragment)
+                        getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
 
         if (savedInstanceState != null) {
-            documentOpenedExternally = savedInstanceState.getBoolean(SAVED_KEY_OPENED_EXTERNALLY, false);
+            documentOpenedExternally =
+                    savedInstanceState.getBoolean(SAVED_KEY_OPENED_EXTERNALLY, false);
         }
 
         if (documentFragment != null && documentFragment.hasLastResult()) {
             // nothing else to do
 
             crashManager.log("onCreate nothing");
-        } else if (savedInstanceState != null && savedInstanceState.containsKey(SAVED_KEY_LAST_CACHE_URI)) {
+        } else if (savedInstanceState != null
+                && savedInstanceState.containsKey(SAVED_KEY_LAST_CACHE_URI)) {
             loadOnStart = savedInstanceState.getParcelable(SAVED_KEY_LAST_CACHE_URI);
 
             crashManager.log("onCreate loadOnStart");
@@ -238,7 +246,10 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
                 loadOnStart = getIntent().getData();
                 documentOpenedExternally = true;
 
-                analyticsManager.report(AnalyticsConstants.EVENT_SELECT_CONTENT, AnalyticsConstants.PARAM_CONTENT_TYPE, "other");
+                analyticsManager.report(
+                        AnalyticsConstants.EVENT_SELECT_CONTENT,
+                        AnalyticsConstants.PARAM_CONTENT_TYPE,
+                        "other");
             } else {
                 analyticsManager.setCurrentScreen(this, "screen_main");
             }
@@ -255,7 +266,9 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     protected void onStart() {
         super.onStart();
 
-        documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
+        documentFragment =
+                (DocumentFragment)
+                        getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
 
         if (documentFragment != null) {
             landingContainer.setVisibility(View.GONE);
@@ -276,8 +289,11 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     private static final String PREF_CATCH_ALL_ENABLED = "catch_all_enabled";
 
     private void initializeCatchAllSwitch() {
-        ComponentName catchAllComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL");
-        ComponentName strictCatchComponent = new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH");
+        ComponentName catchAllComponent =
+                new ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL");
+        ComponentName strictCatchComponent =
+                new ComponentName(
+                        this, "at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH");
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -292,15 +308,16 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
 
         SwitchCompat catchAllSwitch = findViewById(R.id.landing_catch_all);
 
-        catchAllSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                preferences.edit().putBoolean(PREF_CATCH_ALL_ENABLED, isChecked).apply();
+        catchAllSwitch.setOnCheckedChangeListener(
+                new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        preferences.edit().putBoolean(PREF_CATCH_ALL_ENABLED, isChecked).apply();
 
-                toggleComponent(catchAllComponent, isChecked);
-                toggleComponent(strictCatchComponent, !isChecked);
-            }
-        });
+                        toggleComponent(catchAllComponent, isChecked);
+                        toggleComponent(strictCatchComponent, !isChecked);
+                    }
+                });
 
         catchAllSwitch.setChecked(isCatchAllEnabled);
 
@@ -308,8 +325,12 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     }
 
     private void toggleComponent(ComponentName component, boolean enabled) {
-        int newState = enabled ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-        getPackageManager().setComponentEnabledSetting(component, newState, PackageManager.DONT_KILL_APP);
+        int newState =
+                enabled
+                        ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                        : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        getPackageManager()
+                .setComponentEnabledSetting(component, newState, PackageManager.DONT_KILL_APP);
     }
 
     @Override
@@ -390,7 +411,10 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
 
             loadUri(intent.getData(), true);
 
-            analyticsManager.report(AnalyticsConstants.EVENT_SELECT_CONTENT, AnalyticsConstants.PARAM_CONTENT_TYPE, "other");
+            analyticsManager.report(
+                    AnalyticsConstants.EVENT_SELECT_CONTENT,
+                    AnalyticsConstants.PARAM_CONTENT_TYPE,
+                    "other");
         }
     }
 
@@ -438,7 +462,9 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         lastUri = uri;
 
         if (documentFragment == null) {
-            documentFragment = (DocumentFragment) getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
+            documentFragment =
+                    (DocumentFragment)
+                            getSupportFragmentManager().findFragmentByTag(DOCUMENT_FRAGMENT_TAG);
 
             landingContainer.setVisibility(View.GONE);
             documentContainer.setVisibility(View.VISIBLE);
@@ -453,12 +479,16 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         }
 
         crashManager.log("loading document at: " + uri.toString());
-        analyticsManager.report(AnalyticsConstants.EVENT_VIEW_ITEM, AnalyticsConstants.PARAM_ITEM_NAME, uri.toString());
+        analyticsManager.report(
+                AnalyticsConstants.EVENT_VIEW_ITEM,
+                AnalyticsConstants.PARAM_ITEM_NAME,
+                uri.toString());
 
         boolean isPersistentUri = false;
         try {
             grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            getContentResolver()
+                    .takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
             isPersistentUri = true;
         } catch (Exception e) {
@@ -469,7 +499,8 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         documentFragment.loadUri(uri, isPersistentUri);
 
         try {
-            getContentResolver().releasePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            getContentResolver()
+                    .releasePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         } catch (Exception e) {
             crashManager.log(e);
         }
@@ -489,18 +520,23 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
             findDocument();
 
             analyticsManager.report("menu_open");
-            analyticsManager.report(AnalyticsConstants.EVENT_SELECT_CONTENT, AnalyticsConstants.PARAM_CONTENT_TYPE, "choose");
+            analyticsManager.report(
+                    AnalyticsConstants.EVENT_SELECT_CONTENT,
+                    AnalyticsConstants.PARAM_CONTENT_TYPE,
+                    "choose");
         } else if (itemId == R.id.menu_open_with) {
             documentFragment.openWith(this);
 
             analyticsManager.report("menu_open_with");
         } else if (itemId == R.id.menu_save) {
-            documentFragment.prepareSave(new Runnable() {
-                @Override
-                public void run() {
-                    requestSave();
-                }
-            }, true);
+            documentFragment.prepareSave(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            requestSave();
+                        }
+                    },
+                    true);
 
             analyticsManager.report("menu_save");
         } else if (itemId == R.id.menu_share) {
@@ -519,8 +555,8 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
             } else {
                 analyticsManager.report("menu_fullscreen_enter");
 
-                WindowInsetsControllerCompat insetsController = WindowCompat
-                        .getInsetsController(getWindow(), getWindow().getDecorView());
+                WindowInsetsControllerCompat insetsController =
+                        WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
                 insetsController.setSystemBarsBehavior(
                         WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
                 insetsController.hide(WindowInsetsCompat.Type.statusBars());
@@ -528,17 +564,19 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
                 getSupportActionBar().hide();
 
                 // delay offer to wait for fullscreen animation to finish
-                handler.postDelayed(new Runnable() {
+                handler.postDelayed(
+                        new Runnable() {
 
-                    @Override
-                    public void run() {
-                        if (isFinishing()) {
-                            return;
-                        }
+                            @Override
+                            public void run() {
+                                if (isFinishing()) {
+                                    return;
+                                }
 
-                        offerPurchase();
-                    }
-                }, 1000);
+                                offerPurchase();
+                            }
+                        },
+                        1000);
             }
 
             fullscreen = !fullscreen;
@@ -571,15 +609,20 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         }
 
         analyticsManager.report("present_offer");
-        SnackbarHelper.show(this, R.string.crouton_remove_ads, new Runnable() {
+        SnackbarHelper.show(
+                this,
+                R.string.crouton_remove_ads,
+                new Runnable() {
 
-            @Override
-            public void run() {
-                analyticsManager.report("present_offer_clicked");
+                    @Override
+                    public void run() {
+                        analyticsManager.report("present_offer_clicked");
 
-                buyAdRemoval();
-            }
-        }, true, false);
+                        buyAdRemoval();
+                    }
+                },
+                true,
+                false);
     }
 
     @Override
@@ -596,13 +639,20 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         DialogFragment chooserDialog = new RecentDocumentDialogFragment();
         chooserDialog.show(transaction, RecentDocumentDialogFragment.FRAGMENT_TAG);
 
-        analyticsManager.report(AnalyticsConstants.EVENT_SELECT_CONTENT, AnalyticsConstants.PARAM_CONTENT_TYPE, "recent");
+        analyticsManager.report(
+                AnalyticsConstants.EVENT_SELECT_CONTENT,
+                AnalyticsConstants.PARAM_CONTENT_TYPE,
+                "recent");
     }
 
     private void buyAdRemoval() {
         analyticsManager.report(AnalyticsConstants.EVENT_ADD_TO_CART);
 
-        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=at.tomtasche.reader.pro")));
+        startActivity(
+                new Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(
+                                "https://play.google.com/store/apps/details?id=at.tomtasche.reader.pro")));
     }
 
     private void leaveFullscreen() {
@@ -624,10 +674,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         if (documentFragment != null) {
             removeMenuProvider(documentFragment);
 
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .remove(documentFragment)
-                    .commitNow();
+            getSupportFragmentManager().beginTransaction().remove(documentFragment).commitNow();
 
             documentFragment = null;
         }
@@ -656,7 +703,8 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         List<ResolveInfo> targetList = new LinkedList<>();
         for (int i = 0; i < allTargets.size(); i++) {
             ResolveInfo target = allTargets.get(i);
-            if (!target.activityInfo.packageName.equals(getPackageName()) && !target.activityInfo.exported) {
+            if (!target.activityInfo.packageName.equals(getPackageName())
+                    && !target.activityInfo.exported) {
                 continue;
             }
 
@@ -671,50 +719,62 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dialog_choose_filemanager);
-        builder.setItems(targetNames, new OnClickListener() {
+        builder.setItems(
+                targetNames,
+                new OnClickListener() {
 
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (which == targetNames.length - 1) {
-                    showRecent();
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (which == targetNames.length - 1) {
+                            showRecent();
 
-                    return;
-                }
-
-                ResolveInfo target = targetList.get(which);
-                if (target == null) {
-                    return;
-                }
-
-                intent.setComponent(new ComponentName(target.activityInfo.packageName, target.activityInfo.name));
-
-                try {
-                    if (null != openFileIdlingResource) {
-                        openFileIdlingResource.increment();
-                    }
-
-                    startActivityForResult(intent, 42);
-                } catch (Exception e) {
-                    if (null != openFileIdlingResource) {
-                        openFileIdlingResource.decrement();
-                    }
-
-                    crashManager.log(e);
-
-                    SnackbarHelper.show(MainActivity.this, R.string.crouton_error_open_app, new Runnable() {
-
-                        @Override
-                        public void run() {
-                            findDocument();
+                            return;
                         }
-                    }, true, true);
-                }
 
-                analyticsManager.report(AnalyticsConstants.EVENT_SELECT_CONTENT, AnalyticsConstants.PARAM_CONTENT_TYPE, target.activityInfo.packageName);
+                        ResolveInfo target = targetList.get(which);
+                        if (target == null) {
+                            return;
+                        }
 
-                dialog.dismiss();
-            }
-        });
+                        intent.setComponent(
+                                new ComponentName(
+                                        target.activityInfo.packageName, target.activityInfo.name));
+
+                        try {
+                            if (null != openFileIdlingResource) {
+                                openFileIdlingResource.increment();
+                            }
+
+                            startActivityForResult(intent, 42);
+                        } catch (Exception e) {
+                            if (null != openFileIdlingResource) {
+                                openFileIdlingResource.decrement();
+                            }
+
+                            crashManager.log(e);
+
+                            SnackbarHelper.show(
+                                    MainActivity.this,
+                                    R.string.crouton_error_open_app,
+                                    new Runnable() {
+
+                                        @Override
+                                        public void run() {
+                                            findDocument();
+                                        }
+                                    },
+                                    true,
+                                    true);
+                        }
+
+                        analyticsManager.report(
+                                AnalyticsConstants.EVENT_SELECT_CONTENT,
+                                AnalyticsConstants.PARAM_CONTENT_TYPE,
+                                target.activityInfo.packageName);
+
+                        dialog.dismiss();
+                    }
+                });
         builder.show();
     }
 
@@ -767,10 +827,10 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     }
 
     @VisibleForTesting
-    @NonNull
-    public IdlingResource getOpenFileIdlingResource() {
+    @NonNull public IdlingResource getOpenFileIdlingResource() {
         if (null == openFileIdlingResource) {
-            openFileIdlingResource = new CountingIdlingResource("MainActivity.openFileIdlingResource");
+            openFileIdlingResource =
+                    new CountingIdlingResource("MainActivity.openFileIdlingResource");
         }
         return openFileIdlingResource;
     }

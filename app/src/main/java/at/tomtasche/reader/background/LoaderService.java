@@ -8,18 +8,16 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-import java.io.File;
-import java.io.OutputStream;
-
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.nonfree.AnalyticsConstants;
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.ConfigManager;
 import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.activity.DocumentFragment;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import java.io.File;
+import java.io.OutputStream;
 
 public class LoaderService extends Service implements FileLoader.FileLoaderListener {
 
@@ -55,7 +53,8 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         initializeProprietaryLibraries();
 
         metadataLoader = new MetadataLoader(context);
-        metadataLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+        metadataLoader.initialize(
+                this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         coreLoader = new CoreLoader(context, true);
         coreLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
@@ -64,7 +63,8 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         rawLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
 
         onlineLoader = new OnlineLoader(context, coreLoader);
-        onlineLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager);
+        onlineLoader.initialize(
+                this, mainHandler, backgroundHandler, analyticsManager, crashManager);
     }
 
     // copied from MainActivity, consider how to deduplicate
@@ -105,7 +105,8 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         crashManager.log(new RuntimeException("missing listener"));
     }
 
-    public synchronized void loadWithType(FileLoader.LoaderType loaderType, FileLoader.Options options) {
+    public synchronized void loadWithType(
+            FileLoader.LoaderType loaderType, FileLoader.Options options) {
         FileLoader loader;
         switch (loaderType) {
             case CORE:
@@ -132,13 +133,23 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         FileLoader.Options options = result.options;
         if (result.loaderType == FileLoader.LoaderType.METADATA) {
             if (!coreLoader.isSupported(options)) {
-                crashManager.log("we do not expect this file to be an ODF: " + options.originalUri.toString());
-                analyticsManager.report("load_odf_error_expected", AnalyticsConstants.PARAM_CONTENT_TYPE, options.fileType);
+                crashManager.log(
+                        "we do not expect this file to be an ODF: "
+                                + options.originalUri.toString());
+                analyticsManager.report(
+                        "load_odf_error_expected",
+                        AnalyticsConstants.PARAM_CONTENT_TYPE,
+                        options.fileType);
             }
 
             loadWithType(FileLoader.LoaderType.CORE, options);
         } else {
-            analyticsManager.report("load_success", AnalyticsConstants.PARAM_CONTENT_TYPE, options.fileType, AnalyticsConstants.PARAM_CONTENT, result.loaderType.toString());
+            analyticsManager.report(
+                    "load_success",
+                    AnalyticsConstants.PARAM_CONTENT_TYPE,
+                    options.fileType,
+                    AnalyticsConstants.PARAM_CONTENT,
+                    result.loaderType.toString());
 
             if (currentListener != null) {
                 currentListener.onLoadSuccess(result);
@@ -166,7 +177,8 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
         }
 
         if (result.loaderType == FileLoader.LoaderType.CORE) {
-            analyticsManager.report("load_odf_error", AnalyticsConstants.PARAM_CONTENT_TYPE, options.fileType);
+            analyticsManager.report(
+                    "load_odf_error", AnalyticsConstants.PARAM_CONTENT_TYPE, options.fileType);
 
             if (rawLoader.isSupported(options)) {
                 loadWithType(FileLoader.LoaderType.RAW, options);
@@ -191,7 +203,12 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
         // MetadataLoader failed, so there's no point in trying to parse or upload the file
 
-        analyticsManager.report("load_error", AnalyticsConstants.PARAM_CONTENT_TYPE, options.fileType, AnalyticsConstants.PARAM_CONTENT, result.loaderType.toString());
+        analyticsManager.report(
+                "load_error",
+                AnalyticsConstants.PARAM_CONTENT_TYPE,
+                options.fileType,
+                AnalyticsConstants.PARAM_CONTENT,
+                result.loaderType.toString());
 
         if (currentListener != null) {
             currentListener.onError(result, error);
@@ -229,15 +246,19 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
                 fileToSave.delete();
             }
 
-            mainHandler.post(() -> {
-                if (currentListener != null) {
-                    currentListener.onSaveSuccess(outFile);
-                } else {
-                    logMissingListener();
-                }
-            });
+            mainHandler.post(
+                    () -> {
+                        if (currentListener != null) {
+                            currentListener.onSaveSuccess(outFile);
+                        } else {
+                            logMissingListener();
+                        }
+                    });
         } catch (Throwable e) {
-            analyticsManager.report("save_error", AnalyticsConstants.PARAM_CONTENT_TYPE, lastResult.options.fileType);
+            analyticsManager.report(
+                    "save_error",
+                    AnalyticsConstants.PARAM_CONTENT_TYPE,
+                    lastResult.options.fileType);
             crashManager.log(e, lastResult.options.originalUri);
 
             if (currentListener != null) {
@@ -279,11 +300,15 @@ public class LoaderService extends Service implements FileLoader.FileLoaderListe
 
     public interface LoaderListener {
         void onLoadSuccess(FileLoader.Result result);
+
         void onSaveSuccess(Uri outFile);
 
         void onError(FileLoader.Result result, Throwable error);
+
         void onEncrypted(FileLoader.Result result);
+
         void onUnsupported(FileLoader.Result result);
+
         void onSaveError();
     }
 }

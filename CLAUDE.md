@@ -33,7 +33,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Document Processing Pipeline:**
 - `CoreLoader` - Primary document processor using the native C++ ODR core library
-- `RawLoader` - Plain text and other raw file processor  
+- `RawLoader` - Plain text and other raw file processor
 - `OnlineLoader` - Remote document fetcher
 - `MetadataLoader` - Document metadata extractor
 

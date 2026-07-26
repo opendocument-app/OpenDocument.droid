@@ -11,21 +11,18 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AlertDialog.Builder;
 import androidx.fragment.app.DialogFragment;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.RecentDocumentsUtil;
 import at.tomtasche.reader.ui.activity.MainActivity;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
-public class RecentDocumentDialogFragment extends DialogFragment implements
-        OnItemClickListener, OnItemLongClickListener {
+public class RecentDocumentDialogFragment extends DialogFragment
+        implements OnItemClickListener, OnItemLongClickListener {
 
     public static final String FRAGMENT_TAG = "document_chooser";
 
@@ -47,8 +44,9 @@ public class RecentDocumentDialogFragment extends DialogFragment implements
         listView.setOnItemClickListener(this);
         listView.setOnItemLongClickListener(this);
 
-        adapter = new ArrayAdapter<String>(getActivity(),
-                android.R.layout.simple_list_item_1, new String[0]);
+        adapter =
+                new ArrayAdapter<String>(
+                        getActivity(), android.R.layout.simple_list_item_1, new String[0]);
         listView.setAdapter(adapter);
 
         builder.setView(listView);
@@ -74,30 +72,27 @@ public class RecentDocumentDialogFragment extends DialogFragment implements
 
         if (items.size() == 0) {
             items = new HashMap<String, String>();
-            items.put(
-                    getActivity().getString(
-                            R.string.dialog_list_no_documents_found), null);
+            items.put(getActivity().getString(R.string.dialog_list_no_documents_found), null);
         }
 
-        adapter = new ArrayAdapter<String>(getActivity(),
-                android.R.layout.simple_list_item_1, new ArrayList<String>(
-                items.keySet()));
+        adapter =
+                new ArrayAdapter<String>(
+                        getActivity(),
+                        android.R.layout.simple_list_item_1,
+                        new ArrayList<String>(items.keySet()));
 
         listView.setAdapter(adapter);
     }
 
     @Override
     public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-        if (items == null)
-            return;
+        if (items == null) return;
 
         String key = (String) adapter.getItem(arg2);
-        if (key == null)
-            return;
+        if (key == null) return;
 
         String uri = items.get(key);
-        if (uri == null)
-            return;
+        if (uri == null) return;
 
         dismiss();
 
@@ -106,8 +101,7 @@ public class RecentDocumentDialogFragment extends DialogFragment implements
     }
 
     @Override
-    public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int arg2,
-                                   long arg3) {
+    public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
         return false;
     }
 }

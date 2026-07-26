@@ -14,12 +14,6 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Method;
-
 import androidx.annotation.Keep;
 import androidx.webkit.WebSettingsCompat;
 import androidx.webkit.WebViewFeature;
@@ -29,6 +23,10 @@ import at.tomtasche.reader.background.StreamUtil;
 import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.ParagraphListener;
 import at.tomtasche.reader.ui.activity.DocumentFragment;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
 
 @SuppressLint("SetJavaScriptEnabled")
 public class PageView extends WebView implements ParagraphListener {
@@ -41,12 +39,14 @@ public class PageView extends WebView implements ParagraphListener {
     private HtmlCallback htmlCallback;
 
     /**
-     * sometimes the page stays invisible after reporting progress 100: https://stackoverflow.com/q/48082474/198996
-     * <p>
-     * this seems to happen if progress 100 is reported before finish is called.
-     * therefore we set a timer in finish that checks if commit was ever called and reload if not.
+     * sometimes the page stays invisible after reporting progress 100:
+     * https://stackoverflow.com/q/48082474/198996
+     *
+     * <p>this seems to happen if progress 100 is reported before finish is called. therefore we set
+     * a timer in finish that checks if commit was ever called and reload if not.
      */
     private final Handler buggyWebViewHandler;
+
     private boolean wasCommitCalled = false;
 
     @SuppressLint("AddJavascriptInterface")
@@ -65,74 +65,84 @@ public class PageView extends WebView implements ParagraphListener {
         settings.setUseWideViewPort(true);
         settings.setAllowFileAccess(true);
 
-        //WebView.setWebContentsDebuggingEnabled(true);
+        // WebView.setWebContentsDebuggingEnabled(true);
 
         addJavascriptInterface(this, "paragraphListener");
 
         setKeepScreenOn(true);
         try {
-            Method method = context.getClass().getMethod(
-                    "setSystemUiVisibility", Integer.class);
+            Method method = context.getClass().getMethod("setSystemUiVisibility", Integer.class);
             method.invoke(context, 1);
         } catch (Exception e) {
         }
 
-        setWebViewClient(new WebViewClient() {
-
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-
-                buggyWebViewHandler.postDelayed(new Runnable() {
+        setWebViewClient(
+                new WebViewClient() {
 
                     @Override
-                    public void run() {
-                        if (!wasCommitCalled) {
-                            crashManager.log(new RuntimeException("commit was not called"));
+                    public void onPageFinished(WebView view, String url) {
+                        super.onPageFinished(view, url);
 
-                            loadUrl(url);
+                        buggyWebViewHandler.postDelayed(
+                                new Runnable() {
+
+                                    @Override
+                                    public void run() {
+                                        if (!wasCommitCalled) {
+                                            crashManager.log(
+                                                    new RuntimeException("commit was not called"));
+
+                                            loadUrl(url);
+                                        }
+                                    }
+                                },
+                                2500);
+                    }
+
+                    @Override
+                    public void onPageCommitVisible(WebView view, String url) {
+                        wasCommitCalled = true;
+                    }
+
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                        if (url.startsWith(OnlineLoader.GOOGLE_VIEWER_URL)
+                                || url.startsWith(OnlineLoader.MICROSOFT_VIEWER_URL)
+                                || url.contains("officeapps.live.com/")) {
+                            return false;
+                        } else {
+                            try {
+                                getContext()
+                                        .startActivity(
+                                                new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+
+                                return true;
+                            } catch (Exception e) {
+                                crashManager.log(e);
+
+                                return false;
+                            }
                         }
                     }
-                }, 2500);
-            }
-
-            @Override
-            public void onPageCommitVisible(WebView view, String url) {
-                wasCommitCalled = true;
-            }
-
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (url.startsWith(OnlineLoader.GOOGLE_VIEWER_URL) || url.startsWith(OnlineLoader.MICROSOFT_VIEWER_URL) || url.contains("officeapps.live.com/")) {
-                    return false;
-                } else {
-                    try {
-                        getContext().startActivity(
-                                new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-
-                        return true;
-                    } catch (Exception e) {
-                        crashManager.log(e);
-
-                        return false;
-                    }
-                }
-            }
-        });
+                });
 
         // taken from: https://stackoverflow.com/a/10069265/198996
-        setDownloadListener(new DownloadListener() {
-            public void onDownloadStart(String url, String userAgent,
-                                        String contentDisposition, String mimetype,
-                                        long contentLength) {
-                try {
-                    getContext().startActivity(
-                            new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-                } catch (Exception e) {
-                    crashManager.log(e);
-                }
-            }
-        });
+        setDownloadListener(
+                new DownloadListener() {
+                    public void onDownloadStart(
+                            String url,
+                            String userAgent,
+                            String contentDisposition,
+                            String mimetype,
+                            long contentLength) {
+                        try {
+                            getContext()
+                                    .startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                        } catch (Exception e) {
+                            crashManager.log(e);
+                        }
+                    }
+                });
     }
 
     public void toggleDarkMode(boolean isDarkEnabled) {
@@ -143,7 +153,11 @@ public class PageView extends WebView implements ParagraphListener {
         if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
             WebSettingsCompat.setAlgorithmicDarkeningAllowed(getSettings(), isDarkEnabled);
         } else if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-            WebSettingsCompat.setForceDark(getSettings(), isDarkEnabled ? WebSettingsCompat.FORCE_DARK_AUTO : WebSettingsCompat.FORCE_DARK_OFF);
+            WebSettingsCompat.setForceDark(
+                    getSettings(),
+                    isDarkEnabled
+                            ? WebSettingsCompat.FORCE_DARK_AUTO
+                            : WebSettingsCompat.FORCE_DARK_OFF);
         }
     }
 
@@ -164,20 +178,26 @@ public class PageView extends WebView implements ParagraphListener {
     }
 
     public void getParagraph(final int index) {
-        post(new Runnable() {
+        post(
+                new Runnable() {
 
-            @Override
-            public void run() {
-                loadUrl("javascript:var children = document.body.childNodes; "
-                        + "if (children.length <= " + index + ") { "
-                        + "paragraphListener.end();" + "} else {"
-                        + "var child = children[" + index + "]; "
-                        + "if (child && child.nodeName.toLowerCase() != 'script' && child.innerText) { "
-                        + "paragraphListener.paragraph(child.innerText); "
-                        + "} else { " + "paragraphListener.increaseIndex(); "
-                        + "} }");
-            }
-        });
+                    @Override
+                    public void run() {
+                        loadUrl(
+                                "javascript:var children = document.body.childNodes; "
+                                        + "if (children.length <= "
+                                        + index
+                                        + ") { "
+                                        + "paragraphListener.end();"
+                                        + "} else {"
+                                        + "var child = children["
+                                        + index
+                                        + "]; if (child && child.nodeName.toLowerCase() != 'script'"
+                                        + " && child.innerText) {"
+                                        + " paragraphListener.paragraph(child.innerText); } else {"
+                                        + " paragraphListener.increaseIndex(); } }");
+                    }
+                });
     }
 
     public void requestHtml(HtmlCallback callback) {
@@ -198,7 +218,8 @@ public class PageView extends WebView implements ParagraphListener {
         try {
             File tmpFile = AndroidFileCache.createCacheFile(getContext());
 
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(base64.getBytes(StreamUtil.ENCODING));
+            ByteArrayInputStream inputStream =
+                    new ByteArrayInputStream(base64.getBytes(StreamUtil.ENCODING));
             Base64InputStream baseInputStream = new Base64InputStream(inputStream, Base64.NO_WRAP);
             try {
                 StreamUtil.copy(baseInputStream, tmpFile);
@@ -206,12 +227,14 @@ public class PageView extends WebView implements ParagraphListener {
                 inputStream.close();
             }
 
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    documentFragment.loadUri(AndroidFileCache.getCacheFileUri(getContext(), tmpFile), false);
-                }
-            });
+            post(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            documentFragment.loadUri(
+                                    AndroidFileCache.getCacheFileUri(getContext(), tmpFile), false);
+                        }
+                    });
         } catch (IOException e) {
             crashManager.log(e);
         }

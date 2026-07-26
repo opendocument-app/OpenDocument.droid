@@ -2,7 +2,6 @@ package at.tomtasche.reader.nonfree;
 
 import android.net.Uri;
 import android.util.Log;
-
 import java.util.concurrent.TimeoutException;
 
 public class CrashManager {
@@ -18,16 +17,18 @@ public class CrashManager {
         // https://stackoverflow.com/a/55999687/198996
         final Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler =
                 Thread.getDefaultUncaughtExceptionHandler();
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(Thread t, Throwable e) {
-                if (t.getName().equals("FinalizerWatchdogDaemon") && e instanceof TimeoutException) {
-                    log(e);
-                } else if (defaultUncaughtExceptionHandler != null) {
-                    defaultUncaughtExceptionHandler.uncaughtException(t, e);
-                }
-            }
-        });
+        Thread.setDefaultUncaughtExceptionHandler(
+                new Thread.UncaughtExceptionHandler() {
+                    @Override
+                    public void uncaughtException(Thread t, Throwable e) {
+                        if (t.getName().equals("FinalizerWatchdogDaemon")
+                                && e instanceof TimeoutException) {
+                            log(e);
+                        } else if (defaultUncaughtExceptionHandler != null) {
+                            defaultUncaughtExceptionHandler.uncaughtException(t, e);
+                        }
+                    }
+                });
     }
 
     public void setEnabled(boolean enabled) {

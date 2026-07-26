@@ -2,11 +2,6 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.net.Uri;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -15,6 +10,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class RecentDocumentsUtil {
 
@@ -47,26 +45,21 @@ public class RecentDocumentsUtil {
             reader = new InputStreamReader(input);
             bufferedReader = new BufferedReader(reader);
             StringBuilder builder = new StringBuilder();
-            for (String s = bufferedReader.readLine(); s != null; s = bufferedReader
-                    .readLine()) {
+            for (String s = bufferedReader.readLine(); s != null; s = bufferedReader.readLine()) {
                 builder.append(s);
             }
 
             return new JSONArray(builder.toString());
         } finally {
-            if (bufferedReader != null)
-                bufferedReader.close();
-            if (reader != null)
-                reader.close();
-            if (input != null)
-                input.close();
+            if (bufferedReader != null) bufferedReader.close();
+            if (reader != null) reader.close();
+            if (input != null) input.close();
         }
     }
 
     public static void addRecentDocument(Context context, String title, Uri uri)
             throws IOException, JSONException {
-        if (title == null)
-            return;
+        if (title == null) return;
 
         if (AndroidFileCache.isCached(context, uri)) {
             return;
@@ -100,17 +93,14 @@ public class RecentDocumentsUtil {
             writer.write(jsonArray.toString());
             writer.flush();
         } finally {
-            if (writer != null)
-                writer.close();
-            if (output != null)
-                output.close();
+            if (writer != null) writer.close();
+            if (output != null) output.close();
         }
     }
 
     public static void removeRecentDocument(Context context, String title, Uri uri)
             throws IOException, JSONException {
-        if (title == null)
-            return;
+        if (title == null) return;
 
         String uriString = uri.toString();
 

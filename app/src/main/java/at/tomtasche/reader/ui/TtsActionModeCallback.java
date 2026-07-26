@@ -8,15 +8,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.JavascriptInterface;
 import android.widget.TextView;
-
-import java.util.HashMap;
-
 import androidx.appcompat.view.ActionMode;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.ui.widget.PageView;
+import java.util.HashMap;
 
-public class TtsActionModeCallback implements ActionMode.Callback,
-        OnInitListener, ParagraphListener, OnUtteranceCompletedListener {
+public class TtsActionModeCallback
+        implements ActionMode.Callback,
+                OnInitListener,
+                ParagraphListener,
+                OnUtteranceCompletedListener {
 
     private final Context context;
     private final PageView pageView;
@@ -138,13 +139,14 @@ public class TtsActionModeCallback implements ActionMode.Callback,
     @Override
     @JavascriptInterface
     public void end() {
-        pageView.post(new Runnable() {
+        pageView.post(
+                new Runnable() {
 
-            @Override
-            public void run() {
-                statusView.setText(R.string.tts_status_finished);
-            }
-        });
+                    @Override
+                    public void run() {
+                        statusView.setText(R.string.tts_status_finished);
+                    }
+                });
     }
 
     @Override

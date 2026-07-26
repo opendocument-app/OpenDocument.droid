@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.webkit.MimeTypeMap;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -61,7 +60,8 @@ public class MetadataLoader extends FileLoader {
 
             AndroidFileCache.cleanup(context);
 
-            // detecting the filename early so we can use it in the catch-block if something goes wrong
+            // detecting the filename early so we can use it in the catch-block if something goes
+            // wrong
             String filename = null;
             try {
                 // https://stackoverflow.com/a/38304115/198996
@@ -73,7 +73,8 @@ public class MetadataLoader extends FileLoader {
                 }
             } catch (Exception e) {
                 // "URI does not contain a valid access token." or
-                // "Couldn't read row 0, col -1 from CursorWindow. Make sure the Cursor is initialized correctly before accessing data from it."
+                // "Couldn't read row 0, col -1 from CursorWindow. Make sure the Cursor is
+                // initialized correctly before accessing data from it."
 
                 crashManager.log(e);
             }
@@ -135,7 +136,8 @@ public class MetadataLoader extends FileLoader {
                 }
             }
 
-            MimeTypeResolver.Resolution resolution = MimeTypeResolver.resolve(mimetype, extension, MIME_TYPE_LOOKUP);
+            MimeTypeResolver.Resolution resolution =
+                    MimeTypeResolver.resolve(mimetype, extension, MIME_TYPE_LOOKUP);
             mimetype = resolution.mimeType;
 
             if (resolution.extension != null) {
@@ -162,7 +164,8 @@ public class MetadataLoader extends FileLoader {
             options.fileType = "N/A";
 
             try {
-                RecentDocumentsUtil.removeRecentDocument(context, options.filename, options.originalUri);
+                RecentDocumentsUtil.removeRecentDocument(
+                        context, options.filename, options.originalUri);
             } catch (Exception e1) {
                 crashManager.log(e1);
             }

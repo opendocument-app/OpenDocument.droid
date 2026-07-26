@@ -2,8 +2,7 @@ package at.tomtasche.reader.nonfree;
 
 public final class AnalyticsConstants {
 
-    private AnalyticsConstants() {
-    }
+    private AnalyticsConstants() {}
 
     public static final String PARAM_CONTENT_TYPE = "content_type";
     public static final String PARAM_CONTENT = "content";

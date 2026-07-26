@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.os.Bundle;
-
 import androidx.fragment.app.DialogFragment;
 import at.tomtasche.reader.R;
 
