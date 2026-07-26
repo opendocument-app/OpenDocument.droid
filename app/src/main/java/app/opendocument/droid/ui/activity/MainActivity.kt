@@ -357,7 +357,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
             val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
             intent.addCategory(Intent.CATEGORY_OPENABLE)
 
-            intent.type = documentFragment.getLastFileType()
+            intent.type = documentFragment.lastFileType
 
             createDocumentLauncher.launch(intent)
         } catch (e: ActivityNotFoundException) {
