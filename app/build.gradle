@@ -1,8 +1,8 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
-    id 'com.android.application'
-    id 'app.opendocument.conanandroidgradleplugin'
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.conan.android)
 }
 
 // Release signing credentials are supplied out of band - they used to be committed
@@ -26,7 +26,7 @@ def releaseKeyPasswordLite = signingSetting('odr.keyPasswordLite', 'ODR_KEY_PASS
 def hasReleaseSigning = releaseKeystore.isPresent() && releaseKeystorePassword.isPresent()
 
 android {
-    ndkVersion "28.1.13356709"
+    ndkVersion = "28.2.13676358"
 }
 
 // conan is taken from PATH by default. Point odr.conanExecutable (or ODR_CONAN) at a
@@ -37,10 +37,15 @@ def conanExecutable_ = providers.gradleProperty('odr.conanExecutable')
         .orElse(providers.environmentVariable('ODR_CONAN'))
         .getOrElse('conan')
 
+// android.ndkDirectory was removed in AGP 9; the ndk location now comes from the
+// androidComponents sdk components provider
+def ndkDirectory = androidComponents.sdkComponents.ndkDirectory.map { it.asFile.toString() }
+
 tasks.register('conanProfile', Copy) {
     from "conanprofile.txt"
     into project.layout.buildDirectory
-    filter(ReplaceTokens, tokens: ["NDK_PATH": android.ndkDirectory.toString()])
+    inputs.property("ndkDirectory", ndkDirectory)
+    filter(ReplaceTokens, tokens: ["NDK_PATH": ndkDirectory.get()])
 }
 
 ["armv8", "armv7", "x86", "x86_64"].each { architecture ->
@@ -55,16 +60,16 @@ tasks.register('conanProfile', Copy) {
 
 android {
     defaultConfig {
-        applicationId "at.tomtasche.reader"
-        minSdk 26
-        targetSdk 36
+        applicationId = "at.tomtasche.reader"
+        minSdk = 26
+        targetSdk = 36
 
-        testApplicationId "at.tomtasche.reader.test"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testApplicationId = "at.tomtasche.reader.test"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         externalNativeBuild {
             cmake {
-                targets "odr-core"
+                targets = ["odr-core"]
                 arguments(
                     "-DANDROID_STL=c++_shared",
                     "-DCMAKE_TOOLCHAIN_FILE=build/conan/android_toolchain.cmake",
@@ -74,22 +79,22 @@ android {
         }
     }
 
-    flavorDimensions "default"
+    flavorDimensions = ["default"]
 
     signingConfigs {
         if (hasReleaseSigning) {
             releasePro {
-                storeFile file(releaseKeystore.get())
-                storePassword releaseKeystorePassword.get()
-                keyAlias "reader-pro"
-                keyPassword releaseKeyPasswordPro.getOrElse(releaseKeystorePassword.get())
+                storeFile = file(releaseKeystore.get())
+                storePassword = releaseKeystorePassword.get()
+                keyAlias = "reader-pro"
+                keyPassword = releaseKeyPasswordPro.getOrElse(releaseKeystorePassword.get())
             }
 
             releaseLite {
-                storeFile file(releaseKeystore.get())
-                storePassword releaseKeystorePassword.get()
-                keyAlias "reader"
-                keyPassword releaseKeyPasswordLite.getOrElse(releaseKeystorePassword.get())
+                storeFile = file(releaseKeystore.get())
+                storePassword = releaseKeystorePassword.get()
+                keyAlias = "reader"
+                keyPassword = releaseKeyPasswordLite.getOrElse(releaseKeystorePassword.get())
             }
         }
     }
@@ -97,18 +102,18 @@ android {
     productFlavors {
         lite {
             if (hasReleaseSigning) {
-                signingConfig signingConfigs.releaseLite
+                signingConfig = signingConfigs.releaseLite
             }
 
             resValue("bool", "DISABLE_TRACKING", "false")
         }
 
         pro {
-            applicationIdSuffix ".pro"
-            versionNameSuffix "-pro"
+            applicationIdSuffix = ".pro"
+            versionNameSuffix = "-pro"
 
             if (hasReleaseSigning) {
-                signingConfig signingConfigs.releasePro
+                signingConfig = signingConfigs.releasePro
             }
 
             resValue("bool", "DISABLE_TRACKING", "true")
@@ -117,8 +122,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled = true
+            shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.txt'
             ndk.debugSymbolLevel = "full"
         }
@@ -131,32 +136,34 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     externalNativeBuild {
         cmake {
-            version "3.22.0+"
-            path "CMakeLists.txt"
+            version = "3.22.0+"
+            path = "CMakeLists.txt"
         }
     }
     lint {
         // lint errors are build failures. NewApi in particular is the check that
         // would have caught the java.nio.file usage below minSdk that shipped for
         // years while this was switched off.
-        abortOnError true
+        abortOnError = true
 
         // warnings stay warnings for now - there is a backlog of them (unused
         // resources, typography, rtl) that is not worth blocking builds on
-        warningsAsErrors false
+        warningsAsErrors = false
 
         // consumed by github code scanning, so findings show up inline on PRs
-        sarifReport true
-        htmlReport true
+        sarifReport = true
+        htmlReport = true
     }
     buildFeatures {
         buildConfig = true
+        // AGP 9 makes resValue opt-in; the flavors use it for DISABLE_TRACKING
+        resValues = true
     }
     packaging {
         jniLibs {
@@ -167,36 +174,37 @@ android {
             // pickFirsts += ['**/libc++_shared.so']
         }
     }
-    namespace 'at.tomtasche.reader'
-    compileSdk 36
+    namespace = 'at.tomtasche.reader'
+    // ahead of targetSdk on purpose: compiling against newer APIs is independent of
+    // opting in to their runtime behavior. androidx.core 1.19.0 requires 37.
+    compileSdk = 37
 
     // TODO can and should this be architecture dependent?
     sourceSets.main.assets.srcDirs += "build/conan/armv8/assets"
 }
 
 dependencies {
-    implementation 'com.google.android.gms:play-services-ads:25.4.0'
-    implementation 'com.google.android.play:review:2.0.2'
-    implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
+    implementation libs.play.services.ads
+    implementation libs.play.review
+    implementation libs.user.messaging.platform
 
-    implementation 'androidx.appcompat:appcompat:1.7.1'
-    // core 1.19.0+ requires AGP 9.1+, bumped together with the toolchain
-    implementation 'androidx.core:core:1.18.0'
-    implementation 'com.google.android.material:material:1.14.0'
-    implementation 'androidx.webkit:webkit:1.16.0'
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.core
+    implementation libs.material
+    implementation libs.androidx.webkit
 
-    implementation 'com.viliussutkus89:assetextractor-android:1.3.3'
+    implementation libs.asset.extractor
 
-    testImplementation 'junit:junit:4.13.2'
+    testImplementation libs.junit
 
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
-    androidTestImplementation 'androidx.test:rules:1.7.0'
-    androidTestImplementation 'androidx.test:runner:1.7.0'
-    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.7.0'
+    androidTestImplementation libs.espresso.core
+    androidTestImplementation libs.espresso.intents
+    androidTestImplementation libs.androidx.test.rules
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.androidx.test.junit
     // espresso-idling-resource is used in main sourceSet as well. cannot be just androidTestImplementation
-    implementation 'androidx.test.espresso:espresso-idling-resource:3.7.0'
-    implementation 'androidx.annotation:annotation:1.10.0'
+    implementation libs.espresso.idling.resource
+    implementation libs.androidx.annotation
 }
 
 // Without removing .cxx dir on cleanup, double gradle clean is erroring out.
