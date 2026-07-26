@@ -10,7 +10,7 @@ class RawLoaderTest {
 
     @Before
     fun setUp() {
-        rawLoader = RawLoader(null)
+        rawLoader = RawLoader(null, CoreLoader(null, true))
     }
 
     private fun isSupported(fileType: String): Boolean {

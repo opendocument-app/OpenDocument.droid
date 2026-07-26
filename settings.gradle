@@ -6,6 +6,12 @@ pluginManagement {
     }
 }
 
+// odr-core-java (the java half of odrcore's JNI bindings) deliberately does not come
+// from a repository here: it is deployed out of the odrcore conan package that also
+// builds libodr_jni.so (see app/conandeployer.py). that keeps the two halves of one
+// ABI from drifting apart, and keeps the build resolvable without credentials - the
+// github packages copy needs authentication even though it is public, which no clean
+// source builder such as f-droid can supply.
 dependencyResolutionManagement {
     repositories {
         google()

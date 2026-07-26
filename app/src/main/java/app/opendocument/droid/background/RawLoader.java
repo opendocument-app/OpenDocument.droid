@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 public class RawLoader extends FileLoader {
 
@@ -40,10 +41,14 @@ public class RawLoader extends FileLoader {
         "text/rtf"
     };
 
-    private CoreWrapper lastCore;
+    // text files are rendered by the core and published on the http server that CoreLoader
+    // owns, so this loader needs the CoreLoader rather than a core of its own
+    private final CoreLoader coreLoader;
 
-    public RawLoader(Context context) {
+    public RawLoader(Context context, CoreLoader coreLoader) {
         super(context, LoaderType.RAW);
+
+        this.coreLoader = coreLoader;
     }
 
     @Override
@@ -159,30 +164,21 @@ public class RawLoader extends FileLoader {
                                 .appendQueryParameter("ext", extension)
                                 .build();
             } else if (fileType.startsWith("text/")) {
-                if (lastCore != null) {
-                    lastCore.close();
-                }
+                // the previous cache path used to be left unset, which reached the core as a
+                // null path; give the translation a directory of its own next to the file
+                File coreCacheDirectory = new File(cacheDirectory, "core_cache");
 
-                CoreWrapper core = new CoreWrapper();
-                try {
-                    lastCore = core;
-                } catch (Throwable e) {
-                    crashManager.log(e);
-                }
+                List<CoreLoader.HostedView> views =
+                        coreLoader.host(
+                                "raw-text",
+                                cacheFile.getPath(),
+                                coreCacheDirectory.getPath(),
+                                null,
+                                false,
+                                false,
+                                false);
 
-                CoreWrapper.CoreOptions coreOptions = new CoreWrapper.CoreOptions();
-                coreOptions.inputPath = cacheFile.getPath();
-                coreOptions.outputPath = cacheDirectory.getPath();
-                coreOptions.ooxml = false;
-                coreOptions.txt = true;
-                coreOptions.pdf = false;
-
-                CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("raw-text", coreOptions);
-                if (coreResult.exception != null) {
-                    throw coreResult.exception;
-                }
-
-                finalUri = Uri.parse(coreResult.pagePaths.get(0));
+                finalUri = Uri.parse(views.get(0).getUrl());
             } else if (fileType.startsWith("application/zip")) {
                 File htmlFile = new File(cacheDirectory, "zip.html");
                 InputStream htmlPrefixStream = context.getAssets().open("zip-prefix.html");

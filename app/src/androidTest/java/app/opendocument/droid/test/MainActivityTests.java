@@ -66,6 +66,11 @@ public class MainActivityTests {
     private IdlingResource m_idlingResource;
     private static final Map<String, File> s_testFiles = new ArrayMap<>();
 
+    // entering edit mode has to round-trip through the webview before the dom reports
+    // contenteditable, and on a cold CI emulator that regularly took longer than the 10s
+    // this used to wait for - the edit mode tests were the flakiest thing in the suite.
+    private static final long EDIT_MODE_TIMEOUT_MS = 30000;
+
     // Yes, this is ActivityTestRule instead of ActivityScenario, because ActivityScenario does not
     // actually work.
     // Issue ID may or may not be added later.
@@ -354,7 +359,7 @@ public class MainActivityTests {
         Assert.assertNotNull(pageView);
         Assert.assertTrue(
                 "ODT should become editable after entering edit mode",
-                waitForEditableState(pageView, true, 10000));
+                waitForEditableState(pageView, true, EDIT_MODE_TIMEOUT_MS));
     }
 
     @Test
@@ -370,7 +375,7 @@ public class MainActivityTests {
 
         Assert.assertTrue(
                 "DOCX should become editable after entering edit mode",
-                waitForEditableState(pageView, true, 10000));
+                waitForEditableState(pageView, true, EDIT_MODE_TIMEOUT_MS));
     }
 
     @Test

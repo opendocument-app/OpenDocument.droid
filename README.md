@@ -25,6 +25,10 @@ Please help to translate on the https://crowdin.com/project/opendocument
   changing $PATH.
 - `git submodule update --init --depth 1 conan-odr-index`
 - `python conan-odr-index/scripts/conan_export_all_packages.py`
+- the java half of odrcore's JNI bindings (`odr-core-java.jar`) needs no setup: it
+  ships inside the odrcore conan package that also builds `libodr_jni.so`, and the
+  conan deployer puts it in `app/build/conan/armv8/libs`. No credentials are
+  involved anywhere in the build.
 
 ## Release signing
 

@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.webkit.MimeTypeMap;
+import app.opendocument.core.Odr;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -108,7 +109,8 @@ public class MetadataLoader extends FileLoader {
 
             String mimetype = null;
             try {
-                mimetype = CoreWrapper.mimetype(cachedFile.getAbsolutePath());
+                // needs the libmagic database that CoreLoader.initializeCore() wires up
+                mimetype = Odr.mimetype(cachedFile.getAbsolutePath());
             } catch (Throwable e) {
                 crashManager.log(e);
             }
