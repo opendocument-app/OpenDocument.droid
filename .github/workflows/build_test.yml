@@ -228,8 +228,9 @@ jobs:
         emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
         disable-animations: true
         script: |
-          # Clear logcat before tests
-          adb logcat -c
+          # Clear logcat before tests. Fails with "failed to clear the 'main' log"
+          # on some system images (api 26 among them) and must not abort the run.
+          adb logcat -c || true
 
           # Run tests
           ./gradlew connectedCheck
