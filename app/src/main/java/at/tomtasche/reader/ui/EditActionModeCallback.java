@@ -1,22 +1,10 @@
 package at.tomtasche.reader.ui;
 
-import android.Manifest;
 import android.content.Context;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Environment;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
-
-import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-
 import androidx.appcompat.view.ActionMode;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.ui.activity.DocumentFragment;
@@ -52,7 +40,10 @@ public class EditActionModeCallback implements ActionMode.Callback {
         // reload document with translation enabled
         documentFragment.reloadUri(true);
 
-        imm.toggleSoftInputFromWindow(activity.getWindow().getDecorView().getRootView().getWindowToken(), InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+        imm.toggleSoftInputFromWindow(
+                activity.getWindow().getDecorView().getRootView().getWindowToken(),
+                InputMethodManager.SHOW_FORCED,
+                InputMethodManager.HIDE_IMPLICIT_ONLY);
 
         return true;
     }
@@ -61,12 +52,14 @@ public class EditActionModeCallback implements ActionMode.Callback {
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == R.id.edit_save) {
-            documentFragment.prepareSave(new Runnable() {
-                @Override
-                public void run() {
-                    activity.requestSave();
-                }
-            }, false);
+            documentFragment.prepareSave(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            activity.requestSave();
+                        }
+                    },
+                    false);
         } else {
             return false;
         }
@@ -76,7 +69,8 @@ public class EditActionModeCallback implements ActionMode.Callback {
 
     @Override
     public void onDestroyActionMode(ActionMode mode) {
-        imm.toggleSoftInputFromWindow(activity.getWindow().getDecorView().getRootView().getWindowToken(), 0, 0);
+        imm.toggleSoftInputFromWindow(
+                activity.getWindow().getDecorView().getRootView().getWindowToken(), 0, 0);
 
         documentFragment.reloadUri(false);
     }

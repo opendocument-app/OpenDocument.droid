@@ -1,7 +1,6 @@
 package at.tomtasche.reader.nonfree;
 
 import android.content.Context;
-
 import at.tomtasche.reader.BuildConfig;
 import at.tomtasche.reader.background.BillingPreferences;
 
@@ -13,7 +12,8 @@ public class BillingManager {
 
     private BillingPreferences billingPreferences;
 
-    public void initialize(Context context, AnalyticsManager analyticsManager, AdManager adManager) {
+    public void initialize(
+            Context context, AnalyticsManager analyticsManager, AdManager adManager) {
         this.adManager = adManager;
 
         billingPreferences = new BillingPreferences(context);

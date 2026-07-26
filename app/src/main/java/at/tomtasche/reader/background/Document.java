@@ -1,7 +1,6 @@
 package at.tomtasche.reader.background;
 
 import android.net.Uri;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;

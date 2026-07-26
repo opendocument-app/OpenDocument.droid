@@ -1,21 +1,20 @@
 /***
- Copyright (c) 2014 CommonsWare, LLC
- Licensed under the Apache License, Version 2.0 (the "License"); you may not
- use this file except in compliance with the License. You may obtain a copy
- of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required
- by applicable law or agreed to in writing, software distributed under the
- License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
- OF ANY KIND, either express or implied. See the License for the specific
- language governing permissions and limitations under the License.
-
- Covered in detail in the book _The Busy Coder's Guide to Android Development_
- https://commonsware.com/Android
+ * Copyright (c) 2014 CommonsWare, LLC
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy
+ * of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required
+ * by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * OF ANY KIND, either express or implied. See the License for the specific
+ * language governing permissions and limitations under the License.
+ *
+ * Covered in detail in the book _The Busy Coder's Guide to Android Development_
+ * https://commonsware.com/Android
  */
 
 package com.commonsware.android.print;
 
 import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.os.ParcelFileDescriptor;
@@ -23,7 +22,6 @@ import android.print.PageRange;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentInfo;
 import android.util.Log;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -31,8 +29,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-
-// taken from: https://github.com/commonsguy/cw-omnibus/blob/f2ffeb687d002f4a41b52a6ef5bb2580eb6a4ed6/Printing/PrintManager/app/src/main/java/com/commonsware/android/print/PdfDocumentAdapter.java
+// taken from:
+// https://github.com/commonsguy/cw-omnibus/blob/f2ffeb687d002f4a41b52a6ef5bb2580eb6a4ed6/Printing/PrintManager/app/src/main/java/com/commonsware/android/print/PdfDocumentAdapter.java
 public class PdfDocumentAdapter extends ThreadedPrintDocumentAdapter {
 
     private final String title;
@@ -46,34 +44,38 @@ public class PdfDocumentAdapter extends ThreadedPrintDocumentAdapter {
     }
 
     @Override
-    LayoutJob buildLayoutJob(PrintAttributes oldAttributes,
-                             PrintAttributes newAttributes,
-                             CancellationSignal cancellationSignal,
-                             LayoutResultCallback callback, Bundle extras) {
-        return (new PdfLayoutJob(oldAttributes, newAttributes,
-                cancellationSignal, callback, extras, title));
+    LayoutJob buildLayoutJob(
+            PrintAttributes oldAttributes,
+            PrintAttributes newAttributes,
+            CancellationSignal cancellationSignal,
+            LayoutResultCallback callback,
+            Bundle extras) {
+        return (new PdfLayoutJob(
+                oldAttributes, newAttributes, cancellationSignal, callback, extras, title));
     }
 
     @Override
-    WriteJob buildWriteJob(PageRange[] pages,
-                           ParcelFileDescriptor destination,
-                           CancellationSignal cancellationSignal,
-                           WriteResultCallback callback, Context ctxt) {
-        return (new PdfWriteJob(pages, destination, cancellationSignal,
-                callback, ctxt, file));
+    WriteJob buildWriteJob(
+            PageRange[] pages,
+            ParcelFileDescriptor destination,
+            CancellationSignal cancellationSignal,
+            WriteResultCallback callback,
+            Context ctxt) {
+        return (new PdfWriteJob(pages, destination, cancellationSignal, callback, ctxt, file));
     }
 
     private static class PdfLayoutJob extends LayoutJob {
 
         private final String title;
 
-        PdfLayoutJob(PrintAttributes oldAttributes,
-                     PrintAttributes newAttributes,
-                     CancellationSignal cancellationSignal,
-                     LayoutResultCallback callback, Bundle extras,
-                     String title) {
-            super(oldAttributes, newAttributes, cancellationSignal, callback,
-                    extras);
+        PdfLayoutJob(
+                PrintAttributes oldAttributes,
+                PrintAttributes newAttributes,
+                CancellationSignal cancellationSignal,
+                LayoutResultCallback callback,
+                Bundle extras,
+                String title) {
+            super(oldAttributes, newAttributes, cancellationSignal, callback, extras);
             this.title = title;
         }
 
@@ -82,15 +84,13 @@ public class PdfDocumentAdapter extends ThreadedPrintDocumentAdapter {
             if (cancellationSignal.isCanceled()) {
                 callback.onLayoutCancelled();
             } else {
-                PrintDocumentInfo.Builder builder =
-                        new PrintDocumentInfo.Builder(title);
+                PrintDocumentInfo.Builder builder = new PrintDocumentInfo.Builder(title);
 
                 builder.setContentType(PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
                         .setPageCount(PrintDocumentInfo.PAGE_COUNT_UNKNOWN)
                         .build();
 
-                callback.onLayoutFinished(builder.build(),
-                        !newAttributes.equals(oldAttributes));
+                callback.onLayoutFinished(builder.build(), !newAttributes.equals(oldAttributes));
             }
         }
     }
@@ -99,10 +99,13 @@ public class PdfDocumentAdapter extends ThreadedPrintDocumentAdapter {
 
         private final File file;
 
-        PdfWriteJob(PageRange[] pages, ParcelFileDescriptor destination,
-                    CancellationSignal cancellationSignal,
-                    WriteResultCallback callback, Context ctxt,
-                    File file) {
+        PdfWriteJob(
+                PageRange[] pages,
+                ParcelFileDescriptor destination,
+                CancellationSignal cancellationSignal,
+                WriteResultCallback callback,
+                Context ctxt,
+                File file) {
             super(pages, destination, cancellationSignal, callback, ctxt);
             this.file = file;
         }
@@ -119,15 +122,14 @@ public class PdfDocumentAdapter extends ThreadedPrintDocumentAdapter {
                 byte[] buf = new byte[16384];
                 int size;
 
-                while ((size = in.read(buf)) >= 0
-                        && !cancellationSignal.isCanceled()) {
+                while ((size = in.read(buf)) >= 0 && !cancellationSignal.isCanceled()) {
                     out.write(buf, 0, size);
                 }
 
                 if (cancellationSignal.isCanceled()) {
                     callback.onWriteCancelled();
                 } else {
-                    callback.onWriteFinished(new PageRange[]{PageRange.ALL_PAGES});
+                    callback.onWriteFinished(new PageRange[] {PageRange.ALL_PAGES});
                 }
             } catch (Exception e) {
                 callback.onWriteFailed(e.getMessage());
@@ -137,8 +139,7 @@ public class PdfDocumentAdapter extends ThreadedPrintDocumentAdapter {
                     in.close();
                     out.close();
                 } catch (IOException e) {
-                    Log.e(getClass().getSimpleName(),
-                            "Exception cleaning up from printing PDF", e);
+                    Log.e(getClass().getSimpleName(), "Exception cleaning up from printing PDF", e);
                 }
             }
         }

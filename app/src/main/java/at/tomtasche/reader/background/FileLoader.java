@@ -5,14 +5,12 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
-
+import at.tomtasche.reader.nonfree.AnalyticsConstants;
+import at.tomtasche.reader.nonfree.AnalyticsManager;
+import at.tomtasche.reader.nonfree.CrashManager;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
-
-import at.tomtasche.reader.nonfree.AnalyticsManager;
-import at.tomtasche.reader.nonfree.AnalyticsConstants;
-import at.tomtasche.reader.nonfree.CrashManager;
 
 public abstract class FileLoader {
 
@@ -42,7 +40,12 @@ public abstract class FileLoader {
         this.type = type;
     }
 
-    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager, CrashManager crashManager) {
+    public void initialize(
+            FileLoaderListener listener,
+            Handler mainHandler,
+            Handler backgroundHandler,
+            AnalyticsManager analyticsManager,
+            CrashManager crashManager) {
         this.listener = listener;
         this.mainHandler = mainHandler;
         this.backgroundHandler = backgroundHandler;
@@ -61,14 +64,15 @@ public abstract class FileLoader {
 
         loading = true;
 
-        backgroundHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                loadSync(options);
+        backgroundHandler.post(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        loadSync(options);
 
-                loading = false;
-            }
-        });
+                        loading = false;
+                    }
+                });
     }
 
     abstract void loadSync(Options options);
@@ -82,59 +86,73 @@ public abstract class FileLoader {
     }
 
     void callOnSuccess(Result result) {
-        mainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                analyticsManager.report("loader_success_" + type, AnalyticsConstants.PARAM_CONTENT_TYPE, result.options.fileType, AnalyticsConstants.PARAM_CONTENT, result.options.fileExtension);
+        mainHandler.post(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        analyticsManager.report(
+                                "loader_success_" + type,
+                                AnalyticsConstants.PARAM_CONTENT_TYPE,
+                                result.options.fileType,
+                                AnalyticsConstants.PARAM_CONTENT,
+                                result.options.fileExtension);
 
-                FileLoaderListener strongReferenceListener = listener;
-                if (strongReferenceListener != null) {
-                    listener.onSuccess(result);
-                }
-            }
-        });
+                        FileLoaderListener strongReferenceListener = listener;
+                        if (strongReferenceListener != null) {
+                            listener.onSuccess(result);
+                        }
+                    }
+                });
     }
 
     void callOnError(Result result, Throwable t) {
         crashManager.log(result.loaderType.name() + " failed");
         crashManager.log(t);
 
-        mainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                analyticsManager.report("loader_error_" + type, AnalyticsConstants.PARAM_CONTENT_TYPE, result.options.fileType, AnalyticsConstants.PARAM_CONTENT, result.options.fileExtension);
+        mainHandler.post(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        analyticsManager.report(
+                                "loader_error_" + type,
+                                AnalyticsConstants.PARAM_CONTENT_TYPE,
+                                result.options.fileType,
+                                AnalyticsConstants.PARAM_CONTENT,
+                                result.options.fileExtension);
 
-                FileLoaderListener strongReferenceListener = listener;
-                if (strongReferenceListener != null) {
-                    listener.onError(result, t);
-                }
-            }
-        });
+                        FileLoaderListener strongReferenceListener = listener;
+                        if (strongReferenceListener != null) {
+                            listener.onError(result, t);
+                        }
+                    }
+                });
     }
 
     public void close() {
-        backgroundHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                initialized = false;
-                listener = null;
-                context = null;
-            }
-        });
+        backgroundHandler.post(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        initialized = false;
+                        listener = null;
+                        context = null;
+                    }
+                });
     }
 
     public static class Options implements Parcelable {
 
-        public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public static final Parcelable.Creator CREATOR =
+                new Parcelable.Creator() {
 
-            public Options createFromParcel(Parcel in) {
-                return new Options(in);
-            }
+                    public Options createFromParcel(Parcel in) {
+                        return new Options(in);
+                    }
 
-            public Options[] newArray(int size) {
-                return new Options[size];
-            }
-        };
+                    public Options[] newArray(int size) {
+                        return new Options[size];
+                    }
+                };
 
         public Uri originalUri;
         public Uri cacheUri;
@@ -150,8 +168,7 @@ public abstract class FileLoader {
         public boolean limit;
         public boolean translatable;
 
-        public Options() {
-        }
+        public Options() {}
 
         public Options(Parcel parcel) {
             originalUri = parcel.readParcelable(null);
@@ -188,16 +205,17 @@ public abstract class FileLoader {
 
     public static class Result implements Parcelable {
 
-        public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public static final Parcelable.Creator CREATOR =
+                new Parcelable.Creator() {
 
-            public Result createFromParcel(Parcel in) {
-                return new Result(in);
-            }
+                    public Result createFromParcel(Parcel in) {
+                        return new Result(in);
+                    }
 
-            public Result[] newArray(int size) {
-                return new Result[size];
-            }
-        };
+                    public Result[] newArray(int size) {
+                        return new Result[size];
+                    }
+                };
 
         public LoaderType loaderType;
         public Options options;
@@ -205,8 +223,7 @@ public abstract class FileLoader {
         public List<String> partTitles = new LinkedList<>();
         public List<Uri> partUris = new LinkedList<>();
 
-        public Result() {
-        }
+        public Result() {}
 
         public Result(Parcel parcel) {
             loaderType = LoaderType.valueOf(parcel.readString());
@@ -237,6 +254,5 @@ public abstract class FileLoader {
     }
 
     @SuppressWarnings("serial")
-    public static class EncryptedDocumentException extends Exception {
-    }
+    public static class EncryptedDocumentException extends Exception {}
 }

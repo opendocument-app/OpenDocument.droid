@@ -1,16 +1,13 @@
 package at.tomtasche.reader.background;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class MimeTypeResolverTest {
 
-    /**
-     * Stands in for MimeTypeMap, which is not available on the JVM.
-     */
+    /** Stands in for MimeTypeMap, which is not available on the JVM. */
     private static class FakeLookup implements MimeTypeResolver.ExtensionLookup {
 
         private final Map<String, String> mimeToExtension = new HashMap<>();
@@ -80,8 +77,7 @@ public class MimeTypeResolverTest {
     public void mimeTypeIsLookedUpFromExtensionWhenUndetected() {
         // regression: this branch was unreachable, because it tested the loader type
         // instead of the mime type
-        MimeTypeResolver.Resolution resolution =
-                MimeTypeResolver.resolve(null, "odt", lookup());
+        MimeTypeResolver.Resolution resolution = MimeTypeResolver.resolve(null, "odt", lookup());
 
         Assert.assertEquals("application/vnd.oasis.opendocument.text", resolution.mimeType);
         Assert.assertEquals("odt", resolution.extension);
@@ -89,8 +85,7 @@ public class MimeTypeResolverTest {
 
     @Test
     public void resolvesToNothingWhenNeitherIsKnown() {
-        MimeTypeResolver.Resolution resolution =
-                MimeTypeResolver.resolve(null, "xyz", lookup());
+        MimeTypeResolver.Resolution resolution = MimeTypeResolver.resolve(null, "xyz", lookup());
 
         Assert.assertNull(resolution.mimeType);
         Assert.assertEquals("xyz", resolution.extension);
@@ -98,8 +93,7 @@ public class MimeTypeResolverTest {
 
     @Test
     public void toleratesMissingExtension() {
-        MimeTypeResolver.Resolution resolution =
-                MimeTypeResolver.resolve(null, null, lookup());
+        MimeTypeResolver.Resolution resolution = MimeTypeResolver.resolve(null, null, lookup());
 
         Assert.assertNull(resolution.mimeType);
         Assert.assertNull(resolution.extension);

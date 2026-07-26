@@ -15,16 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
-
-import com.google.android.play.core.review.ReviewInfo;
-import com.google.android.play.core.review.ReviewManager;
-import com.google.android.play.core.review.ReviewManagerFactory;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.List;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -46,8 +36,16 @@ import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.widget.PageView;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
+import com.google.android.play.core.review.ReviewInfo;
+import com.google.android.play.core.review.ReviewManager;
+import com.google.android.play.core.review.ReviewManagerFactory;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.List;
 
-public class DocumentFragment extends Fragment implements LoaderService.LoaderListener, ActionBar.TabListener, MenuProvider {
+public class DocumentFragment extends Fragment
+        implements LoaderService.LoaderListener, ActionBar.TabListener, MenuProvider {
 
     private static final String SAVED_KEY_LAST_RESULT = "LAST_RESULT";
     private static final String SAVED_KEY_CURRENT_HTML_DIFF = "CURRENT_HTML_DIFF";
@@ -81,9 +79,11 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
     private LoaderServiceQueue serviceQueue;
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    @Nullable @Override
+    public View onCreateView(
+            @NonNull LayoutInflater inflater,
+            @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         this.container = container;
 
         getActivity().addMenuProvider(this, getActivity());
@@ -99,16 +99,24 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         }
 
         try {
-            ViewGroup inflatedView = (ViewGroup) getLayoutInflater().inflate(R.layout.fragment_document, container, true);
+            ViewGroup inflatedView =
+                    (ViewGroup)
+                            getLayoutInflater()
+                                    .inflate(R.layout.fragment_document, container, true);
             pageView = inflatedView.findViewById(R.id.page_view);
 
             pageView.setDocumentFragment(this);
         } catch (Throwable t) {
             // can't call crashlytics yet at this point (onActivityCreated not called)
 
-            String errorString = "Please install \"Android System WebView\" and restart the app afterwards.";
+            String errorString =
+                    "Please install \"Android System WebView\" and restart the app afterwards.";
 
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.webview"));
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse(
+                                    "https://play.google.com/store/apps/details?id=com.google.android.webview"));
             startActivity(intent);
 
             Toast.makeText(getContext(), errorString, Toast.LENGTH_LONG).show();
@@ -128,12 +136,13 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         crashManager = mainActivity.getCrashManager();
 
         serviceQueue = mainActivity.getLoaderServiceQueue();
-        serviceQueue.addToQueue(new LoaderServiceQueue.QueueEntry() {
-            @Override
-            public void onService(LoaderService service) {
-                service.setListener(DocumentFragment.this);
-            }
-        });
+        serviceQueue.addToQueue(
+                new LoaderServiceQueue.QueueEntry() {
+                    @Override
+                    public void onService(LoaderService service) {
+                        service.setListener(DocumentFragment.this);
+                    }
+                });
 
         crashManager.log("onActivityCreated");
 
@@ -154,8 +163,10 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             pageView.restoreState(savedInstanceState);
         }
 
-        // the app is designed to work fine without this setting, however, it is enabled for performance reasons
-        // (avoids redundant reloads of documents) and usability (edits are not lost on orientation change)
+        // the app is designed to work fine without this setting, however, it is enabled for
+        // performance reasons
+        // (avoids redundant reloads of documents) and usability (edits are not lost on orientation
+        // change)
         setRetainInstance(true);
     }
 
@@ -227,12 +238,13 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
     private void loadWithType(FileLoader.LoaderType loaderType, FileLoader.Options options) {
         prepareLoad(loaderType, true);
 
-        serviceQueue.addToQueue(new LoaderServiceQueue.QueueEntry() {
-            @Override
-            public void onService(LoaderService service) {
-                service.loadWithType(loaderType, options);
-            }
-        });
+        serviceQueue.addToQueue(
+                new LoaderServiceQueue.QueueEntry() {
+                    @Override
+                    public void onService(LoaderService service) {
+                        service.loadWithType(loaderType, options);
+                    }
+                });
     }
 
     public void loadUri(Uri uri, boolean persistentUri) {
@@ -265,15 +277,16 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             callback.run();
         }
 
-        pageView.requestHtml(new PageView.HtmlCallback() {
+        pageView.requestHtml(
+                new PageView.HtmlCallback() {
 
-            @Override
-            public void onHtml(String htmlDiff) {
-                currentHtmlDiff = htmlDiff;
+                    @Override
+                    public void onHtml(String htmlDiff) {
+                        currentHtmlDiff = htmlDiff;
 
-                callback.run();
-            }
-        });
+                        callback.run();
+                    }
+                });
     }
 
     public void save(Uri outFile) {
@@ -283,12 +296,13 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             return;
         }
 
-        serviceQueue.addToQueue(new LoaderServiceQueue.QueueEntry() {
-            @Override
-            public void onService(LoaderService service) {
-                service.saveAsync(lastResult, outFile, currentHtmlDiff);
-            }
-        });
+        serviceQueue.addToQueue(
+                new LoaderServiceQueue.QueueEntry() {
+                    @Override
+                    public void onService(LoaderService service) {
+                        service.saveAsync(lastResult, outFile, currentHtmlDiff);
+                    }
+                });
     }
 
     private void unload() {
@@ -315,12 +329,13 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             }
 
             // menu is not set when loadUri is called via onStart, retry later
-            pageView.post(new Runnable() {
-                @Override
-                public void run() {
-                    toggleDocumentMenu(enabled, editEnabled);
-                }
-            });
+            pageView.post(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            toggleDocumentMenu(enabled, editEnabled);
+                        }
+                    });
 
             return;
         }
@@ -340,7 +355,8 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
             // Edit is currently broken for ODS spreadsheets
             // See: https://github.com/opendocument-app/OpenDocument.droid/issues/442
-            if (fileType != null && fileType.startsWith("application/vnd.oasis.opendocument.spreadsheet")) {
+            if (fileType != null
+                    && fileType.startsWith("application/vnd.oasis.opendocument.spreadsheet")) {
                 isEditEnabled = false;
             }
 
@@ -360,19 +376,22 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
         ReviewManager manager = ReviewManagerFactory.create(activity);
         com.google.android.gms.tasks.Task<ReviewInfo> request = manager.requestReviewFlow();
-        request.addOnCompleteListener(reviewInfoTask -> {
-            if (reviewInfoTask.isSuccessful()) {
-                analyticsManager.report("in_app_review_start");
+        request.addOnCompleteListener(
+                reviewInfoTask -> {
+                    if (reviewInfoTask.isSuccessful()) {
+                        analyticsManager.report("in_app_review_start");
 
-                ReviewInfo reviewInfo = reviewInfoTask.getResult();
-                com.google.android.gms.tasks.Task<Void> flow = manager.launchReviewFlow(activity, reviewInfo);
-                flow.addOnCompleteListener(reviewTask -> {
-                    analyticsManager.report("in_app_review_done");
+                        ReviewInfo reviewInfo = reviewInfoTask.getResult();
+                        com.google.android.gms.tasks.Task<Void> flow =
+                                manager.launchReviewFlow(activity, reviewInfo);
+                        flow.addOnCompleteListener(
+                                reviewTask -> {
+                                    analyticsManager.report("in_app_review_done");
+                                });
+                    } else {
+                        analyticsManager.report("in_app_review_error");
+                    }
                 });
-            } else {
-                analyticsManager.report("in_app_review_error");
-            }
-        });
     }
 
     private boolean isActivityReadyForResult(FileLoader.Result result) {
@@ -407,7 +426,8 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         Activity activity = getActivity();
         FileLoader.Options options = result.options;
 
-        analyticsManager.setCurrentScreen(activity, result.loaderType.toString() + "_" + options.fileType);
+        analyticsManager.setCurrentScreen(
+                activity, result.loaderType.toString() + "_" + options.fileType);
 
         resetTabs();
 
@@ -419,8 +439,7 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             for (int i = 0; i < pages; i++) {
                 ActionBar.Tab tab = bar.newTab();
                 String name = titles.get(i);
-                if (name == null)
-                    name = "Page " + (i + 1);
+                if (name == null) name = "Page " + (i + 1);
                 tab.setText(name);
                 tab.setTabListener(this);
 
@@ -436,7 +455,8 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
             }
         }
 
-        if (result.loaderType == FileLoader.LoaderType.RAW || result.loaderType == FileLoader.LoaderType.ONLINE) {
+        if (result.loaderType == FileLoader.LoaderType.RAW
+                || result.loaderType == FileLoader.LoaderType.ONLINE) {
             offerReopen(activity, options, R.string.toast_hint_unsupported_file, false);
         }
 
@@ -446,14 +466,16 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         if (isPro) {
             requestInAppRating(activity);
         } else {
-            configManager.getBooleanConfig("show_in_app_rating", new ConfigManager.ConfigListener<Boolean>() {
-                @Override
-                public void onConfig(String key, Boolean showInAppRating) {
-                    if (showInAppRating != null && showInAppRating) {
-                        requestInAppRating(activity);
-                    }
-                }
-            });
+            configManager.getBooleanConfig(
+                    "show_in_app_rating",
+                    new ConfigManager.ConfigListener<Boolean>() {
+                        @Override
+                        public void onConfig(String key, Boolean showInAppRating) {
+                            if (showInAppRating != null && showInAppRating) {
+                                requestInAppRating(activity);
+                            }
+                        }
+                    });
         }
     }
 
@@ -501,7 +523,8 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         builder.setView(input);
 
-        builder.setPositiveButton(getString(android.R.string.ok),
+        builder.setPositiveButton(
+                getString(android.R.string.ok),
                 (dialog, whichButton) -> {
                     options.password = input.getText().toString();
 
@@ -511,7 +534,8 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
                     if (result.loaderType == FileLoader.LoaderType.CORE) {
                         loadWithType(FileLoader.LoaderType.CORE, options);
                     } else {
-                        throw new RuntimeException("encryption not supported for type: " + result.loaderType);
+                        throw new RuntimeException(
+                                "encryption not supported for type: " + result.loaderType);
                     }
                 });
         builder.setNegativeButton(getString(android.R.string.cancel), null);
@@ -560,50 +584,73 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
     private void offerUpload(Activity activity, FileLoader.Options options) {
         String fileType = options.fileType;
 
-        analyticsManager.report("upload_offer_invasive", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType, AnalyticsConstants.PARAM_CONTENT, options.originalUri);
+        analyticsManager.report(
+                "upload_offer_invasive",
+                AnalyticsConstants.PARAM_CONTENT_TYPE,
+                fileType,
+                AnalyticsConstants.PARAM_CONTENT,
+                options.originalUri);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setTitle(R.string.toast_error_illegal_file);
         builder.setMessage(R.string.dialog_upload_file);
 
-        builder.setPositiveButton(getString(R.string.action_upload),
+        builder.setPositiveButton(
+                getString(R.string.action_upload),
                 new DialogInterface.OnClickListener() {
 
                     @Override
-                    public void onClick(DialogInterface dialog,
-                                        int whichButton) {
-                        analyticsManager.report("load_upload", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType);
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        analyticsManager.report(
+                                "load_upload", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType);
 
                         loadWithType(FileLoader.LoaderType.ONLINE, options);
 
                         dialog.dismiss();
                     }
                 });
-        builder.setNegativeButton(getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int i) {
-                analyticsManager.report("load_upload_cancel", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType);
+        builder.setNegativeButton(
+                getString(android.R.string.cancel),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int i) {
+                        analyticsManager.report(
+                                "load_upload_cancel",
+                                AnalyticsConstants.PARAM_CONTENT_TYPE,
+                                fileType);
 
-                offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true);
+                        offerReopen(
+                                activity, options, R.string.toast_error_illegal_file_reopen, true);
 
-                dialog.dismiss();
-            }
-        });
+                        dialog.dismiss();
+                    }
+                });
 
         builder.show();
     }
 
-    private void offerReopen(Activity activity, FileLoader.Options options, int description, boolean isIndefinite) {
+    private void offerReopen(
+            Activity activity, FileLoader.Options options, int description, boolean isIndefinite) {
         String fileType = options.fileType;
 
-        analyticsManager.report("reopen_offer", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType, AnalyticsConstants.PARAM_CONTENT, options.originalUri);
+        analyticsManager.report(
+                "reopen_offer",
+                AnalyticsConstants.PARAM_CONTENT_TYPE,
+                fileType,
+                AnalyticsConstants.PARAM_CONTENT,
+                options.originalUri);
 
-        SnackbarHelper.show(activity, description, new Runnable() {
-            @Override
-            public void run() {
-                doReopen(options, activity, true, false);
-            }
-        }, isIndefinite, false);
+        SnackbarHelper.show(
+                activity,
+                description,
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        doReopen(options, activity, true, false);
+                    }
+                },
+                isIndefinite,
+                false);
     }
 
     public void openWith(Activity activity) {
@@ -614,7 +661,8 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         doReopen(lastResult.options, activity, true, true);
     }
 
-    private void doReopen(FileLoader.Options options, Activity activity, boolean grantPermission, boolean share) {
+    private void doReopen(
+            FileLoader.Options options, Activity activity, boolean grantPermission, boolean share) {
         Uri reopenUri;
         Uri cacheUri = options.cacheUri;
         String fileType = options.fileType;
@@ -659,16 +707,19 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
         String logPrefix = share ? "share" : "reopen";
 
-        Intent chooserIntent = Intent.createChooser(intent, activity.getString(R.string.reopen_chooser_title));
+        Intent chooserIntent =
+                Intent.createChooser(intent, activity.getString(R.string.reopen_chooser_title));
 
         try {
             activity.startActivity(chooserIntent);
 
-            analyticsManager.report(logPrefix + "_success", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType);
+            analyticsManager.report(
+                    logPrefix + "_success", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType);
         } catch (Throwable e) {
             crashManager.log(e);
 
-            analyticsManager.report(logPrefix + "_failed", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType);
+            analyticsManager.report(
+                    logPrefix + "_failed", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType);
 
             if (grantPermission) {
                 // if we're trying to reopen the originalUri, the provider might decline the request
@@ -679,8 +730,10 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
     private void showProgress(boolean isUpload) {
         if (progressDialog == null && getFragmentManager() != null) {
-            progressDialog = (ProgressDialogFragment) getFragmentManager()
-                    .findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
+            progressDialog =
+                    (ProgressDialogFragment)
+                            getFragmentManager()
+                                    .findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
         }
 
         if (progressDialog != null) {
@@ -710,8 +763,10 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
 
     private void dismissProgress() {
         if (progressDialog == null && getFragmentManager() != null) {
-            progressDialog = (ProgressDialogFragment) getFragmentManager()
-                    .findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
+            progressDialog =
+                    (ProgressDialogFragment)
+                            getFragmentManager()
+                                    .findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
         }
 
         if (progressDialog != null) {
@@ -731,13 +786,16 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
         if (lastResult.options.translatable) {
             if (lastSelectedTab >= 0) {
                 // I think there was an issue switching tab inside of onTabSelected()
-                mainHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        ActionBar bar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-                        bar.setSelectedNavigationItem(lastSelectedTab);
-                    }
-                }, 1);
+                mainHandler.postDelayed(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                ActionBar bar =
+                                        ((AppCompatActivity) getActivity()).getSupportActionBar();
+                                bar.setSelectedNavigationItem(lastSelectedTab);
+                            }
+                        },
+                        1);
 
                 return;
             }
@@ -750,12 +808,10 @@ public class DocumentFragment extends Fragment implements LoaderService.LoaderLi
     }
 
     @Override
-    public void onTabUnselected(ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {
-    }
+    public void onTabUnselected(ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {}
 
     @Override
-    public void onTabReselected(ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {
-    }
+    public void onTabReselected(ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {}
 
     private void loadData(String url) {
         pageView.loadUrl(url);

@@ -2,15 +2,13 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.net.Uri;
-
+import androidx.core.content.FileProvider;
 import java.io.File;
 import java.util.Arrays;
 
-import androidx.core.content.FileProvider;
-
 public class AndroidFileCache {
 
-    private final static String CACHE_DIRECTORY_PREFIX = "cache.";
+    private static final String CACHE_DIRECTORY_PREFIX = "cache.";
 
     private static String providerAuthority;
 
@@ -49,7 +47,8 @@ public class AndroidFileCache {
     }
 
     public static boolean isCached(Context context, Uri uri) {
-        return uri.getHost().equals(getProviderAuthority(context)) && uri.toString().contains(CACHE_DIRECTORY_PREFIX);
+        return uri.getHost().equals(getProviderAuthority(context))
+                && uri.toString().contains(CACHE_DIRECTORY_PREFIX);
     }
 
     public static File getCacheFile(Context context, Uri uri) {
@@ -64,7 +63,8 @@ public class AndroidFileCache {
 
     public static File createCacheFile(Context context) {
         File cacheRoot = getRootCacheDirectory(context);
-        File cacheDirectory = new File(cacheRoot, CACHE_DIRECTORY_PREFIX + System.currentTimeMillis());
+        File cacheDirectory =
+                new File(cacheRoot, CACHE_DIRECTORY_PREFIX + System.currentTimeMillis());
 
         cacheDirectory.mkdirs();
 
@@ -73,9 +73,11 @@ public class AndroidFileCache {
 
     public static void cleanup(Context context) {
         File cache = getRootCacheDirectory(context);
-        String[] directories = cache.list((file, s) -> {
-            return s.startsWith(CACHE_DIRECTORY_PREFIX);
-        });
+        String[] directories =
+                cache.list(
+                        (file, s) -> {
+                            return s.startsWith(CACHE_DIRECTORY_PREFIX);
+                        });
 
         if (directories == null) {
             return;

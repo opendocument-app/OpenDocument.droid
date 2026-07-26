@@ -1,4 +1,31 @@
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.conan.android) apply false
+    alias(libs.plugins.spotless)
+}
+
+// Formatting is google-java-format in its AOSP flavor: 4 space indents and a 100
+// column limit, which is what this codebase already broadly follows. Run
+// ./gradlew spotlessApply to fix, ./gradlew spotlessCheck to verify (CI does).
+spotless {
+    java {
+        target 'app/src/*/java/**/*.java'
+
+        googleJavaFormat(libs.versions.googleJavaFormat.get()).aosp().reflowLongStrings()
+        removeUnusedImports()
+        formatAnnotations()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+
+    format 'misc', {
+        // deliberately explicit: a '**/*.yml' style glob also matches cmake and
+        // conan output under build/ and .cxx/
+        target '*.gradle', 'app/*.gradle', 'gradle/*.toml', '*.md', '.gitignore',
+                '.github/**/*.yml', 'crowdin.yml', '_config.yml', '*.sh'
+        targetExclude '**/build/**', '**/.cxx/**', 'conan-odr-index/**'
+
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }

@@ -1,0 +1,39 @@
+name: format
+
+# Spotless also formats markdown and the workflow files themselves, and build_test
+# skips those paths to avoid a full native build for a doc change. So the format
+# check runs here instead, without paths-ignore: every file spotless targets gets
+# checked. spotlessCheck only needs java and the android sdk - no ndk, no conan.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  spotless:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+
+    - name: setup java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: 21
+
+    - name: Gradle cache
+      uses: gradle/actions/setup-gradle@v4
+
+    - name: spotless
+      run: ./gradlew spotlessCheck --stacktrace

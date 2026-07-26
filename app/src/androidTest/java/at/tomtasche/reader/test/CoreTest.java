@@ -2,11 +2,15 @@ package at.tomtasche.reader.test;
 
 import android.content.Context;
 import android.content.res.AssetManager;
-
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
-
+import at.tomtasche.reader.background.CoreWrapper;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -14,14 +18,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import at.tomtasche.reader.background.CoreWrapper;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
@@ -45,13 +41,15 @@ public class CoreTest {
         CoreWrapper.createServer(serverCacheDir.getAbsolutePath());
 
         // Start server in background thread
-        serverThread = new Thread(() -> {
-            try {
-                CoreWrapper.listenServer(29665);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+        serverThread =
+                new Thread(
+                        () -> {
+                            try {
+                                CoreWrapper.listenServer(29665);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        });
         serverThread.setDaemon(true);
         serverThread.start();
 
@@ -124,7 +122,8 @@ public class CoreTest {
 
     @Test
     public void test() {
-        File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
+        File cacheDir =
+                InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
         File outputPath = new File(cacheDir, "core_output");
         File cachePath = new File(cacheDir, "core_cache");
 
@@ -140,7 +139,10 @@ public class CoreTest {
         File resultFile = new File(cacheDir, "result");
         coreOptions.outputPath = resultFile.getPath();
 
-        String htmlDiff = "{\"modifiedText\":{\"/child:1/child:0\":\"This is a simple testoooo document to demonstrate the DocumentLoader example!\",\"/child:3/child:0\":\"This is a simple testaaaa document to demonstrate the DocumentLoader example!\"}}";
+        String htmlDiff =
+                "{\"modifiedText\":{\"/child:1/child:0\":\"This is a simple testoooo document to"
+                    + " demonstrate the DocumentLoader example!\",\"/child:3/child:0\":\"This is a"
+                    + " simple testaaaa document to demonstrate the DocumentLoader example!\"}}";
 
         CoreWrapper.CoreResult result = CoreWrapper.backtranslate(coreOptions, htmlDiff);
         Assert.assertEquals(0, result.errorCode);
@@ -148,7 +150,8 @@ public class CoreTest {
 
     @Test
     public void testDocxEdit() {
-        File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
+        File cacheDir =
+                InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
         File outputPath = new File(cacheDir, "core_output_docx");
         File cachePath = new File(cacheDir, "core_cache");
 
@@ -164,7 +167,9 @@ public class CoreTest {
         File resultFile = new File(cacheDir, "result_docx");
         coreOptions.outputPath = resultFile.getPath();
 
-        String htmlDiff = "{\"modifiedText\":{\"/child:16/child:0/child:0\":\"Outasdfsdafdline\",\"/child:24/child:0/child:0\":\"Colorasdfasdfasdfed Line\",\"/child:6/child:0/child:0\":\"Text hello world!\"}}";
+        String htmlDiff =
+                "{\"modifiedText\":{\"/child:16/child:0/child:0\":\"Outasdfsdafdline\",\"/child:24/child:0/child:0\":\"Colorasdfasdfasdfed"
+                    + " Line\",\"/child:6/child:0/child:0\":\"Text hello world!\"}}";
 
         CoreWrapper.CoreResult result = CoreWrapper.backtranslate(coreOptions, htmlDiff);
         Assert.assertEquals(0, result.errorCode);
@@ -172,7 +177,8 @@ public class CoreTest {
 
     @Test
     public void testPasswordProtectedDocumentWithoutPassword() {
-        File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
+        File cacheDir =
+                InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
         File outputDir = new File(cacheDir, "output_password_test");
         File cachePath = new File(cacheDir, "core_cache");
 
@@ -182,13 +188,15 @@ public class CoreTest {
         coreOptions.editable = false;
         coreOptions.cachePath = cachePath.getPath();
 
-        CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("password-test-no-pw", coreOptions);
+        CoreWrapper.CoreResult coreResult =
+                CoreWrapper.hostFile("password-test-no-pw", coreOptions);
         Assert.assertEquals(-2, coreResult.errorCode);
     }
 
     @Test
     public void testPasswordProtectedDocumentWithWrongPassword() {
-        File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
+        File cacheDir =
+                InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
         File outputDir = new File(cacheDir, "output_password_test");
         File cachePath = new File(cacheDir, "core_cache");
 
@@ -199,13 +207,15 @@ public class CoreTest {
         coreOptions.editable = false;
         coreOptions.cachePath = cachePath.getPath();
 
-        CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("password-test-wrong-pw", coreOptions);
+        CoreWrapper.CoreResult coreResult =
+                CoreWrapper.hostFile("password-test-wrong-pw", coreOptions);
         Assert.assertEquals(-2, coreResult.errorCode);
     }
 
     @Test
     public void testPasswordProtectedDocumentWithCorrectPassword() {
-        File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
+        File cacheDir =
+                InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
         File outputDir = new File(cacheDir, "output_password_test");
         File cachePath = new File(cacheDir, "core_cache");
 
@@ -216,13 +226,15 @@ public class CoreTest {
         coreOptions.editable = false;
         coreOptions.cachePath = cachePath.getPath();
 
-        CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("password-test-correct-pw", coreOptions);
+        CoreWrapper.CoreResult coreResult =
+                CoreWrapper.hostFile("password-test-correct-pw", coreOptions);
         Assert.assertEquals(0, coreResult.errorCode);
     }
 
     @Test
     public void testSpreadsheetSheetNames() {
-        File cacheDir = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
+        File cacheDir =
+                InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
         File outputPath = new File(cacheDir, "spreadsheet_output");
         File cachePath = new File(cacheDir, "spreadsheet_cache");
 
@@ -233,14 +245,17 @@ public class CoreTest {
         coreOptions.cachePath = cachePath.getPath();
 
         CoreWrapper.CoreResult coreResult = CoreWrapper.hostFile("spreadsheet-test", coreOptions);
-        Assert.assertEquals("CoreWrapper should successfully parse the ODS file", 0, coreResult.errorCode);
+        Assert.assertEquals(
+                "CoreWrapper should successfully parse the ODS file", 0, coreResult.errorCode);
 
         // Verify we have exactly 3 sheets
         Assert.assertEquals("ODS file should contain 3 sheets", 3, coreResult.pageNames.size());
 
         // Verify sheet names match the actual sheet names from the ODS file
-        Assert.assertEquals("First sheet should be named 'hey'", "hey", coreResult.pageNames.get(0));
+        Assert.assertEquals(
+                "First sheet should be named 'hey'", "hey", coreResult.pageNames.get(0));
         Assert.assertEquals("Second sheet should be named 'ho'", "ho", coreResult.pageNames.get(1));
-        Assert.assertEquals("Third sheet should be named 'Sheet3'", "Sheet3", coreResult.pageNames.get(2));
+        Assert.assertEquals(
+                "Third sheet should be named 'Sheet3'", "Sheet3", coreResult.pageNames.get(2));
     }
 }

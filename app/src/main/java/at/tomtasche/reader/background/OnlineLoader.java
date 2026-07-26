@@ -2,7 +2,6 @@ package at.tomtasche.reader.background;
 
 import android.content.Context;
 import android.net.Uri;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,43 +19,118 @@ public class OnlineLoader extends FileLoader {
 
     // https://help.joomlatools.com/article/169-google-viewer
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types
-    private static final String[] MIME_WHITELIST = {"text/", "image/", "video/", "audio/",
-            // markup
-            "application/json", "application/xml", "text/css", "application/css-stylesheet", "application/xhtml",
-            "application/x-httpd-php", "text/php", "application/php", "application/x-php",
-            "application/x-javascript", "text/javascript",
-            "text/x-java-source", "text/java", "text/x-java", "application/ms-java",
-            // rtf
-            "application/rtf", "text/rtf",
-            // psd: https://filext.com/file-extension/PSD
-            "image/photoshop", "image/x-photoshop", "image/psd", "application/photoshop", "application/psd", "zz-application/zz-winassoc-psd",
-            // pdf: https://filext.com/file-extension/PDF
-            "application/pdf", "application/x-pdf", "application/acrobat", "applications/vnd.pdf", "text/pdf", "text/x-pdf",
-            // odf: https://filext.com/file-extension/ODT
-            "application/vnd.oasis.opendocument", "application/x-vnd.oasis.opendocument",
-            // ms
-            "application/vnd.openxmlformats-officedocument",
-            // doc: https://filext.com/file-extension/DOC
-            "application/msword", "application/doc", "appl/text", "application/vnd.msword", "application/vnd.ms-word", "application/winword", "application/word", "application/x-msw6", "application/x-msword",
-            // xls: https://filext.com/file-extension/XLS
-            "application/vnd.ms-excel", "application/msexcel", "application/x-msexcel", "application/x-ms-excel", "application/vnd.ms-excel", "application/x-excel", "application/x-dos_ms_excel", "application/xls",
-            // ppt: https://filext.com/file-extension/PPT
-            "application/vnd.ms-powerpoint", "application/mspowerpoint", "application/ms-powerpoint", "application/mspowerpnt", "application/vnd-mspowerpoint", "application/powerpoint", "application/x-powerpoint",
-            // apple
-            "application/x-iwork", "application/vnd.apple",
-            // postscript: https://filext.com/file-extension/EPS
-            "application/postscript", "application/eps", "application/x-eps", "image/eps", "image/x-eps",
-            // autocad: https://filext.com/file-extension/DXF
-            "application/dxf", "application/x-autocad", "application/x-dxf", "drawing/x-dxf", "image/vnd.dxf", "image/x-autocad", "image/x-dxf", "zz-application/zz-winassoc-dxf",
-            // zip: https://filext.com/file-extension/ZIP
-            "application/zip", "application/x-zip", "application/x-zip-compressed", "application/x-compress", "application/x-compressed", "multipart/x-zip",
-            // WPD
-            "application/vnd.wordperfect"
+    private static final String[] MIME_WHITELIST = {
+        "text/",
+        "image/",
+        "video/",
+        "audio/",
+        // markup
+        "application/json",
+        "application/xml",
+        "text/css",
+        "application/css-stylesheet",
+        "application/xhtml",
+        "application/x-httpd-php",
+        "text/php",
+        "application/php",
+        "application/x-php",
+        "application/x-javascript",
+        "text/javascript",
+        "text/x-java-source",
+        "text/java",
+        "text/x-java",
+        "application/ms-java",
+        // rtf
+        "application/rtf",
+        "text/rtf",
+        // psd: https://filext.com/file-extension/PSD
+        "image/photoshop",
+        "image/x-photoshop",
+        "image/psd",
+        "application/photoshop",
+        "application/psd",
+        "zz-application/zz-winassoc-psd",
+        // pdf: https://filext.com/file-extension/PDF
+        "application/pdf",
+        "application/x-pdf",
+        "application/acrobat",
+        "applications/vnd.pdf",
+        "text/pdf",
+        "text/x-pdf",
+        // odf: https://filext.com/file-extension/ODT
+        "application/vnd.oasis.opendocument",
+        "application/x-vnd.oasis.opendocument",
+        // ms
+        "application/vnd.openxmlformats-officedocument",
+        // doc: https://filext.com/file-extension/DOC
+        "application/msword",
+        "application/doc",
+        "appl/text",
+        "application/vnd.msword",
+        "application/vnd.ms-word",
+        "application/winword",
+        "application/word",
+        "application/x-msw6",
+        "application/x-msword",
+        // xls: https://filext.com/file-extension/XLS
+        "application/vnd.ms-excel",
+        "application/msexcel",
+        "application/x-msexcel",
+        "application/x-ms-excel",
+        "application/vnd.ms-excel",
+        "application/x-excel",
+        "application/x-dos_ms_excel",
+        "application/xls",
+        // ppt: https://filext.com/file-extension/PPT
+        "application/vnd.ms-powerpoint",
+        "application/mspowerpoint",
+        "application/ms-powerpoint",
+        "application/mspowerpnt",
+        "application/vnd-mspowerpoint",
+        "application/powerpoint",
+        "application/x-powerpoint",
+        // apple
+        "application/x-iwork",
+        "application/vnd.apple",
+        // postscript: https://filext.com/file-extension/EPS
+        "application/postscript",
+        "application/eps",
+        "application/x-eps",
+        "image/eps",
+        "image/x-eps",
+        // autocad: https://filext.com/file-extension/DXF
+        "application/dxf",
+        "application/x-autocad",
+        "application/x-dxf",
+        "drawing/x-dxf",
+        "image/vnd.dxf",
+        "image/x-autocad",
+        "image/x-dxf",
+        "zz-application/zz-winassoc-dxf",
+        // zip: https://filext.com/file-extension/ZIP
+        "application/zip",
+        "application/x-zip",
+        "application/x-zip-compressed",
+        "application/x-compress",
+        "application/x-compressed",
+        "multipart/x-zip",
+        // WPD
+        "application/vnd.wordperfect"
     };
-    private static final String[] MIME_BLACKLIST = {"image/x-tga", "image/vnd.djvu", "image/g3fax", "audio/amr", "text/calendar", "text/vcard", "video/3gpp"};
+    private static final String[] MIME_BLACKLIST = {
+        "image/x-tga",
+        "image/vnd.djvu",
+        "image/g3fax",
+        "audio/amr",
+        "text/calendar",
+        "text/vcard",
+        "video/3gpp"
+    };
 
-    public static final String GOOGLE_VIEWER_URL = "https://docs.google.com/viewer?embedded=true&url=";
-    public static final String MICROSOFT_VIEWER_URL = "https://view.officeapps.live.com/op/view.aspx?src=";
+    public static final String GOOGLE_VIEWER_URL =
+            "https://docs.google.com/viewer?embedded=true&url=";
+    public static final String MICROSOFT_VIEWER_URL =
+            "https://view.officeapps.live.com/op/view.aspx?src=";
 
     private final CoreLoader coreLoader;
 
@@ -110,8 +184,8 @@ public class OnlineLoader extends FileLoader {
     }
 
     /**
-     * Whether use.opendocument.app can convert this type itself. Everything else is
-     * uploaded and handed to a third party viewer instead.
+     * Whether use.opendocument.app can convert this type itself. Everything else is uploaded and
+     * handed to a third party viewer instead.
      */
     boolean isConvertible(Options options) {
         String fileType = options.fileType;
@@ -141,12 +215,14 @@ public class OnlineLoader extends FileLoader {
         connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
         connection.setInstanceFollowRedirects(false);
 
-        try (
-                OutputStream output = connection.getOutputStream();
-                PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, charset), true)
-        ) {
+        try (OutputStream output = connection.getOutputStream();
+                PrintWriter writer =
+                        new PrintWriter(new OutputStreamWriter(output, charset), true)) {
             writer.append("--" + boundary).append(CRLF);
-            writer.append("Content-Disposition: form-data; name=\"document\"; filename=\"document\"").append(CRLF);
+            writer.append(
+                            "Content-Disposition: form-data; name=\"document\";"
+                                    + " filename=\"document\"")
+                    .append(CRLF);
             writer.append(CRLF).flush();
             StreamUtil.copy(binaryFile, output);
             output.flush();
@@ -164,7 +240,8 @@ public class OnlineLoader extends FileLoader {
         String filename = options.filename;
         String encodedFilename = URLEncoder.encode(filename, StreamUtil.ENCODING);
 
-        HttpURLConnection connection = (HttpURLConnection) new URL(TRANSFER_BASE_URL + encodedFilename).openConnection();
+        HttpURLConnection connection =
+                (HttpURLConnection) new URL(TRANSFER_BASE_URL + encodedFilename).openConnection();
         connection.setRequestMethod("PUT");
         connection.setDoOutput(true);
         connection.setInstanceFollowRedirects(false);
@@ -188,12 +265,14 @@ public class OnlineLoader extends FileLoader {
         }
     }
 
-    private Uri buildViewerUri(Options options, String downloadUrl) throws UnsupportedEncodingException {
+    private Uri buildViewerUri(Options options, String downloadUrl)
+            throws UnsupportedEncodingException {
         if (coreLoader.isSupported(options)) {
             // ODF does not seem to be supported by google docs viewer
             return Uri.parse(MICROSOFT_VIEWER_URL + downloadUrl);
         } else {
-            return Uri.parse(GOOGLE_VIEWER_URL + URLEncoder.encode(downloadUrl, StreamUtil.ENCODING));
+            return Uri.parse(
+                    GOOGLE_VIEWER_URL + URLEncoder.encode(downloadUrl, StreamUtil.ENCODING));
         }
     }
 

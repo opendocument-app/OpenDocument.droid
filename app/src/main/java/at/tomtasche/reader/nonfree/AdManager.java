@@ -2,26 +2,17 @@ package at.tomtasche.reader.nonfree;
 
 import android.app.Activity;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.widget.LinearLayout;
-
-import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.RequestConfiguration;
 import com.google.android.ump.ConsentInformation;
 import com.google.android.ump.ConsentRequestParameters;
 import com.google.android.ump.UserMessagingPlatform;
-
-import org.jetbrains.annotations.NotNull;
-
-import androidx.annotation.NonNull;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,7 +26,11 @@ public class AdManager {
     private LinearLayout adContainer;
     private AdView adView;
 
-    public void initialize(Activity activity, AnalyticsManager analyticsManager, CrashManager crashManager, ConfigManager configManager) {
+    public void initialize(
+            Activity activity,
+            AnalyticsManager analyticsManager,
+            CrashManager crashManager,
+            ConfigManager configManager) {
         if (!enabled) {
             return;
         }
@@ -76,19 +71,23 @@ public class AdManager {
 
         adContainer.removeAllViews();
 
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        LinearLayout.LayoutParams params =
+                new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT);
         adContainer.addView(adView, params);
 
         adContainer.setVisibility(View.VISIBLE);
     }
 
     private void hideGoogleAds() {
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                adContainer.setVisibility(View.GONE);
-            }
-        });
+        activity.runOnUiThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        adContainer.setVisibility(View.GONE);
+                    }
+                });
     }
 
     public void showGoogleAds() {
@@ -96,12 +95,11 @@ public class AdManager {
             return;
         }
 
-        ConsentRequestParameters params = new ConsentRequestParameters
-                .Builder()
-                .setTagForUnderAgeOfConsent(false)
-                .build();
+        ConsentRequestParameters params =
+                new ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(false).build();
 
-        ConsentInformation consentInformation = UserMessagingPlatform.getConsentInformation(activity);
+        ConsentInformation consentInformation =
+                UserMessagingPlatform.getConsentInformation(activity);
         consentInformation.requestConsentInfoUpdate(
                 activity,
                 params,
@@ -109,36 +107,45 @@ public class AdManager {
                     UserMessagingPlatform.loadAndShowConsentFormIfRequired(
                             activity,
                             loadAndShowError -> {
-                                if (loadAndShowError != null  || !consentInformation.canRequestAds()) {
+                                if (loadAndShowError != null
+                                        || !consentInformation.canRequestAds()) {
                                     hideGoogleAds();
 
                                     return;
                                 }
 
-                                activity.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        AdView adView = new AdView(activity);
+                                activity.runOnUiThread(
+                                        new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                AdView adView = new AdView(activity);
 
-                                        // https://developers.google.com/admob/android/banner/adaptive
-                                        Display display = activity.getWindowManager().getDefaultDisplay();
-                                        DisplayMetrics outMetrics = new DisplayMetrics();
-                                        display.getMetrics(outMetrics);
+                                                // https://developers.google.com/admob/android/banner/adaptive
+                                                Display display =
+                                                        activity.getWindowManager()
+                                                                .getDefaultDisplay();
+                                                DisplayMetrics outMetrics = new DisplayMetrics();
+                                                display.getMetrics(outMetrics);
 
-                                        float widthPixels = outMetrics.widthPixels;
-                                        float density = outMetrics.density;
-                                        int adWidth = (int) (widthPixels / density);
+                                                float widthPixels = outMetrics.widthPixels;
+                                                float density = outMetrics.density;
+                                                int adWidth = (int) (widthPixels / density);
 
-                                        AdSize adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth);
-                                        adView.setAdSize(adSize);
-                                        adView.setAdUnitId("ca-app-pub-8161473686436957/5931994762");
+                                                AdSize adSize =
+                                                        AdSize
+                                                                .getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+                                                                        activity, adWidth);
+                                                adView.setAdSize(adSize);
+                                                adView.setAdUnitId(
+                                                        "ca-app-pub-8161473686436957/5931994762");
 
-                                        AdRequest adRequest = new AdRequest.Builder().build();
-                                        adView.loadAd(adRequest);
+                                                AdRequest adRequest =
+                                                        new AdRequest.Builder().build();
+                                                adView.loadAd(adRequest);
 
-                                        showAds(adView);
-                                    }
-                                });
+                                                showAds(adView);
+                                            }
+                                        });
                             });
                 },
                 requestConsentError -> {

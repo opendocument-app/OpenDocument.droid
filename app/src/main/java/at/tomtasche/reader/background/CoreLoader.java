@@ -4,20 +4,18 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
-
-import java.io.File;
-
 import at.tomtasche.reader.nonfree.AnalyticsManager;
 import at.tomtasche.reader.nonfree.CrashManager;
+import java.io.File;
 
 public class CoreLoader extends FileLoader {
 
     /**
-     * Whether odrcore renders text documents with page margins. This used to be read
-     * from the "use_paging" remote config key, but that resolved to false for every
-     * user since firebase remote config was removed - the ConfigManager left behind is
-     * a stub without a backing store. Kept as an explicit constant so the shipped
-     * behavior is visible instead of hidden behind a lookup that cannot return a value.
+     * Whether odrcore renders text documents with page margins. This used to be read from the
+     * "use_paging" remote config key, but that resolved to false for every user since firebase
+     * remote config was removed - the ConfigManager left behind is a stub without a backing store.
+     * Kept as an explicit constant so the shipped behavior is visible instead of hidden behind a
+     * lookup that cannot return a value.
      */
     private static final boolean USE_PAGING = false;
 
@@ -34,7 +32,12 @@ public class CoreLoader extends FileLoader {
     }
 
     @Override
-    public void initialize(FileLoaderListener listener, Handler mainHandler, Handler backgroundHandler, AnalyticsManager analyticsManager, CrashManager crashManager) {
+    public void initialize(
+            FileLoaderListener listener,
+            Handler mainHandler,
+            Handler backgroundHandler,
+            AnalyticsManager analyticsManager,
+            CrashManager crashManager) {
         // loads the native library and extracts the core assets. Kept out of the
         // constructor so that constructing a CoreLoader stays side effect free -
         // LoaderService calls initialize() right after new CoreLoader() anyway.
@@ -42,17 +45,22 @@ public class CoreLoader extends FileLoader {
 
         File serverCacheDir = new File(context.getCacheDir(), "core/server");
         if (!serverCacheDir.isDirectory() && !serverCacheDir.mkdirs()) {
-            Log.e("CoreLoader", "Failed to create cache directory for CoreWrapper server: " + serverCacheDir.getAbsolutePath());
+            Log.e(
+                    "CoreLoader",
+                    "Failed to create cache directory for CoreWrapper server: "
+                            + serverCacheDir.getAbsolutePath());
         }
         CoreWrapper.createServer(serverCacheDir.getAbsolutePath());
 
-        httpThread = new Thread(() -> {
-            try {
-                CoreWrapper.listenServer(29665);
-            } catch (Throwable e) {
-                crashManager.log(e);
-            }
-        });
+        httpThread =
+                new Thread(
+                        () -> {
+                            try {
+                                CoreWrapper.listenServer(29665);
+                            } catch (Throwable e) {
+                                crashManager.log(e);
+                            }
+                        });
         httpThread.start();
 
         super.initialize(listener, mainHandler, backgroundHandler, analyticsManager, crashManager);
@@ -60,16 +68,18 @@ public class CoreLoader extends FileLoader {
 
     @Override
     public boolean isSupported(Options options) {
-        return options.fileType.startsWith("application/vnd.oasis.opendocument") ||
-                options.fileType.startsWith("application/x-vnd.oasis.opendocument") ||
-                options.fileType.startsWith("application/vnd.oasis.opendocument.text-master") ||
-                options.fileType.startsWith("application/msword") ||
-                (this.doOoxml && (
-                        options.fileType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document") ||
-                        options.fileType.startsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        return options.fileType.startsWith("application/vnd.oasis.opendocument")
+                || options.fileType.startsWith("application/x-vnd.oasis.opendocument")
+                || options.fileType.startsWith("application/vnd.oasis.opendocument.text-master")
+                || options.fileType.startsWith("application/msword")
+                || (this.doOoxml
+                        && (options.fileType.startsWith(
+                                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                                || options.fileType.startsWith(
+                                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
                         // TODO: enable pptx too
-                        //options.fileType.startsWith("application/vnd.openxmlformats-officedocument.presentationml.presentation");
-                ));
+                        // options.fileType.startsWith("application/vnd.openxmlformats-officedocument.presentationml.presentation");
+                        ));
     }
 
     @Override
@@ -128,7 +138,8 @@ public class CoreLoader extends FileLoader {
     @Override
     public File retranslate(Options options, String htmlDiff) {
         if (lastCoreOptions == null) {
-            // necessary if fragment was destroyed in the meanwhile - meaning the Loader is reinstantiated
+            // necessary if fragment was destroyed in the meanwhile - meaning the Loader is
+            // reinstantiated
 
             Result result = new Result();
             result.options = options;

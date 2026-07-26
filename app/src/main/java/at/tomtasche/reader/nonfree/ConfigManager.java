@@ -49,12 +49,13 @@ public class ConfigManager {
 
         synchronized (callbacks) {
             if (!loaded) {
-                callbacks.add(new Runnable() {
-                    @Override
-                    public void run() {
-                        getBooleanConfig(key, configListener);
-                    }
-                });
+                callbacks.add(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                getBooleanConfig(key, configListener);
+                            }
+                        });
 
                 return;
             }

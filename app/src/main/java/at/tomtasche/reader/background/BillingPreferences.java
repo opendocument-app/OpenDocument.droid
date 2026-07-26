@@ -4,15 +4,14 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
-import at.tomtasche.reader.BuildConfig;
-
 public class BillingPreferences {
 
     private final SharedPreferences sharedPreferences;
 
     public BillingPreferences(Context context) {
-        sharedPreferences = context.getSharedPreferences(
-                "modifyMeIfYouWantToRemoveAdsIllegally", Context.MODE_PRIVATE);
+        sharedPreferences =
+                context.getSharedPreferences(
+                        "modifyMeIfYouWantToRemoveAdsIllegally", Context.MODE_PRIVATE);
     }
 
     public boolean hasPurchased() {
