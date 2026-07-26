@@ -18,12 +18,13 @@ import android.widget.EditText;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
+import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
 import at.tomtasche.reader.R;
 import at.tomtasche.reader.background.AndroidFileCache;
 import at.tomtasche.reader.background.FileLoader;
@@ -36,6 +37,7 @@ import at.tomtasche.reader.nonfree.CrashManager;
 import at.tomtasche.reader.ui.SnackbarHelper;
 import at.tomtasche.reader.ui.widget.PageView;
 import at.tomtasche.reader.ui.widget.ProgressDialogFragment;
+import com.google.android.material.tabs.TabLayout;
 import com.google.android.play.core.review.ReviewInfo;
 import com.google.android.play.core.review.ReviewManager;
 import com.google.android.play.core.review.ReviewManagerFactory;
@@ -45,7 +47,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class DocumentFragment extends Fragment
-        implements LoaderService.LoaderListener, ActionBar.TabListener, MenuProvider {
+        implements LoaderService.LoaderListener, MenuProvider {
 
     private static final String SAVED_KEY_LAST_RESULT = "LAST_RESULT";
     private static final String SAVED_KEY_CURRENT_HTML_DIFF = "CURRENT_HTML_DIFF";
@@ -57,56 +59,70 @@ public class DocumentFragment extends Fragment
 
     private ProgressDialogFragment progressDialog;
 
-    private ViewGroup container;
+    private ViewGroup pageContainer;
     private PageView pageView;
 
     private Menu menu;
 
-    private FileLoader.Result lastResult;
-
-    private String currentHtmlDiff;
-
     private FileLoader.Result resultOnStart;
     private Throwable errorOnStart;
 
-    // loads cannot be canceled once running, so results of abandoned loads
-    // (e.g. user navigated back while the document was still loading) are
-    // identified by their uri and dropped
-    private Uri lastRequestedUri;
+    private TabLayout tabLayout;
 
-    private int lastSelectedTab = -1;
+    private DocumentViewModel state;
 
     private LoaderServiceQueue serviceQueue;
+
+    /**
+     * Survives configuration changes, so a rotation neither reloads the document nor loses unsaved
+     * edits. This used to be setRetainInstance(true), which kept the whole fragment - views
+     * included - alive instead.
+     */
+    public static class DocumentViewModel extends ViewModel {
+        FileLoader.Result lastResult;
+        String currentHtmlDiff;
+
+        // loads cannot be canceled once running, so results of abandoned loads
+        // (e.g. user navigated back while the document was still loading) are
+        // identified by their uri and dropped
+        Uri lastRequestedUri;
+
+        int lastSelectedTab = -1;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // not in onViewCreated: when the activity is recreated it asks a restored fragment
+        // for hasLastResult() from its own onCreate, which is before any view exists
+        state = new ViewModelProvider(this).get(DocumentViewModel.class);
+    }
 
     @Nullable @Override
     public View onCreateView(
             @NonNull LayoutInflater inflater,
             @Nullable ViewGroup container,
             @Nullable Bundle savedInstanceState) {
-        this.container = container;
-
         getActivity().addMenuProvider(this, getActivity());
 
-        return super.onCreateView(inflater, container, savedInstanceState);
+        return inflater.inflate(R.layout.fragment_document, container, false);
     }
 
     private void initializePageView() {
         if (pageView != null) {
-            container.removeAllViews();
+            pageContainer.removeAllViews();
             pageView.destroy();
             pageView = null;
         }
 
         try {
-            ViewGroup inflatedView =
-                    (ViewGroup)
-                            getLayoutInflater()
-                                    .inflate(R.layout.fragment_document, container, true);
-            pageView = inflatedView.findViewById(R.id.page_view);
+            getLayoutInflater().inflate(R.layout.page_view, pageContainer, true);
+            pageView = pageContainer.findViewById(R.id.page_view);
 
             pageView.setDocumentFragment(this);
         } catch (Throwable t) {
-            // can't call crashlytics yet at this point (onActivityCreated not called)
+            // can't call crashlytics yet at this point (onViewCreated not called)
 
             String errorString =
                     "Please install \"Android System WebView\" and restart the app afterwards.";
@@ -124,8 +140,11 @@ public class DocumentFragment extends Fragment
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        pageContainer = view.findViewById(R.id.page_container);
+        tabLayout = view.findViewById(R.id.document_tabs);
 
         mainHandler = new Handler(Looper.getMainLooper());
 
@@ -142,30 +161,60 @@ public class DocumentFragment extends Fragment
                     }
                 });
 
-        crashManager.log("onActivityCreated");
+        crashManager.log("onViewCreated");
 
         if (savedInstanceState != null) {
-            crashManager.log("onActivityCreated has savedInstanceState");
+            crashManager.log("onViewCreated has savedInstanceState");
 
             initializePageView();
 
-            lastResult = savedInstanceState.getParcelable(SAVED_KEY_LAST_RESULT);
-            if (lastResult != null) {
-                crashManager.log("savedInstanceState has lastResult");
-
-                prepareLoad(lastResult.loaderType, false);
+            // the view model survives a rotation, the bundle also survives process death
+            if (state.lastResult == null) {
+                state.lastResult = savedInstanceState.getParcelable(SAVED_KEY_LAST_RESULT);
+            }
+            if (state.currentHtmlDiff == null) {
+                state.currentHtmlDiff = savedInstanceState.getString(SAVED_KEY_CURRENT_HTML_DIFF);
             }
 
-            currentHtmlDiff = savedInstanceState.getString(SAVED_KEY_CURRENT_HTML_DIFF);
+            if (state.lastResult != null) {
+                crashManager.log("restoring lastResult");
+
+                prepareLoad(state.lastResult.loaderType, false);
+                restoreTabs(state.lastResult);
+            }
 
             pageView.restoreState(savedInstanceState);
         }
+    }
 
-        // the app is designed to work fine without this setting, however, it is enabled for
-        // performance reasons
-        // (avoids redundant reloads of documents) and usability (edits are not lost on orientation
-        // change)
-        setRetainInstance(true);
+    /**
+     * Rebuilds the tab strip after the view was recreated. The tabs live in the fragment view, so
+     * unlike the document itself they do not survive a rotation on their own.
+     */
+    private void restoreTabs(FileLoader.Result result) {
+        if (result.partTitles.size() <= 1) {
+            return;
+        }
+
+        addTabs(result.partTitles);
+
+        int selected = Math.max(state.lastSelectedTab, 0);
+        TabLayout.Tab tab = tabLayout.getTabAt(selected);
+        if (tab != null) {
+            tab.select();
+        }
+    }
+
+    private void addTabs(List<String> titles) {
+        for (int i = 0; i < titles.size(); i++) {
+            String name = titles.get(i);
+            if (name == null) name = "Page " + (i + 1);
+
+            tabLayout.addTab(tabLayout.newTab().setText(name), false);
+        }
+
+        tabLayout.setVisibility(View.VISIBLE);
+        tabLayout.addOnTabSelectedListener(tabSelectedListener);
     }
 
     @Override
@@ -179,8 +228,8 @@ public class DocumentFragment extends Fragment
         menu.findItem(R.id.menu_print).setVisible(true);
 
         // the other menu items are dynamically enabled based on the loaded document
-        if (lastResult != null) {
-            prepareMenu(lastResult.loaderType, lastResult.options.fileType);
+        if (state.lastResult != null) {
+            prepareMenu(state.lastResult.loaderType, state.lastResult.options.fileType);
         }
     }
 
@@ -196,8 +245,8 @@ public class DocumentFragment extends Fragment
 
         crashManager.log("onSaveInstanceState");
 
-        outState.putParcelable(SAVED_KEY_LAST_RESULT, lastResult);
-        outState.putString(SAVED_KEY_CURRENT_HTML_DIFF, currentHtmlDiff);
+        outState.putParcelable(SAVED_KEY_LAST_RESULT, state.lastResult);
+        outState.putString(SAVED_KEY_CURRENT_HTML_DIFF, state.currentHtmlDiff);
 
         pageView.saveState(outState);
     }
@@ -252,7 +301,7 @@ public class DocumentFragment extends Fragment
     public void loadUri(Uri uri, boolean persistentUri, boolean editable) {
         initializePageView();
 
-        lastRequestedUri = uri;
+        state.lastRequestedUri = uri;
 
         FileLoader.Options options = new FileLoader.Options();
         options.originalUri = uri;
@@ -263,14 +312,14 @@ public class DocumentFragment extends Fragment
     }
 
     public void reloadUri(boolean translatable) {
-        lastResult.options.translatable = translatable;
+        state.lastResult.options.translatable = translatable;
 
-        loadWithType(lastResult.loaderType, lastResult.options);
+        loadWithType(state.lastResult.loaderType, state.lastResult.options);
     }
 
     public void prepareSave(Runnable callback, boolean fullSave) {
         if (fullSave) {
-            currentHtmlDiff = null;
+            state.currentHtmlDiff = null;
 
             callback.run();
         }
@@ -280,7 +329,7 @@ public class DocumentFragment extends Fragment
 
                     @Override
                     public void onHtml(String htmlDiff) {
-                        currentHtmlDiff = htmlDiff;
+                        state.currentHtmlDiff = htmlDiff;
 
                         callback.run();
                     }
@@ -298,7 +347,7 @@ public class DocumentFragment extends Fragment
                 new LoaderServiceQueue.QueueEntry() {
                     @Override
                     public void onService(LoaderService service) {
-                        service.saveAsync(lastResult, outFile, currentHtmlDiff);
+                        service.saveAsync(state.lastResult, outFile, state.currentHtmlDiff);
                     }
                 });
     }
@@ -310,10 +359,13 @@ public class DocumentFragment extends Fragment
     }
 
     private void resetTabs() {
-        ActionBar bar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-        bar.removeAllTabs();
+        if (tabLayout != null) {
+            tabLayout.clearOnTabSelectedListeners();
+            tabLayout.removeAllTabs();
+            tabLayout.setVisibility(View.GONE);
+        }
 
-        lastSelectedTab = -1;
+        state.lastSelectedTab = -1;
     }
 
     private void toggleDocumentMenu(boolean enabled) {
@@ -393,7 +445,8 @@ public class DocumentFragment extends Fragment
     }
 
     private boolean isActivityReadyForResult(FileLoader.Result result) {
-        if (lastRequestedUri != null && !lastRequestedUri.equals(result.options.originalUri)) {
+        if (state.lastRequestedUri != null
+                && !state.lastRequestedUri.equals(result.options.originalUri)) {
             crashManager.log("dropping result of abandoned load: " + result.options.originalUri);
 
             return false;
@@ -407,7 +460,7 @@ public class DocumentFragment extends Fragment
         }
 
         // needs to be saved for errors too for features like "Open With" to work
-        lastResult = result;
+        state.lastResult = result;
 
         resultOnStart = null;
         errorOnStart = null;
@@ -429,28 +482,17 @@ public class DocumentFragment extends Fragment
 
         resetTabs();
 
-        ActionBar bar = ((AppCompatActivity) activity).getSupportActionBar();
         List<String> titles = result.partTitles;
         int pages = titles.size();
         if (pages > 1) {
-            bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-            for (int i = 0; i < pages; i++) {
-                ActionBar.Tab tab = bar.newTab();
-                String name = titles.get(i);
-                if (name == null) name = "Page " + (i + 1);
-                tab.setText(name);
-                tab.setTabListener(this);
+            addTabs(titles);
 
-                bar.addTab(tab);
+            TabLayout.Tab first = tabLayout.getTabAt(0);
+            if (first != null) {
+                first.select();
             }
-
-            bar.setSelectedNavigationItem(0);
-        } else {
-            bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-
-            if (pages == 1) {
-                loadData(result.partUris.get(0).toString());
-            }
+        } else if (pages == 1) {
+            loadData(result.partUris.get(0).toString());
         }
 
         if (result.loaderType == FileLoader.LoaderType.RAW
@@ -556,7 +598,7 @@ public class DocumentFragment extends Fragment
 
     @Override
     public void onSaveSuccess(Uri outFile) {
-        currentHtmlDiff = null;
+        state.currentHtmlDiff = null;
 
         SnackbarHelper.show(getActivity(), R.string.toast_edit_status_saved, null, false, false);
 
@@ -565,7 +607,7 @@ public class DocumentFragment extends Fragment
 
     @Override
     public void onSaveError() {
-        currentHtmlDiff = null;
+        state.currentHtmlDiff = null;
 
         SnackbarHelper.show(getActivity(), R.string.toast_error_save_failed, null, true, true);
     }
@@ -643,11 +685,11 @@ public class DocumentFragment extends Fragment
     }
 
     public void openWith(Activity activity) {
-        doReopen(lastResult.options, activity, true, false);
+        doReopen(state.lastResult.options, activity, true, false);
     }
 
     public void share(Activity activity) {
-        doReopen(lastResult.options, activity, true, true);
+        doReopen(state.lastResult.options, activity, true, true);
     }
 
     private void doReopen(
@@ -718,11 +760,18 @@ public class DocumentFragment extends Fragment
     }
 
     private void showProgress(boolean isUpload) {
-        if (progressDialog == null && getFragmentManager() != null) {
+        // getParentFragmentManager() throws when the fragment is not attached, where the
+        // deprecated getFragmentManager() used to return null
+        if (!isAdded()) {
+            return;
+        }
+
+        FragmentManager fragmentManager = getParentFragmentManager();
+
+        if (progressDialog == null) {
             progressDialog =
                     (ProgressDialogFragment)
-                            getFragmentManager()
-                                    .findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
+                            fragmentManager.findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
         }
 
         if (progressDialog != null) {
@@ -731,15 +780,6 @@ public class DocumentFragment extends Fragment
 
         try {
             progressDialog = new ProgressDialogFragment(isUpload);
-
-            FragmentManager fragmentManager = getFragmentManager();
-            if (fragmentManager == null) {
-                crashManager.log(new NullPointerException());
-
-                progressDialog = null;
-
-                return;
-            }
 
             progressDialog.show(fragmentManager, ProgressDialogFragment.FRAGMENT_TAG);
         } catch (IllegalStateException e) {
@@ -751,10 +791,10 @@ public class DocumentFragment extends Fragment
     }
 
     private void dismissProgress() {
-        if (progressDialog == null && getFragmentManager() != null) {
+        if (progressDialog == null && isAdded()) {
             progressDialog =
                     (ProgressDialogFragment)
-                            getFragmentManager()
+                            getParentFragmentManager()
                                     .findFragmentByTag(ProgressDialogFragment.FRAGMENT_TAG);
         }
 
@@ -770,37 +810,40 @@ public class DocumentFragment extends Fragment
         progressDialog = null;
     }
 
-    @Override
-    public void onTabSelected(ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {
-        if (lastResult.options.translatable) {
-            if (lastSelectedTab >= 0) {
-                // I think there was an issue switching tab inside of onTabSelected()
-                mainHandler.postDelayed(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                ActionBar bar =
-                                        ((AppCompatActivity) getActivity()).getSupportActionBar();
-                                bar.setSelectedNavigationItem(lastSelectedTab);
-                            }
-                        },
-                        1);
+    private final TabLayout.OnTabSelectedListener tabSelectedListener =
+            new TabLayout.OnTabSelectedListener() {
+                @Override
+                public void onTabSelected(TabLayout.Tab tab) {
+                    // an edited document must not switch away from the page being edited,
+                    // so the previous tab is re-selected instead
+                    if (state.lastResult.options.translatable && state.lastSelectedTab >= 0) {
+                        // reselecting from inside onTabSelected() does not take effect
+                        mainHandler.postDelayed(
+                                () -> {
+                                    TabLayout.Tab previous =
+                                            tabLayout.getTabAt(state.lastSelectedTab);
+                                    if (previous != null) {
+                                        previous.select();
+                                    }
+                                },
+                                1);
 
-                return;
-            }
+                        return;
+                    }
 
-            lastSelectedTab = tab.getPosition();
-        }
+                    // in every mode, so restoreTabs() puts the indicator back on the page
+                    // the user was looking at after the view is recreated
+                    state.lastSelectedTab = tab.getPosition();
 
-        Uri uri = lastResult.partUris.get(tab.getPosition());
-        loadData(uri.toString());
-    }
+                    loadData(state.lastResult.partUris.get(tab.getPosition()).toString());
+                }
 
-    @Override
-    public void onTabUnselected(ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {}
+                @Override
+                public void onTabUnselected(TabLayout.Tab tab) {}
 
-    @Override
-    public void onTabReselected(ActionBar.Tab tab, androidx.fragment.app.FragmentTransaction ft) {}
+                @Override
+                public void onTabReselected(TabLayout.Tab tab) {}
+            };
 
     private void loadData(String url) {
         pageView.loadUrl(url);
@@ -810,12 +853,18 @@ public class DocumentFragment extends Fragment
         return pageView;
     }
 
+    @VisibleForTesting
+    public FileLoader.Result getLastResult() {
+        return state.lastResult;
+    }
+
     public boolean hasLastResult() {
-        return lastResult != null;
+        // the activity can hold a freshly constructed fragment that has not been created yet
+        return state != null && state.lastResult != null;
     }
 
     public String getLastFileType() {
-        return lastResult.options.fileType;
+        return state.lastResult.options.fileType;
     }
 
     public CrashManager getCrashManager() {

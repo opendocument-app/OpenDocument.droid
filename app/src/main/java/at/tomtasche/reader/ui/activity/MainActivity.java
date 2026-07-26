@@ -25,8 +25,9 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
@@ -75,7 +76,6 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
     private static final boolean IS_TESTING = isTesting();
     private static final int GOOGLE_REQUEST_CODE = 1993;
     private static final String DOCUMENT_FRAGMENT_TAG = "document_fragment";
-    private static final int CREATE_CODE = 4213;
 
     private Handler handler;
 
@@ -150,6 +150,43 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
                     serviceQueue.setService(service);
                 }
             };
+
+    // ACTION_OPEN_DOCUMENT, dispatched to a file manager the user picked
+    private final ActivityResultLauncher<Intent> openDocumentLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        OpenFileIdling.decrement();
+
+                        Intent data = result.getData();
+                        if (result.getResultCode() != Activity.RESULT_OK || data == null) {
+                            return;
+                        }
+
+                        Uri uri = data.getData();
+                        if (uri == null) {
+                            return;
+                        }
+
+                        crashManager.log("open document result");
+
+                        loadUri(uri);
+                    });
+
+    // ACTION_CREATE_DOCUMENT, the target the current document is saved to
+    private final ActivityResultLauncher<Intent> createDocumentLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        Intent data = result.getData();
+                        if (data == null || data.getData() == null) {
+                            return;
+                        }
+
+                        lastSaveUri = data.getData();
+
+                        documentFragment.save(lastSaveUri);
+                    });
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -364,7 +401,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
 
             intent.setType(documentFragment.getLastFileType());
 
-            startActivityForResult(intent, CREATE_CODE);
+            createDocumentLauncher.launch(intent);
         } catch (ActivityNotFoundException e) {
             // happens on a variety devices, e.g. Samsung Galaxy Tab4 7.0 with Android 4.4.2
             crashManager.log(e);
@@ -426,25 +463,16 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
         }
     }
 
+    // The play services availability dialog calls startActivityForResult() itself with a
+    // request code we hand it, so its result cannot be routed through an
+    // ActivityResultLauncher. Everything the app launches on its own goes through the
+    // launchers declared above.
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
 
         if (requestCode == GOOGLE_REQUEST_CODE) {
             initializeProprietaryLibraries();
-        } else if (requestCode == CREATE_CODE && intent != null) {
-            lastSaveUri = intent.getData();
-
-            documentFragment.save(lastSaveUri);
-        } else if (intent != null) {
-            crashManager.log("onActivityResult loadUri");
-
-            Uri uri = intent.getData();
-            if (requestCode == 42 && resultCode == Activity.RESULT_OK && uri != null) {
-                OpenFileIdling.decrement();
-
-                loadUri(uri);
-            }
         }
     }
 
@@ -676,10 +704,6 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
             documentFragment = null;
         }
 
-        ActionBar bar = getSupportActionBar();
-        bar.removeAllTabs();
-        bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-
         lastUri = null;
 
         documentContainer.setVisibility(View.GONE);
@@ -740,7 +764,7 @@ public class MainActivity extends AppCompatActivity implements MenuProvider {
                         try {
                             OpenFileIdling.increment();
 
-                            startActivityForResult(intent, 42);
+                            openDocumentLauncher.launch(intent);
                         } catch (Exception e) {
                             OpenFileIdling.decrement();
 
