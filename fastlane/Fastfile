@@ -1,49 +1,58 @@
 default_platform(:android)
 
-platform :android do
-  desc "Deploy a new version to the Google Play"
-  lane :deployPro do
-    gradle(
-      task: "clean"
-    )
+# flavor name as gradle spells it => play store package name
+PACKAGE_NAMES = {
+  "Pro" => "at.tomtasche.reader.pro",
+  "Lite" => "at.tomtasche.reader"
+}.freeze
 
-    gradle(
-      task: "bundle",
-      flavor: "Pro",
-      build_type: "Release"
-    )
-    upload_to_play_store(
-      track: 'internal',
-      package_name: 'at.tomtasche.reader.pro',
-      skip_upload_metadata: true,
-      skip_upload_changelogs: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: true
-    )
+DEFAULT_TRACK = "internal".freeze
+
+platform :android do
+  desc "Build and upload the Pro version to Google Play"
+  lane :deployPro do |options|
+    buildBundle(flavor: "Pro")
+    uploadBundle(flavor: "Pro", track: options[:track])
   end
 
-  desc "Deploy a new version to the Google Play"
-  lane :deployLite do
-    gradle(
-      task: "clean"
-    )
+  desc "Build and upload the Lite version to Google Play"
+  lane :deployLite do |options|
+    buildBundle(flavor: "Lite")
+    uploadBundle(flavor: "Lite", track: options[:track])
+  end
 
-    gradle(
-      task: "bundle",
-      flavor: "Lite",
-      build_type: "Release"
-    )
-    upload_to_play_store(
-      track: 'internal',
-      package_name: 'at.tomtasche.reader',
-      skip_upload_metadata: true,
-      skip_upload_changelogs: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: true
-    )
+  desc "Upload an already built Pro bundle. Used by the release workflow, which builds " \
+       "with gradle directly so that the native dependency cache is reused."
+  lane :uploadPro do |options|
+    uploadBundle(flavor: "Pro", track: options[:track])
+  end
+
+  desc "Upload an already built Lite bundle"
+  lane :uploadLite do |options|
+    uploadBundle(flavor: "Lite", track: options[:track])
   end
 
   lane :tests do
     gradle(task: "connectedAndroidTest")
+  end
+
+  private_lane :buildBundle do |options|
+    gradle(task: "clean")
+    gradle(task: "bundle", flavor: options[:flavor], build_type: "Release")
+  end
+
+  private_lane :uploadBundle do |options|
+    flavor = options[:flavor]
+    variant = flavor.downcase
+
+    upload_to_play_store(
+      track: options[:track] || DEFAULT_TRACK,
+      package_name: PACKAGE_NAMES.fetch(flavor),
+      aab: "app/build/outputs/bundle/#{variant}Release/app-#{variant}-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
   end
 end
