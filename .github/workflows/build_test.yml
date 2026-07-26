@@ -135,9 +135,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # broken for unknown reasons. needs some offline debugging
-          # https://github.com/opendocument-app/OpenDocument.droid/issues/390
-          # - { arch: x86_64, api-level: 23 }
+          # api 26 is minSdk - the floor was previously untested, which is part of
+          # why an API 26+ only call could ship in a path only old devices took.
+          # (the old api 23 entry was disabled for issue #390 and is now moot)
+          - { arch: x86_64, api-level: 26 }
           - { arch: x86_64, api-level: 29 }
           - { arch: x86_64, api-level: 30 }
           - { arch: x86_64, api-level: 32 }
@@ -227,8 +228,9 @@ jobs:
         emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
         disable-animations: true
         script: |
-          # Clear logcat before tests
-          adb logcat -c
+          # Clear logcat before tests. Fails with "failed to clear the 'main' log"
+          # on some system images (api 26 among them) and must not abort the run.
+          adb logcat -c || true
 
           # Run tests
           ./gradlew connectedCheck

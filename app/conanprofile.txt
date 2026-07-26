@@ -2,7 +2,7 @@ include(default)
 
 [settings]
 os=Android
-os.api_level=23
+os.api_level=26
 compiler=clang
 compiler.version=17
 compiler.cppstd=20

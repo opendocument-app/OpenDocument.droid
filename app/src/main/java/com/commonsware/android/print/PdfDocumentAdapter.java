@@ -31,10 +31,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import androidx.annotation.RequiresApi;
 
 // taken from: https://github.com/commonsguy/cw-omnibus/blob/f2ffeb687d002f4a41b52a6ef5bb2580eb6a4ed6/Printing/PrintManager/app/src/main/java/com/commonsware/android/print/PdfDocumentAdapter.java
-@RequiresApi(api = Build.VERSION_CODES.KITKAT)
 public class PdfDocumentAdapter extends ThreadedPrintDocumentAdapter {
 
     private final String title;

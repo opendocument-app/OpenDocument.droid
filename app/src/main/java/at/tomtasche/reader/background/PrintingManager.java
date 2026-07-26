@@ -1,6 +1,5 @@
 package at.tomtasche.reader.background;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
