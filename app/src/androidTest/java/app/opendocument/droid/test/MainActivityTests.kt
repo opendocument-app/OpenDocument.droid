@@ -434,7 +434,11 @@ class MainActivityTests {
         // entering edit mode has to round-trip through the webview before the dom reports
         // contenteditable, and on a cold CI emulator that regularly took longer than the 10s
         // this used to wait for - the edit mode tests were the flakiest thing in the suite.
-        private const val EDIT_MODE_TIMEOUT_MS = 30000L
+        // 30s was still not enough on api 26, the slowest image in the matrix and now the
+        // only one that boots cold, so nothing is warm by the time this runs. waiting longer
+        // costs nothing when it passes: the check polls every 250ms and returns on the first
+        // one that succeeds
+        private const val EDIT_MODE_TIMEOUT_MS = 60000L
 
         // insertion ordered, so the "All test files" log below reads in extraction order
         private val testFiles = LinkedHashMap<String, File>()
