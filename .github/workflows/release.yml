@@ -23,7 +23,9 @@ name: release
 #   GOOGLE_PLAY_SERVICE_ACCOUNT   json key of the play console service account
 #
 # Without them the workflow fails fast in the "check secrets" step instead of
-# producing an unsigned bundle and trying to upload it.
+# producing an unsigned bundle and trying to upload it, and the two that are more
+# than a password - the keystore and the service account key - are opened and
+# checked before the build rather than after it.
 
 on:
   workflow_dispatch:
@@ -130,6 +132,18 @@ jobs:
         }
         verify_key reader-pro "$key_password_pro"
         verify_key reader "$key_password_lite"
+
+    # written here rather than next to the upload, for the same reason the
+    # keystore is decoded up front: a key the play store cannot be opened with
+    # should fail the run in seconds, not once the build is done. it lands in
+    # RUNNER_TEMP and is handed to fastlane by absolute path - a relative one is
+    # resolved against whatever directory the action happens to run in, and this
+    # keeps the credentials out of the checkout the build reads from
+    - name: play store credentials
+      if: ${{ env.uploads != 'none' }}
+      env:
+        GOOGLE_PLAY_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+      run: .github/scripts/play-service-account-key.py "${RUNNER_TEMP}/fastlane_google_play.json"
 
     - name: setup ruby
       uses: ruby/setup-ruby@v1
@@ -241,16 +255,10 @@ jobs:
         if-no-files-found: error
         compression-level: 0
 
-    # via the environment rather than inline, so that a quote in the secret
-    # cannot end up as part of the script
-    - name: play store credentials
-      if: ${{ env.uploads != 'none' }}
-      env:
-        service_account: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
-      run: printf '%s' "$service_account" > fastlane_google_play.json
-
     - name: upload to play store
       if: ${{ env.uploads != 'none' }}
+      env:
+        ODR_PLAY_JSON_KEY: ${{ runner.temp }}/fastlane_google_play.json
       run: |
         case "${{ env.uploads }}" in
           pro)  lanes="uploadPro" ;;
@@ -263,7 +271,7 @@ jobs:
 
     - name: drop credentials
       if: always()
-      run: rm -f fastlane_google_play.json "${RUNNER_TEMP}/google_play.keystore"
+      run: rm -f "${RUNNER_TEMP}/fastlane_google_play.json" "${RUNNER_TEMP}/google_play.keystore"
 
   # needs: release, so the release page never offers an apk for a version that
   # never reached play - and a job of its own, so that a failure here can be

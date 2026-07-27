@@ -71,7 +71,13 @@ It needs these repository secrets:
 | `ODR_KEY_PASSWORD_LITE` | key password for the `reader` alias |
 | `GOOGLE_PLAY_SERVICE_ACCOUNT` | play console service account json key |
 
+The service account key goes in as the json file the Play Console hands out, whole and
+unedited - base64 of it is accepted too, but nothing else is: the workflow checks it is
+a `service_account` key before the build starts rather than letting fastlane trip over
+it once the build is done.
+
 Releasing from a laptop still works: `fastlane android deployPro` builds and uploads,
-and takes an optional `track:` (`fastlane android deployPro track:beta`).
+and takes an optional `track:` (`fastlane android deployPro track:beta`). That reads the
+key from `fastlane_google_play.json` in the repository root, as the `Appfile` says.
 
 Remember to raise `versionCode` in `app/src/main/AndroidManifest.xml` before tagging.

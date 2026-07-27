@@ -48,6 +48,14 @@ platform :android do
     upload_to_play_store(
       track: options[:track] || DEFAULT_TRACK,
       package_name: PACKAGE_NAMES.fetch(flavor),
+      # the release workflow keeps the key outside the checkout and points here
+      # at it. passing it rather than leaving it to the Appfile matters even
+      # then: supply verifies the Appfile's default whether or not that is the
+      # value being used, so an absent fastlane_google_play.json fails the run
+      # with "Invalid default value for json_key" no matter what SUPPLY_JSON_KEY
+      # says. an explicit value is the one thing that check skips
+      json_key: ENV["ODR_PLAY_JSON_KEY"] ||
+        CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file),
       aab: "app/build/outputs/bundle/#{variant}Release/app-#{variant}-release.aab",
       skip_upload_metadata: true,
       skip_upload_changelogs: true,
