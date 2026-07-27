@@ -104,26 +104,37 @@ jobs:
       id: version
       env:
         given: ${{ inputs.version }}
+        tag: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
       run: |
-        version="$given"
-        if [ -z "$version" ] && [ "${{ github.ref_type }}" = "tag" ]; then
-          version="${{ github.ref_name }}"
+        # on a tag the tag is the version, and an input saying otherwise is a mistake
+        # rather than an override: the attach job puts the built apk on the release of
+        # this very tag, so a run that built something else would clobber that release
+        # with an apk whose version is not the one it is filed under
+        if [ -n "$tag" ] && [ -n "$given" ] && [ "${given#v}" != "${tag#v}" ]; then
+          echo "::error::the version input ($given) is not the tag this ran on ($tag). leave it blank to build the tag."
+          exit 1
         fi
+
+        version="${tag:-$given}"
         if [ -z "$version" ]; then
+          # nothing to go on: only the dry run can carry on, on gradle's unversioned
+          # fallback. anything else would build a version code the store refuses,
+          # after the six minutes it takes to get there
           if [ "${{ env.uploads }}" != "none" ]; then
             echo "::error::nothing to take a version from. push this as a v* tag, dispatch it on one, or fill in the version input."
             exit 1
           fi
-          version="0.0.0"
-        fi
-        # the same shape app/build.gradle accepts, checked here so a typo fails in
-        # seconds rather than after the conan and gradle setup
-        if ! echo "$version" | grep -qE '^v?[0-9]{1,2}(\.[0-9]{1,2}){0,2}$'; then
-          echo "::error::'$version' is not a version: expected something like v4.8.0, each part below 100"
-          exit 1
+          echo "no version given - building gradle's unversioned fallback"
+        else
+          # the same shape app/build.gradle accepts, checked here so a typo fails in
+          # seconds rather than after the conan and gradle setup
+          if ! echo "$version" | grep -qE '^v?[0-9]{1,2}(\.[0-9]{1,2}){0,2}$'; then
+            echo "::error::'$version' is not a version: expected something like v4.8.0, each part below 100"
+            exit 1
+          fi
+          echo "building $version"
         fi
         echo "version=$version" >> "$GITHUB_OUTPUT"
-        echo "building $version"
 
     - name: checkout
       uses: actions/checkout@v4
@@ -240,10 +251,14 @@ jobs:
         ODR_KEYSTORE_PASSWORD: ${{ secrets.ODR_KEYSTORE_PASSWORD }}
         ODR_KEY_PASSWORD_PRO: ${{ secrets.ODR_KEY_PASSWORD_PRO }}
         ODR_KEY_PASSWORD_LITE: ${{ secrets.ODR_KEY_PASSWORD_LITE }}
+        version: ${{ steps.version.outputs.version }}
       run: |
+        # left out entirely when there is no version, rather than passed as 0.0.0:
+        # gradle's fallback is that name with a version code of 1, since AGP refuses
+        # the 0 the name itself would derive to
         ./gradlew bundleProRelease bundleLiteRelease \
                   assembleProRelease assembleLiteRelease \
-                  -Podr.version="${{ steps.version.outputs.version }}" --stacktrace
+                  ${version:+-Podr.version=$version} --stacktrace
 
     # a release that silently produced an unsigned bundle would be rejected by
     # the play store with a much less obvious error, and an unsigned apk on the

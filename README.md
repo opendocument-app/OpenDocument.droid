@@ -62,7 +62,10 @@ be repeated, since the Play Store refuses a version code it has already accepted
 dispatch it again for the flavor that did not make it.
 
 A dispatched run has no tag to take the version from, so it either gets one in the
-`version` input or is a dry run; see below.
+`version` input or is a dry run; see below. Dispatched on a tag it is the tag that
+counts, and the input may only repeat it: the APK a run produces is attached to the
+release of the tag it ran on, so a run that built some other version would file it
+there under the wrong one.
 
 It needs these repository secrets:
 
