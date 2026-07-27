@@ -131,32 +131,15 @@ jobs:
     - name: decode keystore
       run: echo "${{ secrets.ODR_KEYSTORE_BASE64 }}" | base64 -d > "${RUNNER_TEMP}/google_play.keystore"
 
-    # keytool reports the same two failures in a second, and tells them apart, which
-    # gradle does not: it wraps both in "Failed to read key <alias> from store". A
-    # -list only proves the store password, so the key passwords get their own check
-    # via -certreq, which needs the private key itself. Neither writes to the keystore.
+    # the script says why keytool rather than gradle gets to be the one that reports a
+    # bad password. it takes the same ODR_* variables the build takes, so the same
+    # check can be run against a keystore by hand
     - name: verify keystore
       env:
-        keystore_password: ${{ secrets.ODR_KEYSTORE_PASSWORD }}
-        key_password_pro: ${{ secrets.ODR_KEY_PASSWORD_PRO }}
-        key_password_lite: ${{ secrets.ODR_KEY_PASSWORD_LITE }}
-      run: |
-        keystore="${RUNNER_TEMP}/google_play.keystore"
-        if ! keytool -list -keystore "$keystore" -storepass "$keystore_password" > /dev/null; then
-          echo "::error::ODR_KEYSTORE_PASSWORD does not open the keystore, or ODR_KEYSTORE_BASE64 did not decode to it. A trailing newline in either secret is enough to do this."
-          exit 1
-        fi
-        # an unset key password falls back to the store one, the same way
-        # app/build.gradle resolves it
-        verify_key() {
-          if ! keytool -certreq -alias "$1" -keystore "$keystore" \
-              -storepass "$keystore_password" -keypass "${2:-$keystore_password}" > /dev/null; then
-            echo "::error::the $1 key cannot be used - check its key password secret"
-            exit 1
-          fi
-        }
-        verify_key reader-pro "$key_password_pro"
-        verify_key reader "$key_password_lite"
+        ODR_KEYSTORE_PASSWORD: ${{ secrets.ODR_KEYSTORE_PASSWORD }}
+        ODR_KEY_PASSWORD_PRO: ${{ secrets.ODR_KEY_PASSWORD_PRO }}
+        ODR_KEY_PASSWORD_LITE: ${{ secrets.ODR_KEY_PASSWORD_LITE }}
+      run: .github/scripts/verify-keystore.sh "${RUNNER_TEMP}/google_play.keystore"
 
     # written here rather than next to the upload, for the same reason the
     # keystore is decoded up front: a key the play store cannot be opened with
@@ -235,32 +218,10 @@ jobs:
 
     # a release that silently produced an unsigned bundle would be rejected by
     # the play store with a much less obvious error, and an unsigned apk on the
-    # release page would not install at all
+    # release page would not install at all. the script checks the same outputs
+    # against a local build
     - name: verify bundles and apks are signed
-      run: |
-        for aab in app/build/outputs/bundle/*/*.aab; do
-          if unzip -l "$aab" | grep -qE " META-INF/[^/]+\.(RSA|DSA)$"; then
-            echo "signed: $aab"
-          else
-            echo "::error::$aab is not signed"
-            exit 1
-          fi
-        done
-        # the apks take apksigner rather than the same grep: from minSdk 24 up
-        # agp leaves v1 signing off, so there is no META-INF/*.RSA to find and
-        # the signature sits in a block the zip listing does not show
-        apksigner=$(ls -1 "${ANDROID_HOME}"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
-        if [ -z "$apksigner" ]; then
-          echo "::error::found no apksigner under ${ANDROID_HOME}/build-tools"
-          exit 1
-        fi
-        for apk in app/build/outputs/apk/*/release/*.apk; do
-          if ! "$apksigner" verify "$apk" > /dev/null; then
-            echo "::error::$apk is not signed"
-            exit 1
-          fi
-          echo "signed: $apk"
-        done
+      run: .github/scripts/verify-signed.sh
 
     # ndk.debugSymbolLevel puts the symbols inside the bundle itself, under
     # BUNDLE-METADATA/com.android.tools.build.debugsymbols, so the play store
