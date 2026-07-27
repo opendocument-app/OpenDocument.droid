@@ -1,5 +1,5 @@
 [requires]
-odrcore/5.7.1
+odrcore/6.0.1
 
 [generators]
 CMakeToolchain
@@ -7,8 +7,6 @@ CMakeDeps
 
 [options]
 odrcore/*:shared=False
-odrcore/*:with_pdf2htmlEX=False
-odrcore/*:with_wvWare=False
 odrcore/*:with_libmagic=True
 odrcore/*:with_http_server=True
 odrcore/*:with_cli=False

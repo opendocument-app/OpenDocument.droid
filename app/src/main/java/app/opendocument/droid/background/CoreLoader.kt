@@ -7,7 +7,6 @@ import android.system.Os
 import android.util.Log
 import app.opendocument.core.DecodePreference
 import app.opendocument.core.DecodedFile
-import app.opendocument.core.DecoderEngine
 import app.opendocument.core.Document
 import app.opendocument.core.DocumentType
 import app.opendocument.core.FileType
@@ -28,8 +27,6 @@ import app.opendocument.droid.nonfree.CrashManager
 import com.viliussutkus89.android.assetextractor.AssetExtractor
 import java.io.File
 import java.io.IOException
-import java.net.InetSocketAddress
-import java.net.ServerSocket
 
 /**
  * Loads documents through odrcore and publishes them on a local http server.
@@ -56,7 +53,7 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
     private var lastInputPath: String? = null
     private var lastCachePath: String? = null
 
-    // the port the server actually got, which is not always the preferred one. see choosePort()
+    // the port the server actually got, which is not always the preferred one. see bind()
     private var serverPort = PREFERRED_SERVER_PORT
 
     override fun initialize(
@@ -71,22 +68,15 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
         // right after new CoreLoader() anyway.
         initializeCore(context)
 
-        val serverCacheDir = File(context.cacheDir, "core/server")
-        if (!serverCacheDir.isDirectory && !serverCacheDir.mkdirs()) {
-            Log.e(TAG, "Failed to create cache directory for the core server: $serverCacheDir")
-        }
-
-        val config = HttpServer.Config()
-        config.cachePath = serverCacheDir.absolutePath
-        val server = HttpServer(config)
+        val server = HttpServer()
         this.server = server
 
-        serverPort = choosePort(crashManager)
+        serverPort = bind(server, crashManager)
 
         httpThread =
             Thread {
                 try {
-                    server.listen(SERVER_BIND_ADDRESS, serverPort)
+                    server.listen()
                 } catch (e: Throwable) {
                     crashManager.log(e)
                 }
@@ -97,34 +87,28 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
     }
 
     /**
-     * Picks the port the server binds to, and says so when [PREFERRED_SERVER_PORT] cannot be had.
+     * Binds [server], preferring [PREFERRED_SERVER_PORT], and returns the port it got.
      *
-     * [HttpServer.listen] returns void and does not report a failed bind, so an occupied port left
-     * the app with no server at all and nothing to show for it: every document then failed with
-     * ERR_CONNECTION_REFUSED behind chrome's own error page. That is what testODTEditMode kept
-     * failing on, and it took a webview error log to see at all.
+     * The preferred port is occupied more often than it looks. Both flavors hardcode it, so lite
+     * and pro collide whenever they run on one device - the instrumented tests do exactly that, one
+     * flavor after the other - and a port does not come free the moment its owner goes away: the
+     * sockets the webview opened linger in TIME_WAIT for a minute. That second half is what
+     * [HttpServer.Options.reuseAddress] covers, on by default since the core started setting
+     * SO_REUSEADDR rather than cpp-httplib's SO_REUSEPORT; a live server of the other flavor still
+     * holds the port for real, hence the fallback to any free one.
      *
-     * The port is occupied more often than it looks. Both flavors hardcode it, so lite and pro
-     * collide whenever they run on one device - the instrumented tests do exactly that, one flavor
-     * after the other - and a port does not come free the moment its owner goes away: the sockets
-     * the webview opened linger in TIME_WAIT for a minute. The native bind sets SO_REUSEPORT,
-     * cpp-httplib's default on linux, and not SO_REUSEADDR. Two live servers therefore never share
-     * the port, since SO_REUSEPORT joins only sockets of the same uid - which two flavors never
-     * are. TIME_WAIT is the murkier half: the kernel does let a SO_REUSEPORT bind past a timewait
-     * socket, skipping even the uid check, but only where that socket carries the flag across from
-     * the one it replaced - which it does not on api 26's 3.18.91, predating the fix for that
-     * uninitialised field (3099a5291893, v4.19, backported to 4.14.y). So the bind that failed
-     * there was up against whatever that bit happened to hold - a conflict that comes and goes,
-     * which is about what a failure seen in one run of twelve looks like. Clean shutdown does not
-     * help either, since the previous app is usually killed outright rather than destroyed.
+     * A failed bind used to be invisible: the old `listen(host, port)` returned void either way, so
+     * an occupied port left the app with no server and nothing to show for it - every document then
+     * failed with ERR_CONNECTION_REFUSED behind chrome's own error page. [HttpServer.bind] throws
+     * instead, and reports back the port that a request has to be addressed to.
      */
-    private fun choosePort(crashManager: CrashManager): Int {
+    private fun bind(server: HttpServer, crashManager: CrashManager): Int {
         // a preference of ANY_PORT is a request for an arbitrary free port, which is what the
         // fallback below asks for anyway - there is nothing to try first
         if (PREFERRED_SERVER_PORT != ANY_PORT) {
             try {
-                return bindable(PREFERRED_SERVER_PORT)
-            } catch (e: IOException) {
+                return server.bind(SERVER_BIND_ADDRESS, PREFERRED_SERVER_PORT)
+            } catch (e: Throwable) {
                 crashManager.log(
                     IOException(
                         "core server cannot bind $SERVER_BIND_ADDRESS:$PREFERRED_SERVER_PORT",
@@ -135,33 +119,17 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
         }
 
         try {
-            return bindable(ANY_PORT)
-        } catch (e: IOException) {
+            return server.bind(SERVER_BIND_ADDRESS, ANY_PORT)
+        } catch (e: Throwable) {
             crashManager.log(IOException("core server cannot bind any port", e))
         }
 
-        // [listen] must not be handed ANY_PORT: it would bind a port that nothing here knows,
-        // and every document url would then address :0. A port that cannot be bound at least
-        // fails where it can be seen, now that the webview reports the refused connection. And
-        // the probe is only a moment in time - the port may well be free again by the time the
-        // server gets there.
+        // nothing is bound at this point, so [listen] will fail as well and this port only decides
+        // which url the documents that follow are refused at. It must not be ANY_PORT, which would
+        // address every one of them to :0.
         return if (PREFERRED_SERVER_PORT != ANY_PORT) PREFERRED_SERVER_PORT
         else FALLBACK_SERVER_PORT
     }
-
-    /** The port [port] resolves to, if a socket at least as strict as the native one can get it. */
-    private fun bindable(port: Int): Int =
-        ServerSocket().use { probe ->
-            // deliberately not reuseAddress: java turns SO_REUSEADDR on by default, and a probe
-            // that relaxes what the native bind does not would hand back a port the real bind
-            // then fails on - the one direction that costs the server. A bare bind conflicts
-            // with strictly more than the native SO_REUSEPORT one, so it can also reject a port
-            // the server would have got; that only costs the fallback port
-            probe.reuseAddress = false
-            probe.bind(InetSocketAddress(SERVER_BIND_ADDRESS, port))
-
-            probe.localPort
-        }
 
     override fun isSupported(options: Options): Boolean {
         val fileType = options.fileType ?: return false
@@ -380,12 +348,12 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
         /**
          * The port the server prefers. Only a preference: it is hardcoded and therefore shared with
          * the other flavor, so it is not always free. Set it to [ANY_PORT] to always take whatever
-         * is going. See [choosePort].
+         * is going. See [bind].
          */
         const val PREFERRED_SERVER_PORT: Int = 29665
 
         /**
-         * Handed to [HttpServer.listen] when no port could be bound at all and the preference is
+         * The port the urls name when nothing could be bound at all and the preference is
          * [ANY_PORT], which cannot be passed on - the resulting url would address :0. Only reached
          * when the device has nothing free, where any choice is as good as the next.
          */
@@ -443,15 +411,14 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
         }
 
         /**
-         * Opens [path] restricted to core's own decoder engine. pdf2htmlEX and wvWare are compiled
-         * out of the android build (`with_pdf2htmlEX=False`, `with_wvWare=False`), so offering them
-         * would only produce "unsupported decoder engine" failures.
+         * Opens [path].
+         *
+         * This used to pass a [DecodePreference] naming core's own decoder engine, since the
+         * pdf2htmlEX and wvWare ones were compiled out of the android build and asking for them
+         * would only produce "unsupported decoder engine" failures. odrcore 6 dropped those
+         * backends and with them the whole engine dimension, so there is nothing left to choose.
          */
-        private fun open(path: String): DecodedFile {
-            val preference = DecodePreference()
-            preference.enginePriority.add(DecoderEngine.ODR)
-            return Odr.open(path, preference)
-        }
+        private fun open(path: String): DecodedFile = Odr.open(path)
 
         /**
          * Spreadsheets show one tab per sheet; every other format only shows the full "document"
