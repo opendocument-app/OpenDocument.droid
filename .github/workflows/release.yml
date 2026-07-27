@@ -4,8 +4,9 @@ name: release
 # only machine holding the keystore. This does the same steps in CI:
 #   1. build the signed app bundles with gradle
 #   2. hand them to fastlane, which uploads them to the play store
-#   3. on a tag, attach the signed pro apk to the github release, which every
-#      release up to v4.6 carried and which the laptop build produced by hand
+#   3. on a tag, attach the signed pro apk to that tag's github release, which
+#      every release up to v4.6 carried and the laptop build produced by hand.
+#      the release has to exist already
 #
 # Requires these repository secrets (see the "Release signing" section in the
 # README for what they mean):
@@ -265,8 +266,8 @@ jobs:
         done
 
     # after the upload, so the release page never offers an apk for a version
-    # that never reached play. a tag push arrives before the release object is
-    # cut more often than not, so create it when it is not there yet
+    # that never reached play. the release itself stays a human decision - this
+    # only fills in its apk, and says so rather than inventing one
     - name: attach the apk to the github release
       if: ${{ github.ref_type == 'tag' && env.flavor != 'lite' && inputs.dry_run != true }}
       env:
@@ -274,11 +275,11 @@ jobs:
         tag: ${{ github.ref_name }}
       run: |
         apk=app/build/outputs/apk/pro/release/app-pro-release.apk
-        if gh release view "$tag" > /dev/null 2>&1; then
-          gh release upload "$tag" "$apk" --clobber
-        else
-          gh release create "$tag" "$apk" --generate-notes
+        if ! gh release view "$tag" > /dev/null 2>&1; then
+          echo "::error::$tag has no github release to attach $apk to. create it, then re-run this job or upload the apk artifact by hand."
+          exit 1
         fi
+        gh release upload "$tag" "$apk" --clobber
 
     - name: drop credentials
       if: always()
