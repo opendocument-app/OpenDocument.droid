@@ -51,9 +51,14 @@ Pushing a `v*` tag runs the `release` workflow, which builds both signed bundles
 uploads them to the Play Store internal track - the same thing the fastlane lanes did
 from a laptop. It also builds the signed Pro APK and attaches it to the GitHub release
 of that tag, which has to exist already - the workflow does not create one, it fails
-instead. That APK is the sideloadable copy every release up to v4.6 carried. Running the workflow manually additionally allows
-picking the flavor, the track, and a dry run that builds and attaches the bundles and
-the APK as workflow artifacts without uploading or touching a release.
+instead. That APK is the sideloadable copy every release up to v4.6 carried, and both APKs are
+archived on the run itself. Both flavors always go out together. Running the workflow
+manually additionally allows picking the track, and a dry run that builds and attaches
+the bundles and APKs as workflow artifacts without uploading or touching a release.
+
+If one of the two uploads fails on its own, the run cannot simply be repeated - the
+Play Store refuses a version code it has already accepted. Dispatch it again with
+`uploads` set to the flavor that did not make it.
 
 It needs these repository secrets:
 
