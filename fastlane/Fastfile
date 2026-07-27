@@ -11,13 +11,13 @@ DEFAULT_TRACK = "internal".freeze
 platform :android do
   desc "Build and upload the Pro version to Google Play"
   lane :deployPro do |options|
-    buildBundle(flavor: "Pro")
+    buildBundle(flavor: "Pro", version: options[:version])
     uploadBundle(flavor: "Pro", track: options[:track])
   end
 
   desc "Build and upload the Lite version to Google Play"
   lane :deployLite do |options|
-    buildBundle(flavor: "Lite")
+    buildBundle(flavor: "Lite", version: options[:version])
     uploadBundle(flavor: "Lite", track: options[:track])
   end
 
@@ -37,8 +37,25 @@ platform :android do
   end
 
   private_lane :buildBundle do |options|
+    # there is no version number in the repository - it is the git tag, so a build
+    # started by hand has to say which one it is producing. Left out, gradle would fall
+    # back to 0.0.0, and the store would refuse that version code once the whole build
+    # and upload had already run
+    version = options[:version] || ENV["ODR_VERSION"]
+    if version.to_s.empty?
+      UI.user_error!("no version to build. pass one as version:v4.8.0, or set ODR_VERSION")
+    end
+
     gradle(task: "clean")
-    gradle(task: "bundle", flavor: options[:flavor], build_type: "Release")
+    gradle(
+      task: "bundle",
+      flavor: options[:flavor],
+      build_type: "Release",
+      # as a property rather than an environment variable: the gradle daemon captures
+      # its environment when it starts, so an ODR_VERSION exported afterwards is not
+      # necessarily the one an already running daemon would read
+      properties: { "odr.version" => version }
+    )
   end
 
   private_lane :uploadBundle do |options|

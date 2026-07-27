@@ -61,6 +61,12 @@ half uploaded release - if one of the two lanes fails on its own the run cannot 
 be repeated, since the Play Store refuses a version code it has already accepted, so
 dispatch it again for the flavor that did not make it.
 
+A dispatched run has no tag to take the version from, so it either gets one in the
+`version` input or is a dry run; see below. Dispatched on a tag it is the tag that
+counts, and the input may only repeat it: the APK a run produces is attached to the
+release of the tag it ran on, so a run that built some other version would file it
+there under the wrong one.
+
 It needs these repository secrets:
 
 | secret | contents |
@@ -76,8 +82,26 @@ unedited - base64 of it is accepted too, but nothing else is: the workflow check
 a `service_account` key before the build starts rather than letting fastlane trip over
 it once the build is done.
 
-Releasing from a laptop still works: `fastlane android deployPro` builds and uploads,
-and takes an optional `track:` (`fastlane android deployPro track:beta`). That reads the
-key from `fastlane_google_play.json` in the repository root, as the `Appfile` says.
+Releasing from a laptop still works: `fastlane android deployPro version:v4.8.0` builds
+and uploads, and takes an optional `track:` (`... track:beta`). The version can come from
+`ODR_VERSION` instead, but it cannot be left out - see below. That reads the key from
+`fastlane_google_play.json` in the repository root, as the `Appfile` says.
 
-Remember to raise `versionCode` in `app/src/main/AndroidManifest.xml` before tagging.
+## Versioning
+
+The version is the git tag, and no version number is checked in anywhere. The release
+workflow hands the tag it was triggered by to gradle as `-Podr.version`, and
+`app/build.gradle` derives both halves of it: `v4.8.0` becomes version name `4.8.0` and
+version code `40800`, two digits per part. Every part therefore has to stay below 100,
+which the build refuses rather than folding `4.100.0` onto the same code as `5.0.0`.
+Nothing has to be raised by hand before tagging, and no number on `main` can describe a
+release that already went out.
+
+Builds handed no version - local ones, PR builds, `assembleProDebug` - are `0.0.0`.
+Nothing reads it: no code in the app looks at its own version, and only what the release
+workflow builds ever leaves the machine. Any build can be given a real one anyway, with
+`./gradlew assembleProRelease -Podr.version=v4.8.0`.
+
+Version codes up to 204 were counted by hand in `AndroidManifest.xml`, which is why the
+first derived one is a five digit jump. That is one way: the Play Store only ever accepts
+a code above the last one it saw.

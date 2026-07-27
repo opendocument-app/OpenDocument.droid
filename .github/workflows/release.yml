@@ -13,6 +13,11 @@ name: release
 # and release notes, and a release of one without the other is not a thing that
 # has ever been wanted.
 #
+# The version is the tag and nothing else. The repository holds no version number
+# at all any more - gradle takes it from the -Podr.version passed below, and turns
+# v4.8.0 into version code 40800, two digits per part. A dispatched run has no tag
+# to read, so it fills in the version input instead.
+#
 # Requires these repository secrets (see the "Release signing" section in the
 # README for what they mean):
 #   ODR_KEYSTORE_BASE64           base64 of google_play.keystore
@@ -45,6 +50,12 @@ on:
         type: choice
         options: [both, pro, lite, none]
         default: both
+      # a tag push needs nothing here: the tag is the version. this is for dispatched
+      # runs, which have no tag to read - finishing a half uploaded release off the
+      # branch it was cut from, or putting a real version on a dry run
+      version:
+        description: version to build, e.g. v4.8.0 - defaults to the tag
+        type: string
   push:
     tags:
       - 'v*'
@@ -87,6 +98,20 @@ jobs:
     - name: checkout
       uses: actions/checkout@v4
 
+    # the version is not in the checkout - it is the tag, handed to gradle below as
+    # -Podr.version. The script says which runs can build which version, and why;
+    # it is here, right behind the checkout it needs, because a run that cannot name
+    # a version should end before the six minutes of setup and building, not after
+    - name: resolve version
+      id: version
+      # through the environment rather than interpolated into the command: a tag name
+      # and a dispatch input are both strings from outside the workflow, and a run:
+      # line is the one place where that would be a shell injection
+      env:
+        tag: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+        given: ${{ inputs.version }}
+      run: .github/scripts/resolve-version.py --tag "$tag" --input "$given" --uploads "$uploads"
+
     - name: install ninja
       run: sudo apt-get install -y ninja-build
 
@@ -106,32 +131,15 @@ jobs:
     - name: decode keystore
       run: echo "${{ secrets.ODR_KEYSTORE_BASE64 }}" | base64 -d > "${RUNNER_TEMP}/google_play.keystore"
 
-    # keytool reports the same two failures in a second, and tells them apart, which
-    # gradle does not: it wraps both in "Failed to read key <alias> from store". A
-    # -list only proves the store password, so the key passwords get their own check
-    # via -certreq, which needs the private key itself. Neither writes to the keystore.
+    # the script says why keytool rather than gradle gets to be the one that reports a
+    # bad password. it takes the same ODR_* variables the build takes, so the same
+    # check can be run against a keystore by hand
     - name: verify keystore
       env:
-        keystore_password: ${{ secrets.ODR_KEYSTORE_PASSWORD }}
-        key_password_pro: ${{ secrets.ODR_KEY_PASSWORD_PRO }}
-        key_password_lite: ${{ secrets.ODR_KEY_PASSWORD_LITE }}
-      run: |
-        keystore="${RUNNER_TEMP}/google_play.keystore"
-        if ! keytool -list -keystore "$keystore" -storepass "$keystore_password" > /dev/null; then
-          echo "::error::ODR_KEYSTORE_PASSWORD does not open the keystore, or ODR_KEYSTORE_BASE64 did not decode to it. A trailing newline in either secret is enough to do this."
-          exit 1
-        fi
-        # an unset key password falls back to the store one, the same way
-        # app/build.gradle resolves it
-        verify_key() {
-          if ! keytool -certreq -alias "$1" -keystore "$keystore" \
-              -storepass "$keystore_password" -keypass "${2:-$keystore_password}" > /dev/null; then
-            echo "::error::the $1 key cannot be used - check its key password secret"
-            exit 1
-          fi
-        }
-        verify_key reader-pro "$key_password_pro"
-        verify_key reader "$key_password_lite"
+        ODR_KEYSTORE_PASSWORD: ${{ secrets.ODR_KEYSTORE_PASSWORD }}
+        ODR_KEY_PASSWORD_PRO: ${{ secrets.ODR_KEY_PASSWORD_PRO }}
+        ODR_KEY_PASSWORD_LITE: ${{ secrets.ODR_KEY_PASSWORD_LITE }}
+      run: .github/scripts/verify-keystore.sh "${RUNNER_TEMP}/google_play.keystore"
 
     # written here rather than next to the upload, for the same reason the
     # keystore is decoded up front: a key the play store cannot be opened with
@@ -199,38 +207,21 @@ jobs:
         ODR_KEYSTORE_PASSWORD: ${{ secrets.ODR_KEYSTORE_PASSWORD }}
         ODR_KEY_PASSWORD_PRO: ${{ secrets.ODR_KEY_PASSWORD_PRO }}
         ODR_KEY_PASSWORD_LITE: ${{ secrets.ODR_KEY_PASSWORD_LITE }}
+        version: ${{ steps.version.outputs.version }}
       run: |
+        # left out entirely when there is no version, rather than passed as 0.0.0:
+        # gradle's fallback is that name with a version code of 1, since AGP refuses
+        # the 0 the name itself would derive to
         ./gradlew bundleProRelease bundleLiteRelease \
-                  assembleProRelease assembleLiteRelease --stacktrace
+                  assembleProRelease assembleLiteRelease \
+                  ${version:+-Podr.version=$version} --stacktrace
 
     # a release that silently produced an unsigned bundle would be rejected by
     # the play store with a much less obvious error, and an unsigned apk on the
-    # release page would not install at all
+    # release page would not install at all. the script checks the same outputs
+    # against a local build
     - name: verify bundles and apks are signed
-      run: |
-        for aab in app/build/outputs/bundle/*/*.aab; do
-          if unzip -l "$aab" | grep -qE " META-INF/[^/]+\.(RSA|DSA)$"; then
-            echo "signed: $aab"
-          else
-            echo "::error::$aab is not signed"
-            exit 1
-          fi
-        done
-        # the apks take apksigner rather than the same grep: from minSdk 24 up
-        # agp leaves v1 signing off, so there is no META-INF/*.RSA to find and
-        # the signature sits in a block the zip listing does not show
-        apksigner=$(ls -1 "${ANDROID_HOME}"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
-        if [ -z "$apksigner" ]; then
-          echo "::error::found no apksigner under ${ANDROID_HOME}/build-tools"
-          exit 1
-        fi
-        for apk in app/build/outputs/apk/*/release/*.apk; do
-          if ! "$apksigner" verify "$apk" > /dev/null; then
-            echo "::error::$apk is not signed"
-            exit 1
-          fi
-          echo "signed: $apk"
-        done
+      run: .github/scripts/verify-signed.sh
 
     # ndk.debugSymbolLevel puts the symbols inside the bundle itself, under
     # BUNDLE-METADATA/com.android.tools.build.debugsymbols, so the play store
