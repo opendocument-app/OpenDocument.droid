@@ -53,6 +53,9 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
     private var lastInputPath: String? = null
     private var lastCachePath: String? = null
 
+    // counts translations, so each one is served under a url of its own. see host()
+    private var hostGeneration = 0
+
     override fun initialize(
         listener: FileLoaderListener,
         mainHandler: Handler,
@@ -208,13 +211,24 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
         cacheDirectory.mkdirs()
 
         val service = Html.translate(file, cachePath, htmlConfig)
-        server.connectService(service, prefix)
+
+        // every translation gets a url of its own. entering edit mode re-hosts the same
+        // document ~85ms after the first load, and with a fixed prefix that produced the
+        // identical url twice: the server.clear() above broke the first fetch while it was
+        // still in flight, the webview committed its own error page for that url, and the
+        // second loadUrl - same url, navigation already in progress - never became a
+        // navigation of its own. On api 26 that left the document sitting on
+        // chrome-error://chromewebdata/ for good, which is what testODTEditMode kept
+        // failing on. A url that has not been navigated to before cannot be folded into
+        // the one that just failed.
+        val hostedPrefix = "$prefix-${++hostGeneration}"
+        server.connectService(service, hostedPrefix)
 
         return selectViews(file, service.listViews()).map { view ->
             Log.i(TAG, "view name=" + view.name() + " path=" + view.path())
             HostedView(
                 view.name(),
-                "http://$SERVER_URL_HOST:$SERVER_PORT/file/$prefix/" + view.path(),
+                "http://$SERVER_URL_HOST:$SERVER_PORT/file/$hostedPrefix/" + view.path(),
             )
         }
     }
