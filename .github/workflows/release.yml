@@ -80,7 +80,7 @@ jobs:
       run: sudo apt-get install -y ninja-build
 
     - name: setup java
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: 'zulu'
         java-version: 21
@@ -133,7 +133,7 @@ jobs:
         bundler-cache: true
 
     - name: setup python 3.12
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: 3.12
     - name: install python dependencies
@@ -149,12 +149,18 @@ jobs:
       run: git submodule update --init --depth 1 conan-odr-index
 
     # same cache the build workflow populates, so a release does not have to
-    # rebuild odrcore from source
+    # rebuild odrcore from source. the key has to be spelled the same way
+    # build_test spells it, or only the restore-keys prefix can ever match and
+    # the index revision stops being part of what is looked up
+    - name: conan cache key
+      id: conan-cache-key
+      run: echo "key=conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-index$(git rev-parse HEAD:conan-odr-index)-${{ hashFiles('app/conanfile.txt', 'app/conanprofile.txt') }}" >> "$GITHUB_OUTPUT"
+
     - name: conan cache
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v6
       with:
         path: ~/.conan2/p
-        key: conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-index${{ hashFiles('.git/modules/conan-odr-index/HEAD') }}-${{ hashFiles('app/conanfile.txt', 'app/conanprofile.txt') }}
+        key: ${{ steps.conan-cache-key.outputs.key }}
         restore-keys: |
           conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-
 
@@ -192,23 +198,25 @@ jobs:
           fi
         done
 
+    # ndk.debugSymbolLevel puts the symbols inside the bundle itself, under
+    # BUNDLE-METADATA/com.android.tools.build.debugsymbols, so the play store
+    # gets them from the upload and anyone who needs them can unzip the aab
+    # archived here. build/outputs/native-debug-symbols is only written on the
+    # apk path, by mergeNativeDebugMetadata, which a bundle build never runs
     - name: Artifact bundles
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: bundles
         path: app/build/outputs/bundle/*/*.aab
         if-no-files-found: error
 
-    - name: Artifact native debug symbols
-      uses: actions/upload-artifact@v4
-      with:
-        name: native-debug-symbols
-        path: app/build/outputs/native-debug-symbols/*/*.zip
-        if-no-files-found: warn
-
+    # via the environment rather than inline, so that a quote in the secret
+    # cannot end up as part of the script
     - name: play store credentials
       if: ${{ inputs.dry_run != true }}
-      run: echo '${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}' > fastlane_google_play.json
+      env:
+        service_account: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+      run: printf '%s' "$service_account" > fastlane_google_play.json
 
     - name: upload to play store
       if: ${{ inputs.dry_run != true }}
