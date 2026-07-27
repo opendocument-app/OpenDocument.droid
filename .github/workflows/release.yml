@@ -33,18 +33,15 @@ on:
         type: choice
         options: [internal, alpha, beta, production]
         default: internal
-      dry_run:
-        description: build and attach the bundles and apks, but do not upload
-        type: boolean
-        default: false
-      # both flavors are always built. this is only about which of them still
-      # has to be uploaded: play refuses a version code it has already seen, so
-      # a run where pro went through and lite did not cannot be retried whole -
-      # dispatch it again with lite to finish the half that is missing
+      # both flavors are always built and archived - this is only about what
+      # leaves the run. none is the dry run: build everything, publish nothing.
+      # pro or lite finishes a half uploaded release, which is otherwise a dead
+      # end, since play refuses a version code it has already accepted and the
+      # run therefore cannot simply be repeated
       uploads:
-        description: which uploads to run, to finish a half uploaded release
+        description: what to publish - none builds and archives only
         type: choice
-        options: [both, pro, lite]
+        options: [both, pro, lite, none]
         default: both
   push:
     tags:
@@ -77,7 +74,7 @@ jobs:
         missing=""
         [ -n "$keystore" ] || missing="$missing ODR_KEYSTORE_BASE64"
         [ -n "$keystore_password" ] || missing="$missing ODR_KEYSTORE_PASSWORD"
-        if [ "${{ inputs.dry_run }}" != "true" ]; then
+        if [ "${{ env.uploads }}" != "none" ]; then
           [ -n "$service_account" ] || missing="$missing GOOGLE_PLAY_SERVICE_ACCOUNT"
         fi
         if [ -n "$missing" ]; then
@@ -247,13 +244,13 @@ jobs:
     # via the environment rather than inline, so that a quote in the secret
     # cannot end up as part of the script
     - name: play store credentials
-      if: ${{ inputs.dry_run != true }}
+      if: ${{ env.uploads != 'none' }}
       env:
         service_account: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
       run: printf '%s' "$service_account" > fastlane_google_play.json
 
     - name: upload to play store
-      if: ${{ inputs.dry_run != true }}
+      if: ${{ env.uploads != 'none' }}
       run: |
         case "${{ env.uploads }}" in
           pro)  lanes="uploadPro" ;;
@@ -275,7 +272,9 @@ jobs:
   # code it has already seen, so the retry would die before ever getting here
   attach:
     needs: release
-    if: ${{ github.ref_type == 'tag' && inputs.dry_run != true }}
+    # inputs, not env: a job level if cannot see the env context, and an unset
+    # input on a tag push is not 'none' either way
+    if: ${{ github.ref_type == 'tag' && inputs.uploads != 'none' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: write

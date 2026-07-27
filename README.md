@@ -53,12 +53,13 @@ from a laptop. It also builds the signed Pro APK and attaches it to the GitHub r
 of that tag, which has to exist already - the workflow does not create one, it fails
 instead. That APK is the sideloadable copy every release up to v4.6 carried, and both APKs are
 archived on the run itself. Both flavors always go out together. Running the workflow
-manually additionally allows picking the track, and a dry run that builds and attaches
-the bundles and APKs as workflow artifacts without uploading or touching a release.
+manually additionally allows picking the track and what to publish.
 
-If one of the two uploads fails on its own, the run cannot simply be repeated - the
-Play Store refuses a version code it has already accepted. Dispatch it again with
-`uploads` set to the flavor that did not make it.
+That last one, `uploads`, defaults to `both`. `none` is a dry run: everything gets
+built, signed and attached to the run, nothing leaves it. `pro` or `lite` finishes a
+half uploaded release - if one of the two lanes fails on its own the run cannot simply
+be repeated, since the Play Store refuses a version code it has already accepted, so
+dispatch it again for the flavor that did not make it.
 
 It needs these repository secrets:
 
