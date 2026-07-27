@@ -190,8 +190,9 @@ class CoreTest {
                 CrashManager(),
             )
 
-            // Give server time to start
-            Thread.sleep(1000)
+            // no waiting for the server here: these tests call host() and edit() straight on
+            // the loader and never fetch a url, so whether the socket is listening yet does
+            // not come into it. it used to sleep a second for it anyway
         }
 
         @JvmStatic

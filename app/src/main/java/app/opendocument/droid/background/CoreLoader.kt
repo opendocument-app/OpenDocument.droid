@@ -56,8 +56,8 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
     private var lastInputPath: String? = null
     private var lastCachePath: String? = null
 
-    // the port the server actually got, which is not always SERVER_PORT. see choosePort()
-    private var serverPort = SERVER_PORT
+    // the port the server actually got, which is not always the preferred one. see choosePort()
+    private var serverPort = PREFERRED_SERVER_PORT
 
     override fun initialize(
         listener: FileLoaderListener,
@@ -97,7 +97,7 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
     }
 
     /**
-     * Picks the port the server binds to, and says so when [SERVER_PORT] cannot be had.
+     * Picks the port the server binds to, and says so when [PREFERRED_SERVER_PORT] cannot be had.
      *
      * [HttpServer.listen] returns void and does not report a failed bind, so an occupied port left
      * the app with no server at all and nothing to show for it: every document then failed with
@@ -112,22 +112,34 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
      * outright rather than destroyed.
      */
     private fun choosePort(crashManager: CrashManager): Int {
+        // a preference of ANY_PORT is a request for an arbitrary free port, which is what the
+        // fallback below asks for anyway - there is nothing to try first
+        if (PREFERRED_SERVER_PORT != ANY_PORT) {
+            try {
+                return bindable(PREFERRED_SERVER_PORT)
+            } catch (e: IOException) {
+                crashManager.log(
+                    IOException(
+                        "core server cannot bind $SERVER_BIND_ADDRESS:$PREFERRED_SERVER_PORT",
+                        e,
+                    )
+                )
+            }
+        }
+
         try {
-            return bindable(SERVER_PORT)
+            return bindable(ANY_PORT)
         } catch (e: IOException) {
-            crashManager.log(
-                IOException("core server cannot bind $SERVER_BIND_ADDRESS:$SERVER_PORT", e)
-            )
-        }
-
-        return try {
-            bindable(0)
-        } catch (e: IOException) {
-            // nothing is bindable; let listen() fail on the usual port rather than invent one
             crashManager.log(IOException("core server cannot bind any port", e))
-
-            SERVER_PORT
         }
+
+        // [listen] must not be handed ANY_PORT: it would bind a port that nothing here knows,
+        // and every document url would then address :0. A port that cannot be bound at least
+        // fails where it can be seen, now that the webview reports the refused connection. And
+        // the probe is only a moment in time - the port may well be free again by the time the
+        // server gets there.
+        return if (PREFERRED_SERVER_PORT != ANY_PORT) PREFERRED_SERVER_PORT
+        else FALLBACK_SERVER_PORT
     }
 
     /** The port [port] resolves to, if a socket that binds like the native one can have it. */
@@ -353,11 +365,22 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
          */
         private const val SERVER_URL_HOST = "localhost"
 
+        /** What a bind asks for when any free port will do. */
+        private const val ANY_PORT = 0
+
         /**
          * The port the server prefers. Only a preference: it is hardcoded and therefore shared with
-         * the other flavor, so it is not always free. See [choosePort].
+         * the other flavor, so it is not always free. Set it to [ANY_PORT] to always take whatever
+         * is going. See [choosePort].
          */
-        const val SERVER_PORT: Int = 29665
+        const val PREFERRED_SERVER_PORT: Int = 29665
+
+        /**
+         * Handed to [HttpServer.listen] when no port could be bound at all and the preference is
+         * [ANY_PORT], which cannot be passed on - the resulting url would address :0. Only reached
+         * when the device has nothing free, where any choice is as good as the next.
+         */
+        private const val FALLBACK_SERVER_PORT: Int = 29665
 
         /**
          * Whether odrcore renders text documents with page margins. This used to be read from the
