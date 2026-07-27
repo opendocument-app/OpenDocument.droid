@@ -130,7 +130,17 @@ class MainActivityTests {
         // the load itself and not just the picker round trip.
         clickEditWithOverflowFallback()
 
-        Thread.sleep(10000)
+        // this used to sleep 10s here, asserting nothing afterwards. it was a third of the
+        // whole run's wall time, and it is why "testPDF crashed" was an api 34 bucket of its
+        // own: the app gets killed whenever play services dies under it -
+        //
+        //   Process com.google.android.gms.persistent has died: fg BTOP
+        //   Killing 5333:at.tomtasche.reader.pro (adj 0): depends on provider
+        //       com.google.android.gms/.fonts.provider.FontsProvider in dying proc
+        //
+        // which the instrumentation then reports as "Process crashed". Nothing to do with
+        // pdfs - testPDF just sat still the longest, so it was usually the one holding the
+        // app when gms went down.
     }
 
     @Test

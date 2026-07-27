@@ -27,6 +27,9 @@ import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
 import com.viliussutkus89.android.assetextractor.AssetExtractor
 import java.io.File
+import java.io.IOException
+import java.net.InetSocketAddress
+import java.net.ServerSocket
 
 /**
  * Loads documents through odrcore and publishes them on a local http server.
@@ -53,8 +56,8 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
     private var lastInputPath: String? = null
     private var lastCachePath: String? = null
 
-    // counts translations, so each one is served under a url of its own. see host()
-    private var hostGeneration = 0
+    // the port the server actually got, which is not always SERVER_PORT. see choosePort()
+    private var serverPort = SERVER_PORT
 
     override fun initialize(
         listener: FileLoaderListener,
@@ -78,10 +81,12 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
         val server = HttpServer(config)
         this.server = server
 
+        serverPort = choosePort(crashManager)
+
         httpThread =
             Thread {
                 try {
-                    server.listen(SERVER_BIND_ADDRESS, SERVER_PORT)
+                    server.listen(SERVER_BIND_ADDRESS, serverPort)
                 } catch (e: Throwable) {
                     crashManager.log(e)
                 }
@@ -90,6 +95,52 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
 
         super.initialize(listener, mainHandler, backgroundHandler, analyticsManager, crashManager)
     }
+
+    /**
+     * Picks the port the server binds to, and says so when [SERVER_PORT] cannot be had.
+     *
+     * [HttpServer.listen] returns void and does not report a failed bind, so an occupied port left
+     * the app with no server at all and nothing to show for it: every document then failed with
+     * ERR_CONNECTION_REFUSED behind chrome's own error page. That is what testODTEditMode kept
+     * failing on, and it took a webview error log to see at all.
+     *
+     * The port is occupied more often than it looks. Both flavors hardcode it, so lite and pro
+     * collide whenever they run on one device - the instrumented tests do exactly that, one flavor
+     * after the other - and a port does not come free the moment its owner goes away: the sockets
+     * the webview opened linger in TIME_WAIT for a minute, and the native bind does not set
+     * SO_REUSEADDR. Clean shutdown does not help either, since the previous app is usually killed
+     * outright rather than destroyed.
+     */
+    private fun choosePort(crashManager: CrashManager): Int {
+        try {
+            return bindable(SERVER_PORT)
+        } catch (e: IOException) {
+            crashManager.log(
+                IOException("core server cannot bind $SERVER_BIND_ADDRESS:$SERVER_PORT", e)
+            )
+        }
+
+        return try {
+            bindable(0)
+        } catch (e: IOException) {
+            // nothing is bindable; let listen() fail on the usual port rather than invent one
+            crashManager.log(IOException("core server cannot bind any port", e))
+
+            SERVER_PORT
+        }
+    }
+
+    /** The port [port] resolves to, if a socket that binds like the native one can have it. */
+    private fun bindable(port: Int): Int =
+        ServerSocket().use { probe ->
+            // deliberately not reuseAddress: the probe has to fail wherever the native bind
+            // would, and java turns SO_REUSEADDR on by default - which is exactly the flag
+            // whose absence makes a TIME_WAIT port unusable
+            probe.reuseAddress = false
+            probe.bind(InetSocketAddress(SERVER_BIND_ADDRESS, port))
+
+            probe.localPort
+        }
 
     override fun isSupported(options: Options): Boolean {
         val fileType = options.fileType ?: return false
@@ -211,24 +262,13 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
         cacheDirectory.mkdirs()
 
         val service = Html.translate(file, cachePath, htmlConfig)
-
-        // every translation gets a url of its own. entering edit mode re-hosts the same
-        // document ~85ms after the first load, and with a fixed prefix that produced the
-        // identical url twice: the server.clear() above broke the first fetch while it was
-        // still in flight, the webview committed its own error page for that url, and the
-        // second loadUrl - same url, navigation already in progress - never became a
-        // navigation of its own. On api 26 that left the document sitting on
-        // chrome-error://chromewebdata/ for good, which is what testODTEditMode kept
-        // failing on. A url that has not been navigated to before cannot be folded into
-        // the one that just failed.
-        val hostedPrefix = "$prefix-${++hostGeneration}"
-        server.connectService(service, hostedPrefix)
+        server.connectService(service, prefix)
 
         return selectViews(file, service.listViews()).map { view ->
             Log.i(TAG, "view name=" + view.name() + " path=" + view.path())
             HostedView(
                 view.name(),
-                "http://$SERVER_URL_HOST:$SERVER_PORT/file/$hostedPrefix/" + view.path(),
+                "http://$SERVER_URL_HOST:$serverPort/file/$prefix/" + view.path(),
             )
         }
     }
@@ -313,6 +353,10 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
          */
         private const val SERVER_URL_HOST = "localhost"
 
+        /**
+         * The port the server prefers. Only a preference: it is hardcoded and therefore shared with
+         * the other flavor, so it is not always free. See [choosePort].
+         */
         const val SERVER_PORT: Int = 29665
 
         /**
