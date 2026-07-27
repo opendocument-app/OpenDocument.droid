@@ -107,9 +107,11 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
      * The port is occupied more often than it looks. Both flavors hardcode it, so lite and pro
      * collide whenever they run on one device - the instrumented tests do exactly that, one flavor
      * after the other - and a port does not come free the moment its owner goes away: the sockets
-     * the webview opened linger in TIME_WAIT for a minute, and the native bind does not set
-     * SO_REUSEADDR. Clean shutdown does not help either, since the previous app is usually killed
-     * outright rather than destroyed.
+     * the webview opened linger in TIME_WAIT for a minute. The native bind sets SO_REUSEPORT,
+     * cpp-httplib's default on linux, and not SO_REUSEADDR; only the latter relaxes TIME_WAIT, and
+     * SO_REUSEPORT shares a port only between sockets of the same uid - which two flavors never
+     * are. Clean shutdown does not help either, since the previous app is usually killed outright
+     * rather than destroyed.
      */
     private fun choosePort(crashManager: CrashManager): Int {
         // a preference of ANY_PORT is a request for an arbitrary free port, which is what the
