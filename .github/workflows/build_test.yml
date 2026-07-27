@@ -199,7 +199,10 @@ jobs:
         path: |
           ~/.android/avd/*
           ~/.android/adb*
-        key: avd-${{ matrix.api-level }}-v3
+        # what gets cached is a booted snapshot, so it pins the guest's memory image to
+        # the ram size it was taken at - this key has to change whenever that does. the
+        # bump also throws the api 26 snapshot away, which is the one that kept dying
+        key: avd-${{ matrix.api-level }}-v4
 
     - name: Enable KVM group perms
       run: |
@@ -215,7 +218,12 @@ jobs:
         arch: ${{ matrix.arch }}
         target: google_apis
         force-avd-creation: false
-        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        # the images default to 1536MB, which left the guest so tight that the first adb
+        # command after a snapshot restore got killed while the system was still thawing
+        # ("input keyevent 82" exiting 137, api 26 mostly). the runner has 16GB, so the
+        # headroom is free
+        ram-size: 4096M
+        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
         disable-animations: false
         script: echo "Generated AVD snapshot for caching."
 
@@ -226,18 +234,23 @@ jobs:
         arch: ${{ matrix.arch }}
         target: google_apis
         force-avd-creation: false
-        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        ram-size: 4096M
+        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
         disable-animations: true
         script: |
           # Clear logcat before tests. Fails with "failed to clear the 'main' log"
           # on some system images (api 26 among them) and must not abort the run.
           adb logcat -c || true
 
-          # Run tests
-          ./gradlew connectedCheck
+          status=0
+          ./gradlew connectedCheck || status=$?
 
-          # Dump logcat after tests
+          # Dump logcat after tests. This used to sit after a bare gradle call, so the
+          # only runs whose logs were worth uploading were the ones that never got here -
+          # "||" keeps it reachable without swallowing the failure.
           adb logcat -d > logcat.txt
+
+          exit $status
 
     - name: Upload test results
       if: always()

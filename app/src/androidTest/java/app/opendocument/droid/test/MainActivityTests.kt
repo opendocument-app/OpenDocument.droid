@@ -115,7 +115,8 @@ class MainActivityTests {
 
         openDocumentThroughPicker()
 
-        // next onView will be blocked until the idling resource is idle.
+        // next onView will be blocked until the idling resource is idle, which now covers
+        // the load itself and not just the picker round trip.
         clickEditWithOverflowFallback()
     }
 
@@ -125,7 +126,8 @@ class MainActivityTests {
 
         openDocumentThroughPicker()
 
-        // next onView will be blocked until the idling resource is idle.
+        // next onView will be blocked until the idling resource is idle, which now covers
+        // the load itself and not just the picker round trip.
         clickEditWithOverflowFallback()
 
         Thread.sleep(10000)
@@ -157,7 +159,8 @@ class MainActivityTests {
 
         openDocumentThroughPicker()
 
-        // Wait for the password dialog to appear
+        // The dialog is put up by DocumentFragment.onEncrypted, and the idling resource
+        // stays busy until it is on screen - so this does not have to poll for it.
         onView(withText("This document is password-protected")).check(matches(isDisplayed()))
 
         // Enter wrong password first

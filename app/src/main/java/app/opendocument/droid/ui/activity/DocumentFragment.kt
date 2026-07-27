@@ -30,6 +30,7 @@ import app.opendocument.droid.background.StreamUtil
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
+import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.SnackbarHelper
 import app.opendocument.droid.ui.widget.PageView
 import app.opendocument.droid.ui.widget.ProgressDialogFragment
@@ -59,6 +60,13 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
 
     private var resultOnStart: FileLoader.Result? = null
     private var errorOnStart: Throwable? = null
+
+    // whether a load is outstanding as far as OpenFileIdling is concerned. MainActivity
+    // only keeps espresso busy for the document picker round trip, which ends the moment
+    // the picker returns a uri - long before a loader callback has put anything on screen.
+    // one token per fragment is enough: a load started while another is in flight replaces
+    // it, and the surviving callback releases the single token.
+    private var loadIsIdling = false
 
     private lateinit var tabLayout: TabLayout
 
@@ -258,7 +266,30 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
     private fun loadWithType(loaderType: FileLoader.LoaderType, options: FileLoader.Options) {
         prepareLoad(loaderType, true)
 
+        beginLoadIdling()
+
         serviceQueue.addToQueue { service -> service.loadWithType(loaderType, options) }
+    }
+
+    /**
+     * Marks the app busy for espresso until one of the loader callbacks below has run. No-op in
+     * release builds, where [OpenFileIdling] does nothing.
+     */
+    private fun beginLoadIdling() {
+        if (!loadIsIdling) {
+            loadIsIdling = true
+
+            OpenFileIdling.increment()
+        }
+    }
+
+    /** Counterpart of [beginLoadIdling]. Called once the load put its result on screen. */
+    private fun endLoadIdling() {
+        if (loadIsIdling) {
+            loadIsIdling = false
+
+            OpenFileIdling.decrement()
+        }
     }
 
     fun loadUri(uri: Uri, persistentUri: Boolean, editable: Boolean = false) {
@@ -461,6 +492,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
 
         dismissProgress()
 
+        endLoadIdling()
+
         // in-app review is requested in the pro flavor only. The lite branch used to
         // consult a "show_in_app_rating" remote config key, which has resolved to nothing
         // since firebase remote config was removed, so lite never asked either way.
@@ -489,6 +522,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
 
         // MetadataLoader failed, so there's no point in trying to parse or upload the file
         offerReopen(activity, options, errorDescription, true)
+
+        endLoadIdling()
     }
 
     override fun onEncrypted(result: FileLoader.Result) {
@@ -523,6 +558,9 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         }
         builder.setNegativeButton(getString(android.R.string.cancel), null)
         builder.show()
+
+        // after show(), so espresso does not go idle until the dialog is on screen
+        endLoadIdling()
     }
 
     override fun onUnsupported(result: FileLoader.Result) {
@@ -545,6 +583,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
             offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true)
         }
+
+        endLoadIdling()
     }
 
     override fun onSaveSuccess(outFile: Uri) {
@@ -800,6 +840,11 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         super.onDestroyView()
 
         serviceQueue.service?.setListener(null)
+
+        // the listener is gone, so a load still in flight will never call back. releasing
+        // the token here keeps the idling resource - a singleton - from staying busy into
+        // the next instrumented test
+        endLoadIdling()
 
         pageView?.destroy()
     }
