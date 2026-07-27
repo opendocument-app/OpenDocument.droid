@@ -17,12 +17,32 @@ object PersistedUriPermissions {
     private const val READ_FLAG = Intent.FLAG_GRANT_READ_URI_PERMISSION
 
     /**
+     * The grants taken during this process that the recent list does not name yet.
+     *
+     * Taking a grant and writing down what needs it are not one step: a document only reaches the
+     * list once [MetadataLoader] has read it, which is long after [takeRead] ran - `loadUri` merely
+     * queues the load. A [prune] in that window would enumerate the fresh grant, find nothing
+     * referring to it and hand it straight back, leaving the entry that is about to be written
+     * unreadable on the next launch - the very failure releasing on close used to cause.
+     *
+     * Empty on a fresh process, so a grant whose document never made it onto the list is reclaimed
+     * on the next launch rather than leaking for good.
+     */
+    private val pendingGrants = HashSet<String>()
+
+    /**
      * Takes a persistable read permission for [uri].
      *
      * @return whether a persisted grant is held afterwards. False for providers that do not offer
      *   persistable permissions at all, and for uris that did not arrive on an intent of ours.
      */
     fun takeRead(context: Context, uri: Uri): Boolean {
+        // marked before the grant exists rather than after, so there is no instant in which a
+        // concurrent prune could enumerate it while nothing speaks for it. a uri that turns out not
+        // to be persistable is left in the set: we are reading it either way, and if an earlier
+        // session did persist it, that grant is exactly the one to hold on to
+        markPending(uri.toString())
+
         return try {
             context.contentResolver.takePersistableUriPermission(uri, READ_FLAG)
 
@@ -63,14 +83,21 @@ object PersistedUriPermissions {
      * Does file and binder work, so it must not run on the main thread.
      */
     fun prune(context: Context) {
+        // the three reads are in this order on purpose. a grant taken while this runs is either
+        // missing from the snapshot, or still pending when the pending set is read - which happens
+        // after the list that would have settled it, so it cannot fall through both
+        val held = context.contentResolver.persistedUriPermissions
+
         val keep = HashSet<String>()
         for (entry in RecentDocumentsUtil.getRecentDocuments(context)) {
             keep.add(entry.uri)
         }
 
-        for (permission in context.contentResolver.persistedUriPermissions) {
-            val held = permission.uri.toString()
-            if (held in keep) {
+        keep.addAll(settlePending(keep))
+
+        for (permission in held) {
+            val uri = permission.uri.toString()
+            if (uri in keep) {
                 continue
             }
 
@@ -89,5 +116,22 @@ object PersistedUriPermissions {
                 // nothing to do about it, and it will be retried on the next launch
             }
         }
+    }
+
+    /** Remembers a grant until the recent list names it. */
+    @Synchronized
+    internal fun markPending(uri: String) {
+        pendingGrants.add(uri)
+    }
+
+    /**
+     * Drops the pending grants [keep] has caught up with - those are reclaimable the ordinary way
+     * from now on - and hands back the ones whose document is still on its way onto the list.
+     */
+    @Synchronized
+    internal fun settlePending(keep: Set<String>): Set<String> {
+        pendingGrants.removeAll(keep)
+
+        return HashSet(pendingGrants)
     }
 }
