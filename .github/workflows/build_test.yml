@@ -132,6 +132,9 @@ jobs:
   test:
     runs-on: ubuntu-24.04
     needs: build
+    # a job that wedges instead of failing would otherwise sit here until github's
+    # 6h limit. the whole job takes about 10 minutes when the emulator behaves
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -243,12 +246,23 @@ jobs:
           adb logcat -c || true
 
           status=0
-          ./gradlew connectedCheck || status=$?
+          # the test run takes about 4 minutes; anything past 20 is hung, and a hang
+          # has to end as a normal failure so the logcat below still gets dumped and
+          # uploaded - that is the only view into what the guest was doing
+          timeout --kill-after=1m 20m ./gradlew connectedCheck || status=$?
 
           # Dump logcat after tests. This used to sit after a bare gradle call, so the
           # only runs whose logs were worth uploading were the ones that never got here -
           # "||" keeps it reachable without swallowing the failure.
           adb logcat -d > logcat.txt
+
+          # a hung run says nothing about which test wedged, so add what the device
+          # still knows: anrs and tombstones, plus whether our processes are alive
+          if [ "$status" = 124 ] || [ "$status" = 137 ]; then
+            adb shell ps -A > processes.txt 2>&1 || true
+            adb shell "cat /data/anr/*trace* 2>/dev/null" > anr-traces.txt || true
+            adb shell "ls -l /data/tombstones 2>/dev/null" > tombstones.txt || true
+          fi
 
           exit $status
 
@@ -281,4 +295,7 @@ jobs:
           ~/.android/avd/*.avd/config.ini
           ~/.android/avd/*.avd/*.log
           logcat.txt
+          processes.txt
+          anr-traces.txt
+          tombstones.txt
         if-no-files-found: warn
