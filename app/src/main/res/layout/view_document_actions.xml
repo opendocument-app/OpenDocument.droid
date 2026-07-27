@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- the inside of DocumentActions: a scrim over the document, and the buttons on top of it -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:parentTag="android.widget.FrameLayout">
+
+    <!-- only there while the actions are unfolded; a tap on it folds them back up -->
+    <View
+            android:id="@+id/document_actions_scrim"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/document_actions_scrim"
+            android:visibility="gone" />
+
+    <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="end|bottom"
+            android:gravity="end|bottom"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+        <!--
+             scrollable, and taking the whole height above the buttons, because seven rows do not
+             fit above them on a phone held sideways. gone while folded up, so the empty space it
+             occupies is not in the way of the document.
+        -->
+        <ScrollView
+                android:id="@+id/document_actions_rows_scroll"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_gravity="end"
+                android:layout_weight="1"
+                android:fillViewport="true"
+                android:scrollbars="none"
+                android:visibility="gone">
+
+            <LinearLayout
+                    android:id="@+id/document_actions_rows"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end|bottom"
+                    android:gravity="end|bottom"
+                    android:orientation="vertical" />
+        </ScrollView>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/document_actions_primary"
+                style="@style/Widget.Material3.FloatingActionButton.Secondary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginBottom="16dp" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/document_actions_more"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:contentDescription="@string/document_actions_more"
+                app:srcCompat="@drawable/ic_more_vert" />
+</LinearLayout>
+</merge>

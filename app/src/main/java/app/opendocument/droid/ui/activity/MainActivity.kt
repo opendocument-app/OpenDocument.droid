@@ -12,15 +12,11 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.view.ActionMode
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.MenuProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -41,10 +37,11 @@ import app.opendocument.droid.ui.FindActionModeCallback
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.SnackbarHelper
 import app.opendocument.droid.ui.TtsActionModeCallback
+import app.opendocument.droid.ui.widget.DocumentActions
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 
-class MainActivity : AppCompatActivity(), MenuProvider {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var handler: Handler
 
@@ -255,8 +252,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
             analyticsManager.setCurrentScreen(this, "screen_main")
         }
-
-        addMenuProvider(this, this)
     }
 
     override fun onStart() {
@@ -363,10 +358,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         )
     }
 
-    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-        menuInflater.inflate(R.menu.menu_main, menu)
-    }
-
     // The play services availability dialog calls startActivityForResult() itself with a
     // request code we hand it, so its result cannot be routed through an
     // ActivityResultLauncher. Everything the app launches on its own goes through the
@@ -435,11 +426,16 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         documentFragment.loadUri(uri, isPersistentUri)
     }
 
-    override fun onMenuItemSelected(item: MenuItem): Boolean {
+    /**
+     * A button of the open document was tapped. These used to be the toolbar menu, and the ids are
+     * now [DocumentActions]' own - the handling stays here, where the action modes and the printing
+     * manager already live.
+     */
+    fun onDocumentAction(action: Int) {
         val documentFragment = this.documentFragment
 
-        when (item.itemId) {
-            R.id.menu_search -> {
+        when (action) {
+            DocumentActions.ACTION_SEARCH -> {
                 val findActionModeCallback = FindActionModeCallback(this)
                 documentFragment?.pageView?.let { findActionModeCallback.setWebView(it) }
                 startSupportActionMode(findActionModeCallback)
@@ -448,25 +444,25 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                 analyticsManager.report(AnalyticsConstants.EVENT_SEARCH)
             }
 
-            R.id.menu_open_with -> {
+            DocumentActions.ACTION_OPEN_WITH -> {
                 documentFragment?.openWith(this)
 
                 analyticsManager.report("menu_open_with")
             }
 
-            R.id.menu_save -> {
+            DocumentActions.ACTION_SAVE -> {
                 documentFragment?.prepareSave({ requestSave() }, true)
 
                 analyticsManager.report("menu_save")
             }
 
-            R.id.menu_share -> {
+            DocumentActions.ACTION_SHARE -> {
                 documentFragment?.share(this)
 
                 analyticsManager.report("menu_share")
             }
 
-            R.id.menu_fullscreen -> {
+            DocumentActions.ACTION_FULLSCREEN -> {
                 if (fullscreen) {
                     analyticsManager.report("menu_fullscreen_leave")
 
@@ -496,9 +492,11 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                 }
 
                 fullscreen = !fullscreen
+
+                updateDocumentActionsVisible()
             }
 
-            R.id.menu_print -> {
+            DocumentActions.ACTION_PRINT -> {
                 analyticsManager.report("menu_print")
 
                 documentFragment?.pageView?.let { pageView ->
@@ -508,7 +506,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                 }
             }
 
-            R.id.menu_tts -> {
+            DocumentActions.ACTION_TTS -> {
                 analyticsManager.report("menu_tts")
 
                 documentFragment?.pageView?.let { pageView ->
@@ -519,7 +517,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                 }
             }
 
-            R.id.menu_edit -> {
+            DocumentActions.ACTION_EDIT -> {
                 analyticsManager.report("menu_edit")
 
                 documentFragment?.let { fragment ->
@@ -529,11 +527,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                     startSupportActionMode(editActionMode)
                 }
             }
-
-            else -> return super.onOptionsItemSelected(item)
         }
-
-        return true
     }
 
     private fun offerPurchase() {
@@ -555,11 +549,54 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         )
     }
 
-    override fun onActionModeFinished(mode: ActionMode?) {
-        super.onActionModeFinished(mode)
+    /**
+     * The buttons of the document are only up while nothing else is using the screen: an action
+     * mode has taken the toolbar over and brought its own controls, and fullscreen is for reading.
+     *
+     * Counted rather than a flag, because the two kinds of action mode overlap - selecting text in
+     * the page starts a framework one on top of the appcompat one that edit mode is.
+     */
+    private var actionModes = 0
+
+    private fun updateDocumentActionsVisible() {
+        documentFragment?.setActionsVisible(actionModes == 0 && !fullscreen)
+    }
+
+    // the appcompat ones, which is what startSupportActionMode() raises: find, tts and edit
+    override fun onSupportActionModeStarted(mode: androidx.appcompat.view.ActionMode) {
+        super.onSupportActionModeStarted(mode)
+
+        actionModes++
+
+        updateDocumentActionsVisible()
+    }
+
+    override fun onSupportActionModeFinished(mode: androidx.appcompat.view.ActionMode) {
+        super.onSupportActionModeFinished(mode)
+
+        actionModes--
+
+        updateDocumentActionsVisible()
 
         editActionMode = null
         ttsActionMode = null
+    }
+
+    // and the framework ones, which is what selecting text in the page raises
+    override fun onActionModeStarted(mode: ActionMode?) {
+        super.onActionModeStarted(mode)
+
+        actionModes++
+
+        updateDocumentActionsVisible()
+    }
+
+    override fun onActionModeFinished(mode: ActionMode?) {
+        super.onActionModeFinished(mode)
+
+        actionModes--
+
+        updateDocumentActionsVisible()
     }
 
     /**
@@ -598,13 +635,13 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
         fullscreen = false
 
+        updateDocumentActionsVisible()
+
         analyticsManager.report("fullscreen_end")
     }
 
     private fun closeDocument() {
         documentFragment?.let { fragment ->
-            removeMenuProvider(fragment)
-
             supportFragmentManager.beginTransaction().remove(fragment).commitNow()
 
             documentFragment = null

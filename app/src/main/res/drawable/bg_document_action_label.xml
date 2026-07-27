@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- the plate a speed dial label sits on, so it stays readable over the document behind it -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+       android:shape="rectangle">
+
+    <solid android:color="?attr/colorSurfaceContainer" />
+
+    <corners android:radius="8dp" />
+</shape>
