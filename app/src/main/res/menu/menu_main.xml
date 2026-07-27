@@ -4,13 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <item
-        android:id="@+id/menu_open"
-        android:icon="@drawable/ic_folder_open"
-        android:title="@string/menu_open"
-        app:showAsAction="always"
-        tools:ignore="AlwaysShowAction" />
-
-    <item
         android:id="@+id/menu_edit"
         android:icon="@drawable/ic_edit"
         android:title="@string/menu_edit"
