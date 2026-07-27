@@ -56,6 +56,10 @@ archived on the run itself. Both flavors always go out together. Running the wor
 manually additionally allows picking the track, and a dry run that builds and attaches
 the bundles and APKs as workflow artifacts without uploading or touching a release.
 
+If one of the two uploads fails on its own, the run cannot simply be repeated - the
+Play Store refuses a version code it has already accepted. Dispatch it again with
+`uploads` set to the flavor that did not make it.
+
 It needs these repository secrets:
 
 | secret | contents |

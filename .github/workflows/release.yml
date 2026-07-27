@@ -37,6 +37,15 @@ on:
         description: build and attach the bundles and apks, but do not upload
         type: boolean
         default: false
+      # both flavors are always built. this is only about which of them still
+      # has to be uploaded: play refuses a version code it has already seen, so
+      # a run where pro went through and lite did not cannot be retried whole -
+      # dispatch it again with lite to finish the half that is missing
+      uploads:
+        description: which uploads to run, to finish a half uploaded release
+        type: choice
+        options: [both, pro, lite]
+        default: both
   push:
     tags:
       - 'v*'
@@ -53,6 +62,7 @@ env:
   # tag pushes go to the internal track, same as the manual lanes always did.
   # anything wider has to be dispatched deliberately.
   track: ${{ inputs.track || 'internal' }}
+  uploads: ${{ inputs.uploads || 'both' }}
 
 jobs:
   release:
@@ -245,7 +255,12 @@ jobs:
     - name: upload to play store
       if: ${{ inputs.dry_run != true }}
       run: |
-        for lane in uploadPro uploadLite; do
+        case "${{ env.uploads }}" in
+          pro)  lanes="uploadPro" ;;
+          lite) lanes="uploadLite" ;;
+          *)    lanes="uploadPro uploadLite" ;;
+        esac
+        for lane in $lanes; do
           bundle exec fastlane android "$lane" track:"${{ env.track }}"
         done
 
