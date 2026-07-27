@@ -3,7 +3,10 @@ name: release
 # Releases used to be built and uploaded from a maintainer laptop, which was the
 # only machine holding the keystore. This does the same steps in CI:
 #   1. build the signed lite and pro bundles and apks with gradle
-#   2. hand the bundles to fastlane, which uploads them to the play store
+#   2. hand the bundles to fastlane, which uploads them to the play store's
+#      internal track, and only ever that one. a wider track is a promotion in
+#      the play console, which moves the very bundle that was tested rather than
+#      uploading a second one, and is where the release notes are written anyway
 #   3. on a tag, attach the signed pro apk to that tag's github release, which
 #      every release up to v4.6 carried and the laptop build produced by hand.
 #      the release has to exist already. this is a second job, so that it can
@@ -35,11 +38,6 @@ name: release
 on:
   workflow_dispatch:
     inputs:
-      track:
-        description: play store track
-        type: choice
-        options: [internal, alpha, beta, production]
-        default: internal
       # both flavors are always built and archived - this is only about what
       # leaves the run. none is the dry run: build everything, publish nothing.
       # pro or lite finishes a half uploaded release, which is otherwise a dead
@@ -69,9 +67,6 @@ permissions:
 
 env:
   ndk_version: 28.2.13676358
-  # tag pushes go to the internal track, same as the manual lanes always did.
-  # anything wider has to be dispatched deliberately.
-  track: ${{ inputs.track || 'internal' }}
   uploads: ${{ inputs.uploads || 'both' }}
 
 jobs:
@@ -256,8 +251,11 @@ jobs:
           lite) lanes="uploadLite" ;;
           *)    lanes="uploadPro uploadLite" ;;
         esac
+        # no track: the Fastfile's DEFAULT_TRACK is internal, and this workflow
+        # has no way of naming another one. everything wider is a promotion in
+        # the play console
         for lane in $lanes; do
-          bundle exec fastlane android "$lane" track:"${{ env.track }}"
+          bundle exec fastlane android "$lane"
         done
 
     - name: drop credentials
