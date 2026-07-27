@@ -29,6 +29,18 @@
 # shows up in minified builds, at runtime, as a null field id or a NoSuchMethodError.
 -keep class app.opendocument.core.** { *; }
 
+# play-services-ads drags in androidx.work 2.7, whose WorkDatabase is a room database
+# built on room 2.2.5, and androidx.startup instantiates it on every cold start whether
+# the app uses WorkManager or not. room 2.2.5 ships '-keep class * extends
+# androidx.room.RoomDatabase' without a member spec, and r8 in full mode - the default
+# since AGP 8 - reads that as "keep the class, the members are fair game", so it drops
+# WorkDatabase_Impl's no-arg constructor. room then calls Class.newInstance() on it and
+# the process dies at startup with "Failed to create an instance of
+# androidx.work.impl.WorkDatabase". room only fixed its own rule in 2.7.0; this is that
+# rule, and it can go once work-runtime pulls room that far (work 2.11 does, 2.10 still
+# lands on room 2.6.1 with the broken one).
+-keep class * extends androidx.room.RoomDatabase { <init>(); }
+
 -keepattributes *Annotation*
 -keepattributes SourceFile,LineNumberTable
 -keep public class * extends java.lang.Exception
