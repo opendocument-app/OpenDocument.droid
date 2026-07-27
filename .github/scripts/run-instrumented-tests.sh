@@ -34,17 +34,19 @@ if [ "$status" = 124 ] || [ "$status" = 137 ]; then
   adb shell "ls -l /data/tombstones 2>/dev/null" > tombstones.txt || true
 fi
 
-# the step cannot end while the emulator the action started still holds its
-# output open, and the action's teardown only sends "adb emu kill" without
-# checking that anything came of it. on api 26 and 29 nothing does often enough
-# to matter - both jobs of run 30249138427 sat there for 40 minutes after their
-# tests had finished, one of them green - so kill it here, hard if the polite
-# request is ignored again
+# the step cannot end while anything the action started still holds its stdout
+# open, and the action's teardown is one "adb emu kill" with no check that
+# anything came of it. on api 26 and 29 the emulator exits but leaves its crash
+# reporter behind - the green jobs end on "Netsim Wifi ... is gone" with adb and
+# the gradle daemons left over, the hung ones stop at "removeAll" and have a
+# crashpad_handler in the orphan list. that is worth 40 minutes of runner time
+# per job, so nothing gets to outlive the tests here
 adb emu kill || true
 for _ in $(seq 20); do
   pgrep -f qemu-system > /dev/null || break
   sleep 1
 done
 pkill -9 -f qemu-system || true
+pkill -9 -f crashpad_handler || true
 
 exit "$status"
