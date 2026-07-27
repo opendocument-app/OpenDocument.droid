@@ -116,6 +116,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Configuration cache enabled for parallel Conan installs
 - Release signing credentials come from gradle properties or environment variables (see
   README); without them release variants build unsigned rather than failing
+- The version is the git tag, not a number in the tree. `AndroidManifest.xml` carries no
+  `versionCode`/`versionName`; `app/build.gradle` derives both from `-Podr.version`
+  (`v4.8.0` -> name `4.8.0`, code `40800`, two digits per part, parts above 99 are an
+  error), and a build handed no version is `0.0.0`. Do not put the attributes back in the
+  manifest: gradle's values win in the merged manifest, so a second copy can only ever
+  disagree with the tag. The release workflow passes the tag it ran on; a dispatched run
+  passes its `version` input
 
 ### Package names
 

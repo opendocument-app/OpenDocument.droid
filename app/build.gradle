@@ -30,6 +30,46 @@ def releaseKeyPasswordPro = signingSetting('odr.keyPasswordPro', 'ODR_KEY_PASSWO
 def releaseKeyPasswordLite = signingSetting('odr.keyPasswordLite', 'ODR_KEY_PASSWORD_LITE')
 def hasReleaseSigning = releaseKeystore.isPresent() && releaseKeystorePassword.isPresent()
 
+// The version is the tag, and lives nowhere in the tree. A number checked in on main
+// describes either a release that already went out or a guess at the next one, so it is
+// wrong almost all of the time, and versionCode and versionName had to be walked forward
+// together by hand. The release workflow passes the tag it was triggered by as
+// -Podr.version (ODR_VERSION works too, the way the signing settings above take either).
+//
+// Everything else - a local build, a PR build, a dry run - is 0.0.0, which nothing reads:
+// no code in the app looks at its own version, and only what the release workflow builds
+// is ever uploaded anywhere.
+def parseVersion = { String version ->
+    // split rather than tokenize, which would swallow the empty part in '4..8'
+    def parts = (version - ~/^v/).split('\\.', -1) as List
+    if (parts.isEmpty() || parts.size() > 3 || !parts.every { it ==~ /\d+/ }) {
+        throw new GradleException(
+                "odr.version must look like 4.8 or v4.8.0, not '${version}'")
+    }
+    def numbers = parts*.toInteger()
+    while (numbers.size() < 3) {
+        numbers << 0
+    }
+    // two digits per component: v4.8.0 is 40800. That is a one way step past the codes
+    // that used to be counted by hand (204 and below) - the play store accepts a higher
+    // code than the last one it saw and never a lower one.
+    if (numbers.any { it > 99 }) {
+        // silently carrying would make 4.100.0 and 5.0.0 the same code, and a collision
+        // is only discoverable once the store rejects the upload
+        throw new GradleException("every part of '${version}' has to be below 100 for the " +
+                "two-digits-per-part version code to stay unambiguous")
+    }
+    [name: numbers.join('.'), code: numbers[0] * 10000 + numbers[1] * 100 + numbers[2]]
+}
+def requestedVersion = providers.gradleProperty('odr.version')
+        .orElse(providers.environmentVariable('ODR_VERSION'))
+        .filter { !it.isEmpty() }
+// spelled out rather than parsed from '0.0.0', because the formula would make that
+// version code 0 and AGP insists on a positive one
+def appVersion = requestedVersion.isPresent()
+        ? parseVersion(requestedVersion.get())
+        : [name: '0.0.0', code: 1]
+
 android {
     ndkVersion = "28.2.13676358"
 }
@@ -74,6 +114,12 @@ android {
         applicationId = "at.tomtasche.reader"
         minSdk = 26
         targetSdk = 36
+
+        // derived from the tag above, and set here rather than in AndroidManifest.xml:
+        // both spellings end up in the merged manifest, and this one wins, so keeping
+        // the attributes there too would only leave a second number to disagree with
+        versionCode = appVersion.code
+        versionName = appVersion.name
 
         // likewise an applicationId, for the test apk. never published, so it is only
         // pinned here to keep it from drifting with the namespace.

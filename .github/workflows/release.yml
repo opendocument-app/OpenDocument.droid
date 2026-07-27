@@ -13,6 +13,11 @@ name: release
 # and release notes, and a release of one without the other is not a thing that
 # has ever been wanted.
 #
+# The version is the tag and nothing else. The repository holds no version number
+# at all any more - gradle takes it from the -Podr.version passed below, and turns
+# v4.8.0 into version code 40800, two digits per part. A dispatched run has no tag
+# to read, so it fills in the version input instead.
+#
 # Requires these repository secrets (see the "Release signing" section in the
 # README for what they mean):
 #   ODR_KEYSTORE_BASE64           base64 of google_play.keystore
@@ -45,6 +50,12 @@ on:
         type: choice
         options: [both, pro, lite, none]
         default: both
+      # a tag push needs nothing here: the tag is the version. this is for dispatched
+      # runs, which have no tag to read - finishing a half uploaded release off the
+      # branch it was cut from, or putting a real version on a dry run
+      version:
+        description: version to build, e.g. v4.8.0 - defaults to the tag
+        type: string
   push:
     tags:
       - 'v*'
@@ -83,6 +94,36 @@ jobs:
           echo "::error::missing repository secrets:$missing"
           exit 1
         fi
+
+    # the version is not in the checkout - it is the tag, handed to gradle below as
+    # -Podr.version. A dispatched run has no tag, so it has to say which version it is
+    # building; without one only a dry run is possible, since a build that fell back to
+    # 0.0.0 carries the version code an unversioned build gets, which the store would
+    # refuse - after the six minutes it takes to get there
+    - name: resolve version
+      id: version
+      env:
+        given: ${{ inputs.version }}
+      run: |
+        version="$given"
+        if [ -z "$version" ] && [ "${{ github.ref_type }}" = "tag" ]; then
+          version="${{ github.ref_name }}"
+        fi
+        if [ -z "$version" ]; then
+          if [ "${{ env.uploads }}" != "none" ]; then
+            echo "::error::nothing to take a version from. push this as a v* tag, dispatch it on one, or fill in the version input."
+            exit 1
+          fi
+          version="0.0.0"
+        fi
+        # the same shape app/build.gradle accepts, checked here so a typo fails in
+        # seconds rather than after the conan and gradle setup
+        if ! echo "$version" | grep -qE '^v?[0-9]{1,2}(\.[0-9]{1,2}){0,2}$'; then
+          echo "::error::'$version' is not a version: expected something like v4.8.0, each part below 100"
+          exit 1
+        fi
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+        echo "building $version"
 
     - name: checkout
       uses: actions/checkout@v4
@@ -201,7 +242,8 @@ jobs:
         ODR_KEY_PASSWORD_LITE: ${{ secrets.ODR_KEY_PASSWORD_LITE }}
       run: |
         ./gradlew bundleProRelease bundleLiteRelease \
-                  assembleProRelease assembleLiteRelease --stacktrace
+                  assembleProRelease assembleLiteRelease \
+                  -Podr.version="${{ steps.version.outputs.version }}" --stacktrace
 
     # a release that silently produced an unsigned bundle would be rejected by
     # the play store with a much less obvious error, and an unsigned apk on the
