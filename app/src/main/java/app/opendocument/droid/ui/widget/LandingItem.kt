@@ -67,6 +67,7 @@ sealed class LandingItem {
     companion object {
         const val ACTION_ADD_FOLDER: Int = 1
         const val ACTION_UP: Int = 2
+        const val ACTION_REMOVE_ADS: Int = 3
 
         const val SETTING_CATCH_ALL: Int = 1
     }
