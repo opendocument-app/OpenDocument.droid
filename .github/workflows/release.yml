@@ -2,12 +2,16 @@ name: release
 
 # Releases used to be built and uploaded from a maintainer laptop, which was the
 # only machine holding the keystore. This does the same steps in CI:
-#   1. build the signed app bundles with gradle
-#   2. hand them to fastlane, which uploads them to the play store
+#   1. build the signed lite and pro bundles and apks with gradle
+#   2. hand the bundles to fastlane, which uploads them to the play store
 #   3. on a tag, attach the signed pro apk to that tag's github release, which
 #      every release up to v4.6 carried and the laptop build produced by hand.
 #      the release has to exist already. this is a second job, so that it can
 #      be re-run without re-running the upload in step 2
+#
+# Both flavors go out together, the way they always have: they share a version
+# and release notes, and a release of one without the other is not a thing that
+# has ever been wanted.
 #
 # Requires these repository secrets (see the "Release signing" section in the
 # README for what they mean):
@@ -24,18 +28,13 @@ name: release
 on:
   workflow_dispatch:
     inputs:
-      flavor:
-        description: which flavor to release
-        type: choice
-        options: [both, pro, lite]
-        default: both
       track:
         description: play store track
         type: choice
         options: [internal, alpha, beta, production]
         default: internal
       dry_run:
-        description: build and attach the bundles, but do not upload
+        description: build and attach the bundles and apks, but do not upload
         type: boolean
         default: false
   push:
@@ -54,7 +53,6 @@ env:
   # tag pushes go to the internal track, same as the manual lanes always did.
   # anything wider has to be dispatched deliberately.
   track: ${{ inputs.track || 'internal' }}
-  flavor: ${{ inputs.flavor || 'both' }}
 
 jobs:
   release:
@@ -123,12 +121,8 @@ jobs:
             exit 1
           fi
         }
-        case "${{ env.flavor }}" in
-          pro)  verify_key reader-pro "$key_password_pro" ;;
-          lite) verify_key reader "$key_password_lite" ;;
-          *)    verify_key reader-pro "$key_password_pro"
-                verify_key reader "$key_password_lite" ;;
-        esac
+        verify_key reader-pro "$key_password_pro"
+        verify_key reader "$key_password_lite"
 
     - name: setup ruby
       uses: ruby/setup-ruby@v1
@@ -174,28 +168,24 @@ jobs:
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v4
 
-    # the apk is the sideloadable copy that goes onto the github release. only
-    # pro has ever been published that way - lite is the ad supported play
-    # build, and an apk of it outside the store has no audience
-    - name: build bundles and the pro apk
+    # the apks are the sideloadable copies of what the bundles ship. both get
+    # archived on the run; only pro goes onto the github release, the way it
+    # always has - lite is the ad supported play build, and an apk of it
+    # outside the store has no audience
+    - name: build bundles and apks
       env:
         ODR_KEYSTORE: ${{ runner.temp }}/google_play.keystore
         ODR_KEYSTORE_PASSWORD: ${{ secrets.ODR_KEYSTORE_PASSWORD }}
         ODR_KEY_PASSWORD_PRO: ${{ secrets.ODR_KEY_PASSWORD_PRO }}
         ODR_KEY_PASSWORD_LITE: ${{ secrets.ODR_KEY_PASSWORD_LITE }}
       run: |
-        tasks=""
-        case "${{ env.flavor }}" in
-          pro)  tasks="bundleProRelease assembleProRelease" ;;
-          lite) tasks="bundleLiteRelease" ;;
-          *)    tasks="bundleProRelease bundleLiteRelease assembleProRelease" ;;
-        esac
-        ./gradlew $tasks --stacktrace
+        ./gradlew bundleProRelease bundleLiteRelease \
+                  assembleProRelease assembleLiteRelease --stacktrace
 
     # a release that silently produced an unsigned bundle would be rejected by
     # the play store with a much less obvious error, and an unsigned apk on the
     # release page would not install at all
-    - name: verify bundles and the apk are signed
+    - name: verify bundles and apks are signed
       run: |
         for aab in app/build/outputs/bundle/*/*.aab; do
           if unzip -l "$aab" | grep -qE " META-INF/[^/]+\.(RSA|DSA)$"; then
@@ -205,22 +195,21 @@ jobs:
             exit 1
           fi
         done
-        # the apk takes apksigner rather than the same grep: from minSdk 24 up
+        # the apks take apksigner rather than the same grep: from minSdk 24 up
         # agp leaves v1 signing off, so there is no META-INF/*.RSA to find and
         # the signature sits in a block the zip listing does not show
-        apk=app/build/outputs/apk/pro/release/app-pro-release.apk
-        if [ -e "$apk" ]; then
-          apksigner=$(ls -1 "${ANDROID_HOME}"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
-          if [ -z "$apksigner" ]; then
-            echo "::error::found no apksigner under ${ANDROID_HOME}/build-tools"
-            exit 1
-          fi
+        apksigner=$(ls -1 "${ANDROID_HOME}"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
+        if [ -z "$apksigner" ]; then
+          echo "::error::found no apksigner under ${ANDROID_HOME}/build-tools"
+          exit 1
+        fi
+        for apk in app/build/outputs/apk/*/release/*.apk; do
           if ! "$apksigner" verify "$apk" > /dev/null; then
             echo "::error::$apk is not signed"
             exit 1
           fi
           echo "signed: $apk"
-        fi
+        done
 
     # ndk.debugSymbolLevel puts the symbols inside the bundle itself, under
     # BUNDLE-METADATA/com.android.tools.build.debugsymbols, so the play store
@@ -234,14 +223,14 @@ jobs:
         path: app/build/outputs/bundle/*/*.aab
         if-no-files-found: error
 
-    # also as a workflow artifact, not just on the release: a dispatched run has
-    # no tag to attach anything to, and that is how a release gets test flown
-    - name: Artifact apk
-      if: ${{ env.flavor != 'lite' }}
+    # both, and not only on the release: a dispatched run has no tag to attach
+    # anything to, and this is how a release gets test flown - including lite,
+    # which is otherwise only installable once it is live in the store
+    - name: Artifact apks
       uses: actions/upload-artifact@v7
       with:
-        name: apk
-        path: app/build/outputs/apk/pro/release/app-pro-release.apk
+        name: apks
+        path: app/build/outputs/apk/*/release/*.apk
         if-no-files-found: error
         compression-level: 0
 
@@ -256,12 +245,7 @@ jobs:
     - name: upload to play store
       if: ${{ inputs.dry_run != true }}
       run: |
-        case "${{ env.flavor }}" in
-          pro)  lanes="uploadPro" ;;
-          lite) lanes="uploadLite" ;;
-          *)    lanes="uploadPro uploadLite" ;;
-        esac
-        for lane in $lanes; do
+        for lane in uploadPro uploadLite; do
           bundle exec fastlane android "$lane" track:"${{ env.track }}"
         done
 
@@ -276,19 +260,20 @@ jobs:
   # code it has already seen, so the retry would die before ever getting here
   attach:
     needs: release
-    if: ${{ github.ref_type == 'tag' && inputs.flavor != 'lite' && inputs.dry_run != true }}
+    if: ${{ github.ref_type == 'tag' && inputs.dry_run != true }}
     runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
-    - name: fetch the apk
+    - name: fetch the apks
       uses: actions/download-artifact@v8
       with:
-        name: apk
+        name: apks
 
-    # the release itself stays a human decision - this only fills in its apk,
-    # and says so rather than inventing one
-    - name: attach the apk to the github release
+    # pro alone, the way the release page has always had it. the release itself
+    # stays a human decision - this only fills in its apk, and says so rather
+    # than inventing one
+    - name: attach the pro apk to the github release
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
@@ -298,4 +283,4 @@ jobs:
           echo "::error::$tag has no github release to attach the apk to. create it, then re-run this job."
           exit 1
         fi
-        gh release upload "$tag" app-pro-release.apk --clobber
+        gh release upload "$tag" pro/release/app-pro-release.apk --clobber
