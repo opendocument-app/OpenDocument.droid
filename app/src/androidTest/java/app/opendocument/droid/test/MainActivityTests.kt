@@ -189,10 +189,7 @@ class MainActivityTests {
 
         val pageView = documentFragment.pageView
         Assert.assertNotNull(pageView)
-        Assert.assertTrue(
-            "ODT should become editable after entering edit mode",
-            waitForEditableState(pageView!!, true, EDIT_MODE_TIMEOUT_MS),
-        )
+        assertBecomesEditable("ODT", pageView!!, documentFragment)
     }
 
     @Test
@@ -204,10 +201,7 @@ class MainActivityTests {
         val pageView = documentFragment.pageView
         Assert.assertNotNull(pageView)
 
-        Assert.assertTrue(
-            "DOCX should become editable after entering edit mode",
-            waitForEditableState(pageView!!, true, EDIT_MODE_TIMEOUT_MS),
-        )
+        assertBecomesEditable("DOCX", pageView!!, documentFragment)
     }
 
     @Test
@@ -373,6 +367,53 @@ class MainActivityTests {
             )
         }
         Assert.assertTrue("Failed to enter edit mode", started.get())
+    }
+
+    /**
+     * Fails with what the page and the file on disk actually contained. testODTEditMode fails on
+     * api 26 without ever being slow - about a second or never - so the interesting question is
+     * which half of the round trip went missing: the reload with translatable=true not producing
+     * editable html, or the webview never showing the html that was produced.
+     */
+    private fun assertBecomesEditable(
+        label: String,
+        pageView: PageView,
+        fragment: DocumentFragment,
+    ) {
+        if (waitForEditableState(pageView, true, EDIT_MODE_TIMEOUT_MS)) {
+            return
+        }
+
+        Assert.fail(
+            "$label should become editable after entering edit mode." +
+                " dom=${describeDom(pageView)} file=${describeLoadedFile(fragment)}"
+        )
+    }
+
+    private fun describeDom(pageView: PageView): String =
+        evaluateJavascript(
+            pageView,
+            "(function(){var b = document.body;var html = b ? b.innerHTML : '';" +
+                "return 'url=' + document.location.href + ' ready=' + document.readyState +" +
+                " ' bodyLength=' + html.length + ' bodyEditable=' + !!(b && b.isContentEditable) +" +
+                " ' editableNodes=' + document.querySelectorAll('[contenteditable]').length +" +
+                " ' odr=' + (typeof odr);})()",
+        ) ?: "no result"
+
+    /** What the loader actually wrote, so a webview that never showed it is distinguishable. */
+    private fun describeLoadedFile(fragment: DocumentFragment): String {
+        val result = fragment.lastResult ?: return "no result"
+        val uri = result.partUris.firstOrNull() ?: return "no part uri"
+        val file = uri.path?.let { File(it) } ?: return "no path in $uri"
+
+        if (!file.exists()) {
+            return "$uri does not exist"
+        }
+
+        val html = file.readText()
+        return "$uri length=${html.length}" +
+            " contenteditable=${html.contains("contenteditable")}" +
+            " translatable=${result.options.translatable}"
     }
 
     private fun waitForEditableState(
