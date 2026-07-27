@@ -129,7 +129,12 @@ class MetadataLoader(context: Context?) : FileLoader(context, LoaderType.METADAT
 
             if (options.persistentUri) {
                 try {
-                    RecentDocumentsUtil.addRecentDocument(context, filename, uri)
+                    val evicted = RecentDocumentsUtil.addRecentDocument(context, filename, uri)
+                    if (evicted.isNotEmpty()) {
+                        // hand the uri permissions of the documents that just fell off the end
+                        // of the list back, so we stay well below the per package grant limit
+                        PersistedUriPermissions.prune(context)
+                    }
                 } catch (e: IOException) {
                     crashManager.log(e)
                 }
@@ -142,7 +147,7 @@ class MetadataLoader(context: Context?) : FileLoader(context, LoaderType.METADAT
             val originalUri = options.originalUri
             if (originalUri != null) {
                 try {
-                    RecentDocumentsUtil.removeRecentDocument(context, options.filename, originalUri)
+                    RecentDocumentsUtil.removeRecentDocument(context, originalUri)
                 } catch (e1: Exception) {
                     crashManager.log(e1)
                 }
