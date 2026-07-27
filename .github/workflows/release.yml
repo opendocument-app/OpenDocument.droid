@@ -6,7 +6,8 @@ name: release
 #   2. hand them to fastlane, which uploads them to the play store
 #   3. on a tag, attach the signed pro apk to that tag's github release, which
 #      every release up to v4.6 carried and the laptop build produced by hand.
-#      the release has to exist already
+#      the release has to exist already. this is a second job, so that it can
+#      be re-run without re-running the upload in step 2
 #
 # Requires these repository secrets (see the "Release signing" section in the
 # README for what they mean):
@@ -46,8 +47,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  # to attach the apk to the github release of a tag
-  contents: write
+  contents: read
 
 env:
   ndk_version: 28.2.13676358
@@ -265,22 +265,37 @@ jobs:
           bundle exec fastlane android "$lane" track:"${{ env.track }}"
         done
 
-    # after the upload, so the release page never offers an apk for a version
-    # that never reached play. the release itself stays a human decision - this
-    # only fills in its apk, and says so rather than inventing one
-    - name: attach the apk to the github release
-      if: ${{ github.ref_type == 'tag' && env.flavor != 'lite' && inputs.dry_run != true }}
-      env:
-        GH_TOKEN: ${{ github.token }}
-        tag: ${{ github.ref_name }}
-      run: |
-        apk=app/build/outputs/apk/pro/release/app-pro-release.apk
-        if ! gh release view "$tag" > /dev/null 2>&1; then
-          echo "::error::$tag has no github release to attach $apk to. create it, then re-run this job or upload the apk artifact by hand."
-          exit 1
-        fi
-        gh release upload "$tag" "$apk" --clobber
-
     - name: drop credentials
       if: always()
       run: rm -f fastlane_google_play.json "${RUNNER_TEMP}/google_play.keystore"
+
+  # needs: release, so the release page never offers an apk for a version that
+  # never reached play - and a job of its own, so that a failure here can be
+  # re-run on its own. re-running the release job is not an option once
+  # fastlane has been through it: play rejects a second upload of a version
+  # code it has already seen, so the retry would die before ever getting here
+  attach:
+    needs: release
+    if: ${{ github.ref_type == 'tag' && inputs.flavor != 'lite' && inputs.dry_run != true }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+    - name: fetch the apk
+      uses: actions/download-artifact@v8
+      with:
+        name: apk
+
+    # the release itself stays a human decision - this only fills in its apk,
+    # and says so rather than inventing one
+    - name: attach the apk to the github release
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        tag: ${{ github.ref_name }}
+      run: |
+        if ! gh release view "$tag" > /dev/null 2>&1; then
+          echo "::error::$tag has no github release to attach the apk to. create it, then re-run this job."
+          exit 1
+        fi
+        gh release upload "$tag" app-pro-release.apk --clobber
