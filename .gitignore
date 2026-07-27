@@ -64,6 +64,7 @@ app/lite/release/
 .cxx/
 
 fastlane/report.xml
+fastlane_google_play.json
 
 .idea/
 
