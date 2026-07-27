@@ -53,7 +53,13 @@ from a laptop. It also builds the signed Pro APK and attaches it to the GitHub r
 of that tag, which has to exist already - the workflow does not create one, it fails
 instead. That APK is the sideloadable copy every release up to v4.6 carried, and both APKs are
 archived on the run itself. Both flavors always go out together. Running the workflow
-manually additionally allows picking the track and what to publish.
+manually additionally allows picking what to publish.
+
+Internal is the only track it uploads to. Anything wider - closed, open, production -
+is a promotion in the Play Console, which moves the same bundle and version code that
+was tested onto the wider track instead of uploading a second one, and is where the
+release notes get written. It is also where the review that a production release waits
+on actually happens, so the workflow finishing is not the same as the release being out.
 
 That last one, `uploads`, defaults to `both`. `none` is a dry run: everything gets
 built, signed and attached to the run, nothing leaves it. `pro` or `lite` finishes a
