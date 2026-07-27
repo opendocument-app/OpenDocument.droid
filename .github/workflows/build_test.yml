@@ -240,43 +240,9 @@ jobs:
         ram-size: 4096M
         emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
         disable-animations: true
-        script: |
-          # Clear logcat before tests. Fails with "failed to clear the 'main' log"
-          # on some system images (api 26 among them) and must not abort the run.
-          adb logcat -c || true
-
-          status=0
-          # the test run takes about 4 minutes; anything past 20 is hung, and a hang
-          # has to end as a normal failure so the logcat below still gets dumped and
-          # uploaded - that is the only view into what the guest was doing
-          timeout --kill-after=1m 20m ./gradlew connectedCheck || status=$?
-
-          # Dump logcat after tests. This used to sit after a bare gradle call, so the
-          # only runs whose logs were worth uploading were the ones that never got here -
-          # "||" keeps it reachable without swallowing the failure.
-          adb logcat -d > logcat.txt
-
-          # a hung run says nothing about which test wedged, so add what the device
-          # still knows: anrs and tombstones, plus whether our processes are alive
-          if [ "$status" = 124 ] || [ "$status" = 137 ]; then
-            adb shell ps -A > processes.txt 2>&1 || true
-            adb shell "cat /data/anr/*trace* 2>/dev/null" > anr-traces.txt || true
-            adb shell "ls -l /data/tombstones 2>/dev/null" > tombstones.txt || true
-          fi
-
-          # the step cannot end while the emulator the action started still holds its
-          # output open, and the action's own teardown only sends "adb emu kill" without
-          # checking that anything came of it. on api 26 and 29 nothing does often enough
-          # to matter - both hung for 40 minutes after a finished test run, one of them
-          # green - so kill it here, hard if the polite request is ignored again
-          adb emu kill || true
-          for _ in $(seq 20); do
-            pgrep -f qemu-system > /dev/null || break
-            sleep 1
-          done
-          pkill -9 -f qemu-system || true
-
-          exit $status
+        # one line on purpose: the action runs this input line by line, each in its
+        # own "sh -c", so anything with shell state has to be in the script itself
+        script: bash .github/scripts/run-instrumented-tests.sh
 
     - name: Upload test results
       if: always()
