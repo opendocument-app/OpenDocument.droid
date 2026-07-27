@@ -142,11 +142,16 @@ jobs:
           # api 26 is minSdk - the floor was previously untested, which is part of
           # why an API 26+ only call could ship in a path only old devices took.
           # (the old api 23 entry was disabled for issue #390 and is now moot)
-          - { arch: x86_64, api-level: 26 }
-          - { arch: x86_64, api-level: 29 }
-          - { arch: x86_64, api-level: 30 }
-          - { arch: x86_64, api-level: 32 }
-          - { arch: x86_64, api-level: 34 }
+          #
+          # it is also the one image whose restored snapshot keeps getting the boot
+          # sequence's "input keyevent 82" SIGKILLed while the guest is still coming
+          # up - at the stock 1536MB and again at 4096MB, so the ram was not the whole
+          # story. it boots cold instead, which costs about a minute and has no thaw
+          - { arch: x86_64, api-level: 26, boot-options: -no-snapshot-load }
+          - { arch: x86_64, api-level: 29, boot-options: '' }
+          - { arch: x86_64, api-level: 30, boot-options: '' }
+          - { arch: x86_64, api-level: 32, boot-options: '' }
+          - { arch: x86_64, api-level: 34, boot-options: '' }
     steps:
     - name: checkout
       uses: actions/checkout@v4
@@ -213,6 +218,11 @@ jobs:
         sudo udevadm control --reload-rules
         sudo udevadm trigger --name-match=kvm
 
+    # detached on purpose: the step that hangs is the one running the emulator, so
+    # nothing that comes after it in this job would ever get to run. see the script
+    - name: Reap the emulator's crash reporter
+      run: nohup setsid bash .github/scripts/reap-crashpad.sh > /dev/null 2>&1 &
+
     - name: Create AVD and generate snapshot for caching
       if: steps.avd-cache.outputs.cache-hit != 'true'
       uses: reactivecircus/android-emulator-runner@v2
@@ -238,7 +248,7 @@ jobs:
         target: google_apis
         force-avd-creation: false
         ram-size: 4096M
-        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
+        emulator-options: -no-snapshot-save ${{ matrix.boot-options }} -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
         disable-animations: true
         # one line on purpose: the action runs this input line by line, each in its
         # own "sh -c", so anything with shell state has to be in the script itself
