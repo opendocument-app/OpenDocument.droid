@@ -142,16 +142,11 @@ jobs:
           # api 26 is minSdk - the floor was previously untested, which is part of
           # why an API 26+ only call could ship in a path only old devices took.
           # (the old api 23 entry was disabled for issue #390 and is now moot)
-          #
-          # it is also the one image whose restored snapshot keeps getting the boot
-          # sequence's "input keyevent 82" SIGKILLed while the guest is still coming
-          # up - at the stock 1536MB and again at 4096MB, so the ram was not the whole
-          # story. it boots cold instead, which costs about a minute and has no thaw
-          - { arch: x86_64, api-level: 26, boot-options: -no-snapshot-load }
-          - { arch: x86_64, api-level: 29, boot-options: '' }
-          - { arch: x86_64, api-level: 30, boot-options: '' }
-          - { arch: x86_64, api-level: 32, boot-options: '' }
-          - { arch: x86_64, api-level: 34, boot-options: '' }
+          - { arch: x86_64, api-level: 26 }
+          - { arch: x86_64, api-level: 29 }
+          - { arch: x86_64, api-level: 30 }
+          - { arch: x86_64, api-level: 32 }
+          - { arch: x86_64, api-level: 34 }
     steps:
     - name: checkout
       uses: actions/checkout@v4
@@ -207,9 +202,10 @@ jobs:
         path: |
           ~/.android/avd/*
           ~/.android/adb*
-        # what gets cached is a booted snapshot, so it pins the guest's memory image to
-        # the ram size it was taken at - this key has to change whenever that does. the
-        # bump also throws the api 26 snapshot away, which is the one that kept dying
+        # this caches the avd itself; the snapshot in it is no longer loaded, since the
+        # test step boots cold to keep the guest out of the thaw that kept killing the
+        # action's first adb command. the key still has to move whenever what is in here
+        # changes - v4 was the ram bump, which the snapshot used to pin
         key: avd-${{ matrix.api-level }}-v4
 
     - name: Enable KVM group perms
@@ -248,7 +244,13 @@ jobs:
         target: google_apis
         force-avd-creation: false
         ram-size: 4096M
-        emulator-options: -no-snapshot-save ${{ matrix.boot-options }} -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
+        # -no-snapshot-load: every api level boots cold. the action treats
+        # sys.boot_completed as "ready" and runs "input keyevent 82" straight after, which a
+        # restored snapshot is not ready for - api 26 had it SIGKILLed at 1536MB and again at
+        # 4096MB, api 29 got "No service published for: input" - and a guest that is still
+        # thawing cannot be waited for from out here. A cold boot has nothing to thaw and
+        # costs about a minute
+        emulator-options: -no-snapshot-save -no-snapshot-load -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
         disable-animations: true
         # one line on purpose: the action runs this input line by line, each in its
         # own "sh -c", so anything with shell state has to be in the script itself
