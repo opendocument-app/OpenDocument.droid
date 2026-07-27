@@ -4,6 +4,8 @@ name: release
 # only machine holding the keystore. This does the same steps in CI:
 #   1. build the signed app bundles with gradle
 #   2. hand them to fastlane, which uploads them to the play store
+#   3. on a tag, attach the signed pro apk to the github release, which every
+#      release up to v4.6 carried and which the laptop build produced by hand
 #
 # Requires these repository secrets (see the "Release signing" section in the
 # README for what they mean):
@@ -43,7 +45,8 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  # to attach the apk to the github release of a tag
+  contents: write
 
 env:
   ndk_version: 28.2.13676358
@@ -170,7 +173,10 @@ jobs:
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v4
 
-    - name: build bundles
+    # the apk is the sideloadable copy that goes onto the github release. only
+    # pro has ever been published that way - lite is the ad supported play
+    # build, and an apk of it outside the store has no audience
+    - name: build bundles and the pro apk
       env:
         ODR_KEYSTORE: ${{ runner.temp }}/google_play.keystore
         ODR_KEYSTORE_PASSWORD: ${{ secrets.ODR_KEYSTORE_PASSWORD }}
@@ -179,15 +185,16 @@ jobs:
       run: |
         tasks=""
         case "${{ env.flavor }}" in
-          pro)  tasks="bundleProRelease" ;;
+          pro)  tasks="bundleProRelease assembleProRelease" ;;
           lite) tasks="bundleLiteRelease" ;;
-          *)    tasks="bundleProRelease bundleLiteRelease" ;;
+          *)    tasks="bundleProRelease bundleLiteRelease assembleProRelease" ;;
         esac
         ./gradlew $tasks --stacktrace
 
     # a release that silently produced an unsigned bundle would be rejected by
-    # the play store with a much less obvious error
-    - name: verify bundles are signed
+    # the play store with a much less obvious error, and an unsigned apk on the
+    # release page would not install at all
+    - name: verify bundles and the apk are signed
       run: |
         for aab in app/build/outputs/bundle/*/*.aab; do
           if unzip -l "$aab" | grep -qE " META-INF/[^/]+\.(RSA|DSA)$"; then
@@ -197,6 +204,22 @@ jobs:
             exit 1
           fi
         done
+        # the apk takes apksigner rather than the same grep: from minSdk 24 up
+        # agp leaves v1 signing off, so there is no META-INF/*.RSA to find and
+        # the signature sits in a block the zip listing does not show
+        apk=app/build/outputs/apk/pro/release/app-pro-release.apk
+        if [ -e "$apk" ]; then
+          apksigner=$(ls -1 "${ANDROID_HOME}"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
+          if [ -z "$apksigner" ]; then
+            echo "::error::found no apksigner under ${ANDROID_HOME}/build-tools"
+            exit 1
+          fi
+          if ! "$apksigner" verify "$apk" > /dev/null; then
+            echo "::error::$apk is not signed"
+            exit 1
+          fi
+          echo "signed: $apk"
+        fi
 
     # ndk.debugSymbolLevel puts the symbols inside the bundle itself, under
     # BUNDLE-METADATA/com.android.tools.build.debugsymbols, so the play store
@@ -209,6 +232,17 @@ jobs:
         name: bundles
         path: app/build/outputs/bundle/*/*.aab
         if-no-files-found: error
+
+    # also as a workflow artifact, not just on the release: a dispatched run has
+    # no tag to attach anything to, and that is how a release gets test flown
+    - name: Artifact apk
+      if: ${{ env.flavor != 'lite' }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: apk
+        path: app/build/outputs/apk/pro/release/app-pro-release.apk
+        if-no-files-found: error
+        compression-level: 0
 
     # via the environment rather than inline, so that a quote in the secret
     # cannot end up as part of the script
@@ -229,6 +263,22 @@ jobs:
         for lane in $lanes; do
           bundle exec fastlane android "$lane" track:"${{ env.track }}"
         done
+
+    # after the upload, so the release page never offers an apk for a version
+    # that never reached play. a tag push arrives before the release object is
+    # cut more often than not, so create it when it is not there yet
+    - name: attach the apk to the github release
+      if: ${{ github.ref_type == 'tag' && env.flavor != 'lite' && inputs.dry_run != true }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+        tag: ${{ github.ref_name }}
+      run: |
+        apk=app/build/outputs/apk/pro/release/app-pro-release.apk
+        if gh release view "$tag" > /dev/null 2>&1; then
+          gh release upload "$tag" "$apk" --clobber
+        else
+          gh release create "$tag" "$apk" --generate-notes
+        fi
 
     - name: drop credentials
       if: always()
