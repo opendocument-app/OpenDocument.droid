@@ -40,7 +40,10 @@ import app.opendocument.droid.ui.activity.MainActivity
 import app.opendocument.droid.ui.widget.PageView
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -115,7 +118,8 @@ class MainActivityTests {
 
         openDocumentThroughPicker()
 
-        // next onView will be blocked until the idling resource is idle.
+        // next onView will be blocked until the idling resource is idle, which now covers
+        // the load itself and not just the picker round trip.
         clickEditWithOverflowFallback()
     }
 
@@ -125,10 +129,15 @@ class MainActivityTests {
 
         openDocumentThroughPicker()
 
-        // next onView will be blocked until the idling resource is idle.
+        // next onView will be blocked until the idling resource is idle, which now covers
+        // the load itself and not just the picker round trip.
         clickEditWithOverflowFallback()
 
-        Thread.sleep(10000)
+        // there used to be a 10s sleep here that asserted nothing, and it is why "testPDF
+        // crashed" was an api 34 bucket of its own: the app is killed whenever play services
+        // dies under it ("depends on provider ...FontsProvider in dying proc"), which the
+        // instrumentation reports as "Process crashed", and this test sat still the longest
+        // so it was usually the one holding the app when that happened
     }
 
     @Test
@@ -157,7 +166,8 @@ class MainActivityTests {
 
         openDocumentThroughPicker()
 
-        // Wait for the password dialog to appear
+        // The dialog is put up by DocumentFragment.onEncrypted, and the idling resource
+        // stays busy until it is on screen - so this does not have to poll for it.
         onView(withText("This document is password-protected")).check(matches(isDisplayed()))
 
         // Enter wrong password first
@@ -186,10 +196,7 @@ class MainActivityTests {
 
         val pageView = documentFragment.pageView
         Assert.assertNotNull(pageView)
-        Assert.assertTrue(
-            "ODT should become editable after entering edit mode",
-            waitForEditableState(pageView!!, true, EDIT_MODE_TIMEOUT_MS),
-        )
+        assertBecomesEditable("ODT", pageView!!, documentFragment)
     }
 
     @Test
@@ -201,10 +208,7 @@ class MainActivityTests {
         val pageView = documentFragment.pageView
         Assert.assertNotNull(pageView)
 
-        Assert.assertTrue(
-            "DOCX should become editable after entering edit mode",
-            waitForEditableState(pageView!!, true, EDIT_MODE_TIMEOUT_MS),
-        )
+        assertBecomesEditable("DOCX", pageView!!, documentFragment)
     }
 
     @Test
@@ -372,6 +376,67 @@ class MainActivityTests {
         Assert.assertTrue("Failed to enter edit mode", started.get())
     }
 
+    /**
+     * Fails with what the page and the file on disk actually contained. testODTEditMode fails on
+     * api 26 without ever being slow - about a second or never - so the interesting question is
+     * which half of the round trip went missing: the reload with translatable=true not producing
+     * editable html, or the webview never showing the html that was produced.
+     */
+    private fun assertBecomesEditable(
+        label: String,
+        pageView: PageView,
+        fragment: DocumentFragment,
+    ) {
+        if (waitForEditableState(pageView, true, EDIT_MODE_TIMEOUT_MS)) {
+            return
+        }
+
+        Assert.fail(
+            "$label should become editable after entering edit mode." +
+                " dom=${describeDom(pageView)} document=${describeLoadedDocument(fragment)}"
+        )
+    }
+
+    private fun describeDom(pageView: PageView): String =
+        evaluateJavascript(
+            pageView,
+            "(function(){var b = document.body;var html = b ? b.innerHTML : '';" +
+                "return 'url=' + document.location.href + ' ready=' + document.readyState +" +
+                " ' bodyLength=' + html.length + ' bodyEditable=' + !!(b && b.isContentEditable) +" +
+                " ' editableNodes=' + document.querySelectorAll('[contenteditable]').length +" +
+                " ' odr=' + (typeof odr);})()",
+        ) ?: "no result"
+
+    /**
+     * What the loader published, fetched over http the way the webview fetches it.
+     *
+     * Documents are served by the core's own server rather than read off disk, so asking for the
+     * url is the question that matters: a document the test process cannot fetch either was never
+     * served, and one it can fetch was the webview's to lose. When the server had failed to bind
+     * its port, this said "Connection refused" - which is the whole answer.
+     */
+    private fun describeLoadedDocument(fragment: DocumentFragment): String {
+        val result = fragment.lastResult ?: return "no result"
+        val url = result.partUris.firstOrNull() ?: return "no part uri"
+
+        return try {
+            val connection = URL(url.toString()).openConnection() as HttpURLConnection
+            connection.connectTimeout = 5000
+            connection.readTimeout = 5000
+
+            try {
+                val html = connection.inputStream.bufferedReader().use { it.readText() }
+                "$url http=${connection.responseCode} length=${html.length}" +
+                    " contenteditable=${html.contains("contenteditable")}" +
+                    " translatable=${result.options.translatable}"
+            } finally {
+                connection.disconnect()
+            }
+        } catch (e: IOException) {
+            "$url unreachable: $e"
+        }
+    }
+
     private fun waitForEditableState(
         pageView: PageView,
         expected: Boolean,
@@ -431,6 +496,11 @@ class MainActivityTests {
         // entering edit mode has to round-trip through the webview before the dom reports
         // contenteditable, and on a cold CI emulator that regularly took longer than the 10s
         // this used to wait for - the edit mode tests were the flakiest thing in the suite.
+        //
+        // it stays at 30s. the api 26 failures that looked like it needed more were the core
+        // server failing to bind its port, so the document was never served at all and no
+        // deadline would have helped - 60s failed exactly as 30s had. a run that works is
+        // done in about a second
         private const val EDIT_MODE_TIMEOUT_MS = 30000L
 
         // insertion ordered, so the "All test files" log below reads in extraction order

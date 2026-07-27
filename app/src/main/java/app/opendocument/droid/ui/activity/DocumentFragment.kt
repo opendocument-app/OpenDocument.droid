@@ -30,6 +30,7 @@ import app.opendocument.droid.background.StreamUtil
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
+import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.SnackbarHelper
 import app.opendocument.droid.ui.widget.PageView
 import app.opendocument.droid.ui.widget.ProgressDialogFragment
@@ -79,6 +80,45 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         var lastRequestedUri: Uri? = null
 
         var lastSelectedTab: Int = -1
+
+        // whether a load is outstanding as far as OpenFileIdling is concerned. MainActivity
+        // only keeps espresso busy for the document picker round trip, which ends the moment
+        // the picker returns a uri - long before a loader callback has put anything on screen.
+        // one token per fragment is enough: a load started while another is in flight replaces
+        // it, and the surviving callback releases the single token.
+        //
+        // it lives here rather than in the fragment so a configuration change does not lose it:
+        // the recreated fragment reattaches itself as the service listener and keeps this view
+        // model, so the callback that ends the load still finds a token to release.
+        private var loadIsIdling = false
+
+        /**
+         * Marks the app busy for espresso until one of the loader callbacks has run. No-op in
+         * release builds, where [OpenFileIdling] does nothing.
+         */
+        fun beginLoadIdling() {
+            if (!loadIsIdling) {
+                loadIsIdling = true
+
+                OpenFileIdling.increment()
+            }
+        }
+
+        /** Counterpart of [beginLoadIdling]. Called once the load put its result on screen. */
+        fun endLoadIdling() {
+            if (loadIsIdling) {
+                loadIsIdling = false
+
+                OpenFileIdling.decrement()
+            }
+        }
+
+        // the fragment is gone for good, so a load still in flight will never call back.
+        // releasing the token here keeps the idling resource - a singleton - from staying
+        // busy into the next instrumented test
+        override fun onCleared() {
+            endLoadIdling()
+        }
     }
 
     private lateinit var state: DocumentViewModel
@@ -257,6 +297,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
 
     private fun loadWithType(loaderType: FileLoader.LoaderType, options: FileLoader.Options) {
         prepareLoad(loaderType, true)
+
+        state.beginLoadIdling()
 
         serviceQueue.addToQueue { service -> service.loadWithType(loaderType, options) }
     }
@@ -461,6 +503,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
 
         dismissProgress()
 
+        state.endLoadIdling()
+
         // in-app review is requested in the pro flavor only. The lite branch used to
         // consult a "show_in_app_rating" remote config key, which has resolved to nothing
         // since firebase remote config was removed, so lite never asked either way.
@@ -489,6 +533,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
 
         // MetadataLoader failed, so there's no point in trying to parse or upload the file
         offerReopen(activity, options, errorDescription, true)
+
+        state.endLoadIdling()
     }
 
     override fun onEncrypted(result: FileLoader.Result) {
@@ -523,6 +569,9 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         }
         builder.setNegativeButton(getString(android.R.string.cancel), null)
         builder.show()
+
+        // after show(), so espresso does not go idle until the dialog is on screen
+        state.endLoadIdling()
     }
 
     override fun onUnsupported(result: FileLoader.Result) {
@@ -545,6 +594,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
             offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true)
         }
+
+        state.endLoadIdling()
     }
 
     override fun onSaveSuccess(outFile: Uri) {
@@ -800,6 +851,16 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         super.onDestroyView()
 
         serviceQueue.service?.setListener(null)
+
+        // the listener is gone, so a load still in flight will never call back - unless this
+        // is a configuration change, where the recreated fragment takes the listener (and the
+        // view model holding the token) over and still gets the callback. anywhere else,
+        // releasing here keeps the idling resource - a singleton - from staying busy into the
+        // next instrumented test. a fragment that goes away for good on top of that has its
+        // view model cleared, which releases as well
+        if (!requireActivity().isChangingConfigurations) {
+            state.endLoadIdling()
+        }
 
         pageView?.destroy()
     }

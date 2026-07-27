@@ -27,6 +27,9 @@ import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
 import com.viliussutkus89.android.assetextractor.AssetExtractor
 import java.io.File
+import java.io.IOException
+import java.net.InetSocketAddress
+import java.net.ServerSocket
 
 /**
  * Loads documents through odrcore and publishes them on a local http server.
@@ -53,6 +56,9 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
     private var lastInputPath: String? = null
     private var lastCachePath: String? = null
 
+    // the port the server actually got, which is not always the preferred one. see choosePort()
+    private var serverPort = PREFERRED_SERVER_PORT
+
     override fun initialize(
         listener: FileLoaderListener,
         mainHandler: Handler,
@@ -75,10 +81,12 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
         val server = HttpServer(config)
         this.server = server
 
+        serverPort = choosePort(crashManager)
+
         httpThread =
             Thread {
                 try {
-                    server.listen(SERVER_BIND_ADDRESS, SERVER_PORT)
+                    server.listen(SERVER_BIND_ADDRESS, serverPort)
                 } catch (e: Throwable) {
                     crashManager.log(e)
                 }
@@ -87,6 +95,64 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
 
         super.initialize(listener, mainHandler, backgroundHandler, analyticsManager, crashManager)
     }
+
+    /**
+     * Picks the port the server binds to, and says so when [PREFERRED_SERVER_PORT] cannot be had.
+     *
+     * [HttpServer.listen] returns void and does not report a failed bind, so an occupied port left
+     * the app with no server at all and nothing to show for it: every document then failed with
+     * ERR_CONNECTION_REFUSED behind chrome's own error page. That is what testODTEditMode kept
+     * failing on, and it took a webview error log to see at all.
+     *
+     * The port is occupied more often than it looks. Both flavors hardcode it, so lite and pro
+     * collide whenever they run on one device - the instrumented tests do exactly that, one flavor
+     * after the other - and a port does not come free the moment its owner goes away: the sockets
+     * the webview opened linger in TIME_WAIT for a minute, and the native bind does not set
+     * SO_REUSEADDR. Clean shutdown does not help either, since the previous app is usually killed
+     * outright rather than destroyed.
+     */
+    private fun choosePort(crashManager: CrashManager): Int {
+        // a preference of ANY_PORT is a request for an arbitrary free port, which is what the
+        // fallback below asks for anyway - there is nothing to try first
+        if (PREFERRED_SERVER_PORT != ANY_PORT) {
+            try {
+                return bindable(PREFERRED_SERVER_PORT)
+            } catch (e: IOException) {
+                crashManager.log(
+                    IOException(
+                        "core server cannot bind $SERVER_BIND_ADDRESS:$PREFERRED_SERVER_PORT",
+                        e,
+                    )
+                )
+            }
+        }
+
+        try {
+            return bindable(ANY_PORT)
+        } catch (e: IOException) {
+            crashManager.log(IOException("core server cannot bind any port", e))
+        }
+
+        // [listen] must not be handed ANY_PORT: it would bind a port that nothing here knows,
+        // and every document url would then address :0. A port that cannot be bound at least
+        // fails where it can be seen, now that the webview reports the refused connection. And
+        // the probe is only a moment in time - the port may well be free again by the time the
+        // server gets there.
+        return if (PREFERRED_SERVER_PORT != ANY_PORT) PREFERRED_SERVER_PORT
+        else FALLBACK_SERVER_PORT
+    }
+
+    /** The port [port] resolves to, if a socket that binds like the native one can have it. */
+    private fun bindable(port: Int): Int =
+        ServerSocket().use { probe ->
+            // deliberately not reuseAddress: the probe has to fail wherever the native bind
+            // would, and java turns SO_REUSEADDR on by default - which is exactly the flag
+            // whose absence makes a TIME_WAIT port unusable
+            probe.reuseAddress = false
+            probe.bind(InetSocketAddress(SERVER_BIND_ADDRESS, port))
+
+            probe.localPort
+        }
 
     override fun isSupported(options: Options): Boolean {
         val fileType = options.fileType ?: return false
@@ -214,7 +280,7 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
             Log.i(TAG, "view name=" + view.name() + " path=" + view.path())
             HostedView(
                 view.name(),
-                "http://$SERVER_URL_HOST:$SERVER_PORT/file/$prefix/" + view.path(),
+                "http://$SERVER_URL_HOST:$serverPort/file/$prefix/" + view.path(),
             )
         }
     }
@@ -299,7 +365,22 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
          */
         private const val SERVER_URL_HOST = "localhost"
 
-        const val SERVER_PORT: Int = 29665
+        /** What a bind asks for when any free port will do. */
+        private const val ANY_PORT = 0
+
+        /**
+         * The port the server prefers. Only a preference: it is hardcoded and therefore shared with
+         * the other flavor, so it is not always free. Set it to [ANY_PORT] to always take whatever
+         * is going. See [choosePort].
+         */
+        const val PREFERRED_SERVER_PORT: Int = 29665
+
+        /**
+         * Handed to [HttpServer.listen] when no port could be bound at all and the preference is
+         * [ANY_PORT], which cannot be passed on - the resulting url would address :0. Only reached
+         * when the device has nothing free, where any choice is as good as the next.
+         */
+        private const val FALLBACK_SERVER_PORT: Int = 29665
 
         /**
          * Whether odrcore renders text documents with page margins. This used to be read from the

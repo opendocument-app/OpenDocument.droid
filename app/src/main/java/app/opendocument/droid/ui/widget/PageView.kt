@@ -11,6 +11,8 @@ import android.util.AttributeSet
 import android.util.Base64
 import android.util.Base64InputStream
 import android.webkit.JavascriptInterface
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.annotation.Keep
@@ -94,6 +96,27 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
                 override fun onPageCommitVisible(view: WebView, url: String) {
                     wasCommitCalled = true
+                }
+
+                // a document that fails to load leaves chrome's own error page on screen and
+                // said nothing to anyone. that cost a full round of ci archaeology to work out
+                // from the outside, so the main frame failing is now reported
+                override fun onReceivedError(
+                    view: WebView,
+                    request: WebResourceRequest,
+                    error: WebResourceError,
+                ) {
+                    super.onReceivedError(view, request, error)
+
+                    if (!request.isForMainFrame) {
+                        return
+                    }
+
+                    crashManager.log(
+                        RuntimeException(
+                            "loading ${request.url} failed: ${error.errorCode} ${error.description}"
+                        )
+                    )
                 }
 
                 @Suppress("DEPRECATION") // the request based overload needs API 24 semantics

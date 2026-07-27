@@ -132,6 +132,9 @@ jobs:
   test:
     runs-on: ubuntu-24.04
     needs: build
+    # a job that wedges instead of failing would otherwise sit here until github's
+    # 6h limit. the whole job takes about 10 minutes when the emulator behaves
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -199,13 +202,22 @@ jobs:
         path: |
           ~/.android/avd/*
           ~/.android/adb*
-        key: avd-${{ matrix.api-level }}-v3
+        # this caches the avd itself; the snapshot in it is no longer loaded, since the
+        # test step boots cold to keep the guest out of the thaw that kept killing the
+        # action's first adb command. the key still has to move whenever what is in here
+        # changes - v4 was the ram bump, which the snapshot used to pin
+        key: avd-${{ matrix.api-level }}-v4
 
     - name: Enable KVM group perms
       run: |
         echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
         sudo udevadm control --reload-rules
         sudo udevadm trigger --name-match=kvm
+
+    # detached on purpose: the step that hangs is the one running the emulator, so
+    # nothing that comes after it in this job would ever get to run. see the script
+    - name: Reap the emulator's crash reporter
+      run: nohup setsid bash .github/scripts/reap-crashpad.sh > /dev/null 2>&1 &
 
     - name: Create AVD and generate snapshot for caching
       if: steps.avd-cache.outputs.cache-hit != 'true'
@@ -215,7 +227,12 @@ jobs:
         arch: ${{ matrix.arch }}
         target: google_apis
         force-avd-creation: false
-        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        # the images default to 1536MB, which left the guest so tight that the first adb
+        # command after a snapshot restore got killed while the system was still thawing
+        # ("input keyevent 82" exiting 137, api 26 mostly). the runner has 16GB, so the
+        # headroom is free
+        ram-size: 4096M
+        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
         disable-animations: false
         script: echo "Generated AVD snapshot for caching."
 
@@ -226,18 +243,18 @@ jobs:
         arch: ${{ matrix.arch }}
         target: google_apis
         force-avd-creation: false
-        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        ram-size: 4096M
+        # -no-snapshot-load: every api level boots cold. the action treats
+        # sys.boot_completed as "ready" and runs "input keyevent 82" straight after, which a
+        # restored snapshot is not ready for - api 26 had it SIGKILLed at 1536MB and again at
+        # 4096MB, api 29 got "No service published for: input" - and a guest that is still
+        # thawing cannot be waited for from out here. A cold boot has nothing to thaw and
+        # costs about a minute
+        emulator-options: -no-snapshot-save -no-snapshot-load -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
         disable-animations: true
-        script: |
-          # Clear logcat before tests. Fails with "failed to clear the 'main' log"
-          # on some system images (api 26 among them) and must not abort the run.
-          adb logcat -c || true
-
-          # Run tests
-          ./gradlew connectedCheck
-
-          # Dump logcat after tests
-          adb logcat -d > logcat.txt
+        # one line on purpose: the action runs this input line by line, each in its
+        # own "sh -c", so anything with shell state has to be in the script itself
+        script: bash .github/scripts/run-instrumented-tests.sh
 
     - name: Upload test results
       if: always()
@@ -268,4 +285,7 @@ jobs:
           ~/.android/avd/*.avd/config.ini
           ~/.android/avd/*.avd/*.log
           logcat.txt
+          processes.txt
+          anr-traces.txt
+          tombstones.txt
         if-no-files-found: warn
