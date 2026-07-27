@@ -177,7 +177,13 @@ class MainActivity : AppCompatActivity(), MenuProvider {
             WindowInsetsCompat.CONSUMED
         }
 
-        title = ""
+        // nothing lives in the toolbar any more - the landing screen has its own header and the
+        // document its buttons - so the bar would just be an empty strip of colour. Hiding it
+        // rather than moving to a .NoActionBar theme keeps it as the host the action modes are
+        // raised in: appcompat shows the container again for as long as one is up, and takes it
+        // back down afterwards, so find, tts and edit still get their bar without the app
+        // having to put one on screen itself.
+        supportActionBar?.hide()
 
         onBackPressedDispatcher.addCallback(this, backCallback)
 
@@ -480,8 +486,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                         WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                     insetsController.hide(WindowInsetsCompat.Type.statusBars())
 
-                    supportActionBar?.hide()
-
                     // delay offer to wait for fullscreen animation to finish
                     handler.postDelayed(
                         {
@@ -590,8 +594,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         if (!fullscreen) {
             return
         }
-
-        supportActionBar?.show()
 
         WindowCompat.getInsetsController(window, window.decorView)
             .show(WindowInsetsCompat.Type.statusBars())
