@@ -108,10 +108,15 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
      * collide whenever they run on one device - the instrumented tests do exactly that, one flavor
      * after the other - and a port does not come free the moment its owner goes away: the sockets
      * the webview opened linger in TIME_WAIT for a minute. The native bind sets SO_REUSEPORT,
-     * cpp-httplib's default on linux, and not SO_REUSEADDR; only the latter relaxes TIME_WAIT, and
-     * SO_REUSEPORT shares a port only between sockets of the same uid - which two flavors never
-     * are. Clean shutdown does not help either, since the previous app is usually killed outright
-     * rather than destroyed.
+     * cpp-httplib's default on linux, and not SO_REUSEADDR. Two live servers therefore never share
+     * the port, since SO_REUSEPORT joins only sockets of the same uid - which two flavors never
+     * are. TIME_WAIT is the murkier half: the kernel does let a SO_REUSEPORT bind past a timewait
+     * socket, skipping even the uid check, but only where that socket carries the flag across from
+     * the one it replaced - which it does not on api 26's 3.18.91, predating the fix for that
+     * uninitialised field (3099a5291893, v4.19, backported to 4.14.y). So the bind that failed
+     * there was up against whatever that bit happened to hold - a conflict that comes and goes,
+     * which is about what a failure seen in one run of twelve looks like. Clean shutdown does not
+     * help either, since the previous app is usually killed outright rather than destroyed.
      */
     private fun choosePort(crashManager: CrashManager): Int {
         // a preference of ANY_PORT is a request for an arbitrary free port, which is what the
@@ -144,12 +149,14 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
         else FALLBACK_SERVER_PORT
     }
 
-    /** The port [port] resolves to, if a socket that binds like the native one can have it. */
+    /** The port [port] resolves to, if a socket at least as strict as the native one can get it. */
     private fun bindable(port: Int): Int =
         ServerSocket().use { probe ->
-            // deliberately not reuseAddress: the probe has to fail wherever the native bind
-            // would, and java turns SO_REUSEADDR on by default - which is exactly the flag
-            // whose absence makes a TIME_WAIT port unusable
+            // deliberately not reuseAddress: java turns SO_REUSEADDR on by default, and a probe
+            // that relaxes what the native bind does not would hand back a port the real bind
+            // then fails on - the one direction that costs the server. A bare bind conflicts
+            // with strictly more than the native SO_REUSEPORT one, so it can also reject a port
+            // the server would have got; that only costs the fallback port
             probe.reuseAddress = false
             probe.bind(InetSocketAddress(SERVER_BIND_ADDRESS, port))
 
