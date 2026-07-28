@@ -13,9 +13,20 @@ sealed class LandingItem {
         override val id: String = "header:$title"
     }
 
-    /** [subtitle] is the second line, when there is something worth saying - a last opened time. */
-    class Document(val filename: String, val uri: Uri, val subtitle: String? = null) :
-        LandingItem() {
+    /**
+     * [subtitle] is the second line, when there is something worth saying - a last opened time.
+     *
+     * [recent] says the row came from the recently opened list, which is the only thing the app may
+     * forget; a document inside a granted folder is simply there. It is carried explicitly rather
+     * than read off [subtitle], which an entry stored before the last opened time was recorded does
+     * not have.
+     */
+    class Document(
+        val filename: String,
+        val uri: Uri,
+        val subtitle: String? = null,
+        val recent: Boolean = false,
+    ) : LandingItem() {
         override val id: String = "document:$uri"
     }
 

@@ -43,9 +43,10 @@ class LandingAdapter(private val listener: Listener) :
 
         val item = getItem(position)
 
-        // a document inside a folder is not ours to forget - it is simply there. those carry no
-        // subtitle, which is what tells the two apart here.
-        return item is LandingItem.Document && item.subtitle != null
+        // a document inside a folder is not ours to forget - it is simply there. the row says
+        // which of the two it is; the subtitle cannot, because an entry stored before the last
+        // opened time was recorded has none.
+        return item is LandingItem.Document && item.recent
     }
 
     fun documentAt(position: Int): LandingItem.Document? =
