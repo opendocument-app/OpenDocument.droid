@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The dark counterparts of the roles in values/colors.xml. -->
+<resources>
+
+    <color name="md_primary">#86CFFF</color>
+    <color name="md_on_primary">#00344C</color>
+    <color name="md_primary_container">#004C6D</color>
+    <color name="md_on_primary_container">#C7E7FF</color>
+
+    <color name="md_secondary">#B6C9D8</color>
+    <color name="md_on_secondary">#21323E</color>
+    <color name="md_secondary_container">#384955</color>
+    <color name="md_on_secondary_container">#D2E5F5</color>
+
+    <color name="md_surface">#191C1E</color>
+    <color name="md_on_surface">#E2E2E5</color>
+    <color name="md_surface_variant">#41484D</color>
+    <color name="md_on_surface_variant">#C1C7CE</color>
+    <color name="md_surface_container">#1D2022</color>
+
+    <color name="md_tertiary">#CDC0E9</color>
+    <color name="md_on_tertiary">#342B4B</color>
+    <color name="md_tertiary_container">#4B4163</color>
+    <color name="md_on_tertiary_container">#E9DDFF</color>
+
+    <color name="md_inverse_surface">#E2E2E5</color>
+    <color name="md_inverse_on_surface">#2E3133</color>
+    <color name="md_inverse_primary">#00658F</color>
+
+    <color name="md_outline">#8B9198</color>
+    <color name="md_outline_variant">#41484D</color>
+
+    <color name="md_error">#FFB4AB</color>
+    <color name="md_on_error">#690005</color>
+    <color name="md_error_container">#93000A</color>
+    <color name="md_on_error_container">#FFDAD6</color>
+
+</resources>

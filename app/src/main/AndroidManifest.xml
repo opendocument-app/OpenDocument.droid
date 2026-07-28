@@ -72,9 +72,15 @@
              activity-alias name does not have to correspond to a real class, so the old
              names live on as aliases pointing at the relocated activity.
         -->
+        <!--
+             uiMode is deliberately absent from configChanges: the theme picks its colours from
+             values-night, and those only get re-resolved when the activity is recreated.
+             Swallowing the config change would leave already-inflated views on their day
+             colours until the next launch.
+        -->
         <activity
             android:name="app.opendocument.droid.ui.activity.MainActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize"
             android:exported="true" />
 
         <!--

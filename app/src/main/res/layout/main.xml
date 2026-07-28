@@ -150,7 +150,6 @@
                     android:layout_marginLeft="-20dp"
                     android:layout_marginRight="20dp"
                     android:layout_weight="0.2"
-                    android:theme="@style/Theme.AppCompat.Light"
                     android:layout_marginStart="-20dp"
                     android:layout_marginEnd="20dp"
                     tools:ignore="NestedWeights" />
@@ -181,6 +180,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@id/ad_container"
-            android:background="@android:color/white"
+            android:background="@color/document_background"
             android:visibility="gone" />
 </RelativeLayout>
