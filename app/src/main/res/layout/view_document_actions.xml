@@ -19,7 +19,8 @@
             android:layout_gravity="end|bottom"
             android:gravity="end|bottom"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:paddingBottom="32dp">
 
         <!--
              scrollable, and taking the whole height above the buttons, because seven rows do not
