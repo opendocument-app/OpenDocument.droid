@@ -44,11 +44,5 @@
     <string name="reopen_chooser_title">お使いのデバイスにインストールされた別のアプリで開く:</string>
     <!--  iOS -->
     <string name="ok">OK</string>
-    <string name="unsaved_changes">保存していない変更があります</string>
-    <string name="save_now">今すぐ保存しますか?</string>
-    <string name="yes">はい</string>
-    <string name="discard_changes">変更を破棄</string>
     <string name="cancel">キャンセル</string>
-    <string name="error">エラー</string>
-    <string name="back_to_documents">ドキュメントに戻る</string>
 </resources>

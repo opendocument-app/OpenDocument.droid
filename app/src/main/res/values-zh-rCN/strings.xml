@@ -45,11 +45,5 @@
     <string name="reopen_chooser_title">使用设备上的其他应用打开：</string>
     <!--  iOS -->
     <string name="ok">确认</string>
-    <string name="unsaved_changes">你有未保存的更改</string>
-    <string name="save_now">现在保存它们吗？</string>
-    <string name="yes">是</string>
-    <string name="discard_changes">放弃更改</string>
     <string name="cancel">取消</string>
-    <string name="error">出错</string>
-    <string name="back_to_documents">返回文档</string>
 </resources>

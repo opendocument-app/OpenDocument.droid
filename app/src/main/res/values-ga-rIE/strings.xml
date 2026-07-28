@@ -44,11 +44,5 @@
     <string name="reopen_chooser_title">Oscail ag baint feidhm as feidhmchláirín eile atá suiteáilte ar do ghaireas:</string>
     <!--  iOS -->
     <string name="ok">Tá go maith</string>
-    <string name="unsaved_changes">Tá athruithe ann nár cuireadh i dtaisce</string>
-    <string name="save_now">Cuir i dtaisce anois iad?</string>
-    <string name="yes">Cuir</string>
-    <string name="discard_changes">Cuileáil na hathruithe</string>
     <string name="cancel">Cealaigh</string>
-    <string name="error">Earráid</string>
-    <string name="back_to_documents">Ar ais chuig na cáipéisí</string>
 </resources>

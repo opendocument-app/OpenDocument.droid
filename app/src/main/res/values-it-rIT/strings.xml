@@ -44,11 +44,5 @@
     <string name="reopen_chooser_title">Apri usando un\'altra app installata sul tuo dispositivo:</string>
     <!--  iOS -->
     <string name="ok">Ok</string>
-    <string name="unsaved_changes">Ci sono modifiche non salvate</string>
-    <string name="save_now">Salvare ora le modifiche?</string>
-    <string name="yes">Sì</string>
-    <string name="discard_changes">Scarta modifiche</string>
     <string name="cancel">Annulla</string>
-    <string name="error">Errore</string>
-    <string name="back_to_documents">Torna ai documenti</string>
 </resources>

@@ -45,11 +45,5 @@
     <string name="reopen_chooser_title">기기에 설치된 다른 앱을 사용해서 열기: </string>
     <!--  iOS -->
     <string name="ok">확인</string>
-    <string name="unsaved_changes">저장된 내용을 변경하지 않음</string>
-    <string name="save_now">저장하시겠습니까?</string>
-    <string name="yes">예</string>
-    <string name="discard_changes">변경 취소</string>
     <string name="cancel">취소</string>
-    <string name="error">에러</string>
-    <string name="back_to_documents">문서로 돌아가기</string>
 </resources>
