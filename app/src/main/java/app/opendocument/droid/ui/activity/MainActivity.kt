@@ -365,10 +365,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
     override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
         menuInflater.inflate(R.menu.menu_main, menu)
-
-        if (billingManager.hasPurchased()) {
-            menu.findItem(R.id.menu_remove_ads).isVisible = false
-        }
     }
 
     // The play services availability dialog calls startActivityForResult() itself with a
@@ -470,12 +466,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                 analyticsManager.report("menu_share")
             }
 
-            R.id.menu_remove_ads -> {
-                analyticsManager.report("menu_remove_ads")
-
-                buyAdRemoval()
-            }
-
             R.id.menu_fullscreen -> {
                 if (fullscreen) {
                     analyticsManager.report("menu_fullscreen_leave")
@@ -572,7 +562,18 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         ttsActionMode = null
     }
 
-    private fun buyAdRemoval() {
+    /**
+     * Whether the ad removal is still worth offering: never in pro, where the purchase is implied,
+     * and not once it has been bought.
+     *
+     * The landing screen asks rather than being told, because billing is set up by
+     * [initializeProprietaryLibraries] - which can run a second time, after the play services
+     * dialog - and it is not something the ViewModel could read off disk itself.
+     */
+    fun offersAdRemoval(): Boolean =
+        ::billingManager.isInitialized && !billingManager.hasPurchased()
+
+    fun buyAdRemoval() {
         analyticsManager.report(AnalyticsConstants.EVENT_ADD_TO_CART)
 
         // the play listing id is the applicationId, which stays at.tomtasche.reader.pro
