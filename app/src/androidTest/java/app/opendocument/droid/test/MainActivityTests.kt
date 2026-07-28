@@ -10,6 +10,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.SystemClock
 import android.util.Log
+import android.view.View
 import androidx.core.content.FileProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
@@ -48,6 +49,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import org.hamcrest.Matchers.allOf
+import org.hamcrest.Matchers.anyOf
 import org.hamcrest.Matchers.equalTo
 import org.junit.After
 import org.junit.AfterClass
@@ -253,13 +255,14 @@ class MainActivityTests {
             )
     }
 
-    // the toolbar action now launches ACTION_OPEN_DOCUMENT directly, which the test stubs out.
-    // it used to raise a chooser of our own that a file manager had to be picked from first.
+    // the landing screen is the only thing offering to open a document now that the toolbar
+    // action is gone. exactly one of its two entry points is on screen - the fab is hidden
+    // while the empty state is up - and which one depends on whether an earlier test already
+    // left a document in the recent list, so match either.
     private fun openDocumentThroughPicker() {
         onView(
                 allOf(
-                    withId(R.id.menu_open),
-                    withContentDescription("Open document"),
+                    anyOf<View>(withId(R.id.landing_open_fab), withId(R.id.landing_empty_open)),
                     isDisplayed(),
                 )
             )

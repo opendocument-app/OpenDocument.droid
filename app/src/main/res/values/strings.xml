@@ -17,7 +17,6 @@
     <string name="dialog_uploading_message_appendix">Uploaded files are private and automatically deleted after 24 hours.</string>
     <string name="dialog_upload_file">We aren\'t able to open this document, because we don\'t support its format. Do you want to upload it to our server temporarily, so we can display it for you anyway? Uploaded files are private and automatically deleted after 24 hours.</string>
     <string name="menu_search">Search in document</string>
-    <string name="menu_open">Open document</string>
     <string name="menu_open_with">Open with...</string>
     <string name="menu_share">Share document</string>
     <string name="menu_edit">Edit document</string>
