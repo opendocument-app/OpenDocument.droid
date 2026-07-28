@@ -6,8 +6,13 @@
         have to add what is specific to them. Copying the whole theme per qualifier is what let
         the colours drift apart before.
 
-        Not a .NoActionBar variant: there is no Toolbar view anywhere, the app relies on the
-        default ActionBar and drives it through supportActionBar / startSupportActionMode.
+        Not a .NoActionBar variant, even though no screen puts anything in the bar any more:
+        the ActionBar's container is what startSupportActionMode() raises find, tts and edit
+        in, and appcompat only shows it for as long as one of them is up. MainActivity hides
+        the bar itself on start, so the container is off screen the rest of the time and the
+        window inset math stays the one ActionBarOverlayLayout does - which a NoActionBar
+        theme would swap for a decor that pads itself, on top of the padding MainActivity
+        applies.
     -->
     <style name="Base.MainTheme" parent="Theme.Material3.DayNight">
         <item name="colorPrimary">@color/md_primary</item>
