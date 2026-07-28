@@ -117,8 +117,7 @@ class LandingTests {
 
     @Test
     fun theFabOpensTheSystemPicker() {
-        // the fab is hidden behind the empty state, which offers the same thing with a label
-        seedRecentDocument()
+        // deliberately not seeded: the fab is there whatever the list holds, empty state included
         stubOpenDocumentCancelled()
 
         launch()

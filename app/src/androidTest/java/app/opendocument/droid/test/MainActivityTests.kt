@@ -10,7 +10,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.SystemClock
 import android.util.Log
-import android.view.View
 import androidx.core.content.FileProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
@@ -47,8 +46,6 @@ import java.net.URL
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
-import org.hamcrest.Matchers.allOf
-import org.hamcrest.Matchers.anyOf
 import org.hamcrest.Matchers.equalTo
 import org.junit.After
 import org.junit.AfterClass
@@ -260,22 +257,16 @@ class MainActivityTests {
     }
 
     // the landing screen is the only thing offering to open a document now that the toolbar
-    // action is gone. exactly one of its two entry points is on screen - the fab is hidden
-    // while the empty state is up - and which one depends on whether an earlier test already
-    // left a document in the recent list, so match either.
+    // action is gone. the fab is the entry point that is there whatever the list holds - the
+    // empty state has one of its own, but only while it is up, so matching either would be
+    // ambiguous rather than tolerant.
     //
-    // closeSoftKeyboard first, and it is not decoration: both entry points sit in the lower
-    // half of the screen, where a keyboard left over from an earlier test covers them. the
-    // ime window is above ours, so the tap lands on it, espresso reports the click as
-    // performed, and nothing happens - see the note on waitForDocumentActions.
+    // closeSoftKeyboard first, and it is not decoration: the fab sits in the lower half of the
+    // screen, where a keyboard left over from an earlier test covers it. the ime window is
+    // above ours, so the tap lands on it, espresso reports the click as performed, and nothing
+    // happens - see the note on waitForDocumentActions.
     private fun openDocumentThroughPicker() {
-        onView(
-                allOf(
-                    anyOf<View>(withId(R.id.landing_open_fab), withId(R.id.landing_empty_open)),
-                    isDisplayed(),
-                )
-            )
-            .perform(closeSoftKeyboard(), click())
+        onView(withId(R.id.landing_open_fab)).perform(closeSoftKeyboard(), click())
     }
 
     // the buttons of the open document are up once it has loaded, so this blocks on the idling

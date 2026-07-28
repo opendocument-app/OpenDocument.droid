@@ -192,10 +192,6 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
             renderRoot(items, state, isEmpty)
         }
 
-        // the empty state offers the same thing with a label on it, so the bare fab would just
-        // be a second unexplained button next to it
-        fab.visibility = if (isEmpty) View.GONE else View.VISIBLE
-
         adapter.submitList(items)
     }
 
