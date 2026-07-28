@@ -31,6 +31,19 @@ class SupportedDocumentTypesTest {
     }
 
     @Test
+    fun presentationsTheCoreCannotOpenAreNotSupported() {
+        // pptx sits in the same ooxml family as docx and xlsx, but neither the STRICT_CATCH filter
+        // nor CoreLoader takes it - listing one would promise an open that ends in the upload flow
+        assertFalse(
+            supported(
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                "deck.pptx",
+            )
+        )
+        assertFalse(supported("application/vnd.ms-powerpoint", "deck.ppt"))
+    }
+
+    @Test
     fun aKnownExtensionWinsOverAnUnhelpfulMimeType() {
         // this is the common case: providers fall back to octet-stream for anything they do not
         // have a mapping for, which includes most opendocument files

@@ -19,7 +19,11 @@ object SupportedDocumentTypes {
     private val MIME_PREFIXES =
         listOf(
             "application/vnd.oasis.opendocument",
-            "application/vnd.openxmlformats-officedocument",
+            // the two ooxml types the filter spells out, rather than the family they belong to:
+            // pptx shares that prefix and CoreLoader does not open it yet, so a folder would
+            // offer a presentation and then drop it into the upload flow
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "application/msword",
             "application/pdf",
             "application/zip",
