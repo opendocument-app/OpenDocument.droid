@@ -269,6 +269,11 @@ class MainActivity : AppCompatActivity() {
         if (documentFragment != null) {
             landingContainer.visibility = View.GONE
             documentContainer.visibility = View.VISIBLE
+
+            // a recreated LandingFragment starts out believing it is on screen, and its view model
+            // survives with it - so one that was inside a folder would go on eating back presses
+            // behind the document it was recreated underneath
+            landingFragment?.setLandingVisible(false)
         }
 
         crashManager.log("onStart")

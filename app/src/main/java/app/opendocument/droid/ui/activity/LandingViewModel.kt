@@ -92,9 +92,12 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
             val context = getApplication<Application>()
 
             val displayName = DocumentTreeBrowser.displayNameOf(context, treeUri)
-            if (FolderTreesUtil.addFolderTree(context, treeUri, displayName).isNotEmpty()) {
-                PersistedUriPermissions.prune(context)
-            }
+            FolderTreesUtil.addFolderTree(context, treeUri, displayName)
+
+            // unconditionally, not only when the add evicted an older tree: pruning is also what
+            // settles the pending grant takeRead() marked, and a tree that stays pending is one
+            // prune() would keep alive after the user removes it again - see settlePending()
+            PersistedUriPermissions.prune(context)
 
             refresh()
         }
