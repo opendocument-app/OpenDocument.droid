@@ -48,4 +48,10 @@
     -->
     <color name="document_background">#FFFFFF</color>
 
+    <!--
+        Dims the document while the actions are unfolded. Black either way, like every material
+        scrim: it dims what is behind it rather than tinting it, so night mode changes nothing.
+    -->
+    <color name="document_actions_scrim">#52000000</color>
+
 </resources>

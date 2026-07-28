@@ -22,9 +22,7 @@ import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
-import androidx.test.espresso.matcher.ViewMatchers.isEnabled
 import androidx.test.espresso.matcher.ViewMatchers.withClassName
-import androidx.test.espresso.matcher.ViewMatchers.withContentDescription
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -121,7 +119,11 @@ class MainActivityTests {
 
         // next onView will be blocked until the idling resource is idle, which now covers
         // the load itself and not just the picker round trip.
-        clickEditWithOverflowFallback()
+        waitForDocumentActions()
+
+        unfoldDocumentActions()
+
+        onView(withText(R.string.menu_edit)).check(matches(isDisplayed()))
     }
 
     @Test
@@ -132,7 +134,7 @@ class MainActivityTests {
 
         // next onView will be blocked until the idling resource is idle, which now covers
         // the load itself and not just the picker round trip.
-        clickEditWithOverflowFallback()
+        waitForDocumentActions()
 
         // there used to be a 10s sleep here that asserted nothing, and it is why "testPDF
         // crashed" was an api 34 bucket of its own: the app is killed whenever play services
@@ -185,8 +187,8 @@ class MainActivityTests {
 
         onView(withId(android.R.id.button1)).perform(click())
 
-        // Check if edit button becomes available (indicating successful load)
-        clickEditWithOverflowFallback()
+        // Check if the document buttons become available (indicating successful load)
+        waitForDocumentActions()
     }
 
     @Test
@@ -269,22 +271,15 @@ class MainActivityTests {
             .perform(click())
     }
 
-    private fun clickEditWithOverflowFallback() {
-        onView(allOf(withId(R.id.menu_edit), withContentDescription("Edit document"), isEnabled()))
-            .withFailureHandler { _, _ ->
-                // fails on small screens, try again with overflow menu
-                onView(allOf(withContentDescription("More options"), isDisplayed()))
-                    .perform(click())
+    // the buttons of the open document are up once it has loaded, so this blocks on the idling
+    // resource and then says whether anything came of the load. only the button that unfolds the
+    // rest is checked: what is inside it differs per format, a pdf cannot be edited.
+    private fun waitForDocumentActions() {
+        onView(withId(R.id.document_actions_more)).check(matches(isDisplayed()))
+    }
 
-                onView(
-                        allOf(
-                            withId(R.id.menu_edit),
-                            withContentDescription("Edit document"),
-                            isDisplayed(),
-                        )
-                    )
-                    .perform(click())
-            }
+    private fun unfoldDocumentActions() {
+        onView(withId(R.id.document_actions_more)).perform(click())
     }
 
     private fun recreate(activity: MainActivity): MainActivity? {
