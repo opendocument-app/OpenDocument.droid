@@ -65,6 +65,12 @@ object RecentDocumentsUtil {
         return update.evicted
     }
 
+    /** Puts a removed document back where it was, for undoing a swipe. */
+    @Synchronized
+    fun restoreRecentDocument(context: Context, entry: RecentDocumentList.Entry, index: Int) {
+        write(context, RecentDocumentList.insert(read(context), entry, index))
+    }
+
     /** Drops [uri] from the list. Does nothing if it is not in it. */
     @Synchronized
     fun removeRecentDocument(context: Context, uri: Uri) {

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,11 +12,13 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import app.opendocument.droid.R
 import app.opendocument.droid.background.DocumentTreeBrowser
 import app.opendocument.droid.background.PersistedUriPermissions
+import app.opendocument.droid.background.RecentDocumentList
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.ui.SnackbarHelper
 import app.opendocument.droid.ui.widget.LandingAdapter
@@ -41,6 +44,10 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
     private lateinit var fab: FloatingActionButton
 
     private var landingVisible = true
+
+    // the entries behind the recent rows, kept so a swipe can restore the exact entry - the row
+    // itself only carries what it needs to draw
+    private var lastDocuments: List<RecentDocumentList.Entry> = emptyList()
 
     /**
      * Back goes up a folder before it goes anywhere else.
@@ -117,6 +124,8 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
             mainActivity.findDocument()
         }
 
+        attachSwipeToRemove()
+
         requireActivity()
             .onBackPressedDispatcher
             .addCallback(viewLifecycleOwner, folderBackCallback)
@@ -158,6 +167,8 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
     private fun render(state: LandingViewModel.State) {
         folderBackCallback.isEnabled = landingVisible && state.location != null
 
+        lastDocuments = state.documents
+
         val items = ArrayList<LandingItem>()
 
         val location = state.location
@@ -182,6 +193,75 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         adapter.submitList(items)
     }
 
+    /**
+     * Swiping a recent document away removes it, with an undo that puts it back at the same place.
+     *
+     * Only the recently opened documents can go: a document inside a folder is simply there, and
+     * the app has no business deleting anything.
+     */
+    private fun attachSwipeToRemove() {
+        val callback =
+            object :
+                ItemTouchHelper.SimpleCallback(
+                    0,
+                    ItemTouchHelper.START or ItemTouchHelper.END,
+                ) {
+
+                override fun onMove(
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                    target: RecyclerView.ViewHolder,
+                ): Boolean = false
+
+                override fun getSwipeDirs(
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                ): Int =
+                    if (adapter.isRemovableDocument(viewHolder.bindingAdapterPosition))
+                        super.getSwipeDirs(recyclerView, viewHolder)
+                    else 0
+
+                override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                    val position = viewHolder.bindingAdapterPosition
+                    val document = adapter.documentAt(position) ?: return
+
+                    removeWithUndo(document, position)
+                }
+            }
+
+        ItemTouchHelper(callback).attachToRecyclerView(list)
+    }
+
+    private fun removeWithUndo(document: LandingItem.Document, position: Int) {
+        val entry = entryFor(document) ?: return
+
+        // where it sits among the documents, which is what restoring it needs - the adapter
+        // position counts the section header too
+        val index = lastDocuments.indexOfFirst { it.uri == entry.uri }
+
+        mainActivity.analyticsManager.report("recent_swiped_away")
+
+        viewModel.removeRecentDocumentUndoably(document.uri)
+
+        // the grant it was holding is deliberately not released here: an undo would need it back,
+        // and prune() reclaims it on the next launch anyway, which is the whole point of
+        // reconciling against the stored lists rather than bookkeeping every removal
+        SnackbarHelper.show(
+            requireActivity(),
+            R.string.landing_recent_removed,
+            R.string.landing_undo,
+            { viewModel.restoreRecentDocument(entry, index) },
+            false,
+            false,
+        )
+    }
+
+    private fun entryFor(document: LandingItem.Document): RecentDocumentList.Entry? {
+        val uri = document.uri.toString()
+
+        return lastDocuments.firstOrNull { it.uri == uri }
+    }
+
     private fun renderRoot(
         items: ArrayList<LandingItem>,
         state: LandingViewModel.State,
@@ -196,7 +276,13 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
             if (state.documents.isNotEmpty()) {
                 items.add(LandingItem.Header(R.string.landing_section_recent))
                 for (document in state.documents) {
-                    items.add(LandingItem.Document(document.filename, Uri.parse(document.uri)))
+                    items.add(
+                        LandingItem.Document(
+                            document.filename,
+                            Uri.parse(document.uri),
+                            lastOpenedLabel(document.lastOpenedAt),
+                        )
+                    )
                 }
             }
 
@@ -220,7 +306,28 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         }
 
         items.add(LandingItem.Header(R.string.landing_section_settings))
-        items.add(LandingItem.CatchAll(state.catchAllEnabled))
+        items.add(
+            LandingItem.Setting(
+                LandingItem.SETTING_CATCH_ALL,
+                R.string.landing_catch_all_title,
+                R.string.landing_intro_open_all,
+                state.catchAllEnabled,
+            )
+        )
+    }
+
+    /** "2 hours ago", or nothing at all for entries written before this was recorded. */
+    private fun lastOpenedLabel(lastOpenedAt: Long): String? {
+        if (lastOpenedAt <= 0) {
+            return null
+        }
+
+        return DateUtils.getRelativeTimeSpanString(
+                lastOpenedAt,
+                System.currentTimeMillis(),
+                DateUtils.MINUTE_IN_MILLIS,
+            )
+            .toString()
     }
 
     private fun renderFolder(
@@ -341,12 +448,16 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         mainActivity.findDocument()
     }
 
-    override fun onCatchAllChanged(enabled: Boolean) {
-        viewModel.setCatchAllEnabled(enabled)
+    override fun onSettingChanged(setting: Int, enabled: Boolean) {
+        when (setting) {
+            LandingItem.SETTING_CATCH_ALL -> {
+                viewModel.setCatchAllEnabled(enabled)
 
-        mainActivity.analyticsManager.report(
-            if (enabled) "catch_all_enabled" else "catch_all_disabled"
-        )
+                mainActivity.analyticsManager.report(
+                    if (enabled) "catch_all_enabled" else "catch_all_disabled"
+                )
+            }
+        }
     }
 
     private val mainActivity: MainActivity

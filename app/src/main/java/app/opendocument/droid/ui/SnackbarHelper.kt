@@ -25,6 +25,25 @@ object SnackbarHelper {
         )
     }
 
+    /** Same, with a button that says something other than "OK" - "undo", typically. */
+    fun show(
+        activity: Activity,
+        resId: Int,
+        buttonResId: Int,
+        callback: Runnable?,
+        isIndefinite: Boolean,
+        isError: Boolean,
+    ) {
+        show(
+            activity,
+            activity.getString(buttonResId),
+            activity.getString(resId),
+            callback,
+            isIndefinite,
+            isError,
+        )
+    }
+
     private fun show(
         activity: Activity,
         buttonText: String,

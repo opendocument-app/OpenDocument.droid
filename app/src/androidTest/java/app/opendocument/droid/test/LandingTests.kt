@@ -86,19 +86,6 @@ class LandingTests {
     }
 
     @Test
-    fun theFabOpensTheSystemPicker() {
-        // the fab is hidden behind the empty state, which offers the same thing with a label
-        seedRecentDocument()
-        stubOpenDocumentCancelled()
-
-        launch()
-
-        onView(withId(R.id.landing_open_fab)).perform(click())
-
-        Intents.intended(hasAction(Intent.ACTION_OPEN_DOCUMENT))
-    }
-
-    @Test
     fun aRecentDocumentIsListed() {
         seedRecentDocument()
 
@@ -119,6 +106,19 @@ class LandingTests {
             "the document did not load after tapping its entry in the recent list",
             waitForDocumentFragment(activity),
         )
+    }
+
+    @Test
+    fun theFabOpensTheSystemPicker() {
+        // the fab is hidden behind the empty state, which offers the same thing with a label
+        seedRecentDocument()
+        stubOpenDocumentCancelled()
+
+        launch()
+
+        onView(withId(R.id.landing_open_fab)).perform(click())
+
+        Intents.intended(hasAction(Intent.ACTION_OPEN_DOCUMENT))
     }
 
     @Test
