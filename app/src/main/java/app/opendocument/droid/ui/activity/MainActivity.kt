@@ -452,17 +452,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                 analyticsManager.report(AnalyticsConstants.EVENT_SEARCH)
             }
 
-            R.id.menu_open -> {
-                findDocument()
-
-                analyticsManager.report("menu_open")
-                analyticsManager.report(
-                    AnalyticsConstants.EVENT_SELECT_CONTENT,
-                    AnalyticsConstants.PARAM_CONTENT_TYPE,
-                    "choose",
-                )
-            }
-
             R.id.menu_open_with -> {
                 documentFragment?.openWith(this)
 
