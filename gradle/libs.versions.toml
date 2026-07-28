@@ -48,6 +48,7 @@ asset-extractor = { module = "com.viliussutkus89:assetextractor-android", versio
 junit = { module = "junit:junit", version.ref = "junit" }
 espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 espresso-intents = { module = "androidx.test.espresso:espresso-intents", version.ref = "espresso" }
+espresso-contrib = { module = "androidx.test.espresso:espresso-contrib", version.ref = "espresso" }
 espresso-idling-resource = { module = "androidx.test.espresso:espresso-idling-resource", version.ref = "espresso" }
 androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxTest" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTest" }

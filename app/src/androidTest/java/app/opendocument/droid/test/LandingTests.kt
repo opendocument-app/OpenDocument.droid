@@ -10,11 +10,14 @@ import android.content.Intent
 import android.net.Uri
 import android.os.SystemClock
 import androidx.core.content.FileProvider
+import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.contrib.RecyclerViewActions
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
+import androidx.test.espresso.matcher.ViewMatchers.hasDescendant
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
@@ -153,6 +156,8 @@ class LandingTests {
 
         launch()
 
+        scrollToCatchAllSetting()
+
         onView(withText(R.string.landing_catch_all_title)).check(matches(isDisplayed()))
     }
 
@@ -162,7 +167,26 @@ class LandingTests {
         // instead of the list it sits in
         launch()
 
+        scrollToCatchAllSetting()
+
         onView(withText(R.string.landing_catch_all_title)).check(matches(isDisplayed()))
+    }
+
+    /**
+     * The settings sit under whatever the list is showing, and the empty state alone is taller than
+     * a small screen - so on the emulators CI runs, the switch is not merely off screen but never
+     * bound at all, and no matcher can find it.
+     *
+     * Scrolling is the whole point of the row being in the list rather than a screen of its own, so
+     * this scrolls the way a user would and then asserts. It has to say nothing about how far.
+     */
+    private fun scrollToCatchAllSetting() {
+        onView(withId(R.id.landing_list))
+            .perform(
+                RecyclerViewActions.scrollTo<RecyclerView.ViewHolder>(
+                    hasDescendant(withText(R.string.landing_catch_all_title))
+                )
+            )
     }
 
     private fun launch(): MainActivity {
