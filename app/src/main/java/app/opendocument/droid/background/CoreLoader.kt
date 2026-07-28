@@ -9,7 +9,6 @@ import app.opendocument.core.DecodePreference
 import app.opendocument.core.DecodedFile
 import app.opendocument.core.Document
 import app.opendocument.core.DocumentType
-import app.opendocument.core.FileType
 import app.opendocument.core.GlobalParams
 import app.opendocument.core.Html
 import app.opendocument.core.HtmlConfig
@@ -51,6 +50,18 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
     private var document: Document? = null
     private var lastInputPath: String? = null
     private var lastCachePath: String? = null
+
+    /**
+     * Whether the document [host] last opened is one [edit] can do something with.
+     *
+     * This is the core's own answer, not a list of formats kept here: [host] only holds a document
+     * open when it reports itself editable and savable, so having one is the answer. The core says
+     * no to the legacy binary formats, to ooxml spreadsheets and presentations and to opendocument
+     * spreadsheets - the last of those being the same gap as issue #442, which the app used to
+     * check for by mime type on its own.
+     */
+    val isDocumentEditable: Boolean
+        get() = document != null
 
     // the port the server actually got, which is not always the preferred one. see bind()
     private var serverPort = PREFERRED_SERVER_PORT
@@ -131,25 +142,16 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
     }
 
     /**
-     * What the core renders itself: opendocument, ooxml, the three legacy binary microsoft formats
-     * and pdf. odrcore keeps reference html output for every one of them, doc, ppt and xls
-     * included, so there is nothing left here to hold back.
+     * What the core renders itself, out of [SupportedDocumentTypes] so the folder browser and this
+     * cannot disagree about it.
      *
      * Text, csv and images are left out although the core takes those too - [RawLoader] is what
      * gives them their player or their viewer, and this answer is what lets it have its turn. The
      * rest of it decides whether a failed load is worth reporting and which viewer [OnlineLoader]
      * falls back to.
-     *
-     * Matching by prefix carries the variants along: the ooxml prefix covers the templates, and the
-     * macro enabled ones are spelled `vnd.ms-word.document.macroEnabled.12` and so on, which is why
-     * the legacy powerpoint and excel types appear here without their subtypes and why
-     * `vnd.ms-word` is listed next to `msword`.
      */
-    override fun isSupported(options: Options): Boolean {
-        val fileType = options.fileType ?: return false
-
-        return MIME_PREFIXES.any { fileType.startsWith(it) }
-    }
+    override fun isSupported(options: Options): Boolean =
+        SupportedDocumentTypes.isRenderedByCore(options.fileType)
 
     override fun loadSync(options: Options) {
         val result = Result(type, options)
@@ -193,6 +195,8 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
                 keepDocument = true,
             )
 
+        result.isEditable = isDocumentEditable
+
         for (view in views) {
             result.partTitles.add(view.name)
             result.partUris.add(Uri.parse(view.url))
@@ -234,12 +238,18 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
 
         if (keepDocument) {
             closeDocument()
-            // only what [edit] can do something with: the core parses the legacy binary formats
-            // but declares them neither editable nor savable, so holding one open would buy a
-            // second parse and nothing else
-            if (file.isDocumentFile && !isLegacy(file.fileType())) {
+            if (file.isDocumentFile) {
                 // TODO this will cause a second load
-                document = file.asDocumentFile().document()
+                val document = file.asDocumentFile().document()
+
+                // keep only what [edit] can do something with, and let the core be the one to say
+                // so - see [isDocumentEditable]. Holding a read only document open buys a second
+                // parse and nothing else.
+                if (document.isEditable && document.isSavable) {
+                    this.document = document
+                } else {
+                    document.close()
+                }
             }
         }
 
@@ -330,33 +340,11 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
         document = null
     }
 
-    private fun isLegacy(fileType: FileType): Boolean =
-        fileType == FileType.LEGACY_WORD_DOCUMENT ||
-            fileType == FileType.LEGACY_POWERPOINT_PRESENTATION ||
-            fileType == FileType.LEGACY_EXCEL_WORKSHEETS
-
     /** A translated view of a document, ready to be opened in the WebView. */
     data class HostedView(val name: String, val url: String)
 
     companion object {
         private const val TAG = "CoreLoader"
-
-        /** See [isSupported]. Mirrored by [SupportedDocumentTypes] and the STRICT_CATCH filter. */
-        private val MIME_PREFIXES =
-            listOf(
-                // odf, including the master documents and the x- spelling some providers use
-                "application/vnd.oasis.opendocument",
-                "application/x-vnd.oasis.opendocument",
-                // ooxml: word, excel and powerpoint, their templates and their macro variants
-                "application/vnd.openxmlformats-officedocument",
-                "application/vnd.ms-word",
-                // legacy binary microsoft: doc, xls and ppt
-                "application/msword",
-                "application/vnd.ms-excel",
-                "application/vnd.ms-powerpoint",
-                // not a document, but the core renders it just the same
-                "application/pdf",
-            )
 
         /** The loopback address the server binds to. */
         private const val SERVER_BIND_ADDRESS = "127.0.0.1"

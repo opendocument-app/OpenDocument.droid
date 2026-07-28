@@ -1,41 +1,72 @@
 package app.opendocument.droid.background
 
 /**
- * Whether a document is worth offering in the folder browser.
+ * The one list of what the app claims to open, for both of the places that have to guess.
  *
- * Deliberately free of Android dependencies so it can be covered by plain JVM unit tests.
+ * There used to be two copies of this - one here for the folder browser, one in [CoreLoader] for
+ * the loader - which is one copy too many for a set that only ever changes as a whole.
+ * [isRenderedByCore] is what [CoreLoader.isSupported] answers with, [isSupported] adds what
+ * [RawLoader] shows and the extension fallback on top, and the STRICT_CATCH `activity-alias` in
+ * AndroidManifest.xml is the third and last declaration, which XML keeps out of reach.
+ * `SupportedFormatsTest` walks this table and asks the package manager whether the manifest still
+ * agrees, so the two cannot drift silently any more.
  *
- * This is a guess, not the real answer. [MetadataLoader] decides what is supported by running
- * libmagic over the file once it has been copied into the cache, and neither [CoreLoader] nor
- * [RawLoader] can answer before that - so a folder listing, which only has a name and whatever mime
- * type the provider volunteered, has to go on appearances.
+ * Deliberately free of Android dependencies, and of the core's own tables - odrcore does know
+ * [app.opendocument.core.Odr.fileTypeByMimetype] and `fileTypeByFileExtension`, but both are native
+ * calls into libodr_jni, and both only know one canonical mime type per format: no templates, no
+ * macro enabled variants, no `application/x-vnd.oasis...`, which are exactly the spellings a
+ * content provider hands out. What the core does decide is everything *after* the file is in the
+ * cache - [MetadataLoader] runs its libmagic over it, and [CoreLoader.isDocumentEditable] asks the
+ * opened document itself.
  *
- * Mirrors the STRICT_CATCH intent filter in AndroidManifest.xml. **Keep the two in step**: that
- * filter is what the system offers us for, this is what we offer ourselves for.
+ * So this is a guess, not the real answer: a folder listing only has a name and whatever mime type
+ * the provider volunteered, and it has to go on appearances.
  */
 object SupportedDocumentTypes {
 
-    /** Mime types and prefixes taken from the STRICT_CATCH filter. */
-    private val MIME_PREFIXES =
+    /**
+     * What the core renders itself: opendocument, ooxml, the three legacy binary microsoft formats
+     * and pdf. odrcore keeps reference html output for every one of them, doc, ppt and xls
+     * included.
+     *
+     * Matching by prefix carries the variants along: the ooxml prefix covers the templates, and the
+     * macro enabled ones are spelled `vnd.ms-word.document.macroEnabled.12` and so on, which is why
+     * the legacy powerpoint and excel types appear here without their subtypes and why
+     * `vnd.ms-word` is listed next to `msword`.
+     */
+    private val CORE_MIME_PREFIXES =
         listOf(
-            // everything the core opens as a document - the same set as CoreLoader.isSupported
+            // odf, including the master documents and the x- spelling some providers use
             "application/vnd.oasis.opendocument",
             "application/x-vnd.oasis.opendocument",
+            // ooxml: word, excel and powerpoint, their templates and their macro variants
             "application/vnd.openxmlformats-officedocument",
             "application/vnd.ms-word",
+            // legacy binary microsoft: doc, xls and ppt
             "application/msword",
             "application/vnd.ms-excel",
             "application/vnd.ms-powerpoint",
-            // and what the core or RawLoader shows without being a document
+            // not a document, but the core renders it just the same
             "application/pdf",
-            "application/zip",
-            "text/plain",
-            "text/csv",
-            "image/",
         )
 
-    /** The extensions the STRICT_CATCH pathPatterns spell out. */
-    private val EXTENSIONS =
+    /**
+     * What [RawLoader] shows instead - text, csv, images and zip - which the core would take too
+     * but which get their own player or viewer here.
+     *
+     * Narrower than [RawLoader.isSupported], which also takes audio and video: those are worth
+     * playing once someone hands us one, but not worth offering the app for.
+     */
+    private val RAW_MIME_PREFIXES = listOf("text/plain", "text/csv", "image/", "application/zip")
+
+    /**
+     * The extensions to fall back on, spelling out the same set once more because providers
+     * regularly volunteer nothing better than `application/octet-stream`.
+     *
+     * Public so `SupportedFormatsTest` can walk it: it holds every one of these against the core's
+     * own extension table and against the manifest.
+     */
+    val EXTENSIONS: Set<String> =
         setOf(
             "odt",
             "ods",
@@ -57,20 +88,27 @@ object SupportedDocumentTypes {
             "zip",
         )
 
+    /** Whether [CoreLoader] is expected to render this - see [CORE_MIME_PREFIXES]. */
+    fun isRenderedByCore(mimeType: String?): Boolean = matches(mimeType, CORE_MIME_PREFIXES)
+
+    /** Whether the folder browser should offer this at all. */
     fun isSupported(mimeType: String?, filename: String?): Boolean {
-        // providers regularly hand out application/octet-stream for anything they do not know,
-        // so a recognised extension has to be able to win on its own
+        // a recognised extension has to be able to win on its own, or every octet-stream is lost
         val extension = MimeTypeResolver.parseExtension(filename)?.lowercase()
         if (extension != null && extension in EXTENSIONS) {
             return true
         }
 
+        return isRenderedByCore(mimeType) || matches(mimeType, RAW_MIME_PREFIXES)
+    }
+
+    private fun matches(mimeType: String?, prefixes: List<String>): Boolean {
         if (mimeType == null) {
             return false
         }
 
         val normalized = mimeType.lowercase()
 
-        return MIME_PREFIXES.any { normalized.startsWith(it) }
+        return prefixes.any { normalized.startsWith(it) }
     }
 }

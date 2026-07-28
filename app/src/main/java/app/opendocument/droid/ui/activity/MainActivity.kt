@@ -504,7 +504,7 @@ class MainActivity : AppCompatActivity() {
                 analyticsManager.report("menu_print")
 
                 documentFragment?.pageView?.let { pageView ->
-                    pageView.toggleDarkMode(false)
+                    pageView.disableDarkening()
 
                     printingManager.print(this, pageView)
                 }

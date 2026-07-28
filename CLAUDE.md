@@ -145,23 +145,43 @@ the `.pro` suffix) differ on purpose - do not "fix" the mismatch:
   `AndroidFileCache`, the SharedPreferences name in `MainActivity`) follows
   `applicationId` and must stay that way, or existing users lose their saved prefs.
 
-### Supported file types are declared three times
+### Supported file types are declared twice, and a test keeps them in step
 
-`CoreLoader.MIME_PREFIXES`, `SupportedDocumentTypes` (mime prefixes plus an extension fallback) and
-the `STRICT_CATCH` `activity-alias` in `AndroidManifest.xml` describe the same set from three
-directions - the manifest is what the system offers the app for, `SupportedDocumentTypes` is what
-the folder browser on the landing screen offers itself for, and the loader is what the core is
-expected to render. **Nothing keeps them in step, so change all three.**
+`SupportedDocumentTypes` is the single kotlin table: mime prefixes for what the core renders, mime
+prefixes for what `RawLoader` shows, plus an extension fallback for the `application/octet-stream`
+a provider volunteers when it knows nothing better. `CoreLoader.isSupported()` defers to it - it
+used to keep a second copy of the same prefixes.
+
+The `STRICT_CATCH` `activity-alias` in `AndroidManifest.xml` is the second declaration and cannot be
+collapsed into the first, because XML cannot read a kotlin list. It is covered instead:
+`SupportedFormatsTest` (instrumented) walks odrcore's own `FileType` values, asks
+`Odr.mimetypeByFileType` for each, and asserts that `SupportedDocumentTypes` and the package
+manager give the same answer - so a format added on one side and forgotten on the other fails CI
+rather than shipping.
 
 The set follows odrcore: whatever it keeps reference html output for in `test/data/reference-output`
 is what the app claims - odf, ooxml, the legacy binary doc/ppt/xls and pdf. Text, csv and images are
 the core's too but belong to `RawLoader`, which only gets its turn when `CoreLoader.isSupported()`
 says no.
 
-The duplication is deliberate: `MetadataLoader` decides what is really supported by running
-libmagic over the file *after* copying it into the cache, and `CoreLoader.isSupported()` /
-`RawLoader.isSupported()` both take a filled-in `FileLoader.Options`. A folder listing only has a
-name and whatever mime type the provider volunteered, so it cannot ask them and has to guess.
+Why the app has a table at all when odrcore has `Odr.fileTypeByMimetype` /
+`Odr.fileTypeByFileExtension`: both are native calls into `libodr_jni`, and both know exactly one
+canonical mime type per format - no templates, no macro-enabled variants, no
+`application/x-vnd.oasis...`, which are the spellings content providers actually hand out. The
+guessing stage needs to be broader than the core's own lookup. What the core *does* decide is
+everything after the file is in the cache: `MetadataLoader` runs libmagic over the copy, and
+`CoreLoader.isDocumentEditable` asks the opened document.
+
+### Editability comes from the core, never from a mime type
+
+`Document.isEditable()`/`isSavable()` is what decides whether `DocumentFragment` puts the Edit
+button up, carried across on `FileLoader.Result.isEditable`. `CoreLoader.host()` only holds a
+document open when the core says yes, so "we have a document" *is* the answer.
+
+Do not reintroduce a list of editable formats in the UI. The core already says no to the legacy
+binary doc/ppt/xls, to ooxml spreadsheets and presentations, and to every spreadsheet including odf
+(its own TODO, the same gap as issue #442) - all of which the app used to spell out by mime prefix
+and got wrong the moment a new format started going through `CoreLoader`.
 
 ### Storage access
 
