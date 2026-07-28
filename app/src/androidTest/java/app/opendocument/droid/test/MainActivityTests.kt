@@ -48,7 +48,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import org.hamcrest.Matchers.allOf
-import org.hamcrest.Matchers.anyOf
 import org.hamcrest.Matchers.equalTo
 import org.junit.After
 import org.junit.AfterClass
@@ -254,21 +253,13 @@ class MainActivityTests {
             )
     }
 
+    // the toolbar action now launches ACTION_OPEN_DOCUMENT directly, which the test stubs out.
+    // it used to raise a chooser of our own that a file manager had to be picked from first.
     private fun openDocumentThroughPicker() {
         onView(
                 allOf(
                     withId(R.id.menu_open),
                     withContentDescription("Open document"),
-                    isDisplayed(),
-                )
-            )
-            .perform(click())
-
-        // The menu item could be either Documents or Files.
-        onView(
-                allOf(
-                    withId(android.R.id.text1),
-                    anyOf(withText("Documents"), withText("Files")),
                     isDisplayed(),
                 )
             )
