@@ -3,11 +3,8 @@ package app.opendocument.droid.ui.activity
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.content.res.Configuration
 import android.net.Uri
@@ -25,14 +22,13 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SwitchCompat
 import androidx.core.view.MenuProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.fragment.app.DialogFragment
 import app.opendocument.droid.R
+import app.opendocument.droid.background.CatchAllSetting
 import app.opendocument.droid.background.LoaderService
 import app.opendocument.droid.background.LoaderServiceQueue
 import app.opendocument.droid.background.PersistedUriPermissions
@@ -47,7 +43,6 @@ import app.opendocument.droid.ui.FindActionModeCallback
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.SnackbarHelper
 import app.opendocument.droid.ui.TtsActionModeCallback
-import app.opendocument.droid.ui.widget.RecentDocumentDialogFragment
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 
@@ -59,6 +54,11 @@ class MainActivity : AppCompatActivity(), MenuProvider {
     private lateinit var documentContainer: View
     private lateinit var adContainer: LinearLayout
     private var documentFragment: DocumentFragment? = null
+
+    private val landingFragment: LandingFragment?
+        get() =
+            supportFragmentManager.findFragmentByTag(LandingFragment.FRAGMENT_TAG)
+                as LandingFragment?
 
     private var fullscreen = false
 
@@ -192,19 +192,21 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         landingContainer = findViewById(R.id.landing_container)
         documentContainer = findViewById(R.id.document_container)
 
-        findViewById<View>(R.id.landing_intro_open).setOnClickListener {
-            analyticsManager.report("intro_open")
-            findDocument()
-        }
-        findViewById<View>(R.id.landing_open_fab).setOnClickListener {
-            analyticsManager.report("fab_open")
-            findDocument()
+        if (supportFragmentManager.findFragmentByTag(LandingFragment.FRAGMENT_TAG) == null) {
+            supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.landing_container, LandingFragment(), LandingFragment.FRAGMENT_TAG)
+                .commitNow()
         }
 
         printingManager = PrintingManager()
         initializeProprietaryLibraries()
 
-        initializeCatchAllSwitch()
+        // has to happen here rather than in LandingFragment: users upgrading from a version
+        // with different alias defaults have to be corrected even when the app is launched
+        // straight into a document and the landing screen is never shown
+        val catchAllEnabled = CatchAllSetting.applyOnLaunch(this)
+        analyticsManager.report(if (catchAllEnabled) "catch_all_enabled" else "catch_all_disabled")
 
         // reclaims the uri permissions of documents that have since dropped off the recently
         // opened list. touches the filesystem and the permission binder, so not on the main thread
@@ -279,60 +281,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         loadUri(loadOnStart, documentOpenedExternally)
 
         this.loadOnStart = null
-    }
-
-    private fun initializeCatchAllSwitch() {
-        // these keep the historical at.tomtasche.reader names on purpose: the component
-        // name is what the OS persists when a user picks "always open .odt with this
-        // app", and what setComponentEnabledSetting below stores the toggle against.
-        // renaming them would drop those defaults for every existing install, so the
-        // manifest declares the aliases under the old names too.
-        val catchAllComponent =
-            ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL")
-        val strictCatchComponent =
-            ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH")
-
-        val preferences = getDefaultSharedPreferences()
-
-        // catch-all is only active if the user explicitly opted in. new installs and
-        // existing users who never touched the switch default to STRICT_CATCH, so we
-        // no longer volunteer to open unrelated file types like contacts (issue #477).
-        val isCatchAllEnabled = preferences.getBoolean(PREF_CATCH_ALL_ENABLED, false)
-
-        // retoggle components for users upgrading to latest version of app
-        toggleComponent(catchAllComponent, isCatchAllEnabled)
-        toggleComponent(strictCatchComponent, !isCatchAllEnabled)
-
-        val catchAllSwitch = findViewById<SwitchCompat>(R.id.landing_catch_all)
-
-        catchAllSwitch.setOnCheckedChangeListener { _, isChecked ->
-            preferences.edit().putBoolean(PREF_CATCH_ALL_ENABLED, isChecked).apply()
-
-            toggleComponent(catchAllComponent, isChecked)
-            toggleComponent(strictCatchComponent, !isChecked)
-        }
-
-        catchAllSwitch.isChecked = isCatchAllEnabled
-
-        analyticsManager.report(
-            if (isCatchAllEnabled) "catch_all_enabled" else "catch_all_disabled"
-        )
-    }
-
-    /**
-     * The preferences android.preference.PreferenceManager used to hand out. That class is
-     * deprecated and its androidx replacement lives in a whole preference-ui library we do not
-     * otherwise need, so the default file is opened by name instead - keeping the existing
-     * catch-all setting of users who upgrade.
-     */
-    private fun getDefaultSharedPreferences(): SharedPreferences =
-        getSharedPreferences(packageName + "_preferences", Context.MODE_PRIVATE)
-
-    private fun toggleComponent(component: ComponentName, enabled: Boolean) {
-        val newState =
-            if (enabled) PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-            else PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-        packageManager.setComponentEnabledSetting(component, newState, PackageManager.DONT_KILL_APP)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -456,6 +404,8 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
             landingContainer.visibility = View.GONE
             documentContainer.visibility = View.VISIBLE
+
+            landingFragment?.setLandingVisible(false)
 
             if (documentFragment == null) {
                 documentFragment = DocumentFragment()
@@ -635,19 +585,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         ttsActionMode = null
     }
 
-    private fun showRecent() {
-        val transaction = supportFragmentManager.beginTransaction()
-
-        val chooserDialog: DialogFragment = RecentDocumentDialogFragment()
-        chooserDialog.show(transaction, RecentDocumentDialogFragment.FRAGMENT_TAG)
-
-        analyticsManager.report(
-            AnalyticsConstants.EVENT_SELECT_CONTENT,
-            AnalyticsConstants.PARAM_CONTENT_TYPE,
-            "recent",
-        )
-    }
-
     private fun buyAdRemoval() {
         analyticsManager.report(AnalyticsConstants.EVENT_ADD_TO_CART)
 
@@ -690,6 +627,10 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         documentContainer.visibility = View.GONE
         landingContainer.visibility = View.VISIBLE
 
+        // the fragment is only hidden, not stopped, so it has to be told to pick the document
+        // that was just closed up into the recently opened list
+        landingFragment?.setLandingVisible(true)
+
         analyticsManager.setCurrentScreen(this, "screen_main")
     }
 
@@ -706,20 +647,13 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                 target.activityInfo.packageName == packageName || target.activityInfo.exported
             }
 
-        val targetNames =
-            (targetList.map { it.loadLabel(packageManager).toString() } +
-                    getString(R.string.menu_recent))
-                .toTypedArray()
+        // the recently opened documents used to be the last row here; they are the landing
+        // screen itself now
+        val targetNames = targetList.map { it.loadLabel(packageManager).toString() }.toTypedArray()
 
         val builder = AlertDialog.Builder(this)
         builder.setTitle(R.string.dialog_choose_filemanager)
         builder.setItems(targetNames) { dialog, which ->
-            if (which == targetNames.size - 1) {
-                showRecent()
-
-                return@setItems
-            }
-
             val target = targetList[which]
 
             intent.component =
@@ -787,7 +721,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         const val SAVED_KEY_OPENED_EXTERNALLY = "OPENED_EXTERNALLY"
         const val GOOGLE_REQUEST_CODE = 1993
         const val DOCUMENT_FRAGMENT_TAG = "document_fragment"
-        const val PREF_CATCH_ALL_ENABLED = "catch_all_enabled"
 
         // taken from: https://stackoverflow.com/a/36829889/198996
         private fun isTesting(): Boolean =
