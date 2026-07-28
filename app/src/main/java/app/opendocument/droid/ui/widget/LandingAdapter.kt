@@ -30,6 +30,8 @@ class LandingAdapter(private val listener: Listener) :
 
         fun onActionClicked(action: Int)
 
+        fun onOpenClicked()
+
         fun onCatchAllChanged(enabled: Boolean)
     }
 
@@ -41,6 +43,7 @@ class LandingAdapter(private val listener: Listener) :
             is LandingItem.Action -> TYPE_ACTION
             is LandingItem.CatchAll -> TYPE_CATCH_ALL
             is LandingItem.Message -> TYPE_MESSAGE
+            is LandingItem.Empty -> TYPE_EMPTY
         }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -51,6 +54,7 @@ class LandingAdapter(private val listener: Listener) :
                 TYPE_HEADER -> R.layout.item_landing_header
                 TYPE_CATCH_ALL -> R.layout.item_landing_switch
                 TYPE_MESSAGE -> R.layout.item_landing_message
+                TYPE_EMPTY -> R.layout.item_landing_empty
                 // documents, folders and actions are all an icon plus a label
                 else -> R.layout.item_landing_row
             }
@@ -63,6 +67,13 @@ class LandingAdapter(private val listener: Listener) :
             is LandingItem.Header -> holder.title.setText(item.title)
 
             is LandingItem.Message -> holder.title.setText(item.text)
+
+            is LandingItem.Empty -> {
+                holder.open.setOnClickListener { listener.onOpenClicked() }
+                holder.addFolder.setOnClickListener {
+                    listener.onActionClicked(LandingItem.ACTION_ADD_FOLDER)
+                }
+            }
 
             is LandingItem.Document -> {
                 holder.icon.setImageResource(R.drawable.ic_description)
@@ -110,6 +121,8 @@ class LandingAdapter(private val listener: Listener) :
         val icon: ImageView by lazy { view.findViewById(R.id.landing_row_icon) }
         val title: TextView by lazy { view.findViewById(R.id.landing_row_title) }
         val switch: MaterialSwitch by lazy { view.findViewById(R.id.landing_row_switch) }
+        val open: View by lazy { view.findViewById(R.id.landing_empty_open) }
+        val addFolder: View by lazy { view.findViewById(R.id.landing_empty_add_folder) }
     }
 
     private companion object {
@@ -119,6 +132,7 @@ class LandingAdapter(private val listener: Listener) :
         const val TYPE_ACTION = 3
         const val TYPE_CATCH_ALL = 4
         const val TYPE_MESSAGE = 5
+        const val TYPE_EMPTY = 6
 
         val DIFF =
             object : DiffUtil.ItemCallback<LandingItem>() {
@@ -140,7 +154,8 @@ class LandingAdapter(private val listener: Listener) :
                         oldItem is LandingItem.CatchAll && newItem is LandingItem.CatchAll ->
                             oldItem.checked == newItem.checked
 
-                        // headers, messages and actions are fully described by their id
+                        // headers, messages, actions and the empty state are fully described
+                        // by their id
                         else -> true
                     }
             }

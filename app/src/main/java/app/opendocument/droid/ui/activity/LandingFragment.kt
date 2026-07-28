@@ -38,7 +38,6 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
 
     private lateinit var adapter: LandingAdapter
     private lateinit var list: RecyclerView
-    private lateinit var empty: View
     private lateinit var fab: FloatingActionButton
 
     private var landingVisible = true
@@ -111,21 +110,11 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         list.layoutManager = LinearLayoutManager(requireContext())
         list.adapter = adapter
 
-        empty = view.findViewById(R.id.landing_empty)
-
         fab = view.findViewById(R.id.landing_open_fab)
         fab.setOnClickListener {
             mainActivity.analyticsManager.report("fab_open")
 
             mainActivity.findDocument()
-        }
-        view.findViewById<View>(R.id.landing_empty_open).setOnClickListener {
-            mainActivity.analyticsManager.report("empty_open")
-
-            mainActivity.findDocument()
-        }
-        view.findViewById<View>(R.id.landing_empty_add_folder).setOnClickListener {
-            onActionClicked(LandingItem.ACTION_ADD_FOLDER)
         }
 
         requireActivity()
@@ -172,16 +161,13 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         val items = ArrayList<LandingItem>()
 
         val location = state.location
+        val isEmpty = location == null && state.documents.isEmpty() && state.trees.isEmpty()
+
         if (location != null) {
             renderFolder(items, state, location)
         } else {
-            renderRoot(items, state)
+            renderRoot(items, state, isEmpty)
         }
-
-        val isEmpty = location == null && state.documents.isEmpty() && state.trees.isEmpty()
-
-        empty.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        list.visibility = if (isEmpty) View.GONE else View.VISIBLE
 
         // the empty state offers the same thing with a label on it, so the bare fab would just
         // be a second unexplained button next to it
@@ -196,31 +182,42 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         adapter.submitList(items)
     }
 
-    private fun renderRoot(items: ArrayList<LandingItem>, state: LandingViewModel.State) {
-        if (state.documents.isNotEmpty()) {
-            items.add(LandingItem.Header(R.string.landing_section_recent))
-            for (document in state.documents) {
-                items.add(LandingItem.Document(document.filename, Uri.parse(document.uri)))
+    private fun renderRoot(
+        items: ArrayList<LandingItem>,
+        state: LandingViewModel.State,
+        isEmpty: Boolean,
+    ) {
+        if (isEmpty) {
+            // a row of the list rather than a screen of its own: the settings below it are the
+            // only place the catch-all switch is offered, and a fresh install starts here. it
+            // carries both actions itself, so the empty folders section stays off the screen.
+            items.add(LandingItem.Empty())
+        } else {
+            if (state.documents.isNotEmpty()) {
+                items.add(LandingItem.Header(R.string.landing_section_recent))
+                for (document in state.documents) {
+                    items.add(LandingItem.Document(document.filename, Uri.parse(document.uri)))
+                }
             }
-        }
 
-        items.add(LandingItem.Header(R.string.landing_section_folders))
-        for (tree in state.trees) {
+            items.add(LandingItem.Header(R.string.landing_section_folders))
+            for (tree in state.trees) {
+                items.add(
+                    LandingItem.Folder(
+                        tree.displayName,
+                        tree.uri,
+                        DocumentTreeBrowser.rootDocumentId(tree.uri),
+                    )
+                )
+            }
             items.add(
-                LandingItem.Folder(
-                    tree.displayName,
-                    tree.uri,
-                    DocumentTreeBrowser.rootDocumentId(tree.uri),
+                LandingItem.Action(
+                    LandingItem.ACTION_ADD_FOLDER,
+                    R.string.landing_add_folder,
+                    R.drawable.ic_add,
                 )
             )
         }
-        items.add(
-            LandingItem.Action(
-                LandingItem.ACTION_ADD_FOLDER,
-                R.string.landing_add_folder,
-                R.drawable.ic_add,
-            )
-        )
 
         items.add(LandingItem.Header(R.string.landing_section_settings))
         items.add(LandingItem.CatchAll(state.catchAllEnabled))
@@ -336,6 +333,12 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
                 true,
             )
         }
+    }
+
+    override fun onOpenClicked() {
+        mainActivity.analyticsManager.report("empty_open")
+
+        mainActivity.findDocument()
     }
 
     override fun onCatchAllChanged(enabled: Boolean) {

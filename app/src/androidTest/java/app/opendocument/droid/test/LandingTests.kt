@@ -156,6 +156,15 @@ class LandingTests {
         onView(withText(R.string.landing_catch_all_title)).check(matches(isDisplayed()))
     }
 
+    @Test
+    fun theCatchAllSettingIsOfferedBeforeAnythingWasOpened() {
+        // a fresh install is where the switch matters most, and the empty state used to be shown
+        // instead of the list it sits in
+        launch()
+
+        onView(withText(R.string.landing_catch_all_title)).check(matches(isDisplayed()))
+    }
+
     private fun launch(): MainActivity {
         val activity = activityRule.launchActivity(null)
 
