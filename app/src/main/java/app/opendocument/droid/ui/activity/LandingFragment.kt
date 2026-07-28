@@ -315,6 +315,19 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
                 state.catchAllEnabled,
             )
         )
+
+        // asked here rather than carried in the state: what billing knows lives on the activity,
+        // not in anything the ViewModel reads. it is only ever false in pro or after a purchase,
+        // both of which are settled long before the first refresh comes back
+        if (mainActivity.offersAdRemoval()) {
+            items.add(
+                LandingItem.Action(
+                    LandingItem.ACTION_REMOVE_ADS,
+                    R.string.menu_remove_ads,
+                    R.drawable.ic_block,
+                )
+            )
+        }
     }
 
     /** "2 hours ago", or nothing at all for entries written before this was recorded. */
@@ -417,6 +430,11 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         when (action) {
             LandingItem.ACTION_ADD_FOLDER -> addFolder()
             LandingItem.ACTION_UP -> viewModel.leaveFolder()
+            LandingItem.ACTION_REMOVE_ADS -> {
+                mainActivity.analyticsManager.report("settings_remove_ads")
+
+                mainActivity.buyAdRemoval()
+            }
         }
     }
 
