@@ -47,8 +47,6 @@
     <string name="landing_add_folder_failed">This folder can\'t be remembered. Try another one.</string>
     <string name="landing_remove_folder">Remove folder</string>
     <string name="landing_remove_folder_message">Stop showing this folder here? The folder and the documents in it are not deleted.</string>
-    <string name="landing_remove_recent">Remove</string>
-    <string name="landing_remove_recent_message">Remove this document from the recent list? The document itself is not deleted.</string>
     <string name="landing_folder_empty">No documents in this folder.</string>
     <string name="landing_up_one_level">Up one level</string>
     <string name="landing_empty_title">Nothing here yet</string>

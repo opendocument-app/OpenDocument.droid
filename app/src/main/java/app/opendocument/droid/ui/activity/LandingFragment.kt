@@ -136,8 +136,9 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
     override fun onResume() {
         super.onResume()
 
-        // a document may have been opened from another app while we were in the background
-        viewModel.refresh()
+        // a document may have been opened from another app while we were in the background, and a
+        // grant may have been revoked or an sd card pulled - so this is a reload, not a refresh
+        viewModel.reload()
     }
 
     /**
@@ -152,20 +153,29 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         landingVisible = visible
 
         // MainActivity can swap the containers before the view exists, on a launch that goes
-        // straight into a document; onViewCreated refreshes anyway once it gets there
+        // straight into a document; onViewCreated reloads anyway once it gets there
         if (!::viewModel.isInitialized) {
             return
         }
 
-        folderBackCallback.isEnabled = visible && viewModel.isInsideFolder
+        updateFolderBack()
 
         if (visible) {
-            viewModel.refresh()
+            viewModel.reload()
         }
     }
 
+    /**
+     * Back goes up a folder only while this screen is the one on show and there is a folder to
+     * leave
+     * - which is two facts, and this is the one place that puts them together.
+     */
+    private fun updateFolderBack() {
+        folderBackCallback.isEnabled = landingVisible && viewModel.isInsideFolder
+    }
+
     private fun render(state: LandingViewModel.State) {
-        folderBackCallback.isEnabled = landingVisible && state.location != null
+        updateFolderBack()
 
         lastDocuments = state.documents
 
@@ -184,17 +194,12 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         // be a second unexplained button next to it
         fab.visibility = if (isEmpty) View.GONE else View.VISIBLE
 
-        // a refresh can land while a document is open - the fragment is only hidden, so it keeps
-        // getting lifecycle callbacks - and the folder name must not take over the title then
-        if (landingVisible) {
-            mainActivity.title = location?.displayName ?: ""
-        }
-
         adapter.submitList(items)
     }
 
     /**
      * Swiping a recent document away removes it, with an undo that puts it back at the same place.
+     * A long press on one does the same - see [onDocumentRemoveRequested].
      *
      * Only the recently opened documents can go: a document inside a folder is simply there, and
      * the app has no business deleting anything.
@@ -222,26 +227,25 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
                     else 0
 
                 override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                    val position = viewHolder.bindingAdapterPosition
-                    val document = adapter.documentAt(position) ?: return
+                    val document = adapter.documentAt(viewHolder.bindingAdapterPosition) ?: return
 
-                    removeWithUndo(document, position)
+                    removeWithUndo(document)
                 }
             }
 
         ItemTouchHelper(callback).attachToRecyclerView(list)
     }
 
-    private fun removeWithUndo(document: LandingItem.Document, position: Int) {
+    private fun removeWithUndo(document: LandingItem.Document) {
         val entry = entryFor(document) ?: return
 
-        // where it sits among the documents, which is what restoring it needs - the adapter
-        // position counts the section header too
+        // where it sits among the documents, which is what restoring it needs - an adapter
+        // position would count the section header too
         val index = lastDocuments.indexOfFirst { it.uri == entry.uri }
 
-        mainActivity.analyticsManager.report("recent_swiped_away")
+        mainActivity.analyticsManager.report("recent_removed")
 
-        viewModel.removeRecentDocumentUndoably(document.uri)
+        viewModel.removeRecentDocument(document.uri)
 
         // the grant it was holding is deliberately not released here: an undo would need it back,
         // and prune() reclaims it on the next launch anyway, which is the whole point of
@@ -274,7 +278,7 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
             items.add(LandingItem.Empty())
         } else {
             if (state.documents.isNotEmpty()) {
-                items.add(LandingItem.Header(R.string.landing_section_recent))
+                items.add(LandingItem.Header(getString(R.string.landing_section_recent)))
                 for (document in state.documents) {
                     items.add(
                         LandingItem.Document(
@@ -287,7 +291,7 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
                 }
             }
 
-            items.add(LandingItem.Header(R.string.landing_section_folders))
+            items.add(LandingItem.Header(getString(R.string.landing_section_folders)))
             for (tree in state.trees) {
                 items.add(
                     LandingItem.Folder(
@@ -306,7 +310,7 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
             )
         }
 
-        items.add(LandingItem.Header(R.string.landing_section_settings))
+        items.add(LandingItem.Header(getString(R.string.landing_section_settings)))
         items.add(
             LandingItem.Setting(
                 LandingItem.SETTING_CATCH_ALL,
@@ -349,6 +353,9 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         state: LandingViewModel.State,
         location: LandingViewModel.FolderLocation,
     ) {
+        // the only thing that says where the list is. the activity title used to carry it, until
+        // the toolbar it was drawn in was taken off the screen and nothing was left showing it
+        items.add(LandingItem.Header(location.displayName))
         items.add(
             LandingItem.Action(
                 LandingItem.ACTION_UP,
@@ -387,20 +394,19 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         mainActivity.loadUri(document.uri)
     }
 
+    /**
+     * A long press removes a recent document, exactly as a swipe does.
+     *
+     * It used to ask first and offer no undo, which is the wrong way round of the two: an undo the
+     * user can ignore costs nothing, a dialog costs a tap every time. One gesture, one outcome.
+     */
     override fun onDocumentRemoveRequested(document: LandingItem.Document) {
         // a document inside a folder is not ours to forget - it is simply there
-        if (viewModel.isInsideFolder) {
+        if (!document.recent) {
             return
         }
 
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(document.filename)
-            .setMessage(R.string.landing_remove_recent_message)
-            .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(R.string.landing_remove_recent) { _, _ ->
-                viewModel.removeRecentDocument(document.uri)
-            }
-            .show()
+        removeWithUndo(document)
     }
 
     override fun onFolderClicked(folder: LandingItem.Folder) {

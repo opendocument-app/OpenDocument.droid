@@ -9,7 +9,12 @@ sealed class LandingItem {
     /** The identity a row keeps across refreshes, so DiffUtil can tell a move from a change. */
     abstract val id: String
 
-    class Header(@param:StringRes val title: Int) : LandingItem() {
+    /**
+     * A section title. Takes the text rather than a string resource, because one of them is the
+     * name of the folder being browsed - which is the only thing on screen that says where the list
+     * is.
+     */
+    class Header(val title: String) : LandingItem() {
         override val id: String = "header:$title"
     }
 

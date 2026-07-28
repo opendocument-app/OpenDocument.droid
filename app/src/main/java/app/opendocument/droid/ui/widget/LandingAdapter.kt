@@ -81,7 +81,7 @@ class LandingAdapter(private val listener: Listener) :
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         when (val item = getItem(position)) {
-            is LandingItem.Header -> holder.title.setText(item.title)
+            is LandingItem.Header -> holder.title.text = item.title
 
             is LandingItem.Message -> holder.title.setText(item.text)
 

@@ -54,11 +54,25 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
     val isInsideFolder: Boolean
         get() = location != null
 
+    /** Publishes what is on disk. What the screen's own doing - a navigation, an edit - needs. */
+    fun refresh() {
+        publish(dropUnreachable = false)
+    }
+
     /**
      * Publishes what is on disk right away, then re-publishes once the documents that no longer
      * resolve have been dropped. Rendering does not wait on the provider round trip that way.
+     *
+     * For coming back to the screen, not for moving around inside it: proving a document still
+     * resolves is a query per entry, up to [RecentDocumentList.MAX_ENTRIES] of them, and nothing
+     * this screen does to itself can revoke a grant, unmount a card or delete a file. Only being
+     * away can, so only coming back has to look.
      */
-    fun refresh() {
+    fun reload() {
+        publish(dropUnreachable = true)
+    }
+
+    private fun publish(dropUnreachable: Boolean) {
         executor.execute {
             val context = getApplication<Application>()
 
@@ -72,6 +86,10 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
                 else DocumentTreeBrowser.listChildren(context, here.treeUri, here.documentId)
 
             mutableState.postValue(State(stored, trees, catchAll, here, children))
+
+            if (!dropUnreachable) {
+                return@execute
+            }
 
             val alive = stored.filter { isReadable(context, Uri.parse(it.uri)) }
             if (alive.size == stored.size) {
@@ -146,15 +164,6 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
         refresh()
     }
 
-    fun removeRecentDocument(uri: Uri) {
-        executor.execute {
-            RecentDocumentsUtil.removeRecentDocument(getApplication(), uri)
-            PersistedUriPermissions.prune(getApplication())
-
-            refresh()
-        }
-    }
-
     /**
      * Puts a swiped away document back where it was.
      *
@@ -175,8 +184,14 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    /** Forgets a document without releasing its grant yet, so an undo can still put it back. */
-    fun removeRecentDocumentUndoably(uri: Uri) {
+    /**
+     * Forgets a document without releasing its grant, so an undo can still put it back.
+     *
+     * Nothing here releases it later either: [PersistedUriPermissions.prune] reclaims it on the
+     * next launch, which is exactly what reconciling against the stored lists - rather than
+     * bookkeeping every removal - is for.
+     */
+    fun removeRecentDocument(uri: Uri) {
         executor.execute {
             RecentDocumentsUtil.removeRecentDocument(getApplication(), uri)
 
