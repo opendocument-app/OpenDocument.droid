@@ -5,7 +5,6 @@ import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
-import android.content.pm.ResolveInfo
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
@@ -20,7 +19,6 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
 import androidx.core.view.ViewCompat
@@ -641,51 +639,33 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
-        val packageManager = packageManager
-        val targetList: List<ResolveInfo> =
-            packageManager.queryIntentActivities(intent, 0).filter { target ->
-                target.activityInfo.packageName == packageName || target.activityInfo.exported
-            }
+        // straight to the system picker. this used to put an "Open document via:" dialog of our
+        // own in front of it, listing every app that answers ACTION_OPEN_DOCUMENT - an extra tap
+        // that duplicated what the picker itself already offers, since it can browse Drive,
+        // Downloads, a usb stick and every installed file manager on its own.
+        try {
+            OpenFileIdling.increment()
 
-        // the recently opened documents used to be the last row here; they are the landing
-        // screen itself now
-        val targetNames = targetList.map { it.loadLabel(packageManager).toString() }.toTypedArray()
+            openDocumentLauncher.launch(intent)
+        } catch (e: ActivityNotFoundException) {
+            OpenFileIdling.decrement()
 
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle(R.string.dialog_choose_filemanager)
-        builder.setItems(targetNames) { dialog, which ->
-            val target = targetList[which]
+            crashManager.log(e)
 
-            intent.component =
-                ComponentName(target.activityInfo.packageName, target.activityInfo.name)
-
-            try {
-                OpenFileIdling.increment()
-
-                openDocumentLauncher.launch(intent)
-            } catch (e: Exception) {
-                OpenFileIdling.decrement()
-
-                crashManager.log(e)
-
-                SnackbarHelper.show(
-                    this,
-                    R.string.crouton_error_open_app,
-                    { findDocument() },
-                    true,
-                    true,
-                )
-            }
-
-            analyticsManager.report(
-                AnalyticsConstants.EVENT_SELECT_CONTENT,
-                AnalyticsConstants.PARAM_CONTENT_TYPE,
-                target.activityInfo.packageName,
+            SnackbarHelper.show(
+                this,
+                R.string.crouton_error_open_app,
+                { findDocument() },
+                true,
+                true,
             )
-
-            dialog.dismiss()
         }
-        builder.show()
+
+        analyticsManager.report(
+            AnalyticsConstants.EVENT_SELECT_CONTENT,
+            AnalyticsConstants.PARAM_CONTENT_TYPE,
+            "picker",
+        )
     }
 
     override fun onPause() {

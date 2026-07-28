@@ -3,6 +3,8 @@
 
 package app.opendocument.droid.test
 
+import android.app.Activity
+import android.app.Instrumentation
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -12,6 +14,7 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
+import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
@@ -71,6 +74,30 @@ class LandingTests {
     }
 
     @Test
+    fun emptyStateOpensTheSystemPicker() {
+        stubOpenDocumentCancelled()
+
+        launch()
+
+        onView(withId(R.id.landing_empty_open)).perform(click())
+
+        Intents.intended(hasAction(Intent.ACTION_OPEN_DOCUMENT))
+    }
+
+    @Test
+    fun theFabOpensTheSystemPicker() {
+        // the fab is hidden behind the empty state, which offers the same thing with a label
+        seedRecentDocument()
+        stubOpenDocumentCancelled()
+
+        launch()
+
+        onView(withId(R.id.landing_open_fab)).perform(click())
+
+        Intents.intended(hasAction(Intent.ACTION_OPEN_DOCUMENT))
+    }
+
+    @Test
     fun aRecentDocumentIsListed() {
         seedRecentDocument()
 
@@ -113,6 +140,15 @@ class LandingTests {
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
 
         return activity
+    }
+
+    /**
+     * The picker is stubbed as cancelled: these tests are about what the landing screen asks for,
+     * not about loading a document.
+     */
+    private fun stubOpenDocumentCancelled() {
+        Intents.intending(hasAction(Intent.ACTION_OPEN_DOCUMENT))
+            .respondWith(Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null))
     }
 
     private fun seedRecentDocument() {
