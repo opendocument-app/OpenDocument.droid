@@ -17,6 +17,15 @@ sealed class LandingItem {
         override val id: String = "document:$uri"
     }
 
+    class Folder(val name: String, val treeUri: Uri, val documentId: String) : LandingItem() {
+        override val id: String = "folder:$treeUri:$documentId"
+    }
+
+    /** A tappable row that is not a document, such as "add a folder". */
+    class Action(val action: Int, @param:StringRes val label: Int, val icon: Int) : LandingItem() {
+        override val id: String = "action:$action"
+    }
+
     class CatchAll(val checked: Boolean) : LandingItem() {
         override val id: String = "catch_all"
     }
@@ -24,5 +33,10 @@ sealed class LandingItem {
     /** An explanatory line, used for the empty states of a section. */
     class Message(@param:StringRes val text: Int) : LandingItem() {
         override val id: String = "message:$text"
+    }
+
+    companion object {
+        const val ACTION_ADD_FOLDER: Int = 1
+        const val ACTION_UP: Int = 2
     }
 }

@@ -57,6 +57,14 @@
                 android:text="@string/landing_open_file"
                 app:icon="@drawable/ic_folder_open" />
 
+        <com.google.android.material.button.MaterialButton
+                android:id="@+id/landing_empty_add_folder"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/landing_add_folder"
+                app:icon="@drawable/ic_add" />
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
