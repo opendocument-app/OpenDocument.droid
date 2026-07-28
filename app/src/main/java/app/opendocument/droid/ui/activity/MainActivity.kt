@@ -84,8 +84,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    // kept because onPause has to stop it; the edit mode needs no such handle
     private var ttsActionMode: TtsActionModeCallback? = null
-    private var editActionMode: EditActionModeCallback? = null
 
     lateinit var crashManager: CrashManager
         private set
@@ -395,21 +395,21 @@ class MainActivity : AppCompatActivity() {
 
         var documentFragment = this.documentFragment
         if (documentFragment == null) {
-            documentFragment =
-                supportFragmentManager.findFragmentByTag(DOCUMENT_FRAGMENT_TAG) as DocumentFragment?
-
             landingContainer.visibility = View.GONE
             documentContainer.visibility = View.VISIBLE
 
             landingFragment?.setLandingVisible(false)
 
-            if (documentFragment == null) {
-                documentFragment = DocumentFragment()
-                supportFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.document_container, documentFragment, DOCUMENT_FRAGMENT_TAG)
-                    .commitNow()
-            }
+            // the manager can still be holding one the field has not been handed yet, e.g. after
+            // the process was recreated - taking that one keeps whatever it had already loaded
+            documentFragment =
+                supportFragmentManager.findFragmentByTag(DOCUMENT_FRAGMENT_TAG) as DocumentFragment?
+                    ?: DocumentFragment().also {
+                        supportFragmentManager
+                            .beginTransaction()
+                            .replace(R.id.document_container, it, DOCUMENT_FRAGMENT_TAG)
+                            .commitNow()
+                    }
 
             this.documentFragment = documentFragment
         }
@@ -530,10 +530,7 @@ class MainActivity : AppCompatActivity() {
                 analyticsManager.report("menu_edit")
 
                 documentFragment?.let { fragment ->
-                    val editActionMode = EditActionModeCallback(this, fragment)
-                    this.editActionMode = editActionMode
-
-                    startSupportActionMode(editActionMode)
+                    startSupportActionMode(EditActionModeCallback(this, fragment))
                 }
             }
         }
@@ -553,8 +550,8 @@ class MainActivity : AppCompatActivity() {
 
                 buyAdRemoval()
             },
-            true,
-            false,
+            isIndefinite = true,
+            isError = false,
         )
     }
 
@@ -587,7 +584,6 @@ class MainActivity : AppCompatActivity() {
 
         updateDocumentActionsVisible()
 
-        editActionMode = null
         ttsActionMode = null
     }
 
@@ -690,8 +686,8 @@ class MainActivity : AppCompatActivity() {
                 this,
                 R.string.crouton_error_open_app,
                 { findDocument() },
-                true,
-                true,
+                isIndefinite = true,
+                isError = true,
             )
         }
 

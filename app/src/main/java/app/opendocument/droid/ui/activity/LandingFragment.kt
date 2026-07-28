@@ -88,8 +88,8 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
                     requireActivity(),
                     R.string.landing_add_folder_failed,
                     null,
-                    false,
-                    true,
+                    isIndefinite = false,
+                    isError = true,
                 )
 
                 return@registerForActivityResult
@@ -251,8 +251,8 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
             R.string.landing_recent_removed,
             R.string.landing_undo,
             { viewModel.restoreRecentDocument(entry, index) },
-            false,
-            false,
+            isIndefinite = false,
+            isError = false,
         )
     }
 
@@ -455,8 +455,8 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
                 requireActivity(),
                 R.string.crouton_error_open_app,
                 null,
-                false,
-                true,
+                isIndefinite = false,
+                isError = true,
             )
         }
     }

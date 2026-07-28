@@ -156,6 +156,11 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
             this.pageView = pageView
 
             pageView.setDocumentFragment(this)
+
+            // a property of the page, not of the buttons over it - this used to be the last line
+            // of prepareActions(), which reached every new PageView only because the two are set
+            // up together. every one of them passes through here
+            pageView.disableDarkening()
         } catch (t: Throwable) {
             // can't call crashlytics yet at this point (onViewCreated not called)
 
@@ -340,8 +345,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
                 requireActivity(),
                 R.string.toast_error_save_nofile,
                 null,
-                true,
-                true,
+                isIndefinite = true,
+                isError = true,
             )
 
             return
@@ -384,58 +389,50 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         // whether editing is on offer is the core's answer, not a list of formats kept here: it
         // knows which of the documents it renders it can also write back, which is why neither the
         // legacy binary formats nor the spreadsheets of issue #442 need naming
-        val unfolding = ArrayList<DocumentActions.Action>()
-        if (result.isEditable) {
-            unfolding.add(
+        val edit =
+            if (!result.isEditable) null
+            else
                 DocumentActions.Action(
                     DocumentActions.ACTION_EDIT,
                     R.string.menu_edit,
                     R.drawable.ic_edit,
                 )
+
+        // the order they unfold in, most wanted first
+        val unfolding =
+            listOfNotNull(
+                edit,
+                DocumentActions.Action(
+                    DocumentActions.ACTION_TTS,
+                    R.string.menu_tts,
+                    R.drawable.ic_volume_up,
+                ),
+                DocumentActions.Action(
+                    DocumentActions.ACTION_SHARE,
+                    R.string.menu_share,
+                    R.drawable.ic_share,
+                ),
+                DocumentActions.Action(
+                    DocumentActions.ACTION_PRINT,
+                    R.string.menu_cloud_print,
+                    R.drawable.ic_print,
+                ),
+                DocumentActions.Action(
+                    DocumentActions.ACTION_OPEN_WITH,
+                    R.string.menu_open_with,
+                    R.drawable.ic_open_in_new,
+                ),
+                DocumentActions.Action(
+                    DocumentActions.ACTION_SAVE,
+                    R.string.action_edit_save,
+                    R.drawable.ic_save,
+                ),
+                DocumentActions.Action(
+                    DocumentActions.ACTION_FULLSCREEN,
+                    R.string.menu_fullscreen,
+                    R.drawable.ic_fullscreen,
+                ),
             )
-        }
-        unfolding.add(
-            DocumentActions.Action(
-                DocumentActions.ACTION_TTS,
-                R.string.menu_tts,
-                R.drawable.ic_volume_up,
-            )
-        )
-        unfolding.add(
-            DocumentActions.Action(
-                DocumentActions.ACTION_SHARE,
-                R.string.menu_share,
-                R.drawable.ic_share,
-            )
-        )
-        unfolding.add(
-            DocumentActions.Action(
-                DocumentActions.ACTION_PRINT,
-                R.string.menu_cloud_print,
-                R.drawable.ic_print,
-            )
-        )
-        unfolding.add(
-            DocumentActions.Action(
-                DocumentActions.ACTION_OPEN_WITH,
-                R.string.menu_open_with,
-                R.drawable.ic_open_in_new,
-            )
-        )
-        unfolding.add(
-            DocumentActions.Action(
-                DocumentActions.ACTION_SAVE,
-                R.string.action_edit_save,
-                R.drawable.ic_save,
-            )
-        )
-        unfolding.add(
-            DocumentActions.Action(
-                DocumentActions.ACTION_FULLSCREEN,
-                R.string.menu_fullscreen,
-                R.drawable.ic_fullscreen,
-            )
-        )
 
         actions.setActions(
             DocumentActions.Action(
@@ -445,8 +442,6 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
             ),
             unfolding,
         )
-
-        pageView?.disableDarkening()
     }
 
     /** Takes the buttons away while the document has the screen to itself. */
@@ -635,7 +630,13 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
     override fun onSaveSuccess(outFile: Uri) {
         state.currentHtmlDiff = null
 
-        SnackbarHelper.show(requireActivity(), R.string.toast_edit_status_saved, null, false, false)
+        SnackbarHelper.show(
+            requireActivity(),
+            R.string.toast_edit_status_saved,
+            null,
+            isIndefinite = false,
+            isError = false,
+        )
 
         loadUri(outFile, true, true)
     }
@@ -643,7 +644,13 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
     override fun onSaveError() {
         state.currentHtmlDiff = null
 
-        SnackbarHelper.show(requireActivity(), R.string.toast_error_save_failed, null, true, true)
+        SnackbarHelper.show(
+            requireActivity(),
+            R.string.toast_error_save_failed,
+            null,
+            isIndefinite = true,
+            isError = true,
+        )
     }
 
     private fun offerUpload(activity: Activity, options: FileLoader.Options) {
@@ -701,8 +708,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
             activity,
             description,
             { doReopen(options, activity, true, false) },
-            isIndefinite,
-            false,
+            isIndefinite = isIndefinite,
+            isError = false,
         )
     }
 

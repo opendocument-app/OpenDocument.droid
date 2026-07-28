@@ -38,7 +38,13 @@ class PrintingManager {
             object : Runnable {
                 override fun run() {
                     if (!printJob.isCompleted && !activity.isFinishing && !activity.isDestroyed) {
-                        SnackbarHelper.show(activity, R.string.crouton_printing, null, false, false)
+                        SnackbarHelper.show(
+                            activity,
+                            R.string.crouton_printing,
+                            null,
+                            isIndefinite = false,
+                            isError = false,
+                        )
 
                         backgroundHandler.postDelayed(this, 1000)
                     }

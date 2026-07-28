@@ -184,11 +184,6 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    /** Hands back the grants of everything that is no longer referenced. */
-    fun releaseUnusedGrants() {
-        executor.execute { PersistedUriPermissions.prune(getApplication()) }
-    }
-
     override fun onCleared() {
         super.onCleared()
 

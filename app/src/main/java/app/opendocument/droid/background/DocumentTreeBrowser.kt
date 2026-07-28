@@ -13,12 +13,7 @@ import android.provider.DocumentsContract
  */
 object DocumentTreeBrowser {
 
-    class Child(
-        val documentId: String,
-        val displayName: String,
-        val mimeType: String,
-        val lastModified: Long,
-    ) {
+    class Child(val documentId: String, val displayName: String, val mimeType: String) {
         val isDirectory: Boolean
             get() = mimeType == DocumentsContract.Document.MIME_TYPE_DIR
     }
@@ -43,7 +38,6 @@ object DocumentTreeBrowser {
                         DocumentsContract.Document.COLUMN_DOCUMENT_ID,
                         DocumentsContract.Document.COLUMN_DISPLAY_NAME,
                         DocumentsContract.Document.COLUMN_MIME_TYPE,
-                        DocumentsContract.Document.COLUMN_LAST_MODIFIED,
                     ),
                     null,
                     null,
@@ -72,7 +66,7 @@ object DocumentTreeBrowser {
                             continue
                         }
 
-                        children.add(Child(documentId, displayName, mimeType, cursor.getLong(3)))
+                        children.add(Child(documentId, displayName, mimeType))
                     }
                 }
         } catch (e: Exception) {

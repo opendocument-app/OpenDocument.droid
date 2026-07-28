@@ -2,18 +2,14 @@ package app.opendocument.droid.background
 
 import android.content.Context
 import android.net.Uri
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
-import java.nio.charset.StandardCharsets
-import org.json.JSONArray
 import org.json.JSONObject
 
 /**
  * Stores the recently opened documents in an app private json file.
  *
- * Only the file and json handling lives here - the ordering and capping rules are in
- * [RecentDocumentList], which is android free and unit tested.
+ * Only the fields live here: [JsonFileStore] does the file and json handling, which
+ * [FolderTreesUtil] shares, and the ordering and capping rules are in [RecentDocumentList], which
+ * is android free and unit tested.
  *
  * Every method is synchronized: the loaders write from [LoaderService]'s background thread while
  * the landing screen reads from its own executor.
@@ -97,54 +93,27 @@ object RecentDocumentsUtil {
     }
 
     private fun read(context: Context): List<RecentDocumentList.Entry> {
-        val jsonArray =
-            try {
-                context.openFileInput(FILENAME).use { input ->
-                    BufferedReader(InputStreamReader(input, StandardCharsets.UTF_8)).use { reader ->
-                        JSONArray(reader.readText())
-                    }
-                }
-            } catch (e: Exception) {
-                // nothing saved yet, or the file got truncated - either way there is no history
-                return emptyList()
+        val entries =
+            JsonFileStore.read(context, FILENAME) { document ->
+                val filename = document.optString(KEY_FILENAME, "")
+                val uri = document.optString(KEY_URI, "")
+
+                if (filename.isEmpty() || uri.isEmpty()) null
+                else
+                    RecentDocumentList.Entry(filename, uri, document.optLong(KEY_LAST_OPENED_AT, 0))
             }
-
-        val entries = ArrayList<RecentDocumentList.Entry>(jsonArray.length())
-        for (i in 0 until jsonArray.length()) {
-            val document = jsonArray.optJSONObject(i) ?: continue
-
-            val filename = document.optString(KEY_FILENAME, "")
-            val uri = document.optString(KEY_URI, "")
-            if (filename.isEmpty() || uri.isEmpty()) {
-                continue
-            }
-
-            entries.add(
-                RecentDocumentList.Entry(filename, uri, document.optLong(KEY_LAST_OPENED_AT, 0))
-            )
-        }
 
         // the file stays in the append order older versions wrote it in, so that upgrading does
         // not need a migration - the list is only turned around here, on the way out
-        entries.reverse()
-
-        return entries
+        return entries.reversed()
     }
 
     private fun write(context: Context, entries: List<RecentDocumentList.Entry>) {
-        val jsonArray = JSONArray()
-        for (entry in entries.asReversed()) {
-            val document = JSONObject()
-            document.put(KEY_URI, entry.uri)
-            document.put(KEY_FILENAME, entry.filename)
-            document.put(KEY_LAST_OPENED_AT, entry.lastOpenedAt)
-
-            jsonArray.put(document)
-        }
-
-        context.openFileOutput(FILENAME, Context.MODE_PRIVATE).use { output ->
-            OutputStreamWriter(output, StandardCharsets.UTF_8).use { writer ->
-                writer.write(jsonArray.toString())
+        JsonFileStore.write(context, FILENAME, entries.reversed()) { entry ->
+            JSONObject().apply {
+                put(KEY_URI, entry.uri)
+                put(KEY_FILENAME, entry.filename)
+                put(KEY_LAST_OPENED_AT, entry.lastOpenedAt)
             }
         }
     }

@@ -2,18 +2,14 @@ package app.opendocument.droid.background
 
 import android.content.Context
 import android.net.Uri
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
-import java.nio.charset.StandardCharsets
-import org.json.JSONArray
 import org.json.JSONObject
 
 /**
  * The folders the user granted access to, in the order they added them.
  *
  * A json file rather than shared preferences because the order matters and every entry carries a
- * cached display name, which a StringSet could not express. Same shape as [RecentDocumentsUtil].
+ * cached display name, which a StringSet could not express. [JsonFileStore] does the file half,
+ * which [RecentDocumentsUtil] shares.
  */
 object FolderTreesUtil {
 
@@ -27,9 +23,8 @@ object FolderTreesUtil {
 
     private const val KEY_URI = "uri"
     private const val KEY_DISPLAY_NAME = "displayName"
-    private const val KEY_ADDED_AT = "addedAt"
 
-    class FolderTree(val uri: Uri, val displayName: String, val addedAt: Long)
+    class FolderTree(val uri: Uri, val displayName: String)
 
     @Synchronized fun getFolderTrees(context: Context): List<FolderTree> = read(context)
 
@@ -45,7 +40,7 @@ object FolderTreesUtil {
         val remaining = read(context).filter { it.uri.toString() != value }
         val trees = ArrayList<FolderTree>(remaining.size + 1)
         trees.addAll(remaining)
-        trees.add(FolderTree(uri, displayName, System.currentTimeMillis()))
+        trees.add(FolderTree(uri, displayName))
 
         if (trees.size <= MAX_TREES) {
             write(context, trees)
@@ -72,53 +67,19 @@ object FolderTreesUtil {
         }
     }
 
-    private fun read(context: Context): List<FolderTree> {
-        val jsonArray =
-            try {
-                context.openFileInput(FILENAME).use { input ->
-                    BufferedReader(InputStreamReader(input, StandardCharsets.UTF_8)).use { reader ->
-                        JSONArray(reader.readText())
-                    }
-                }
-            } catch (e: Exception) {
-                return emptyList()
-            }
-
-        val trees = ArrayList<FolderTree>(jsonArray.length())
-        for (i in 0 until jsonArray.length()) {
-            val tree = jsonArray.optJSONObject(i) ?: continue
-
+    private fun read(context: Context): List<FolderTree> =
+        JsonFileStore.read(context, FILENAME) { tree ->
             val uri = tree.optString(KEY_URI, "")
-            if (uri.isEmpty()) {
-                continue
-            }
 
-            trees.add(
-                FolderTree(
-                    Uri.parse(uri),
-                    tree.optString(KEY_DISPLAY_NAME, uri),
-                    tree.optLong(KEY_ADDED_AT, 0),
-                )
-            )
+            if (uri.isEmpty()) null
+            else FolderTree(Uri.parse(uri), tree.optString(KEY_DISPLAY_NAME, uri))
         }
-
-        return trees
-    }
 
     private fun write(context: Context, trees: List<FolderTree>) {
-        val jsonArray = JSONArray()
-        for (tree in trees) {
-            val json = JSONObject()
-            json.put(KEY_URI, tree.uri.toString())
-            json.put(KEY_DISPLAY_NAME, tree.displayName)
-            json.put(KEY_ADDED_AT, tree.addedAt)
-
-            jsonArray.put(json)
-        }
-
-        context.openFileOutput(FILENAME, Context.MODE_PRIVATE).use { output ->
-            OutputStreamWriter(output, StandardCharsets.UTF_8).use { writer ->
-                writer.write(jsonArray.toString())
+        JsonFileStore.write(context, FILENAME, trees) { tree ->
+            JSONObject().apply {
+                put(KEY_URI, tree.uri.toString())
+                put(KEY_DISPLAY_NAME, tree.displayName)
             }
         }
     }
