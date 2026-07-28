@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- documents: an icon plus a single line of text -->
+<!-- documents, folders and actions: an icon plus a label, and optionally a second line -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
+        android:background="?attr/colorSurface"
+        android:foreground="?attr/selectableItemBackground"
         android:gravity="center_vertical"
         android:minHeight="56dp"
         android:orientation="horizontal"
@@ -18,14 +19,29 @@
             android:layout_marginEnd="24dp"
             tools:ignore="ContentDescription" />
 
-    <TextView
-            android:id="@+id/landing_row_title"
+    <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:ellipsize="middle"
+            android:orientation="vertical"
             android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:singleLine="true"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="?attr/colorOnSurface" />
+            android:paddingBottom="12dp">
+
+        <TextView
+                android:id="@+id/landing_row_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="middle"
+                android:singleLine="true"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurface" />
+
+        <TextView
+                android:id="@+id/landing_row_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone" />
+    </LinearLayout>
 </LinearLayout>

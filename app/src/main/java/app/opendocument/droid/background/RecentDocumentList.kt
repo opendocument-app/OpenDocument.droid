@@ -52,4 +52,19 @@ object RecentDocumentList {
 
     /** Drops every entry for [uri]. Returns [current] unchanged if there is none. */
     fun remove(current: List<Entry>, uri: String): List<Entry> = current.filter { it.uri != uri }
+
+    /**
+     * Puts [entry] back at [index], for undoing a removal.
+     *
+     * Unlike [add] this does not move it to the front - the point of an undo is that the list ends
+     * up looking like it did before. An index past the end lands at the end.
+     */
+    fun insert(current: List<Entry>, entry: Entry, index: Int): List<Entry> {
+        val entries = ArrayList<Entry>(current.size + 1)
+        current.filterTo(entries) { it.uri != entry.uri }
+
+        entries.add(index.coerceIn(0, entries.size), entry)
+
+        return entries
+    }
 }
