@@ -35,7 +35,17 @@ sealed class LandingItem {
         override val id: String = "document:$uri"
     }
 
-    class Folder(val name: String, val treeUri: Uri, val documentId: String) : LandingItem() {
+    /**
+     * [granted] says this is one of the trees the user handed us, which is the only kind the app
+     * may give back. A sub directory of one is just part of the tree above it. Same distinction
+     * [Document.recent] draws, and carried the same way.
+     */
+    class Folder(
+        val name: String,
+        val treeUri: Uri,
+        val documentId: String,
+        val granted: Boolean = false,
+    ) : LandingItem() {
         override val id: String = "folder:$treeUri:$documentId"
     }
 

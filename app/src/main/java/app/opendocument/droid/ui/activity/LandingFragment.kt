@@ -17,13 +17,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import app.opendocument.droid.R
 import app.opendocument.droid.background.DocumentTreeBrowser
+import app.opendocument.droid.background.FolderTreesUtil
 import app.opendocument.droid.background.PersistedUriPermissions
 import app.opendocument.droid.background.RecentDocumentList
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.ui.SnackbarHelper
 import app.opendocument.droid.ui.widget.LandingAdapter
 import app.opendocument.droid.ui.widget.LandingItem
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 /**
@@ -45,9 +45,10 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
 
     private var landingVisible = true
 
-    // the entries behind the recent rows, kept so a swipe can restore the exact entry - the row
-    // itself only carries what it needs to draw
+    // the entries behind the recent and folder rows, kept so a swipe can restore the exact one -
+    // the rows themselves only carry what they need to draw
     private var lastDocuments: List<RecentDocumentList.Entry> = emptyList()
+    private var lastTrees: List<FolderTreesUtil.FolderTree> = emptyList()
 
     /**
      * Back goes up a folder before it goes anywhere else.
@@ -178,6 +179,7 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         updateFolderBack()
 
         lastDocuments = state.documents
+        lastTrees = state.trees
 
         val items = ArrayList<LandingItem>()
 
@@ -198,11 +200,12 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
     }
 
     /**
-     * Swiping a recent document away removes it, with an undo that puts it back at the same place.
-     * A long press on one does the same - see [onDocumentRemoveRequested].
+     * Swiping a row away removes it, with an undo that puts it back at the same place. A long press
+     * does the same - see [onDocumentRemoveRequested] and [onFolderRemoveRequested].
      *
-     * Only the recently opened documents can go: a document inside a folder is simply there, and
-     * the app has no business deleting anything.
+     * Only the two kinds of row the app owns can go: a recently opened document, and a folder the
+     * user granted. What is *inside* a granted folder is simply there, and the app has no business
+     * removing anything from disk.
      */
     private fun attachSwipeToRemove() {
         val callback =
@@ -222,14 +225,16 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
                     recyclerView: RecyclerView,
                     viewHolder: RecyclerView.ViewHolder,
                 ): Int =
-                    if (adapter.isRemovableDocument(viewHolder.bindingAdapterPosition))
+                    if (adapter.isRemovable(viewHolder.bindingAdapterPosition))
                         super.getSwipeDirs(recyclerView, viewHolder)
                     else 0
 
                 override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                    val document = adapter.documentAt(viewHolder.bindingAdapterPosition) ?: return
-
-                    removeWithUndo(document)
+                    when (val item = adapter.itemAt(viewHolder.bindingAdapterPosition)) {
+                        is LandingItem.Document -> removeWithUndo(item)
+                        is LandingItem.Folder -> removeFolderWithUndo(item)
+                        else -> Unit
+                    }
                 }
             }
 
@@ -255,6 +260,32 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
             R.string.landing_recent_removed,
             R.string.landing_undo,
             { viewModel.restoreRecentDocument(entry, index) },
+            isIndefinite = false,
+            isError = false,
+        )
+    }
+
+    /**
+     * The folder equivalent, and deliberately the same shape: forget it, say so, offer it back.
+     *
+     * This used to ask for confirmation instead, on the grounds that a tree is a permission the
+     * user granted rather than a row in a list. An undo answers that better than a dialog does - it
+     * costs nothing when the swipe was meant, and the grant is held until the next launch, so there
+     * is something to put back.
+     */
+    private fun removeFolderWithUndo(folder: LandingItem.Folder) {
+        val index = lastTrees.indexOfFirst { it.uri == folder.treeUri }
+        val tree = lastTrees.getOrNull(index) ?: return
+
+        mainActivity.analyticsManager.report("folder_removed")
+
+        viewModel.removeFolderTree(folder.treeUri)
+
+        SnackbarHelper.show(
+            requireActivity(),
+            R.string.landing_folder_removed,
+            R.string.landing_undo,
+            { viewModel.restoreFolderTree(tree, index) },
             isIndefinite = false,
             isError = false,
         )
@@ -298,6 +329,7 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
                         tree.displayName,
                         tree.uri,
                         DocumentTreeBrowser.rootDocumentId(tree.uri),
+                        granted = true,
                     )
                 )
             }
@@ -413,23 +445,15 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         viewModel.enterFolder(folder.treeUri, folder.documentId, folder.name)
     }
 
+    /** A long press removes a granted folder, exactly as a swipe does. */
     override fun onFolderRemoveRequested(folder: LandingItem.Folder) {
         // only the folders the user added themselves can be given back; a sub directory is just
         // part of the tree above it
-        if (viewModel.isInsideFolder) {
+        if (!folder.granted) {
             return
         }
 
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(folder.name)
-            .setMessage(R.string.landing_remove_folder_message)
-            .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(R.string.landing_remove_folder) { _, _ ->
-                mainActivity.analyticsManager.report("folder_removed")
-
-                viewModel.removeFolderTree(folder.treeUri)
-            }
-            .show()
+        removeFolderWithUndo(folder)
     }
 
     override fun onActionClicked(action: Int) {

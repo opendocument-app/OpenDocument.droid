@@ -121,17 +121,35 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    /**
+     * Forgets a folder without releasing its grant, so an undo can still put it back - the same
+     * bargain [removeRecentDocument] makes, and for the same reason: the grant cannot be taken
+     * again without sending the user back to the system picker, and [PersistedUriPermissions.prune]
+     * reclaims it on the next launch anyway.
+     */
     fun removeFolderTree(treeUri: Uri) {
         executor.execute {
-            val context = getApplication<Application>()
-
-            FolderTreesUtil.removeFolderTree(context, treeUri)
-            PersistedUriPermissions.prune(context)
+            FolderTreesUtil.removeFolderTree(getApplication(), treeUri)
 
             // the folder that was just dropped may be the one we are standing in
             if (location?.treeUri == treeUri) {
                 backStack.clear()
                 location = null
+            }
+
+            refresh()
+        }
+    }
+
+    /** Puts a swiped away folder back where it was, grant and cached name included. */
+    fun restoreFolderTree(tree: FolderTreesUtil.FolderTree, index: Int) {
+        executor.execute {
+            val context = getApplication<Application>()
+
+            // putting one back can push another off the end, if a folder was added while the undo
+            // was still on offer - that one is holding a grant nothing points at any more
+            if (FolderTreesUtil.insertFolderTree(context, tree, index).isNotEmpty()) {
+                PersistedUriPermissions.prune(context)
             }
 
             refresh()

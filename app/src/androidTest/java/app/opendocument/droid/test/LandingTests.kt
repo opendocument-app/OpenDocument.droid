@@ -14,6 +14,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
+import androidx.test.espresso.action.ViewActions.longClick
+import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
 import androidx.test.espresso.intent.Intents
@@ -27,6 +29,7 @@ import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import app.opendocument.droid.R
+import app.opendocument.droid.background.FolderTreesUtil
 import app.opendocument.droid.background.RecentDocumentsUtil
 import app.opendocument.droid.ui.activity.DocumentFragment
 import app.opendocument.droid.ui.activity.MainActivity
@@ -138,6 +141,47 @@ class LandingTests {
     }
 
     @Test
+    fun aGrantedFolderIsListed() {
+        seedFolderTree()
+
+        launch()
+
+        onView(withText(TEST_FOLDER)).check(matches(isDisplayed()))
+    }
+
+    /**
+     * Removing a granted folder, which a long press and a swipe now reach the same way - the swipe
+     * gesture itself is ItemTouchHelper's, so this covers what both of them call.
+     */
+    @Test
+    fun aGrantedFolderCanBeRemoved() {
+        seedFolderTree()
+
+        launch()
+
+        onView(withText(TEST_FOLDER)).perform(closeSoftKeyboard(), longClick())
+
+        onView(withText(R.string.landing_folder_removed)).check(matches(isDisplayed()))
+        onView(withText(TEST_FOLDER)).check(doesNotExist())
+    }
+
+    /** The undo next to it puts the folder back, cached name and all. */
+    @Test
+    fun removingAGrantedFolderCanBeUndone() {
+        seedFolderTree()
+
+        launch()
+
+        onView(withText(TEST_FOLDER)).perform(closeSoftKeyboard(), longClick())
+        onView(withText(R.string.landing_undo)).perform(click())
+
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+        SystemClock.sleep(500)
+
+        onView(withText(TEST_FOLDER)).check(matches(isDisplayed()))
+    }
+
+    @Test
     fun theFoldersSectionOffersToAddOne() {
         seedRecentDocument()
 
@@ -217,6 +261,21 @@ class LandingTests {
     }
 
     /**
+     * A folder tree written straight into the store, cached display name and all.
+     *
+     * No real grant behind it, which is enough for the row: the name is the one written down when
+     * the folder was added, so listing it asks no provider anything. Entering it would come up
+     * empty, and none of these tests do.
+     */
+    private fun seedFolderTree() {
+        FolderTreesUtil.addFolderTree(
+            context(),
+            Uri.parse("content://app.opendocument.test/tree/seeded"),
+            TEST_FOLDER,
+        )
+    }
+
+    /**
      * Both stores, not just the recent documents: a folder granted on this device - by a previous
      * run, or by hand - would keep the empty state from ever being shown.
      */
@@ -251,6 +310,7 @@ class LandingTests {
 
     companion object {
         private const val TEST_DOCUMENT = "test.odt"
+        private const val TEST_FOLDER = "Seeded folder"
         private const val LOAD_TIMEOUT_MS = 20000L
 
         private var testFile: File? = null

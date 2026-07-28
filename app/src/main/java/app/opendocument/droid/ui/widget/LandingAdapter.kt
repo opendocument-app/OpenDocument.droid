@@ -35,22 +35,20 @@ class LandingAdapter(private val listener: Listener) :
         fun onSettingChanged(setting: Int, enabled: Boolean)
     }
 
-    /** Whether the row at [position] can be swiped away, i.e. whether it is a recent document. */
-    fun isRemovableDocument(position: Int): Boolean {
-        if (position !in 0 until itemCount) {
-            return false
+    /**
+     * Whether the row at [position] can be swiped away: a recently opened document, or a folder the
+     * user granted us. Neither a document nor a sub directory inside a tree is ours to remove -
+     * those are simply there, and the row says which it is rather than the subtitle guessing.
+     */
+    fun isRemovable(position: Int): Boolean =
+        when (val item = itemAt(position)) {
+            is LandingItem.Document -> item.recent
+            is LandingItem.Folder -> item.granted
+            else -> false
         }
 
-        val item = getItem(position)
-
-        // a document inside a folder is not ours to forget - it is simply there. the row says
-        // which of the two it is; the subtitle cannot, because an entry stored before the last
-        // opened time was recorded has none.
-        return item is LandingItem.Document && item.recent
-    }
-
-    fun documentAt(position: Int): LandingItem.Document? =
-        if (position in 0 until itemCount) getItem(position) as? LandingItem.Document else null
+    fun itemAt(position: Int): LandingItem? =
+        if (position in 0 until itemCount) getItem(position) else null
 
     override fun getItemViewType(position: Int): Int =
         when (getItem(position)) {

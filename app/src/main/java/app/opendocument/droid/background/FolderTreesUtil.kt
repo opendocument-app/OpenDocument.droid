@@ -29,18 +29,32 @@ object FolderTreesUtil {
     @Synchronized fun getFolderTrees(context: Context): List<FolderTree> = read(context)
 
     /**
-     * Adds [uri], or refreshes the name of a folder that is already there.
+     * Adds [uri] at the end, or refreshes the name of a folder that is already there.
      *
      * @return the folders that fell out, so their grants can be released.
      */
     @Synchronized
-    fun addFolderTree(context: Context, uri: Uri, displayName: String): List<FolderTree> {
-        val value = uri.toString()
+    fun addFolderTree(context: Context, uri: Uri, displayName: String): List<FolderTree> =
+        put(context, FolderTree(uri, displayName), index = null)
 
-        val remaining = read(context).filter { it.uri.toString() != value }
-        val trees = ArrayList<FolderTree>(remaining.size + 1)
-        trees.addAll(remaining)
-        trees.add(FolderTree(uri, displayName))
+    /**
+     * Puts a removed folder back at [index], for undoing a swipe.
+     *
+     * Unlike [addFolderTree] this does not move it to the end - an undo is meant to leave the list
+     * looking exactly as it did. The cap still applies: another folder can have been added while
+     * the undo was on offer.
+     *
+     * @return the folders that fell out, so their grants can be released.
+     */
+    @Synchronized
+    fun insertFolderTree(context: Context, tree: FolderTree, index: Int): List<FolderTree> =
+        put(context, tree, index)
+
+    private fun put(context: Context, tree: FolderTree, index: Int?): List<FolderTree> {
+        val value = tree.uri.toString()
+
+        val trees = ArrayList(read(context).filter { it.uri.toString() != value })
+        trees.add(index?.coerceIn(0, trees.size) ?: trees.size, tree)
 
         if (trees.size <= MAX_TREES) {
             write(context, trees)
