@@ -8,16 +8,13 @@ import android.os.Handler
 import android.os.Looper
 import android.text.InputType
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
-import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -32,6 +29,7 @@ import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.SnackbarHelper
+import app.opendocument.droid.ui.widget.DocumentActions
 import app.opendocument.droid.ui.widget.PageView
 import app.opendocument.droid.ui.widget.ProgressDialogFragment
 import com.google.android.material.tabs.TabLayout
@@ -40,7 +38,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 
-class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider {
+class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
     private lateinit var mainHandler: Handler
 
@@ -56,7 +54,15 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
     var pageView: PageView? = null
         private set
 
-    private var menu: Menu? = null
+    private lateinit var actions: DocumentActions
+
+    /** Folding the actions back up is what back does first, while they are unfolded. */
+    private val actionsBackCallback =
+        object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                actions.collapse()
+            }
+        }
 
     private var resultOnStart: FileLoader.Result? = null
     private var errorOnStart: Throwable? = null
@@ -135,11 +141,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View? {
-        requireActivity().addMenuProvider(this, requireActivity())
-
-        return inflater.inflate(R.layout.fragment_document, container, false)
-    }
+    ): View? = inflater.inflate(R.layout.fragment_document, container, false)
 
     private fun initializePageView() {
         pageView?.let {
@@ -186,6 +188,16 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         analyticsManager = mainActivity.analyticsManager
         crashManager = mainActivity.crashManager
 
+        actions = view.findViewById(R.id.document_actions)
+        actions.listener = DocumentActions.Listener { action ->
+            mainActivity.onDocumentAction(action)
+        }
+        actions.expandedListener = { expanded -> actionsBackCallback.isEnabled = expanded }
+
+        // on viewLifecycleOwner, so it stacks above the activity's own callback - the dispatcher
+        // runs the most recently added enabled callback first
+        mainActivity.onBackPressedDispatcher.addCallback(viewLifecycleOwner, actionsBackCallback)
+
         serviceQueue = mainActivity.loaderServiceQueue
         serviceQueue.addToQueue { service -> service.setListener(this) }
 
@@ -213,6 +225,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
 
             prepareLoad(lastResult.loaderType, false)
             restoreTabs(lastResult)
+            prepareActions(lastResult)
         }
 
         pageView?.restoreState(savedInstanceState)
@@ -242,24 +255,6 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
 
         tabLayout.visibility = View.VISIBLE
         tabLayout.addOnTabSelectedListener(tabSelectedListener)
-    }
-
-    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-        this.menu = menu
-
-        menu.findItem(R.id.menu_fullscreen).isVisible = true
-        menu.findItem(R.id.menu_open_with).isVisible = true
-        menu.findItem(R.id.menu_share).isVisible = true
-        menu.findItem(R.id.menu_save).isVisible = true
-        menu.findItem(R.id.menu_print).isVisible = true
-
-        // the other menu items are dynamically enabled based on the loaded document
-        state.lastResult?.let { prepareMenu(it.loaderType, it.options.fileType) }
-    }
-
-    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-        // TODO: handle menu item clicks here. currently done in Activity for historical reasons
-        return false
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -360,7 +355,10 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
     }
 
     private fun unload() {
-        toggleDocumentMenu(false)
+        // guarded like resetTabs below: a load can fail before there is a view to put right
+        if (::actions.isInitialized) {
+            actions.setActions(null, emptyList())
+        }
 
         resetTabs()
     }
@@ -375,32 +373,17 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         state.lastSelectedTab = -1
     }
 
-    private fun toggleDocumentMenu(enabled: Boolean) {
-        toggleDocumentMenu(enabled, enabled)
-    }
+    /**
+     * Puts the buttons of the loaded document up, in the order they are worth reaching for.
+     *
+     * Called for every result rather than from a menu callback, which is what the toolbar version
+     * relied on: the menu was only rebuilt when something happened to invalidate it, and a document
+     * that finished loading is not one of those things.
+     */
+    private fun prepareActions(result: FileLoader.Result) {
+        val loaderType = result.loaderType
+        val fileType = result.options.fileType
 
-    private fun toggleDocumentMenu(enabled: Boolean, editEnabled: Boolean) {
-        val menu = this.menu
-        if (menu == null) {
-            val activity = activity
-            val pageView = this.pageView
-            if (activity == null || activity.isFinishing || pageView == null) {
-                return
-            }
-
-            // menu is not set when loadUri is called via onStart, retry later
-            pageView.post { toggleDocumentMenu(enabled, editEnabled) }
-
-            return
-        }
-
-        menu.findItem(R.id.menu_edit).isVisible = editEnabled
-
-        menu.findItem(R.id.menu_search).isVisible = enabled
-        menu.findItem(R.id.menu_tts).isVisible = enabled
-    }
-
-    private fun prepareMenu(loaderType: FileLoader.LoaderType, fileType: String?) {
         var isEditEnabled = false
         var isDarkModeSupported = true
 
@@ -423,8 +406,79 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
             }
         }
 
-        toggleDocumentMenu(true, isEditEnabled)
+        val unfolding = ArrayList<DocumentActions.Action>()
+        if (isEditEnabled) {
+            unfolding.add(
+                DocumentActions.Action(
+                    DocumentActions.ACTION_EDIT,
+                    R.string.menu_edit,
+                    R.drawable.ic_edit,
+                )
+            )
+        }
+        unfolding.add(
+            DocumentActions.Action(
+                DocumentActions.ACTION_TTS,
+                R.string.menu_tts,
+                R.drawable.ic_volume_up,
+            )
+        )
+        unfolding.add(
+            DocumentActions.Action(
+                DocumentActions.ACTION_SHARE,
+                R.string.menu_share,
+                R.drawable.ic_share,
+            )
+        )
+        unfolding.add(
+            DocumentActions.Action(
+                DocumentActions.ACTION_PRINT,
+                R.string.menu_cloud_print,
+                R.drawable.ic_print,
+            )
+        )
+        unfolding.add(
+            DocumentActions.Action(
+                DocumentActions.ACTION_OPEN_WITH,
+                R.string.menu_open_with,
+                R.drawable.ic_open_in_new,
+            )
+        )
+        unfolding.add(
+            DocumentActions.Action(
+                DocumentActions.ACTION_SAVE,
+                R.string.action_edit_save,
+                R.drawable.ic_save,
+            )
+        )
+        unfolding.add(
+            DocumentActions.Action(
+                DocumentActions.ACTION_FULLSCREEN,
+                R.string.menu_fullscreen,
+                R.drawable.ic_fullscreen,
+            )
+        )
+
+        actions.setActions(
+            DocumentActions.Action(
+                DocumentActions.ACTION_SEARCH,
+                R.string.menu_search,
+                R.drawable.ic_search,
+            ),
+            unfolding,
+        )
+
         pageView?.toggleDarkMode(isDarkModeSupported)
+    }
+
+    /** Takes the buttons away while the document has the screen to itself. */
+    fun setActionsVisible(visible: Boolean) {
+        if (!::actions.isInitialized) {
+            return
+        }
+
+        actions.collapse()
+        actions.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
     private fun requestInAppRating(activity: Activity) {
@@ -493,6 +547,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         } else if (pages == 1) {
             loadData(result.partUris[0].toString())
         }
+
+        prepareActions(result)
 
         if (
             result.loaderType == FileLoader.LoaderType.RAW ||
