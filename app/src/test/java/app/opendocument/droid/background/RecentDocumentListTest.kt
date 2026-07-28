@@ -100,9 +100,10 @@ class RecentDocumentListTest {
     fun insertPutsADocumentBackWhereItWas() {
         val current = listOf(entry("a"), entry("c"))
 
-        val restored = RecentDocumentList.insert(current, entry("b"), 1)
+        val update = RecentDocumentList.insert(current, entry("b"), 1)
 
-        assertEquals(listOf("a", "b", "c"), restored.map { it.uri })
+        assertEquals(listOf("a", "b", "c"), update.entries.map { it.uri })
+        assertTrue(update.evicted.isEmpty())
     }
 
     @Test
@@ -111,11 +112,11 @@ class RecentDocumentListTest {
 
         assertEquals(
             listOf("x", "a", "b"),
-            RecentDocumentList.insert(current, entry("x"), 0).map { it.uri },
+            RecentDocumentList.insert(current, entry("x"), 0).entries.map { it.uri },
         )
         assertEquals(
             listOf("a", "b", "x"),
-            RecentDocumentList.insert(current, entry("x"), 2).map { it.uri },
+            RecentDocumentList.insert(current, entry("x"), 2).entries.map { it.uri },
         )
     }
 
@@ -125,11 +126,11 @@ class RecentDocumentListTest {
 
         assertEquals(
             listOf("a", "x"),
-            RecentDocumentList.insert(current, entry("x"), 99).map { it.uri },
+            RecentDocumentList.insert(current, entry("x"), 99).entries.map { it.uri },
         )
         assertEquals(
             listOf("x", "a"),
-            RecentDocumentList.insert(current, entry("x"), -5).map { it.uri },
+            RecentDocumentList.insert(current, entry("x"), -5).entries.map { it.uri },
         )
     }
 
@@ -139,8 +140,39 @@ class RecentDocumentListTest {
 
         assertEquals(
             listOf("b", "a"),
-            RecentDocumentList.insert(current, entry("a"), 1).map { it.uri },
+            RecentDocumentList.insert(current, entry("a"), 1).entries.map { it.uri },
         )
+    }
+
+    @Test
+    fun insertIntoAListThatFilledUpAgainStillEvictsTheOldest() {
+        // the swipe left room, then another document was opened over the top of the snackbar
+        val current = (1..3).map { entry("uri$it") }
+
+        val update = RecentDocumentList.insert(current, entry("restored"), 1, max = 3)
+
+        assertEquals(listOf("uri1", "restored", "uri2"), update.entries.map { it.uri })
+        assertEquals(listOf("uri3"), update.evicted.map { it.uri })
+    }
+
+    @Test
+    fun insertingPastAFullListEvictsTheEntryItself() {
+        val current = (1..3).map { entry("uri$it") }
+
+        val update = RecentDocumentList.insert(current, entry("restored"), 3, max = 3)
+
+        assertEquals(listOf("uri1", "uri2", "uri3"), update.entries.map { it.uri })
+        assertEquals(listOf("restored"), update.evicted.map { it.uri })
+    }
+
+    @Test
+    fun insertNeverGrowsPastTheDefaultCap() {
+        val current = (1..RecentDocumentList.MAX_ENTRIES).map { entry("uri$it") }
+
+        val update = RecentDocumentList.insert(current, entry("restored"), 0)
+
+        assertEquals(RecentDocumentList.MAX_ENTRIES, update.entries.size)
+        assertEquals(1, update.evicted.size)
     }
 
     private fun entry(uri: String) = RecentDocumentList.Entry("name of $uri", uri, 0)
