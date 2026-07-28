@@ -22,13 +22,11 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SwitchCompat
 import androidx.core.view.MenuProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.fragment.app.DialogFragment
 import app.opendocument.droid.R
 import app.opendocument.droid.background.CatchAllSetting
 import app.opendocument.droid.background.LoaderService
@@ -45,7 +43,6 @@ import app.opendocument.droid.ui.FindActionModeCallback
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.SnackbarHelper
 import app.opendocument.droid.ui.TtsActionModeCallback
-import app.opendocument.droid.ui.widget.RecentDocumentDialogFragment
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 
@@ -57,6 +54,11 @@ class MainActivity : AppCompatActivity(), MenuProvider {
     private lateinit var documentContainer: View
     private lateinit var adContainer: LinearLayout
     private var documentFragment: DocumentFragment? = null
+
+    private val landingFragment: LandingFragment?
+        get() =
+            supportFragmentManager.findFragmentByTag(LandingFragment.FRAGMENT_TAG)
+                as LandingFragment?
 
     private var fullscreen = false
 
@@ -190,19 +192,21 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         landingContainer = findViewById(R.id.landing_container)
         documentContainer = findViewById(R.id.document_container)
 
-        findViewById<View>(R.id.landing_intro_open).setOnClickListener {
-            analyticsManager.report("intro_open")
-            findDocument()
-        }
-        findViewById<View>(R.id.landing_open_fab).setOnClickListener {
-            analyticsManager.report("fab_open")
-            findDocument()
+        if (supportFragmentManager.findFragmentByTag(LandingFragment.FRAGMENT_TAG) == null) {
+            supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.landing_container, LandingFragment(), LandingFragment.FRAGMENT_TAG)
+                .commitNow()
         }
 
         printingManager = PrintingManager()
         initializeProprietaryLibraries()
 
-        initializeCatchAllSwitch()
+        // has to happen here rather than in LandingFragment: users upgrading from a version
+        // with different alias defaults have to be corrected even when the app is launched
+        // straight into a document and the landing screen is never shown
+        val catchAllEnabled = CatchAllSetting.applyOnLaunch(this)
+        analyticsManager.report(if (catchAllEnabled) "catch_all_enabled" else "catch_all_disabled")
 
         // reclaims the uri permissions of documents that have since dropped off the recently
         // opened list. touches the filesystem and the permission binder, so not on the main thread
@@ -277,24 +281,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         loadUri(loadOnStart, documentOpenedExternally)
 
         this.loadOnStart = null
-    }
-
-    private fun initializeCatchAllSwitch() {
-        // retoggles the aliases for users upgrading from a version that shipped different
-        // defaults, and answers with what the stored setting says
-        val isCatchAllEnabled = CatchAllSetting.applyOnLaunch(this)
-
-        val catchAllSwitch = findViewById<SwitchCompat>(R.id.landing_catch_all)
-
-        catchAllSwitch.setOnCheckedChangeListener { _, isChecked ->
-            CatchAllSetting.setEnabled(this, isChecked)
-        }
-
-        catchAllSwitch.isChecked = isCatchAllEnabled
-
-        analyticsManager.report(
-            if (isCatchAllEnabled) "catch_all_enabled" else "catch_all_disabled"
-        )
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -418,6 +404,8 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
             landingContainer.visibility = View.GONE
             documentContainer.visibility = View.VISIBLE
+
+            landingFragment?.setLandingVisible(false)
 
             if (documentFragment == null) {
                 documentFragment = DocumentFragment()
@@ -597,19 +585,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         ttsActionMode = null
     }
 
-    private fun showRecent() {
-        val transaction = supportFragmentManager.beginTransaction()
-
-        val chooserDialog: DialogFragment = RecentDocumentDialogFragment()
-        chooserDialog.show(transaction, RecentDocumentDialogFragment.FRAGMENT_TAG)
-
-        analyticsManager.report(
-            AnalyticsConstants.EVENT_SELECT_CONTENT,
-            AnalyticsConstants.PARAM_CONTENT_TYPE,
-            "recent",
-        )
-    }
-
     private fun buyAdRemoval() {
         analyticsManager.report(AnalyticsConstants.EVENT_ADD_TO_CART)
 
@@ -652,6 +627,10 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         documentContainer.visibility = View.GONE
         landingContainer.visibility = View.VISIBLE
 
+        // the fragment is only hidden, not stopped, so it has to be told to pick the document
+        // that was just closed up into the recently opened list
+        landingFragment?.setLandingVisible(true)
+
         analyticsManager.setCurrentScreen(this, "screen_main")
     }
 
@@ -668,20 +647,13 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                 target.activityInfo.packageName == packageName || target.activityInfo.exported
             }
 
-        val targetNames =
-            (targetList.map { it.loadLabel(packageManager).toString() } +
-                    getString(R.string.menu_recent))
-                .toTypedArray()
+        // the recently opened documents used to be the last row here; they are the landing
+        // screen itself now
+        val targetNames = targetList.map { it.loadLabel(packageManager).toString() }.toTypedArray()
 
         val builder = AlertDialog.Builder(this)
         builder.setTitle(R.string.dialog_choose_filemanager)
         builder.setItems(targetNames) { dialog, which ->
-            if (which == targetNames.size - 1) {
-                showRecent()
-
-                return@setItems
-            }
-
             val target = targetList[which]
 
             intent.component =
