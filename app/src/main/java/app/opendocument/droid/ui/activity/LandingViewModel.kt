@@ -160,7 +160,13 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
      */
     fun restoreRecentDocument(entry: RecentDocumentList.Entry, index: Int) {
         executor.execute {
-            RecentDocumentsUtil.restoreRecentDocument(getApplication(), entry, index)
+            val context = getApplication<Application>()
+
+            // putting one back can push another off the end, if a document was opened while the
+            // undo was still on offer - that one is holding a grant nothing points at any more
+            if (RecentDocumentsUtil.restoreRecentDocument(context, entry, index).isNotEmpty()) {
+                PersistedUriPermissions.prune(context)
+            }
 
             refresh()
         }

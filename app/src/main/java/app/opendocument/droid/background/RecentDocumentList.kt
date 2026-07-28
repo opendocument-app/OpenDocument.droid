@@ -29,8 +29,8 @@ object RecentDocumentList {
     }
 
     /**
-     * The list after an [add], plus whatever fell off the end of it. The evicted entries are handed
-     * back so their persisted uri permissions can be released again.
+     * The list after an [add] or an [insert], plus whatever fell off the end of it. The evicted
+     * entries are handed back so their persisted uri permissions can be released again.
      */
     class Update internal constructor(val entries: List<Entry>, val evicted: List<Entry>)
 
@@ -43,11 +43,7 @@ object RecentDocumentList {
         entries.add(entry)
         current.filterTo(entries) { it.uri != entry.uri }
 
-        if (entries.size <= max) {
-            return Update(entries, emptyList())
-        }
-
-        return Update(entries.subList(0, max).toList(), entries.subList(max, entries.size).toList())
+        return cap(entries, max)
     }
 
     /** Drops every entry for [uri]. Returns [current] unchanged if there is none. */
@@ -58,13 +54,25 @@ object RecentDocumentList {
      *
      * Unlike [add] this does not move it to the front - the point of an undo is that the list ends
      * up looking like it did before. An index past the end lands at the end.
+     *
+     * [max] still applies: the list can have filled up again while the undo was on offer - another
+     * document opened over the top of the snackbar - and an undo is no reason to grow past the cap.
      */
-    fun insert(current: List<Entry>, entry: Entry, index: Int): List<Entry> {
+    fun insert(current: List<Entry>, entry: Entry, index: Int, max: Int = MAX_ENTRIES): Update {
         val entries = ArrayList<Entry>(current.size + 1)
         current.filterTo(entries) { it.uri != entry.uri }
 
         entries.add(index.coerceIn(0, entries.size), entry)
 
-        return entries
+        return cap(entries, max)
+    }
+
+    /** Keeps the first [max] entries, handing the tail back to be released. */
+    private fun cap(entries: List<Entry>, max: Int): Update {
+        if (entries.size <= max) {
+            return Update(entries, emptyList())
+        }
+
+        return Update(entries.subList(0, max).toList(), entries.subList(max, entries.size).toList())
     }
 }

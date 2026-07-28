@@ -65,10 +65,24 @@ object RecentDocumentsUtil {
         return update.evicted
     }
 
-    /** Puts a removed document back where it was, for undoing a swipe. */
+    /**
+     * Puts a removed document back where it was, for undoing a swipe.
+     *
+     * @return the entries that fell out of the list, so [PersistedUriPermissions] can release the
+     *   uri permissions they were holding - the list can have filled up again while the undo was
+     *   still on offer.
+     */
     @Synchronized
-    fun restoreRecentDocument(context: Context, entry: RecentDocumentList.Entry, index: Int) {
-        write(context, RecentDocumentList.insert(read(context), entry, index))
+    fun restoreRecentDocument(
+        context: Context,
+        entry: RecentDocumentList.Entry,
+        index: Int,
+    ): List<RecentDocumentList.Entry> {
+        val update = RecentDocumentList.insert(read(context), entry, index)
+
+        write(context, update.entries)
+
+        return update.evicted
     }
 
     /** Drops [uri] from the list. Does nothing if it is not in it. */
