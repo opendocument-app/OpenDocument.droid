@@ -29,6 +29,7 @@ import app.opendocument.droid.ui.activity.MainActivity
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import org.hamcrest.Matchers.allOf
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -121,6 +122,32 @@ class LandingTests {
     }
 
     @Test
+    fun addingAFolderAsksTheSystemForATree() {
+        Intents.intending(hasAction(Intent.ACTION_OPEN_DOCUMENT_TREE))
+            .respondWith(Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null))
+
+        launch()
+
+        onView(withId(R.id.landing_empty_add_folder)).perform(click())
+
+        Intents.intended(hasAction(Intent.ACTION_OPEN_DOCUMENT_TREE))
+    }
+
+    @Test
+    fun theFoldersSectionOffersToAddOne() {
+        seedRecentDocument()
+
+        launch()
+
+        onView(withText(R.string.landing_section_folders)).check(matches(isDisplayed()))
+
+        // the empty state carries a button with the same label, so match the one on screen -
+        // the empty state is gone once there is a recent document to show
+        onView(allOf(withText(R.string.landing_add_folder), isDisplayed()))
+            .check(matches(isDisplayed()))
+    }
+
+    @Test
     fun theCatchAllSettingIsOffered() {
         seedRecentDocument()
 
@@ -155,8 +182,13 @@ class LandingTests {
         RecentDocumentsUtil.addRecentDocument(context(), TEST_DOCUMENT, uriOf(requireTestFile()))
     }
 
+    /**
+     * Both stores, not just the recent documents: a folder granted on this device - by a previous
+     * run, or by hand - would keep the empty state from ever being shown.
+     */
     private fun clearLandingState() {
         context().deleteFile("recent_documents.json")
+        context().deleteFile("folder_trees.json")
     }
 
     private fun waitForDocumentFragment(activity: MainActivity): Boolean {

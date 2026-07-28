@@ -208,6 +208,21 @@ a second parse of the whole file, so a format whose declared `edit`/`save` are a
 is never opened just to be told no. It is an upper bound by definition - the document is
 still what answers.
 
+### Storage access
+
+The app declares **no storage permission at all** - only `INTERNET` - and it has to stay that way.
+`READ_EXTERNAL_STORAGE` has not reached documents since scoped storage, `READ_MEDIA_*` only covers
+images/video/audio, and Play restricts `MANAGE_EXTERNAL_STORAGE` to file managers and backup apps,
+so a document viewer asking for it gets the listing rejected.
+
+Everything therefore goes through SAF: `ACTION_OPEN_DOCUMENT` for a single file and
+`ACTION_OPEN_DOCUMENT_TREE` (read only, never `FLAG_GRANT_WRITE_URI_PERMISSION`) for the folders
+the landing screen browses. Those grants have to be persisted to survive a restart -
+`PersistedUriPermissions` takes them and reclaims them by reconciling against the recent list and
+the granted trees, rather than releasing on close. Do not add a release next to a
+`documentFragment.loadUri()`: that call only queues the load onto `LoaderService`, so the stream is
+opened long after it returns.
+
 ### Language
 
 Kotlin; support is built into AGP 9, no kotlin plugin is applied. The only java left is

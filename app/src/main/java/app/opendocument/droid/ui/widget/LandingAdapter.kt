@@ -11,7 +11,10 @@ import androidx.recyclerview.widget.RecyclerView
 import app.opendocument.droid.R
 import com.google.android.material.materialswitch.MaterialSwitch
 
-/** The rows of the landing screen: the recently opened documents and the catch-all setting. */
+/**
+ * The rows of the landing screen: the recently opened documents, the folders the user granted
+ * access to, and the settings.
+ */
 class LandingAdapter(private val listener: Listener) :
     ListAdapter<LandingItem, LandingAdapter.ViewHolder>(DIFF) {
 
@@ -21,6 +24,12 @@ class LandingAdapter(private val listener: Listener) :
 
         fun onDocumentRemoveRequested(document: LandingItem.Document)
 
+        fun onFolderClicked(folder: LandingItem.Folder)
+
+        fun onFolderRemoveRequested(folder: LandingItem.Folder)
+
+        fun onActionClicked(action: Int)
+
         fun onCatchAllChanged(enabled: Boolean)
     }
 
@@ -28,6 +37,8 @@ class LandingAdapter(private val listener: Listener) :
         when (getItem(position)) {
             is LandingItem.Header -> TYPE_HEADER
             is LandingItem.Document -> TYPE_DOCUMENT
+            is LandingItem.Folder -> TYPE_FOLDER
+            is LandingItem.Action -> TYPE_ACTION
             is LandingItem.CatchAll -> TYPE_CATCH_ALL
             is LandingItem.Message -> TYPE_MESSAGE
         }
@@ -40,6 +51,7 @@ class LandingAdapter(private val listener: Listener) :
                 TYPE_HEADER -> R.layout.item_landing_header
                 TYPE_CATCH_ALL -> R.layout.item_landing_switch
                 TYPE_MESSAGE -> R.layout.item_landing_message
+                // documents, folders and actions are all an icon plus a label
                 else -> R.layout.item_landing_row
             }
 
@@ -61,6 +73,24 @@ class LandingAdapter(private val listener: Listener) :
 
                     true
                 }
+            }
+
+            is LandingItem.Folder -> {
+                holder.icon.setImageResource(R.drawable.ic_folder)
+                holder.title.text = item.name
+                holder.itemView.setOnClickListener { listener.onFolderClicked(item) }
+                holder.itemView.setOnLongClickListener {
+                    listener.onFolderRemoveRequested(item)
+
+                    true
+                }
+            }
+
+            is LandingItem.Action -> {
+                holder.icon.setImageResource(item.icon)
+                holder.title.setText(item.label)
+                holder.itemView.setOnClickListener { listener.onActionClicked(item.action) }
+                holder.itemView.setOnLongClickListener(null)
             }
 
             is LandingItem.CatchAll -> {
@@ -85,8 +115,10 @@ class LandingAdapter(private val listener: Listener) :
     private companion object {
         const val TYPE_HEADER = 0
         const val TYPE_DOCUMENT = 1
-        const val TYPE_CATCH_ALL = 2
-        const val TYPE_MESSAGE = 3
+        const val TYPE_FOLDER = 2
+        const val TYPE_ACTION = 3
+        const val TYPE_CATCH_ALL = 4
+        const val TYPE_MESSAGE = 5
 
         val DIFF =
             object : DiffUtil.ItemCallback<LandingItem>() {
@@ -102,10 +134,13 @@ class LandingAdapter(private val listener: Listener) :
                         oldItem is LandingItem.Document && newItem is LandingItem.Document ->
                             oldItem.filename == newItem.filename
 
+                        oldItem is LandingItem.Folder && newItem is LandingItem.Folder ->
+                            oldItem.name == newItem.name
+
                         oldItem is LandingItem.CatchAll && newItem is LandingItem.CatchAll ->
                             oldItem.checked == newItem.checked
 
-                        // headers and messages are fully described by their id
+                        // headers, messages and actions are fully described by their id
                         else -> true
                     }
             }
