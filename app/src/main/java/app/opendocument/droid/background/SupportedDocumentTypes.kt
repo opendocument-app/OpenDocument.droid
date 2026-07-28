@@ -18,13 +18,15 @@ object SupportedDocumentTypes {
     /** Mime types and prefixes taken from the STRICT_CATCH filter. */
     private val MIME_PREFIXES =
         listOf(
+            // everything the core opens as a document - the same set as CoreLoader.isSupported
             "application/vnd.oasis.opendocument",
-            // the two ooxml types the filter spells out, rather than the family they belong to:
-            // pptx shares that prefix and CoreLoader does not open it yet, so a folder would
-            // offer a presentation and then drop it into the upload flow
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/x-vnd.oasis.opendocument",
+            "application/vnd.openxmlformats-officedocument",
+            "application/vnd.ms-word",
             "application/msword",
+            "application/vnd.ms-excel",
+            "application/vnd.ms-powerpoint",
+            // and what the core or RawLoader shows without being a document
             "application/pdf",
             "application/zip",
             "text/plain",
@@ -45,7 +47,10 @@ object SupportedDocumentTypes {
             "otg",
             "doc",
             "docx",
+            "xls",
             "xlsx",
+            "ppt",
+            "pptx",
             "pdf",
             "txt",
             "csv",

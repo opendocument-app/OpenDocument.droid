@@ -145,12 +145,18 @@ the `.pro` suffix) differ on purpose - do not "fix" the mismatch:
   `AndroidFileCache`, the SharedPreferences name in `MainActivity`) follows
   `applicationId` and must stay that way, or existing users lose their saved prefs.
 
-### Supported file types are declared twice
+### Supported file types are declared three times
 
-`SupportedDocumentTypes` (mime prefixes plus an extension fallback) and the `STRICT_CATCH`
-`activity-alias` in `AndroidManifest.xml` describe the same set from two directions - the manifest
-is what the system offers the app for, `SupportedDocumentTypes` is what the folder browser on the
-landing screen offers itself for. **Nothing keeps them in step, so change both.**
+`CoreLoader.MIME_PREFIXES`, `SupportedDocumentTypes` (mime prefixes plus an extension fallback) and
+the `STRICT_CATCH` `activity-alias` in `AndroidManifest.xml` describe the same set from three
+directions - the manifest is what the system offers the app for, `SupportedDocumentTypes` is what
+the folder browser on the landing screen offers itself for, and the loader is what the core is
+expected to render. **Nothing keeps them in step, so change all three.**
+
+The set follows odrcore: whatever it keeps reference html output for in `test/data/reference-output`
+is what the app claims - odf, ooxml, the legacy binary doc/ppt/xls and pdf. Text, csv and images are
+the core's too but belong to `RawLoader`, which only gets its turn when `CoreLoader.isSupported()`
+says no.
 
 The duplication is deliberate: `MetadataLoader` decides what is really supported by running
 libmagic over the file *after* copying it into the cache, and `CoreLoader.isSupported()` /

@@ -133,8 +133,12 @@ class OnlineLoader(context: Context?, private val coreLoader: CoreLoader) :
     }
 
     private fun buildViewerUri(options: Options, downloadUrl: String): Uri {
-        if (coreLoader.isSupported(options)) {
-            // ODF does not seem to be supported by google docs viewer
+        // ODF does not seem to be supported by google docs viewer, but pdf is the one thing the
+        // microsoft viewer will not take - and the core opens both, so what it supports no longer
+        // tells the two apart on its own
+        val isPdf = options.fileType?.startsWith("application/pdf") == true
+
+        if (coreLoader.isSupported(options) && !isPdf) {
             return Uri.parse(MICROSOFT_VIEWER_URL + downloadUrl)
         }
 

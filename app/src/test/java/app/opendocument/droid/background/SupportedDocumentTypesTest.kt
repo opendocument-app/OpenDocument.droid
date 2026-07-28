@@ -31,16 +31,19 @@ class SupportedDocumentTypesTest {
     }
 
     @Test
-    fun presentationsTheCoreCannotOpenAreNotSupported() {
-        // pptx sits in the same ooxml family as docx and xlsx, but neither the STRICT_CATCH filter
-        // nor CoreLoader takes it - listing one would promise an open that ends in the upload flow
-        assertFalse(
+    fun presentationsAndTheLegacyBinaryFormatsAreSupported() {
+        assertTrue(
             supported(
                 "application/vnd.openxmlformats-officedocument.presentationml.presentation",
                 "deck.pptx",
             )
         )
-        assertFalse(supported("application/vnd.ms-powerpoint", "deck.ppt"))
+        assertTrue(supported("application/vnd.ms-powerpoint", "deck.ppt"))
+        assertTrue(supported("application/vnd.ms-excel", "budget.xls"))
+        // the octet-stream a provider volunteers for them, caught by the extension instead
+        assertTrue(supported("application/octet-stream", "deck.pptx"))
+        assertTrue(supported("application/octet-stream", "deck.ppt"))
+        assertTrue(supported("application/octet-stream", "budget.xls"))
     }
 
     @Test
