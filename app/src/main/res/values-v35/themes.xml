@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="MainTheme" parent="Theme.AppCompat.Light">
-        <item name="colorPrimary">#ffffff</item>
-        <item name="colorPrimaryDark">#6b6b6b</item>
-        <item name="colorAccent">#b5b5b5</item>
-        <item name="android:textColorPrimary">#6b6b6b</item>
-        <item name="android:textColorSecondary">#b5b5b5</item>
-        <item name="android:forceDarkAllowed">true</item>
-        <!-- Edge-to-edge is enforced from targetSdk 35 on; system bars are transparent
-             over the app's light UI, so request dark icons. Insets are handled in
-             MainActivity. -->
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
+    <!--
+        Edge-to-edge is enforced from targetSdk 35 on; the system bars are transparent over the
+        app's own UI, so the icon colour has to follow whichever theme is in effect. Insets are
+        handled in MainActivity.
+    -->
+    <style name="MainTheme" parent="Base.MainTheme">
+        <item name="android:windowLightStatusBar">@bool/window_light_system_bars</item>
+        <item name="android:windowLightNavigationBar">@bool/window_light_system_bars</item>
     </style>
+
 </resources>
