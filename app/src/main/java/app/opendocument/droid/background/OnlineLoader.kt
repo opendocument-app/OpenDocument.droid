@@ -98,7 +98,16 @@ class OnlineLoader(context: Context?, private val coreLoader: CoreLoader) :
             }
         }
 
+        // a converted document is answered with a redirect to it, so a response without a Location
+        // is the server refusing the file - concatenating the missing header would build a
+        // "...appnull" url that only fails later, inside the webview
+        val responseCode = connection.responseCode
         val redirectUrl = connection.getHeaderField("Location")
+        if (redirectUrl.isNullOrEmpty()) {
+            val error = readError(connection)
+            throw IOException("server couldn't handle request: $responseCode $error")
+        }
+
         return Uri.parse(basePath + redirectUrl)
     }
 
