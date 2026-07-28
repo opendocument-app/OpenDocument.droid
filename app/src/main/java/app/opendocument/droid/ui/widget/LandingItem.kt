@@ -35,6 +35,16 @@ sealed class LandingItem {
         override val id: String = "message:$text"
     }
 
+    /**
+     * What the screen says while it has nothing to list, offering both ways to fill it.
+     *
+     * A row like any other, so that the settings underneath stay on screen - shown instead of the
+     * list, it would take the catch-all switch with it on a fresh install.
+     */
+    class Empty : LandingItem() {
+        override val id: String = "empty"
+    }
+
     companion object {
         const val ACTION_ADD_FOLDER: Int = 1
         const val ACTION_UP: Int = 2
