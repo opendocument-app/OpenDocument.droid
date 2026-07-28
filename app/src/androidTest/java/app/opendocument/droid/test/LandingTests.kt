@@ -13,6 +13,7 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
 import androidx.test.espresso.intent.Intents
@@ -83,7 +84,7 @@ class LandingTests {
 
         launch()
 
-        onView(withId(R.id.landing_empty_open)).perform(click())
+        onView(withId(R.id.landing_empty_open)).perform(closeSoftKeyboard(), click())
 
         Intents.intended(hasAction(Intent.ACTION_OPEN_DOCUMENT))
     }
@@ -103,7 +104,7 @@ class LandingTests {
 
         val activity = launch()
 
-        onView(withText(TEST_DOCUMENT)).perform(click())
+        onView(withText(TEST_DOCUMENT)).perform(closeSoftKeyboard(), click())
 
         Assert.assertTrue(
             "the document did not load after tapping its entry in the recent list",
@@ -119,7 +120,7 @@ class LandingTests {
 
         launch()
 
-        onView(withId(R.id.landing_open_fab)).perform(click())
+        onView(withId(R.id.landing_open_fab)).perform(closeSoftKeyboard(), click())
 
         Intents.intended(hasAction(Intent.ACTION_OPEN_DOCUMENT))
     }
@@ -131,7 +132,7 @@ class LandingTests {
 
         launch()
 
-        onView(withId(R.id.landing_empty_add_folder)).perform(click())
+        onView(withId(R.id.landing_empty_add_folder)).perform(closeSoftKeyboard(), click())
 
         Intents.intended(hasAction(Intent.ACTION_OPEN_DOCUMENT_TREE))
     }

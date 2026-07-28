@@ -17,6 +17,7 @@ import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.IdlingResource
 import androidx.test.espresso.action.ViewActions.clearText
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
@@ -176,7 +177,8 @@ class MainActivityTests {
         // Enter wrong password first
         onView(withClassName(equalTo("android.widget.EditText"))).perform(typeText("wrongpassword"))
 
-        onView(withId(android.R.id.button1)).perform(click())
+        // typing leaves the keyboard up, and on a short screen it covers the dialog's buttons
+        onView(withId(android.R.id.button1)).perform(closeSoftKeyboard(), click())
 
         // Should show password dialog again for wrong password
         onView(withText("This document is password-protected")).check(matches(isDisplayed()))
@@ -185,7 +187,7 @@ class MainActivityTests {
         onView(withClassName(equalTo("android.widget.EditText")))
             .perform(clearText(), typeText("passwort"))
 
-        onView(withId(android.R.id.button1)).perform(click())
+        onView(withId(android.R.id.button1)).perform(closeSoftKeyboard(), click())
 
         // Check if the document buttons become available (indicating successful load)
         waitForDocumentActions()
@@ -261,6 +263,11 @@ class MainActivityTests {
     // action is gone. exactly one of its two entry points is on screen - the fab is hidden
     // while the empty state is up - and which one depends on whether an earlier test already
     // left a document in the recent list, so match either.
+    //
+    // closeSoftKeyboard first, and it is not decoration: both entry points sit in the lower
+    // half of the screen, where a keyboard left over from an earlier test covers them. the
+    // ime window is above ours, so the tap lands on it, espresso reports the click as
+    // performed, and nothing happens - see the note on waitForDocumentActions.
     private fun openDocumentThroughPicker() {
         onView(
                 allOf(
@@ -268,12 +275,16 @@ class MainActivityTests {
                     isDisplayed(),
                 )
             )
-            .perform(click())
+            .perform(closeSoftKeyboard(), click())
     }
 
     // the buttons of the open document are up once it has loaded, so this blocks on the idling
     // resource and then says whether anything came of the load. only the button that unfolds the
     // rest is checked: what is inside it differs per format, a pdf cannot be edited.
+    //
+    // a click that never reached the app fails here rather than where it happened: nothing was
+    // ever queued, so the idling resource stays idle, this does not wait, and the landing screen
+    // is still what is on screen.
     private fun waitForDocumentActions() {
         onView(withId(R.id.document_actions_more)).check(matches(isDisplayed()))
     }
