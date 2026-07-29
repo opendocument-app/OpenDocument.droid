@@ -257,6 +257,24 @@
                 <data android:mimeType="application/msword" />
                 <data android:mimeType="application/vnd.ms-excel" />
                 <data android:mimeType="application/vnd.ms-powerpoint" />
+                <!--
+                     the ooxml templates, slideshows and macro enabled variants. an intent-filter
+                     matches a mime type exactly, so each spelling has to be named here - where
+                     SupportedDocumentTypes takes the whole family in two prefixes. leaving these
+                     out let a .dotx open when browsed to inside the app while the same file was
+                     not offered to us from another one. SupportedFormatsTest pins the pair.
+                -->
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.template" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.template" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.presentationml.template" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.presentationml.slideshow" />
+                <data android:mimeType="application/vnd.ms-word.document.macroEnabled.12" />
+                <data android:mimeType="application/vnd.ms-word.template.macroEnabled.12" />
+                <data android:mimeType="application/vnd.ms-excel.sheet.macroEnabled.12" />
+                <data android:mimeType="application/vnd.ms-excel.template.macroEnabled.12" />
+                <data android:mimeType="application/vnd.ms-powerpoint.presentation.macroEnabled.12" />
+                <data android:mimeType="application/vnd.ms-powerpoint.template.macroEnabled.12" />
+                <data android:mimeType="application/vnd.ms-powerpoint.slideshow.macroEnabled.12" />
                 <!-- raw types handled by RawLoader; text/plain (not text/*) avoids re-matching text/vcard contacts (#477) -->
                 <data android:mimeType="text/plain" />
                 <data android:mimeType="text/csv" />

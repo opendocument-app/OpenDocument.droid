@@ -3,11 +3,8 @@ package app.opendocument.droid.ui.activity
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.content.res.Configuration
 import android.net.Uri
@@ -33,6 +30,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.DialogFragment
 import app.opendocument.droid.R
+import app.opendocument.droid.background.CatchAllSetting
 import app.opendocument.droid.background.LoaderService
 import app.opendocument.droid.background.LoaderServiceQueue
 import app.opendocument.droid.background.PersistedUriPermissions
@@ -282,34 +280,14 @@ class MainActivity : AppCompatActivity(), MenuProvider {
     }
 
     private fun initializeCatchAllSwitch() {
-        // these keep the historical at.tomtasche.reader names on purpose: the component
-        // name is what the OS persists when a user picks "always open .odt with this
-        // app", and what setComponentEnabledSetting below stores the toggle against.
-        // renaming them would drop those defaults for every existing install, so the
-        // manifest declares the aliases under the old names too.
-        val catchAllComponent =
-            ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL")
-        val strictCatchComponent =
-            ComponentName(this, "at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH")
-
-        val preferences = getDefaultSharedPreferences()
-
-        // catch-all is only active if the user explicitly opted in. new installs and
-        // existing users who never touched the switch default to STRICT_CATCH, so we
-        // no longer volunteer to open unrelated file types like contacts (issue #477).
-        val isCatchAllEnabled = preferences.getBoolean(PREF_CATCH_ALL_ENABLED, false)
-
-        // retoggle components for users upgrading to latest version of app
-        toggleComponent(catchAllComponent, isCatchAllEnabled)
-        toggleComponent(strictCatchComponent, !isCatchAllEnabled)
+        // retoggles the aliases for users upgrading from a version that shipped different
+        // defaults, and answers with what the stored setting says
+        val isCatchAllEnabled = CatchAllSetting.applyOnLaunch(this)
 
         val catchAllSwitch = findViewById<SwitchCompat>(R.id.landing_catch_all)
 
         catchAllSwitch.setOnCheckedChangeListener { _, isChecked ->
-            preferences.edit().putBoolean(PREF_CATCH_ALL_ENABLED, isChecked).apply()
-
-            toggleComponent(catchAllComponent, isChecked)
-            toggleComponent(strictCatchComponent, !isChecked)
+            CatchAllSetting.setEnabled(this, isChecked)
         }
 
         catchAllSwitch.isChecked = isCatchAllEnabled
@@ -317,22 +295,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         analyticsManager.report(
             if (isCatchAllEnabled) "catch_all_enabled" else "catch_all_disabled"
         )
-    }
-
-    /**
-     * The preferences android.preference.PreferenceManager used to hand out. That class is
-     * deprecated and its androidx replacement lives in a whole preference-ui library we do not
-     * otherwise need, so the default file is opened by name instead - keeping the existing
-     * catch-all setting of users who upgrade.
-     */
-    private fun getDefaultSharedPreferences(): SharedPreferences =
-        getSharedPreferences(packageName + "_preferences", Context.MODE_PRIVATE)
-
-    private fun toggleComponent(component: ComponentName, enabled: Boolean) {
-        val newState =
-            if (enabled) PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-            else PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-        packageManager.setComponentEnabledSetting(component, newState, PackageManager.DONT_KILL_APP)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -787,7 +749,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         const val SAVED_KEY_OPENED_EXTERNALLY = "OPENED_EXTERNALLY"
         const val GOOGLE_REQUEST_CODE = 1993
         const val DOCUMENT_FRAGMENT_TAG = "document_fragment"
-        const val PREF_CATCH_ALL_ENABLED = "catch_all_enabled"
 
         // taken from: https://stackoverflow.com/a/36829889/198996
         private fun isTesting(): Boolean =

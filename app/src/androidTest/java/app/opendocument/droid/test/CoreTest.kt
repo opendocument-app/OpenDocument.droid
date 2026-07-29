@@ -181,6 +181,42 @@ class CoreTest {
         Assert.assertFalse("hosting the XLS file should produce a view", views.isEmpty())
     }
 
+    /**
+     * Which of the formats the core renders it can also write back again - the answer
+     * `DocumentFragment` puts the Edit button up by. Offering it for a document the core will not
+     * save only gets as far as a failed save, which is what happened to the legacy binary formats
+     * when they started going through the core.
+     */
+    @Test
+    fun testEditableFormats() {
+        assertEditable("odt-editable", requireFile(testFile), true)
+        assertEditable("docx-editable", requireFile(docxTestFile), true)
+
+        // the core declares these read only: the three legacy binary formats, ooxml presentations
+        // and every spreadsheet - the last being issue #442, which the core has its own TODO for
+        assertEditable("doc-editable", requireFile(docTestFile), false)
+        assertEditable("ppt-editable", requireFile(pptTestFile), false)
+        assertEditable("xls-editable", requireFile(xlsTestFile), false)
+        assertEditable("pptx-editable", requireFile(pptxTestFile), false)
+        assertEditable("ods-editable", requireFile(spreadsheetTestFile), false)
+    }
+
+    private fun assertEditable(prefix: String, file: File, expected: Boolean) {
+        coreLoader.host(
+            prefix = prefix,
+            inputPath = file.absolutePath,
+            cachePath = File(cacheDir(), prefix).path,
+            editable = true,
+            keepDocument = true,
+        )
+
+        Assert.assertEquals(
+            "the core should report ${file.name} as ${if (expected) "editable" else "read only"}",
+            expected,
+            coreLoader.isDocumentEditable,
+        )
+    }
+
     @Test
     fun testPasswordProtectedDocumentWithoutPassword() {
         Assert.assertThrows(OdrException.FileEncrypted::class.java) {
