@@ -145,6 +145,22 @@ the `.pro` suffix) differ on purpose - do not "fix" the mismatch:
   `AndroidFileCache`, the SharedPreferences name in `MainActivity`) follows
   `applicationId` and must stay that way, or existing users lose their saved prefs.
 
+### Supported file types are declared twice, and both copies have to move together
+
+`CoreLoader.MIME_PREFIXES` is what the app offers itself for; the `STRICT_CATCH`
+`activity-alias` in `AndroidManifest.xml` is what the system offers it for. **Keep the two
+in step** - a format added to one and forgotten in the other is either a loader that never
+gets the file, or an app that is missing from the share sheet.
+
+The set follows odrcore: whatever it keeps reference html output for in
+`test/data/reference-output` is what the app claims - odf, ooxml, the legacy binary
+doc/ppt/xls and pdf. Text, csv and images are the core's too, but belong to `RawLoader`,
+which only gets its turn when `CoreLoader.isSupported()` says no.
+
+The kotlin side matches by *prefix*, so it also claims the ooxml templates, slideshows and
+macro-enabled variants. An intent-filter matches a mime type exactly, so every one of those
+spellings has to be named in the manifest on its own.
+
 ### Language
 
 Kotlin; support is built into AGP 9, no kotlin plugin is applied. The only java left is

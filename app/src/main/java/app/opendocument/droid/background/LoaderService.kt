@@ -60,7 +60,7 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
             crashManager,
         )
 
-        coreLoader = CoreLoader(this, true)
+        coreLoader = CoreLoader(this)
         coreLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager)
 
         rawLoader = RawLoader(this, coreLoader)

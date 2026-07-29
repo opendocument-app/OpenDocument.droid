@@ -31,6 +31,10 @@ class CoreTest {
     private var passwordTestFile: File? = null
     private var spreadsheetTestFile: File? = null
     private var docxTestFile: File? = null
+    private var pptxTestFile: File? = null
+    private var docTestFile: File? = null
+    private var pptTestFile: File? = null
+    private var xlsTestFile: File? = null
 
     private val coreLoader: CoreLoader
         get() = checkNotNull(sharedLoader) { "the core loader was not started" }
@@ -58,6 +62,22 @@ class CoreTest {
                 assetManager.open("style-various-1.docx"),
                 File(appCtx.cacheDir, "style-various-1.docx"),
             )
+        pptxTestFile =
+            extract(
+                assetManager.open("style-various-1.pptx"),
+                File(appCtx.cacheDir, "style-various-1.pptx"),
+            )
+        docTestFile = extract(assetManager.open("11KB.doc"), File(appCtx.cacheDir, "11KB.doc"))
+        pptTestFile =
+            extract(
+                assetManager.open("style-various-1.ppt"),
+                File(appCtx.cacheDir, "style-various-1.ppt"),
+            )
+        xlsTestFile =
+            extract(
+                assetManager.open("file_example_XLS_10.xls"),
+                File(appCtx.cacheDir, "file_example_XLS_10.xls"),
+            )
     }
 
     @After
@@ -66,6 +86,10 @@ class CoreTest {
         passwordTestFile?.delete()
         spreadsheetTestFile?.delete()
         docxTestFile?.delete()
+        pptxTestFile?.delete()
+        docTestFile?.delete()
+        pptTestFile?.delete()
+        xlsTestFile?.delete()
     }
 
     @Test
@@ -107,6 +131,54 @@ class CoreTest {
 
         val result = coreLoader.edit(htmlDiff, File(cacheDir(), "result_docx").path)
         Assert.assertTrue("the edited document should have been saved", result.isFile)
+    }
+
+    /**
+     * The formats that used to be sent off for conversion instead: presentations, and the legacy
+     * binary microsoft ones. The core renders all four, so the app hands them to it.
+     */
+    @Test
+    fun testPptx() {
+        val views =
+            coreLoader.host(
+                prefix = "pptx-test",
+                inputPath = requireFile(pptxTestFile).absolutePath,
+                cachePath = File(cacheDir(), "pptx_cache").path,
+            )
+        Assert.assertFalse("hosting the PPTX file should produce a view", views.isEmpty())
+    }
+
+    @Test
+    fun testDoc() {
+        val views =
+            coreLoader.host(
+                prefix = "doc-test",
+                inputPath = requireFile(docTestFile).absolutePath,
+                cachePath = File(cacheDir(), "doc_cache").path,
+            )
+        Assert.assertFalse("hosting the DOC file should produce a view", views.isEmpty())
+    }
+
+    @Test
+    fun testPpt() {
+        val views =
+            coreLoader.host(
+                prefix = "ppt-test",
+                inputPath = requireFile(pptTestFile).absolutePath,
+                cachePath = File(cacheDir(), "ppt_cache").path,
+            )
+        Assert.assertFalse("hosting the PPT file should produce a view", views.isEmpty())
+    }
+
+    @Test
+    fun testXls() {
+        val views =
+            coreLoader.host(
+                prefix = "xls-test",
+                inputPath = requireFile(xlsTestFile).absolutePath,
+                cachePath = File(cacheDir(), "xls_cache").path,
+            )
+        Assert.assertFalse("hosting the XLS file should produce a view", views.isEmpty())
     }
 
     @Test
@@ -176,7 +248,7 @@ class CoreTest {
             // set of statics. nothing here goes through loadAsync, so both handlers can be the main
             // looper and the listener is never called back
             val handler = Handler(Looper.getMainLooper())
-            val loader = CoreLoader(appCtx, true)
+            val loader = CoreLoader(appCtx)
             sharedLoader = loader
             loader.initialize(
                 object : FileLoader.FileLoaderListener {

@@ -43,8 +43,7 @@ import java.io.IOException
  */
 // the context is nullable like FileLoader's own field, which close() clears and the unit
 // tests never set - isSupported() is pure and does not need one
-class CoreLoader(context: Context?, private val doOoxml: Boolean) :
-    FileLoader(context, LoaderType.CORE) {
+class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
 
     private var server: HttpServer? = null
     private var httpThread: Thread? = null
@@ -131,22 +130,25 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
         else FALLBACK_SERVER_PORT
     }
 
+    /**
+     * What the core renders itself: opendocument, ooxml, the three legacy binary microsoft formats
+     * and pdf. odrcore keeps reference html output for every one of them, doc, ppt and xls
+     * included, so there is nothing left here to hold back.
+     *
+     * Text, csv and images are left out although the core takes those too - [RawLoader] is what
+     * gives them their player or their viewer, and this answer is what lets it have its turn. The
+     * rest of it decides whether a failed load is worth reporting and which viewer [OnlineLoader]
+     * falls back to.
+     *
+     * Matching by prefix carries the variants along: the ooxml prefix covers the templates, and the
+     * macro enabled ones are spelled `vnd.ms-word.document.macroEnabled.12` and so on, which is why
+     * the legacy powerpoint and excel types appear here without their subtypes and why
+     * `vnd.ms-word` is listed next to `msword`.
+     */
     override fun isSupported(options: Options): Boolean {
         val fileType = options.fileType ?: return false
-        return fileType.startsWith("application/vnd.oasis.opendocument") ||
-            fileType.startsWith("application/x-vnd.oasis.opendocument") ||
-            fileType.startsWith("application/vnd.oasis.opendocument.text-master") ||
-            fileType.startsWith("application/msword") ||
-            (doOoxml &&
-                (fileType.startsWith(
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                ) ||
-                    fileType.startsWith(
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
-                // TODO: enable pptx too
-                // fileType.startsWith("application/vnd.openxmlformats-officedocument.presentationml.presentation")
-                ))
+
+        return MIME_PREFIXES.any { fileType.startsWith(it) }
     }
 
     override fun loadSync(options: Options) {
@@ -232,8 +234,10 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
 
         if (keepDocument) {
             closeDocument()
-            // .doc-files are not real documents in core
-            if (file.isDocumentFile && file.fileType() != FileType.LEGACY_WORD_DOCUMENT) {
+            // only what [edit] can do something with: the core parses the legacy binary formats
+            // but declares them neither editable nor savable, so holding one open would buy a
+            // second parse and nothing else
+            if (file.isDocumentFile && !isLegacy(file.fileType())) {
                 // TODO this will cause a second load
                 document = file.asDocumentFile().document()
             }
@@ -326,11 +330,33 @@ class CoreLoader(context: Context?, private val doOoxml: Boolean) :
         document = null
     }
 
+    private fun isLegacy(fileType: FileType): Boolean =
+        fileType == FileType.LEGACY_WORD_DOCUMENT ||
+            fileType == FileType.LEGACY_POWERPOINT_PRESENTATION ||
+            fileType == FileType.LEGACY_EXCEL_WORKSHEETS
+
     /** A translated view of a document, ready to be opened in the WebView. */
     data class HostedView(val name: String, val url: String)
 
     companion object {
         private const val TAG = "CoreLoader"
+
+        /** See [isSupported]. Mirrored by the STRICT_CATCH filter in AndroidManifest.xml. */
+        private val MIME_PREFIXES =
+            listOf(
+                // odf, including the master documents and the x- spelling some providers use
+                "application/vnd.oasis.opendocument",
+                "application/x-vnd.oasis.opendocument",
+                // ooxml: word, excel and powerpoint, their templates and their macro variants
+                "application/vnd.openxmlformats-officedocument",
+                "application/vnd.ms-word",
+                // legacy binary microsoft: doc, xls and ppt
+                "application/msword",
+                "application/vnd.ms-excel",
+                "application/vnd.ms-powerpoint",
+                // not a document, but the core renders it just the same
+                "application/pdf",
+            )
 
         /** The loopback address the server binds to. */
         private const val SERVER_BIND_ADDRESS = "127.0.0.1"
