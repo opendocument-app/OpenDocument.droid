@@ -60,13 +60,12 @@ object SupportedDocumentTypes {
     private val RAW_MIME_PREFIXES = listOf("text/plain", "text/csv", "image/", "application/zip")
 
     /**
-     * The extensions to fall back on, spelling out the same set once more because providers
-     * regularly volunteer nothing better than `application/octet-stream`.
+     * The extensions odrcore's own `fileTypeByFileExtension` names, one suffix per format.
      *
-     * Public so `SupportedFormatsTest` can walk it: it holds every one of these against the core's
-     * own extension table and against the manifest.
+     * Public so `SupportedFormatsTest` can hold each of them against that table - the assertion
+     * that this list stays a subset of what the core recognises.
      */
-    val EXTENSIONS: Set<String> =
+    val CORE_EXTENSIONS: Set<String> =
         setOf(
             "odt",
             "ods",
@@ -87,6 +86,46 @@ object SupportedDocumentTypes {
             "csv",
             "zip",
         )
+
+    /**
+     * The ooxml templates, macro enabled documents and slideshows, which odrcore's extension table
+     * leaves out although it renders every one of them - they are the same packages as the `x`
+     * suffixed ones, and libmagic identifies them by content once the file is in the cache.
+     *
+     * Kept apart from [CORE_EXTENSIONS] so that a test can say which of the two invariants applies
+     * to which half, rather than quietly dropping the check for all of them.
+     */
+    val OOXML_VARIANT_EXTENSIONS: Set<String> =
+        setOf(
+            "docm",
+            "dotx",
+            "dotm",
+            "xlsm",
+            "xltx",
+            "xltm",
+            "pptm",
+            "potx",
+            "potm",
+            "ppsx",
+            "ppsm",
+        )
+
+    /**
+     * The extensions to fall back on, spelling out the same set once more because providers
+     * regularly volunteer nothing better than `application/octet-stream` - and because a file
+     * manager that sends `ACTION_VIEW` with no mime type at all leaves the name as the only thing
+     * anyone can go on. That second case is what the `pathPattern` filters in AndroidManifest.xml
+     * cover, and they have to list exactly this set.
+     *
+     * The ooxml variants are here for the same reason [CORE_MIME_PREFIXES] matches by prefix: a
+     * `.dotx` is the same wordprocessing package as a `.docx`. Note that odrcore's own
+     * `fileTypeByFileExtension` does *not* know them - its extension table names one suffix per
+     * format - which is why [SupportedFormatsTest] holds only [CORE_EXTENSIONS] against it.
+     *
+     * Public so `SupportedFormatsTest` can walk it: it holds every one of these against the
+     * manifest.
+     */
+    val EXTENSIONS: Set<String> = CORE_EXTENSIONS + OOXML_VARIANT_EXTENSIONS
 
     /** Whether [CoreLoader] is expected to render this - see [CORE_MIME_PREFIXES]. */
     fun isRenderedByCore(mimeType: String?): Boolean = matches(mimeType, CORE_MIME_PREFIXES)

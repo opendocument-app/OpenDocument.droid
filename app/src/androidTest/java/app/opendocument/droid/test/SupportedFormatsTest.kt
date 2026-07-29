@@ -66,12 +66,32 @@ class SupportedFormatsTest {
         Assert.assertTrue("no file type was checked", checked > 10)
     }
 
-    /** Every extension the folder browser offers for has to be one odrcore actually recognises. */
+    /** Every extension named after the core's own table has to be one odrcore still recognises. */
     @Test
     fun theExtensionFallbackNamesFormatsTheCoreKnows() {
-        for (extension in SupportedDocumentTypes.EXTENSIONS) {
+        for (extension in SupportedDocumentTypes.CORE_EXTENSIONS) {
             Assert.assertNotEquals(
                 "odrcore does not know the extension .$extension",
+                FileType.UNKNOWN,
+                Odr.fileTypeByFileExtension(extension),
+            )
+        }
+    }
+
+    /**
+     * The other half of the fallback, and why it is kept apart: odrcore's extension table names one
+     * suffix per format, so it answers UNKNOWN for the ooxml templates, macro enabled documents and
+     * slideshows even though it renders all of them - a `.dotx` is the same wordprocessing package
+     * as a `.docx`, and libmagic identifies it by content once the file is in the cache.
+     *
+     * Kept as an assertion rather than a comment so that a future core which does learn them turns
+     * this red instead of leaving the split in place for no reason.
+     */
+    @Test
+    fun theOoxmlVariantExtensionsAreOnesTheCoreDoesNotName() {
+        for (extension in SupportedDocumentTypes.OOXML_VARIANT_EXTENSIONS) {
+            Assert.assertEquals(
+                "odrcore now knows .$extension - move it to CORE_EXTENSIONS",
                 FileType.UNKNOWN,
                 Odr.fileTypeByFileExtension(extension),
             )
@@ -96,6 +116,37 @@ class SupportedFormatsTest {
             Assert.assertTrue(
                 "the manifest does not offer for document.$extension",
                 resolvesToUs("application/octet-stream", "document.$extension"),
+            )
+        }
+    }
+
+    /**
+     * A file manager that sends `ACTION_VIEW` with no mime type at all, which is the case the
+     * `pathPattern` filters exist for - and the one an `application/octet-stream` check cannot
+     * stand in for, because that mime type is claimed outright and so matches whatever the patterns
+     * happen to say.
+     *
+     * This is what pins the pattern list against [SupportedDocumentTypes.EXTENSIONS]: leaving an
+     * extension out of the manifest was invisible until now, and `.ott` had been missing from it
+     * for as long as the table has claimed it.
+     */
+    @Test
+    fun aFileWithNoMimeTypeReachesUsByItsExtension() {
+        for (extension in SupportedDocumentTypes.EXTENSIONS) {
+            Assert.assertTrue(
+                "the manifest has no pathPattern for .$extension",
+                resolvesToUs(null, "document.$extension"),
+            )
+        }
+    }
+
+    /** And the same route stays shut for what the app does not claim. */
+    @Test
+    fun aFileWithNoMimeTypeAndAnUnrelatedExtensionReachesNobody() {
+        for (extension in listOf("vcf", "mp3", "mp4", "bin", "apk")) {
+            Assert.assertFalse(
+                "the manifest offers for .$extension",
+                resolvesToUs(null, "document.$extension"),
             )
         }
     }
@@ -157,14 +208,20 @@ class SupportedFormatsTest {
      * Whether an `ACTION_VIEW` for this mime type and filename lands on our own activity - the only
      * thing an intent-filter is actually good for, and the one question a hand written XML list can
      * still be asked.
+     *
+     * A null [mimeType] is the no-type intent a file manager sends, which only the `pathPattern`
+     * filters can answer; `setData` rather than `setDataAndType`, because passing a null type to
+     * the latter clears the data along with it.
      */
-    private fun resolvesToUs(mimeType: String, filename: String): Boolean {
+    private fun resolvesToUs(mimeType: String?, filename: String): Boolean {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
+
+        val uri = Uri.parse("content://app.opendocument.test/$filename")
 
         val intent =
             Intent(Intent.ACTION_VIEW).apply {
                 addCategory(Intent.CATEGORY_DEFAULT)
-                setDataAndType(Uri.parse("content://app.opendocument.test/$filename"), mimeType)
+                if (mimeType == null) setData(uri) else setDataAndType(uri, mimeType)
             }
 
         return context.packageManager
