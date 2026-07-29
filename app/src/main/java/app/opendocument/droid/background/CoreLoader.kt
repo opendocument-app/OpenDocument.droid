@@ -44,9 +44,6 @@ import java.io.IOException
 // tests never set - isSupported() is pure and does not need one
 class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
 
-    private var server: HttpServer? = null
-    private var httpThread: Thread? = null
-
     private var document: Document? = null
     private var lastInputPath: String? = null
     private var lastCachePath: String? = null
@@ -63,8 +60,13 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
     val isDocumentEditable: Boolean
         get() = document != null
 
-    // the port the server actually got, which is not always the preferred one. see bind()
-    private var serverPort = PREFERRED_SERVER_PORT
+    // the shared server and the port it actually got, which is not always the preferred one.
+    // see bind() and startSharedServer()
+    private val server: HttpServer?
+        get() = sharedServer
+
+    private val serverPort: Int
+        get() = sharedServerPort
 
     override fun initialize(
         listener: FileLoaderListener,
@@ -78,67 +80,9 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
         // right after new CoreLoader() anyway.
         initializeCore(context)
 
-        val server = HttpServer()
-        this.server = server
-
-        serverPort = bind(server, crashManager)
-
-        httpThread =
-            Thread {
-                try {
-                    server.listen()
-                } catch (e: Throwable) {
-                    crashManager.log(e)
-                }
-            }
-                .also { it.start() }
+        startSharedServer(crashManager)
 
         super.initialize(listener, mainHandler, backgroundHandler, analyticsManager, crashManager)
-    }
-
-    /**
-     * Binds [server], preferring [PREFERRED_SERVER_PORT], and returns the port it got.
-     *
-     * The preferred port is occupied more often than it looks. Both flavors hardcode it, so lite
-     * and pro collide whenever they run on one device - the instrumented tests do exactly that, one
-     * flavor after the other - and a port does not come free the moment its owner goes away: the
-     * sockets the webview opened linger in TIME_WAIT for a minute. That second half is what
-     * [HttpServer.Options.reuseAddress] covers, on by default since the core started setting
-     * SO_REUSEADDR rather than cpp-httplib's SO_REUSEPORT; a live server of the other flavor still
-     * holds the port for real, hence the fallback to any free one.
-     *
-     * A failed bind used to be invisible: the old `listen(host, port)` returned void either way, so
-     * an occupied port left the app with no server and nothing to show for it - every document then
-     * failed with ERR_CONNECTION_REFUSED behind chrome's own error page. [HttpServer.bind] throws
-     * instead, and reports back the port that a request has to be addressed to.
-     */
-    private fun bind(server: HttpServer, crashManager: CrashManager): Int {
-        // a preference of ANY_PORT is a request for an arbitrary free port, which is what the
-        // fallback below asks for anyway - there is nothing to try first
-        if (PREFERRED_SERVER_PORT != ANY_PORT) {
-            try {
-                return server.bind(SERVER_BIND_ADDRESS, PREFERRED_SERVER_PORT)
-            } catch (e: Throwable) {
-                crashManager.log(
-                    IOException(
-                        "core server cannot bind $SERVER_BIND_ADDRESS:$PREFERRED_SERVER_PORT",
-                        e,
-                    )
-                )
-            }
-        }
-
-        try {
-            return server.bind(SERVER_BIND_ADDRESS, ANY_PORT)
-        } catch (e: Throwable) {
-            crashManager.log(IOException("core server cannot bind any port", e))
-        }
-
-        // nothing is bound at this point, so [listen] will fail as well and this port only decides
-        // which url the documents that follow are refused at. It must not be ANY_PORT, which would
-        // address every one of them to :0.
-        return if (PREFERRED_SERVER_PORT != ANY_PORT) PREFERRED_SERVER_PORT
-        else FALLBACK_SERVER_PORT
     }
 
     /**
@@ -313,24 +257,14 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
         return outputFile
     }
 
+    /**
+     * Drops what this loader published and leaves the server itself running - see
+     * [startSharedServer] for why it is never stopped.
+     */
     override fun close() {
         super.close()
 
-        val server = this.server
-        if (server != null) {
-            server.stop()
-            httpThread?.let {
-                try {
-                    it.join(1000)
-                } catch (e: InterruptedException) {
-                    crashManager.log(e)
-                }
-            }
-            httpThread = null
-
-            server.close()
-            this.server = null
-        }
+        server?.clear()
 
         closeDocument()
     }
@@ -345,6 +279,109 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
 
     companion object {
         private const val TAG = "CoreLoader"
+
+        /**
+         * The one http server of the process, started on the first [initialize] and never stopped.
+         *
+         * Never stopped on purpose. Both of the ways odrcore lets a server go are unsafe while the
+         * thread that called [HttpServer.listen] is still inside it, and that thread only comes
+         * back some time after `stop()` asks it to:
+         *
+         * - `HttpServer.close()` destroys the native server there and then, which is a use after
+         *   free that surfaces as a SIGSEGV in `httplib::Server::listen_internal`. Dropping the
+         *   reference instead is no better - odrcore's `NativeResource` frees the handle from a
+         *   reference queue too.
+         * - `stop()` on its own closes the listening socket while the accept loop is still using
+         *   it, and closes it a second time on the way out. In between, the fd number is handed to
+         *   whatever opens a file next; on android fdsan catches that and aborts the process
+         *   ("attempted to close file descriptor N, actually owned by ZipArchive"), and on a
+         *   platform without fdsan it would quietly close someone else's file.
+         *
+         * Both are teardown only, so the loader does not tear down: [close] calls
+         * [HttpServer.clear] to drop the documents it published and leaves the socket listening.
+         * The process exit reclaims it, which is what was really doing the work before - nothing
+         * here ever outlived its process. Reported upstream as
+         * opendocument-app/OpenDocument.core#631.
+         *
+         * A second consequence is that the port is bound once rather than once per service
+         * lifetime, so [bind]'s fallback stops being reached by our own teardown.
+         */
+        private var sharedServer: HttpServer? = null
+
+        private var sharedServerPort = PREFERRED_SERVER_PORT
+
+        /**
+         * Binds [server], preferring [PREFERRED_SERVER_PORT], and returns the port it got.
+         *
+         * The preferred port is occupied more often than it looks. Both flavors hardcode it, so
+         * lite and pro collide whenever they run on one device - the instrumented tests do exactly
+         * that, one flavor after the other - and a port does not come free the moment its owner
+         * goes away: the sockets the webview opened linger in TIME_WAIT for a minute. That second
+         * half is what [HttpServer.Options.reuseAddress] covers, on by default since the core
+         * started setting SO_REUSEADDR rather than cpp-httplib's SO_REUSEPORT; a live server of the
+         * other flavor still holds the port for real, hence the fallback to any free one.
+         *
+         * A failed bind used to be invisible: the old `listen(host, port)` returned void either
+         * way, so an occupied port left the app with no server and nothing to show for it - every
+         * document then failed with ERR_CONNECTION_REFUSED behind chrome's own error page.
+         * [HttpServer.bind] throws instead, and reports back the port that a request has to be
+         * addressed to.
+         */
+        private fun bind(server: HttpServer, crashManager: CrashManager): Int {
+            // a preference of ANY_PORT is a request for an arbitrary free port, which is what the
+            // fallback below asks for anyway - there is nothing to try first
+            if (PREFERRED_SERVER_PORT != ANY_PORT) {
+                try {
+                    return server.bind(SERVER_BIND_ADDRESS, PREFERRED_SERVER_PORT)
+                } catch (e: Throwable) {
+                    crashManager.log(
+                        IOException(
+                            "core server cannot bind $SERVER_BIND_ADDRESS:$PREFERRED_SERVER_PORT",
+                            e,
+                        )
+                    )
+                }
+            }
+
+            try {
+                return server.bind(SERVER_BIND_ADDRESS, ANY_PORT)
+            } catch (e: Throwable) {
+                crashManager.log(IOException("core server cannot bind any port", e))
+            }
+
+            // nothing is bound at this point, so [listen] will fail as well and this port only
+            // decides which url the documents that follow are refused at. It must not be
+            // ANY_PORT, which would address every one of them to :0.
+            return if (PREFERRED_SERVER_PORT != ANY_PORT) PREFERRED_SERVER_PORT
+            else FALLBACK_SERVER_PORT
+        }
+
+        /** Starts [sharedServer] if this is the first loader to ask. */
+        @Synchronized
+        private fun startSharedServer(crashManager: CrashManager) {
+            if (sharedServer != null) {
+                return
+            }
+
+            val server = HttpServer()
+
+            sharedServer = server
+            sharedServerPort = bind(server, crashManager)
+
+            Thread {
+                try {
+                    server.listen()
+                } catch (e: Throwable) {
+                    crashManager.log(e)
+                }
+            }
+                .also {
+                    // daemon so it cannot keep the process alive: it is never asked to stop
+                    it.isDaemon = true
+                    it.name = "odr-http-server"
+                    it.start()
+                }
+        }
 
         /** The loopback address the server binds to. */
         private const val SERVER_BIND_ADDRESS = "127.0.0.1"
