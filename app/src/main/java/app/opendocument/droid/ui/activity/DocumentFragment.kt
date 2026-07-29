@@ -381,33 +381,11 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
      * that finished loading is not one of those things.
      */
     private fun prepareActions(result: FileLoader.Result) {
-        val loaderType = result.loaderType
-        val fileType = result.options.fileType
-
-        var isEditEnabled = false
-        var isDarkModeSupported = true
-
-        if (loaderType == FileLoader.LoaderType.CORE) {
-            isEditEnabled = true
-
-            // Edit is currently broken for ODS spreadsheets
-            // See: https://github.com/opendocument-app/OpenDocument.droid/issues/442
-            if (
-                fileType != null &&
-                    fileType.startsWith("application/vnd.oasis.opendocument.spreadsheet")
-            ) {
-                isEditEnabled = false
-            }
-
-            // Edit is not supported for PDF documents
-            if (fileType != null && fileType.startsWith("application/pdf")) {
-                isEditEnabled = false
-                isDarkModeSupported = false
-            }
-        }
-
+        // whether editing is on offer is the core's answer, not a list of formats kept here: it
+        // knows which of the documents it renders it can also write back, which is why neither the
+        // legacy binary formats nor the spreadsheets of issue #442 need naming
         val unfolding = ArrayList<DocumentActions.Action>()
-        if (isEditEnabled) {
+        if (result.isEditable) {
             unfolding.add(
                 DocumentActions.Action(
                     DocumentActions.ACTION_EDIT,
@@ -468,7 +446,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
             unfolding,
         )
 
-        pageView?.toggleDarkMode(isDarkModeSupported)
+        pageView?.disableDarkening()
     }
 
     /** Takes the buttons away while the document has the screen to itself. */

@@ -160,11 +160,13 @@ constructor(context: Context, attributeSet: AttributeSet?) :
      * moved to Material3.DayNight - at targetSdk 33 and up the webview only darkens when the app
      * theme reports itself as dark, so under the old AppCompat.Light theme none of this ever fired.
      *
-     * [isDarkModeSupported] is kept as the hook a user facing "dark documents" setting would use;
-     * DocumentFragment already passes false for pdfs.
+     * There is no parameter to this any more. It used to take an `isDarkModeSupported` that nothing
+     * in here ever read - both callers reached the same three lines - while [DocumentFragment] went
+     * to the trouble of working out that a pdf is not worth inverting. A user facing "dark
+     * documents" setting can grow the argument back when there is something on the other end of it.
      */
     @Suppress("DEPRECATION") // setForceDarkAllowed and setForceDark are the pre-webkit-1.6 api
-    fun toggleDarkMode(isDarkModeSupported: Boolean) {
+    fun disableDarkening() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             isForceDarkAllowed = false
         }
