@@ -145,6 +145,52 @@ the `.pro` suffix) differ on purpose - do not "fix" the mismatch:
   `AndroidFileCache`, the SharedPreferences name in `MainActivity`) follows
   `applicationId` and must stay that way, or existing users lose their saved prefs.
 
+### Supported file types are declared twice, and a test keeps them in step
+
+`SupportedDocumentTypes` is the single kotlin table: mime prefixes for what the core
+renders, mime prefixes for what `RawLoader` shows, plus an extension fallback for the
+`application/octet-stream` a provider volunteers when it knows nothing better.
+`CoreLoader.isSupported()` defers to it - it used to keep a second copy of the same
+prefixes.
+
+The `STRICT_CATCH` `activity-alias` in `AndroidManifest.xml` is the second declaration and
+cannot be collapsed into the first, because XML cannot read a kotlin list. It is covered
+instead: `SupportedFormatsTest` (instrumented) walks odrcore's own `FileType` values, asks
+`Odr.mimetypeByFileType` for each, and asserts that `SupportedDocumentTypes` and the package
+manager give the same answer - so a format added on one side and forgotten on the other
+fails CI rather than shipping.
+
+That walk has a blind spot, and a second test covers it. The table matches by *prefix*, so
+it also claims the ooxml templates, slideshows and macro-enabled variants - spellings
+odrcore never produces, because `mimetypeByFileType` names one canonical mime per format. An
+intent-filter, on the other hand, matches a mime type exactly, so every one of those has to
+be spelled out in the manifest. `theOoxmlVariantsReachUsToo` lists them and asserts both
+sides say yes.
+
+The set follows odrcore: whatever it keeps reference html output for in
+`test/data/reference-output` is what the app claims - odf, ooxml, the legacy binary
+doc/ppt/xls and pdf. Text, csv and images are the core's too but belong to `RawLoader`,
+which only gets its turn when `CoreLoader.isSupported()` says no.
+
+Why the app has a table at all when odrcore has `Odr.fileTypeByMimetype` /
+`Odr.fileTypeByFileExtension`: both are native calls into `libodr_jni`, and both know exactly
+one canonical mime type per format - no templates, no macro-enabled variants, no
+`application/x-vnd.oasis...`, which are the spellings content providers actually hand out.
+The guessing stage needs to be broader than the core's own lookup. What the core *does*
+decide is everything after the file is in the cache: `MetadataLoader` runs libmagic over the
+copy, and `CoreLoader.isDocumentEditable` asks the opened document.
+
+### Editability comes from the core, never from a mime type
+
+`Document.isEditable()`/`isSavable()` is what decides whether `DocumentFragment` puts the
+Edit item up, carried across on `FileLoader.Result.isEditable`. `CoreLoader.host()` only
+holds a document open when the core says yes, so "we have a document" *is* the answer.
+
+Do not reintroduce a list of editable formats in the UI. The core already says no to the
+legacy binary doc/ppt/xls, to ooxml spreadsheets and presentations, and to every spreadsheet
+including odf (its own TODO, the same gap as issue #442) - all of which the app used to spell
+out by mime prefix and got wrong the moment a new format started going through `CoreLoader`.
+
 ### Language
 
 Kotlin; support is built into AGP 9, no kotlin plugin is applied. The only java left is

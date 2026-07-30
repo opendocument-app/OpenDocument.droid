@@ -200,6 +200,13 @@ abstract class FileLoader(context: Context?, protected val type: LoaderType) {
         val partTitles: MutableList<String?> = LinkedList()
         val partUris: MutableList<Uri> = LinkedList()
 
+        /**
+         * Whether the loaded document can be edited and saved again, as the core reports it - see
+         * [CoreLoader.isDocumentEditable]. False for every other loader, which have nothing to
+         * edit.
+         */
+        var isEditable: Boolean = false
+
         override fun describeContents(): Int = 0
 
         override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -207,6 +214,7 @@ abstract class FileLoader(context: Context?, protected val type: LoaderType) {
             parcel.writeParcelable(options, 0)
             parcel.writeList(partTitles)
             parcel.writeList(partUris)
+            ParcelUtil.writeBoolean(parcel, isEditable)
         }
 
         companion object {
@@ -225,6 +233,7 @@ abstract class FileLoader(context: Context?, protected val type: LoaderType) {
                         return Result(loaderType, options).also {
                             parcel.readList(it.partTitles, classLoader)
                             parcel.readList(it.partUris, classLoader)
+                            it.isEditable = ParcelUtil.readBoolean(parcel)
                         }
                     }
 

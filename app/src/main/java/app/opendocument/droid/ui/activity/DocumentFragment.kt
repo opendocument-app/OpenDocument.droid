@@ -254,7 +254,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         menu.findItem(R.id.menu_print).isVisible = true
 
         // the other menu items are dynamically enabled based on the loaded document
-        state.lastResult?.let { prepareMenu(it.loaderType, it.options.fileType) }
+        state.lastResult?.let { prepareMenu(it) }
     }
 
     override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -400,31 +400,15 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         menu.findItem(R.id.menu_tts).isVisible = enabled
     }
 
-    private fun prepareMenu(loaderType: FileLoader.LoaderType, fileType: String?) {
-        var isEditEnabled = false
-        var isDarkModeSupported = true
+    private fun prepareMenu(result: FileLoader.Result) {
+        // whether editing is on offer is the core's answer, not a list of formats kept here: it
+        // knows which of the documents it renders it can also write back, which is why neither the
+        // legacy binary formats nor the spreadsheets of issue #442 need naming
+        toggleDocumentMenu(true, result.isEditable)
 
-        if (loaderType == FileLoader.LoaderType.CORE) {
-            isEditEnabled = true
-
-            // Edit is currently broken for ODS spreadsheets
-            // See: https://github.com/opendocument-app/OpenDocument.droid/issues/442
-            if (
-                fileType != null &&
-                    fileType.startsWith("application/vnd.oasis.opendocument.spreadsheet")
-            ) {
-                isEditEnabled = false
-            }
-
-            // Edit is not supported for PDF documents
-            if (fileType != null && fileType.startsWith("application/pdf")) {
-                isEditEnabled = false
-                isDarkModeSupported = false
-            }
-        }
-
-        toggleDocumentMenu(true, isEditEnabled)
-        pageView?.toggleDarkMode(isDarkModeSupported)
+        // pdf is the one thing worth leaving alone: inverting a page of scanned paper helps nobody
+        val fileType = result.options.fileType
+        pageView?.toggleDarkMode(fileType?.startsWith("application/pdf") != true)
     }
 
     private fun requestInAppRating(activity: Activity) {

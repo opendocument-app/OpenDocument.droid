@@ -10,7 +10,7 @@ class OnlineLoaderTest {
 
     @Before
     fun setUp() {
-        onlineLoader = OnlineLoader(null, CoreLoader(null, true))
+        onlineLoader = OnlineLoader(null, CoreLoader(null))
     }
 
     private fun options(fileType: String): FileLoader.Options {
@@ -84,6 +84,6 @@ class OnlineLoaderTest {
         Assert.assertFalse(isConvertible("text/plain"))
         Assert.assertFalse(isConvertible("image/png"))
         Assert.assertFalse(isConvertible("application/zip"))
-        Assert.assertFalse(isConvertible("application/vnd.ms-excel.sheet.macroEnabled.12"))
+        Assert.assertFalse(isConvertible("application/vnd.apple.pages"))
     }
 }
