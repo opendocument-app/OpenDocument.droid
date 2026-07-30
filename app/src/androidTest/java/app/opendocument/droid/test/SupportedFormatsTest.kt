@@ -9,6 +9,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import app.opendocument.core.Odr
 import app.opendocument.droid.background.CatchAllSetting
 import app.opendocument.droid.background.CoreLoader
+import app.opendocument.droid.background.FileLoader
+import app.opendocument.droid.background.RawLoader
 import app.opendocument.droid.background.SupportedDocumentTypes
 import org.junit.Assert
 import org.junit.BeforeClass
@@ -87,6 +89,32 @@ class SupportedFormatsTest {
                     SupportedDocumentTypes.isRenderedByCore(mimeType),
                 )
             }
+        }
+    }
+
+    /**
+     * Everything the app offers itself for reaches a loader that takes it.
+     *
+     * Claiming a mime type nobody loads is the "cannot open" the user gets on a file they picked us
+     * for, and it is what reading the core's whole table risks: [CoreLoader] matches every spelling
+     * of a format, but [RawLoader] goes by mime type prefix and so only ever sees the canonical one
+     * that [MetadataLoader] resolves to - `application/csv` and `multipart/x-zip` are claimed and
+     * would otherwise be dropped between the two.
+     */
+    @Test
+    fun everythingTheAppClaimsIsLoadedBySomebody() {
+        val coreLoader = CoreLoader(null)
+        val rawLoader = RawLoader(null, coreLoader)
+
+        for (mimeType in SupportedDocumentTypes.MIME_TYPES) {
+            val options = FileLoader.Options()
+            options.fileType = SupportedDocumentTypes.canonicalMimeType(mimeType)
+
+            Assert.assertTrue(
+                "$mimeType is claimed by the app, but neither loader takes it" +
+                    " (as ${options.fileType})",
+                coreLoader.isSupported(options) || rawLoader.isSupported(options),
+            )
         }
     }
 

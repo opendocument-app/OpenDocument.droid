@@ -113,6 +113,11 @@ class MetadataLoader(context: Context?) : FileLoader(context, LoaderType.METADAT
                 }
             }
 
+            // whatever spelling this came out as, go on with the core's own from here: a provider
+            // is free to volunteer application/x-zip-compressed or application/csv, and the app
+            // claims those now, but the loaders behind us go by one mime type per format
+            mimetype = SupportedDocumentTypes.canonicalMimeType(mimetype)
+
             val resolution = MimeTypeResolver.resolve(mimetype, extension, MIME_TYPE_LOOKUP)
             mimetype = resolution.mimeType
 

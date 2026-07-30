@@ -88,6 +88,33 @@ object SupportedDocumentTypes {
             .toSet()
     }
 
+    /**
+     * The spelling of [mimeType] the rest of the app goes by: odrcore's canonical one whenever the
+     * core recognizes what a provider handed us, and the original otherwise.
+     *
+     * Reading the core's table means the app now claims every spelling in it - `application/csv`,
+     * `application/x-zip-compressed`, `multipart/x-zip` - and not just the one the core happens to
+     * name first. [CoreLoader] does not care, it matches the whole set; [RawLoader] routes by mime
+     * type *prefix* and would refuse a file the app had just offered itself for, which the user
+     * sees as "cannot open" on a file they picked us for. [MetadataLoader] collapses them here
+     * instead, so every loader downstream sees one spelling per format.
+     *
+     * Anything the core does not name - audio and video, which only [RawLoader] deals with - passes
+     * through untouched.
+     */
+    fun canonicalMimeType(mimeType: String?): String? {
+        if (mimeType == null) {
+            return null
+        }
+
+        val fileType = Odr.fileTypeByMimetype(mimeType) ?: return mimeType
+        if (fileType == FileType.UNKNOWN) {
+            return mimeType
+        }
+
+        return Odr.mimetypeByFileType(fileType) ?: mimeType
+    }
+
     /** Whether [CoreLoader] is expected to render this - see [CORE_FILE_TYPES]. */
     fun isRenderedByCore(mimeType: String?): Boolean =
         mimeType != null && mimeType.lowercase() in CORE_MIME_TYPES

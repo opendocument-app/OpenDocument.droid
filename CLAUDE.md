@@ -184,6 +184,14 @@ and not JVM ones - none of them opens a file, they just cannot ask the table fro
 JVM. What the core decides *after* the file is in the cache is unchanged: `MetadataLoader`
 runs libmagic over the copy, and `CoreLoader.isDocumentEditable` asks the opened document.
 
+One consequence of claiming every spelling: `MetadataLoader` puts whatever mime type it ended
+up with through `SupportedDocumentTypes.canonicalMimeType`, so the loaders behind it see one
+per format. `CoreLoader` matches the whole set and does not care, but `RawLoader` routes by
+mime type *prefix* - a provider volunteering `application/x-zip-compressed` or
+`application/csv` would be offered the app and then told the file is unsupported.
+`SupportedFormatsTest.everythingTheAppClaimsIsLoadedBySomebody` is what holds that: every mime
+type the app claims has to reach a loader that takes it.
+
 ### Editability comes from the core, never from a mime type
 
 `Document.isEditable()`/`isSavable()` is what decides whether `DocumentFragment` puts the
