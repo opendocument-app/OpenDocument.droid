@@ -95,10 +95,14 @@ class LandingAdapter(private val listener: Listener) :
                 holder.title.text = item.filename
                 holder.bindSubtitle(item.subtitle)
                 holder.itemView.setOnClickListener { listener.onDocumentClicked(item) }
-                holder.itemView.setOnLongClickListener {
-                    listener.onDocumentRemoveRequested(item)
+                if (item.recent) {
+                    holder.itemView.setOnLongClickListener {
+                        listener.onDocumentRemoveRequested(item)
 
-                    true
+                        true
+                    }
+                } else {
+                    holder.itemView.setOnLongClickListener(null)
                 }
             }
 
@@ -107,10 +111,14 @@ class LandingAdapter(private val listener: Listener) :
                 holder.title.text = item.name
                 holder.bindSubtitle(null)
                 holder.itemView.setOnClickListener { listener.onFolderClicked(item) }
-                holder.itemView.setOnLongClickListener {
-                    listener.onFolderRemoveRequested(item)
+                if (item.granted) {
+                    holder.itemView.setOnLongClickListener {
+                        listener.onFolderRemoveRequested(item)
 
-                    true
+                        true
+                    }
+                } else {
+                    holder.itemView.setOnLongClickListener(null)
                 }
             }
 

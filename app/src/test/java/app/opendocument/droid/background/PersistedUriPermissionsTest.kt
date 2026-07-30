@@ -41,7 +41,7 @@ class PersistedUriPermissionsTest {
         // the tree itself is named by the folder list
         Assert.assertTrue(PersistedUriPermissions.isReferenced(tree, setOf(tree), trees))
 
-        // and a document below it is reachable through that grant, so its own grant can go even
+        // and a document below it is reachable through that grant, so it is still considered referenced even
         // though nothing names it - the uri spells the tree out
         val below = "$tree/document/primary%3ADocuments%2Freport.odt"
         Assert.assertTrue(PersistedUriPermissions.isReferenced(below, setOf(tree), trees))
