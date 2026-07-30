@@ -83,6 +83,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Anything the bindings use must exist on **android API 26**, which is far below what
   their `--release 17` compiler accepts. That is a runtime-only failure, on device
   (`java.lang.ref.Cleaner` and `List.of` both had to be fixed upstream for this reason)
+- **odrcore's cmake needs a JDK on the conan build machine to produce the jar at all.**
+  Since 6.1 the android branch of `jni/CMakeLists.txt` calls `find_package(Java 11
+  COMPONENTS Development)` without `REQUIRED` - so a build with no `JAVA_HOME`/`javac`
+  in the environment quietly builds `libodr_jni.so` and returns before `add_jar`. It is
+  not silent for long, `conandeployer.py` then fails with `No such file or directory:
+  .../share/java/odr-core-java.jar`, but the fix is to give conan a JDK and rebuild the
+  package (`--build=odrcore/<version>`), not to look for the file. Reported upstream as
+  opendocument-app/OpenDocument.core#637
 - Supports multiple architectures: armv8, armv7, x86, x86_64
 - Assets deployed to `assets/core` and native libraries to `jniLibs/<abi>` via the custom
   Conan deployer (`app/conandeployer.py`)
@@ -145,40 +153,36 @@ the `.pro` suffix) differ on purpose - do not "fix" the mismatch:
   `AndroidFileCache`, the SharedPreferences name in `MainActivity`) follows
   `applicationId` and must stay that way, or existing users lose their saved prefs.
 
-### Supported file types are declared twice, and a test keeps them in step
+### Supported file types come from odrcore, and a test keeps the manifest in step
 
-`SupportedDocumentTypes` is the single kotlin table: mime prefixes for what the core
-renders, mime prefixes for what `RawLoader` shows, plus an extension fallback for the
-`application/octet-stream` a provider volunteers when it knows nothing better.
-`CoreLoader.isSupported()` defers to it - it used to keep a second copy of the same
-prefixes.
+`SupportedDocumentTypes` used to be a hand written table of mime *prefixes*. Since odrcore
+6.1 it is derived: `Odr.allFileTypes()` filtered by `Odr.capabilitiesByFileType(...)
+.translateHtml` and `Odr.fileCategoryByFileType(...) == DOCUMENT` is what `CoreLoader`
+renders, and `Odr.mimetypesByFileType` / `Odr.fileExtensionsByFileType` expand each of those
+into every spelling the core accepts - the templates, the macro-enabled variants, the
+`application/x-vnd.oasis...` family and the `-flat-xml` ones. Do not put a list of mime
+prefixes back; the whole point is that the app cannot claim a format the core does not have,
+or miss one it does. A prefix match is also what made the app claim `.xlsb`
+(`application/vnd.ms-excel.sheet.binary.macroEnabled.12` starts like every other excel type)
+and then fail to open it - the core gives it a file type of its own with an empty capability
+row now.
 
-The `STRICT_CATCH` `activity-alias` in `AndroidManifest.xml` is the second declaration and
-cannot be collapsed into the first, because XML cannot read a kotlin list. It is covered
-instead: `SupportedFormatsTest` (instrumented) walks odrcore's own `FileType` values, asks
-`Odr.mimetypeByFileType` for each, and asserts that `SupportedDocumentTypes` and the package
-manager give the same answer - so a format added on one side and forgotten on the other
-fails CI rather than shipping.
+Two declarations are left. The app's own choice of which of the core's formats go to
+`CoreLoader` and which to `RawLoader` - text, csv, zip and `image/` are named in
+`SupportedDocumentTypes`, because that is an app decision the core knows nothing about. And
+the `STRICT_CATCH` `activity-alias` in `AndroidManifest.xml`, which cannot be collapsed into
+the first because XML cannot read any of this. Its three intent-filters are *generated* from
+the same table (an intent-filter matches a mime type exactly, so all 40 spellings and 41
+extensions are written out) and covered by a test rather than by discipline:
+`SupportedFormatsTest` (instrumented) walks every mime type of every `FileType` and asserts
+that `SupportedDocumentTypes` and the package manager give the same answer, so a format added
+upstream and forgotten in the manifest fails CI rather than shipping.
 
-That walk has a blind spot, and a second test covers it. The table matches by *prefix*, so
-it also claims the ooxml templates, slideshows and macro-enabled variants - spellings
-odrcore never produces, because `mimetypeByFileType` names one canonical mime per format. An
-intent-filter, on the other hand, matches a mime type exactly, so every one of those has to
-be spelled out in the manifest. `theOoxmlVariantsReachUsToo` lists them and asserts both
-sides say yes.
-
-The set follows odrcore: whatever it keeps reference html output for in
-`test/data/reference-output` is what the app claims - odf, ooxml, the legacy binary
-doc/ppt/xls and pdf. Text, csv and images are the core's too but belong to `RawLoader`,
-which only gets its turn when `CoreLoader.isSupported()` says no.
-
-Why the app has a table at all when odrcore has `Odr.fileTypeByMimetype` /
-`Odr.fileTypeByFileExtension`: both are native calls into `libodr_jni`, and both know exactly
-one canonical mime type per format - no templates, no macro-enabled variants, no
-`application/x-vnd.oasis...`, which are the spellings content providers actually hand out.
-The guessing stage needs to be broader than the core's own lookup. What the core *does*
-decide is everything after the file is in the cache: `MetadataLoader` runs libmagic over the
-copy, and `CoreLoader.isDocumentEditable` asks the opened document.
+The tables live in `libodr_jni`, so anything that reads them needs a device. That is why
+`CoreLoaderTest`, `SupportedDocumentTypesTest` and `OnlineLoaderTest` are instrumented tests
+and not JVM ones - none of them opens a file, they just cannot ask the table from a plain
+JVM. What the core decides *after* the file is in the cache is unchanged: `MetadataLoader`
+runs libmagic over the copy, and `CoreLoader.isDocumentEditable` asks the opened document.
 
 ### Editability comes from the core, never from a mime type
 
@@ -190,6 +194,11 @@ Do not reintroduce a list of editable formats in the UI. The core already says n
 legacy binary doc/ppt/xls, to ooxml spreadsheets and presentations, and to every spreadsheet
 including odf (its own TODO, the same gap as issue #442) - all of which the app used to spell
 out by mime prefix and got wrong the moment a new format started going through `CoreLoader`.
+
+`DecodedFile.capabilities()` is asked first, and only as a shortcut: opening a document costs
+a second parse of the whole file, so a format whose declared `edit`/`save` are already false
+is never opened just to be told no. It is an upper bound by definition - the document is
+still what answers.
 
 ### Language
 

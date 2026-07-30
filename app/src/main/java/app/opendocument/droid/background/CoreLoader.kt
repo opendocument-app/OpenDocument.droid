@@ -86,8 +86,8 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
     }
 
     /**
-     * What the core renders itself, out of [SupportedDocumentTypes] so the folder browser and this
-     * cannot disagree about it.
+     * What the core renders itself, out of [SupportedDocumentTypes] - which asks odrcore's own
+     * format table rather than keeping a list, so this and the manifest cannot disagree about it.
      *
      * Text, csv and images are left out although the core takes those too - [RawLoader] is what
      * gives them their player or their viewer, and this answer is what lets it have its turn. The
@@ -182,13 +182,22 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
 
         if (keepDocument) {
             closeDocument()
-            if (file.isDocumentFile) {
+
+            // what the format could ever allow, which odrcore 6.1 answers without decoding
+            // anything. A document is only opened here when it might be kept, and opening one
+            // costs a second parse of the whole file (the TODO below) - so the formats that
+            // declare no editing, which is pdf and every spreadsheet and presentation the app
+            // renders, no longer pay for an answer that was always going to be no.
+            val capabilities = file.capabilities()
+
+            if (file.isDocumentFile && capabilities.edit && capabilities.save) {
                 // TODO this will cause a second load
                 val document = file.asDocumentFile().document()
 
                 // keep only what [edit] can do something with, and let the core be the one to say
-                // so - see [isDocumentEditable]. Holding a read only document open buys a second
-                // parse and nothing else.
+                // so - see [isDocumentEditable]. The declaration above is an upper bound; the
+                // document itself is the precise answer, and a read only one held open buys a
+                // second parse and nothing else.
                 if (document.isEditable && document.isSavable) {
                     this.document = document
                 } else {
@@ -246,7 +255,11 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
     fun edit(htmlDiff: String, outputPathPrefix: String): File {
         val document = checkNotNull(document) { "no editable document is open" }
 
-        val extension = Odr.fileTypeToString(document.fileType())
+        // the file type's own extension, not [Odr.fileTypeToString], which is its *name*: the two
+        // read alike for most formats but are not the same table, and the name is not always
+        // something a file can be called (odrcore 6.1 spells the encrypted ooxml one
+        // "ooxml_encrypted")
+        val extension = Odr.fileExtensionByFileType(document.fileType())
         val outputFile = File("$outputPathPrefix.$extension")
 
         Log.d(TAG, "HTML diff: $htmlDiff")
@@ -283,25 +296,22 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
         /**
          * The one http server of the process, started on the first [initialize] and never stopped.
          *
-         * Never stopped on purpose. Both of the ways odrcore lets a server go are unsafe while the
-         * thread that called [HttpServer.listen] is still inside it, and that thread only comes
-         * back some time after `stop()` asks it to:
+         * Never stopped, though no longer because stopping it was unsafe. Both of the ways odrcore
+         * let a server go used to drop the native server while the thread that called
+         * [HttpServer.listen] was still inside it - `close()` as a use after free that surfaced as
+         * a SIGSEGV in `httplib::Server::listen_internal`, and `stop()` by closing the listening
+         * socket twice, the second time after its fd number had been handed to whatever opened a
+         * file next (which android's fdsan catches by aborting the process, "attempted to close
+         * file descriptor N, actually owned by ZipArchive"). That was
+         * opendocument-app/OpenDocument.core#631, and odrcore 6.1 fixed it: `stop()` now closes the
+         * socket and waits for the accept loop to leave before releasing anything, so nothing is
+         * serving by the time it returns.
          *
-         * - `HttpServer.close()` destroys the native server there and then, which is a use after
-         *   free that surfaces as a SIGSEGV in `httplib::Server::listen_internal`. Dropping the
-         *   reference instead is no better - odrcore's `NativeResource` frees the handle from a
-         *   reference queue too.
-         * - `stop()` on its own closes the listening socket while the accept loop is still using
-         *   it, and closes it a second time on the way out. In between, the fd number is handed to
-         *   whatever opens a file next; on android fdsan catches that and aborts the process
-         *   ("attempted to close file descriptor N, actually owned by ZipArchive"), and on a
-         *   platform without fdsan it would quietly close someone else's file.
-         *
-         * Both are teardown only, so the loader does not tear down: [close] calls
-         * [HttpServer.clear] to drop the documents it published and leaves the socket listening.
-         * The process exit reclaims it, which is what was really doing the work before - nothing
-         * here ever outlived its process. Reported upstream as
-         * opendocument-app/OpenDocument.core#631.
+         * What is left is that there is nobody to stop it *for*. The server is process wide and
+         * shared - [RawLoader] publishes text files on it too - so no single loader's teardown is
+         * the end of it, and [close] drops what it published with [HttpServer.clear] and leaves the
+         * socket listening. The process exit reclaims it, which is what was really doing the work
+         * all along; nothing here ever outlived its process.
          *
          * A second consequence is that the port is bound once rather than once per service
          * lifetime, so [bind]'s fallback stops being reached by our own teardown.

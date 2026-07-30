@@ -1,9 +1,24 @@
 package app.opendocument.droid.background
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.SmallTest
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
 
+/**
+ * What the app offers itself for, by example.
+ *
+ * `SupportedFormatsTest` walks odrcore's whole table and holds the manifest against it; this one
+ * spells out the cases the table cannot express - that a known extension beats an unhelpful mime
+ * type, that a format the core merely recognises is not offered for, and that nothing at all is
+ * still nothing.
+ *
+ * Instrumented rather than a JVM test since odrcore 6.1, which is where the lists come from now.
+ */
+@SmallTest
+@RunWith(AndroidJUnit4::class)
 class SupportedDocumentTypesTest {
 
     @Test
@@ -13,6 +28,9 @@ class SupportedDocumentTypesTest {
         assertTrue(supported("application/vnd.oasis.opendocument.presentation", "deck.odp"))
         assertTrue(supported("application/vnd.oasis.opendocument.graphics", "drawing.odg"))
         assertTrue(supported("application/vnd.oasis.opendocument.text-template", "letter.ott"))
+        // the master document and its template, whose extensions the core names since 6.1
+        assertTrue(supported(null, "book.odm"))
+        assertTrue(supported(null, "book.otm"))
     }
 
     @Test
@@ -44,6 +62,10 @@ class SupportedDocumentTypesTest {
         assertTrue(supported("application/octet-stream", "deck.pptx"))
         assertTrue(supported("application/octet-stream", "deck.ppt"))
         assertTrue(supported("application/octet-stream", "budget.xls"))
+        // and the templates of the legacy formats, another 6.1 addition
+        assertTrue(supported("application/octet-stream", "letter.dot"))
+        assertTrue(supported("application/octet-stream", "slides.pot"))
+        assertTrue(supported("application/octet-stream", "sheet.xlt"))
     }
 
     @Test
@@ -69,6 +91,19 @@ class SupportedDocumentTypesTest {
         assertFalse(supported("application/octet-stream", "firmware.bin"))
     }
 
+    /**
+     * Formats odrcore can name but has no decoder for. They used to slip through: rtf and word
+     * perfect by never being claimed at all, but a `.xlsb` by its mime type starting like an excel
+     * one, which is exactly what a prefix match cannot tell apart.
+     */
+    @Test
+    fun formatsWithoutADecoderAreNotSupported() {
+        assertFalse(supported("application/vnd.ms-excel.sheet.binary.macroEnabled.12", "old.xlsb"))
+        assertFalse(supported("application/rtf", "letter.rtf"))
+        assertFalse(supported("application/vnd.wordperfect", "letter.wpd"))
+        assertFalse(supported("text/markdown", "readme.md"))
+    }
+
     @Test
     fun nothingKnownAtAllIsNotSupported() {
         assertFalse(supported(null, null))
@@ -80,6 +115,8 @@ class SupportedDocumentTypesTest {
     fun matchingIsCaseInsensitive() {
         assertTrue(supported("APPLICATION/PDF", "MANUAL.PDF"))
         assertTrue(supported(null, "Report.ODT"))
+        // the core spells this one with capitals of its own
+        assertTrue(supported("APPLICATION/VND.MS-WORD.DOCUMENT.MACROENABLED.12", null))
     }
 
     private fun supported(mimeType: String?, filename: String?) =
