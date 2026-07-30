@@ -1,136 +1,125 @@
 package app.opendocument.droid.background
 
+import app.opendocument.core.FileCategory
+import app.opendocument.core.FileType
+import app.opendocument.core.Odr
+
 /**
- * The one list of what the app claims to open, for both of the places that have to guess.
+ * What the app claims to open, read out of odrcore instead of kept here.
  *
- * There used to be two copies of this - one here for the folder browser, one in [CoreLoader] for
- * the loader - which is one copy too many for a set that only ever changes as a whole.
- * [isRenderedByCore] is what [CoreLoader.isSupported] answers with, [isSupported] adds what
- * [RawLoader] shows and the extension fallback on top, and the STRICT_CATCH `activity-alias` in
- * AndroidManifest.xml is the third and last declaration, which XML keeps out of reach.
- * `SupportedFormatsTest` walks this table and asks the package manager whether the manifest still
- * agrees, so the two cannot drift silently any more.
+ * This used to be three hand written lists - mime prefixes for the core, mime prefixes for
+ * [RawLoader] and an extension fallback - because odrcore only knew one canonical mime type and one
+ * extension per format, and none of the spellings a content provider actually hands out. odrcore
+ * 6.1 publishes its whole format table instead ([Odr.allFileTypes], [Odr.mimetypesByFileType],
+ * [Odr.fileExtensionsByFileType] and [Odr.capabilitiesByFileType]), so the lists are derived now
+ * and the app cannot claim a format the core does not have, or miss one it does.
  *
- * Deliberately free of Android dependencies, and of the core's own tables - odrcore does know
- * [app.opendocument.core.Odr.fileTypeByMimetype] and `fileTypeByFileExtension`, but both are native
- * calls into libodr_jni, and both only know one canonical mime type per format: no templates, no
- * macro enabled variants, no `application/x-vnd.oasis...`, which are exactly the spellings a
- * content provider hands out. What the core does decide is everything *after* the file is in the
- * cache - [MetadataLoader] runs its libmagic over it, and [CoreLoader.isDocumentEditable] asks the
- * opened document itself.
+ * Two declarations are left. The app's own choice of which of the core's formats to route
+ * where - [CORE_FILE_TYPES] against [RAW_FILE_TYPES] - and the STRICT_CATCH `activity-alias` in
+ * AndroidManifest.xml, which is XML and cannot read any of this. `SupportedFormatsTest` walks the
+ * core's table and asks the package manager whether the manifest still agrees, so the two cannot
+ * drift silently.
  *
- * So this is a guess, not the real answer: a folder listing only has a name and whatever mime type
- * the provider volunteered, and it has to go on appearances.
+ * These are still a guess, not the real answer: a folder listing only has a name and whatever mime
+ * type the provider volunteered, and it has to go on appearances. What the core *decides* is
+ * everything after the file is in the cache - [MetadataLoader] runs its libmagic over the copy, and
+ * [CoreLoader.isDocumentEditable] asks the opened document itself.
  */
 object SupportedDocumentTypes {
 
     /**
-     * What the core renders itself: opendocument, ooxml, the three legacy binary microsoft formats
-     * and pdf. odrcore keeps reference html output for every one of them, doc, ppt and xls
-     * included.
+     * What [CoreLoader] renders: every format odrcore declares it can turn into html and files as a
+     * document.
      *
-     * Matching by prefix carries the variants along: the ooxml prefix covers the templates, and the
-     * macro enabled ones are spelled `vnd.ms-word.document.macroEnabled.12` and so on, which is why
-     * the legacy powerpoint and excel types appear here without their subtypes and why
-     * `vnd.ms-word` is listed next to `msword`.
+     * That is the same rule the loader follows, so it is the core's answer rather than a list -
+     * today it selects opendocument, ooxml, the legacy binary doc/ppt/xls and pdf. The category
+     * narrows it to what belongs in a document viewer: the core translates text, csv, images, zip
+     * and fonts too, and the first three of those get their own viewer in [RawLoader] below.
+     *
+     * A format the core can name but not decode stays out on its own - `.xlsb` is the current
+     * example, an ooxml package with binary parts that the app used to claim because the mime type
+     * starts like an excel one.
      */
-    private val CORE_MIME_PREFIXES =
-        listOf(
-            // odf, including the master documents and the x- spelling some providers use
-            "application/vnd.oasis.opendocument",
-            "application/x-vnd.oasis.opendocument",
-            // ooxml: word, excel and powerpoint, their templates and their macro variants
-            "application/vnd.openxmlformats-officedocument",
-            "application/vnd.ms-word",
-            // legacy binary microsoft: doc, xls and ppt
-            "application/msword",
-            "application/vnd.ms-excel",
-            "application/vnd.ms-powerpoint",
-            // not a document, but the core renders it just the same
-            "application/pdf",
-        )
+    private val CORE_FILE_TYPES: List<FileType> by lazy {
+        Odr.allFileTypes().filter {
+            Odr.capabilitiesByFileType(it).translateHtml &&
+                Odr.fileCategoryByFileType(it) == FileCategory.DOCUMENT
+        }
+    }
 
     /**
-     * What [RawLoader] shows instead - text, csv, images and zip - which the core would take too
-     * but which get their own player or viewer here.
+     * What [RawLoader] shows instead, which the core would take too but which get their own player
+     * or viewer here.
      *
-     * Narrower than [RawLoader.isSupported], which also takes audio and video: those are worth
-     * playing once someone hands us one, but not worth offering the app for.
+     * Named rather than derived, because this is the app's own decision and nothing the core knows
+     * about: it is narrower than [RawLoader.isSupported], which also takes audio and video - those
+     * are worth playing once someone hands us one, but not worth offering the app for - and it
+     * leaves out json and markdown, which the core files as text but which nobody opens a document
+     * viewer for.
      */
-    private val RAW_MIME_PREFIXES = listOf("text/plain", "text/csv", "image/", "application/zip")
+    private val RAW_FILE_TYPES =
+        listOf(FileType.TEXT_FILE, FileType.COMMA_SEPARATED_VALUES, FileType.ZIP)
 
     /**
-     * The extensions odrcore's own `fileTypeByFileExtension` names, one suffix per format.
+     * Images, as a prefix rather than a set of file types.
      *
-     * Public so `SupportedFormatsTest` can hold each of them against that table - the assertion
-     * that this list stays a subset of what the core recognises.
+     * The core names png, gif, jpeg, bmp and starview metafiles; [RawLoader] hands anything at all
+     * to the WebView under a name it recognizes, so webp, heic and svg are worth offering for as
+     * well. The manifest declares the whole `image` type with a wildcard for the same reason.
      */
-    val CORE_EXTENSIONS: Set<String> =
-        setOf(
-            "odt",
-            "ods",
-            "odp",
-            "odg",
-            "ott",
-            "ots",
-            "otp",
-            "otg",
-            "doc",
-            "docx",
-            "xls",
-            "xlsx",
-            "ppt",
-            "pptx",
-            "pdf",
-            "txt",
-            "csv",
-            "zip",
-        )
+    private val RAW_MIME_PREFIXES = listOf("image/")
+
+    /** Every mime type spelling odrcore accepts for a format [CoreLoader] renders. */
+    val CORE_MIME_TYPES: Set<String> by lazy { mimeTypesOf(CORE_FILE_TYPES) }
+
+    /** The same for everything the app offers itself for, [RawLoader]'s share included. */
+    val MIME_TYPES: Set<String> by lazy { CORE_MIME_TYPES + mimeTypesOf(RAW_FILE_TYPES) }
 
     /**
-     * The ooxml templates, macro enabled documents and slideshows, which odrcore's extension table
-     * leaves out although it renders every one of them - they are the same packages as the `x`
-     * suffixed ones, and libmagic identifies them by content once the file is in the cache.
-     *
-     * Kept apart from [CORE_EXTENSIONS] so that a test can say which of the two invariants applies
-     * to which half, rather than quietly dropping the check for all of them.
+     * The extensions to fall back on, because providers regularly volunteer nothing better than
+     * `application/octet-stream` - and because a file manager that sends `ACTION_VIEW` with no mime
+     * type at all leaves the name as the only thing anyone can go on. That second case is what the
+     * `pathPattern` filters in AndroidManifest.xml cover, and they have to list exactly this set.
      */
-    val OOXML_VARIANT_EXTENSIONS: Set<String> =
-        setOf(
-            "docm",
-            "dotx",
-            "dotm",
-            "xlsm",
-            "xltx",
-            "xltm",
-            "pptm",
-            "potx",
-            "potm",
-            "ppsx",
-            "ppsm",
-        )
+    val EXTENSIONS: Set<String> by lazy {
+        (CORE_FILE_TYPES + RAW_FILE_TYPES)
+            .flatMap { Odr.fileExtensionsByFileType(it) }
+            .map { it.lowercase() }
+            .toSet()
+    }
 
     /**
-     * The extensions to fall back on, spelling out the same set once more because providers
-     * regularly volunteer nothing better than `application/octet-stream` - and because a file
-     * manager that sends `ACTION_VIEW` with no mime type at all leaves the name as the only thing
-     * anyone can go on. That second case is what the `pathPattern` filters in AndroidManifest.xml
-     * cover, and they have to list exactly this set.
+     * The spelling of [mimeType] the rest of the app goes by: odrcore's canonical one whenever the
+     * core recognizes what a provider handed us, and the original otherwise.
      *
-     * The ooxml variants are here for the same reason [CORE_MIME_PREFIXES] matches by prefix: a
-     * `.dotx` is the same wordprocessing package as a `.docx`. Note that odrcore's own
-     * `fileTypeByFileExtension` does *not* know them - its extension table names one suffix per
-     * format - which is why [SupportedFormatsTest] holds only [CORE_EXTENSIONS] against it.
+     * Reading the core's table means the app now claims every spelling in it - `application/csv`,
+     * `application/x-zip-compressed`, `multipart/x-zip` - and not just the one the core happens to
+     * name first. [CoreLoader] does not care, it matches the whole set; [RawLoader] routes by mime
+     * type *prefix* and would refuse a file the app had just offered itself for, which the user
+     * sees as "cannot open" on a file they picked us for. [MetadataLoader] collapses them here
+     * instead, so every loader downstream sees one spelling per format.
      *
-     * Public so `SupportedFormatsTest` can walk it: it holds every one of these against the
-     * manifest.
+     * Anything the core does not name - audio and video, which only [RawLoader] deals with - passes
+     * through untouched.
      */
-    val EXTENSIONS: Set<String> = CORE_EXTENSIONS + OOXML_VARIANT_EXTENSIONS
+    fun canonicalMimeType(mimeType: String?): String? {
+        if (mimeType == null) {
+            return null
+        }
 
-    /** Whether [CoreLoader] is expected to render this - see [CORE_MIME_PREFIXES]. */
-    fun isRenderedByCore(mimeType: String?): Boolean = matches(mimeType, CORE_MIME_PREFIXES)
+        val fileType = Odr.fileTypeByMimetype(mimeType) ?: return mimeType
+        if (fileType == FileType.UNKNOWN) {
+            return mimeType
+        }
 
-    /** Whether the folder browser should offer this at all. */
+        return Odr.mimetypeByFileType(fileType) ?: mimeType
+    }
+
+    /** Whether [CoreLoader] is expected to render this - see [CORE_FILE_TYPES]. */
+    fun isRenderedByCore(mimeType: String?): Boolean =
+        mimeType != null && mimeType.lowercase() in CORE_MIME_TYPES
+
+    /** Whether the app should offer itself for this at all. */
     fun isSupported(mimeType: String?, filename: String?): Boolean {
         // a recognised extension has to be able to win on its own, or every octet-stream is lost
         val extension = MimeTypeResolver.parseExtension(filename)?.lowercase()
@@ -138,16 +127,15 @@ object SupportedDocumentTypes {
             return true
         }
 
-        return isRenderedByCore(mimeType) || matches(mimeType, RAW_MIME_PREFIXES)
-    }
-
-    private fun matches(mimeType: String?, prefixes: List<String>): Boolean {
         if (mimeType == null) {
             return false
         }
 
         val normalized = mimeType.lowercase()
 
-        return prefixes.any { normalized.startsWith(it) }
+        return normalized in MIME_TYPES || RAW_MIME_PREFIXES.any { normalized.startsWith(it) }
     }
+
+    private fun mimeTypesOf(fileTypes: List<FileType>): Set<String> =
+        fileTypes.flatMap { Odr.mimetypesByFileType(it) }.map { it.lowercase() }.toSet()
 }

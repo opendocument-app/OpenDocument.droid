@@ -1,9 +1,19 @@
 package app.opendocument.droid.background
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.SmallTest
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
+/**
+ * Instrumented rather than a JVM test since odrcore 6.1: [OnlineLoader.isConvertible] falls through
+ * to [CoreLoader.isSupported], which reads the core's format table out of `libodr_jni` now instead
+ * of matching mime prefixes in kotlin. Nothing here uploads anything or touches the network.
+ */
+@SmallTest
+@RunWith(AndroidJUnit4::class)
 class OnlineLoaderTest {
 
     private lateinit var onlineLoader: OnlineLoader

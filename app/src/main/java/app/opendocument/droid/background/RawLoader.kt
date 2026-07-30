@@ -172,6 +172,10 @@ class RawLoader(
     }
 
     private companion object {
+        // one line per format rather than per spelling, because what reaches this loader has been
+        // through SupportedDocumentTypes.canonicalMimeType: a zip is application/zip here even when
+        // the provider called it application/x-zip-compressed. These are wider than what the app
+        // offers itself for - audio and video are worth playing once someone hands us one.
         val MIME_WHITELIST =
             arrayOf(
                 "text/",
