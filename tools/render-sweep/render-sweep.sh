@@ -177,7 +177,8 @@ while IFS= read -r rel <&3; do
   { echo "=== crash buffer ==="; "$ADB" logcat -d -b crash 2>/dev/null | tail -60
     echo "=== app errors ==="
     "$ADB" logcat -d 2>/dev/null \
-      | grep -iE "System.err|FATAL|OdrException|Fatal signal|DEBUG.*$PKG" | tail -40
+      | awk -v pkg="$PKG" 'BEGIN{IGNORECASE=1} /System\.err|FATAL|OdrException|Fatal signal/ || (/DEBUG/ && index($0, pkg))' \
+      | tail -40
   } > "$OUT/logs/$idx.log"
 
   signal=ok
