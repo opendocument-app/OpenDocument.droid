@@ -91,7 +91,7 @@ jobs:
         fi
 
     - name: checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     # the version is not in the checkout - it is the tag, handed to gradle below as
     # -Podr.version. The script says which runs can build which version, and why;

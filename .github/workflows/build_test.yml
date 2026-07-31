@@ -36,7 +36,7 @@ jobs:
       conan-cache-key: ${{ steps.conan-cache-key.outputs.key }}
     steps:
     - name: checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: install ninja
       run: sudo apt-get install -y ninja-build
@@ -149,7 +149,7 @@ jobs:
           - { arch: x86_64, api-level: 34 }
     steps:
     - name: checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: install ninja
       run: sudo apt-get install -y ninja-build
