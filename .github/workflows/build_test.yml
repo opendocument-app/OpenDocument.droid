@@ -108,7 +108,7 @@ jobs:
       # fork PRs get a read-only token and cannot write code scanning results;
       # the html artifact below is the fallback in that case
       continue-on-error: true
-      uses: github/codeql-action/upload-sarif@v4
+      uses: github/codeql-action/upload-sarif@v4.37.3
       with:
         sarif_file: app/build/reports
         category: android-lint
