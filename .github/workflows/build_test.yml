@@ -81,7 +81,7 @@ jobs:
       run: python conan-odr-index/scripts/conan_export_all_packages.py
 
     - name: Gradle cache
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v6
 
     - name: gradle
       # spotlessCheck runs in the format workflow, which has no paths-ignore
@@ -193,7 +193,7 @@ jobs:
       run: python conan-odr-index/scripts/conan_export_all_packages.py
 
     - name: Gradle cache
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v6
 
     - name: AVD cache
       uses: actions/cache@v6
