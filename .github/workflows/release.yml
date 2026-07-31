@@ -190,7 +190,7 @@ jobs:
       run: python conan-odr-index/scripts/conan_export_all_packages.py
 
     - name: Gradle cache
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v6
 
     # the apks are the sideloadable copies of what the bundles ship. both get
     # archived on the run; only pro goes onto the github release, the way it
