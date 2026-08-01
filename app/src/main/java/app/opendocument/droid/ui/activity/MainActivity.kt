@@ -27,6 +27,7 @@ import app.opendocument.droid.background.LoaderService
 import app.opendocument.droid.background.LoaderServiceQueue
 import app.opendocument.droid.background.PersistedUriPermissions
 import app.opendocument.droid.background.PrintingManager
+import app.opendocument.droid.background.SupportedDocumentTypes
 import app.opendocument.droid.nonfree.AdManager
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
@@ -49,6 +50,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var documentContainer: View
     private lateinit var adContainer: LinearLayout
     private var documentFragment: DocumentFragment? = null
+
+    // how far the gesture bar reaches into the window, kept so a DocumentFragment created after
+    // the insets arrived still gets it - see applyWindowInsets
+    private var bottomInset = 0
 
     private val landingFragment: LandingFragment?
         get() =
@@ -159,21 +164,6 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.main)
 
-        // Edge-to-edge is enforced from targetSdk 35 on: pad the root view so content
-        // stays clear of the system bars, display cutouts and the keyboard. On older
-        // devices the window does not extend under the bars and the insets are zero.
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_root)) { view, windowInsets
-            ->
-            val insets =
-                windowInsets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() or
-                        WindowInsetsCompat.Type.displayCutout() or
-                        WindowInsetsCompat.Type.ime()
-                )
-            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
-            WindowInsetsCompat.CONSUMED
-        }
-
         // nothing lives in the toolbar any more - the landing screen has its own header and the
         // document its buttons - so the bar would just be an empty strip of colour. Hiding it
         // rather than moving to a .NoActionBar theme keeps it as the host the action modes are
@@ -192,6 +182,8 @@ class MainActivity : AppCompatActivity() {
         adContainer = findViewById(R.id.ad_container)
         landingContainer = findViewById(R.id.landing_container)
         documentContainer = findViewById(R.id.document_container)
+
+        applyWindowInsets()
 
         if (supportFragmentManager.findFragmentByTag(LandingFragment.FRAGMENT_TAG) == null) {
             supportFragmentManager
@@ -260,6 +252,42 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Edge-to-edge is enforced from targetSdk 35 on, so the window extends under the system bars
+     * and something has to keep the content clear of them. On older devices it does not, and every
+     * inset below is zero.
+     *
+     * The bars are not all held off the same way. Left, right and top are padding on the root, so
+     * nothing at all is drawn behind a cutout or the status bar. The bottom is not: the document is
+     * meant to run under the gesture bar - a page that stops short of it, with a strip of window
+     * background below, looks like a rendering fault rather than a decision - so only the things
+     * that would be *hidden* under it are lifted. The landing screen, whose list ends in a button,
+     * and [DocumentActions], whose buttons sit in that very corner.
+     *
+     * The keyboard is the exception, and gets the document container itself: it covers half the
+     * screen, and while a document is being edited the caret has to stay above it.
+     */
+    private fun applyWindowInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_root)) { view, windowInsets
+            ->
+            val bars =
+                windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+                )
+            val ime = windowInsets.getInsets(WindowInsetsCompat.Type.ime())
+
+            view.setPadding(bars.left, bars.top, bars.right, 0)
+
+            landingContainer.setPadding(0, 0, 0, maxOf(bars.bottom, ime.bottom))
+            documentContainer.setPadding(0, 0, 0, ime.bottom)
+
+            bottomInset = bars.bottom
+            documentFragment?.setBottomInset(bars.bottom)
+
+            WindowInsetsCompat.CONSUMED
+        }
+    }
+
     override fun onStart() {
         super.onStart()
 
@@ -270,9 +298,6 @@ class MainActivity : AppCompatActivity() {
             landingContainer.visibility = View.GONE
             documentContainer.visibility = View.VISIBLE
 
-            // a recreated LandingFragment starts out believing it is on screen, and its view model
-            // survives with it - so one that was inside a folder would go on eating back presses
-            // behind the document it was recreated underneath
             landingFragment?.setLandingVisible(false)
         }
 
@@ -411,6 +436,9 @@ class MainActivity : AppCompatActivity() {
                             .commitNow()
                     }
 
+            // the insets arrived long before this fragment existed, and nothing asks for them again
+            documentFragment.setBottomInset(bottomInset)
+
             this.documentFragment = documentFragment
         }
 
@@ -427,9 +455,9 @@ class MainActivity : AppCompatActivity() {
         // opened list unreadable on the next launch. PersistedUriPermissions.prune() reclaims
         // them instead, once nothing refers to them any more.
         //
-        // takeRead fails for a document below a directory tree we were granted, because only a
-        // uri that arrived on one of our own intents can be persisted - isRetained covers those,
-        // so browsing to a document still records it as recent
+        // takeRead fails for a uri that did not arrive on an intent of ours - one tapped in the
+        // recently opened list, say - so isRetained asks whether an earlier session already took
+        // the grant that is making it readable now
         val isPersistentUri =
             PersistedUriPermissions.takeRead(this, uri) ||
                 PersistedUriPermissions.isRetained(this, uri)
@@ -643,7 +671,31 @@ class MainActivity : AppCompatActivity() {
         analyticsManager.report("fullscreen_end")
     }
 
-    private fun closeDocument() {
+    /**
+     * A load failed and the app has nothing left to try with the file - go back to the list rather
+     * than leave an empty page on the screen with a bar over it.
+     *
+     * The bar is raised before this and deliberately survives it: with the document gone, it is the
+     * only thing left saying why. Its action - handing the file to another app - needs no document,
+     * which is exactly the case this is called in.
+     */
+    fun closeFailedDocument() {
+        if (documentFragment == null) {
+            return
+        }
+
+        analyticsManager.report("close_failed_document")
+
+        closeDocument(keepMessage = true)
+    }
+
+    private fun closeDocument(keepMessage: Boolean = false) {
+        // whatever the document had to say goes with it - an indefinite "could not be opened" is
+        // about a document that is no longer on the screen. unless it is the reason we are leaving
+        if (!keepMessage) {
+            SnackbarHelper.dismiss(this)
+        }
+
         documentFragment?.let { fragment ->
             supportFragmentManager.beginTransaction().remove(fragment).commitNow()
 
@@ -662,10 +714,36 @@ class MainActivity : AppCompatActivity() {
         analyticsManager.setCurrentScreen(this, "screen_main")
     }
 
+    /**
+     * What the picker is told to offer: everything the app can open, plus the type that means
+     * nothing at all.
+     *
+     * This is what makes it a document picker rather than a file picker - with it the image, audio
+     * and video filters come off the screen, and a phone full of photos does not have to be walked
+     * past to reach a document. Setting a starting folder was the other way of doing this and is
+     * the wrong one: documents are wherever the user put them, mostly Downloads, and sending
+     * everyone to Documents is only right for the people who use that folder.
+     *
+     * [GENERIC_MIME_TYPE] is in the list because a filter is worse than no filter when it hides a
+     * file the app could open. Providers regularly volunteer nothing better than
+     * application/octet-stream for a real document - the same reason [SupportedDocumentTypes] keeps
+     * an extension fallback - and a filtered picker does not grey those out, it leaves them out
+     * altogether. The price is that other unnamed binaries stay listed too, which is the harmless
+     * half of the trade.
+     *
+     * Images are not here, though [RawLoader] shows them: this is a document reader's file picker,
+     * and an image reaches it by being shared or opened from a gallery.
+     */
+    private fun pickableMimeTypes(): Array<String> =
+        (SupportedDocumentTypes.MIME_TYPES + GENERIC_MIME_TYPE).toTypedArray()
+
     fun findDocument() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.type = "*/*"
+
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, pickableMimeTypes())
+
         intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
@@ -731,6 +809,10 @@ class MainActivity : AppCompatActivity() {
         const val SAVED_KEY_OPENED_EXTERNALLY = "OPENED_EXTERNALLY"
         const val GOOGLE_REQUEST_CODE = 1993
         const val DOCUMENT_FRAGMENT_TAG = "document_fragment"
+
+        // what a provider volunteers when it has nothing better to say. included in the picker's
+        // filter on purpose - see pickableMimeTypes
+        const val GENERIC_MIME_TYPE = "application/octet-stream"
 
         // taken from: https://stackoverflow.com/a/36829889/198996
         private fun isTesting(): Boolean =

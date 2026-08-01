@@ -276,6 +276,24 @@ class LandingTests {
         onView(withText(R.string.landing_catch_all_title)).check(doesNotExist())
     }
 
+    /**
+     * A document that cannot be opened puts the user back on the list rather than on a blank page,
+     * with the bar saying why still up. The bar's own offer - hand the file to another app - needs
+     * no document, which is why leaving is safe here.
+     */
+    @Test
+    fun aDocumentThatFailsToOpenComesBackToTheList() {
+        seedBrokenDocument()
+
+        launch()
+
+        onView(withText(BROKEN_DOCUMENT)).perform(closeSoftKeyboard(), click())
+
+        // espresso waits out the load itself: OpenFileIdling is busy until a loader callback runs
+        onView(withText(R.string.toast_error_illegal_file_reopen)).check(matches(isDisplayed()))
+        onView(withId(R.id.landing_list)).check(matches(isDisplayed()))
+    }
+
     @Test
     fun theCatchAllSettingIsOffered() {
         seedRecentDocument()
@@ -356,6 +374,17 @@ class LandingTests {
         RecentDocumentsUtil.addRecentDocument(context(), TEST_DOCUMENT, uriOf(requireTestFile()))
     }
 
+    /**
+     * A recent document that is not a document at all: bytes no loader can make anything of, so the
+     * load fails the way a truncated download or a renamed file does.
+     */
+    private fun seedBrokenDocument() {
+        val broken = File(requireTestFile().parentFile, BROKEN_DOCUMENT)
+        FileOutputStream(broken).use { output -> output.write(ByteArray(4096) { it.toByte() }) }
+
+        RecentDocumentsUtil.addRecentDocument(context(), BROKEN_DOCUMENT, uriOf(broken))
+    }
+
     /** A document left behind by an earlier run would keep the intro's Open button off screen. */
     private fun clearLandingState() {
         context().deleteFile("recent_documents.json")
@@ -387,6 +416,7 @@ class LandingTests {
 
     companion object {
         private const val TEST_DOCUMENT = "test.odt"
+        private const val BROKEN_DOCUMENT = "broken.odt"
         private const val LOAD_TIMEOUT_MS = 20000L
 
         private var testFile: File? = null

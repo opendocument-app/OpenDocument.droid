@@ -13,10 +13,19 @@
             android:background="@color/document_actions_scrim"
             android:visibility="gone" />
 
+    <!--
+         clipChildren and clipToPadding are both off the whole way down: a button's elevation
+         shadow is drawn outside its own bounds, and every one of these sits flush against the
+         padding edge of whatever holds it, so the default clip cuts the shadow off along a
+         straight line - which reads as a button running off the screen.
+    -->
     <LinearLayout
+            android:id="@+id/document_actions_buttons"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="end|bottom"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:gravity="end|bottom"
             android:orientation="vertical"
             android:padding="16dp"
@@ -33,6 +42,8 @@
                 android:layout_height="0dp"
                 android:layout_gravity="end"
                 android:layout_weight="1"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:fillViewport="true"
                 android:scrollbars="none"
                 android:visibility="gone">
@@ -42,6 +53,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end|bottom"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
                     android:gravity="end|bottom"
                     android:orientation="vertical" />
         </ScrollView>

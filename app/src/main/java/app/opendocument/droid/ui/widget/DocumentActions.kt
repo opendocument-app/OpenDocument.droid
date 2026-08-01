@@ -41,10 +41,13 @@ class DocumentActions(context: Context, attributeSet: AttributeSet?) :
     var expandedListener: ((Boolean) -> Unit)? = null
 
     private val scrim: View
+    private val buttons: LinearLayout
     private val rowsScroll: ScrollView
     private val rows: LinearLayout
     private val primaryButton: FloatingActionButton
     private val moreButton: FloatingActionButton
+
+    private val basePaddingBottom: Int
 
     var isExpanded: Boolean = false
         private set
@@ -52,16 +55,40 @@ class DocumentActions(context: Context, attributeSet: AttributeSet?) :
     init {
         LayoutInflater.from(context).inflate(R.layout.view_document_actions, this, true)
 
+        // the buttons cast a shadow past their own bounds, and sit in the very corner of this view
+        // - see the note in the layout
+        clipChildren = false
+        clipToPadding = false
+
         scrim = findViewById(R.id.document_actions_scrim)
+        buttons = findViewById(R.id.document_actions_buttons)
         rowsScroll = findViewById(R.id.document_actions_rows_scroll)
         rows = findViewById(R.id.document_actions_rows)
         primaryButton = findViewById(R.id.document_actions_primary)
         moreButton = findViewById(R.id.document_actions_more)
 
+        basePaddingBottom = buttons.paddingBottom
+
         scrim.setOnClickListener { collapse() }
         moreButton.setOnClickListener { if (isExpanded) collapse() else expand() }
 
         setActions(null, emptyList())
+    }
+
+    /**
+     * Lifts the buttons over the gesture bar, which the document itself is drawn under.
+     *
+     * Only the column of buttons moves. The scrim stays where it is, covering the page to the very
+     * bottom of the window - it is what the page is dimmed with, and a dimming that stopped short
+     * of the edge would show as a bright band.
+     */
+    fun setBottomInset(inset: Int) {
+        buttons.setPadding(
+            buttons.paddingLeft,
+            buttons.paddingTop,
+            buttons.paddingRight,
+            basePaddingBottom + inset,
+        )
     }
 
     /**

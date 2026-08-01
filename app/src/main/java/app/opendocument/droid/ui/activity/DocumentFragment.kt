@@ -55,6 +55,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         private set
 
     private lateinit var actions: DocumentActions
+    private var bottomInset = 0
 
     /** Folding the actions back up is what back does first, while they are unfolded. */
     private val actionsBackCallback =
@@ -194,6 +195,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         crashManager = mainActivity.crashManager
 
         actions = view.findViewById(R.id.document_actions)
+        actions.setBottomInset(bottomInset)
         actions.listener = DocumentActions.Listener { action ->
             mainActivity.onDocumentAction(action)
         }
@@ -296,6 +298,10 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
     }
 
     private fun loadWithType(loaderType: FileLoader.LoaderType, options: FileLoader.Options) {
+        // whatever the last load had to say was about the last document. the offers to reopen or
+        // upload are indefinite, so without this they sit over the document that came after them
+        SnackbarHelper.dismiss(requireActivity())
+
         prepareLoad(loaderType, true)
 
         state.beginLoadIdling()
@@ -445,6 +451,21 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
     }
 
     /** Takes the buttons away while the document has the screen to itself. */
+    /**
+     * How far the gesture bar reaches into the window. The page itself runs under it - see
+     * MainActivity.applyWindowInsets - but the buttons in that corner have to stay above it.
+     *
+     * Remembered rather than applied straight away: MainActivity creates this fragment inside its
+     * own onCreate, long before there is a view to put it on.
+     */
+    fun setBottomInset(inset: Int) {
+        bottomInset = inset
+
+        if (::actions.isInitialized) {
+            actions.setBottomInset(inset)
+        }
+    }
+
     fun setActionsVisible(visible: Boolean) {
         if (!::actions.isInitialized) {
             return
@@ -562,6 +583,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
         // MetadataLoader failed, so there's no point in trying to parse or upload the file
         offerReopen(activity, options, errorDescription, true)
+        giveUp(activity)
 
         state.endLoadIdling()
     }
@@ -616,12 +638,16 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
         if (result.loaderType == FileLoader.LoaderType.CORE) {
             if (serviceQueue.service?.isOnlineSupported(options) == true) {
+                // the upload offer is the app still having something to try, so the document stays
+                // where it is until the user answers it
                 offerUpload(activity, options)
             } else {
                 offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true)
+                giveUp(activity)
             }
         } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
             offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true)
+            giveUp(activity)
         }
 
         state.endLoadIdling()
@@ -651,6 +677,17 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
             isIndefinite = true,
             isError = true,
         )
+    }
+
+    /**
+     * Nothing left to try with this document, so stop showing it: the landing screen is a better
+     * answer than a blank page, and the bar raised just before this says what happened.
+     *
+     * Not every failure ends here. The password prompt and the upload offer are both the app still
+     * having something to do with the file, and both need the document on screen to do it.
+     */
+    private fun giveUp(activity: Activity) {
+        (activity as MainActivity).closeFailedDocument()
     }
 
     private fun offerUpload(activity: Activity, options: FileLoader.Options) {
@@ -683,6 +720,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
             )
 
             offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true)
+            giveUp(activity)
 
             dialog.dismiss()
         }

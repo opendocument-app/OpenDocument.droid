@@ -8,6 +8,27 @@ import com.google.android.material.snackbar.Snackbar
 
 object SnackbarHelper {
 
+    /**
+     * The one that is up, so that something else can take it down.
+     *
+     * Most of what this shows is an error, and an error is about the document that was open when it
+     * happened. Several of them are [Snackbar.LENGTH_INDEFINITE] - "this file could not be opened"
+     * has to still be there when the user looks up - and an indefinite bar outlives the document it
+     * is about unless someone dismisses it, which is how "could not be opened" ended up sitting
+     * over a document that had opened perfectly well.
+     *
+     * Cleared when the bar goes, so this does not keep an activity alive through its view.
+     */
+    private var current: Snackbar? = null
+
+    /** Takes down whatever is up, if anything. Safe to call when nothing is. */
+    fun dismiss(activity: Activity) {
+        activity.runOnUiThread {
+            current?.dismiss()
+            current = null
+        }
+    }
+
     fun show(
         activity: Activity,
         resId: Int,
@@ -83,6 +104,20 @@ object SnackbarHelper {
             }
 
             snackbar.view.setOnClickListener { snackbar.dismiss() }
+
+            snackbar.addCallback(
+                object : Snackbar.Callback() {
+                    override fun onDismissed(dismissed: Snackbar?, event: Int) {
+                        // only if it is still the one on show: a bar that replaced this one has
+                        // already put itself there, and clearing would drop that instead
+                        if (current === dismissed) {
+                            current = null
+                        }
+                    }
+                }
+            )
+
+            current = snackbar
 
             snackbar.show()
         }
