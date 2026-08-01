@@ -9,8 +9,9 @@
       "The landing screen is the recently opened documents, not a page of prose.",
       "The logo and name sit above the list and stay there once documents fill it.",
       "Recent rows are one line each, with the time opened at the far end.",
-      "The intro copy is kept, under a heading of its own, above the settings.",
-      "Open goes straight to the system picker; there is no folder browser beside it.",
+      "What the app is for keeps a section of its own, which folds away once there are documents.",
+      "The settings fold too, and start folded.",
+      "Open goes straight to the system picker, filtered to documents; no folder browser beside it.",
       "The toolbar is gone: the document's actions float over it, where the thumb is.",
       "The document runs to the bottom edge, under the gesture bar."
     ]
@@ -27,7 +28,7 @@
         },
         {
           "set": "redesign",
-          "caption": "The same three lines of copy, under a heading of their own and above the settings, with a logo that stays put and Open a file where the eye ends up."
+          "caption": "The same three lines of copy, under a heading of their own and above the settings, with a logo that stays put and Open a file at the top. The settings start folded."
         }
       ]
     },
@@ -42,7 +43,7 @@
         },
         {
           "set": "redesign",
-          "caption": "Straight into the system picker - one tap fewer, and the picker's own search and roots come along."
+          "caption": "Straight into the system picker - one tap fewer, and its own search and roots come along. Asked for document types only, so the image, audio and video filters are not on it."
         }
       ]
     },
@@ -102,7 +103,7 @@
         },
         {
           "set": "redesign",
-          "caption": "Recents are the home screen: one line each, the time opened on the right, the logo still above them, and swipe to remove. What the app does keeps its place underneath."
+          "caption": "Recents are the home screen: one line each, the time opened on the right, the logo still above them, and swipe to remove. What the app does has folded itself away by now, and the settings under it were never open."
         }
       ]
     },

@@ -44,6 +44,7 @@ class Device:
         if serial:
             self.adb += ["-s", serial]
         self.verbose = verbose
+        self.size = None
 
     def run(self, *args, **kwargs):
         return subprocess.run(
@@ -131,6 +132,24 @@ class Device:
     def back(self):
         self.shell("input", "keyevent", "KEYCODE_BACK")
 
+    def swipe_up(self):
+        """A screenful, near enough - for looking further down a list."""
+        width, height = self.screen_size()
+
+        self.shell(
+            "input", "swipe",
+            str(width // 2), str(int(height * 0.7)),
+            str(width // 2), str(int(height * 0.3)),
+            "300",
+        )
+
+    def screen_size(self):
+        if self.size is None:
+            match = re.search(r"(\d+)x(\d+)", self.shell("wm", "size"))
+            self.size = (int(match.group(1)), int(match.group(2))) if match else (1080, 1920)
+
+        return self.size
+
     def settle(self, seconds=2):
         time.sleep(seconds)
 
@@ -146,8 +165,14 @@ def sdk_root():
 # The one place the two designs differ enough to need saying twice. Each entry is
 # tried in order and the first that is on screen wins, so a single tour walks a
 # branch whose actions live in a toolbar and one whose actions float over the page.
-OPEN_BUTTON = [(r"landing_open_fab", "resource-id"), (r"^Open document$", "content-desc")]
+OPEN_BUTTON = [
+    (r"landing_open$", "resource-id"),
+    (r"landing_open_fab", "resource-id"),
+    (r"^Open document$", "content-desc"),
+]
 FILE_MANAGER_CHOICE = [(r"^Files$", "text")]
+ROOTS_DRAWER = [(r"^Show roots$", "content-desc")]
+DOWNLOADS_ROOT = [(r"^Downloads$", "text")]
 RECENTS_CHOICE = [(r"[Rr]ecently opened", "text")]
 MORE_BUTTON = [(r"^More actions$", "content-desc"), (r"^More options$", "content-desc")]
 CLOSE_MORE = [(r"^Close actions$", "content-desc")]
@@ -187,7 +212,7 @@ def tour(device, args, shots):
             device.tap_node(chooser)
             device.settle(3)
 
-        device.tap([(re.escape(document), "text")], what=document)
+        open_document(device, document)
         device.wait_for(DOCUMENT_ON_SCREEN, timeout=args.load_timeout, what="the document")
         device.settle(args.load_pause)
 
@@ -237,6 +262,35 @@ def tour(device, args, shots):
         device.settle(2)
 
     shoot("06-recents")
+
+
+def open_document(device, name):
+    """
+    Finds [name] in the picker and taps it.
+
+    The picker opens wherever it was left, or in Recent files on a device that has no answer to
+    that - and neither of them need hold the documents this pushed. So it is browsed to rather
+    than assumed: the roots drawer, then Downloads, then down the list if it is long.
+    """
+    pattern = re.escape(name)
+
+    for attempt in range(4):
+        if device.find(pattern) is not None:
+            device.tap([(pattern, "text")], what=name)
+
+            return
+
+        if attempt == 0:
+            device.say(f"{name} is not on screen, opening Downloads")
+            device.tap(ROOTS_DRAWER, what="the roots drawer")
+            device.settle(2)
+            device.tap(DOWNLOADS_ROOT, what="the Downloads root")
+        else:
+            device.swipe_up()
+
+        device.settle(3)
+
+    raise Tourfail(f"{name} is not in the picker")
 
 
 def launch(device, args, fresh):
