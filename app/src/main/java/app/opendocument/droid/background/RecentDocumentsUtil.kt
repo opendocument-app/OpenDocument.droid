@@ -7,9 +7,8 @@ import org.json.JSONObject
 /**
  * Stores the recently opened documents in an app private json file.
  *
- * Only the fields live here: [JsonFileStore] does the file and json handling, which
- * [FolderTreesUtil] shares, and the ordering and capping rules are in [RecentDocumentList], which
- * is android free and unit tested.
+ * Only the fields live here: [JsonFileStore] does the file and json handling, and the ordering and
+ * capping rules are in [RecentDocumentList], which is android free and unit tested.
  *
  * Every method is synchronized: the loaders write from [LoaderService]'s background thread while
  * the landing screen reads from its own executor.

@@ -25,6 +25,9 @@
     <string name="action_edit_save">Сохранить</string>
     <string name="action_edit_banner">Отредактируйте ваш документ ниже и нажмите \"Сохранить\"</string>
     <string name="landing_intro_open_all">Приложение регистрируется для автоматического открытия всех типов файлов, чтобы поддерживать такие приложения, как Samsung My Files. Если эта функция создает вам проблемы, отключите ее здесь.</string>
+    <string name="landing_intro_view">OpenDocument Reader позволяет просматривать документы, которые сохранены в формате OpenDocument (.odt, .ods, .odp и .odg), из любого места.</string>
+    <string name="landing_intro_search">С помощью OpenDocument Reader вы можете легко читать и просматривать свои документы.</string>
+    <string name="landing_intro_edit">В последний момент нашли ошибку, которую нужно исправить перед важной презентацией? Теперь программа поддерживает возможность вносить в документ изменения!</string>
     <string name="tts_status_reading">Чтение...</string>
     <string name="tts_status_initializing">Инициализация преобразования текста в речь…</string>
     <string name="tts_status_ready">Готово!</string>

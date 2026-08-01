@@ -23,7 +23,8 @@ handles and publishes the html on a local http server, `RawLoader` covers text, 
 images, and `OnlineLoader` uploads to a web viewer what neither can open.
 
 `MainActivity` owns the service binding and the action modes (find, tts, edit), and swaps
-between two fragments: `LandingFragment` (recent documents, granted folders, settings) and
+between two fragments: `LandingFragment` (recent documents and settings, under a header that
+carries the logo and never scrolls away) and
 `DocumentFragment`, which shows the result in `PageView` - a WebView - with `DocumentActions`
 over it.
 
@@ -157,12 +158,15 @@ way: `READ_EXTERNAL_STORAGE` has not reached documents since scoped storage, `RE
 covers only images, video and audio, and Play restricts `MANAGE_EXTERNAL_STORAGE` to file
 managers and backup apps.
 
-Everything goes through SAF instead - `ACTION_OPEN_DOCUMENT` for a single file and
-`ACTION_OPEN_DOCUMENT_TREE` (read only, never `FLAG_GRANT_WRITE_URI_PERMISSION`) for the
-folders the landing screen browses. `PersistedUriPermissions` persists those grants and
-reclaims them by reconciling against the recent list and the granted trees, rather than
-releasing on close. Do not add a release next to a `documentFragment.loadUri()`: that call
-only queues the load, so the stream is opened long after it returns.
+Everything goes through SAF instead: `ACTION_OPEN_DOCUMENT`, read only, one file at a time.
+`PersistedUriPermissions` persists those grants and reclaims them by reconciling against the
+recent list, rather than releasing on close. Do not add a release next to a
+`documentFragment.loadUri()`: that call only queues the load, so the stream is opened long
+after it returns.
+
+The landing screen briefly also browsed `ACTION_OPEN_DOCUMENT_TREE` folders. That is gone -
+the picker already browses, and a second half-browser next to it earned nothing. `prune()`
+hands the trees an upgrading user still holds back on the next launch.
 
 ### Kotlin, and the three `@Jvm` annotations left
 

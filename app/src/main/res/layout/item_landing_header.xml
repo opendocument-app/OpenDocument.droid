@@ -1,12 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/landing_row_title"
+
+<!-- A section title, and for the sections that fold, the control that folds them.
+
+     A row with a chevron in it rather than a title that happens to react to a tap: a label
+     with no affordance on it is not a button, however well it behaves when pressed. The
+     whole row is the target, which is why the chevron is not a button of its own. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="24dp"
-        android:paddingTop="24dp"
-        android:paddingEnd="24dp"
-        android:paddingBottom="8dp"
-        android:textAllCaps="true"
-        android:textAppearance="?attr/textAppearanceLabelMedium"
-        android:textColor="?attr/colorPrimary" />
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:minHeight="52dp"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="6dp">
+
+    <TextView
+            android:id="@+id/landing_row_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorPrimary" />
+
+    <ImageView
+            android:id="@+id/landing_header_chevron"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:src="@drawable/ic_keyboard_arrow_down"
+            android:visibility="gone"
+            app:tint="?attr/colorPrimary"
+            tools:ignore="ContentDescription"
+            tools:visibility="visible" />
+</LinearLayout>

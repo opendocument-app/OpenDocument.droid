@@ -11,12 +11,10 @@ import org.json.JSONObject
 /**
  * A list of objects in an app private json file, read and written whole.
  *
- * The two lists the landing screen is built from - [RecentDocumentsUtil] and [FolderTreesUtil] -
- * used to carry a copy of this each: open the file or treat a missing one as an empty list, walk
- * the array, skip what does not parse, write the whole thing back. Only the fields ever differed,
- * so the fields are all that is left to them.
- *
- * Neither list is long enough to be worth a database, and both are only ever replaced entirely.
+ * Open the file or treat a missing one as an empty list, walk the array, skip what does not parse,
+ * write the whole thing back - none of which is about what [RecentDocumentsUtil] stores, so none of
+ * it is in there. The list is not long enough to be worth a database, and is only ever replaced
+ * entirely.
  */
 internal object JsonFileStore {
 
@@ -25,7 +23,7 @@ internal object JsonFileStore {
      *
      * A missing file is an empty list rather than the [java.io.FileNotFoundException] every caller
      * would otherwise have to catch, and so is a truncated one - there is no history to recover,
-     * and nothing either list holds is worth failing a launch over.
+     * and nothing the list holds is worth failing a launch over.
      */
     fun <T> read(context: Context, filename: String, parse: (JSONObject) -> T?): List<T> {
         val jsonArray =

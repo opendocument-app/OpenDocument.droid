@@ -9,12 +9,17 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.SystemClock
+import android.view.View
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.ViewAction
+import androidx.test.espresso.action.CoordinatesProvider
+import androidx.test.espresso.action.GeneralSwipeAction
+import androidx.test.espresso.action.Press
+import androidx.test.espresso.action.Swipe
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
-import androidx.test.espresso.action.ViewActions.longClick
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
@@ -23,19 +28,20 @@ import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.matcher.ViewMatchers.hasDescendant
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.withParent
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import app.opendocument.droid.R
-import app.opendocument.droid.background.FolderTreesUtil
 import app.opendocument.droid.background.RecentDocumentsUtil
 import app.opendocument.droid.ui.activity.DocumentFragment
 import app.opendocument.droid.ui.activity.MainActivity
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import org.hamcrest.Matcher
 import org.hamcrest.Matchers.allOf
 import org.junit.After
 import org.junit.Assert
@@ -74,22 +80,34 @@ class LandingTests {
         }
     }
 
+    /** With nothing to list, what the app is for is unfolded - there is nothing in its way. */
     @Test
-    fun emptyStateIsShownWhenNothingWasOpenedYet() {
+    fun theIntroIsUnfoldedWhenNothingWasOpenedYet() {
         launch()
 
-        onView(withId(R.id.landing_empty)).check(matches(isDisplayed()))
+        onView(withId(R.id.landing_intro)).check(matches(isDisplayed()))
     }
 
     @Test
-    fun emptyStateOpensTheSystemPicker() {
+    fun theOpenButtonOpensTheSystemPicker() {
         stubOpenDocumentCancelled()
 
         launch()
 
-        onView(withId(R.id.landing_empty_open)).perform(closeSoftKeyboard(), click())
+        onView(withId(R.id.landing_open)).perform(closeSoftKeyboard(), click())
 
         Intents.intended(hasAction(Intent.ACTION_OPEN_DOCUMENT))
+    }
+
+    /** And it stays above the documents once there are some, rather than going away with them. */
+    @Test
+    fun theOpenButtonStaysAboveTheDocuments() {
+        seedRecentDocument()
+
+        launch()
+
+        onView(withId(R.id.landing_open)).check(matches(isDisplayed()))
+        onView(withText(TEST_DOCUMENT)).check(matches(isDisplayed()))
     }
 
     @Test
@@ -127,71 +145,135 @@ class LandingTests {
         Intents.intended(hasAction(Intent.ACTION_OPEN_DOCUMENT))
     }
 
+    /** Swiping a recent document away is the only way to remove one, and it says so afterwards. */
     @Test
-    fun addingAFolderAsksTheSystemForATree() {
-        Intents.intending(hasAction(Intent.ACTION_OPEN_DOCUMENT_TREE))
-            .respondWith(Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null))
+    fun aRecentDocumentCanBeSwipedAway() {
+        seedRecentDocument()
 
         launch()
 
-        onView(withId(R.id.landing_empty_add_folder)).perform(closeSoftKeyboard(), click())
+        onView(rowOf(TEST_DOCUMENT)).perform(closeSoftKeyboard(), swipeRowAway())
 
-        Intents.intended(hasAction(Intent.ACTION_OPEN_DOCUMENT_TREE))
+        onView(withText(R.string.landing_recent_removed)).check(matches(isDisplayed()))
+        onView(withText(TEST_DOCUMENT)).check(doesNotExist())
     }
 
+    /** The undo next to it puts the document back. */
     @Test
-    fun aGrantedFolderIsListed() {
-        seedFolderTree()
+    fun removingARecentDocumentCanBeUndone() {
+        seedRecentDocument()
 
         launch()
 
-        onView(withText(TEST_FOLDER)).check(matches(isDisplayed()))
-    }
-
-    /**
-     * Removing a granted folder, which a long press and a swipe now reach the same way - the swipe
-     * gesture itself is ItemTouchHelper's, so this covers what both of them call.
-     */
-    @Test
-    fun aGrantedFolderCanBeRemoved() {
-        seedFolderTree()
-
-        launch()
-
-        onView(withText(TEST_FOLDER)).perform(closeSoftKeyboard(), longClick())
-
-        onView(withText(R.string.landing_folder_removed)).check(matches(isDisplayed()))
-        onView(withText(TEST_FOLDER)).check(doesNotExist())
-    }
-
-    /** The undo next to it puts the folder back, cached name and all. */
-    @Test
-    fun removingAGrantedFolderCanBeUndone() {
-        seedFolderTree()
-
-        launch()
-
-        onView(withText(TEST_FOLDER)).perform(closeSoftKeyboard(), longClick())
+        onView(rowOf(TEST_DOCUMENT)).perform(closeSoftKeyboard(), swipeRowAway())
         onView(withText(R.string.landing_undo)).perform(click())
 
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
         SystemClock.sleep(500)
 
-        onView(withText(TEST_FOLDER)).check(matches(isDisplayed()))
+        onView(withText(TEST_DOCUMENT)).check(matches(isDisplayed()))
     }
 
+    /**
+     * The row itself, not the filename inside it: ItemTouchHelper dismisses at half the width of
+     * what was swiped, and the title is not wide enough to get there.
+     */
+    private fun rowOf(filename: String): Matcher<View> =
+        allOf(hasDescendant(withText(filename)), withParent(withId(R.id.landing_list)))
+
+    /**
+     * Most of the width of the row, slowly, and starting inside it.
+     *
+     * Espresso's own swipeLeft is a fling across the middle of the view, and ItemTouchHelper reads
+     * that as a flick that did not travel far enough to dismiss anything - it wants half the width.
+     * The edges are out of bounds for the opposite reason: a drag that begins on the right edge of
+     * the screen is the system back gesture, and the first version of this closed the activity
+     * instead of the row.
+     */
+    private fun swipeRowAway(): ViewAction =
+        GeneralSwipeAction(Swipe.SLOW, acrossRow(0.9f), acrossRow(0.05f), Press.FINGER)
+
+    private fun acrossRow(fraction: Float): CoordinatesProvider = CoordinatesProvider { view ->
+        val onScreen = IntArray(2)
+        view.getLocationOnScreen(onScreen)
+
+        floatArrayOf(onScreen[0] + view.width * fraction, onScreen[1] + view.height / 2f)
+    }
+
+    /**
+     * The header is above the list rather than a row in it, so that it is there whatever the list
+     * holds - a fresh install and one with documents in it both say what the app is.
+     */
     @Test
-    fun theFoldersSectionOffersToAddOne() {
+    fun theHeaderStaysWhileDocumentsAreListed() {
         seedRecentDocument()
 
         launch()
 
-        onView(withText(R.string.landing_section_folders)).check(matches(isDisplayed()))
+        onView(withId(R.id.landing_header_logo)).check(matches(isDisplayed()))
+        onView(withText(TEST_DOCUMENT)).check(matches(isDisplayed()))
+    }
 
-        // the empty state carries a button with the same label, so match the one on screen -
-        // the empty state is gone once there is a recent document to show
-        onView(allOf(withText(R.string.landing_add_folder), isDisplayed()))
-            .check(matches(isDisplayed()))
+    /**
+     * Once there are documents, what the app is for folds itself away: the user has read it by
+     * then, and the list is what they came back for. The section itself stays.
+     */
+    @Test
+    fun theIntroFoldsItselfOnceThereAreDocuments() {
+        seedRecentDocument()
+
+        launch()
+
+        scrollTo(R.string.landing_section_intro)
+
+        onView(withText(R.string.landing_section_intro)).check(matches(isDisplayed()))
+        onView(withId(R.id.landing_intro)).check(doesNotExist())
+    }
+
+    /**
+     * Removing the last document leaves a screen with nothing on it but the intro, so it comes back
+     * open - even though it had folded itself away when the document was there.
+     */
+    @Test
+    fun theIntroUnfoldsAgainWhenTheLastDocumentGoes() {
+        seedRecentDocument()
+
+        launch()
+
+        onView(rowOf(TEST_DOCUMENT)).perform(closeSoftKeyboard(), swipeRowAway())
+
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+        SystemClock.sleep(500)
+
+        onView(withId(R.id.landing_intro)).check(matches(isDisplayed()))
+    }
+
+    /** And tapping the section brings it back. */
+    @Test
+    fun theIntroCanBeUnfoldedAgain() {
+        seedRecentDocument()
+
+        launch()
+
+        scrollTo(R.string.landing_section_intro)
+        onView(withText(R.string.landing_section_intro)).perform(closeSoftKeyboard(), click())
+
+        onView(withId(R.id.landing_intro)).check(matches(isDisplayed()))
+    }
+
+    /**
+     * The settings start folded whatever the list holds - one switch, for the few users whose file
+     * manager will not hand a document over - so reaching them is a tap on the section.
+     */
+    @Test
+    fun theCatchAllSettingIsFoldedAway() {
+        seedRecentDocument()
+
+        launch()
+
+        scrollTo(R.string.landing_section_settings)
+
+        onView(withText(R.string.landing_catch_all_title)).check(doesNotExist())
     }
 
     @Test
@@ -200,25 +282,40 @@ class LandingTests {
 
         launch()
 
-        scrollToCatchAllSetting()
+        unfoldSettings()
 
         onView(withText(R.string.landing_catch_all_title)).check(matches(isDisplayed()))
     }
 
     @Test
     fun theCatchAllSettingIsOfferedBeforeAnythingWasOpened() {
-        // a fresh install is where the switch matters most, and the empty state used to be shown
-        // instead of the list it sits in
+        // a fresh install is where the switch matters most, and it is furthest down the screen
+        // there - the intro above it is unfolded
         launch()
 
-        scrollToCatchAllSetting()
+        unfoldSettings()
 
         onView(withText(R.string.landing_catch_all_title)).check(matches(isDisplayed()))
     }
 
+    private fun unfoldSettings() {
+        scrollTo(R.string.landing_section_settings)
+        onView(withText(R.string.landing_section_settings)).perform(closeSoftKeyboard(), click())
+
+        scrollToCatchAllSetting()
+    }
+
+    /** Brings a row of the list on screen by the text somewhere inside it. */
+    private fun scrollTo(text: Int) {
+        onView(withId(R.id.landing_list))
+            .perform(
+                RecyclerViewActions.scrollTo<RecyclerView.ViewHolder>(hasDescendant(withText(text)))
+            )
+    }
+
     /**
-     * The settings sit under whatever the list is showing, and the empty state alone is taller than
-     * a small screen - so on the emulators CI runs, the switch is not merely off screen but never
+     * The settings sit under whatever the list is showing, and the intro alone is taller than a
+     * small screen - so on the emulators CI runs, the switch is not merely off screen but never
      * bound at all, and no matcher can find it.
      *
      * Scrolling is the whole point of the row being in the list rather than a screen of its own, so
@@ -259,28 +356,9 @@ class LandingTests {
         RecentDocumentsUtil.addRecentDocument(context(), TEST_DOCUMENT, uriOf(requireTestFile()))
     }
 
-    /**
-     * A folder tree written straight into the store, cached display name and all.
-     *
-     * No real grant behind it, which is enough for the row: the name is the one written down when
-     * the folder was added, so listing it asks no provider anything. Entering it would come up
-     * empty, and none of these tests do.
-     */
-    private fun seedFolderTree() {
-        FolderTreesUtil.addFolderTree(
-            context(),
-            Uri.parse("content://app.opendocument.test/tree/seeded"),
-            TEST_FOLDER,
-        )
-    }
-
-    /**
-     * Both stores, not just the recent documents: a folder granted on this device - by a previous
-     * run, or by hand - would keep the empty state from ever being shown.
-     */
+    /** A document left behind by an earlier run would keep the intro's Open button off screen. */
     private fun clearLandingState() {
         context().deleteFile("recent_documents.json")
-        context().deleteFile("folder_trees.json")
     }
 
     private fun waitForDocumentFragment(activity: MainActivity): Boolean {
@@ -309,7 +387,6 @@ class LandingTests {
 
     companion object {
         private const val TEST_DOCUMENT = "test.odt"
-        private const val TEST_FOLDER = "Seeded folder"
         private const val LOAD_TIMEOUT_MS = 20000L
 
         private var testFile: File? = null

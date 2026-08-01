@@ -28,6 +28,9 @@
     <string name="action_edit_save">保存</string>
     <string name="action_edit_banner">编辑您的文档，然后点击保存</string>
     <string name="landing_intro_open_all">，此应用程序默认注册为支持打开所有类型的文件，以支持类似三星设备自带的 \"我的文件\" 等有问题的应用程序。如果此功能会给您带来干扰或问题，您可以在此处关闭它。</string>
+    <string name="landing_intro_view">OpenDocument Reader 允许您查看存储为 OpenDocument 格式（.odt、.ods、.ods、.odp 和 .odg）的文档。</string>
+    <string name="landing_intro_search">通过 OpenDocument 阅读器，您可以简单利落地阅读、搜索您的文档。</string>
+    <string name="landing_intro_edit">在您某次重大的演讲前发现了演示文档中的最后一个拼写错误？现已支持修改文档！</string>
     <string name="tts_status_reading">正在读取…</string>
     <string name="tts_status_initializing">正在初始化 TTS 引擎…</string>
     <string name="tts_status_ready">准备就绪！</string>

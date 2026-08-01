@@ -8,8 +8,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import app.opendocument.droid.background.CatchAllSetting
-import app.opendocument.droid.background.DocumentTreeBrowser
-import app.opendocument.droid.background.FolderTreesUtil
 import app.opendocument.droid.background.PersistedUriPermissions
 import app.opendocument.droid.background.RecentDocumentList
 import app.opendocument.droid.background.RecentDocumentsUtil
@@ -19,26 +17,20 @@ import java.util.concurrent.Executors
 /**
  * What the landing screen shows.
  *
- * Reading the recently opened documents touches a file, listing a folder talks to its provider, and
- * checking whether a document still resolves does too - so all of it happens on [executor] and is
- * published through [LiveData], which, unlike posting to a handler, drops the result when the
- * fragment is gone.
+ * Reading the recently opened documents touches a file, and checking whether a document still
+ * resolves talks to its provider - so all of it happens on [executor] and is published through
+ * [LiveData], which, unlike posting to a handler, drops the result when the fragment is gone.
  *
  * There are no coroutines anywhere in this project, so this follows the executor plus handler shape
  * the loaders already use.
  */
 class LandingViewModel(application: Application) : AndroidViewModel(application) {
 
-    /** Where in a folder tree the browser currently is. */
-    class FolderLocation(val treeUri: Uri, val documentId: String, val displayName: String)
-
     class State(
         val documents: List<RecentDocumentList.Entry>,
-        val trees: List<FolderTreesUtil.FolderTree>,
         val catchAllEnabled: Boolean,
-        /** null while the roots are shown, otherwise the folder that is open. */
-        val location: FolderLocation?,
-        val children: List<DocumentTreeBrowser.Child>,
+        val introExpanded: Boolean,
+        val settingsExpanded: Boolean,
     )
 
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
@@ -46,15 +38,27 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
     private val mutableState = MutableLiveData<State>()
     val state: LiveData<State> = mutableState
 
-    // not persisted across process death on purpose: coming back into a folder whose grant was
-    // revoked while the app was away is a pile of edge cases for very little
-    private val backStack = ArrayList<FolderLocation>()
-    private var location: FolderLocation? = null
+    /**
+     * Whether what the app is for is unfolded. Null while it follows the list - worth reading when
+     * there is nothing else on the screen, in the way once there is - and set once the user says
+     * otherwise.
+     *
+     * What they said is forgotten again when the list crosses between empty and not: an empty list
+     * is the screen the intro was written for, and it should be open on arrival there however it
+     * was left when there were documents. See [rememberEmptiness].
+     *
+     * Both of these live here rather than on disk. A fold is about the screen in front of you, not
+     * a preference, and a settings section that stayed open because it was opened last week is one
+     * more thing to have gone wrong.
+     */
+    @Volatile private var introExpanded: Boolean? = null
 
-    val isInsideFolder: Boolean
-        get() = location != null
+    @Volatile private var settingsExpanded = false
 
-    /** Publishes what is on disk. What the screen's own doing - a navigation, an edit - needs. */
+    /** What the list held last time, to notice it becoming empty or stopping being empty. */
+    @Volatile private var listWasEmpty: Boolean? = null
+
+    /** Publishes what is on disk. What the screen's own doing - an edit - needs. */
     fun refresh() {
         publish(dropUnreachable = false)
     }
@@ -63,10 +67,10 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
      * Publishes what is on disk right away, then re-publishes once the documents that no longer
      * resolve have been dropped. Rendering does not wait on the provider round trip that way.
      *
-     * For coming back to the screen, not for moving around inside it: proving a document still
+     * For coming back to the screen, not for what it does to itself: proving a document still
      * resolves is a query per entry, up to [RecentDocumentList.MAX_ENTRIES] of them, and nothing
-     * this screen does to itself can revoke a grant, unmount a card or delete a file. Only being
-     * away can, so only coming back has to look.
+     * this screen does can revoke a grant, unmount a card or delete a file. Only being away can, so
+     * only coming back has to look.
      */
     fun reload() {
         publish(dropUnreachable = true)
@@ -77,15 +81,9 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
             val context = getApplication<Application>()
 
             val stored = RecentDocumentsUtil.getRecentDocuments(context)
-            val trees = FolderTreesUtil.getFolderTrees(context)
             val catchAll = CatchAllSetting.isEnabled(context)
-            val here = location
 
-            val children =
-                if (here == null) emptyList()
-                else DocumentTreeBrowser.listChildren(context, here.treeUri, here.documentId)
-
-            mutableState.postValue(State(stored, trees, catchAll, here, children))
+            mutableState.postValue(stateOf(stored, catchAll))
 
             if (!dropUnreachable) {
                 return@execute
@@ -101,79 +99,60 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
             }
             PersistedUriPermissions.prune(context)
 
-            mutableState.postValue(State(alive, trees, catchAll, here, children))
+            mutableState.postValue(stateOf(alive, catchAll))
         }
     }
 
-    fun addFolderTree(treeUri: Uri) {
-        executor.execute {
-            val context = getApplication<Application>()
+    private fun stateOf(
+        documents: List<RecentDocumentList.Entry>,
+        catchAllEnabled: Boolean,
+    ): State {
+        val isEmpty = documents.isEmpty()
 
-            val displayName = DocumentTreeBrowser.displayNameOf(context, treeUri)
-            FolderTreesUtil.addFolderTree(context, treeUri, displayName)
+        rememberEmptiness(isEmpty)
 
-            // unconditionally, not only when the add evicted an older tree: pruning is also what
-            // settles the pending grant takeRead() marked, and a tree that stays pending is one
-            // prune() would keep alive after the user removes it again - see settlePending()
-            PersistedUriPermissions.prune(context)
-
-            refresh()
-        }
+        return State(
+            documents,
+            catchAllEnabled,
+            introExpanded = introExpanded ?: isEmpty,
+            settingsExpanded = settingsExpanded,
+        )
     }
 
     /**
-     * Forgets a folder without releasing its grant, so an undo can still put it back - the same
-     * bargain [removeRecentDocument] makes, and for the same reason: the grant cannot be taken
-     * again without sending the user back to the system picker, and [PersistedUriPermissions.prune]
-     * reclaims it on the next launch anyway.
+     * Drops what the user said about the intro when the list crosses between empty and not.
+     *
+     * The two crossings are the two moments the answer changes: the first document opened is when
+     * the intro has been read and is in the way, and swiping the last one away leaves a screen with
+     * nothing on it but the intro, which is what the intro is for. A fold from either side of that
+     * is about a screen that no longer exists.
      */
-    fun removeFolderTree(treeUri: Uri) {
-        executor.execute {
-            FolderTreesUtil.removeFolderTree(getApplication(), treeUri)
-
-            // the folder that was just dropped may be the one we are standing in
-            if (location?.treeUri == treeUri) {
-                backStack.clear()
-                location = null
-            }
-
-            refresh()
-        }
-    }
-
-    /** Puts a swiped away folder back where it was, grant and cached name included. */
-    fun restoreFolderTree(tree: FolderTreesUtil.FolderTree, index: Int) {
-        executor.execute {
-            val context = getApplication<Application>()
-
-            // putting one back can push another off the end, if a folder was added while the undo
-            // was still on offer - that one is holding a grant nothing points at any more
-            if (FolderTreesUtil.insertFolderTree(context, tree, index).isNotEmpty()) {
-                PersistedUriPermissions.prune(context)
-            }
-
-            refresh()
-        }
-    }
-
-    fun enterFolder(treeUri: Uri, documentId: String, displayName: String) {
-        location?.let { backStack.add(it) }
-        location = FolderLocation(treeUri, documentId, displayName)
-
-        refresh()
-    }
-
-    /** @return whether there was somewhere to go back to. */
-    fun leaveFolder(): Boolean {
-        if (location == null) {
-            return false
+    private fun rememberEmptiness(isEmpty: Boolean) {
+        if (listWasEmpty == isEmpty) {
+            return
         }
 
-        location = backStack.removeLastOrNull()
+        listWasEmpty = isEmpty
+        introExpanded = null
+    }
+
+    /** @return whether the section is unfolded afterwards. */
+    fun toggleIntro(): Boolean {
+        val expanded = !(state.value?.introExpanded ?: true)
+        introExpanded = expanded
 
         refresh()
 
-        return true
+        return expanded
+    }
+
+    /** @return whether the section is unfolded afterwards. */
+    fun toggleSettings(): Boolean {
+        settingsExpanded = !settingsExpanded
+
+        refresh()
+
+        return settingsExpanded
     }
 
     fun setCatchAllEnabled(enabled: Boolean) {
@@ -206,7 +185,7 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
      * Forgets a document without releasing its grant, so an undo can still put it back.
      *
      * Nothing here releases it later either: [PersistedUriPermissions.prune] reclaims it on the
-     * next launch, which is exactly what reconciling against the stored lists - rather than
+     * next launch, which is exactly what reconciling against the stored list - rather than
      * bookkeeping every removal - is for.
      */
     fun removeRecentDocument(uri: Uri) {

@@ -22,8 +22,7 @@ object PersistedUriPermissions {
      *
      * Taking a grant and writing down what needs it are not one step: a document only reaches the
      * recent list once [MetadataLoader] has read it, which is long after [takeRead] ran - `loadUri`
-     * merely queues the load - and a folder only reaches the tree list once the landing view
-     * model's executor gets to it. A [prune] in either window would enumerate the fresh grant, find
+     * merely queues the load. A [prune] in that window would enumerate the fresh grant, find
      * nothing referring to it and hand it straight back, leaving the entry that is about to be
      * written unreadable on the next launch - the very failure releasing on close used to cause.
      *
@@ -55,39 +54,34 @@ object PersistedUriPermissions {
     }
 
     /**
-     * Whether [uri] is readable through a grant that survives a restart, either because it is
-     * persisted itself or because it sits below a directory tree we hold a grant for.
+     * Whether [uri] is already readable through a grant that survives a restart.
+     *
+     * What [takeRead] cannot answer on its own: a uri that did not arrive on an intent of ours -
+     * one tapped in the recently opened list, say - cannot be persisted again, and the grant an
+     * earlier session took for it is exactly the one that makes it readable now.
      */
     fun isRetained(context: Context, uri: Uri): Boolean {
         val value = uri.toString()
 
-        for (permission in context.contentResolver.persistedUriPermissions) {
-            if (!permission.isReadPermission) {
-                continue
-            }
-
-            val held = permission.uri.toString()
-            if (held == value || value.startsWith("$held/")) {
-                return true
-            }
+        return context.contentResolver.persistedUriPermissions.any { permission ->
+            permission.isReadPermission && permission.uri.toString() == value
         }
-
-        return false
     }
 
     /**
      * Releases every persisted grant nothing refers to any more.
      *
-     * Reconciling against the stored lists rather than releasing on eviction keeps this idempotent:
-     * a grant that is covered twice is not released twice, and grants leaked by earlier versions
-     * get mopped up on the next launch.
+     * Reconciling against the stored list rather than releasing on eviction keeps this idempotent:
+     * a grant that is covered twice is not released twice, and grants leaked by earlier versions -
+     * the directory trees the folder browser used to hold among them - get mopped up on the next
+     * launch.
      *
      * Does file and binder work, so it must not run on the main thread.
      */
     fun prune(context: Context) {
         // the reads are in this order on purpose. a grant taken while this runs is either missing
         // from the snapshot, or still pending when the pending set is read - which happens after
-        // the lists that would have settled it, so it cannot fall through both
+        // the list that would have settled it, so it cannot fall through both
         val held = context.contentResolver.persistedUriPermissions
 
         val keep = HashSet<String>()
@@ -95,32 +89,13 @@ object PersistedUriPermissions {
             keep.add(entry.uri)
         }
 
-        val trees = FolderTreesUtil.getFolderTrees(context).map { it.uri.toString() }
-        keep.addAll(trees)
-
         keep.addAll(settlePending(keep))
 
         for (permission in held) {
-            if (!isReferenced(permission.uri.toString(), keep, trees)) {
+            if (permission.uri.toString() !in keep) {
                 release(context, permission)
             }
         }
-    }
-
-    /**
-     * Whether [uri] is still spoken for, either by name or by sitting below a granted tree.
-     *
-     * [prune]'s whole decision, and free of android imports, so a plain jvm test can cover it.
-     */
-    internal fun isReferenced(uri: String, keep: Set<String>, trees: List<String>): Boolean {
-        if (uri in keep) {
-            return true
-        }
-
-        // a document below a granted tree is reachable through that grant, and its uri spells
-        // the tree out: content://authority/tree/<treeId>/document/<documentId>. so coverage
-        // can be recognised from the string, without recording where a document came from.
-        return trees.any { uri.startsWith("$it/") }
     }
 
     private fun release(context: Context, permission: UriPermission) {

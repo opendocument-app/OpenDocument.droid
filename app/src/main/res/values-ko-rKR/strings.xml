@@ -33,6 +33,9 @@
     <string name="action_edit_save">저장</string>
     <string name="action_edit_banner">문서를 수정하고, 아래에서 저장을 누르세요.</string>
     <string name="landing_intro_open_all">이 앱은 삼성 \"My Files\"과 같은 앱을 지원하기 위해, 기본으로 모든 파일 포맷을 열게 등록되어 있습니다. 문제가 발생하면 이 기능을 끌 수 있습니다.</string>
+    <string name="landing_intro_view">OpenDocument Reader를 사용해서 어디서든 OpenDocument 포맷(.odt, .ods, .odp 및 .odg) 문서를 볼 수 있습니다. </string>
+    <string name="landing_intro_search">OpenDocument Reader를 사용해서 쉽게 문서를 찾고 열 수 있습니다. </string>
+    <string name="landing_intro_edit">중요한 프레젠테이션에서 수정할 오타가 하나 남았나요? 이제 수정도 지원합니다!</string>
     <string name="tts_status_reading">읽는 중...</string>
     <string name="tts_status_initializing">TTS 초기화 중...</string>
     <string name="tts_status_ready">준비 완료!</string>

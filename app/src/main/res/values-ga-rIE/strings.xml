@@ -32,6 +32,9 @@
     <string name="action_edit_save">Taisc</string>
     <string name="action_edit_banner">Cuir do cháipéis in eagar thíos agus brúigh ar Taisc</string>
     <string name="landing_intro_open_all">Mar réamhshocrú, cláraíonn an feidhmchláirín seo gach cineál comhad mar oscailte chun tacú le feidhmchláiríní amhail \"Samsung My Files\". Tig leat an ghné sin a chur as anseo má chruthaíonn sí fadhbanna duit.</string>
+    <string name="landing_intro_view">Le OpenDocument Reader, tá tú in ann breathnú ar cháipéisí atá i bhformáid OpenDocument (.odt, .ods, .odp, agus .odg) pé áit ina bhfuil tú.</string>
+    <string name="landing_intro_search">Le hOpenDocument Reader, is féidir leat do chuid cáipéisí a léamh agus a chuardach go héasca.</string>
+    <string name="landing_intro_edit">Ar aimsigh tú aon bhotún amháin eile atá le ceartú sula ndéanann tú do chur i láthair? Anois is féidir athruithe a dhéanamh freisin!</string>
     <string name="tts_status_reading">Ag léamh…</string>
     <string name="tts_status_initializing">Ag tosú téacs go teanga…</string>
     <string name="tts_status_ready">Réidh!</string>

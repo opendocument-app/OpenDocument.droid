@@ -32,6 +32,9 @@
     <string name="action_edit_save">Enregistrer</string>
     <string name="action_edit_banner">Modifiez votre document ci-dessous et appuyez sur Enregistrer</string>
     <string name="landing_intro_open_all">Par défaut OpenDocument Reader est associé à tous les types de fichiers afin de pouvoir les ouvrir facilement depuis les applications comme \"Samsung My Files\". Si besoin, ce comportement peut être désactivé ici.</string>
+    <string name="landing_intro_view">OpenDocument Reader vous permet de visualiser les documents enregistrés au format OpenDocument (.odt, .ods, .odp et .odg) où que vous soyez.</string>
+    <string name="landing_intro_search">Grâce à OpenDocument Reader, vous pouvez lire et rechercher dans vos documents facilement et rapidement.</string>
+    <string name="landing_intro_edit">Vous avez trouvé une faute de frappe dans votre présentation ? Il est désormais possible de la corriger !</string>
     <string name="tts_status_reading">Lecture…</string>
     <string name="tts_status_initializing">Initialisation du TTS…</string>
     <string name="tts_status_ready">Prêt !</string>

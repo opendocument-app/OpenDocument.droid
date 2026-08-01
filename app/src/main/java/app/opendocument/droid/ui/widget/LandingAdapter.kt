@@ -12,8 +12,8 @@ import app.opendocument.droid.R
 import com.google.android.material.materialswitch.MaterialSwitch
 
 /**
- * The rows of the landing screen: the recently opened documents, the folders the user granted
- * access to, and the settings.
+ * The rows of the landing screen: the recently opened documents, what the app is for, and the
+ * settings underneath them.
  */
 class LandingAdapter(private val listener: Listener) :
     ListAdapter<LandingItem, LandingAdapter.ViewHolder>(DIFF) {
@@ -22,30 +22,21 @@ class LandingAdapter(private val listener: Listener) :
 
         fun onDocumentClicked(document: LandingItem.Document)
 
-        fun onDocumentRemoveRequested(document: LandingItem.Document)
-
-        fun onFolderClicked(folder: LandingItem.Folder)
-
-        fun onFolderRemoveRequested(folder: LandingItem.Folder)
-
         fun onActionClicked(action: Int)
 
         fun onOpenClicked()
+
+        fun onSectionToggled(section: Int)
 
         fun onSettingChanged(setting: Int, enabled: Boolean)
     }
 
     /**
-     * Whether the row at [position] can be swiped away: a recently opened document, or a folder the
-     * user granted us. Neither a document nor a sub directory inside a tree is ours to remove -
-     * those are simply there, and the row says which it is rather than the subtitle guessing.
+     * Whether the row at [position] can be swiped away, which only a recently opened document can:
+     * the list is the app's own memory of it, and nothing else on the screen is the app's to
+     * forget.
      */
-    fun isRemovable(position: Int): Boolean =
-        when (val item = itemAt(position)) {
-            is LandingItem.Document -> item.recent
-            is LandingItem.Folder -> item.granted
-            else -> false
-        }
+    fun isRemovable(position: Int): Boolean = itemAt(position) is LandingItem.Document
 
     fun itemAt(position: Int): LandingItem? =
         if (position in 0 until itemCount) getItem(position) else null
@@ -53,12 +44,11 @@ class LandingAdapter(private val listener: Listener) :
     override fun getItemViewType(position: Int): Int =
         when (getItem(position)) {
             is LandingItem.Header -> TYPE_HEADER
+            is LandingItem.Open -> TYPE_OPEN
             is LandingItem.Document -> TYPE_DOCUMENT
-            is LandingItem.Folder -> TYPE_FOLDER
             is LandingItem.Action -> TYPE_ACTION
             is LandingItem.Setting -> TYPE_SETTING
-            is LandingItem.Message -> TYPE_MESSAGE
-            is LandingItem.Empty -> TYPE_EMPTY
+            is LandingItem.Intro -> TYPE_INTRO
         }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -67,10 +57,10 @@ class LandingAdapter(private val listener: Listener) :
         val layout =
             when (viewType) {
                 TYPE_HEADER -> R.layout.item_landing_header
+                TYPE_OPEN -> R.layout.item_landing_open
                 TYPE_SETTING -> R.layout.item_landing_switch
-                TYPE_MESSAGE -> R.layout.item_landing_message
-                TYPE_EMPTY -> R.layout.item_landing_empty
-                // documents, folders and actions are all an icon plus a label
+                TYPE_INTRO -> R.layout.item_landing_intro
+                // documents and actions are both an icon plus a label
                 else -> R.layout.item_landing_row
             }
 
@@ -79,47 +69,34 @@ class LandingAdapter(private val listener: Listener) :
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         when (val item = getItem(position)) {
-            is LandingItem.Header -> holder.title.text = item.title
+            is LandingItem.Header -> {
+                holder.title.setText(item.title)
 
-            is LandingItem.Message -> holder.title.setText(item.text)
-
-            is LandingItem.Empty -> {
-                holder.open.setOnClickListener { listener.onOpenClicked() }
-                holder.addFolder.setOnClickListener {
-                    listener.onActionClicked(LandingItem.ACTION_ADD_FOLDER)
+                val section = item.section
+                if (section == null) {
+                    holder.chevron.visibility = View.GONE
+                    holder.itemView.setOnClickListener(null)
+                    holder.itemView.isClickable = false
+                } else {
+                    holder.chevron.visibility = View.VISIBLE
+                    holder.chevron.setImageResource(
+                        if (item.expanded) R.drawable.ic_keyboard_arrow_up
+                        else R.drawable.ic_keyboard_arrow_down
+                    )
+                    holder.itemView.setOnClickListener { listener.onSectionToggled(section) }
                 }
             }
+
+            is LandingItem.Open -> holder.open.setOnClickListener { listener.onOpenClicked() }
+
+            // a whole layout of its own, with nothing to fill in
+            is LandingItem.Intro -> Unit
 
             is LandingItem.Document -> {
                 holder.icon.setImageResource(R.drawable.ic_description)
                 holder.title.text = item.filename
                 holder.bindSubtitle(item.subtitle)
                 holder.itemView.setOnClickListener { listener.onDocumentClicked(item) }
-                if (item.recent) {
-                    holder.itemView.setOnLongClickListener {
-                        listener.onDocumentRemoveRequested(item)
-
-                        true
-                    }
-                } else {
-                    holder.itemView.setOnLongClickListener(null)
-                }
-            }
-
-            is LandingItem.Folder -> {
-                holder.icon.setImageResource(R.drawable.ic_folder)
-                holder.title.text = item.name
-                holder.bindSubtitle(null)
-                holder.itemView.setOnClickListener { listener.onFolderClicked(item) }
-                if (item.granted) {
-                    holder.itemView.setOnLongClickListener {
-                        listener.onFolderRemoveRequested(item)
-
-                        true
-                    }
-                } else {
-                    holder.itemView.setOnLongClickListener(null)
-                }
             }
 
             is LandingItem.Action -> {
@@ -127,7 +104,6 @@ class LandingAdapter(private val listener: Listener) :
                 holder.title.setText(item.label)
                 holder.bindSubtitle(null)
                 holder.itemView.setOnClickListener { listener.onActionClicked(item.action) }
-                holder.itemView.setOnLongClickListener(null)
             }
 
             is LandingItem.Setting -> {
@@ -151,8 +127,8 @@ class LandingAdapter(private val listener: Listener) :
         val title: TextView by lazy { view.findViewById(R.id.landing_row_title) }
         val subtitle: TextView by lazy { view.findViewById(R.id.landing_row_subtitle) }
         val switch: MaterialSwitch by lazy { view.findViewById(R.id.landing_row_switch) }
-        val open: View by lazy { view.findViewById(R.id.landing_empty_open) }
-        val addFolder: View by lazy { view.findViewById(R.id.landing_empty_add_folder) }
+        val chevron: ImageView by lazy { view.findViewById(R.id.landing_header_chevron) }
+        val open: View by lazy { view.findViewById(R.id.landing_open) }
 
         fun bindSubtitle(text: String?) {
             subtitle.text = text
@@ -163,11 +139,10 @@ class LandingAdapter(private val listener: Listener) :
     private companion object {
         const val TYPE_HEADER = 0
         const val TYPE_DOCUMENT = 1
-        const val TYPE_FOLDER = 2
-        const val TYPE_ACTION = 3
-        const val TYPE_SETTING = 4
-        const val TYPE_MESSAGE = 5
-        const val TYPE_EMPTY = 6
+        const val TYPE_ACTION = 2
+        const val TYPE_SETTING = 3
+        const val TYPE_INTRO = 4
+        const val TYPE_OPEN = 5
 
         val DIFF =
             object : DiffUtil.ItemCallback<LandingItem>() {
@@ -184,14 +159,14 @@ class LandingAdapter(private val listener: Listener) :
                             oldItem.filename == newItem.filename &&
                                 oldItem.subtitle == newItem.subtitle
 
-                        oldItem is LandingItem.Folder && newItem is LandingItem.Folder ->
-                            oldItem.name == newItem.name
-
                         oldItem is LandingItem.Setting && newItem is LandingItem.Setting ->
                             oldItem.checked == newItem.checked
 
-                        // headers, messages, actions and the empty state are fully described
-                        // by their id
+                        // the chevron has to turn over when the section folds
+                        oldItem is LandingItem.Header && newItem is LandingItem.Header ->
+                            oldItem.expanded == newItem.expanded
+
+                        // actions, the open button and the intro are fully described by their id
                         else -> true
                     }
             }

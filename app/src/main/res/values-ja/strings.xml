@@ -29,6 +29,9 @@
     <string name="action_edit_save">保存</string>
     <string name="action_edit_banner">下の文書の編集して、保存を押してください</string>
     <string name="landing_intro_open_all">\"Samsung My Files\" のようなアプリをサポートするために、このアプリはデフォルトですべての種類のファイルを開くように登録します。 問題が発生した場合は、この機能を無効にしてください。</string>
+    <string name="landing_intro_view">OpenDocument リーダーは、どこにいても OpenDocument 形式で格納されているドキュメント (.odt、.ods、.odp、odg) を表示することができます。</string>
+    <string name="landing_intro_search">OpenDocument リーダーで、非常に簡単にドキュメントを読んだり、検索することができます。</string>
+    <string name="landing_intro_edit">素晴らしいプレゼンテーションに残っている最後の 1 つのタイプミスを見つけましたか? 変更もサポートしました!</string>
     <string name="tts_status_reading">読み込んでいます…</string>
     <string name="tts_status_initializing">テキスト読み上げ機能（TTS）を初期化しています…</string>
     <string name="tts_status_ready">準備できました!</string>

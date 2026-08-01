@@ -25,6 +25,9 @@
     <string name="action_edit_save">Zapisz</string>
     <string name="action_edit_banner">Edytuj swój dokument poniżej i naciśnij Zapisz</string>
     <string name="landing_intro_open_all">Niniejszą aplikację rejestruje się, aby móc domyślnie otwierać wszystkie typy plików w celu obsługi aplikacji takich jak „Samsung My Files”. Tutaj możesz wyłączyć tę funkcję, jeśli powoduje ona problemy.</string>
+    <string name="landing_intro_view">Dzięki czytnikowi OpenDocument Reader możesz w dowolnym miejscu wyświetlać dokumenty zapisane w formacie OpenDocument (.odt, .ods, .odp i .odg).</string>
+    <string name="landing_intro_search">Za pomocą przeglądarki OpenDocument Reader możesz czytać i błyskawicznie przeszukiwać swoje dokumenty.</string>
+    <string name="landing_intro_edit">Znalazła się jeszcze jedna literówka do usunięcia przed dużą prezentacją? Teraz przeglądarka ta obsługuje również zmiany!</string>
     <string name="tts_status_reading">Trwa odczyt...</string>
     <string name="tts_status_initializing">Inicjowanie TTS…</string>
     <string name="tts_status_ready">Gotowe!</string>
