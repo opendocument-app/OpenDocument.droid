@@ -79,3 +79,10 @@ infra/scw-transfer/secret.auto.tfvars
 # Terraform state files
 *.tfstate
 *.tfstate.backup
+
+# python bytecode from the tools
+__pycache__/
+*.pyc
+
+# local agent state
+.claude/
