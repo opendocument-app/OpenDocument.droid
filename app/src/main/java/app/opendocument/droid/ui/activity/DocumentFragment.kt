@@ -27,15 +27,16 @@ import app.opendocument.droid.background.FileLoader
 import app.opendocument.droid.background.LoaderService
 import app.opendocument.droid.background.LoaderServiceQueue
 import app.opendocument.droid.background.StreamUtil
+import app.opendocument.droid.background.UsageCounters
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
+import app.opendocument.droid.nonfree.InAppReview
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.SnackbarHelper
 import app.opendocument.droid.ui.widget.PageView
 import app.opendocument.droid.ui.widget.ProgressDialogFragment
 import com.google.android.material.tabs.TabLayout
-import com.google.android.play.core.review.ReviewManagerFactory
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -60,6 +61,9 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
 
     private var resultOnStart: FileLoader.Result? = null
     private var errorOnStart: Throwable? = null
+
+    /** Set by [loadUri], consumed by the load it belongs to. See [loadUri]. */
+    private var freshOpenPending = false
 
     private lateinit var tabLayout: TabLayout
 
@@ -303,8 +307,18 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         serviceQueue.addToQueue { service -> service.loadWithType(loaderType, options) }
     }
 
-    fun loadUri(uri: Uri, persistentUri: Boolean, editable: Boolean = false) {
+    /**
+     * [freshOpen] is false for a load the user did not ask for, which then never asks for a review.
+     */
+    fun loadUri(
+        uri: Uri,
+        persistentUri: Boolean,
+        editable: Boolean = false,
+        freshOpen: Boolean = true,
+    ) {
         initializePageView()
+
+        freshOpenPending = freshOpen
 
         state.lastRequestedUri = uri
 
@@ -319,6 +333,9 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
     fun reloadUri(translatable: Boolean) {
         val lastResult = checkNotNull(state.lastResult) { "nothing was loaded yet" }
         lastResult.options.translatable = translatable
+
+        // entering or leaving edit mode is not a new document, and the user is working
+        freshOpenPending = false
 
         loadWithType(lastResult.loaderType, lastResult.options)
     }
@@ -411,25 +428,6 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         pageView?.toggleDarkMode(fileType?.startsWith("application/pdf") != true)
     }
 
-    private fun requestInAppRating(activity: Activity) {
-        analyticsManager.report("in_app_review_eligible")
-
-        val manager = ReviewManagerFactory.create(activity)
-        manager.requestReviewFlow().addOnCompleteListener { reviewInfoTask ->
-            if (!reviewInfoTask.isSuccessful) {
-                analyticsManager.report("in_app_review_error")
-
-                return@addOnCompleteListener
-            }
-
-            analyticsManager.report("in_app_review_start")
-
-            manager.launchReviewFlow(activity, reviewInfoTask.result).addOnCompleteListener {
-                analyticsManager.report("in_app_review_done")
-            }
-        }
-    }
-
     private fun isActivityReadyForResult(result: FileLoader.Result): Boolean {
         val lastRequestedUri = state.lastRequestedUri
         if (lastRequestedUri != null && lastRequestedUri != result.options.originalUri) {
@@ -489,15 +487,17 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
 
         state.endLoadIdling()
 
-        // asked for in both flavors, and deliberately not behind a flag. lite used to
-        // consult a "show_in_app_rating" remote config key, which has returned false since
-        // firebase remote config was gutted in v4.2 - the call site was never touched, so
-        // nothing looked broken while the flavor carrying almost every user silently
-        // stopped asking. play decides whether the sheet actually appears (undocumented
-        // per-user quota) and reports nothing back either way, so there is nothing here
-        // worth gating: DISABLE_TRACKING means crash and analytics reporting, which this
-        // is not.
-        requestInAppRating(activity)
+        // only a fresh open earns the ask - reloadUri and the webview reach here mid-task.
+        // a save reloads through loadUri and so still counts, which is wanted
+        if (freshOpenPending) {
+            freshOpenPending = false
+
+            InAppReview.requestIfEarned(
+                activity,
+                analyticsManager,
+                UsageCounters.recordDocumentOpen(activity),
+            )
+        }
     }
 
     override fun onError(result: FileLoader.Result, error: Throwable) {
