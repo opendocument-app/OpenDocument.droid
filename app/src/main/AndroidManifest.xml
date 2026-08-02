@@ -242,11 +242,14 @@
             tools:ignore="AppLinkUrlError">
             <!--
                  STRICT_CATCH: what the app actually opens - opendocument, ooxml, the legacy
-                 binary doc/ppt/xls and pdf through the core, plus text, csv, images and zip
-                 through RawLoader. The three filters below are generated from odrcore's own
-                 format table and must not be edited by hand alone; SupportedDocumentTypes
-                 reads that same table at runtime, and SupportedFormatsTest fails when the two
-                 stop agreeing.
+                 binary doc/ppt/xls and pdf, plus text, images, zip and csv. All of it goes to
+                 the core except csv, which RawLoader keeps for its table viewer. The three
+                 filters below are generated from odrcore's own format table and must not be
+                 edited by hand alone; SupportedDocumentTypes reads that same table at runtime,
+                 and SupportedFormatsTest fails when the two stop agreeing.
+
+                 Narrower than what the core can render on purpose: it also turns fonts, audio
+                 and video into a page, none of which belong in a document viewer's share sheet.
             -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -308,10 +311,10 @@
                 -->
                 <data android:mimeType="application/octet-stream" />
                 <!--
-                     raw types handled by RawLoader: text/plain rather than text/*, which
-                     would re-match the vcard contacts of #477, and image/* rather than the
-                     five image formats odrcore names, because the WebView shows webp and
-                     heic just as well.
+                     the non-document types worth opening a viewer for: text/plain rather than
+                     text/*, which would re-match the vcard contacts of #477, and image/*
+                     rather than the image formats odrcore names, because it has no file type
+                     for svg - which RawLoader still shows.
                 -->
                 <data android:mimeType="text/plain" />
                 <data android:mimeType="text/csv" />

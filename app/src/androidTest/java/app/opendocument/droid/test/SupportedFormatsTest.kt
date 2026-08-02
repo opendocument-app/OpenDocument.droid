@@ -96,15 +96,13 @@ class SupportedFormatsTest {
      * Everything the app offers itself for reaches a loader that takes it.
      *
      * Claiming a mime type nobody loads is the "cannot open" the user gets on a file they picked us
-     * for, and it is what reading the core's whole table risks: [CoreLoader] matches every spelling
-     * of a format, but [RawLoader] goes by mime type prefix and so only ever sees the canonical one
-     * that [MetadataLoader] resolves to - `application/csv` and `multipart/x-zip` are claimed and
-     * would otherwise be dropped between the two.
+     * for. [CoreLoader] takes almost all of it now; the exception is csv, which [RawLoader] keeps
+     * for its table viewer and which [LoaderService] therefore routes before the core.
      */
     @Test
     fun everythingTheAppClaimsIsLoadedBySomebody() {
         val coreLoader = CoreLoader(null)
-        val rawLoader = RawLoader(null, coreLoader)
+        val rawLoader = RawLoader(null)
 
         for (mimeType in SupportedDocumentTypes.MIME_TYPES) {
             val options = FileLoader.Options()

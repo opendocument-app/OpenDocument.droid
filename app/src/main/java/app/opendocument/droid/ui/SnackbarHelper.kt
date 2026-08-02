@@ -82,6 +82,11 @@ object SnackbarHelper {
                     message,
                     duration,
                 )
+
+            // material stops at two lines, which toast_error_save_failed already fills in
+            // english and overflows once translated
+            snackbar.setTextMaxLines(3)
+
             if (callback != null) {
                 snackbar.setAction(buttonText) {
                     callback.run()

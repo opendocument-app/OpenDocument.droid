@@ -88,13 +88,33 @@ class CoreLoaderTest {
         assertTrue(isSupported("application/x-pdf"))
     }
 
+    /** What odrcore 6.2 renders beyond documents, each of which used to need a viewer in assets. */
+    @Test
+    fun whatTheCoreRendersBesidesDocumentsIsSupported() {
+        assertTrue(isSupported("text/plain"))
+        assertTrue(isSupported("image/png"))
+        // the image types 6.2 added
+        assertTrue(isSupported("image/webp"))
+        assertTrue(isSupported("image/heic"))
+        assertTrue(isSupported("image/avif"))
+        assertTrue(isSupported("application/zip"))
+        // rendered when handed one, never claimed in the share sheet
+        assertTrue(isSupported("audio/mpeg"))
+        assertTrue(isSupported("video/mp4"))
+    }
+
+    /** The one format left to RawLoader although the core would take it - its table viewer. */
     @Test
     fun whatRawLoaderShowsIsNotClaimed() {
-        // the core does render these, but RawLoader is what gives them their player or viewer
-        assertFalse(isSupported("text/plain"))
         assertFalse(isSupported("text/csv"))
-        assertFalse(isSupported("image/png"))
-        assertFalse(isSupported("application/zip"))
+        assertFalse(isSupported("application/csv"))
+    }
+
+    /** No file type in the core at all, so nothing here could name them either. */
+    @Test
+    fun whatTheCoreHasNoFileTypeForIsNotClaimed() {
+        assertFalse(isSupported("image/svg+xml"))
+        assertFalse(isSupported("application/xml"))
     }
 
     @Test

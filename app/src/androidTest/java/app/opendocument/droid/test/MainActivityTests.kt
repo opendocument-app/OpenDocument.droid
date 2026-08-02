@@ -18,6 +18,7 @@ import androidx.test.espresso.action.ViewActions.clearText
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.typeText
+import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
@@ -188,6 +189,23 @@ class MainActivityTests {
 
         // Check if the document buttons become available (indicating successful load)
         waitForDocumentActions()
+    }
+
+    @Test
+    fun testCorruptODTIsNotOfferedForUpload() {
+        val activity = mainActivityActivityTestRule.activity
+
+        // a zip that still names itself odf, with a content.xml cut in half. the core claims
+        // the format and fails on the file, and that answer is taken as final: uploading it
+        // would only run the same core on a server and fail a second time
+        //
+        // not loadDocument(), which waits for a fragment this path takes back down again
+        val testFileUri = uriOf(requireTestFile("corrupt.odt"))
+        InstrumentationRegistry.getInstrumentation().runOnMainSync { activity.loadUri(testFileUri) }
+
+        onView(withText(R.string.action_upload)).check(doesNotExist())
+        onView(withText(R.string.dialog_broken_file)).check(matches(isDisplayed()))
+        onView(withText(R.string.action_contact)).check(matches(isDisplayed()))
     }
 
     @Test
@@ -511,7 +529,13 @@ class MainActivityTests {
             val testAssetManager = instrumentation.context.assets
 
             for (filename in
-                arrayOf("test.odt", "dummy.pdf", "password-test.odt", "style-various-1.docx")) {
+                arrayOf(
+                    "test.odt",
+                    "dummy.pdf",
+                    "password-test.odt",
+                    "style-various-1.docx",
+                    "corrupt.odt",
+                )) {
                 val targetFile = File(testDocumentsDir, filename)
                 copy(testAssetManager.open(filename), targetFile)
                 testFiles[filename] = targetFile

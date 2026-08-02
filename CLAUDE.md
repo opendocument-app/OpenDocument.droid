@@ -18,9 +18,10 @@ Guidance for Claude Code (claude.ai/code) working in this repository.
 
 A document is loaded by a `FileLoader` on `LoaderService`'s background thread and reported
 back through `FileLoaderListener`; `LoaderServiceQueue` holds requests until the service is
-bound. `MetadataLoader` caches the file and identifies it, `CoreLoader` renders what odrcore
-handles and publishes the html on a local http server, `RawLoader` covers text, csv and
-images, and `OnlineLoader` uploads to a web viewer what neither can open.
+bound. `MetadataLoader` caches the file and identifies it, `RawLoader` covers the three
+files odrcore does not render for us - csv, svg and xml - `CoreLoader` renders everything
+else odrcore handles and publishes the html on a local http server, and `OnlineLoader`
+uploads to a web viewer what neither can open.
 
 `MainActivity` owns the service binding and the action modes (find, tts, edit), and swaps
 between two fragments: `LandingFragment` (recent documents and settings, under a header that
@@ -110,11 +111,19 @@ The app compiles no native code, and there is no NDK, no python and no conan in 
 
 ### Supported file types come from odrcore, and a test keeps the manifest in step
 
-`SupportedDocumentTypes` used to be a hand written table of mime *prefixes*. Since odrcore 6.1
-it is derived: `Odr.allFileTypes()` filtered by `Odr.capabilitiesByFileType(...).translateHtml`
-and `Odr.fileCategoryByFileType(...) == DOCUMENT` is what `CoreLoader` renders, and
-`Odr.mimetypesByFileType` / `Odr.fileExtensionsByFileType` expand each of those into every
-spelling the core accepts - the templates, the macro-enabled variants, the
+`SupportedDocumentTypes` used to be a hand written table of mime *prefixes*. Since odrcore
+6.1 it is derived, and it answers two separate questions:
+
+- **what `CoreLoader` renders** (`CORE_FILE_TYPES`): `Odr.allFileTypes()` filtered by
+  `Odr.capabilitiesByFileType(...).translateHtml`, minus csv. Since 6.2 that covers text,
+  images, zip and cfb, fonts, audio and video - which is why `RawLoader` lost its viewers.
+- **what the app claims** (`CLAIMED_FILE_TYPES`): the same filter narrowed to
+  `Odr.fileCategoryByFileType(...) == DOCUMENT`, plus text, csv and zip. The manifest mirrors
+  this. Keep it narrow - the app plays an mp3 handed to it but does not want it in the share
+  sheet.
+
+`Odr.mimetypesByFileType` / `Odr.fileExtensionsByFileType` expand each of those
+into every spelling the core accepts - the templates, the macro-enabled variants, the
 `application/x-vnd.oasis...` family and the `-flat-xml` ones. Do not put a list of mime
 prefixes back; the whole point is that the app cannot claim a format the core does not have,
 or miss one it does. A prefix match is also what made the app claim `.xlsb`
@@ -122,9 +131,8 @@ or miss one it does. A prefix match is also what made the app claim `.xlsb`
 and then fail to open it - the core gives it a file type of its own with an empty capability
 row now.
 
-Two declarations are left. The app's own choice of which of the core's formats go to
-`CoreLoader` and which to `RawLoader` - text, csv, zip and `image/` are named in
-`SupportedDocumentTypes`, because that is an app decision the core knows nothing about. And
+Two declarations are left. The app's own choice of what to *claim*, named in
+`SupportedDocumentTypes` as `CLAIMED_FILE_TYPES` because the core knows nothing about it. And
 the `STRICT_CATCH` `activity-alias` in `AndroidManifest.xml`, which cannot be collapsed into
 the first because XML cannot read any of this. Its three intent-filters are *generated* from
 the same table (an intent-filter matches a mime type exactly, so all 40 spellings and 41
@@ -133,17 +141,40 @@ extensions are written out) and covered by a test rather than by discipline:
 that `SupportedDocumentTypes` and the package manager give the same answer, so a format added
 upstream and forgotten in the manifest fails CI rather than shipping.
 
-The tables live in `libodr_jni`, so anything that reads them needs a device - that is why
-`CoreLoaderTest`, `SupportedDocumentTypesTest` and `OnlineLoaderTest` are instrumented tests
-and not JVM ones. None of them opens a file, they just cannot ask the table from a plain JVM.
+The tables live in `libodr_jni`, so anything that reads them needs a device. That is why
+`CoreLoaderTest`, `SupportedDocumentTypesTest`, `RawLoaderTest` and `OnlineLoaderTest` are
+instrumented tests and not JVM ones - none of them opens a file, they just cannot ask the
+table from a plain JVM. What the core decides *after* the file is in the cache is unchanged:
+`MetadataLoader` runs libmagic over the copy, and `CoreLoader.isDocumentEditable` asks the
+opened document.
 
 One consequence of claiming every spelling: `MetadataLoader` puts whatever mime type it ended
 up with through `SupportedDocumentTypes.canonicalMimeType`, so the loaders behind it see one
-per format. `CoreLoader` matches the whole set and does not care, but `RawLoader` routes by
-mime type *prefix* - a provider volunteering `application/x-zip-compressed` or
-`application/csv` would be offered the app and then told the file is unsupported.
-`SupportedFormatsTest.everythingTheAppClaimsIsLoadedBySomebody` holds that: every mime type
-the app claims has to reach a loader that takes it.
+per format. Both loaders match whole sets rather than prefixes now, but a provider
+volunteering `application/x-zip-compressed` or `application/csv` still has to reach one of
+them. `SupportedFormatsTest.everythingTheAppClaimsIsLoadedBySomebody` is what holds that:
+every mime type the app claims has to reach a loader that takes it.
+
+One catch when reading the table directly, as `isDocument` does: the core matches mime types
+*exactly* and spells some with capitals (`macroEnabled`), so do not `lowercase()` first. The
+lookups against our own sets are the other way round - `mimeTypesOf` lowercases what it stores.
+
+### `RawLoader` is asked before `CoreLoader`, not after it
+
+It used to be the fallback at the end of the chain, reached only when the core threw. Once
+odrcore learned to render text, images, zip and media the core stopped throwing, and the
+PhotoSwipe, Plyr, JSZip and csv-to-html-table viewers in `assets/` became unreachable without
+anyone noticing. The first four are gone; the csv one was worth keeping.
+
+So `LoaderService.onSuccess` asks `rawLoader.isSupported` *first*.
+`SupportedDocumentTypes.isRenderedByRaw` is the whole list: csv (the only case where the
+order matters, since `CORE_FILE_TYPES` excludes it), plus svg and xml, which have no odrcore
+file type at all. A `RawLoader` failure falls through to the core; everything the core cannot
+open goes to the upload offer rather than being renamed and handed to the WebView on spec.
+
+Routing by name is guarded - see `nameSays`. The core identifies by content, so a `report.csv`
+holding an odt is an odt, and only a file it did not recognize (or called plain text) may be
+routed by its extension.
 
 ### Editability comes from the core, never from a mime type
 
