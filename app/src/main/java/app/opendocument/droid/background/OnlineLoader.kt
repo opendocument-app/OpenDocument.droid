@@ -13,8 +13,7 @@ import java.net.URLEncoder
  * Last resort for documents nothing on the device can render: either use.opendocument.app converts
  * them, or they are uploaded to transfer.opendocument.app and shown in a third party viewer.
  */
-class OnlineLoader(context: Context?, private val coreLoader: CoreLoader) :
-    FileLoader(context, LoaderType.ONLINE) {
+class OnlineLoader(context: Context?) : FileLoader(context, LoaderType.ONLINE) {
 
     override fun isSupported(options: Options): Boolean {
         val fileType = options.fileType ?: return false
@@ -55,6 +54,12 @@ class OnlineLoader(context: Context?, private val coreLoader: CoreLoader) :
     /**
      * Whether use.opendocument.app can convert this type itself. Everything else is uploaded and
      * handed to a third party viewer instead.
+     *
+     * The last term asks whether the core *files* this as a document, not whether it can render
+     * one: the converter runs libreoffice rather than odrcore, so an `.xlsb` is worth sending it
+     * even though nothing here can open one. It used to ask [CoreLoader.isSupported], which meant
+     * the same thing while the core loader only claimed documents - it now also claims images,
+     * archives and anything with a soundtrack, which no converter is going to help with.
      */
     fun isConvertible(options: Options): Boolean {
         val fileType = options.fileType
@@ -66,7 +71,7 @@ class OnlineLoader(context: Context?, private val coreLoader: CoreLoader) :
             "application/vnd.ms-powerpoint" == fileType ||
             "application/pdf" == fileType ||
             fileType?.startsWith("application/vnd.openxmlformats-officedocument.") == true ||
-            coreLoader.isSupported(options)
+            SupportedDocumentTypes.isDocument(fileType)
     }
 
     private fun doOnlineConvert(options: Options): Uri {
@@ -147,7 +152,9 @@ class OnlineLoader(context: Context?, private val coreLoader: CoreLoader) :
         // tells the two apart on its own
         val isPdf = options.fileType?.startsWith("application/pdf") == true
 
-        if (coreLoader.isSupported(options) && !isPdf) {
+        // the office viewer wants an office document; an image or an mp3 that got this far is
+        // google's problem. see isConvertible for why this is no longer CoreLoader's answer
+        if (SupportedDocumentTypes.isDocument(options.fileType) && !isPdf) {
             return Uri.parse(MICROSOFT_VIEWER_URL + downloadUrl)
         }
 

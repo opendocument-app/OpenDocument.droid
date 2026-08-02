@@ -34,6 +34,7 @@ import app.opendocument.droid.background.FileLoader
 import app.opendocument.droid.background.LoaderService
 import app.opendocument.droid.background.LoaderServiceQueue
 import app.opendocument.droid.background.StreamUtil
+import app.opendocument.droid.background.SupportedDocumentTypes
 import app.opendocument.droid.background.UsageCounters
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
@@ -483,8 +484,12 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
             loadData(result.partUris[0].toString())
         }
 
+        // the escape hatch for a file we are showing rather than reading: an image, an archive
+        // listing, a plain text dump, a player. This used to be "the raw loader ran", which said
+        // the same thing back when everything that was not a document went to RawLoader - the core
+        // renders most of them itself now, so the category is what the question was really about
         if (
-            result.loaderType == FileLoader.LoaderType.RAW ||
+            !SupportedDocumentTypes.isDocument(options.fileType) ||
                 result.loaderType == FileLoader.LoaderType.ONLINE
         ) {
             offerReopen(activity, options, R.string.toast_hint_unsupported_file, false)

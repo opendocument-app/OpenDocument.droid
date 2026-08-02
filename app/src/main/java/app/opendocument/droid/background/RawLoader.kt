@@ -10,59 +10,49 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 
 /**
- * Fallback for everything the core cannot open as a document: media files get one of the players in
- * `assets/`, text is rendered by the core anyway and the rest is simply handed to the WebView under
- * a name it recognizes.
+ * The three files odrcore does not render for us, and nothing else.
+ *
+ * This used to be the fallback for everything the core could not open as a *document*: text,
+ * images, audio, video and zip all had a viewer of their own out of `assets/`. odrcore 6.2 renders
+ * every one of them - a page with an `<img>`, an `<audio>` or a `<video>` on it, a line-numbered
+ * text view, a listing for an archive - so [CoreLoader] took them over and the viewers went with
+ * them.
+ *
+ * What is left has an actual reason to be here:
+ * - **csv**, which the core files as text and renders line by line. `text-prefix.html` detects the
+ *   delimiter and builds a table instead, which is worth keeping a loader for.
+ * - **svg**, which the core has no file type for. The WebView draws it given a name it recognizes.
+ * - **xml** and anything else that gets this far, handed over under a name the WebView knows.
+ *
+ * [SupportedDocumentTypes.isRenderedByRaw] is what decides, and [LoaderService] asks it before it
+ * asks the core - csv would otherwise be rendered by [CoreLoader] and never reach this at all.
  */
-class RawLoader(
-    context: Context?,
-    // text files are rendered by the core and published on the http server that CoreLoader
-    // owns, so this loader needs the CoreLoader rather than a core of its own
-    private val coreLoader: CoreLoader,
-) : FileLoader(context, LoaderType.RAW) {
+class RawLoader(context: Context?) : FileLoader(context, LoaderType.RAW) {
 
-    override fun isSupported(options: Options): Boolean {
-        val fileType = options.fileType ?: return false
-
-        for (mime in MIME_WHITELIST) {
-            if (!fileType.startsWith(mime)) {
-                continue
-            }
-
-            for (blackMime in MIME_BLACKLIST) {
-                if (fileType.startsWith(blackMime)) {
-                    return false
-                }
-            }
-
-            return true
-        }
-
-        return false
-    }
+    override fun isSupported(options: Options): Boolean =
+        SupportedDocumentTypes.isRenderedByRaw(options.fileType, nameExtension(options))
 
     override fun loadSync(options: Options) {
         val result = Result(type, options)
 
         try {
             val fileType = checkNotNull(options.fileType) { "no file type detected" }
-            var extension = options.fileExtension
+            val fileExtension = nameExtension(options)
 
             val cacheFile =
                 checkNotNull(AndroidFileCache.getCacheFile(context, checkNotNull(options.cacheUri)))
             val cacheDirectory = AndroidFileCache.getCacheDirectory(cacheFile)
 
             val finalUri: Uri
-            if (fileType.startsWith("image/")) {
+            if (SupportedDocumentTypes.isSvg(fileType, fileExtension)) {
+                // the browser does not recognize an svg that is not called ".svg" - and the name
+                // is ours to pick rather than the file's, which reached the cache without one.
+                // the raster formats that needed the old "call everything jpg" workaround next to
+                // this are the core's now
+                val extension = "svg"
+
                 val htmlFile = File(cacheDirectory, "image.html")
                 StreamUtil.copy(context.assets.open("image.html"), htmlFile)
-
-                // use jpg as a workaround for most images
-                extension = "jpg"
-                if (fileType.contains("svg")) {
-                    // browser does not recognize SVG if it's not called ".svg"
-                    extension = "svg"
-                }
 
                 val imageFile = File(cacheDirectory, "image.$extension")
                 StreamUtil.copy(cacheFile, imageFile)
@@ -72,37 +62,10 @@ class RawLoader(
                         .buildUpon()
                         .appendQueryParameter("ext", extension)
                         .build()
-            } else if (fileType.startsWith("audio/")) {
-                val htmlFile = File(cacheDirectory, "audio.html")
-                StreamUtil.copy(context.assets.open("audio.html"), htmlFile)
+            } else if (SupportedDocumentTypes.isCsv(fileType, fileExtension)) {
+                // text-suffix.html reads this back and only cares that it is not "xml"
+                val extension = "csv"
 
-                // use mp3 as a workaround for most images
-                extension = "mp3"
-
-                val audioFile = File(cacheDirectory, "audio.$extension")
-                StreamUtil.copy(cacheFile, audioFile)
-
-                finalUri =
-                    Uri.fromFile(htmlFile)
-                        .buildUpon()
-                        .appendQueryParameter("ext", extension)
-                        .build()
-            } else if (fileType.startsWith("video/")) {
-                val htmlFile = File(cacheDirectory, "video.html")
-                StreamUtil.copy(context.assets.open("video.html"), htmlFile)
-
-                // use mp4 as a workaround for most images
-                extension = "mp4"
-
-                val videoFile = File(cacheDirectory, "video.$extension")
-                StreamUtil.copy(cacheFile, videoFile)
-
-                finalUri =
-                    Uri.fromFile(htmlFile)
-                        .buildUpon()
-                        .appendQueryParameter("ext", extension)
-                        .build()
-            } else if (extension == "csv") {
                 val htmlFile = File(cacheDirectory, "text.html")
 
                 FileOutputStream(htmlFile).use { outputStream ->
@@ -121,33 +84,10 @@ class RawLoader(
                         .buildUpon()
                         .appendQueryParameter("ext", extension)
                         .build()
-            } else if (fileType.startsWith("text/")) {
-                // the previous cache path used to be left unset, which reached the core as a
-                // null path; give the translation a directory of its own next to the file
-                val coreCacheDirectory = File(cacheDirectory, "core_cache")
-
-                val views =
-                    coreLoader.host(
-                        prefix = "raw-text",
-                        inputPath = cacheFile.path,
-                        cachePath = coreCacheDirectory.path,
-                    )
-
-                finalUri = Uri.parse(views[0].url)
-            } else if (fileType.startsWith("application/zip")) {
-                val htmlFile = File(cacheDirectory, "zip.html")
-
-                FileOutputStream(htmlFile).use { outputStream ->
-                    StreamUtil.copy(context.assets.open("zip-prefix.html"), outputStream)
-
-                    writeBase64(cacheFile, cacheDirectory, outputStream)
-
-                    StreamUtil.copy(context.assets.open("zip-suffix.html"), outputStream)
-                }
-
-                finalUri = Uri.fromFile(htmlFile)
             } else {
-                val renamedFile = File(cacheDirectory, "temp.$extension")
+                // xml and whatever else got this far: the WebView is given the bytes under the
+                // name the file arrived with, and makes of them what it can
+                val renamedFile = File(cacheDirectory, "temp.$fileExtension")
                 StreamUtil.copy(cacheFile, renamedFile)
 
                 finalUri = Uri.fromFile(renamedFile)
@@ -161,6 +101,14 @@ class RawLoader(
         }
     }
 
+    /**
+     * The extension of the file's own name, which is not [Options.fileExtension]:
+     * [MimeTypeResolver.resolve] lets the detected mime type's canonical extension win, so an svg
+     * the core called `text/plain` arrives here as "txt" and the only `.svg` left is in the name.
+     */
+    private fun nameExtension(options: Options): String? =
+        MimeTypeResolver.parseExtension(options.filename)
+
     private fun writeBase64(cacheFile: File, cacheDirectory: File, outputStream: OutputStream) {
         // need to store it in a separate file first because BaseStream writes characters on close
         val baseFile = File(cacheDirectory, "tmp")
@@ -169,39 +117,5 @@ class RawLoader(
         }
 
         StreamUtil.copy(FileInputStream(baseFile), outputStream)
-    }
-
-    private companion object {
-        // one line per format rather than per spelling, because what reaches this loader has been
-        // through SupportedDocumentTypes.canonicalMimeType: a zip is application/zip here even when
-        // the provider called it application/x-zip-compressed. These are wider than what the app
-        // offers itself for - audio and video are worth playing once someone hands us one.
-        val MIME_WHITELIST =
-            arrayOf(
-                "text/",
-                "image/",
-                "video/",
-                "audio/",
-                "application/json",
-                "application/xml",
-                "application/zip",
-            )
-
-        val MIME_BLACKLIST =
-            arrayOf(
-                "image/vnd.dwg",
-                "image/g3fax",
-                "image/tiff",
-                "image/vnd.djvu",
-                "image/x-eps",
-                "image/x-tga",
-                "image/x-tga",
-                "audio/amr",
-                "video/3gpp",
-                "video/quicktime",
-                "text/calendar",
-                "text/vcard",
-                "text/rtf",
-            )
     }
 }

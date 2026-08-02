@@ -9,8 +9,9 @@ import org.junit.runner.RunWith
 
 /**
  * Instrumented rather than a JVM test since odrcore 6.1: [OnlineLoader.isConvertible] falls through
- * to [CoreLoader.isSupported], which reads the core's format table out of `libodr_jni` now instead
- * of matching mime prefixes in kotlin. Nothing here uploads anything or touches the network.
+ * to [SupportedDocumentTypes.isDocument], which reads the core's format table out of `libodr_jni`
+ * now instead of matching mime prefixes in kotlin. Nothing here uploads anything or touches the
+ * network.
  */
 @SmallTest
 @RunWith(AndroidJUnit4::class)
@@ -20,7 +21,7 @@ class OnlineLoaderTest {
 
     @Before
     fun setUp() {
-        onlineLoader = OnlineLoader(null, CoreLoader(null))
+        onlineLoader = OnlineLoader(null)
     }
 
     private fun options(fileType: String): FileLoader.Options {
@@ -85,15 +86,23 @@ class OnlineLoaderTest {
                 "application/vnd.openxmlformats-officedocument.presentationml.presentation"
             )
         )
-        // delegated to CoreLoader
+        // whatever else the core files as a document
         Assert.assertTrue(isConvertible("application/vnd.oasis.opendocument.text"))
+        // including what it cannot open itself - the converter runs libreoffice, not odrcore
+        Assert.assertTrue(isConvertible("application/vnd.ms-excel.sheet.binary.macroEnabled.12"))
     }
 
+    /**
+     * The categories a converter cannot help with. This used to ask [CoreLoader.isSupported], which
+     * meant "is a document" until the core loader took over images, archives and media.
+     */
     @Test
     fun handsEverythingElseToAThirdPartyViewer() {
         Assert.assertFalse(isConvertible("text/plain"))
         Assert.assertFalse(isConvertible("image/png"))
         Assert.assertFalse(isConvertible("application/zip"))
+        Assert.assertFalse(isConvertible("audio/mpeg"))
+        Assert.assertFalse(isConvertible("video/mp4"))
         Assert.assertFalse(isConvertible("application/vnd.apple.pages"))
     }
 }
