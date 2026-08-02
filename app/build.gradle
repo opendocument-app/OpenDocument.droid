@@ -1,8 +1,5 @@
-import org.apache.tools.ant.filters.ReplaceTokens
-
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.conan.android)
 }
 
 // Release signing credentials are supplied out of band - they used to be committed
@@ -70,39 +67,8 @@ def appVersion = requestedVersion.isPresent()
         ? parseVersion(requestedVersion.get())
         : [name: '0.0.0', code: 1]
 
-android {
-    ndkVersion = "28.2.13676358"
-}
-
-// conan is taken from PATH by default. Point odr.conanExecutable (or ODR_CONAN) at a
-// specific binary when it lives in a virtualenv that is not on the gradle daemon's
-// PATH - the daemon captures its environment at startup, so a venv activated in the
-// shell afterwards is not visible to it.
-def conanExecutable_ = providers.gradleProperty('odr.conanExecutable')
-        .orElse(providers.environmentVariable('ODR_CONAN'))
-        .getOrElse('conan')
-
-// android.ndkDirectory was removed in AGP 9; the ndk location now comes from the
-// androidComponents sdk components provider
-def ndkDirectory = androidComponents.sdkComponents.ndkDirectory.map { it.asFile.toString() }
-
-tasks.register('conanProfile', Copy) {
-    from "conanprofile.txt"
-    into project.layout.buildDirectory
-    inputs.property("ndkDirectory", ndkDirectory)
-    filter(ReplaceTokens, tokens: ["NDK_PATH": ndkDirectory.get()])
-}
-
-["armv8", "armv7", "x86", "x86_64"].each { architecture ->
-    tasks.named("conanInstall-" + architecture) {
-        profile.set('build/conanprofile.txt')
-        deployer.set('conandeployer.py')
-        // the deployer lays out both assets/core and jniLibs/<abi> underneath this
-        deployerFolder.set(outputDirectory.get().asFile.toString())
-        dependsOn(tasks.named('conanProfile'))
-        conanExecutable.set(conanExecutable_)
-    }
-}
+// No NDK here, and no ndkVersion: the app compiles no native code of its own, and
+// libodr_jni.so arrives prebuilt for every ABI inside the odr-core-android AAR.
 
 android {
     defaultConfig {
@@ -214,27 +180,14 @@ android {
     // ahead of targetSdk on purpose: compiling against newer APIs is independent of
     // opting in to their runtime behavior. androidx.core 1.19.0 requires 37.
     compileSdk = 37
-
-    // TODO can and should this be architecture dependent?
-    sourceSets.main.assets.srcDirs += "build/conan/armv8/assets"
-
-    // libodr_jni.so (odrcore built with with_jni) plus the libc++_shared.so it links,
-    // both put there per architecture by conandeployer.py. these used to be produced by
-    // the app's own externalNativeBuild, which is gone now that the JNI layer comes
-    // from the core itself
-    sourceSets.main.jniLibs.srcDirs +=
-            ["armv8", "armv7", "x86", "x86_64"].collect { "build/conan/${it}/jniLibs" }
 }
 
 dependencies {
-    // the java side of odrcore's JNI bindings, taken from the same conan package that
-    // built the libodr_jni.so deployed into jniLibs above. the two are one ABI with no
-    // version negotiation, so sourcing both from one package is what keeps them in
-    // step. the jar is architecture independent - armv8 just happens to be the copy we
-    // read, like the assets source set above.
-    implementation files(layout.buildDirectory.file("conan/armv8/libs/odr-core-java.jar")) {
-        builtBy("conanInstall-armv8")
-    }
+    // odrcore's JNI bindings. The AAR carries both halves - the java classes and a
+    // libodr_jni.so per ABI, plus the libc++_shared.so it links - built and published
+    // together, so the pair cannot drift the way two separately versioned artifacts
+    // could. Nothing here has to be extracted or wired up at runtime any more.
+    implementation libs.odr.core.android
 
     implementation libs.play.services.ads
     implementation libs.play.review
@@ -244,8 +197,6 @@ dependencies {
     implementation libs.androidx.core
     implementation libs.material
     implementation libs.androidx.webkit
-
-    implementation libs.asset.extractor
 
     testImplementation libs.junit
 

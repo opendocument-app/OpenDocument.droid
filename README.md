@@ -16,19 +16,16 @@ Please help to translate on the https://crowdin.com/project/opendocument
 
 ## Setup
 
-- install conan using pip in a venv
-- `conan profile detect --force`
-- make sure `conan` is in your $PATH, or point gradle at it with
-  `-Podr.conanExecutable=/path/to/venv/bin/conan` (the `ODR_CONAN` environment
-  variable works too). The gradle daemon captures its environment at startup, so
-  a venv activated afterwards is not visible to it - run `./gradlew --stop` after
-  changing $PATH.
-- `git submodule update --init --depth 1 conan-odr-index`
-- `python conan-odr-index/scripts/conan_export_all_packages.py`
-- the java half of odrcore's JNI bindings (`odr-core-java.jar`) needs no setup: it
-  ships inside the odrcore conan package that also builds `libodr_jni.so`, and the
-  conan deployer puts it in `app/build/conan/armv8/libs`. No credentials are
-  involved anywhere in the build.
+A JDK and the android SDK, and that is the whole list - `./gradlew assembleProDebug`
+works on a fresh checkout. There is no NDK to install, no python, and no conan: the
+app compiles no native code of its own, and odrcore arrives as an ordinary maven
+dependency (`app.opendocument:odr-core-android`) carrying both halves of its JNI
+bindings, the java classes and a `libodr_jni.so` per ABI.
+
+It resolves from maven central rather than github packages on purpose - github
+packages demands authentication even for a public artifact, which no clean source
+builder such as f-droid can supply. No credentials are involved anywhere in the
+build.
 
 ## Release signing
 

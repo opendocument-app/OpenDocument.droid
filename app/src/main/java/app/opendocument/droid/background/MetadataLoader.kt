@@ -84,7 +84,6 @@ class MetadataLoader(context: Context?) : FileLoader(context, LoaderType.METADAT
 
             var mimetype: String? = null
             try {
-                // needs the libmagic database that CoreLoader.initializeCore() wires up
                 mimetype = Odr.mimetype(cachedFile.absolutePath)
             } catch (e: Throwable) {
                 crashManager.log(e)
