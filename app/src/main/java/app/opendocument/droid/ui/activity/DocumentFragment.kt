@@ -34,6 +34,7 @@ import app.opendocument.droid.background.FileLoader
 import app.opendocument.droid.background.LoaderService
 import app.opendocument.droid.background.LoaderServiceQueue
 import app.opendocument.droid.background.StreamUtil
+import app.opendocument.droid.background.SupportedDocumentTypes
 import app.opendocument.droid.background.UsageCounters
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
@@ -483,8 +484,11 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
             loadData(result.partUris[0].toString())
         }
 
+        // the escape hatch for a file we show rather than read: an image, an archive listing, a
+        // player. This used to be "the raw loader ran", which meant the same until the core
+        // took those over
         if (
-            result.loaderType == FileLoader.LoaderType.RAW ||
+            !SupportedDocumentTypes.isDocument(options.fileType) ||
                 result.loaderType == FileLoader.LoaderType.ONLINE
         ) {
             offerReopen(activity, options, R.string.toast_hint_unsupported_file, false)

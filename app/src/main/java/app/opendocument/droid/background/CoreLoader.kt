@@ -35,8 +35,7 @@ import java.io.IOException
  * codes and their mirror exception types are gone.
  *
  * The loader owns the process-wide core state: the one-time initialization, the single http server
- * (which [RawLoader] also publishes text files on) and the currently open [Document] that
- * [retranslate] edits.
+ * and the currently open [Document] that [retranslate] edits.
  */
 // the context is nullable like FileLoader's own field, which close() clears and the unit
 // tests never set - isSupported() is pure and does not need one
@@ -84,13 +83,9 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
     }
 
     /**
-     * What the core renders itself, out of [SupportedDocumentTypes] - which asks odrcore's own
-     * format table rather than keeping a list, so this and the manifest cannot disagree about it.
-     *
-     * Text, csv and images are left out although the core takes those too - [RawLoader] is what
-     * gives them their player or their viewer, and this answer is what lets it have its turn. The
-     * rest of it decides whether a failed load is worth reporting and which viewer [OnlineLoader]
-     * falls back to.
+     * Everything odrcore can turn into html, which since 6.2 is much more than documents - only csv
+     * is left out, for [RawLoader]'s table viewer. Wider than what the app offers itself for (see
+     * [SupportedDocumentTypes]): this decides how a failed load is reported, not the share sheet.
      */
     override fun isSupported(options: Options): Boolean =
         SupportedDocumentTypes.isRenderedByCore(options.fileType)
@@ -149,8 +144,7 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
      * Opens [inputPath], translates it to html and publishes it on the shared http server under
      * [prefix], replacing whatever was published before.
      *
-     * [keepDocument] retains the decoded document for [retranslate]; [RawLoader] has nothing to
-     * edit and passes false.
+     * [keepDocument] retains the decoded document for [retranslate].
      */
     fun host(
         prefix: String,
@@ -305,11 +299,10 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
          * socket and waits for the accept loop to leave before releasing anything, so nothing is
          * serving by the time it returns.
          *
-         * What is left is that there is nobody to stop it *for*. The server is process wide and
-         * shared - [RawLoader] publishes text files on it too - so no single loader's teardown is
-         * the end of it, and [close] drops what it published with [HttpServer.clear] and leaves the
-         * socket listening. The process exit reclaims it, which is what was really doing the work
-         * all along; nothing here ever outlived its process.
+         * What is left is that there is nobody to stop it *for*. The server is process wide, so no
+         * single loader's teardown is the end of it, and [close] drops what it published with
+         * [HttpServer.clear] and leaves the socket listening. The process exit reclaims it, which
+         * is what was really doing the work all along; nothing here ever outlived its process.
          *
          * A second consequence is that the port is bound once rather than once per service
          * lifetime, so [bind]'s fallback stops being reached by our own teardown.
