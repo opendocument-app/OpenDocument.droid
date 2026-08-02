@@ -83,16 +83,9 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
     }
 
     /**
-     * What the core renders itself, out of [SupportedDocumentTypes] - which asks odrcore's own
-     * format table rather than keeping a list.
-     *
-     * Everything odrcore can turn into html, which since 6.2 is a good deal more than documents:
-     * text, images, archives, fonts, audio and video all get a page of their own. Only csv is left
-     * out, so that [RawLoader]'s table viewer gets its turn at one.
-     *
-     * This is wider than what the app *offers itself for* - see [SupportedDocumentTypes]. The
-     * answer decides whether a failed load is worth reporting as a broken file or as an unsupported
-     * one, and nothing about the share sheet.
+     * Everything odrcore can turn into html, which since 6.2 is much more than documents - only csv
+     * is left out, for [RawLoader]'s table viewer. Wider than what the app offers itself for (see
+     * [SupportedDocumentTypes]): this decides how a failed load is reported, not the share sheet.
      */
     override fun isSupported(options: Options): Boolean =
         SupportedDocumentTypes.isRenderedByCore(options.fileType)

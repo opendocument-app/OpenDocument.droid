@@ -8,10 +8,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Instrumented rather than a JVM test since odrcore 6.1: [OnlineLoader.isConvertible] falls through
- * to [SupportedDocumentTypes.isDocument], which reads the core's format table out of `libodr_jni`
- * now instead of matching mime prefixes in kotlin. Nothing here uploads anything or touches the
- * network.
+ * Instrumented since odrcore 6.1: [OnlineLoader.isConvertible] falls through to
+ * [SupportedDocumentTypes.isDocument], which reads the core's table in `libodr_jni`. Nothing here
+ * uploads anything or touches the network.
  */
 @SmallTest
 @RunWith(AndroidJUnit4::class)
@@ -88,14 +87,11 @@ class OnlineLoaderTest {
         )
         // whatever else the core files as a document
         Assert.assertTrue(isConvertible("application/vnd.oasis.opendocument.text"))
-        // including what it cannot open itself - the converter runs libreoffice, not odrcore
+        // including what it cannot open - the converter runs libreoffice, not odrcore
         Assert.assertTrue(isConvertible("application/vnd.ms-excel.sheet.binary.macroEnabled.12"))
     }
 
-    /**
-     * The categories a converter cannot help with. This used to ask [CoreLoader.isSupported], which
-     * meant "is a document" until the core loader took over images, archives and media.
-     */
+    /** The categories a converter cannot help with. */
     @Test
     fun handsEverythingElseToAThirdPartyViewer() {
         Assert.assertFalse(isConvertible("text/plain"))

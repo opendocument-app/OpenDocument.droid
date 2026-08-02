@@ -10,22 +10,13 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 
 /**
- * The three files odrcore does not render for us, and nothing else.
+ * The three files odrcore does not render for us: csv, whose table viewer beats the core's line by
+ * line text; svg and xml, which the core has no file type for.
  *
- * This used to be the fallback for everything the core could not open as a *document*: text,
- * images, audio, video and zip all had a viewer of their own out of `assets/`. odrcore 6.2 renders
- * every one of them - a page with an `<img>`, an `<audio>` or a `<video>` on it, a line-numbered
- * text view, a listing for an archive - so [CoreLoader] took them over and the viewers went with
- * them.
+ * It used to cover text, images, audio, video and zip too, each with a viewer out of `assets/`.
+ * odrcore 6.2 renders all of those, so [CoreLoader] took them over.
  *
- * What is left has an actual reason to be here:
- * - **csv**, which the core files as text and renders line by line. `text-prefix.html` detects the
- *   delimiter and builds a table instead, which is worth keeping a loader for.
- * - **svg**, which the core has no file type for. The WebView draws it given a name it recognizes.
- * - **xml** and anything else that gets this far, handed over under a name the WebView knows.
- *
- * [SupportedDocumentTypes.isRenderedByRaw] is what decides, and [LoaderService] asks it before it
- * asks the core - csv would otherwise be rendered by [CoreLoader] and never reach this at all.
+ * [SupportedDocumentTypes.isRenderedByRaw] decides, and [LoaderService] asks it before the core.
  */
 class RawLoader(context: Context?) : FileLoader(context, LoaderType.RAW) {
 
@@ -45,10 +36,8 @@ class RawLoader(context: Context?) : FileLoader(context, LoaderType.RAW) {
 
             val finalUri: Uri
             if (SupportedDocumentTypes.isSvg(fileType, fileExtension)) {
-                // the browser does not recognize an svg that is not called ".svg" - and the name
-                // is ours to pick rather than the file's, which reached the cache without one.
-                // the raster formats that needed the old "call everything jpg" workaround next to
-                // this are the core's now
+                // the browser does not recognize an svg not called ".svg", and the cached copy
+                // has no name of its own
                 val extension = "svg"
 
                 val htmlFile = File(cacheDirectory, "image.html")
@@ -85,8 +74,7 @@ class RawLoader(context: Context?) : FileLoader(context, LoaderType.RAW) {
                         .appendQueryParameter("ext", extension)
                         .build()
             } else {
-                // xml and whatever else got this far: the WebView is given the bytes under the
-                // name the file arrived with, and makes of them what it can
+                // xml and whatever else got here: handed to the WebView under its own name
                 val renamedFile = File(cacheDirectory, "temp.$fileExtension")
                 StreamUtil.copy(cacheFile, renamedFile)
 
@@ -102,9 +90,8 @@ class RawLoader(context: Context?) : FileLoader(context, LoaderType.RAW) {
     }
 
     /**
-     * The extension of the file's own name, which is not [Options.fileExtension]:
-     * [MimeTypeResolver.resolve] lets the detected mime type's canonical extension win, so an svg
-     * the core called `text/plain` arrives here as "txt" and the only `.svg` left is in the name.
+     * Not [Options.fileExtension]: [MimeTypeResolver.resolve] lets the detected mime type's
+     * canonical extension win, so an svg the core called `text/plain` arrives there as "txt".
      */
     private fun nameExtension(options: Options): String? =
         MimeTypeResolver.parseExtension(options.filename)

@@ -55,11 +55,9 @@ class OnlineLoader(context: Context?) : FileLoader(context, LoaderType.ONLINE) {
      * Whether use.opendocument.app can convert this type itself. Everything else is uploaded and
      * handed to a third party viewer instead.
      *
-     * The last term asks whether the core *files* this as a document, not whether it can render
-     * one: the converter runs libreoffice rather than odrcore, so an `.xlsb` is worth sending it
-     * even though nothing here can open one. It used to ask [CoreLoader.isSupported], which meant
-     * the same thing while the core loader only claimed documents - it now also claims images,
-     * archives and anything with a soundtrack, which no converter is going to help with.
+     * The last term asks whether the core *files* this as a document, not whether it renders one:
+     * the converter runs libreoffice, so an `.xlsb` is worth sending it. It used to ask
+     * [CoreLoader.isSupported], which stopped meaning that when the core loader took on media.
      */
     fun isConvertible(options: Options): Boolean {
         val fileType = options.fileType
@@ -152,8 +150,7 @@ class OnlineLoader(context: Context?) : FileLoader(context, LoaderType.ONLINE) {
         // tells the two apart on its own
         val isPdf = options.fileType?.startsWith("application/pdf") == true
 
-        // the office viewer wants an office document; an image or an mp3 that got this far is
-        // google's problem. see isConvertible for why this is no longer CoreLoader's answer
+        // the office viewer wants an office document; an image or an mp3 is google's problem
         if (SupportedDocumentTypes.isDocument(options.fileType) && !isPdf) {
             return Uri.parse(MICROSOFT_VIEWER_URL + downloadUrl)
         }

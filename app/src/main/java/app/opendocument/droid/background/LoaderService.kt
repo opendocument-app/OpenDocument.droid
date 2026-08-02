@@ -22,10 +22,8 @@ import java.io.File
  * one of them succeeds or fails: metadata first, then the core, and finally an upload the user has
  * to agree to.
  *
- * [RawLoader] sits outside that chain rather than at the end of it. It has a viewer for three
- * things the core either renders worse (csv) or cannot open at all (svg, xml), and since the core
- * would succeed at the first of those it has to be asked *before* the core rather than after it.
- * Everything else the core cannot open goes to the upload offer.
+ * [RawLoader] sits outside that chain rather than at the end of it: the core would succeed at a
+ * csv, so it has to be asked first. Everything else the core cannot open goes to the upload offer.
  */
 class LoaderService : Service(), FileLoader.FileLoaderListener {
 
@@ -130,9 +128,7 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
     override fun onSuccess(result: FileLoader.Result) {
         val options = result.options
         if (result.loaderType == FileLoader.LoaderType.METADATA) {
-            // the raw loader goes first for the few formats it still has a viewer for, because
-            // the core would succeed at all of them and it would never get a turn - a csv is
-            // something odrcore renders line by line and RawLoader builds a table out of
+            // first, not last: the core would render a csv itself and RawLoader would never run
             if (rawLoader.isSupported(options)) {
                 loadWithType(FileLoader.LoaderType.RAW, options)
 
@@ -194,10 +190,9 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
 
             return
         } else if (result.loaderType == FileLoader.LoaderType.RAW) {
-            // the raw loader was asked first, so the core has not had its turn yet. It is a real
-            // fallback for all three: it renders a csv as text where the table viewer choked, and
-            // an svg or an xml likewise - and if it fails too, the branch above reports that
-            // properly. Not gated on isSupported, which says no to csv by design.
+            // the core has not had its turn yet and is a real fallback for all three. Not gated
+            // on isSupported, which says no to csv by design; if it fails too, the branch above
+            // reports that properly
             loadWithType(FileLoader.LoaderType.CORE, options)
 
             return

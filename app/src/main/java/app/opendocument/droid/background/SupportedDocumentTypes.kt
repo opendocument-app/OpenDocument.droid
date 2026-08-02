@@ -32,10 +32,7 @@ object SupportedDocumentTypes {
 
     /**
      * What [CoreLoader] renders: everything odrcore can turn into html, minus [RAW_FILE_TYPES].
-     *
-     * Since 6.2 that reaches well past documents - text, images, zip and cfb, fonts, audio and
-     * video all get a page of their own, and every one of them used to need a viewer here. A format
-     * the core can name but not decode stays out: `.xlsb` is the current example.
+     * Since 6.2 that is far more than documents - images, archives, fonts and media included.
      */
     private val CORE_FILE_TYPES: List<FileType> by lazy {
         Odr.allFileTypes().filter {
@@ -44,9 +41,8 @@ object SupportedDocumentTypes {
     }
 
     /**
-     * What [RawLoader] keeps although the core would take it too: only csv, because odrcore renders
-     * one line-numbered like any other text and `text-prefix.html` builds a table out of it. The
-     * app's own decision, so named rather than derived.
+     * What [RawLoader] keeps although the core would take it too: only csv, which odrcore renders
+     * line by line where `text-prefix.html` builds a table. An app decision, so not derived.
      */
     private val RAW_FILE_TYPES = listOf(FileType.COMMA_SEPARATED_VALUES)
 
@@ -55,8 +51,7 @@ object SupportedDocumentTypes {
 
     /**
      * What the app offers itself for: the core's document formats plus the three non-document ones
-     * worth opening a document viewer for. Far narrower than [CORE_FILE_TYPES], which also renders
-     * fonts, archives, audio and video that are never claimed - as are json and markdown.
+     * worth opening a viewer for. Much narrower than [CORE_FILE_TYPES] - see the class doc.
      */
     private val CLAIMED_FILE_TYPES: List<FileType> by lazy {
         val documents =
@@ -69,9 +64,8 @@ object SupportedDocumentTypes {
     }
 
     /**
-     * Images, as a prefix rather than a set of file types. odrcore names most of them since 6.2 -
-     * webp, tiff, heic and avif joined png, gif, jpeg, bmp and starview metafiles - but not svg,
-     * which the wildcard is what claims. The manifest declares the whole `image` type likewise.
+     * Images, as a prefix rather than a set of file types: odrcore names all of them since 6.2
+     * except svg, which the wildcard is what claims. The manifest declares `image` likewise.
      */
     private val RAW_MIME_PREFIXES = listOf("image/")
 
@@ -104,10 +98,8 @@ object SupportedDocumentTypes {
      * core recognizes what a provider handed us, and the original otherwise.
      *
      * Reading the core's table means the app claims every spelling in it - `application/csv`,
-     * `application/x-zip-compressed`, `multipart/x-zip` - and not just the one the core happens to
-     * name first. Both loaders match whole sets rather than prefixes now, so this matters less than
-     * it did, but it still keeps one spelling per format flowing downstream and it is what the
-     * `.svg` and `.xml` checks in [isRenderedByRaw] are written against.
+     * `application/x-zip-compressed`, `multipart/x-zip` - and not just the one it names first.
+     * Collapsing them here keeps one spelling per format flowing downstream.
      *
      * Anything the core does not name - svg, xml - passes through untouched.
      */
@@ -129,20 +121,12 @@ object SupportedDocumentTypes {
         mimeType != null && mimeType.lowercase() in CORE_MIME_TYPES
 
     /**
-     * Whether [RawLoader] takes this instead, which is asked *before* [isRenderedByCore] - csv is a
-     * format the core would happily render, and only losing the race decides it.
+     * Whether [RawLoader] takes this instead. Asked *before* [isRenderedByCore], because the core
+     * would render a csv itself and RawLoader would never get its turn.
      *
-     * Three things reach it: csv, for the table viewer the core has no equivalent for; svg, which
-     * the core has no file type for at all; and xml, likewise unknown to the core but something a
-     * WebView shows without help. Everything else the core cannot open is better served by the
-     * upload offer than by a rename and a shrug.
-     *
-     * [extension] is not a nicety here. An svg and an xml *are* text, and [MetadataLoader] asks the
-     * core to identify the file before anything else - `Odr.mimetype` reads the bytes and says
-     * `text/plain`, so the `image/svg+xml` the provider volunteered never reaches this at all and
-     * the name is the only thing left that knows better. The same goes for a csv plain enough that
-     * the content detection does not spot the delimiter. It only gets a say where the detection has
-     * none to give - see [nameSays].
+     * [extension] is needed because [MetadataLoader] identifies by content first, and an svg or an
+     * xml *is* text - `Odr.mimetype` says `text/plain` and the provider's `image/svg+xml` never
+     * arrives. The name only gets a say where the detection has none - see [nameSays].
      */
     fun isRenderedByRaw(mimeType: String?, extension: String? = null): Boolean =
         isCsv(mimeType, extension) || isSvg(mimeType, extension) || isXml(mimeType, extension)
@@ -160,14 +144,9 @@ object SupportedDocumentTypes {
         mimeType?.lowercase() in XML_MIME_TYPES || nameSays(mimeType, extension, "xml")
 
     /**
-     * Whether the file is called `.expected` *and* the detected [mimeType] leaves room for the name
-     * to know better - plain text, which is what the core makes of an svg or an xml, or nothing it
-     * recognizes at all.
-     *
-     * The guard is the point. The core identifies by content, so a `report.csv` that holds an odt
-     * is reported as one, and handing it to [RawLoader] on the strength of its name would base64
-     * the zip into the table viewer and call that a success - with no fallback left, because
-     * nothing failed. What the bytes say wins whenever the core recognized them.
+     * Whether the file is called `.expected` *and* the detection left room for the name to know
+     * better - plain text, or nothing recognized. The bytes win otherwise: a `report.csv` holding
+     * an odt would go to the table viewer, succeed, and leave no fallback.
      */
     private fun nameSays(mimeType: String?, extension: String?, expected: String): Boolean {
         if (extension?.lowercase() != expected) {
@@ -180,12 +159,8 @@ object SupportedDocumentTypes {
     }
 
     /**
-     * Whether the core files this as a document, as opposed to text, an image, an archive, a font
-     * or something with a soundtrack.
-     *
-     * This is the question [OnlineLoader] wants when it asks what a converter or the microsoft
-     * viewer could do with a file, and the one [DocumentFragment] wants when it offers to hand a
-     * file to another app. Both used to ask [CoreLoader.isSupported], which meant the same thing
+     * Whether the core files this as a document rather than text, an image, an archive, a font or
+     * media. What [OnlineLoader] and [DocumentFragment] used to get from [CoreLoader.isSupported],
      * back when the core loader only claimed documents.
      */
     fun isDocument(mimeType: String?): Boolean {
@@ -193,9 +168,8 @@ object SupportedDocumentTypes {
             return false
         }
 
-        // not lowercased first, unlike the lookups against our own sets: the core's table is
-        // matched exactly and spells some of its own entries with capitals ("macroEnabled"). What
-        // gets here has been through [canonicalMimeType] anyway, so it is the core's own spelling
+        // not lowercased: the core's table is matched exactly and spells some entries with
+        // capitals ("macroEnabled"). canonicalMimeType has already been applied upstream
         val fileType = Odr.fileTypeByMimetype(mimeType) ?: return false
 
         return Odr.fileCategoryByFileType(fileType) == FileCategory.DOCUMENT

@@ -13,8 +13,7 @@ import org.junit.runner.RunWith
 /**
  * The three things [RawLoader] still has a viewer for, and the many it handed back to the core.
  *
- * Instrumented rather than a JVM test because the csv spellings come from odrcore's format table,
- * which lives in `libodr_jni` - the same reason [CoreLoaderTest] is one.
+ * Instrumented because the csv spellings come from odrcore's table in `libodr_jni`.
  */
 @SmallTest
 @RunWith(AndroidJUnit4::class)
@@ -37,9 +36,8 @@ class RawLoaderTest {
     }
 
     /**
-     * The case svg and xml actually arrive as. [MetadataLoader] asks the core to identify the file
-     * before anything else, and an svg *is* text - so `Odr.mimetype` says `text/plain` and the name
-     * is all that is left to tell it apart. This is what the render sweep sees on a real device.
+     * How svg and xml actually arrive: the core identifies by content and an svg *is* text, so
+     * `Odr.mimetype` says `text/plain` and only the name knows better.
      */
     @Test
     fun whatTheCoreMisreadsAsTextIsRoutedByItsName() {
@@ -52,9 +50,8 @@ class RawLoaderTest {
     }
 
     /**
-     * The other half of routing by name: the bytes win whenever the core recognized them. An odt
-     * called `report.csv` is an odt - handing it over on the strength of the name would base64 the
-     * zip into the table viewer and report success, leaving no fallback because nothing failed.
+     * The other half: the bytes win whenever the core recognized them. An odt called `report.csv`
+     * would otherwise reach the table viewer, succeed, and leave no fallback.
      */
     @Test
     fun aMisnamedDocumentIsStillADocument() {
@@ -84,10 +81,7 @@ class RawLoaderTest {
     }
 
     /**
-     * All of these had a viewer here until odrcore 6.2 learned to render them: PhotoSwipe for the
-     * images, Plyr for the media, JSZip for the archives. They were already unreachable by
-     * then - [LoaderService] tried the core first - so this keeps them from being routed back by
-     * accident.
+     * Each had a viewer here until odrcore 6.2 learned to render it. Keeps them from coming back.
      */
     @Test
     fun whatTheCoreRendersIsLeftToIt() {

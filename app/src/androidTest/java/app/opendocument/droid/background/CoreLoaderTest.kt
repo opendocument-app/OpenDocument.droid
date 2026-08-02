@@ -88,20 +88,17 @@ class CoreLoaderTest {
         assertTrue(isSupported("application/x-pdf"))
     }
 
-    /**
-     * Everything odrcore 6.2 renders beyond the document formats, which the app used to give a
-     * viewer of its own in `assets/` and no longer needs to.
-     */
+    /** What odrcore 6.2 renders beyond documents, each of which used to need a viewer in assets. */
     @Test
     fun whatTheCoreRendersBesidesDocumentsIsSupported() {
         assertTrue(isSupported("text/plain"))
         assertTrue(isSupported("image/png"))
-        // the image types 6.2 added, which the old five-format list did not reach
+        // the image types 6.2 added
         assertTrue(isSupported("image/webp"))
         assertTrue(isSupported("image/heic"))
         assertTrue(isSupported("image/avif"))
         assertTrue(isSupported("application/zip"))
-        // never claimed in the share sheet, but played when handed one - see SupportedDocumentTypes
+        // rendered when handed one, never claimed in the share sheet
         assertTrue(isSupported("audio/mpeg"))
         assertTrue(isSupported("video/mp4"))
     }

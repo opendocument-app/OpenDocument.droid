@@ -484,10 +484,9 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
             loadData(result.partUris[0].toString())
         }
 
-        // the escape hatch for a file we are showing rather than reading: an image, an archive
-        // listing, a plain text dump, a player. This used to be "the raw loader ran", which said
-        // the same thing back when everything that was not a document went to RawLoader - the core
-        // renders most of them itself now, so the category is what the question was really about
+        // the escape hatch for a file we show rather than read: an image, an archive listing, a
+        // player. This used to be "the raw loader ran", which meant the same until the core
+        // took those over
         if (
             !SupportedDocumentTypes.isDocument(options.fileType) ||
                 result.loaderType == FileLoader.LoaderType.ONLINE
