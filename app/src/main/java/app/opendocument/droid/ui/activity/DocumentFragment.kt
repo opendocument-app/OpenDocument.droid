@@ -8,6 +8,10 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.InputType
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -15,6 +19,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
@@ -513,11 +518,16 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         unload()
         dismissProgress()
 
-        when (error) {
-            is FileNotFoundException ->
+        when {
+            error is FileNotFoundException ->
                 offerReopen(activity, options, R.string.toast_error_find_file, true)
-            is OutOfMemoryError ->
+            error is OutOfMemoryError ->
                 offerReopen(activity, options, R.string.toast_error_out_of_memory, true)
+            // an upload that did not come back says nothing about the file - the network or
+            // the server is what failed, and the file was one we never claimed to open in the
+            // first place. keep the reopen offer, which is the useful thing left to do with it
+            result.loaderType == FileLoader.LoaderType.ONLINE ->
+                offerReopen(activity, options, R.string.toast_error_upload_failed, true)
             // MetadataLoader could not read the file, or the core names its format and still
             // could not open it. Neither is worth an upload, so ask to hear about it instead
             else -> {
@@ -668,6 +678,31 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         }
         view.findViewById<View>(R.id.dialog_broken_file_ok).setOnClickListener {
             dialog.dismiss()
+        }
+
+        // the address is clickable too, through the same guarded launch as the button rather
+        // than autoLink - TextView's own mailto handler throws where there is no mail app.
+        // a translation that dropped the address just leaves the message as plain text
+        val message = view.findViewById<TextView>(R.id.dialog_broken_file_message)
+        val address = activity.getString(R.string.support_email)
+        val text = SpannableString(message.text)
+        val start = text.indexOf(address)
+        if (start >= 0) {
+            text.setSpan(
+                object : ClickableSpan() {
+                    override fun onClick(widget: View) {
+                        contactSupport(activity)
+
+                        dialog.dismiss()
+                    }
+                },
+                start,
+                start + address.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+            )
+
+            message.text = text
+            message.movementMethod = LinkMovementMethod.getInstance()
         }
     }
 

@@ -20,7 +20,6 @@
         android:id="@+id/dialog_broken_file_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:autoLink="email"
         android:defaultFocusHighlightEnabled="false"
         android:paddingEnd="8dp"
         android:text="@string/dialog_broken_file"
