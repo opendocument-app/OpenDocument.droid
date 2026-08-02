@@ -111,8 +111,9 @@ class MainActivity : AppCompatActivity(), MenuProvider {
     // landing screen instead of closing the app
     private var documentOpenedExternally = false
 
-    // launched from the launcher rather than with a document, consumed by the next onStart
-    private var openedDirectly = false
+    // set before we start an activity of our own, so coming back from it is not counted as
+    // the user opening the app
+    private var leftForOwnActivity = false
 
     lateinit var loaderServiceQueue: LoaderServiceQueue
         private set
@@ -252,15 +253,11 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                 )
             } else {
                 analyticsManager.setCurrentScreen(this, "screen_main")
-
-                openedDirectly = true
             }
         } else {
             crashManager.log("onCreate empty")
 
             analyticsManager.setCurrentScreen(this, "screen_main")
-
-            openedDirectly = true
         }
 
         addMenuProvider(this, this)
@@ -268,13 +265,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
     override fun onStart() {
         super.onStart()
-
-        if (openedDirectly) {
-            openedDirectly = false
-
-            // the landing screen, before the user has picked anything
-            InAppReview.requestIfEarned(this, analyticsManager, UsageCounters.recordAppOpen(this))
-        }
 
         documentFragment =
             supportFragmentManager.findFragmentByTag(DOCUMENT_FRAGMENT_TAG) as DocumentFragment?
@@ -285,6 +275,20 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         }
 
         crashManager.log("onStart")
+
+        // here rather than in onCreate: tapping the launcher while the task is still alive
+        // resumes this activity instead of creating it, and those opens count too
+        if (documentFragment == null && loadOnStart == null) {
+            if (leftForOwnActivity) {
+                leftForOwnActivity = false
+            } else {
+                InAppReview.requestIfEarned(
+                    this,
+                    analyticsManager,
+                    UsageCounters.recordAppOpen(this),
+                )
+            }
+        }
 
         val loadOnStart = this.loadOnStart ?: return
 
@@ -342,6 +346,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
             intent.type = documentFragment.lastFileType
 
+            leftForOwnActivity = true
             createDocumentLauncher.launch(intent)
         } catch (e: ActivityNotFoundException) {
             // happens on a variety devices, e.g. Samsung Galaxy Tab4 7.0 with Android 4.4.2
@@ -706,6 +711,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
             try {
                 OpenFileIdling.increment()
 
+                leftForOwnActivity = true
                 openDocumentLauncher.launch(intent)
             } catch (e: Exception) {
                 OpenFileIdling.decrement()
