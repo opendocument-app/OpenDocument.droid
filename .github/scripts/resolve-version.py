@@ -22,8 +22,8 @@
 #
 # The shape is checked here rather than left to gradle, which checks it again and
 # is the one that counts: a typo in a dispatched version should not cost the
-# conan and gradle setup first. The version code is deliberately not computed
-# here - one derivation of it, in the build, is enough.
+# gradle setup first. The version code is deliberately not computed here - one
+# derivation of it, in the build, is enough.
 #
 # Prints the resolved version and writes it to GITHUB_OUTPUT as `version`, empty
 # when there is none. Run it by hand to see what a dispatch would build.

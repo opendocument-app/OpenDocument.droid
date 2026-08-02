@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application) apply false
-    alias(libs.plugins.conan.android) apply false
     alias(libs.plugins.spotless)
 }
 
@@ -27,11 +26,11 @@ spotless {
     }
 
     format 'misc', {
-        // deliberately explicit: a '**/*.yml' style glob also matches cmake and
-        // conan output under build/ and .cxx/
+        // deliberately explicit: a '**/*.yml' style glob also matches generated
+        // output under build/
         target '*.gradle', 'app/*.gradle', 'gradle/*.toml', '*.md', '.gitignore',
                 '.github/**/*.yml', 'crowdin.yml', '_config.yml', '*.sh'
-        targetExclude '**/build/**', '**/.cxx/**', 'conan-odr-index/**'
+        targetExclude '**/build/**'
 
         trimTrailingWhitespace()
         endWithNewline()

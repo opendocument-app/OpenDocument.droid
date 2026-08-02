@@ -9,7 +9,6 @@ import app.opendocument.core.DecodePreference
 import app.opendocument.core.DecodedFile
 import app.opendocument.core.Document
 import app.opendocument.core.DocumentType
-import app.opendocument.core.GlobalParams
 import app.opendocument.core.Html
 import app.opendocument.core.HtmlConfig
 import app.opendocument.core.HtmlView
@@ -23,15 +22,14 @@ import app.opendocument.droid.background.FileLoader.Options
 import app.opendocument.droid.background.FileLoader.Result
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
-import com.viliussutkus89.android.assetextractor.AssetExtractor
 import java.io.File
 import java.io.IOException
 
 /**
  * Loads documents through odrcore and publishes them on a local http server.
  *
- * This talks to odrcore's own JNI bindings (`app.opendocument.core`, the `odr-core-java.jar` and
- * the matching `libodr_jni.so`, both out of the odrcore conan package). It used to go through
+ * This talks to odrcore's own JNI bindings (`app.opendocument.core`, the java classes and the
+ * matching `libodr_jni.so`, both out of the odr-core-android AAR). It used to go through
  * `CoreWrapper` and a hand-written JNI layer in `src/main/cpp/core_wrapper.cpp` that flattened
  * every failure into an integer error code; the core reports typed [OdrException]s instead, so the
  * codes and their mirror exception types are gone.
@@ -75,9 +73,9 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
         analyticsManager: AnalyticsManager,
         crashManager: CrashManager,
     ) {
-        // loads the native library and extracts the core assets. Kept out of the constructor so
-        // that constructing a CoreLoader stays side effect free - LoaderService calls initialize()
-        // right after new CoreLoader() anyway.
+        // loads the native library and points the core at a usable temporary directory. Kept out
+        // of the constructor so that constructing a CoreLoader stays side effect free -
+        // LoaderService calls initialize() right after new CoreLoader() anyway.
         initializeCore(context)
 
         startSharedServer(crashManager)
@@ -423,11 +421,14 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
         private var coreInitialized = false
 
         /**
-         * One-time process wide setup of the core: data paths and the temporary directory.
+         * One-time process wide setup of the core: the temporary directory, and nothing else.
          *
-         * [MetadataLoader] calls [Odr.mimetype], which needs the libmagic database set up here, so
-         * this has to have run before any document is loaded. LoaderService constructs and
-         * initializes the CoreLoader while starting up, well before the first load request.
+         * There used to be data to unpack here - the renderer's css and js, and libmagic's
+         * database - out of `assets/core` and into [Context.getFilesDir], with
+         * `GlobalParams.setOdrCoreDataPath` and `setLibmagicDatabasePath` pointing the core at the
+         * result. odrcore 6.2 ended both: the css and js are written into the html it produces, and
+         * `Odr.mimetype` is core's own detection rather than libmagic. Both setters are inert now,
+         * so the extraction only cost startup time and apk size.
          */
         @Synchronized
         fun initializeCore(context: Context) {
@@ -444,20 +445,6 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
             Os.setenv("TMPDIR", context.cacheDir.absolutePath, true)
 
             Log.i(TAG, "odrcore " + Odr.identify())
-
-            val assetsDirectory = File(context.filesDir, "assets")
-            val odrCoreDataDirectory = File(assetsDirectory, "odrcore")
-            val libmagicDataDirectory = File(assetsDirectory, "libmagic")
-
-            val assetExtractor = AssetExtractor(context.assets)
-            assetExtractor.setOverwrite()
-            assetExtractor.extract(assetsDirectory, "core/odrcore")
-            assetExtractor.extract(assetsDirectory, "core/libmagic")
-
-            GlobalParams.setOdrCoreDataPath(odrCoreDataDirectory.absolutePath)
-            GlobalParams.setLibmagicDatabasePath(
-                File(libmagicDataDirectory, "magic.mgc").absolutePath
-            )
 
             coreInitialized = true
         }

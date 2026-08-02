@@ -26,20 +26,12 @@ permissions:
   # required to publish lint findings to the code scanning tab
   security-events: write
 
-env:
-  ndk_version: 28.2.13676358
-
 jobs:
   build:
     runs-on: ubuntu-24.04
-    outputs:
-      conan-cache-key: ${{ steps.conan-cache-key.outputs.key }}
     steps:
     - name: checkout
       uses: actions/checkout@v7
-
-    - name: install ninja
-      run: sudo apt-get install -y ninja-build
 
     - name: setup java
       uses: actions/setup-java@v5.6.0
@@ -47,52 +39,12 @@ jobs:
         distribution: 'zulu'
         java-version: 21
 
-    - name: setup python 3.12
-      uses: actions/setup-python@v7
-      with:
-        python-version: 3.12
-    - name: install python dependencies
-      run: pip install conan
-
-    - name: install ndk
-      run: yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
-
-    - name: conan profile
-      run: conan profile detect
-
-    - name: checkout conan-index
-      run: git submodule update --init --depth 1 conan-odr-index
-
-    - name: conan cache key
-      id: conan-cache-key
-      run: echo "key=conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-index$(git rev-parse HEAD:conan-odr-index)-${{ hashFiles('app/conanfile.txt', 'app/conanprofile.txt') }}" >> "$GITHUB_OUTPUT"
-
-    # restore before exporting the recipes: the export must run on top of the
-    # restored cache so current recipes win over stale ones from the archive
-    - name: conan cache
-      uses: actions/cache@v6
-      with:
-        path: ~/.conan2/p
-        key: ${{ steps.conan-cache-key.outputs.key }}
-        restore-keys: |
-          conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-
-
-    - name: export conan-odr-index
-      run: python conan-odr-index/scripts/conan_export_all_packages.py
-
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v6
 
     - name: gradle
       # spotlessCheck runs in the format workflow, which has no paths-ignore
       run: ./gradlew assembleDebug testProDebugUnitTest lintProDebug lintLiteDebug --stacktrace
-
-    # drop temporary download/source/build folders so only built packages get cached
-    - name: clean conan cache
-      run: conan cache clean "*"
-
-    - name: conan cache size
-      run: du -h -d1 ~/.conan2/p
 
     - name: Artifact APKs
       uses: actions/upload-artifact@v7
@@ -151,46 +103,11 @@ jobs:
     - name: checkout
       uses: actions/checkout@v7
 
-    - name: install ninja
-      run: sudo apt-get install -y ninja-build
-
     - name: java
       uses: actions/setup-java@v5.6.0
       with:
         distribution: 'zulu'
         java-version: 21
-
-    - name: setup python 3.12
-      uses: actions/setup-python@v7
-      with:
-        python-version: 3.12
-    - name: install python dependencies
-      run: pip install conan
-
-    - name: install ndk
-      run: yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
-
-    - name: conan profile
-      run: conan profile detect
-
-    - name: checkout conan-index
-      run: git submodule update --init --depth 1 conan-odr-index
-
-    # restore the packages built by the build job. on a cache hit no conan
-    # package needs to be rebuilt or downloaded; on a miss everything is
-    # built from source via the exported recipes (slow but reliable).
-    # restore before exporting the recipes so current recipes win over
-    # stale ones from the archive
-    - name: conan cache
-      uses: actions/cache/restore@v6
-      with:
-        path: ~/.conan2/p
-        key: ${{ needs.build.outputs.conan-cache-key }}
-        restore-keys: |
-          conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-
-
-    - name: export conan-odr-index
-      run: python conan-odr-index/scripts/conan_export_all_packages.py
 
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v6
