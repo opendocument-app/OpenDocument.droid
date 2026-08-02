@@ -35,8 +35,20 @@ RULE = (222, 222, 228)
 ACCENT = (0, 105, 137)
 
 FONT_CANDIDATES = {
-    "regular": ["/System/Library/Fonts/Supplemental/Arial.ttf", "/Library/Fonts/Arial.ttf"],
-    "bold": ["/System/Library/Fonts/Supplemental/Arial Bold.ttf", "/Library/Fonts/Arial Bold.ttf"],
+    "regular": [
+        "/System/Library/Fonts/Supplemental/Arial.ttf",
+        "/Library/Fonts/Arial.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/TTF/DejaVuSans.ttf",
+    ],
+    "bold": [
+        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+        "/Library/Fonts/Arial Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf",
+    ],
 }
 FALLBACK = "/System/Library/Fonts/Helvetica.ttc"
 
@@ -57,7 +69,14 @@ class Sheet:
             if os.path.exists(path):
                 return ImageFont.truetype(path, self.px(size))
 
-        return ImageFont.load_default()
+        # load_default() ignores the size, so at 300 dpi every label would come out as
+        # unreadable specks. Better to say so than to hand back a PDF nobody can read.
+        raise SystemExit(
+            f"no {weight} font found. Tried:\n  "
+            + "\n  ".join(FONT_CANDIDATES[weight] + [FALLBACK])
+            + "\nInstall one (on debian: apt install fonts-dejavu-core) or add its path "
+            "to FONT_CANDIDATES."
+        )
 
     def text(self, x, y, message, font, fill):
         self.draw.text((self.px(x), self.px(y)), message, font=font, fill=fill)

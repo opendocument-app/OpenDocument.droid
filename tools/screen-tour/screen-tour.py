@@ -170,7 +170,9 @@ OPEN_BUTTON = [
     (r"landing_open_fab", "resource-id"),
     (r"^Open document$", "content-desc"),
 ]
-FILE_MANAGER_CHOICE = [(r"^Files$", "text")]
+# the system picker answers to either name depending on the device - the instrumented
+# tests match the same pair, see MainActivityTests.openDocumentThroughPicker
+FILE_MANAGER_CHOICE = [(r"^Files$", "text"), (r"^Documents$", "text")]
 ROOTS_DRAWER = [(r"^Show roots$", "content-desc")]
 DOWNLOADS_ROOT = [(r"^Downloads$", "text")]
 RECENTS_CHOICE = [(r"[Rr]ecently opened", "text")]

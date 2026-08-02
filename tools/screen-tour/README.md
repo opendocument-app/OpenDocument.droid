@@ -14,6 +14,8 @@ fails a build. It hands you pictures and you decide what you think of them.
 ## Running it
 
 You need a device or emulator on `adb`, and Pillow for the PDF (`pip install pillow`).
+`collage.py` also needs a TrueType font it can find - macOS has one, on debian it is
+`apt install fonts-dejavu-core` - and says so rather than rendering unreadable labels.
 
 ```sh
 # the branch you are on
