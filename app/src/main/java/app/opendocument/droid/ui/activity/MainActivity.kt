@@ -35,11 +35,13 @@ import app.opendocument.droid.background.LoaderService
 import app.opendocument.droid.background.LoaderServiceQueue
 import app.opendocument.droid.background.PersistedUriPermissions
 import app.opendocument.droid.background.PrintingManager
+import app.opendocument.droid.background.UsageCounters
 import app.opendocument.droid.nonfree.AdManager
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.BillingManager
 import app.opendocument.droid.nonfree.CrashManager
+import app.opendocument.droid.nonfree.InAppReview
 import app.opendocument.droid.ui.EditActionModeCallback
 import app.opendocument.droid.ui.FindActionModeCallback
 import app.opendocument.droid.ui.OpenFileIdling
@@ -108,6 +110,9 @@ class MainActivity : AppCompatActivity(), MenuProvider {
     // to that app), while documents opened from within the app go back to the
     // landing screen instead of closing the app
     private var documentOpenedExternally = false
+
+    // launched from the launcher rather than with a document, consumed by the next onStart
+    private var openedDirectly = false
 
     lateinit var loaderServiceQueue: LoaderServiceQueue
         private set
@@ -247,11 +252,15 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                 )
             } else {
                 analyticsManager.setCurrentScreen(this, "screen_main")
+
+                openedDirectly = true
             }
         } else {
             crashManager.log("onCreate empty")
 
             analyticsManager.setCurrentScreen(this, "screen_main")
+
+            openedDirectly = true
         }
 
         addMenuProvider(this, this)
@@ -259,6 +268,13 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
     override fun onStart() {
         super.onStart()
+
+        if (openedDirectly) {
+            openedDirectly = false
+
+            // the landing screen, before the user has picked anything
+            InAppReview.requestIfEarned(this, analyticsManager, UsageCounters.recordAppOpen(this))
+        }
 
         documentFragment =
             supportFragmentManager.findFragmentByTag(DOCUMENT_FRAGMENT_TAG) as DocumentFragment?
