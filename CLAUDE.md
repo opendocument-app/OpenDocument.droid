@@ -30,6 +30,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Clean
 - `./gradlew clean` - Clean build artifacts
 
+## Tools
+
+Two of them, both under `tools/`, both for *looking* at the app rather than testing it -
+nothing in either asserts anything or fails a build. Each has a README next to it.
+
+- **`render-sweep`** opens a whole corpus of documents one at a time and records what the app
+  made of each: a screenshot, the text the WebView showed, and logcat. For "does this format
+  still render", across far more files than the instrumented tests touch.
+- **`screen-tour`** walks one build through the six screens that carry its design, then lays
+  two builds' screenshots side by side as a PDF. For "what does this change actually look
+  like next to main". One tour walks both designs - the steps look for a toolbar item *or* a
+  floating button - so it keeps working across a branch that moves things.
+
+Reach for `screen-tour` before hand-driving an emulator with `adb shell input tap`. That is
+what it replaced, and the second round of tapping is always the expensive one.
+
 ## Architecture Overview
 
 ### Core Components

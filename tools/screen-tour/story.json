@@ -1,0 +1,122 @@
+{
+  "title": "OpenDocument Reader",
+  "subtitle": "main vs redesign",
+  "note": "Pixel 9 Pro, pro debug build, from a fresh install onwards",
+  "footer": "Each page that follows shows one screen, full size: main left, redesign right. The last one is the lite build.",
+  "summary": {
+    "heading": "What the redesign changed",
+    "lines": [
+      "The landing screen is the recently opened documents, not a page of prose.",
+      "The logo and name sit above the list and stay there once documents fill it.",
+      "Recent rows are one line each, with the time opened at the far end.",
+      "What the app is for keeps a section of its own, which folds away once there are documents.",
+      "The settings fold too, and start folded.",
+      "Open goes straight to the system picker, filtered to documents; no folder browser beside it.",
+      "The toolbar is gone: the document's actions float over it, where the thumb is.",
+      "The document runs to the bottom edge, under the gesture bar."
+    ]
+  },
+  "pages": [
+    {
+      "title": "1 · First launch",
+      "subtitle": "The very first time the app opens, with no data of its own",
+      "shot": "01-first-launch",
+      "columns": [
+        {
+          "set": "main",
+          "caption": "A welcome page of prose inside the WebView, a lone (white on white) Open icon in the toolbar and a grey FAB."
+        },
+        {
+          "set": "redesign",
+          "caption": "The same three lines of copy, under a heading of their own and above the settings, with a logo that stays put and Open a file at the top. The settings start folded."
+        }
+      ]
+    },
+    {
+      "title": "2 · Opening a file",
+      "subtitle": "What the Open action does",
+      "shot": "02-open",
+      "columns": [
+        {
+          "set": "main",
+          "caption": "The app asks first, with its own dialog listing every file manager plus its recents."
+        },
+        {
+          "set": "redesign",
+          "caption": "Straight into the system picker - one tap fewer, and its own search and roots come along. Asked for document types only, so the image, audio and video filters are not on it."
+        }
+      ]
+    },
+    {
+      "title": "3 · A document on screen",
+      "subtitle": "test.odt rendered by the core",
+      "shot": "03-document",
+      "columns": [
+        {
+          "set": "main",
+          "caption": "An action bar takes the top of the screen whether or not the document needs it."
+        },
+        {
+          "set": "redesign",
+          "caption": "The bar is gone; search and the overflow float over the page, down where the thumb is. The page itself runs to the bottom edge, under the gesture bar."
+        }
+      ]
+    },
+    {
+      "title": "4 · Menu unfolded",
+      "subtitle": "Every action the document offers",
+      "shot": "04-menu",
+      "columns": [
+        {
+          "set": "main",
+          "caption": "A stock overflow popup, top right, text only - Fullscreen, Open with, Save, Share, Print, TTS."
+        },
+        {
+          "set": "redesign",
+          "caption": "A labelled speed dial from the bottom right, icons included, with Edit alongside the rest."
+        }
+      ]
+    },
+    {
+      "title": "5 · Search in use",
+      "subtitle": "Searching the open document for \"document\"",
+      "shot": "05-search",
+      "columns": [
+        {
+          "set": "main",
+          "caption": "The find action mode replaces the toolbar; hits highlight in the WebView."
+        },
+        {
+          "set": "redesign",
+          "caption": "The same find bar, reached from the floating button instead of the toolbar."
+        }
+      ]
+    },
+    {
+      "title": "6 · Recents, after three documents",
+      "subtitle": "test.odt, style-various-1.docx and spreadsheet-test.ods have been opened",
+      "shot": "06-recents",
+      "columns": [
+        {
+          "set": "main",
+          "caption": "Recents are a dialog, two taps deep behind Open, names only. The home screen itself never changes."
+        },
+        {
+          "set": "redesign",
+          "caption": "Recents are the home screen: one line each, the time opened on the right, the logo still above them, and swipe to remove. What the app does has folded itself away by now, and the settings under it were never open."
+        }
+      ]
+    },
+    {
+      "title": "7 · Where the ad removal went",
+      "subtitle": "The lite flavour, which is the only one that has ads to remove",
+      "shot": "06-recents",
+      "columns": [
+        {
+          "set": "lite",
+          "caption": "The other pages were shot from the pro build, which offers no ad removal by design - the purchase is implied - so the row was never on screen to photograph. It has not gone anywhere.\n\nIn lite it is the last row of the settings section, under the catch-all switch, where the landing screen asks MainActivity.offersAdRemoval() for it. On main the same purchase was an item in the toolbar overflow, on a screen that had no settings of its own."
+        }
+      ]
+    }
+  ]
+}
