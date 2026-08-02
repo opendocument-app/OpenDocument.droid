@@ -171,6 +171,11 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
 
             if (rawLoader.isSupported(options)) {
                 loadWithType(FileLoader.LoaderType.RAW, options)
+            } else if (coreLoader.isSupported(options)) {
+                // the core names this format and still said no, so the file is what is wrong.
+                // an upload would only run the same engine again - onUnsupported is below,
+                // for the formats the core never claimed
+                withListener { it.onError(result, error) }
             } else {
                 withListener { it.onUnsupported(result) }
             }

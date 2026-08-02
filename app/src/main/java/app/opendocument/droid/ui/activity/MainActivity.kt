@@ -659,7 +659,9 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         analyticsManager.report("fullscreen_end")
     }
 
-    private fun closeDocument() {
+    // also called by DocumentFragment when a load failed for good, so the landing screen is
+    // what the error dialog comes up over rather than an empty document view
+    fun closeDocument() {
         documentFragment?.let { fragment ->
             removeMenuProvider(fragment)
 

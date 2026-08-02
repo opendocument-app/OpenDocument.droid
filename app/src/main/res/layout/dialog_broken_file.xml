@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The buttons are part of this view rather than the dialog's own button bar: appcompat draws
+     that bar over an opaque background of its own, which reads as a grey band under an otherwise
+     white dialog and does not go away by painting any of the views it is made of.
+
+     defaultFocusHighlightEnabled is off on everything focusable here: the framework paints a
+     translucent grey over whichever view holds focus while the window is out of touch mode,
+     and on a dialog opened without a tap that is what the grey band actually was. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#ffffff"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="8dp">
+
+    <TextView
+        android:id="@+id/dialog_broken_file_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:defaultFocusHighlightEnabled="false"
+        android:paddingEnd="8dp"
+        android:text="@string/dialog_broken_file"
+        android:textColorLink="#6b6b6b"
+        android:textSize="16sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/dialog_broken_file_contact"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:defaultFocusHighlightEnabled="false"
+            android:text="@string/action_contact"
+            android:textColor="#6b6b6b" />
+
+        <Button
+            android:id="@+id/dialog_broken_file_ok"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:defaultFocusHighlightEnabled="false"
+            android:text="@android:string/ok"
+            android:textColor="#6b6b6b" />
+    </LinearLayout>
+</LinearLayout>

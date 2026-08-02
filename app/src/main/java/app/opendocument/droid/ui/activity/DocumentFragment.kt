@@ -1,12 +1,17 @@
 package app.opendocument.droid.ui.activity
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.InputType
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -14,9 +19,11 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
+import androidx.core.net.toUri
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
@@ -511,15 +518,29 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         unload()
         dismissProgress()
 
-        val errorDescription =
-            when (error) {
-                is FileNotFoundException -> R.string.toast_error_find_file
-                is OutOfMemoryError -> R.string.toast_error_out_of_memory
-                else -> R.string.toast_error_generic
-            }
+        when {
+            error is FileNotFoundException ->
+                offerReopen(activity, options, R.string.toast_error_find_file, true)
+            error is OutOfMemoryError ->
+                offerReopen(activity, options, R.string.toast_error_out_of_memory, true)
+            // an upload that did not come back says nothing about the file - the network or
+            // the server is what failed, and the file was one we never claimed to open in the
+            // first place. keep the reopen offer, which is the useful thing left to do with it
+            result.loaderType == FileLoader.LoaderType.ONLINE ->
+                offerReopen(activity, options, R.string.toast_error_upload_failed, true)
+            // MetadataLoader could not read the file, or the core names its format and still
+            // could not open it. Neither is worth an upload, so ask to hear about it instead
+            else -> {
+                // nothing is ever going to be shown for this file, so drop back to the
+                // landing screen and let the dialog come up over that
+                state.endLoadIdling()
+                (activity as MainActivity).closeDocument()
 
-        // MetadataLoader failed, so there's no point in trying to parse or upload the file
-        offerReopen(activity, options, errorDescription, true)
+                offerContact(activity)
+
+                return
+            }
+        }
 
         state.endLoadIdling()
     }
@@ -634,6 +655,71 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         }
 
         builder.show()
+    }
+
+    private fun offerContact(activity: Activity) {
+        analyticsManager.report("contact_offer")
+
+        // its own content view rather than setMessage plus the builder's buttons - see
+        // dialog_broken_file.xml. every string comes off the activity, because closeDocument()
+        // has already detached this fragment and its own getString() would throw
+        val view = activity.layoutInflater.inflate(R.layout.dialog_broken_file, null)
+
+        val dialog =
+            AlertDialog.Builder(activity)
+                .setTitle(R.string.dialog_broken_file_title)
+                .setView(view)
+                .show()
+
+        view.findViewById<View>(R.id.dialog_broken_file_contact).setOnClickListener {
+            contactSupport(activity)
+
+            dialog.dismiss()
+        }
+        view.findViewById<View>(R.id.dialog_broken_file_ok).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        // the address is clickable too, through the same guarded launch as the button rather
+        // than autoLink - TextView's own mailto handler throws where there is no mail app.
+        // a translation that dropped the address just leaves the message as plain text
+        val message = view.findViewById<TextView>(R.id.dialog_broken_file_message)
+        val address = activity.getString(R.string.support_email)
+        val text = SpannableString(message.text)
+        val start = text.indexOf(address)
+        if (start >= 0) {
+            text.setSpan(
+                object : ClickableSpan() {
+                    override fun onClick(widget: View) {
+                        contactSupport(activity)
+
+                        dialog.dismiss()
+                    }
+                },
+                start,
+                start + address.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+            )
+
+            message.text = text
+            message.movementMethod = LinkMovementMethod.getInstance()
+        }
+    }
+
+    private fun contactSupport(activity: Activity) {
+        val intent =
+            Intent(
+                Intent.ACTION_SENDTO,
+                "mailto:${activity.getString(R.string.support_email)}".toUri(),
+            )
+        intent.putExtra(Intent.EXTRA_SUBJECT, activity.getString(R.string.app_title))
+
+        try {
+            activity.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            // no mail app - the address is in the dialog either way, so say nothing more
+            crashManager.log(e)
+        }
     }
 
     private fun offerReopen(
