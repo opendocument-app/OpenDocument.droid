@@ -135,7 +135,7 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
                 cachePath = coreCacheDirectory.path,
                 password = options.password,
                 editable = options.translatable,
-                paging = USE_PAGING,
+                paging = PaginationSetting.isEnabled(context),
                 keepDocument = true,
             )
 
@@ -419,15 +419,6 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
          * when the device has nothing free, where any choice is as good as the next.
          */
         private const val FALLBACK_SERVER_PORT: Int = 29665
-
-        /**
-         * Whether odrcore renders text documents with page margins. This used to be read from the
-         * "use_paging" remote config key, but that resolved to false for every user since firebase
-         * remote config was removed - the ConfigManager left behind is a stub without a backing
-         * store. Kept as an explicit constant so the shipped behavior is visible instead of hidden
-         * behind a lookup that cannot return a value.
-         */
-        private const val USE_PAGING = false
 
         private var coreInitialized = false
 

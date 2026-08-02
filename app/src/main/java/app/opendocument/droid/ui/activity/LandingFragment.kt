@@ -129,8 +129,8 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
             items.add(LandingItem.Intro())
         }
 
-        // folded to begin with: the one switch under here matters to the few users whose file
-        // manager will not hand a document over, and is in the way of everyone else
+        // folded to begin with: the switches under here are about how a document is laid out and
+        // how it arrives, both of which are right for most people as they stand
         items.add(
             LandingItem.Header(
                 R.string.landing_section_settings,
@@ -139,6 +139,17 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
             )
         )
         if (state.settingsExpanded) {
+            // first, because it is about every document the app shows - the one below it is about
+            // the few that will not come across at all
+            items.add(
+                LandingItem.Setting(
+                    LandingItem.SETTING_PAGINATION,
+                    R.string.landing_pagination_title,
+                    R.string.landing_pagination_body,
+                    state.paginationEnabled,
+                )
+            )
+
             items.add(
                 LandingItem.Setting(
                     LandingItem.SETTING_CATCH_ALL,
@@ -295,6 +306,14 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
 
     override fun onSettingChanged(setting: Int, enabled: Boolean) {
         when (setting) {
+            LandingItem.SETTING_PAGINATION -> {
+                viewModel.setPaginationEnabled(enabled)
+
+                mainActivity.analyticsManager.report(
+                    if (enabled) "pagination_enabled" else "pagination_disabled"
+                )
+            }
+
             LandingItem.SETTING_CATCH_ALL -> {
                 viewModel.setCatchAllEnabled(enabled)
 

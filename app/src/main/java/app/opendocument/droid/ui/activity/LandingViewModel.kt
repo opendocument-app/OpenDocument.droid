@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import app.opendocument.droid.background.CatchAllSetting
+import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.background.PersistedUriPermissions
 import app.opendocument.droid.background.RecentDocumentList
 import app.opendocument.droid.background.RecentDocumentsUtil
@@ -28,6 +29,7 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
 
     class State(
         val documents: List<RecentDocumentList.Entry>,
+        val paginationEnabled: Boolean,
         val catchAllEnabled: Boolean,
         val introExpanded: Boolean,
         val settingsExpanded: Boolean,
@@ -81,9 +83,10 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
             val context = getApplication<Application>()
 
             val stored = RecentDocumentsUtil.getRecentDocuments(context)
+            val pagination = PaginationSetting.isEnabled(context)
             val catchAll = CatchAllSetting.isEnabled(context)
 
-            mutableState.postValue(stateOf(stored, catchAll))
+            mutableState.postValue(stateOf(stored, pagination, catchAll))
 
             if (!dropUnreachable) {
                 return@execute
@@ -99,12 +102,13 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
             }
             PersistedUriPermissions.prune(context)
 
-            mutableState.postValue(stateOf(alive, catchAll))
+            mutableState.postValue(stateOf(alive, pagination, catchAll))
         }
     }
 
     private fun stateOf(
         documents: List<RecentDocumentList.Entry>,
+        paginationEnabled: Boolean,
         catchAllEnabled: Boolean,
     ): State {
         val isEmpty = documents.isEmpty()
@@ -113,6 +117,7 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
 
         return State(
             documents,
+            paginationEnabled,
             catchAllEnabled,
             introExpanded = introExpanded ?: isEmpty,
             settingsExpanded = settingsExpanded,
@@ -153,6 +158,17 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
         refresh()
 
         return settingsExpanded
+    }
+
+    /**
+     * A document already on the screen keeps the layout it was translated with - this reaches the
+     * next one that is opened. The switch is only on the landing screen, which is only reached by
+     * closing whatever was open, so there is nothing on screen to re-lay out.
+     */
+    fun setPaginationEnabled(enabled: Boolean) {
+        PaginationSetting.setEnabled(getApplication(), enabled)
+
+        refresh()
     }
 
     fun setCatchAllEnabled(enabled: Boolean) {

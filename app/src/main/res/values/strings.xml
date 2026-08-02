@@ -42,6 +42,8 @@
     <string name="landing_section_recent">Recent</string>
     <string name="landing_section_intro">What you can do</string>
     <string name="landing_section_settings">Settings</string>
+    <string name="landing_pagination_title">Show page borders</string>
+    <string name="landing_pagination_body">Keep the side margins of a printed page instead of filling the screen.</string>
     <string name="landing_catch_all_title">Offer to open any file</string>
     <string name="landing_recent_removed">Removed from recent</string>
     <string name="landing_undo">Undo</string>

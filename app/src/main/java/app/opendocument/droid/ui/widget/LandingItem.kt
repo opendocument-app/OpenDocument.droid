@@ -62,6 +62,7 @@ sealed class LandingItem {
         const val ACTION_REMOVE_ADS: Int = 1
 
         const val SETTING_CATCH_ALL: Int = 1
+        const val SETTING_PAGINATION: Int = 2
 
         const val SECTION_INTRO: Int = 1
         const val SECTION_SETTINGS: Int = 2

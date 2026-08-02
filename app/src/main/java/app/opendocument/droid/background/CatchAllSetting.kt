@@ -2,7 +2,6 @@ package app.opendocument.droid.background
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 
 /**
@@ -44,10 +43,10 @@ object CatchAllSetting {
         // catch-all is only active if the user explicitly opted in. new installs and existing
         // users who never touched the switch default to STRICT_CATCH, so we no longer volunteer
         // to open unrelated file types like contacts (issue #477).
-        preferences(context).getBoolean(PREF_CATCH_ALL_ENABLED, false)
+        AppPreferences.of(context).getBoolean(PREF_CATCH_ALL_ENABLED, false)
 
     fun setEnabled(context: Context, enabled: Boolean) {
-        preferences(context).edit().putBoolean(PREF_CATCH_ALL_ENABLED, enabled).apply()
+        AppPreferences.of(context).edit().putBoolean(PREF_CATCH_ALL_ENABLED, enabled).apply()
 
         apply(context, enabled)
     }
@@ -68,13 +67,4 @@ object CatchAllSetting {
             PackageManager.DONT_KILL_APP,
         )
     }
-
-    /**
-     * The preferences android.preference.PreferenceManager used to hand out. That class is
-     * deprecated and its androidx replacement lives in a whole preference-ui library we do not
-     * otherwise need, so the default file is opened by name instead - keeping the existing
-     * catch-all setting of users who upgrade.
-     */
-    private fun preferences(context: Context): SharedPreferences =
-        context.getSharedPreferences(context.packageName + "_preferences", Context.MODE_PRIVATE)
 }
