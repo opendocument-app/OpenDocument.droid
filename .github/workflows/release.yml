@@ -66,7 +66,6 @@ permissions:
   contents: read
 
 env:
-  ndk_version: 28.2.13676358
   uploads: ${{ inputs.uploads || 'both' }}
 
 jobs:
@@ -120,8 +119,8 @@ jobs:
     # .ruby-version / .tool-versions file, neither of which this repo has, and it
     # does not read the `ruby ">= 3.2"` constraint in the Gemfile. 3.4 is what
     # Gemfile.lock was resolved with.
-    # the keystore is decoded and checked up front, before the conan and gradle
-    # setup: signing is the very last thing the build does, so a bad password
+    # the keystore is decoded and checked up front, before the gradle setup:
+    # signing is the very last thing the build does, so a bad password
     # otherwise only surfaces as a signProReleaseBundle failure six minutes in
     - name: decode keystore
       run: echo "${{ secrets.ODR_KEYSTORE_BASE64 }}" | base64 -d > "${RUNNER_TEMP}/google_play.keystore"
@@ -153,41 +152,6 @@ jobs:
       with:
         ruby-version: '3.4'
         bundler-cache: true
-
-    - name: setup python 3.12
-      uses: actions/setup-python@v7
-      with:
-        python-version: 3.12
-    - name: install python dependencies
-      run: pip install conan
-
-    - name: install ndk
-      run: yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${{ env.ndk_version }}"
-
-    - name: conan profile
-      run: conan profile detect
-
-    - name: checkout conan-index
-      run: git submodule update --init --depth 1 conan-odr-index
-
-    # same cache the build workflow populates, so a release does not have to
-    # rebuild odrcore from source. the key has to be spelled the same way
-    # build_test spells it, or only the restore-keys prefix can ever match and
-    # the index revision stops being part of what is looked up
-    - name: conan cache key
-      id: conan-cache-key
-      run: echo "key=conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-index$(git rev-parse HEAD:conan-odr-index)-${{ hashFiles('app/conanfile.txt', 'app/conanprofile.txt') }}" >> "$GITHUB_OUTPUT"
-
-    - name: conan cache
-      uses: actions/cache/restore@v6
-      with:
-        path: ~/.conan2/p
-        key: ${{ steps.conan-cache-key.outputs.key }}
-        restore-keys: |
-          conan2-${{ runner.os }}-ndk${{ env.ndk_version }}-
-
-    - name: export conan-odr-index
-      run: python conan-odr-index/scripts/conan_export_all_packages.py
 
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v6

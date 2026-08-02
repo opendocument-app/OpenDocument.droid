@@ -1,9 +1,9 @@
 name: format
 
 # Spotless also formats markdown and the workflow files themselves, and build_test
-# skips those paths to avoid a full native build for a doc change. So the format
-# check runs here instead, without paths-ignore: every file spotless targets gets
-# checked. spotlessCheck only needs java and the android sdk - no ndk, no conan.
+# skips those paths to avoid a full build for a doc change. So the format check
+# runs here instead, without paths-ignore: every file spotless targets gets
+# checked. spotlessCheck only needs java and the android sdk.
 
 on:
   workflow_dispatch:

@@ -28,7 +28,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `fastlane android deployLite` - Deploy Lite version to Google Play internal track
 
 ### Clean
-- `./gradlew clean` - Clean build artifacts (includes custom .cxx directory cleanup)
+- `./gradlew clean` - Clean build artifacts
 
 ## Architecture Overview
 
@@ -58,42 +58,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Pro flavor**: Paid version with ads disabled and tracking disabled
 
 **Native Dependencies:**
-- Uses Conan package manager for C++ dependencies
-- The app compiles no native code itself; conan builds odrcore (including its JNI
-  bindings) and the deployer drops the resulting `.so` files into `jniLibs`
-- NDK version 28.2.13676358 required (for conan's cross build, and for the
-  `libc++_shared.so` that gets shipped alongside `libodr_jni.so`)
-- C++20 standard
-- `conan` is taken from PATH; override with `-Podr.conanExecutable=...` or `ODR_CONAN`.
-  Note the conan gradle plugin does not track `app/conanprofile.txt` as a task input, so
-  after editing it `conanInstall-*` stays UP-TO-DATE and the native libs keep their old
-  settings - run the conan install by hand to pick the change up locally.
+- None to build. The app compiles no native code, and there is no NDK, no conan and no
+  python in the build - `./gradlew assembleProDebug` needs a JDK and the android SDK.
+- `libodr_jni.so` and the `libc++_shared.so` it links arrive prebuilt for armv8, armv7,
+  x86 and x86_64 inside the `odr-core-android` AAR.
 
 **Core Library Integration:**
-- The JNI interface comes from odrcore itself, both halves out of the one conan package
-  built with the recipe's `with_jni` option: java classes under `app.opendocument.core`
-  from `share/java/odr-core-java.jar`, and the matching `libodr_jni.so`. `CoreLoader` is
-  the only thing wrapping it.
-- Taking both from the same package is deliberate and should stay that way - handles
-  cross as raw longs and enums as ordinals with no version negotiation, so a separately
-  versioned java artifact could drift from the `.so`. It also keeps the build free of
-  credentials, which f-droid and other clean source builders need. `conandeployer.py`
-  puts the jar in `build/conan/<arch>/libs` and `app/build.gradle` depends on the armv8
-  copy as a file, not through a repository.
+- The JNI interface comes from odrcore itself, both halves out of one AAR
+  (`app.opendocument:odr-core-android`, versioned in `gradle/libs.versions.toml`): java
+  classes under `app.opendocument.core` and the matching `libodr_jni.so`. `CoreLoader`
+  is the only thing wrapping it.
+- Both halves shipping in one artifact is deliberate and should stay that way - handles
+  cross as raw longs and enums as ordinals with no version negotiation, so separately
+  versioned java and native artifacts could drift from each other.
+- It resolves from **maven central**, not github packages: the latter demands
+  authentication even for a public artifact, which f-droid and other clean source
+  builders cannot supply.
 - Anything the bindings use must exist on **android API 26**, which is far below what
   their `--release 17` compiler accepts. That is a runtime-only failure, on device
   (`java.lang.ref.Cleaner` and `List.of` both had to be fixed upstream for this reason)
-- **odrcore's cmake needs a JDK on the conan build machine to produce the jar at all.**
-  Since 6.1 the android branch of `jni/CMakeLists.txt` calls `find_package(Java 11
-  COMPONENTS Development)` without `REQUIRED` - so a build with no `JAVA_HOME`/`javac`
-  in the environment quietly builds `libodr_jni.so` and returns before `add_jar`. It is
-  not silent for long, `conandeployer.py` then fails with `No such file or directory:
-  .../share/java/odr-core-java.jar`, but the fix is to give conan a JDK and rebuild the
-  package (`--build=odrcore/<version>`), not to look for the file. Reported upstream as
-  opendocument-app/OpenDocument.core#637
-- Supports multiple architectures: armv8, armv7, x86, x86_64
-- Assets deployed to `assets/core` and native libraries to `jniLibs/<abi>` via the custom
-  Conan deployer (`app/conandeployer.py`)
+- Nothing is unpacked at runtime. `CoreLoader.initializeCore` only sets `TMPDIR`; the
+  renderer's css and js are written into the html odrcore produces, and `Odr.mimetype`
+  is its own detection, so `GlobalParams.setOdrCoreDataPath` and
+  `setLibmagicDatabasePath` are both inert and no longer called.
 
 ### Key Directories
 
@@ -109,7 +96,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Google Play Services (Ads, Review, User Messaging Platform)
 
 **Document Processing:**
-- Custom ODR core library via Conan
+- odrcore's JNI bindings, as the `app.opendocument:odr-core-android` AAR
 
 **Testing:**
 - Espresso for UI testing
@@ -121,7 +108,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Minimum SDK: 26, Target SDK: 36, Compile SDK: 37 (ahead of target on purpose)
 - AGP 9 / Gradle 9, versions live in `gradle/libs.versions.toml`
 - R8/ProGuard enabled for release builds with resource shrinking
-- Configuration cache enabled for parallel Conan installs
+- Configuration cache enabled
 - Release signing credentials come from gradle properties or environment variables (see
   README); without them release variants build unsigned rather than failing
 - The version is the git tag, not a number in the tree. `AndroidManifest.xml` carries no
