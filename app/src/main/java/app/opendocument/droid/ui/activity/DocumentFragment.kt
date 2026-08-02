@@ -489,12 +489,15 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
 
         state.endLoadIdling()
 
-        // in-app review is requested in the pro flavor only. The lite branch used to
-        // consult a "show_in_app_rating" remote config key, which has resolved to nothing
-        // since firebase remote config was removed, so lite never asked either way.
-        if (resources.getBoolean(R.bool.DISABLE_TRACKING)) {
-            requestInAppRating(activity)
-        }
+        // asked for in both flavors, and deliberately not behind a flag. lite used to
+        // consult a "show_in_app_rating" remote config key, which has returned false since
+        // firebase remote config was gutted in v4.2 - the call site was never touched, so
+        // nothing looked broken while the flavor carrying almost every user silently
+        // stopped asking. play decides whether the sheet actually appears (undocumented
+        // per-user quota) and reports nothing back either way, so there is nothing here
+        // worth gating: DISABLE_TRACKING means crash and analytics reporting, which this
+        // is not.
+        requestInAppRating(activity)
     }
 
     override fun onError(result: FileLoader.Result, error: Throwable) {
