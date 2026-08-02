@@ -1,6 +1,7 @@
 package app.opendocument.droid.ui.activity
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -17,6 +18,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
+import androidx.core.net.toUri
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
@@ -511,15 +513,24 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         unload()
         dismissProgress()
 
-        val errorDescription =
-            when (error) {
-                is FileNotFoundException -> R.string.toast_error_find_file
-                is OutOfMemoryError -> R.string.toast_error_out_of_memory
-                else -> R.string.toast_error_generic
-            }
+        when (error) {
+            is FileNotFoundException ->
+                offerReopen(activity, options, R.string.toast_error_find_file, true)
+            is OutOfMemoryError ->
+                offerReopen(activity, options, R.string.toast_error_out_of_memory, true)
+            // MetadataLoader could not read the file, or the core names its format and still
+            // could not open it. Neither is worth an upload, so ask to hear about it instead
+            else -> {
+                // nothing is ever going to be shown for this file, so drop back to the
+                // landing screen and let the dialog come up over that
+                state.endLoadIdling()
+                (activity as MainActivity).closeDocument()
 
-        // MetadataLoader failed, so there's no point in trying to parse or upload the file
-        offerReopen(activity, options, errorDescription, true)
+                offerContact(activity)
+
+                return
+            }
+        }
 
         state.endLoadIdling()
     }
@@ -634,6 +645,46 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         }
 
         builder.show()
+    }
+
+    private fun offerContact(activity: Activity) {
+        analyticsManager.report("contact_offer")
+
+        // its own content view rather than setMessage plus the builder's buttons - see
+        // dialog_broken_file.xml. every string comes off the activity, because closeDocument()
+        // has already detached this fragment and its own getString() would throw
+        val view = activity.layoutInflater.inflate(R.layout.dialog_broken_file, null)
+
+        val dialog =
+            AlertDialog.Builder(activity)
+                .setTitle(R.string.dialog_broken_file_title)
+                .setView(view)
+                .show()
+
+        view.findViewById<View>(R.id.dialog_broken_file_contact).setOnClickListener {
+            contactSupport(activity)
+
+            dialog.dismiss()
+        }
+        view.findViewById<View>(R.id.dialog_broken_file_ok).setOnClickListener {
+            dialog.dismiss()
+        }
+    }
+
+    private fun contactSupport(activity: Activity) {
+        val intent =
+            Intent(
+                Intent.ACTION_SENDTO,
+                "mailto:${activity.getString(R.string.support_email)}".toUri(),
+            )
+        intent.putExtra(Intent.EXTRA_SUBJECT, activity.getString(R.string.app_title))
+
+        try {
+            activity.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            // no mail app - the address is in the dialog either way, so say nothing more
+            crashManager.log(e)
+        }
     }
 
     private fun offerReopen(

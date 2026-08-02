@@ -2,7 +2,8 @@
 <resources>
     <string name="app_title">OpenDocument Reader</string>
 
-    <string name="toast_error_generic">Something bad happened. Couldn\'t open file.</string>
+    <string name="dialog_broken_file_title">Couldn\'t open this file</string>
+    <string name="dialog_broken_file">The file may be damaged, or something went wrong on our side. If you think the file is fine, tell us at support@opendocument.app</string>
     <string name="toast_error_find_file">Couldn\'t find file. Maybe it doesn\'t exist any longer?</string>
     <string name="toast_error_illegal_file">This doesn\'t seem to be a supported file format.</string>
     <string name="toast_error_illegal_file_reopen">Unsupported file format. Try opening it in another app.</string>
@@ -39,6 +40,7 @@
     <string name="action_tts_previous">Previous</string>
     <string name="action_edit_save">Save</string>
     <string name="action_upload">Upload</string>
+    <string name="action_contact">Contact</string>
     <string name="action_edit_banner">Edit your document below and press Save</string>
     <string name="landing_welcome_title">Welcome to \nOpenDocument Reader</string>
     <string name="landing_intro_view">OpenDocument Reader allows you to view documents that are stored in OpenDocument format (.odt, .ods, .odp and .odg) wherever you are.</string>
@@ -55,6 +57,9 @@
     <string name="crouton_printing">Printing…</string>
     <string name="crouton_remove_ads">Need more space to read? Remove ads for free via the menu.</string>
     <string name="reopen_chooser_title">Open using another app installed on your device:</string>
+
+    <!-- spelled out in the messages above too, where translators need it in context -->
+    <string name="support_email" translatable="false">support@opendocument.app</string>
 
     <!--  iOS -->
     <string name="ok">OK</string>
