@@ -261,11 +261,13 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
         }
     }
 
-    /** Copies [source] over [uri], truncating whatever was there. */
-    private fun writeTo(uri: Uri, source: File) {
+    /** Copies [source] over [uri]. False if the provider would not truncate first. */
+    private fun writeTo(uri: Uri, source: File): Boolean {
         // "wt" and not the default "w": not every provider truncates for "w", which leaves the
         // tail of a longer previous document sitting behind the new content. for a zip container
         // like odt or docx that trailing garbage is what makes the file stop opening
+        var truncated = true
+
         val outputStream =
             try {
                 contentResolver.openOutputStream(uri, "wt")
@@ -273,10 +275,14 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
                 // a provider that rejects the mode outright - saving at all beats truncating
                 crashManager.log(e, uri)
 
+                truncated = false
+
                 contentResolver.openOutputStream(uri)
             }
 
         checkNotNull(outputStream) { "cannot write $uri" }.use { StreamUtil.copy(source, it) }
+
+        return truncated
     }
 
     /** What [uri] holds right now, so a half finished write can be rolled back. */
@@ -304,7 +310,11 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
         }
     }
 
-    /** Puts [backup] back into [uri]. False if the old content could not be restored. */
+    /**
+     * Puts [backup] back into [uri]. False if the old content could not be restored - including the
+     * case where it went in without truncating, which leaves the tail of the failed save behind it
+     * and is no more readable than what it replaced.
+     */
     private fun restore(uri: Uri, backup: File?): Boolean {
         if (backup == null) {
             return false
@@ -312,8 +322,6 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
 
         return try {
             writeTo(uri, backup)
-
-            true
         } catch (e: Throwable) {
             crashManager.log(e, uri)
 
