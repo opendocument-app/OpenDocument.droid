@@ -51,6 +51,22 @@ class RawLoaderTest {
         assertFalse(isSupported("text/plain", "notes"))
     }
 
+    /**
+     * The other half of routing by name: the bytes win whenever the core recognized them. An odt
+     * called `report.csv` is an odt - handing it over on the strength of the name would base64 the
+     * zip into the table viewer and report success, leaving no fallback because nothing failed.
+     */
+    @Test
+    fun aMisnamedDocumentIsStillADocument() {
+        assertFalse(isSupported("application/vnd.oasis.opendocument.text", "report.csv"))
+        assertFalse(isSupported("application/pdf", "report.csv"))
+        assertFalse(isSupported("application/zip", "archive.svg"))
+        assertFalse(isSupported("image/png", "scan.xml"))
+        // but nothing detected at all still leaves the name as the only thing to go on
+        assertTrue(isSupported("application/octet-stream", "rows.csv"))
+        assertTrue(isSupported(null, "drawing.svg"))
+    }
+
     /** The core renders a csv line by line; `text-prefix.html` builds a table out of one. */
     @Test
     fun csvIsSupportedInEverySpelling() {

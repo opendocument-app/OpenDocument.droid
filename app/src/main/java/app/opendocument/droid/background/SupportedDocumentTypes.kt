@@ -141,22 +141,43 @@ object SupportedDocumentTypes {
      * core to identify the file before anything else - `Odr.mimetype` reads the bytes and says
      * `text/plain`, so the `image/svg+xml` the provider volunteered never reaches this at all and
      * the name is the only thing left that knows better. The same goes for a csv plain enough that
-     * the content detection does not spot the delimiter.
+     * the content detection does not spot the delimiter. It only gets a say where the detection has
+     * none to give - see [nameSays].
      */
     fun isRenderedByRaw(mimeType: String?, extension: String? = null): Boolean =
         isCsv(mimeType, extension) || isSvg(mimeType, extension) || isXml(mimeType, extension)
 
     /** Csv in any spelling odrcore accepts for it - [RawLoader] builds a table out of one. */
     fun isCsv(mimeType: String?, extension: String? = null): Boolean =
-        mimeType?.lowercase() in RAW_MIME_TYPES || extension?.lowercase() == "csv"
+        mimeType?.lowercase() in RAW_MIME_TYPES || nameSays(mimeType, extension, "csv")
 
     /** Svg, which odrcore has no file type for and the WebView draws by itself. */
     fun isSvg(mimeType: String?, extension: String? = null): Boolean =
-        mimeType?.lowercase() == SVG_MIME_TYPE || extension?.lowercase() == "svg"
+        mimeType?.lowercase() == SVG_MIME_TYPE || nameSays(mimeType, extension, "svg")
 
     /** Xml, likewise unknown to the core and likewise shown by the WebView. */
     fun isXml(mimeType: String?, extension: String? = null): Boolean =
-        mimeType?.lowercase() in XML_MIME_TYPES || extension?.lowercase() == "xml"
+        mimeType?.lowercase() in XML_MIME_TYPES || nameSays(mimeType, extension, "xml")
+
+    /**
+     * Whether the file is called `.expected` *and* the detected [mimeType] leaves room for the name
+     * to know better - plain text, which is what the core makes of an svg or an xml, or nothing it
+     * recognizes at all.
+     *
+     * The guard is the point. The core identifies by content, so a `report.csv` that holds an odt
+     * is reported as one, and handing it to [RawLoader] on the strength of its name would base64
+     * the zip into the table viewer and call that a success - with no fallback left, because
+     * nothing failed. What the bytes say wins whenever the core recognized them.
+     */
+    private fun nameSays(mimeType: String?, extension: String?, expected: String): Boolean {
+        if (extension?.lowercase() != expected) {
+            return false
+        }
+
+        val fileType = mimeType?.let { Odr.fileTypeByMimetype(it) } ?: return true
+
+        return fileType == FileType.UNKNOWN || fileType == FileType.TEXT_FILE
+    }
 
     /**
      * Whether the core files this as a document, as opposed to text, an image, an archive, a font
