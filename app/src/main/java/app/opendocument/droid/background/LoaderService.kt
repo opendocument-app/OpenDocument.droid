@@ -15,6 +15,7 @@ import app.opendocument.droid.nonfree.CrashManager
 import app.opendocument.droid.ui.activity.DocumentFragment
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
+import java.io.File
 
 /**
  * Owns the four loaders and the background thread they run on, and decides what to try next when
@@ -203,11 +204,21 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
     private fun saveSync(lastResult: FileLoader.Result, outFile: Uri, htmlDiff: String?) {
         val options = lastResult.options
 
+        // only the retranslated file is ours to remove afterwards - the other branch hands back
+        // the cache file of the document that is still open
+        var retranslated: File? = null
+        var backup: File? = null
+        var backupIsTheLastCopy = false
+
         try {
             val fileToSave =
                 if (htmlDiff != null) {
-                    coreLoader.retranslate(options, htmlDiff)
-                        ?: throw RuntimeException("retranslate failed")
+                    val edited =
+                        coreLoader.retranslate(options, htmlDiff)
+                            ?: throw RuntimeException("retranslate failed")
+                    retranslated = edited
+
+                    edited
                 } else {
                     // "full save" from the main UI
                     checkNotNull(
@@ -217,13 +228,16 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
                     }
                 }
 
-            val outputStream =
-                checkNotNull(contentResolver.openOutputStream(outFile)) { "cannot write $outFile" }
-            StreamUtil.copy(fileToSave, outputStream)
-            outputStream.close()
+            // the write goes straight into the user's own document, so keep what is there
+            // until the new content has landed whole
+            backup = backUp(outFile)
 
-            if (htmlDiff != null) {
-                fileToSave.delete()
+            try {
+                writeTo(outFile, fileToSave)
+            } catch (e: Throwable) {
+                backupIsTheLastCopy = !restore(outFile, backup)
+
+                throw e
             }
 
             mainHandler.post { withListener { it.onSaveSuccess(outFile) } }
@@ -235,7 +249,75 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
             )
             crashManager.log(e, options.originalUri)
 
-            withListener { it.onSaveError() }
+            mainHandler.post { withListener { it.onSaveError() } }
+        } finally {
+            retranslated?.delete()
+
+            // if the rollback did not get the old content back in, this copy is all that is
+            // left of it - leave it in the cache rather than finishing the job
+            if (!backupIsTheLastCopy) {
+                backup?.delete()
+            }
+        }
+    }
+
+    /** Copies [source] over [uri], truncating whatever was there. */
+    private fun writeTo(uri: Uri, source: File) {
+        // "wt" and not the default "w": not every provider truncates for "w", which leaves the
+        // tail of a longer previous document sitting behind the new content. for a zip container
+        // like odt or docx that trailing garbage is what makes the file stop opening
+        val outputStream =
+            try {
+                contentResolver.openOutputStream(uri, "wt")
+            } catch (e: Exception) {
+                // a provider that rejects the mode outright - saving at all beats truncating
+                crashManager.log(e, uri)
+
+                contentResolver.openOutputStream(uri)
+            }
+
+        checkNotNull(outputStream) { "cannot write $uri" }.use { StreamUtil.copy(source, it) }
+    }
+
+    /** What [uri] holds right now, so a half finished write can be rolled back. */
+    private fun backUp(uri: Uri): File? {
+        val backup = AndroidFileCache.createCacheFile(this)
+
+        return try {
+            val input = checkNotNull(contentResolver.openInputStream(uri)) { "cannot read $uri" }
+            StreamUtil.copy(input, backup)
+
+            if (backup.length() > 0) {
+                backup
+            } else {
+                // a document that was just created has nothing worth keeping
+                backup.delete()
+
+                null
+            }
+        } catch (e: Throwable) {
+            // unreadable target: no worse than before, the save just cannot be rolled back
+            crashManager.log(e, uri)
+            backup.delete()
+
+            null
+        }
+    }
+
+    /** Puts [backup] back into [uri]. False if the old content could not be restored. */
+    private fun restore(uri: Uri, backup: File?): Boolean {
+        if (backup == null) {
+            return false
+        }
+
+        return try {
+            writeTo(uri, backup)
+
+            true
+        } catch (e: Throwable) {
+            crashManager.log(e, uri)
+
+            false
         }
     }
 
