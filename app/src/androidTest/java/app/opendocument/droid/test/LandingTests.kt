@@ -377,6 +377,12 @@ class LandingTests {
     /**
      * A recent document that is not a document at all: bytes no loader can make anything of, so the
      * load fails the way a truncated download or a renamed file does.
+     *
+     * The extension is part of the fixture. `Odr.mimetype` cannot identify these bytes, so
+     * `MetadataLoader` falls back to what the provider makes of the filename - and that type is
+     * what decides which failure the user gets. `.bin` gives `application/octet-stream`, which no
+     * loader claims, so the app runs out of things to try. Name it `.odt` and the upload offer
+     * takes over instead, because `OnlineLoader` whitelists the type the name implies.
      */
     private fun seedBrokenDocument() {
         val broken = File(requireTestFile().parentFile, BROKEN_DOCUMENT)
@@ -416,7 +422,7 @@ class LandingTests {
 
     companion object {
         private const val TEST_DOCUMENT = "test.odt"
-        private const val BROKEN_DOCUMENT = "broken.odt"
+        private const val BROKEN_DOCUMENT = "broken.bin"
         private const val LOAD_TIMEOUT_MS = 20000L
 
         private var testFile: File? = null
