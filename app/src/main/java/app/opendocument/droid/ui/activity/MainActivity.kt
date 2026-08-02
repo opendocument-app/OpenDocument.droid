@@ -28,11 +28,13 @@ import app.opendocument.droid.background.LoaderServiceQueue
 import app.opendocument.droid.background.PersistedUriPermissions
 import app.opendocument.droid.background.PrintingManager
 import app.opendocument.droid.background.SupportedDocumentTypes
+import app.opendocument.droid.background.UsageCounters
 import app.opendocument.droid.nonfree.AdManager
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.BillingManager
 import app.opendocument.droid.nonfree.CrashManager
+import app.opendocument.droid.nonfree.InAppReview
 import app.opendocument.droid.ui.EditActionModeCallback
 import app.opendocument.droid.ui.FindActionModeCallback
 import app.opendocument.droid.ui.OpenFileIdling
@@ -110,6 +112,10 @@ class MainActivity : AppCompatActivity() {
     // to that app), while documents opened from within the app go back to the
     // landing screen instead of closing the app
     private var documentOpenedExternally = false
+
+    // set before we start an activity of our own, so coming back from it is not counted as
+    // the user opening the app
+    private var leftForOwnActivity = false
 
     lateinit var loaderServiceQueue: LoaderServiceQueue
         private set
@@ -303,6 +309,20 @@ class MainActivity : AppCompatActivity() {
 
         crashManager.log("onStart")
 
+        // here rather than in onCreate: tapping the launcher while the task is still alive
+        // resumes this activity instead of creating it, and those opens count too
+        if (documentFragment == null && loadOnStart == null) {
+            if (leftForOwnActivity) {
+                leftForOwnActivity = false
+            } else {
+                InAppReview.requestIfEarned(
+                    this,
+                    analyticsManager,
+                    UsageCounters.recordAppOpen(this),
+                )
+            }
+        }
+
         val loadOnStart = this.loadOnStart ?: return
 
         // loadOnStart either came from an external intent or from a restored
@@ -341,6 +361,7 @@ class MainActivity : AppCompatActivity() {
 
             intent.type = documentFragment.lastFileType
 
+            leftForOwnActivity = true
             createDocumentLauncher.launch(intent)
         } catch (e: ActivityNotFoundException) {
             // happens on a variety devices, e.g. Samsung Galaxy Tab4 7.0 with Android 4.4.2
@@ -754,6 +775,7 @@ class MainActivity : AppCompatActivity() {
         try {
             OpenFileIdling.increment()
 
+            leftForOwnActivity = true
             openDocumentLauncher.launch(intent)
         } catch (e: ActivityNotFoundException) {
             OpenFileIdling.decrement()

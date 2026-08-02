@@ -232,7 +232,12 @@ constructor(context: Context, attributeSet: AttributeSet?) :
             }
 
             post {
-                documentFragment.loadUri(AndroidFileCache.getCacheFileUri(context, tmpFile), false)
+                // the user is mid-read, not opening something
+                documentFragment.loadUri(
+                    AndroidFileCache.getCacheFileUri(context, tmpFile),
+                    false,
+                    freshOpen = false,
+                )
             }
         } catch (e: IOException) {
             crashManager.log(e)

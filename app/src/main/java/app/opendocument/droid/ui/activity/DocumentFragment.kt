@@ -24,16 +24,17 @@ import app.opendocument.droid.background.FileLoader
 import app.opendocument.droid.background.LoaderService
 import app.opendocument.droid.background.LoaderServiceQueue
 import app.opendocument.droid.background.StreamUtil
+import app.opendocument.droid.background.UsageCounters
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
+import app.opendocument.droid.nonfree.InAppReview
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.SnackbarHelper
 import app.opendocument.droid.ui.widget.DocumentActions
 import app.opendocument.droid.ui.widget.PageView
 import app.opendocument.droid.ui.widget.ProgressDialogFragment
 import com.google.android.material.tabs.TabLayout
-import com.google.android.play.core.review.ReviewManagerFactory
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -67,6 +68,9 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
     private var resultOnStart: FileLoader.Result? = null
     private var errorOnStart: Throwable? = null
+
+    /** Set by [loadUri], consumed by the load it belongs to. See [loadUri]. */
+    private var freshOpenPending = false
 
     private lateinit var tabLayout: TabLayout
 
@@ -309,8 +313,18 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         serviceQueue.addToQueue { service -> service.loadWithType(loaderType, options) }
     }
 
-    fun loadUri(uri: Uri, persistentUri: Boolean, editable: Boolean = false) {
+    /**
+     * [freshOpen] is false for a load the user did not ask for, which then never asks for a review.
+     */
+    fun loadUri(
+        uri: Uri,
+        persistentUri: Boolean,
+        editable: Boolean = false,
+        freshOpen: Boolean = true,
+    ) {
         initializePageView()
+
+        freshOpenPending = freshOpen
 
         state.lastRequestedUri = uri
 
@@ -325,6 +339,9 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
     fun reloadUri(translatable: Boolean) {
         val lastResult = checkNotNull(state.lastResult) { "nothing was loaded yet" }
         lastResult.options.translatable = translatable
+
+        // entering or leaving edit mode is not a new document, and the user is working
+        freshOpenPending = false
 
         loadWithType(lastResult.loaderType, lastResult.options)
     }
@@ -475,25 +492,6 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         actions.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
-    private fun requestInAppRating(activity: Activity) {
-        analyticsManager.report("in_app_review_eligible")
-
-        val manager = ReviewManagerFactory.create(activity)
-        manager.requestReviewFlow().addOnCompleteListener { reviewInfoTask ->
-            if (!reviewInfoTask.isSuccessful) {
-                analyticsManager.report("in_app_review_error")
-
-                return@addOnCompleteListener
-            }
-
-            analyticsManager.report("in_app_review_start")
-
-            manager.launchReviewFlow(activity, reviewInfoTask.result).addOnCompleteListener {
-                analyticsManager.report("in_app_review_done")
-            }
-        }
-    }
-
     private fun isActivityReadyForResult(result: FileLoader.Result): Boolean {
         val lastRequestedUri = state.lastRequestedUri
         if (lastRequestedUri != null && lastRequestedUri != result.options.originalUri) {
@@ -555,11 +553,16 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
         state.endLoadIdling()
 
-        // in-app review is requested in the pro flavor only. The lite branch used to
-        // consult a "show_in_app_rating" remote config key, which has resolved to nothing
-        // since firebase remote config was removed, so lite never asked either way.
-        if (resources.getBoolean(R.bool.DISABLE_TRACKING)) {
-            requestInAppRating(activity)
+        // only a fresh open earns the ask - reloadUri and the webview reach here mid-task.
+        // a save reloads through loadUri and so still counts, which is wanted
+        if (freshOpenPending) {
+            freshOpenPending = false
+
+            InAppReview.requestIfEarned(
+                activity,
+                analyticsManager,
+                UsageCounters.recordDocumentOpen(activity),
+            )
         }
     }
 
