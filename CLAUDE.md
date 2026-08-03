@@ -130,7 +130,9 @@ what it replaced, and the second round of tapping is always the expensive one.
 - The version is the git tag, not a number in the tree. `AndroidManifest.xml` carries no
   `versionCode`/`versionName`; `app/build.gradle` derives both from `-Podr.version`
   (`v4.8.0` -> name `4.8.0`, code `40800`, two digits per part, parts above 99 are an
-  error), and a build handed no version is `0.0.0`. Do not put the attributes back in the
+  error), and a build handed no version is `0.0.0`. All three parts are required: a
+  two-part `v4.7` was once padded to `4.7.0`, which let one build carry two names and is
+  why the tags before `v4.8.0` are in two formats. Do not put the attributes back in the
   manifest: gradle's values win in the merged manifest, so a second copy can only ever
   disagree with the tag. The release workflow passes the tag it ran on; a dispatched run
   passes its `version` input

@@ -39,14 +39,15 @@ def hasReleaseSigning = releaseKeystore.isPresent() && releaseKeystorePassword.i
 def parseVersion = { String version ->
     // split rather than tokenize, which would swallow the empty part in '4..8'
     def parts = (version - ~/^v/).split('\\.', -1) as List
-    if (parts.isEmpty() || parts.size() > 3 || !parts.every { it ==~ /\d+/ }) {
+    // all three parts, spelled out. a missing one used to be padded with a zero, so
+    // 'v4.7' and 'v4.7.0' were the same build under two names - which is how the tags
+    // ended up in two formats. the padding is gone rather than the spelling made a
+    // convention, because a convention cannot fail the build
+    if (parts.size() != 3 || !parts.every { it ==~ /\d+/ }) {
         throw new GradleException(
-                "odr.version must look like 4.8 or v4.8.0, not '${version}'")
+                "odr.version must look like 4.8.0 or v4.8.0, not '${version}'")
     }
     def numbers = parts*.toInteger()
-    while (numbers.size() < 3) {
-        numbers << 0
-    }
     // two digits per component: v4.8.0 is 40800. That is a one way step past the codes
     // that used to be counted by hand (204 and below) - the play store accepts a higher
     // code than the last one it saw and never a lower one.

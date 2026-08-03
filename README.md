@@ -100,6 +100,12 @@ which the build refuses rather than folding `4.100.0` onto the same code as `5.0
 Nothing has to be raised by hand before tagging, and no number on `main` can describe a
 release that already went out.
 
+All three parts have to be spelled out. A two-part `v4.7` used to be padded to `4.7.0`,
+which meant one build could be tagged under two names, and the tags older than `v4.8.0`
+are in both formats because of it. They are left as they are - a release asset is served
+from a URL carrying its tag name, and F-Droid rebuilds old versions from those names -
+so the rule only holds for what is tagged from here on.
+
 Builds handed no version - local ones, PR builds, `assembleProDebug` - are `0.0.0`.
 Nothing reads it: no code in the app looks at its own version, and only what the release
 workflow builds ever leaves the machine. Any build can be given a real one anyway, with
