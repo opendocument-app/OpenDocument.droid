@@ -1,0 +1,5 @@
+PDF is now drawn by our own engine: embedded fonts, images, vector graphics, transparency, clickable links, password-protected files and correct CJK text.
+
+The legacy .doc, .xls and .ppt formats are read by our own engine too, keeping character formatting, cell colours, pictures and slide sizes. Better .pptx, .xlsx and .docx tables.
+
+PDFs and images open fitted to the screen width. Back returns to the start screen. Page tabs only for spreadsheets.

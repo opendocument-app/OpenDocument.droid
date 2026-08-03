@@ -1,0 +1,7 @@
+Saving is safer. A failed save no longer leaves the original file damaged, and saving a document that got shorter no longer leaves part of the old file behind, which could make an .odt or .docx stop opening.
+
+A file we recognise but cannot open now says so directly, with a way to get in touch. The upload offer stays for formats we do not support at all.
+
+Audio and video files handed to the app now play.
+
+The review prompt appears far less often.
