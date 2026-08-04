@@ -33,9 +33,11 @@ import os
 import re
 import sys
 
-# what app/build.gradle accepts: an optional v, one to three parts, each below
-# 100 so that two digits per part stays unambiguous
-VERSION = re.compile(r"^v?[0-9]{1,2}(\.[0-9]{1,2}){0,2}$")
+# what app/build.gradle accepts: an optional v, all three parts, each below 100 so
+# that two digits per part stays unambiguous. Two-part versions were once padded
+# with a zero, which let one build be tagged under two names; the build refuses
+# them now, and this has to refuse the same ones or it stops being a check
+VERSION = re.compile(r"^v?[0-9]{1,2}(\.[0-9]{1,2}){2}$")
 
 
 def fail(message):
@@ -70,7 +72,8 @@ def resolve(tag, given, uploads, log=print):
 
     if not VERSION.match(version):
         raise ValueError(
-            f"'{version}' is not a version: expected something like v4.8.0, each part below 100"
+            f"'{version}' is not a version: expected something like v4.8.0 - all "
+            "three parts, each below 100"
         )
     log(f"building {version}")
     return version
