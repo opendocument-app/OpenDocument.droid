@@ -127,15 +127,18 @@ what it replaced, and the second round of tapping is always the expensive one.
 - Configuration cache enabled
 - Release signing credentials come from gradle properties or environment variables (see
   README); without them release variants build unsigned rather than failing
-- The version is the git tag, not a number in the tree. `AndroidManifest.xml` carries no
-  `versionCode`/`versionName`; `app/build.gradle` derives both from `-Podr.version`
-  (`v4.8.0` -> name `4.8.0`, code `40800`, two digits per part, parts above 99 are an
-  error), and a build handed no version is `0.0.0`. All three parts are required: a
-  two-part `v4.7` was once padded to `4.7.0`, which let one build carry two names and is
-  why the tags before `v4.8.0` are in two formats. Do not put the attributes back in the
-  manifest: gradle's values win in the merged manifest, so a second copy can only ever
-  disagree with the tag. The release workflow passes the tag it ran on; a dispatched run
-  passes its `version` input
+- The version is the release run's `version` input, not a number in the tree and not a
+  tag. `AndroidManifest.xml` carries no `versionCode`/`versionName`; `app/build.gradle`
+  derives both from `-Podr.version` (`v4.8.0` -> name `4.8.0`, code `40800`, two digits
+  per part, parts above 99 are an error), and a build handed no version is `0.0.0`. All
+  three parts are required: a two-part `v4.7` was once padded to `4.7.0`, which let one
+  build carry two names and is why the tags before `v4.8.0` are in two formats. Do not
+  put the attributes back in the manifest: gradle's values win in the merged manifest,
+  so a second copy can only ever disagree
+- Tags are written after a release, never before it, and nothing that builds is
+  triggered by one. `release.yml` is dispatch-only and tags each commit it uploaded as
+  `build/<flavor>/<version>`; the plain `v<version>` tag is pushed by hand once the
+  release is live, and `attach-apk.yml` runs on it. See the README's "Tags" section
 
 ### Package names
 
