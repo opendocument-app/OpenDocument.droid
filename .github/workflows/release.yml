@@ -1,73 +1,46 @@
 name: release
 
-# Releases used to be built and uploaded from a maintainer laptop, which was the
-# only machine holding the keystore. This does the same steps in CI:
-#   1. build the signed lite and pro bundles and apks with gradle
-#   2. hand the bundles to fastlane, which uploads them to the play store's
-#      internal track, and only ever that one. a wider track is a promotion in
-#      the play console, which moves the very bundle that was tested rather than
-#      uploading a second one, and is where the release notes are written anyway
-#   3. tag the commit each upload was built from, as build/<flavor>/<version>
+# Builds both signed flavors once, uploads each to the play store's internal track,
+# then records what went out. Three jobs, because that is what makes a half uploaded
+# release repairable: if lite's upload fails alone, "Re-run failed jobs" retries just
+# that job against the bundle already built, signed and checked.
 #
-# Both flavors go out together, the way they always have: they share a version
-# and release notes, and a release of one without the other is not a thing that
-# has ever been wanted.
+# Both flavors always go out together and nothing chooses one - they are the same app
+# with ads and tracking switched off, so a version's build tag names a single commit.
 #
-# Nothing here is triggered by a tag. A tag pushed before the build is a promise
-# the run can fail to keep - it can die before the upload, or get only half of it
-# through, and what reaches the store is then built from some other commit. So the
-# version comes in as an input and the tags are written afterwards, naming what
-# really went up. The v* tag stays a human decision, taken once the release is
-# live; attach-apk.yml is what runs on it.
+# No tag triggers anything and none is written before an upload. build/<version> is
+# written afterwards; the plain v<version> tag appears only when the drafted release is
+# published, once the release is really live. That wait is not cosmetic: f-droid tracks
+# this repository with UpdateCheckMode: Tags, so a v* tag is what makes it ship.
 #
-# The version is the input and nothing else. The repository holds no version
-# number at all - gradle takes it from the -Podr.version passed below, and turns
-# v4.8.0 into version code 40800, two digits per part.
-#
-# Requires these repository secrets (see the "Release signing" section in the
-# README for what they mean):
-#   ODR_KEYSTORE_BASE64           base64 of google_play.keystore
-#   ODR_KEYSTORE_PASSWORD         keystore password
-#   ODR_KEY_PASSWORD_PRO          key password for the reader-pro alias, optional:
-#                                 an unset one falls back to the store password
-#   ODR_KEY_PASSWORD_LITE         key password for the reader alias, same fallback
-#   GOOGLE_PLAY_SERVICE_ACCOUNT   json key of the play console service account
-#
-# Without them the workflow fails fast in the "check secrets" step instead of
-# producing an unsigned bundle and trying to upload it, and the two that are more
-# than a password - the keystore and the service account key - are opened and
-# checked before the build rather than after it.
+# The version is the input and nothing else - gradle turns v4.8.0 into version code
+# 40800. Secrets are listed in the README's "Release signing" section; the two that are
+# more than a password are opened and checked before the build rather than after it.
 
 on:
   workflow_dispatch:
     inputs:
-      # both flavors are always built and archived - this is only about what
-      # leaves the run. none is the dry run: build everything, publish nothing.
-      # pro or lite finishes a half uploaded release, which is otherwise a dead
-      # end, since play refuses a version code it has already accepted and the
-      # run therefore cannot simply be repeated
-      uploads:
-        description: what to publish - none builds and archives only
-        type: choice
-        options: [both, pro, lite, none]
-        default: both
       version:
-        description: version to build, e.g. v4.8.0 - required unless uploads is none
+        description: version to build, e.g. v4.8.0 - required unless this is a dry run
         type: string
+      dry_run:
+        description: build and archive only, do not upload
+        type: boolean
+        default: false
 
 concurrency:
-  group: release-${{ github.ref }}
+  # two overlapping releases would race for the same tag and draft
+  group: ${{ github.workflow }}
   cancel-in-progress: false
 
 permissions:
-  # to tag the commit an upload was built from
-  contents: write
+  contents: read
 
 env:
-  uploads: ${{ inputs.uploads }}
+  dry_run: ${{ inputs.dry_run }}
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-24.04
     steps:
     - name: check secrets
@@ -79,7 +52,9 @@ jobs:
         missing=""
         [ -n "$keystore" ] || missing="$missing ODR_KEYSTORE_BASE64"
         [ -n "$keystore_password" ] || missing="$missing ODR_KEYSTORE_PASSWORD"
-        if [ "${{ env.uploads }}" != "none" ]; then
+        # the upload job's secret, checked here so a release that cannot finish
+        # does not build first
+        if [ "$dry_run" != "true" ]; then
           [ -n "$service_account" ] || missing="$missing GOOGLE_PLAY_SERVICE_ACCOUNT"
         fi
         if [ -n "$missing" ]; then
@@ -90,32 +65,34 @@ jobs:
     - name: checkout
       uses: actions/checkout@v7
 
-    # the version is not in the checkout - it comes in as an input, and reaches gradle
-    # below as -Podr.version. Here, right behind the checkout it needs, so that a run
-    # that cannot name a version ends before six minutes of setup and building
     - name: resolve version
       id: version
-      # through the environment rather than interpolated into the command: the input
-      # is a string from outside the workflow, and a run: line is the one place where
-      # that would be a shell injection
+      # through the environment: a run: line is the one place where an outside
+      # string would be a shell injection
       env:
         given: ${{ inputs.version }}
-      run: .github/scripts/resolve-version.py --input "$given" --uploads "$uploads"
+      run: .github/scripts/resolve-version.py --input "$given" --dry-run "$dry_run"
 
-    # same reason: play refuses a version code it has already accepted, so a version
-    # that is already tagged as uploaded would only fail once the build was done
+    # seconds, against finding out once a bundle is on the store - where the only fix
+    # left is a new version, since play refuses a version code twice
     - name: check the version has not gone out
-      if: ${{ env.uploads != 'none' }}
+      if: ${{ env.dry_run != 'true' }}
       env:
         version: ${{ steps.version.outputs.version }}
       run: |
-        for flavor in $([ "$uploads" = both ] && echo pro lite || echo "$uploads"); do
-          tag="build/$flavor/v${version#v}"
-          if git ls-remote --exit-code --tags origin "$tag" > /dev/null 2>&1; then
-            echo "::error::$tag exists, so $flavor $version has already been uploaded"
-            exit 1
-          fi
-        done
+        tag="build/v${version#v}"
+        if git ls-remote --exit-code --tags origin "$tag" > /dev/null 2>&1; then
+          echo "::error::$tag exists, so $version has already been uploaded"
+          exit 1
+        fi
+
+    # whenever there is a version, dry run or not: the record job publishes this
+    # section as the release body, and a dry run is the rehearsal for that
+    - name: check the changelog names this version
+      if: ${{ steps.version.outputs.version != '' }}
+      env:
+        version: ${{ steps.version.outputs.version }}
+      run: .github/scripts/changelog-section.py --version "$version" > /dev/null
 
     - name: install ninja
       run: sudo apt-get install -y ninja-build
@@ -126,19 +103,11 @@ jobs:
         distribution: 'zulu'
         java-version: 21
 
-    # the version has to be spelled out here: setup-ruby only infers one from a
-    # .ruby-version / .tool-versions file, neither of which this repo has, and it
-    # does not read the `ruby ">= 3.2"` constraint in the Gemfile. 3.4 is what
-    # Gemfile.lock was resolved with.
-    # the keystore is decoded and checked up front, before the gradle setup:
-    # signing is the very last thing the build does, so a bad password
-    # otherwise only surfaces as a signProReleaseBundle failure six minutes in
+    # up front: signing is the last thing the build does, so a bad password would
+    # otherwise surface six minutes in
     - name: decode keystore
       run: echo "${{ secrets.ODR_KEYSTORE_BASE64 }}" | base64 -d > "${RUNNER_TEMP}/google_play.keystore"
 
-    # the script says why keytool rather than gradle gets to be the one that reports a
-    # bad password. it takes the same ODR_* variables the build takes, so the same
-    # check can be run against a keystore by hand
     - name: verify keystore
       env:
         ODR_KEYSTORE_PASSWORD: ${{ secrets.ODR_KEYSTORE_PASSWORD }}
@@ -146,31 +115,9 @@ jobs:
         ODR_KEY_PASSWORD_LITE: ${{ secrets.ODR_KEY_PASSWORD_LITE }}
       run: .github/scripts/verify-keystore.sh "${RUNNER_TEMP}/google_play.keystore"
 
-    # written here rather than next to the upload, for the same reason the
-    # keystore is decoded up front: a key the play store cannot be opened with
-    # should fail the run in seconds, not once the build is done. it lands in
-    # RUNNER_TEMP and is handed to fastlane by absolute path - a relative one is
-    # resolved against whatever directory the action happens to run in, and this
-    # keeps the credentials out of the checkout the build reads from
-    - name: play store credentials
-      if: ${{ env.uploads != 'none' }}
-      env:
-        GOOGLE_PLAY_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
-      run: .github/scripts/play-service-account-key.py "${RUNNER_TEMP}/fastlane_google_play.json"
-
-    - name: setup ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '3.4'
-        bundler-cache: true
-
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v6
 
-    # the apks are the sideloadable copies of what the bundles ship. both get
-    # archived on the run; only pro goes onto the github release, the way it
-    # always has - lite is the ad supported play build, and an apk of it
-    # outside the store has no audience
     - name: build bundles and apks
       env:
         ODR_KEYSTORE: ${{ runner.temp }}/google_play.keystore
@@ -179,25 +126,22 @@ jobs:
         ODR_KEY_PASSWORD_LITE: ${{ secrets.ODR_KEY_PASSWORD_LITE }}
         version: ${{ steps.version.outputs.version }}
       run: |
-        # left out entirely when there is no version, rather than passed as 0.0.0:
-        # gradle's fallback is that name with a version code of 1, since AGP refuses
-        # the 0 the name itself would derive to
+        # left out rather than passed as 0.0.0: gradle's fallback pairs that name
+        # with version code 1, since AGP refuses the 0 it would derive
         ./gradlew bundleProRelease bundleLiteRelease \
                   assembleProRelease assembleLiteRelease \
                   ${version:+-Podr.version=$version} --stacktrace
 
-    # a release that silently produced an unsigned bundle would be rejected by
-    # the play store with a much less obvious error, and an unsigned apk on the
-    # release page would not install at all. the script checks the same outputs
-    # against a local build
+    # release variants build unsigned rather than failing, so this is worth asking
     - name: verify bundles and apks are signed
       run: .github/scripts/verify-signed.sh
 
-    # ndk.debugSymbolLevel puts the symbols inside the bundle itself, under
-    # BUNDLE-METADATA/com.android.tools.build.debugsymbols, so the play store
-    # gets them from the upload and anyone who needs them can unzip the aab
-    # archived here. build/outputs/native-debug-symbols is only written on the
-    # apk path, by mergeNativeDebugMetadata, which a bundle build never runs
+    - name: drop the keystore
+      if: always()
+      run: rm -f "${RUNNER_TEMP}/google_play.keystore"
+
+    # what the rest of the run works from. debug symbols ride inside the aab, under
+    # BUNDLE-METADATA/com.android.tools.build.debugsymbols
     - name: Artifact bundles
       uses: actions/upload-artifact@v7
       with:
@@ -205,10 +149,8 @@ jobs:
         path: app/build/outputs/bundle/*/*.aab
         if-no-files-found: error
 
-    # how a release gets test flown - including lite, which is otherwise only
-    # installable once it is live in the store. attach-apk.yml fetches the pro one
-    # from here when the version tag is pushed, so this is also what ends up on the
-    # release page rather than a second build of the same commit
+    # how a release gets test flown, lite included. the record job attaches the pro
+    # one to the draft, so the release page gets the apk that really went up
     - name: Artifact apks
       uses: actions/upload-artifact@v7
       with:
@@ -217,37 +159,131 @@ jobs:
         if-no-files-found: error
         compression-level: 0
 
-    # each flavor is tagged as it lands rather than both at the end: the release
-    # that goes up half is the one the record exists for, and a lite failure must
-    # not take pro's tag with it. per flavor for the same reason - the two halves
-    # can be finished from different commits
-    - name: upload to play store
-      if: ${{ env.uploads != 'none' }}
+  # a job per flavor rather than a loop, so "Re-run failed jobs" can retry one half.
+  # fail-fast off for the same reason
+  upload:
+    needs: build
+    if: ${{ !inputs.dry_run }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - flavor: pro
+            lane: uploadPro
+          - flavor: lite
+            lane: uploadLite
+    steps:
+    # for the Gemfile and the lanes; the build outputs come from the artifact
+    - name: checkout
+      uses: actions/checkout@v7
+
+    # back where gradle put them: upload-artifact roots an artifact at the least
+    # common ancestor it matched, and uploadBundle reads a fixed path under here
+    - name: fetch the bundles
+      uses: actions/download-artifact@v8
+      with:
+        name: bundles
+        path: app/build/outputs/bundle
+
+    # absolute, outside the checkout. no keystore in this job - the bundle it signed
+    # was signed in the build job
+    - name: play store credentials
+      env:
+        GOOGLE_PLAY_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+      run: .github/scripts/play-service-account-key.py "${RUNNER_TEMP}/fastlane_google_play.json"
+
+    # spelled out: setup-ruby reads no .ruby-version here and ignores the Gemfile's
+    # constraint. 3.4 is what Gemfile.lock was resolved with
+    - name: setup ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.4'
+        bundler-cache: true
+
+    # no track: the Fastfile's DEFAULT_TRACK is internal, and anything wider is a
+    # promotion in the play console
+    - name: upload ${{ matrix.flavor }} to play store
       env:
         ODR_PLAY_JSON_KEY: ${{ runner.temp }}/fastlane_google_play.json
-        version: ${{ steps.version.outputs.version }}
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-        # no track: the Fastfile's DEFAULT_TRACK is internal, and this workflow
-        # has no way of naming another one. everything wider is a promotion in
-        # the play console
-        for flavor in $([ "$uploads" = both ] && echo pro lite || echo "$uploads"); do
-          case "$flavor" in
-            pro)  bundle exec fastlane android uploadPro ;;
-            lite) bundle exec fastlane android uploadLite ;;
-          esac
-
-          tag="build/$flavor/v${version#v}"
-          # attach-apk.yml reads the run back out of the message
-          git tag -a "$tag" \
-            -m "$flavor v${version#v} uploaded to the play store internal track" \
-            -m "run: $GITHUB_RUN_ID"
-          git push origin "$tag"
-          echo "tagged \`$GITHUB_SHA\` as \`$tag\`" >> "$GITHUB_STEP_SUMMARY"
-        done
+      run: bundle exec fastlane android ${{ matrix.lane }}
 
     - name: drop credentials
       if: always()
-      run: rm -f "${RUNNER_TEMP}/fastlane_google_play.json" "${RUNNER_TEMP}/google_play.keystore"
+      run: rm -f "${RUNNER_TEMP}/fastlane_google_play.json"
+
+  # only once both flavors are up, so a half uploaded release is not recorded at all
+  record:
+    needs: upload
+    if: ${{ !inputs.dry_run }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+    - name: checkout
+      uses: actions/checkout@v7
+
+    # re-resolved rather than carried as a job output: a re-run may not repeat the
+    # job that produced it, while the dispatch input is the same on every attempt
+    - name: resolve version
+      id: version
+      env:
+        given: ${{ inputs.version }}
+      run: .github/scripts/resolve-version.py --input "$given" --dry-run "$dry_run"
+
+    - name: tag the commit that went out
+      env:
+        version: ${{ steps.version.outputs.version }}
+      run: |
+        tag="build/v${version#v}"
+
+        # this job re-running behind a repaired upload is expected, so an existing
+        # tag is only wrong when it names a different commit
+        if git ls-remote --exit-code --tags origin "$tag" > /dev/null 2>&1; then
+          git fetch --no-tags origin "refs/tags/$tag:refs/tags/$tag"
+          already=$(git rev-list -n1 "$tag")
+          if [ "$already" != "$GITHUB_SHA" ]; then
+            echo "::error::$tag already names $already, not $GITHUB_SHA"
+            exit 1
+          fi
+          echo "$tag was already written by an earlier attempt"
+        else
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$tag" \
+            -m "v${version#v} uploaded to the play store internal track" \
+            -m "run: $GITHUB_RUN_ID"
+          git push origin "$tag"
+        fi
+        echo "\`$GITHUB_SHA\` is \`$tag\`" >> "$GITHUB_STEP_SUMMARY"
+
+    - name: fetch the apks
+      uses: actions/download-artifact@v8
+      with:
+        name: apks
+
+    # a draft creates no tag; publishing it does. --target takes the sha rather than
+    # a branch, which would resolve to whatever main had become by then
+    - name: draft the github release
+      env:
+        GH_TOKEN: ${{ github.token }}
+        version: ${{ steps.version.outputs.version }}
+      run: |
+        .github/scripts/changelog-section.py --version "$version" > "${RUNNER_TEMP}/notes.md"
+        tag="v${version#v}"
+
+        if gh release view "$tag" > /dev/null 2>&1; then
+          gh release edit "$tag" --target "$GITHUB_SHA" --notes-file "${RUNNER_TEMP}/notes.md"
+          gh release upload "$tag" pro/release/app-pro-release.apk --clobber
+        else
+          # --generate-notes appends the pull requests below the changelog section
+          gh release create "$tag" \
+            --draft \
+            --target "$GITHUB_SHA" \
+            --title "$tag" \
+            --notes-file "${RUNNER_TEMP}/notes.md" \
+            --generate-notes \
+            pro/release/app-pro-release.apk
+        fi
+
+        echo "drafted \`$tag\`. publishing it writes the tag and lets f-droid pick it up - do that once it is live." >> "$GITHUB_STEP_SUMMARY"

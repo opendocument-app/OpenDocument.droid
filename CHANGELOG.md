@@ -9,7 +9,8 @@ The heading is cut when the version is dispatched to the release workflow, not
 when it is tagged: a version code can only be uploaded once, so from that point
 no later commit can ever ship under that version.
 
-Nothing in the build reads this file, and it is not the store copy either -
+The release run reads that section: it refuses a version without one, and makes
+it the body of the GitHub release it drafts. It is still not the store copy -
 what Play shows under "What's new" is written in the Play Console when the
 release is promoted.
 

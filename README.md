@@ -49,13 +49,22 @@ internal track - the same thing the fastlane lanes did from a laptop. It is disp
 by hand, with the version it should build:
 
 ```sh
-gh workflow run release.yml -f version=v4.14.0 -f uploads=both
+gh workflow run release.yml -f version=v4.14.0
 ```
 
-Nothing triggers it on a tag. Both APKs are archived on the run, and the Pro one -
-the sideloadable copy every release up to v4.6 carried - goes onto the GitHub release
-page later, when the `v*` tag is written; see [Tags](#tags). Both flavors always go
-out together.
+Nothing triggers it on a tag. It runs as three jobs:
+
+| job | what it does |
+|---|---|
+| `build` | one gradle run producing both signed flavors, archived on the run |
+| `upload` | one job per flavor, handing its bundle to fastlane |
+| `record` | once both landed: tag the commit, draft the GitHub release |
+
+Both flavors always go out together, and nothing chooses one. Lite and Pro are the same
+app - the flavor switches ads and tracking off, nothing else - so anything worth
+rebuilding one for is worth rebuilding the other for. That is also what keeps a version's
+build tag on a single commit, which is the commit the `v*` tag then names and F-Droid then
+builds.
 
 Internal is the only track it uploads to. Anything wider - closed, open, production -
 is a promotion in the Play Console, which moves the same bundle and version code that
@@ -63,15 +72,20 @@ was tested onto the wider track instead of uploading a second one, and is where 
 release notes get written. It is also where the review that a production release waits
 on actually happens, so the workflow finishing is not the same as the release being out.
 
-`uploads` defaults to `both`. `none` is a dry run: everything gets built, signed and
-attached to the run, nothing leaves it. `pro` or `lite` finishes a half uploaded
-release - if one of the two lanes fails on its own the run cannot simply be repeated,
-since the Play Store refuses a version code it has already accepted, so dispatch it
-again for the flavor that did not make it.
+**If one flavor's upload fails, press "Re-run failed jobs".** Only that upload runs again,
+against the bundle already built and signed, and `record` runs behind it once it lands.
+Re-running *all* jobs is the wrong button - Play refuses a version code it has already
+accepted, so the half that made it cannot go up twice. Past the roughly 30 days GitHub
+offers re-runs for, the way out is a new patch version for both flavors.
 
-`version` is the only place a version comes from, and a run without one has to be a
-dry run. `.github/scripts/resolve-version.py` decides what a run builds and refuses
-the runs that cannot name a version; run it by hand to see what a dispatch would do.
+`dry_run` builds and signs both flavors without uploading either. It is the only kind of
+run allowed to go without a version, and the only one leaving neither tag nor draft.
+
+`version` is the only place a version comes from. Before building, the run also refuses a
+version that has already gone out and one with no `CHANGELOG.md` section - that section
+becomes the release body, and finding it missing afterwards leaves nothing to fix but the
+version number. `.github/scripts/resolve-version.py` and `changelog-section.py` are what
+decide both; run either by hand to see what a dispatch would do.
 
 It needs these repository secrets:
 
@@ -105,26 +119,32 @@ Tags are written afterwards instead, in two kinds:
 
 | tag | who writes it | what it means |
 |---|---|---|
-| `build/<flavor>/<version>` | the release workflow, after each upload | this commit went to the internal track |
-| `<version>` | you, once the release is live | this is what shipped |
+| `build/<version>` | the release workflow, once both flavors are up | this commit went to the internal track |
+| `v<version>` | publishing the drafted release | this is what shipped |
 
-Per flavor, because the two halves of a half uploaded release get finished from
-different commits. A lane run from a laptop leaves no tag, so an upload made by hand is
-not recorded.
+One build tag, not one per flavor: a single run builds both from a single checkout, so
+there is only one commit to name. A half uploaded release gets no tag, which is the honest
+answer - nothing yet could be published from it. A lane run from a laptop leaves none
+either, so an upload made by hand is not recorded.
 
-The version tag stays a human decision because internal is not released: the promotion
-to production, and the review it waits on, happen in the Play Console days later. Tag
-the build that made it rather than whatever is at the tip of `main`:
+**The `v*` tag is written neither by hand nor by the workflow.** `record` drafts a GitHub
+release named `v<version>` at the built commit, carrying the Pro APK - the sideloadable
+copy every release up to v4.6 has had. A draft creates no tag; publishing it does, at
+exactly that commit:
 
 ```sh
-git tag v4.14.0 build/pro/v4.14.0^{} && git push origin v4.14.0
+gh release edit v4.14.0 --draft=false
 ```
 
-That runs `attach-apk`, which puts the Pro APK from that upload's own run onto the
-GitHub release - which has to exist already, the way it always has. It refuses a
-version tag that does not sit on the commit `build/pro/<version>` names, which is the
-one thing that catches the two drifting apart. Run artifacts are kept 90 days, so a
-version tag written much later has no APK left to attach.
+That is the whole manual step, and it stays human because internal is not released: the
+promotion to production, and the review it waits on, happen in the Play Console days later.
+The tag has to wait for that - F-Droid tracks this repository with `UpdateCheckMode: Tags`,
+so a `v*` tag is what makes it build and ship, and one written when the bundle merely
+reached the internal track would push a version to F-Droid users that Google may never
+release.
+
+The release body is the version's `CHANGELOG.md` section with the generated list of pull
+requests below it.
 
 ## Versioning
 

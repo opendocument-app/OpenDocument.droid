@@ -16,6 +16,9 @@
 # before the upload names a commit that may never ship; release.yml writes the
 # tags afterwards instead.
 #
+# OpenDocument.ios has the same script and the same two arguments, differing only
+# in the version shape it accepts.
+#
 # The shape is checked here rather than left to gradle, which checks it again and
 # is the one that counts: a typo in a dispatched version should not cost the
 # gradle setup first. The version code is deliberately not computed here - one
@@ -46,15 +49,24 @@ def fail(message):
     return 1
 
 
-def resolve(given, uploads, log=print):
+def boolean(value):
+    """A workflow input as it reaches a shell: the string "true" or "false"."""
+    if value.strip().lower() in ("true", "1"):
+        return True
+    if value.strip().lower() in ("false", "0", ""):
+        return False
+    raise ValueError(f"'{value}' is not true or false")
+
+
+def resolve(given, dry_run, log=print):
     """The version to build, or "" for none. Raises ValueError with the reason."""
     version = given.strip()
 
     if not version:
-        if uploads != "none":
+        if not dry_run:
             raise ValueError(
                 "nothing to take a version from: fill in the version input, or "
-                "set uploads to none to build without publishing."
+                "tick dry_run to build without uploading."
             )
         log("no version given - building gradle's unversioned fallback")
         return ""
@@ -74,14 +86,14 @@ def main(argv=None):
     )
     parser.add_argument("--input", default="", help="version input of the run")
     parser.add_argument(
-        "--uploads",
-        default="none",
-        help="what the run publishes; only 'none' may go without a version",
+        "--dry-run",
+        default="false",
+        help="whether the run publishes nothing; only a dry run may go without a version",
     )
     args = parser.parse_args(argv)
 
     try:
-        version = resolve(args.input, args.uploads)
+        version = resolve(args.input, boolean(args.dry_run))
     except ValueError as reason:
         return fail(str(reason))
 

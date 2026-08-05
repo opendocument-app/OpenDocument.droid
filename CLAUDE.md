@@ -135,10 +135,11 @@ what it replaced, and the second round of tapping is always the expensive one.
   build carry two names and is why the tags before `v4.8.0` are in two formats. Do not
   put the attributes back in the manifest: gradle's values win in the merged manifest,
   so a second copy can only ever disagree
-- Tags are written after a release, never before it, and nothing that builds is
-  triggered by one. `release.yml` is dispatch-only and tags each commit it uploaded as
-  `build/<flavor>/<version>`; the plain `v<version>` tag is pushed by hand once the
-  release is live, and `attach-apk.yml` runs on it. See the README's "Tags" section
+- Tags are written after a release, never before it, and nothing is triggered by one.
+  `release.yml` is dispatch-only, builds both flavors once and tags what went out as
+  `build/<version>`; the plain `v<version>` tag appears only when the release it drafted
+  is published, which is also what lets F-Droid ship it (`UpdateCheckMode: Tags`). See
+  the README's "Tags" section
 
 ### Package names
 
