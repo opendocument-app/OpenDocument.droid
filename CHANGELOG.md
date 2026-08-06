@@ -4,6 +4,14 @@ User-facing changes since 4.6. Rendering and format support come from the
 OpenDocument core engine the app is built on, so changes absorbed from it are
 listed here too.
 
+Entries go under `Unreleased` as the change lands, in the same pull request. That
+heading is cut to the version when the version is dispatched to the release
+workflow, which refuses a version without a section and makes it the body of the
+GitHub release. It is not the store copy - Play's "What's new" is written in the
+Play Console when the release is promoted.
+
+## Unreleased
+
 ## 4.13.0
 
 - Saving is safer. A save that fails no longer leaves the original file damaged,

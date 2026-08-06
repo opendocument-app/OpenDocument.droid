@@ -3,22 +3,15 @@
 # Works out which version a release run is building, and refuses the runs that
 # cannot sensibly build one.
 #
-# There is no version number in the repository: it is the git tag, which
-# app/build.gradle turns into a version name and a version code (v4.8.0 -> 4.8.0
-# and 40800, two digits per part). What is left to decide is which string gradle
-# is handed, and that is only interesting when the run has no tag to read:
+# There is no version number in the repository: it comes in as the release run's
+# `version` input, and app/build.gradle turns it into a version name and a version
+# code (v4.8.0 -> 4.8.0 and 40800, two digits per part). An input rather than the
+# tag the run was pushed on, because a tag written before the upload names a commit
+# that may never ship - release.yml writes its tags afterwards.
 #
-#   tag push                   the tag, and the version input has to agree with
-#                              it or stay empty - the apk of a run is attached to
-#                              the release of the tag it ran on, so building
-#                              anything else would file it there under the wrong
-#                              version
-#   dispatched off a branch    the version input, which is how a release whose
-#                              upload half failed gets finished off the branch it
-#                              was cut from
-#   neither                    only a dry run, on gradle's unversioned fallback.
-#                              uploading that would mean uploading a version code
-#                              the store refuses, six minutes into the run
+# Only a dry run may go without one, on gradle's unversioned fallback: uploading
+# that would mean a version code the store refuses. OpenDocument.ios has the same
+# script and the same two arguments, differing only in the shape it accepts.
 #
 # The shape is checked here rather than left to gradle, which checks it again and
 # is the one that counts: a typo in a dispatched version should not cost the
@@ -50,22 +43,24 @@ def fail(message):
     return 1
 
 
-def resolve(tag, given, uploads, log=print):
+def boolean(value):
+    """A workflow input as it reaches a shell: the string "true" or "false"."""
+    if value.strip().lower() in ("true", "1"):
+        return True
+    if value.strip().lower() in ("false", "0", ""):
+        return False
+    raise ValueError(f"'{value}' is not true or false")
+
+
+def resolve(given, dry_run, log=print):
     """The version to build, or "" for none. Raises ValueError with the reason."""
-    tag, given = tag.strip(), given.strip()
+    version = given.strip()
 
-    if tag and given and given.removeprefix("v") != tag.removeprefix("v"):
-        raise ValueError(
-            f"the version input ({given}) is not the tag this ran on ({tag}). "
-            "leave it blank to build the tag."
-        )
-
-    version = tag or given
     if not version:
-        if uploads != "none":
+        if not dry_run:
             raise ValueError(
-                "nothing to take a version from. push this as a v* tag, dispatch "
-                "it on one, or fill in the version input."
+                "nothing to take a version from: fill in the version input, or "
+                "tick dry_run to build without uploading."
             )
         log("no version given - building gradle's unversioned fallback")
         return ""
@@ -83,17 +78,16 @@ def main(argv=None):
     parser = argparse.ArgumentParser(
         description="Resolve the version a release run builds."
     )
-    parser.add_argument("--tag", default="", help="tag the run was triggered by, if any")
-    parser.add_argument("--input", default="", help="version input of a dispatched run")
+    parser.add_argument("--input", default="", help="version input of the run")
     parser.add_argument(
-        "--uploads",
-        default="none",
-        help="what the run publishes; only 'none' may go without a version",
+        "--dry-run",
+        default="false",
+        help="whether the run publishes nothing; only a dry run may go without a version",
     )
     args = parser.parse_args(argv)
 
     try:
-        version = resolve(args.tag, args.input, args.uploads)
+        version = resolve(args.input, boolean(args.dry_run))
     except ValueError as reason:
         return fail(str(reason))
 
