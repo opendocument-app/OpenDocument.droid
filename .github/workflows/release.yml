@@ -1,21 +1,12 @@
 name: release
 
 # Builds both signed flavors once, uploads each to the play store's internal track,
-# then records what went out. Three jobs, because that is what makes a half uploaded
-# release repairable: if lite's upload fails alone, "Re-run failed jobs" retries just
-# that job against the bundle already built, signed and checked.
+# then records what went out. Three jobs so that a half uploaded release is repairable:
+# "Re-run failed jobs" retries one upload against the bundle already built and signed.
 #
-# Both flavors always go out together and nothing chooses one - they are the same app
-# with ads and tracking switched off, so a version's build tag names a single commit.
-#
-# No tag triggers anything and none is written before an upload. build/<version> is
-# written afterwards; the plain v<version> tag appears only when the drafted release is
-# published, once the release is really live. That wait is not cosmetic: f-droid tracks
-# this repository with UpdateCheckMode: Tags, so a v* tag is what makes it ship.
-#
-# The version is the input and nothing else - gradle turns v4.8.0 into version code
-# 40800. Secrets are listed in the README's "Release signing" section; the two that are
-# more than a password are opened and checked before the build rather than after it.
+# No tag triggers anything and none is written before an upload; build/<version> is
+# written afterwards, and the v<version> tag only when the drafted release is published,
+# which is what makes f-droid ship. See the README's "Tags" section.
 
 on:
   workflow_dispatch:
@@ -53,7 +44,7 @@ jobs:
         [ -n "$keystore" ] || missing="$missing ODR_KEYSTORE_BASE64"
         [ -n "$keystore_password" ] || missing="$missing ODR_KEYSTORE_PASSWORD"
         # the upload job's secret, checked here so a release that cannot finish
-        # does not build first
+        # never builds
         if [ "$dry_run" != "true" ]; then
           [ -n "$service_account" ] || missing="$missing GOOGLE_PLAY_SERVICE_ACCOUNT"
         fi
@@ -73,8 +64,7 @@ jobs:
         given: ${{ inputs.version }}
       run: .github/scripts/resolve-version.py --input "$given" --dry-run "$dry_run"
 
-    # seconds, against finding out once a bundle is on the store - where the only fix
-    # left is a new version, since play refuses a version code twice
+    # play refuses a version code twice, so learning this later costs a version
     - name: check the version has not gone out
       if: ${{ env.dry_run != 'true' }}
       env:
@@ -86,8 +76,7 @@ jobs:
           exit 1
         fi
 
-    # whenever there is a version, dry run or not: the record job publishes this
-    # section as the release body, and a dry run is the rehearsal for that
+    # dry runs included - they are the rehearsal for the release body
     - name: check the changelog names this version
       if: ${{ steps.version.outputs.version != '' }}
       env:
@@ -127,7 +116,7 @@ jobs:
         version: ${{ steps.version.outputs.version }}
       run: |
         # left out rather than passed as 0.0.0: gradle's fallback pairs that name
-        # with version code 1, since AGP refuses the 0 it would derive
+        # with version code 1, since AGP refuses the 0 it would derive from it
         ./gradlew bundleProRelease bundleLiteRelease \
                   assembleProRelease assembleLiteRelease \
                   ${version:+-Podr.version=$version} --stacktrace
@@ -140,7 +129,7 @@ jobs:
       if: always()
       run: rm -f "${RUNNER_TEMP}/google_play.keystore"
 
-    # what the rest of the run works from. debug symbols ride inside the aab, under
+    # what the upload job works from. debug symbols ride inside the aab, under
     # BUNDLE-METADATA/com.android.tools.build.debugsymbols
     - name: Artifact bundles
       uses: actions/upload-artifact@v7
@@ -149,8 +138,7 @@ jobs:
         path: app/build/outputs/bundle/*/*.aab
         if-no-files-found: error
 
-    # how a release gets test flown, lite included. the record job attaches the pro
-    # one to the draft, so the release page gets the apk that really went up
+    # how a release gets test flown, lite included; record puts the pro one on the draft
     - name: Artifact apks
       uses: actions/upload-artifact@v7
       with:
@@ -159,8 +147,8 @@ jobs:
         if-no-files-found: error
         compression-level: 0
 
-  # a job per flavor rather than a loop, so "Re-run failed jobs" can retry one half.
-  # fail-fast off for the same reason
+  # a job per flavor rather than a loop, so one half can be re-run alone. fail-fast
+  # off for the same reason
   upload:
     needs: build
     if: ${{ !inputs.dry_run }}
@@ -174,20 +162,18 @@ jobs:
           - flavor: lite
             lane: uploadLite
     steps:
-    # for the Gemfile and the lanes; the build outputs come from the artifact
+    # for the Gemfile and the lanes; the bundles come from the artifact
     - name: checkout
       uses: actions/checkout@v7
 
-    # back where gradle put them: upload-artifact roots an artifact at the least
-    # common ancestor it matched, and uploadBundle reads a fixed path under here
+    # back where gradle put them: the Fastfile reads a fixed path under here
     - name: fetch the bundles
       uses: actions/download-artifact@v8
       with:
         name: bundles
         path: app/build/outputs/bundle
 
-    # absolute, outside the checkout. no keystore in this job - the bundle it signed
-    # was signed in the build job
+    # absolute, outside the checkout. no keystore here - the bundle arrives signed
     - name: play store credentials
       env:
         GOOGLE_PLAY_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
@@ -201,8 +187,7 @@ jobs:
         ruby-version: '3.4'
         bundler-cache: true
 
-    # no track: the Fastfile's DEFAULT_TRACK is internal, and anything wider is a
-    # promotion in the play console
+    # no track: the Fastfile's DEFAULT_TRACK is internal, and wider is a promotion
     - name: upload ${{ matrix.flavor }} to play store
       env:
         ODR_PLAY_JSON_KEY: ${{ runner.temp }}/fastlane_google_play.json
@@ -223,8 +208,8 @@ jobs:
     - name: checkout
       uses: actions/checkout@v7
 
-    # re-resolved rather than carried as a job output: a re-run may not repeat the
-    # job that produced it, while the dispatch input is the same on every attempt
+    # re-resolved rather than carried as a job output: a re-run need not repeat the
+    # job that produced it, while the input is the same on every attempt
     - name: resolve version
       id: version
       env:
@@ -237,8 +222,8 @@ jobs:
       run: |
         tag="build/v${version#v}"
 
-        # this job re-running behind a repaired upload is expected, so an existing
-        # tag is only wrong when it names a different commit
+        # re-running behind a repaired upload is expected, so an existing tag is
+        # only wrong when it names a different commit
         if git ls-remote --exit-code --tags origin "$tag" > /dev/null 2>&1; then
           git fetch --no-tags origin "refs/tags/$tag:refs/tags/$tag"
           already=$(git rev-list -n1 "$tag")

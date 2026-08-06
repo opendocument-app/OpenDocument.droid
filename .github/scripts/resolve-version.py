@@ -5,19 +5,13 @@
 #
 # There is no version number in the repository: it comes in as the release run's
 # `version` input, and app/build.gradle turns it into a version name and a version
-# code (v4.8.0 -> 4.8.0 and 40800, two digits per part).
+# code (v4.8.0 -> 4.8.0 and 40800, two digits per part). An input rather than the
+# tag the run was pushed on, because a tag written before the upload names a commit
+# that may never ship - release.yml writes its tags afterwards.
 #
-#   a version input   that version
-#   no input          only a dry run, on gradle's unversioned fallback. uploading
-#                     that would mean uploading a version code the store refuses,
-#                     six minutes into the run
-#
-# It is an input rather than the tag the run was pushed on because a tag written
-# before the upload names a commit that may never ship; release.yml writes the
-# tags afterwards instead.
-#
-# OpenDocument.ios has the same script and the same two arguments, differing only
-# in the version shape it accepts.
+# Only a dry run may go without one, on gradle's unversioned fallback: uploading
+# that would mean a version code the store refuses. OpenDocument.ios has the same
+# script and the same two arguments, differing only in the shape it accepts.
 #
 # The shape is checked here rather than left to gradle, which checks it again and
 # is the one that counts: a typo in a dispatched version should not cost the

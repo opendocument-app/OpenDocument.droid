@@ -60,11 +60,9 @@ Nothing triggers it on a tag. It runs as three jobs:
 | `upload` | one job per flavor, handing its bundle to fastlane |
 | `record` | once both landed: tag the commit, draft the GitHub release |
 
-Both flavors always go out together, and nothing chooses one. Lite and Pro are the same
-app - the flavor switches ads and tracking off, nothing else - so anything worth
-rebuilding one for is worth rebuilding the other for. That is also what keeps a version's
-build tag on a single commit, which is the commit the `v*` tag then names and F-Droid then
-builds.
+Both flavors always go out together, and nothing chooses one: Lite and Pro are the same
+app with ads and tracking switched off. That is what keeps a version on a single commit -
+the one the `v*` tag names and F-Droid builds.
 
 Internal is the only track it uploads to. Anything wider - closed, open, production -
 is a promotion in the Play Console, which moves the same bundle and version code that
@@ -73,19 +71,18 @@ release notes get written. It is also where the review that a production release
 on actually happens, so the workflow finishing is not the same as the release being out.
 
 **If one flavor's upload fails, press "Re-run failed jobs".** Only that upload runs again,
-against the bundle already built and signed, and `record` runs behind it once it lands.
-Re-running *all* jobs is the wrong button - Play refuses a version code it has already
-accepted, so the half that made it cannot go up twice. Past the roughly 30 days GitHub
-offers re-runs for, the way out is a new patch version for both flavors.
+against the bundle already built and signed, and `record` runs behind it. Re-running *all*
+jobs is the wrong button: Play refuses a version code it has already accepted, so the half
+that made it cannot go up twice. Past the roughly 30 days GitHub offers re-runs for, the
+way out is a new patch version for both flavors.
 
-`dry_run` builds and signs both flavors without uploading either. It is the only kind of
-run allowed to go without a version, and the only one leaving neither tag nor draft.
+`dry_run` builds and signs both flavors without uploading either. It is the only run
+allowed to go without a version, and the only one leaving neither tag nor draft.
 
-`version` is the only place a version comes from. Before building, the run also refuses a
-version that has already gone out and one with no `CHANGELOG.md` section - that section
-becomes the release body, and finding it missing afterwards leaves nothing to fix but the
-version number. `.github/scripts/resolve-version.py` and `changelog-section.py` are what
-decide both; run either by hand to see what a dispatch would do.
+In its first seconds the run also refuses a version that has already gone out and one
+with no `CHANGELOG.md` section, which is what the release body is made of.
+`.github/scripts/resolve-version.py` and `changelog-section.py` decide both; run either
+by hand to see what a dispatch would do.
 
 It needs these repository secrets:
 
@@ -109,11 +106,9 @@ and uploads, and takes an optional `track:` (`... track:beta`). The version can 
 
 ### Tags
 
-Nothing that builds is triggered by a tag, and no tag is pushed before a build. A tag
-written up front is a promise the run can fail to keep: it can die before the upload,
-or get only one of the two flavors through, and what reaches the store is then built
-from some other commit. `v4.9.0` is the case in point - its tag push run failed and the
-upload came from a dispatched run. The same commit that time, which was luck.
+No tag triggers a build, and none is pushed before one. A tag written up front is a
+promise the run can fail to keep: `v4.9.0`'s tag push run failed and the upload came
+from a dispatched run - the same commit that time, which was luck.
 
 Tags are written afterwards instead, in two kinds:
 
@@ -122,29 +117,24 @@ Tags are written afterwards instead, in two kinds:
 | `build/<version>` | the release workflow, once both flavors are up | this commit went to the internal track |
 | `v<version>` | publishing the drafted release | this is what shipped |
 
-One build tag, not one per flavor: a single run builds both from a single checkout, so
-there is only one commit to name. A half uploaded release gets no tag, which is the honest
-answer - nothing yet could be published from it. A lane run from a laptop leaves none
-either, so an upload made by hand is not recorded.
+One build tag, not one per flavor: a single run builds both from a single checkout. A
+half uploaded release gets no tag at all, which is the honest answer - nothing yet could
+be published from it. A lane run from a laptop leaves none either.
 
 **The `v*` tag is written neither by hand nor by the workflow.** `record` drafts a GitHub
 release named `v<version>` at the built commit, carrying the Pro APK - the sideloadable
-copy every release up to v4.6 has had. A draft creates no tag; publishing it does, at
+copy every release up to v4.6 has had - and the version's `CHANGELOG.md` section above
+GitHub's generated list of pull requests. A draft creates no tag; publishing it does, at
 exactly that commit:
 
 ```sh
 gh release edit v4.14.0 --draft=false
 ```
 
-That is the whole manual step, and it stays human because internal is not released: the
-promotion to production, and the review it waits on, happen in the Play Console days later.
-The tag has to wait for that - F-Droid tracks this repository with `UpdateCheckMode: Tags`,
-so a `v*` tag is what makes it build and ship, and one written when the bundle merely
-reached the internal track would push a version to F-Droid users that Google may never
-release.
-
-The release body is the version's `CHANGELOG.md` section with the generated list of pull
-requests below it.
+That is the whole manual step, and it waits because internal is not released: promotion to
+production, and the review it needs, happen in the Play Console days later. F-Droid tracks
+this repository with `UpdateCheckMode: Tags`, so a `v*` tag written any earlier would push
+a version to F-Droid users that Google may never release.
 
 ## Versioning
 

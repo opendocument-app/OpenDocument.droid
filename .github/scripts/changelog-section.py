@@ -2,11 +2,9 @@
 #
 # Prints the CHANGELOG.md section for one version, and fails when there is none.
 #
-# The release run reads it twice: once before building, so a version dispatched
-# without release copy fails in seconds rather than once both flavors are on the
-# store, and once in the record job, which makes that section the body of the
-# drafted github release. Being read by the release it describes is what stops it
-# rotting.
+# The release run reads it before building, so missing release copy costs seconds
+# rather than a version, and again in the record job, where it becomes the body of
+# the drafted github release. Being read is what stops the changelog rotting.
 #
 # OpenDocument.ios has the same script against `## [1.37] - 2026-08-02` headings.
 
@@ -48,7 +46,7 @@ def section(text, version):
     if not body.strip():
         raise ValueError(
             f"the '## {wanted}' section of CHANGELOG.md is empty. A release with "
-            "nothing user facing in it should say so rather than say nothing."
+            "nothing user facing in it should say so rather than nothing."
         )
     return body
 

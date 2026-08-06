@@ -138,8 +138,7 @@ what it replaced, and the second round of tapping is always the expensive one.
 - Tags are written after a release, never before it, and nothing is triggered by one.
   `release.yml` is dispatch-only, builds both flavors once and tags what went out as
   `build/<version>`; the plain `v<version>` tag appears only when the release it drafted
-  is published, which is also what lets F-Droid ship it (`UpdateCheckMode: Tags`). See
-  the README's "Tags" section
+  is published, which is what lets F-Droid ship it. See the README's "Tags" section
 
 ### Package names
 
