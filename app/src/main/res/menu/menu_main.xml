@@ -67,4 +67,12 @@
         android:id="@+id/menu_remove_ads"
         android:title="@string/menu_remove_ads"
         app:showAsAction="never" />
+
+    <!-- shown only where the ump sdk says a re-entry point into the consent form is
+         required, which it can only answer once the consent update has come back -->
+    <item
+        android:id="@+id/menu_privacy_options"
+        android:title="@string/menu_privacy_options"
+        android:visible="false"
+        app:showAsAction="never" />
 </menu>

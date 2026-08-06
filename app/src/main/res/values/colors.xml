@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- the house ad, which is the app talking about itself and so does not take its
+         greys from MainTheme - textColorSecondary is too light to read at 11sp -->
+    <color name="house_ad_subline">#6b7280</color>
+    <color name="house_ad_pill">#2f80c8</color>
+    <color name="house_ad_divider">#e3e6ea</color>
+
+</resources>

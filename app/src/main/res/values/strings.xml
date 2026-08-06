@@ -28,6 +28,23 @@
     <string name="menu_share">Share document</string>
     <string name="menu_edit">Edit document</string>
     <string name="menu_remove_ads">Remove advertisements</string>
+    <string name="menu_privacy_options">Ad privacy settings</string>
+
+    <!-- the house ad shown when an ad request does not fill. three angles at the same
+         offer; the short headlines are what a narrow phone gets once the rest drops out -->
+    <string name="house_ad_support_headline">Support OpenDocument Reader</string>
+    <string name="house_ad_support_headline_short">Support us</string>
+    <string name="house_ad_support_subline">Get Pro — no ads, ever</string>
+    <string name="house_ad_support_subline_wide">It is open source and ad-supported. Pro drops the advertisement.</string>
+    <string name="house_ad_ad_free_headline">Read without ads</string>
+    <string name="house_ad_ad_free_subline">ODR Pro — a one-time purchase</string>
+    <string name="house_ad_ad_free_subline_wide">ODR Pro is the same reader, minus the advertisement.</string>
+    <string name="house_ad_open_source_headline">Open source, kept free</string>
+    <string name="house_ad_open_source_headline_short">Open source</string>
+    <string name="house_ad_open_source_subline">Pro pays for it — and drops the ads</string>
+    <string name="house_ad_open_source_subline_wide">Buying Pro funds the work and removes the advertisement.</string>
+    <string name="house_ad_cta_go_pro">Go Pro</string>
+    <string name="house_ad_cta_get_pro">Get Pro</string>
     <string name="menu_fullscreen">Fullscreen mode</string>
     <string name="menu_cloud_print">Print document</string>
     <string name="menu_tts">Text-To-Speech</string>
