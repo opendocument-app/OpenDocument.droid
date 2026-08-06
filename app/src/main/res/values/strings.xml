@@ -30,8 +30,8 @@
     <string name="menu_remove_ads">Remove advertisements</string>
     <string name="menu_privacy_options">Ad privacy settings</string>
 
-    <!-- the house ad shown when an ad request does not fill. three angles at the same
-         offer; the short headlines are what a narrow phone gets once the rest drops out -->
+    <!-- the house ad, shown when a request does not fill. three angles at the same offer;
+         the short headlines are what a narrow phone gets once the rest drops out -->
     <string name="house_ad_support_headline">Support OpenDocument Reader</string>
     <string name="house_ad_support_headline_short">Support us</string>
     <string name="house_ad_support_subline">Get Pro — no ads, ever</string>

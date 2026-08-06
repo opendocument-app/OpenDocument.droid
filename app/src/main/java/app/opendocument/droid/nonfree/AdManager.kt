@@ -24,13 +24,16 @@ class AdManager {
 
     private var enabled = false
 
+    /** Whether [initialize] ran far enough for the fields below to exist. */
+    private var initialized = false
+
     private lateinit var activity: Activity
     private lateinit var crashManager: CrashManager
     private lateinit var analyticsManager: AnalyticsManager
     private lateinit var adContainer: LinearLayout
     private var adView: AdView? = null
 
-    /** Set once the consent flow has settled, which is also what makes its state readable. */
+    /** Set by the consent flow, which is also the only thing that makes it readable. */
     private var consentInformation: ConsentInformation? = null
 
     private var onConsentSettled: (() -> Unit)? = null
@@ -63,6 +66,8 @@ class AdManager {
         val configuration =
             RequestConfiguration.Builder().setTestDeviceIds(listOf(TEST_DEVICE_ID)).build()
         MobileAds.setRequestConfiguration(configuration)
+
+        initialized = true
     }
 
     fun setEnabled(enabled: Boolean) {
@@ -73,7 +78,7 @@ class AdManager {
         this.adContainer = adContainer
     }
 
-    /** Called once the consent flow has settled, so the caller can re-read what it decided. */
+    /** Fires once the consent flow has settled, so the caller can re-read it. */
     fun setConsentListener(listener: () -> Unit) {
         onConsentSettled = listener
     }
@@ -87,8 +92,6 @@ class AdManager {
         if (!enabled) {
             return
         }
-
-        this.adView = adView
 
         showInAdContainer(
             adView,
@@ -113,19 +116,29 @@ class AdManager {
     /**
      * Runs the consent flow, once per launch, and loads a banner whatever it decides.
      *
-     * [ConsentInformation.canRequestAds] is deliberately not a gate, which is where this parts ways
-     * with google's own sample. Refusing everything still emits a tc string carrying the special
-     * purposes, from which google picks limited ads server-side: no cookies, no identifiers, no
-     * local storage. There is no client-side flag for that mode - not sending the request is the
-     * only way to lose it, and showing nothing is a choice rather than an obligation.
-     *
-     * The two errors are breadcrumbs for the same reason: neither is a refusal. The sdk caches the
-     * user's decision, so a form that fails to show, or an update that times out because the device
-     * is offline, still leaves an earlier consent standing, and outside the regions where a form is
-     * required at all there is no decision to fail in the first place.
+     * [ConsentInformation.canRequestAds] is deliberately not a gate, unlike in google's sample: a
+     * refusal still emits a tc string google picks limited ads from, and not asking is the only way
+     * to lose those. Nor are the two errors, neither of which is a refusal. [hasConsentDecision] is
+     * the gate.
      */
     fun showGoogleAds() {
         if (!enabled) {
+            return
+        }
+
+        requestConsentInfo(gatherConsent = true)
+    }
+
+    /**
+     * The update on its own, no form and no banner, which is all [isPrivacyOptionsRequired] needs.
+     * Ad removal leads here, since [showGoogleAds] never runs once ads are gone.
+     */
+    fun updateConsentInfo() {
+        requestConsentInfo(gatherConsent = false)
+    }
+
+    private fun requestConsentInfo(gatherConsent: Boolean) {
+        if (!initialized) {
             return
         }
 
@@ -136,13 +149,17 @@ class AdManager {
             activity,
             params,
             {
-                UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { loadAndShowError
-                    ->
-                    if (loadAndShowError != null) {
-                        // the ump sdk only logs an unspecific "Error making request."
-                        crashManager.log("consent form failed: " + describe(loadAndShowError))
-                    }
+                if (gatherConsent) {
+                    UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) {
+                        loadAndShowError ->
+                        if (loadAndShowError != null) {
+                            // the ump sdk only logs an unspecific "Error making request."
+                            crashManager.log("consent form failed: " + describe(loadAndShowError))
+                        }
 
+                        consentSettled(consentInformation)
+                    }
+                } else {
                     consentSettled(consentInformation)
                 }
             },
@@ -159,20 +176,35 @@ class AdManager {
     private fun consentSettled(consentInformation: ConsentInformation) {
         this.consentInformation = consentInformation
 
-        // the served mode is not readable from here, but this is what decides it
-        crashManager.log("consent settled, canRequestAds=" + consentInformation.canRequestAds())
+        // the served mode is not readable from here; this is what decides it
+        crashManager.log(
+            "consent settled, status=" +
+                consentInformation.consentStatus +
+                ", canRequestAds=" +
+                consentInformation.canRequestAds()
+        )
 
         activity.runOnUiThread {
             onConsentSettled?.invoke()
 
-            showAdaptiveBanner()
+            if (enabled) {
+                showAdaptiveBanner()
+            }
         }
     }
 
     /**
-     * Rebuilds the banner, whose size is orientation-dependent. The consent flow stays at once per
-     * launch - it is a network call, and nothing about a rotation can change its answer.
+     * Whether the sdk holds an answer to send. A refusal counts; an update that never came back on
+     * a device that has never had one does not, and would send no tc string to pick from.
      */
+    private fun hasConsentDecision(): Boolean =
+        when (consentInformation?.consentStatus) {
+            ConsentInformation.ConsentStatus.OBTAINED,
+            ConsentInformation.ConsentStatus.NOT_REQUIRED -> true
+            else -> false
+        }
+
+    /** Rebuilds the banner for a new size. A rotation cannot change what consent decided. */
     fun refreshAds() {
         if (!enabled || consentInformation == null) {
             return
@@ -181,16 +213,12 @@ class AdManager {
         activity.runOnUiThread { showAdaptiveBanner() }
     }
 
-    /**
-     * Whether the sdk wants a re-entry point into the consent form, which is how a user withdraws.
-     * Not gated on [enabled]: buying ad removal clears that, and someone who consented before
-     * buying must still be able to take it back.
-     */
+    /** Not gated on [enabled]: buying ad removal clears that, withdrawal outlives it. */
     fun isPrivacyOptionsRequired(): Boolean =
         consentInformation?.privacyOptionsRequirementStatus ==
             ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
 
-    /** Only ever from user input - the sdk preloads the form for exactly this. */
+    /** Only from user input - the sdk preloads the form for exactly this. */
     fun showPrivacyOptions() {
         UserMessagingPlatform.showPrivacyOptionsForm(activity) { formError ->
             if (formError != null) {
@@ -204,24 +232,42 @@ class AdManager {
     // banner differently - a change to make on its own rather than in passing
     @Suppress("DEPRECATION")
     private fun showAdaptiveBanner() {
-        val adView = AdView(activity)
-
         // WindowManager.getDefaultDisplay() is deprecated and its replacement needs API
         // 30; the resources' metrics carry the same width and density.
         val metrics = activity.resources.displayMetrics
         val adWidth = (metrics.widthPixels / metrics.density).toInt()
 
         val adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth)
+
+        // a webview underneath, and every rotation builds another
+        adView?.destroy()
+        adView = null
+
+        if (!hasConsentDecision()) {
+            showHouseAd(adSize, adWidth)
+
+            return
+        }
+
+        val adView = AdView(activity)
+        this.adView = adView
+
         adView.setAdSize(adSize)
         adView.adUnitId = AD_UNIT_ID
         adView.adListener =
             object : AdListener() {
-                // the sdk retries behind our back and reports every attempt, so one request
-                // arrives here as several failures - which would otherwise walk the house ad
-                // through all three of its texts in half a second
+                // the sdk retries behind our back and reports every attempt, which would
+                // otherwise walk the house ad through all three texts at once
                 private var houseAdShown = false
 
+                /** A rotation replaced this banner, so it is too late to say anything. */
+                private fun stale() = adView !== this@AdManager.adView
+
                 override fun onAdLoaded() {
+                    if (stale()) {
+                        return
+                    }
+
                     // a retry that eventually fills still gets to replace the house ad
                     houseAdShown = false
 
@@ -229,28 +275,26 @@ class AdManager {
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
-                    if (houseAdShown) {
+                    if (stale() || houseAdShown) {
                         return
                     }
                     houseAdShown = true
 
-                    // limited ads fill far less often than personalised ones, so an empty
-                    // strip is the common case for whoever refused consent
+                    // limited ads fill far less often - the common case for a refusal
                     crashManager.log("ad failed to load: " + error.code + "/" + error.message)
 
                     showHouseAd(adSize, adWidth)
                 }
             }
 
-        // nothing goes into the container until the listener fires, so a request that does
-        // not fill never shows as a gap
+        // the container stays as it is until the listener fires, so a request that does not
+        // fill never shows as a gap
         adView.loadAd(AdRequest.Builder().build())
     }
 
     /**
-     * One layout for every slot the banner comes in. Parts drop out as it narrows - the subline
-     * first, then the icon - and the headline has a short form for when it is all that is left.
-     * Neither line ever wraps, so a long translation shortens rather than breaking the height.
+     * One layout for every slot the banner comes in: parts drop out as it narrows, the subline
+     * first and then the icon. Neither line wraps, so a translation cannot break the height.
      */
     private fun showHouseAd(adSize: AdSize, adWidth: Int) {
         if (!enabled) {

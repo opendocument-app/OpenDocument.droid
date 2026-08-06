@@ -378,8 +378,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         adManager = AdManager()
         adManager.setEnabled(!IS_TESTING && useProprietaryLibraries)
         adManager.setAdContainer(adContainer)
-        // the menu is built long before the consent update comes back, so whether the
-        // privacy item belongs in it is only known after the fact
+        // the menu is built long before the consent update comes back
         adManager.setConsentListener { invalidateMenu() }
         adManager.setPurchaseListener { buyAdRemoval() }
         adManager.initialize(this, analyticsManager, crashManager)

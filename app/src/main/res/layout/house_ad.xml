@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- Stands in for a banner that did not fill, in the slot that banner would have had.
-     AdManager sizes it and drops parts of it as the slot narrows - see showHouseAd.
-     The white is the point rather than overdraw: the page behind it is grey. -->
+<!-- Stands in for a banner that did not fill, in the slot it would have had. AdManager
+     sizes it and drops parts as the slot narrows - see showHouseAd. The white is the point
+     rather than overdraw: the page behind it is grey. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -32,8 +32,7 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <!-- both lines truncate rather than wrap, so a long translation shortens instead
-             of breaking the fixed banner height -->
+        <!-- both truncate rather than wrap, so a long translation cannot break the height -->
         <TextView
             android:id="@+id/house_ad_headline"
             android:layout_width="match_parent"
