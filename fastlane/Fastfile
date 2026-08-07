@@ -22,7 +22,7 @@ platform :android do
   end
 
   desc "Upload an already built Pro bundle. Used by the release workflow, which builds " \
-       "with gradle directly so that the native dependency cache is reused."
+       "both flavors with gradle directly, in one job."
   lane :uploadPro do |options|
     uploadBundle(flavor: "Pro", track: options[:track])
   end
@@ -37,10 +37,9 @@ platform :android do
   end
 
   private_lane :buildBundle do |options|
-    # there is no version number in the repository - it is the git tag, so a build
-    # started by hand has to say which one it is producing. Left out, gradle would fall
-    # back to 0.0.0, and the store would refuse that version code once the whole build
-    # and upload had already run
+    # there is no version number in the repository - the release run is handed one as an
+    # input, so a build started by hand has to say which one it is producing. Left out,
+    # gradle falls back to 0.0.0 and the store refuses that code after the build has run
     version = options[:version] || ENV["ODR_VERSION"]
     if version.to_s.empty?
       UI.user_error!("no version to build. pass one as version:v4.8.0, or set ODR_VERSION")
@@ -65,12 +64,8 @@ platform :android do
     upload_to_play_store(
       track: options[:track] || DEFAULT_TRACK,
       package_name: PACKAGE_NAMES.fetch(flavor),
-      # the release workflow keeps the key outside the checkout and points here
-      # at it. passing it rather than leaving it to the Appfile matters even
-      # then: supply verifies the Appfile's default whether or not that is the
-      # value being used, so an absent fastlane_google_play.json fails the run
-      # with "Invalid default value for json_key" no matter what SUPPLY_JSON_KEY
-      # says. an explicit value is the one thing that check skips
+      # explicit: supply validates the Appfile's default even when it is unused, so an
+      # absent file there fails the run whatever SUPPLY_JSON_KEY says
       json_key: ENV["ODR_PLAY_JSON_KEY"] ||
         CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file),
       aab: "app/build/outputs/bundle/#{variant}Release/app-#{variant}-release.aab",

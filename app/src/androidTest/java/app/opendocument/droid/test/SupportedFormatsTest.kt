@@ -18,20 +18,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Keeps the two remaining declarations of what the app opens in step with each other, so that
- * changing one and forgetting the other is a failing test rather than a bug report.
+ * Keeps the two remaining declarations of what the app opens in step: [SupportedDocumentTypes],
+ * which reads odrcore's format table, and the STRICT_CATCH `activity-alias` in AndroidManifest.xml,
+ * which is XML and cannot read it - but can be *asked*, which is what [resolvesToUs] does.
  *
- * [SupportedDocumentTypes] is one of them, and since odrcore 6.1 it is barely a declaration at
- * all - it reads the core's own format table. The other is the STRICT_CATCH `activity-alias` in
- * AndroidManifest.xml, which is XML and cannot read that table - but it can be *asked*: an
- * intent-filter is only worth anything if the package manager resolves a real intent through it,
- * which is what [resolvesToUs] does here.
- *
- * So neither side needs a list of formats of its own. The test walks every mime type spelling
- * odrcore accepts, [Odr.mimetypesByFileType] for each of [Odr.allFileTypes], and demands that the
- * app and the manifest give the same answer for all of them. That reaches the templates, the macro
- * enabled variants and the `x-vnd` spellings, which used to need a hand written list here because
- * the core only named one canonical mime type per format.
+ * So neither side needs a list of formats of its own: the test walks every mime type spelling
+ * odrcore accepts and demands the same answer from both.
  */
 @SmallTest
 @RunWith(AndroidJUnit4::class)
@@ -216,10 +208,6 @@ class SupportedFormatsTest {
         @BeforeClass
         fun prepare() {
             val context = InstrumentationRegistry.getInstrumentation().targetContext
-
-            // Odr's tables live in libodr_jni; nothing here opens a file, so the data paths that
-            // initializeCore also sets up are along for the ride rather than needed
-            CoreLoader.initializeCore(context)
 
             // STRICT_CATCH is what this test is about, and the component states survive a test run
             // - a previous one that flipped the switch would otherwise leave CATCH_ALL answering

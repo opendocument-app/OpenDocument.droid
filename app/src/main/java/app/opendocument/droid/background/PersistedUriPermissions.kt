@@ -19,14 +19,10 @@ object PersistedUriPermissions {
     /**
      * The grants taken during this process that the recent list does not name yet.
      *
-     * Taking a grant and writing down what needs it are not one step: a document only reaches the
-     * list once [MetadataLoader] has read it, which is long after [takeRead] ran - `loadUri` merely
-     * queues the load. A [prune] in that window would enumerate the fresh grant, find nothing
-     * referring to it and hand it straight back, leaving the entry that is about to be written
-     * unreadable on the next launch - the very failure releasing on close used to cause.
-     *
-     * Empty on a fresh process, so a grant whose document never made it onto the list is reclaimed
-     * on the next launch rather than leaking for good.
+     * A document only reaches the list once [MetadataLoader] has read it, long after [takeRead]
+     * ran; a [prune] in that window would find nothing referring to the fresh grant and hand it
+     * straight back. Empty on a fresh process, so a grant whose document never made the list is
+     * reclaimed on the next launch rather than leaking for good.
      */
     private val pendingGrants = HashSet<String>()
 
@@ -37,10 +33,9 @@ object PersistedUriPermissions {
      *   persistable permissions at all, and for uris that did not arrive on an intent of ours.
      */
     fun takeRead(context: Context, uri: Uri): Boolean {
-        // marked before the grant exists rather than after, so there is no instant in which a
-        // concurrent prune could enumerate it while nothing speaks for it. a uri that turns out not
-        // to be persistable is left in the set: we are reading it either way, and if an earlier
-        // session did persist it, that grant is exactly the one to hold on to
+        // marked before the grant exists, so a concurrent prune never sees it unspoken for. one
+        // that turns out not to be persistable stays in the set: an earlier session may have
+        // persisted it, and that grant is exactly the one to hold on to
         markPending(uri.toString())
 
         return try {
@@ -76,16 +71,13 @@ object PersistedUriPermissions {
     /**
      * Releases every persisted grant nothing refers to any more.
      *
-     * Reconciling against the stored lists rather than releasing on eviction keeps this idempotent:
-     * a grant that is covered twice is not released twice, and grants leaked by earlier versions
-     * get mopped up on the next launch.
-     *
-     * Does file and binder work, so it must not run on the main thread.
+     * Reconciling against the stored lists rather than releasing on eviction keeps this idempotent,
+     * so grants leaked by earlier versions get mopped up too. Does file and binder work, so it must
+     * not run on the main thread.
      */
     fun prune(context: Context) {
-        // the three reads are in this order on purpose. a grant taken while this runs is either
-        // missing from the snapshot, or still pending when the pending set is read - which happens
-        // after the list that would have settled it, so it cannot fall through both
+        // this order on purpose: a grant taken while this runs is either missing from the snapshot
+        // or still pending when the pending set is read, so it cannot fall through both
         val held = context.contentResolver.persistedUriPermissions
 
         val keep = HashSet<String>()

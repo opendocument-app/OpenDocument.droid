@@ -1,22 +1,12 @@
 #!/usr/bin/env python3
 #
-# Works out which version a release run is building, and refuses the runs that
-# cannot sensibly build one.
+# Works out which version a release run is building, from the run's `version` input,
+# and refuses the runs that cannot sensibly build one. Only a dry run may go without
+# one, on gradle's unversioned fallback - uploading that means a code the store refuses.
 #
-# There is no version number in the repository: it comes in as the release run's
-# `version` input, and app/build.gradle turns it into a version name and a version
-# code (v4.8.0 -> 4.8.0 and 40800, two digits per part). An input rather than the
-# tag the run was pushed on, because a tag written before the upload names a commit
-# that may never ship - release.yml writes its tags afterwards.
-#
-# Only a dry run may go without one, on gradle's unversioned fallback: uploading
-# that would mean a version code the store refuses. OpenDocument.ios has the same
-# script and the same two arguments, differing only in the shape it accepts.
-#
-# The shape is checked here rather than left to gradle, which checks it again and
-# is the one that counts: a typo in a dispatched version should not cost the
-# gradle setup first. The version code is deliberately not computed here - one
-# derivation of it, in the build, is enough.
+# gradle checks the shape again and is the one that counts; checking it here as well
+# only saves a typo the six minutes of a build. The version code is left to gradle -
+# one derivation of it is enough. OpenDocument.ios has the same script.
 #
 # Prints the resolved version and writes it to GITHUB_OUTPUT as `version`, empty
 # when there is none. Run it by hand to see what a dispatch would build.

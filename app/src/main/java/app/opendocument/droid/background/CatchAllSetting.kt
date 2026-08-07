@@ -16,21 +16,16 @@ object CatchAllSetting {
 
     private const val PREF_CATCH_ALL_ENABLED = "catch_all_enabled"
 
-    // these keep the historical at.tomtasche.reader names on purpose: the component name is
-    // what the OS persists when a user picks "always open .odt with this app", and what
-    // setComponentEnabledSetting stores the toggle against. renaming them would drop those
-    // defaults for every existing install, so the manifest declares the aliases under the old
-    // names too.
+    // the historical at.tomtasche.reader names: the OS persists component names for "always open
+    // .odt with this app", so renaming them drops that for every existing install
     private const val CATCH_ALL_COMPONENT = "at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL"
     private const val STRICT_CATCH_COMPONENT =
         "at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH"
 
     /**
-     * Puts the aliases back in the state the stored setting asks for.
-     *
-     * Has to run on every launch, not just when the landing screen is shown: users upgrading from a
-     * version that shipped different alias defaults are only corrected here, and the app is
-     * regularly started straight into a document by an external intent.
+     * Puts the aliases back in the state the stored setting asks for. On every launch, not just the
+     * landing screen: an upgrade from different alias defaults is only corrected here, and the app
+     * is regularly started straight into a document by an external intent.
      */
     fun applyOnLaunch(context: Context): Boolean {
         val enabled = isEnabled(context)
@@ -41,9 +36,7 @@ object CatchAllSetting {
     }
 
     fun isEnabled(context: Context): Boolean =
-        // catch-all is only active if the user explicitly opted in. new installs and existing
-        // users who never touched the switch default to STRICT_CATCH, so we no longer volunteer
-        // to open unrelated file types like contacts (issue #477).
+        // opt-in: the default is STRICT_CATCH, so the app does not volunteer for contacts (#477)
         preferences(context).getBoolean(PREF_CATCH_ALL_ENABLED, false)
 
     fun setEnabled(context: Context, enabled: Boolean) {
@@ -70,10 +63,9 @@ object CatchAllSetting {
     }
 
     /**
-     * The preferences android.preference.PreferenceManager used to hand out. That class is
-     * deprecated and its androidx replacement lives in a whole preference-ui library we do not
-     * otherwise need, so the default file is opened by name instead - keeping the existing
-     * catch-all setting of users who upgrade.
+     * The file android.preference.PreferenceManager used to hand out, opened by name so upgrading
+     * users keep their setting - its androidx replacement needs a preference-ui library we do not
+     * otherwise want.
      */
     private fun preferences(context: Context): SharedPreferences =
         context.getSharedPreferences(context.packageName + "_preferences", Context.MODE_PRIVATE)

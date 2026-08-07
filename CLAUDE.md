@@ -21,11 +21,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `./gradlew lintProDebug` - Run Android lint checks (errors fail the build)
 - `./gradlew spotlessApply` - Apply formatting (google-java-format AOSP for java,
   ktfmt kotlinlang style for kotlin)
-- `./gradlew spotlessCheck` - Verify formatting; CI runs this first
+- `./gradlew spotlessCheck` - Verify formatting; run by its own `format.yml` workflow
 
 ### Deployment
-- `fastlane android deployPro` - Deploy Pro version to Google Play internal track
-- `fastlane android deployLite` - Deploy Lite version to Google Play internal track
+- `fastlane android deployPro version:v4.8.0` - Deploy Pro to the Play internal track. The
+  version is required: no number is checked in, and a lane handed none errors out rather
+  than building 0.0.0
+- `fastlane android deployLite version:v4.8.0` - The same for Lite
 
 ### Clean
 - `./gradlew clean` - Clean build artifacts
@@ -52,7 +54,8 @@ what it replaced, and the second round of tapping is always the expensive one.
 
 **Document Processing Pipeline:**
 - `CoreLoader` - Primary document processor using the native C++ ODR core library
-- `RawLoader` - The three files odrcore does not render for us: csv, svg and xml
+- `RawLoader` - The three the core does not get: csv (which it would render, but line by
+  line), plus svg and xml, which it has no file type for
 - `OnlineLoader` - Remote document fetcher
 - `MetadataLoader` - Document metadata extractor
 
@@ -187,7 +190,7 @@ Two declarations are left. The app's own choice of what to *claim*, named in
 `SupportedDocumentTypes` as `CLAIMED_FILE_TYPES` because the core knows nothing about it. And
 the `STRICT_CATCH` `activity-alias` in `AndroidManifest.xml`, which cannot be collapsed into
 the first because XML cannot read any of this. Its three intent-filters are *generated* from
-the same table (an intent-filter matches a mime type exactly, so all 40 spellings and 41
+the same table (an intent-filter matches a mime type exactly, so all 49 spellings and 41
 extensions are written out) and covered by a test rather than by discipline:
 `SupportedFormatsTest` (instrumented) walks every mime type of every `FileType` and asserts
 that `SupportedDocumentTypes` and the package manager give the same answer, so a format added
@@ -197,8 +200,8 @@ The tables live in `libodr_jni`, so anything that reads them needs a device. Tha
 `CoreLoaderTest`, `SupportedDocumentTypesTest`, `RawLoaderTest` and `OnlineLoaderTest` are
 instrumented tests and not JVM ones - none of them opens a file, they just cannot ask the
 table from a plain JVM. What the core decides *after* the file is in the cache is unchanged:
-`MetadataLoader` runs libmagic over the copy, and `CoreLoader.isDocumentEditable` asks the
-opened document.
+`MetadataLoader` runs `Odr.mimetype` over the copy, and `CoreLoader.isDocumentEditable` asks
+the opened document.
 
 One consequence of claiming every spelling: `MetadataLoader` puts whatever mime type it ended
 up with through `SupportedDocumentTypes.canonicalMimeType`, so the loaders behind it see one

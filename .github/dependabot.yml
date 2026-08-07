@@ -8,13 +8,15 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
     groups:
-      androidx:
-        patterns:
-          - "androidx.*"
+      # first match in file order wins, so the narrower group has to come first
       test:
         patterns:
           - "androidx.test*"
+          - "androidx.test.espresso*"
           - "junit*"
+      androidx:
+        patterns:
+          - "androidx.*"
 
   - package-ecosystem: github-actions
     directory: "/"

@@ -83,9 +83,6 @@ jobs:
         version: ${{ steps.version.outputs.version }}
       run: .github/scripts/changelog-section.py --version "$version" > /dev/null
 
-    - name: install ninja
-      run: sudo apt-get install -y ninja-build
-
     - name: setup java
       uses: actions/setup-java@v5.6.0
       with:
@@ -95,7 +92,9 @@ jobs:
     # up front: signing is the last thing the build does, so a bad password would
     # otherwise surface six minutes in
     - name: decode keystore
-      run: echo "${{ secrets.ODR_KEYSTORE_BASE64 }}" | base64 -d > "${RUNNER_TEMP}/google_play.keystore"
+      env:
+        keystore: ${{ secrets.ODR_KEYSTORE_BASE64 }}
+      run: printf '%s' "$keystore" | base64 -d > "${RUNNER_TEMP}/google_play.keystore"
 
     - name: verify keystore
       env:

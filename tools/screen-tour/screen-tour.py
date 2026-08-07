@@ -47,9 +47,15 @@ class Device:
         self.size = None
 
     def run(self, *args, **kwargs):
-        return subprocess.run(
-            self.adb + list(args), capture_output=True, text=True, **kwargs
-        ).stdout
+        done = subprocess.run(self.adb + list(args), capture_output=True, text=True, **kwargs)
+
+        # a failed install is the one outcome that invalidates the whole tour quietly: it
+        # photographs the build that was already on the device. shell is exempt, since a
+        # remote command failing is often the answer the caller asked for
+        if done.returncode != 0 and args[0] != "shell":
+            raise Tourfail(f"adb {args[0]} failed: {(done.stderr or done.stdout).strip()}")
+
+        return done.stdout
 
     def shell(self, *args):
         return self.run("shell", *args)
@@ -308,15 +314,10 @@ def launch(device, args, fresh):
     dismiss_consent(device)
 
 
-# The lite flavour asks for advertising consent before anything else. The dialog is
-# a web view that arrives whenever the ad sdk has finished starting up - a second or
-# ten after the landing screen is already drawn - so this cannot be a fixed wait: it
-# watches for either the dialog or a quiet screen, and photographing the app with a
-# consent sheet over it is exactly what a fixed wait gets you.
-#
-# Its buttons carry a description and no text, being web content, and a mistimed tap
-# lands on "Manage options" and opens the vendor list - so "Accept all", which is the
-# way out of that list, is one of the things looked for.
+# The lite flavour's consent dialog, which arrives whenever the ad sdk finishes starting
+# up - a second or ten after the landing screen is drawn, so this cannot be a fixed wait.
+# Its buttons are web content, and a mistimed tap lands on "Manage options" and opens the
+# vendor list - so "Accept all", the way out of that list, is looked for too.
 CONSENT_BUTTONS = [
     (r"^Accept all$", "text"),
     (r"^Accept all$", "content-desc"),
@@ -423,14 +424,14 @@ def main():
         print("no booted device on adb", file=sys.stderr)
         return 2
 
-    if args.install:
-        print(f"installing {args.install}", flush=True)
-        device.run("install", "-r", "-g", args.install)
-
-    push_documents(device, args)
-
-    print(f"touring {args.package} into {args.out}", flush=True)
     try:
+        if args.install:
+            print(f"installing {args.install}", flush=True)
+            device.run("install", "-r", "-g", args.install)
+
+        push_documents(device, args)
+
+        print(f"touring {args.package} into {args.out}", flush=True)
         tour(device, args, args.out)
     except Tourfail as failure:
         print(f"\nthe tour stopped: {failure}", file=sys.stderr)

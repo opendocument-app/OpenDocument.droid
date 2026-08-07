@@ -9,7 +9,6 @@ import android.app.Instrumentation
 import android.content.Intent
 import android.net.Uri
 import android.os.SystemClock
-import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
@@ -72,7 +71,6 @@ class MainActivityTests {
 
     @Before
     fun setUp() {
-        // Launch a fresh activity for each test
         val mainActivity = mainActivityActivityTestRule.launchActivity(null)
 
         val idlingResource = OpenFileIdling.idlingResource
@@ -84,15 +82,10 @@ class MainActivityTests {
         mainActivity.sendBroadcast(Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS))
 
         Intents.init()
-
-        // Log test setup for debugging
-        Log.d(TAG, "setUp() called for test: " + javaClass.name)
     }
 
     @After
     fun tearDown() {
-        Log.d(TAG, "tearDown() called")
-
         Intents.release()
 
         idlingResource?.let { IdlingRegistry.getInstance().unregister(it) }
@@ -104,11 +97,8 @@ class MainActivityTests {
             InstrumentationRegistry.getInstrumentation().runOnMainSync { resumed.finish() }
         }
 
-        // Finish and wait for activity to be destroyed
         if (mainActivityActivityTestRule.activity != null) {
             mainActivityActivityTestRule.finishActivity()
-
-            // Use Instrumentation to wait until activity is destroyed
             InstrumentationRegistry.getInstrumentation().waitForIdleSync()
         }
     }
@@ -119,8 +109,8 @@ class MainActivityTests {
 
         openDocumentThroughPicker()
 
-        // next onView will be blocked until the idling resource is idle, which now covers
-        // the load itself and not just the picker round trip.
+        // the click blocks on the idling resource, which covers the load itself - so finding
+        // the Edit item enabled is the assertion that the document opened
         clickEditWithOverflowFallback()
     }
 
@@ -130,38 +120,12 @@ class MainActivityTests {
 
         openDocumentThroughPicker()
 
-        // next onView will be blocked until the idling resource is idle, which now covers
-        // the load itself and not just the picker round trip.
         clickEditWithOverflowFallback()
-
-        // there used to be a 10s sleep here that asserted nothing, and it is why "testPDF
-        // crashed" was an api 34 bucket of its own: the app is killed whenever play services
-        // dies under it ("depends on provider ...FontsProvider in dying proc"), which the
-        // instrumentation reports as "Process crashed", and this test sat still the longest
-        // so it was usually the one holding the app when that happened
     }
 
     @Test
     fun testPasswordProtectedODT() {
         val testFile = requireTestFile("password-test.odt")
-
-        // Check if the file exists and is readable
-        Assert.assertTrue(
-            "Password test file does not exist: " + testFile.absolutePath,
-            testFile.exists(),
-        )
-        Assert.assertTrue(
-            "Password test file is not readable: " + testFile.absolutePath,
-            testFile.canRead(),
-        )
-
-        // Log file info for debugging CI issues
-        Log.d(TAG, "Password test file path: " + testFile.absolutePath)
-        Log.d(TAG, "Password test file size: " + testFile.length())
-        Log.d(TAG, "All test files: " + testFiles.keys)
-
-        // Double-check we're using the right file
-        Assert.assertEquals("password-test.odt file size mismatch", 12671L, testFile.length())
 
         respondToOpenDocumentWith(testFile)
 
@@ -171,7 +135,6 @@ class MainActivityTests {
         // stays busy until it is on screen - so this does not have to poll for it.
         onView(withText("This document is password-protected")).check(matches(isDisplayed()))
 
-        // Enter wrong password first
         onView(withClassName(equalTo("android.widget.EditText"))).perform(typeText("wrongpassword"))
 
         onView(withId(android.R.id.button1)).perform(click())
@@ -179,7 +142,6 @@ class MainActivityTests {
         // Should show password dialog again for wrong password
         onView(withText("This document is password-protected")).check(matches(isDisplayed()))
 
-        // Clear the text field and enter correct password
         onView(withClassName(equalTo("android.widget.EditText")))
             .perform(clearText(), typeText("passwort"))
 
@@ -193,11 +155,8 @@ class MainActivityTests {
     fun testCorruptODTIsNotOfferedForUpload() {
         val activity = mainActivityActivityTestRule.activity
 
-        // a zip that still names itself odf, with a content.xml cut in half. the core claims
-        // the format and fails on the file, and that answer is taken as final: uploading it
-        // would only run the same core on a server and fail a second time
-        //
-        // not loadDocument(), which waits for a fragment this path takes back down again
+        // the core claims the format and fails on the file, which is final - an upload runs the
+        // same core. not loadDocument(), which waits for a fragment this path takes back down
         val testFileUri = uriOf(requireTestFile("corrupt.odt"))
         InstrumentationRegistry.getInstrumentation().runOnMainSync { activity.loadUri(testFileUri) }
 
@@ -236,12 +195,8 @@ class MainActivityTests {
         val before = documentFragment.lastResult
         Assert.assertNotNull(before)
 
-        // the document state used to be kept alive by setRetainInstance(true) and now
-        // lives in a ViewModel, so a configuration change must not drop it or reload.
-        // rotating is not enough to check that: MainActivity handles orientation and
-        // screenSize itself, so it is only reconfigured, never torn down. recreate() is
-        // what a locale or font scale change does, and that is the path the ViewModel and
-        // the saved instance state have to survive.
+        // not rotation, which MainActivity handles itself: recreate() is what a locale or font
+        // scale change does, and that is the path the ViewModel and saved state must survive
         val recreated = recreate(activity)
         Assert.assertNotNull("activity gone after recreation", recreated)
         Assert.assertNotSame("activity was not recreated", activity, recreated)
@@ -309,6 +264,9 @@ class MainActivityTests {
                     )
                     .perform(click())
             }
+            // the perform is what the handler above catches for; without it onView is lazy
+            // and this helper silently does nothing
+            .perform(click())
     }
 
     private fun recreate(activity: MainActivity): MainActivity? {
@@ -395,10 +353,8 @@ class MainActivityTests {
     }
 
     /**
-     * Fails with what the page and the file on disk actually contained. testODTEditMode fails on
-     * api 26 without ever being slow - about a second or never - so the interesting question is
-     * which half of the round trip went missing: the reload with translatable=true not producing
-     * editable html, or the webview never showing the html that was produced.
+     * Fails with what the page and the file on disk actually contained, since the interesting half
+     * of an edit mode failure is which end of the round trip went missing.
      */
     private fun assertBecomesEditable(
         label: String,
@@ -426,12 +382,9 @@ class MainActivityTests {
         ) ?: "no result"
 
     /**
-     * What the loader published, fetched over http the way the webview fetches it.
-     *
-     * Documents are served by the core's own server rather than read off disk, so asking for the
-     * url is the question that matters: a document the test process cannot fetch either was never
-     * served, and one it can fetch was the webview's to lose. When the server had failed to bind
-     * its port, this said "Connection refused" - which is the whole answer.
+     * What the loader published, fetched over http the way the webview fetches it: a document the
+     * test process cannot fetch either was never served, and one it can fetch was the webview's to
+     * lose.
      */
     private fun describeLoadedDocument(fragment: DocumentFragment): String {
         val result = fragment.lastResult ?: return "no result"
@@ -509,20 +462,11 @@ class MainActivityTests {
     }
 
     companion object {
-        private const val TAG = "MainActivityTests"
-
-        // entering edit mode has to round-trip through the webview before the dom reports
-        // contenteditable, and on a cold CI emulator that regularly took longer than the 10s
-        // this used to wait for - the edit mode tests were the flakiest thing in the suite.
-        //
-        // it stays at 30s. the api 26 failures that looked like it needed more were the core
-        // server failing to bind its port, so the document was never served at all and no
-        // deadline would have helped - 60s failed exactly as 30s had. a run that works is
-        // done in about a second
+        // a cold CI emulator needs more than the 10s this used to wait. more than 30s does not
+        // help: what still failed at 60s was the core server failing to bind its port
         private const val EDIT_MODE_TIMEOUT_MS = 30000L
 
-        // insertion ordered, so the "All test files" log below reads in extraction order
-        private val testFiles = LinkedHashMap<String, File>()
+        private val testFiles = mutableMapOf<String, File>()
 
         // @JvmStatic because junit requires @BeforeClass / @AfterClass to be static
         @JvmStatic

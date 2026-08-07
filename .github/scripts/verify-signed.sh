@@ -45,7 +45,7 @@ for aab in "${bundles[@]}"; do
     if ! listing=$(unzip -l "$aab" 2>&1); then
         fail "$aab cannot be read as a zip: $listing"
     fi
-    if ! grep -qE " META-INF/[^/]+\.(RSA|DSA)$" <<< "$listing"; then
+    if ! grep -qE " META-INF/[^/]+\.(RSA|DSA|EC)$" <<< "$listing"; then
         fail "$aab is not signed"
     fi
     echo "signed: $aab"

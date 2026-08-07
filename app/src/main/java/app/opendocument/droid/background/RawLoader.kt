@@ -7,14 +7,10 @@ import android.util.Base64OutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.OutputStream
 
 /**
- * The three files odrcore does not render for us: csv, whose table viewer beats the core's line by
- * line text; svg and xml, which the core has no file type for.
- *
- * It used to cover text, images, audio, video and zip too, each with a viewer out of `assets/`.
- * odrcore 6.2 renders all of those, so [CoreLoader] took them over.
+ * The three files [CoreLoader] does not get: csv, whose table viewer beats the core's line by line
+ * text, plus svg and xml, which the core has no file type for.
  *
  * [SupportedDocumentTypes.isRenderedByRaw] decides, and [LoaderService] asks it before the core.
  */
@@ -60,7 +56,11 @@ class RawLoader(context: Context?) : FileLoader(context, LoaderType.RAW) {
                 FileOutputStream(htmlFile).use { outputStream ->
                     StreamUtil.copy(context.assets.open("text-prefix.html"), outputStream)
 
-                    writeBase64(cacheFile, cacheDirectory, outputStream)
+                    // NO_CLOSE: closing the encoder has to write its trailing characters
+                    // without closing the html file underneath it
+                    Base64OutputStream(outputStream, Base64.NO_WRAP or Base64.NO_CLOSE).use {
+                        StreamUtil.copy(FileInputStream(cacheFile), it)
+                    }
 
                     StreamUtil.copy(context.assets.open("text-suffix.html"), outputStream)
                 }
@@ -74,8 +74,9 @@ class RawLoader(context: Context?) : FileLoader(context, LoaderType.RAW) {
                         .appendQueryParameter("ext", extension)
                         .build()
             } else {
-                // xml and whatever else got here: handed to the WebView under its own name
-                val renamedFile = File(cacheDirectory, "temp.$fileExtension")
+                // xml, the only case left: the WebView goes by the name, and a shared file
+                // typed application/xml need not have an extension of its own
+                val renamedFile = File(cacheDirectory, "temp.${fileExtension ?: "xml"}")
                 StreamUtil.copy(cacheFile, renamedFile)
 
                 finalUri = Uri.fromFile(renamedFile)
@@ -95,14 +96,4 @@ class RawLoader(context: Context?) : FileLoader(context, LoaderType.RAW) {
      */
     private fun nameExtension(options: Options): String? =
         MimeTypeResolver.parseExtension(options.filename)
-
-    private fun writeBase64(cacheFile: File, cacheDirectory: File, outputStream: OutputStream) {
-        // need to store it in a separate file first because BaseStream writes characters on close
-        val baseFile = File(cacheDirectory, "tmp")
-        Base64OutputStream(FileOutputStream(baseFile), Base64.NO_WRAP).use { baseOutputStream ->
-            StreamUtil.copy(FileInputStream(cacheFile), baseOutputStream)
-        }
-
-        StreamUtil.copy(FileInputStream(baseFile), outputStream)
-    }
 }
