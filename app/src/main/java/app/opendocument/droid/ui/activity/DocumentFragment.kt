@@ -298,6 +298,12 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
     }
 
     fun reloadUri(translatable: Boolean) {
+        // closeDocument() removes this fragment and only then finishes the edit mode, whose
+        // onDestroyActionMode reloads - a load queued here would have nothing left to land in
+        if (!isAdded) {
+            return
+        }
+
         val lastResult = checkNotNull(state.lastResult) { "nothing was loaded yet" }
         lastResult.options.translatable = translatable
 
@@ -343,7 +349,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
     }
 
     private fun unload() {
-        toggleDocumentMenu(false, false)
+        toggleDocumentMenu(false, false, false)
 
         resetTabs()
     }
@@ -358,7 +364,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         state.lastSelectedTab = -1
     }
 
-    private fun toggleDocumentMenu(enabled: Boolean, editEnabled: Boolean) {
+    private fun toggleDocumentMenu(enabled: Boolean, editEnabled: Boolean, ttsEnabled: Boolean) {
         val menu = this.menu
         if (menu == null) {
             val activity = activity
@@ -368,22 +374,29 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
             }
 
             // menu is not set when loadUri is called via onStart, retry later
-            pageView.post { toggleDocumentMenu(enabled, editEnabled) }
+            pageView.post { toggleDocumentMenu(enabled, editEnabled, ttsEnabled) }
 
             return
         }
 
         menu.findItem(R.id.menu_edit).isVisible = editEnabled
+        menu.findItem(R.id.menu_tts).isVisible = ttsEnabled
 
         menu.findItem(R.id.menu_search).isVisible = enabled
-        menu.findItem(R.id.menu_tts).isVisible = enabled
     }
 
     private fun prepareMenu(result: FileLoader.Result) {
         // whether editing is on offer is the core's answer, not a list of formats kept here: it
         // knows which of the documents it renders it can also write back, which is why neither the
-        // legacy binary formats nor the spreadsheets of issue #442 need naming
-        toggleDocumentMenu(true, result.isEditable)
+        // legacy binary formats nor the spreadsheets of issue #442 need naming.
+        //
+        // read aloud needs the javascript bridge, which PageView keeps off the third party viewers
+        // an ONLINE result loads - offering it there leaves it stuck at "reading" with no paragraph
+        toggleDocumentMenu(
+            enabled = true,
+            editEnabled = result.isEditable,
+            ttsEnabled = result.loaderType != FileLoader.LoaderType.ONLINE,
+        )
 
         // pdf is the one thing worth leaving alone: inverting a page of scanned paper helps nobody
         val fileType = result.options.fileType

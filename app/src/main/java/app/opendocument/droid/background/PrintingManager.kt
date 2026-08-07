@@ -20,16 +20,25 @@ class PrintingManager {
 
     private val backgroundHandler = Handler(backgroundThread.looper)
 
+    /**
+     * [onFinished] runs on the main thread once the job is over, whether it printed or not. The
+     * adapter is laid out and written by the print framework long after this returns, so anything
+     * the WebView had to be put into for printing can only be undone from there.
+     */
     @Suppress("DEPRECATION")
-    fun print(activity: MainActivity, webView: WebView) {
-        print(activity, webView.createPrintDocumentAdapter())
+    fun print(activity: MainActivity, webView: WebView, onFinished: () -> Unit) {
+        print(activity, webView.createPrintDocumentAdapter(), onFinished)
     }
 
     fun print(activity: MainActivity, pdfFile: File) {
-        print(activity, PdfDocumentAdapter(activity, JOB_NAME, pdfFile))
+        print(activity, PdfDocumentAdapter(activity, JOB_NAME, pdfFile)) {}
     }
 
-    private fun print(activity: MainActivity, printAdapter: PrintDocumentAdapter) {
+    private fun print(
+        activity: MainActivity,
+        printAdapter: PrintDocumentAdapter,
+        onFinished: () -> Unit,
+    ) {
         val printManager = activity.getSystemService(Context.PRINT_SERVICE) as PrintManager
 
         val printJob = printManager.print(JOB_NAME, printAdapter, PrintAttributes.Builder().build())
@@ -37,11 +46,22 @@ class PrintingManager {
         val checkPrintJob =
             object : Runnable {
                 override fun run() {
-                    if (!printJob.isCompleted && !activity.isFinishing && !activity.isDestroyed) {
-                        SnackbarHelper.show(activity, R.string.crouton_printing, null, false, false)
-
-                        backgroundHandler.postDelayed(this, 1000)
+                    // nothing left to restore, and the webview it would touch may be gone
+                    if (activity.isFinishing || activity.isDestroyed) {
+                        return
                     }
+
+                    // cancelled and failed are ends too - waiting only for isCompleted polls
+                    // forever on the job the user dismissed
+                    if (printJob.isCompleted || printJob.isCancelled || printJob.isFailed) {
+                        activity.runOnUiThread(onFinished)
+
+                        return
+                    }
+
+                    SnackbarHelper.show(activity, R.string.crouton_printing, null, false, false)
+
+                    backgroundHandler.postDelayed(this, 1000)
                 }
             }
 

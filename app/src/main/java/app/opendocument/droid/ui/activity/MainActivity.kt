@@ -560,14 +560,13 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
                 documentFragment?.pageView?.let { pageView ->
                     // printing a dark page wastes ink, but the setting has to come back
-                    // afterwards or the rest of the document is read in light mode
+                    // afterwards or the rest of the document is read in light mode. only once
+                    // the job is over: the print framework reads the page well after print()
                     val wasDark = pageView.isDarkEnabled
 
                     pageView.toggleDarkMode(false)
 
-                    printingManager.print(this, pageView)
-
-                    pageView.toggleDarkMode(wasDark)
+                    printingManager.print(this, pageView) { pageView.toggleDarkMode(wasDark) }
                 }
             }
 
@@ -665,9 +664,9 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
     // also called by DocumentFragment, so an error dialog comes up over the landing screen
     fun closeDocument() {
-        // an edit or tts mode would otherwise outlive the fragment it acts on
-        currentActionMode?.finish()
-
+        // the fragment goes first: finishing an edit mode reloads the document it acts on, and
+        // that load would put a progress dialog up over a fragment that is about to be removed.
+        // reloadUri() is a no-op once it is detached
         documentFragment?.let { fragment ->
             removeMenuProvider(fragment)
 
@@ -675,6 +674,9 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
             documentFragment = null
         }
+
+        // an edit or tts mode would otherwise outlive the document it acts on
+        currentActionMode?.finish()
 
         lastUri = null
 

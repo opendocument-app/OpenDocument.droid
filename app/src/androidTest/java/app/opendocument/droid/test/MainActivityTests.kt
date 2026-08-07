@@ -120,7 +120,13 @@ class MainActivityTests {
 
         openDocumentThroughPicker()
 
-        clickEditWithOverflowFallback()
+        // the core does not write pdf back, so Edit is not what says this opened - Search is.
+        // this asserted on Edit until the click was live, which it never can be here
+        onView(allOf(withId(R.id.menu_search), withContentDescription("Search in document")))
+            .check(matches(isDisplayed()))
+
+        // menu_edit is showAsAction="always", so an offered one would be in the toolbar
+        onView(withId(R.id.menu_edit)).check(doesNotExist())
     }
 
     @Test
