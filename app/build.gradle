@@ -110,8 +110,10 @@ android {
         }
 
         pro {
+            // the suffix on the applicationId is what separates the two listings, so the
+            // version name stays plain - it is only ever read by a human, in the store and
+            // in the system settings
             applicationIdSuffix = ".pro"
-            versionNameSuffix = "-pro"
 
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.releasePro
