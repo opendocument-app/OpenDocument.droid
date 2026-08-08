@@ -105,8 +105,6 @@ android {
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.releaseLite
             }
-
-            resValue("bool", "DISABLE_TRACKING", "false")
         }
 
         pro {
@@ -115,8 +113,6 @@ android {
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.releasePro
             }
-
-            resValue("bool", "DISABLE_TRACKING", "true")
         }
 
         // pro without the play in-app review sheet, so it links nothing proprietary:
@@ -127,14 +123,13 @@ android {
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.releaseLite
             }
-
-            resValue("bool", "DISABLE_TRACKING", "true")
         }
     }
 
     // The nonfree/ classes that call a play library, or a no-op of the same shape - two
-    // pairs, because the flavors disagree on both halves. kotlin.srcDirs and not
-    // java.srcDirs: a directory added to the latter reaches javac only.
+    // pairs, because the flavors disagree on both halves. What a flavor links is a flag in
+    // these directories too, read through Features, rather than a second list here.
+    // kotlin.srcDirs and not java.srcDirs: a directory added to the latter reaches javac only.
     sourceSets {
         getByName('lite') { kotlin.srcDirs += ['src/ads/java', 'src/review/java'] }
         getByName('pro') { kotlin.srcDirs += ['src/noAds/java', 'src/review/java'] }
@@ -177,8 +172,6 @@ android {
     }
     buildFeatures {
         buildConfig = true
-        // AGP 9 makes resValue opt-in; the flavors use it for DISABLE_TRACKING
-        resValues = true
     }
     // the java/kotlin package, R and BuildConfig - internal and free to rename, unlike
     // the applicationId above. testNamespace defaults to this + ".test".

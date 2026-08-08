@@ -1,7 +1,6 @@
 package app.opendocument.droid.nonfree
 
 import android.content.Context
-import app.opendocument.droid.R
 import app.opendocument.droid.background.BillingPreferences
 
 class BillingManager {
@@ -18,7 +17,7 @@ class BillingManager {
         billingPreferences = preferences
 
         // pro and foss both ship without ads, so both count as bought
-        if (context.resources.getBoolean(R.bool.DISABLE_TRACKING)) {
+        if (!Features.withAds) {
             preferences.setPurchased(true)
         }
 

@@ -42,8 +42,7 @@ lists rather than forking it. Reach for it before `adb shell input tap`.
 
 ## Build
 
-Three flavors. `DISABLE_TRACKING`, a resource bool read by the `nonfree/` managers,
-switches the behaviour off; what a flavor *links* matters more:
+Three flavors, and what separates them is what they *link*:
 
 | | ads + consent sdk | play in-app review | goes to |
 |---|---|---|---|
@@ -56,6 +55,14 @@ and `src/review`, with a no-op of the same shape in `src/noAds` and `src/noRevie
 `app/build.gradle` names two of the four per flavor. The rest of `nonfree/` imports
 nothing proprietary and stays in `src/main`. A method added to one copy has to be added
 to the other, which `assembleDebug` catches - it builds all three.
+
+Code that has to *ask* reads `Features`, never the flavor name: `Features.withAds` is the
+one question anything asks today, and `LINKS_ADS` behind it sits in `src/ads` and
+`src/noAds` next to the classes it stands for, so the flag cannot end up in a build whose
+code says otherwise. Do not add a `BuildConfig.FLAVOR` comparison back - it was what made
+`BillingManager` miss foss - and do not name a flag after a behaviour it only implies. The
+resource bool `DISABLE_TRACKING` was both mistakes at once: there is no tracking to
+disable, `AnalyticsManager` and `CrashManager` write to logcat and nowhere else.
 
 foss carries `applicationIdSuffix .foss` so a sideload sits beside a play install;
 f-droid strips it, since its listing is `at.tomtasche.reader` and that can never change.

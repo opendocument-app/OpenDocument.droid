@@ -35,6 +35,7 @@ import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.BillingManager
 import app.opendocument.droid.nonfree.CrashManager
+import app.opendocument.droid.nonfree.Features
 import app.opendocument.droid.nonfree.InAppReview
 import app.opendocument.droid.nonfree.PlayServices
 import app.opendocument.droid.ui.EditActionModeCallback
@@ -382,7 +383,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeProprietaryLibraries() {
-        var useProprietaryLibraries = !resources.getBoolean(R.bool.DISABLE_TRACKING)
+        var useProprietaryLibraries = Features.withAds
 
         if (useProprietaryLibraries) {
             useProprietaryLibraries = PlayServices.isAvailableOrOffersFix(this, GOOGLE_REQUEST_CODE)

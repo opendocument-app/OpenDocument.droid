@@ -8,10 +8,10 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.IBinder
 import android.os.Looper
-import app.opendocument.droid.R
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
+import app.opendocument.droid.nonfree.Features
 import app.opendocument.droid.nonfree.PlayServices
 import app.opendocument.droid.ui.activity.DocumentFragment
 import java.io.File
@@ -81,7 +81,7 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
 
     // copied from MainActivity, consider how to deduplicate
     private fun initializeProprietaryLibraries() {
-        var useProprietaryLibraries = !resources.getBoolean(R.bool.DISABLE_TRACKING)
+        var useProprietaryLibraries = Features.withAds
 
         if (useProprietaryLibraries) {
             useProprietaryLibraries = PlayServices.isAvailable(this)
