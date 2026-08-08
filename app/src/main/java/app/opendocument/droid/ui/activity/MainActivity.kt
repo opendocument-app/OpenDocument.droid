@@ -36,14 +36,13 @@ import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.BillingManager
 import app.opendocument.droid.nonfree.CrashManager
 import app.opendocument.droid.nonfree.InAppReview
+import app.opendocument.droid.nonfree.PlayServices
 import app.opendocument.droid.ui.EditActionModeCallback
 import app.opendocument.droid.ui.FindActionModeCallback
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.SnackbarHelper
 import app.opendocument.droid.ui.TtsActionModeCallback
 import app.opendocument.droid.ui.widget.DocumentActions
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailability
 
 class MainActivity : AppCompatActivity() {
 
@@ -386,12 +385,7 @@ class MainActivity : AppCompatActivity() {
         var useProprietaryLibraries = !resources.getBoolean(R.bool.DISABLE_TRACKING)
 
         if (useProprietaryLibraries) {
-            val googleApi = GoogleApiAvailability.getInstance()
-            val googleAvailability = googleApi.isGooglePlayServicesAvailable(this)
-            if (googleAvailability != ConnectionResult.SUCCESS) {
-                useProprietaryLibraries = false
-                googleApi.getErrorDialog(this, googleAvailability, GOOGLE_REQUEST_CODE)?.show()
-            }
+            useProprietaryLibraries = PlayServices.isAvailableOrOffersFix(this, GOOGLE_REQUEST_CODE)
         }
 
         crashManager = CrashManager()

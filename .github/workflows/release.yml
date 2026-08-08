@@ -1,8 +1,9 @@
 name: release
 
-# Builds both signed flavors once, uploads each to the play store's internal track,
-# then records what went out. Three jobs so that a half uploaded release is repairable:
-# "Re-run failed jobs" retries one upload against the bundle already built and signed.
+# Builds three signed flavors once, uploads the two play ones to the internal track, then
+# records what went out; foss rides on the github release. Three jobs so that a half
+# uploaded release is repairable: "Re-run failed jobs" retries one upload against the
+# bundle already built and signed.
 #
 # No tag triggers anything and none is written before an upload; build/<version> is
 # written afterwards, and the v<version> tag only when the drafted release is published,
@@ -114,10 +115,11 @@ jobs:
         ODR_KEY_PASSWORD_LITE: ${{ secrets.ODR_KEY_PASSWORD_LITE }}
         version: ${{ steps.version.outputs.version }}
       run: |
+        # no bundleFossRelease: foss never goes to the play store, only to github
         # left out rather than passed as 0.0.0: gradle's fallback pairs that name
         # with version code 1, since AGP refuses the 0 it would derive from it
         ./gradlew bundleProRelease bundleLiteRelease \
-                  assembleProRelease assembleLiteRelease \
+                  assembleProRelease assembleLiteRelease assembleFossRelease \
                   ${version:+-Podr.version=$version} --stacktrace
 
     # release variants build unsigned rather than failing, so this is worth asking
@@ -128,6 +130,19 @@ jobs:
       if: always()
       run: rm -f "${RUNNER_TEMP}/google_play.keystore"
 
+    # how f-droid notices a release: it can only read a number it is given. Taken from
+    # what the build wrote, so the version code formula stays in app/build.gradle alone.
+    - name: write the version manifest
+      if: ${{ steps.version.outputs.version != '' }}
+      env:
+        version: ${{ steps.version.outputs.version }}
+      run: |
+        code=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["elements"][0]["versionCode"])' \
+               app/build/outputs/apk/foss/release/output-metadata.json)
+        printf '{"versionName":"%s","versionCode":%s}\n' "${version#v}" "$code" \
+          > app/build/outputs/apk/version.json
+        cat app/build/outputs/apk/version.json
+
     # what the upload job works from. debug symbols ride inside the aab, under
     # BUNDLE-METADATA/com.android.tools.build.debugsymbols
     - name: Artifact bundles
@@ -137,12 +152,14 @@ jobs:
         path: app/build/outputs/bundle/*/*.aab
         if-no-files-found: error
 
-    # how a release gets test flown, lite included; record puts the pro one on the draft
+    # how a release gets test flown, lite included; record puts the foss one on the draft
     - name: Artifact apks
       uses: actions/upload-artifact@v7
       with:
         name: apks
-        path: app/build/outputs/apk/*/release/*.apk
+        path: |
+          app/build/outputs/apk/*/release/*.apk
+          app/build/outputs/apk/version.json
         if-no-files-found: error
         compression-level: 0
 
@@ -258,7 +275,7 @@ jobs:
 
         if gh release view "$tag" > /dev/null 2>&1; then
           gh release edit "$tag" --target "$GITHUB_SHA" --notes-file "${RUNNER_TEMP}/notes.md"
-          gh release upload "$tag" pro/release/app-pro-release.apk --clobber
+          gh release upload "$tag" foss/release/app-foss-release.apk version.json --clobber
         else
           # --generate-notes appends the pull requests below the changelog section
           gh release create "$tag" \
@@ -267,7 +284,7 @@ jobs:
             --title "$tag" \
             --notes-file "${RUNNER_TEMP}/notes.md" \
             --generate-notes \
-            pro/release/app-pro-release.apk
+            foss/release/app-foss-release.apk version.json
         fi
 
         echo "drafted \`$tag\`. publishing it writes the tag and lets f-droid pick it up - do that once it is live." >> "$GITHUB_STEP_SUMMARY"

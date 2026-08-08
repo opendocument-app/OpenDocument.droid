@@ -118,6 +118,27 @@ android {
 
             resValue("bool", "DISABLE_TRACKING", "true")
         }
+
+        // pro without the play in-app review sheet, so it links nothing proprietary:
+        // the apk on the github release, and what f-droid builds
+        foss {
+            applicationIdSuffix = ".foss"
+
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.releaseLite
+            }
+
+            resValue("bool", "DISABLE_TRACKING", "true")
+        }
+    }
+
+    // The nonfree/ classes that call a play library, or a no-op of the same shape - two
+    // pairs, because the flavors disagree on both halves. kotlin.srcDirs and not
+    // java.srcDirs: a directory added to the latter reaches javac only.
+    sourceSets {
+        getByName('lite') { kotlin.srcDirs += ['src/ads/java', 'src/review/java'] }
+        getByName('pro') { kotlin.srcDirs += ['src/noAds/java', 'src/review/java'] }
+        getByName('foss') { kotlin.srcDirs += ['src/noAds/java', 'src/noReview/java'] }
     }
 
     buildTypes {
@@ -171,9 +192,12 @@ dependencies {
     // odrcore's JNI bindings, java and native in one AAR (see settings.gradle)
     implementation libs.odr.core.android
 
-    implementation libs.play.services.ads
-    implementation libs.play.review
-    implementation libs.user.messaging.platform
+    // per flavor: pro carried the ad and consent sdks only to switch them off at
+    // runtime, and foss links none of the three, which is what f-droid needs.
+    liteImplementation libs.play.services.ads
+    liteImplementation libs.user.messaging.platform
+    liteImplementation libs.play.review
+    proImplementation libs.play.review
 
     implementation libs.androidx.appcompat
     implementation libs.androidx.core
