@@ -56,13 +56,14 @@ Nothing triggers it on a tag. It runs as three jobs:
 
 | job | what it does |
 |---|---|
-| `build` | one gradle run producing both signed flavors, archived on the run |
-| `upload` | one job per flavor, handing its bundle to fastlane |
+| `build` | one gradle run producing all three signed flavors, archived on the run |
+| `upload` | one job per play flavor, handing its bundle to fastlane |
 | `record` | once both landed: tag the commit, draft the GitHub release |
 
-Both flavors always go out together, and nothing chooses one: Lite and Pro are the same
-app with ads and tracking switched off. That is what keeps a version on a single commit -
-the one the `v*` tag names and F-Droid builds.
+Lite and Pro always go out together, and nothing chooses one: they are the same app with
+ads and tracking switched off. Foss is built in the same run but uploaded nowhere - it is
+the APK on the GitHub release. That is what keeps a version on a single commit - the one
+the `v*` tag names and F-Droid builds.
 
 Internal is the only track it uploads to. Anything wider - closed, open, production -
 is a promotion in the Play Console, which moves the same bundle and version code that
@@ -122,9 +123,10 @@ half uploaded release gets no tag at all, which is the honest answer - nothing y
 be published from it. A lane run from a laptop leaves none either.
 
 **The `v*` tag is written neither by hand nor by the workflow.** `record` drafts a GitHub
-release named `v<version>` at the built commit, carrying the Pro APK - the sideloadable
-copy every release up to v4.6 has had - and the version's `CHANGELOG.md` section above
-GitHub's generated list of pull requests. A draft creates no tag; publishing it does, at
+release named `v<version>` at the built commit, carrying the Foss APK - the sideloadable
+copy every release up to v4.6 has had, now the flavor that links nothing proprietary -
+a `version.json` naming the version and its code, and the version's `CHANGELOG.md`
+section above GitHub's generated list of pull requests. A draft creates no tag; publishing it does, at
 exactly that commit:
 
 ```sh
@@ -133,8 +135,10 @@ gh release edit v4.14.0 --draft=false
 
 That is the whole manual step, and it waits because internal is not released: promotion to
 production, and the review it needs, happen in the Play Console days later. F-Droid tracks
-this repository with `UpdateCheckMode: Tags`, so a `v*` tag written any earlier would push
-a version to F-Droid users that Google may never release.
+this repository through that release, so publishing any earlier would push a version to
+F-Droid users that Google may never release. `version.json` is what it reads: the version
+is nowhere in the tree, so `releases/latest/download/version.json` is the only place
+F-Droid can learn a version code from.
 
 ## Versioning
 

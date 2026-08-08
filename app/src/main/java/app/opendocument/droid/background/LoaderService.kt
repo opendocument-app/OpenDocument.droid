@@ -12,9 +12,8 @@ import app.opendocument.droid.R
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
+import app.opendocument.droid.nonfree.PlayServices
 import app.opendocument.droid.ui.activity.DocumentFragment
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailability
 import java.io.File
 
 /**
@@ -85,11 +84,7 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
         var useProprietaryLibraries = !resources.getBoolean(R.bool.DISABLE_TRACKING)
 
         if (useProprietaryLibraries) {
-            val googleApi = GoogleApiAvailability.getInstance()
-            val googleAvailability = googleApi.isGooglePlayServicesAvailable(this)
-            if (googleAvailability != ConnectionResult.SUCCESS) {
-                useProprietaryLibraries = false
-            }
+            useProprietaryLibraries = PlayServices.isAvailable(this)
         }
 
         crashManager = CrashManager()

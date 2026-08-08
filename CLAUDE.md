@@ -29,7 +29,8 @@ action on the open document is a `DocumentActions` button; anything else - the a
 the consent form - is a row in the landing screen's settings section.
 
 Source is `app/src/main/java/app/opendocument/droid/`: `background/` for the loaders and
-stored state, `ui/` for the screen, `nonfree/` for analytics, billing and ads.
+stored state, `ui/` for the screen, `nonfree/` for analytics, billing and ads - the last
+of those split across flavor source sets, see Build.
 
 ## Tools
 
@@ -41,9 +42,23 @@ lists rather than forking it. Reach for it before `adb shell input tap`.
 
 ## Build
 
-Two flavors: **lite** is free with ads and tracking, **pro** is paid with neither. The
-switch is the `DISABLE_TRACKING` resource bool, set per flavor in `app/build.gradle` and
-read by the `nonfree/` managers.
+Three flavors. `DISABLE_TRACKING`, a resource bool read by the `nonfree/` managers,
+switches the behaviour off; what a flavor *links* matters more:
+
+| | ads + consent sdk | play in-app review | goes to |
+|---|---|---|---|
+| lite | yes | yes | play, free |
+| pro | no | yes | play, paid |
+| foss | no | no | the github release, and f-droid |
+
+The three `nonfree/` classes calling those libraries live outside `src/main`: `src/ads`
+and `src/review`, with a no-op of the same shape in `src/noAds` and `src/noReview`, and
+`app/build.gradle` names two of the four per flavor. The rest of `nonfree/` imports
+nothing proprietary and stays in `src/main`. A method added to one copy has to be added
+to the other, which `assembleDebug` catches - it builds all three.
+
+foss carries `applicationIdSuffix .foss` so a sideload sits beside a play install;
+f-droid strips it, since its listing is `at.tomtasche.reader` and that can never change.
 
 Minimum SDK 26, target 36, compile 37 (ahead on purpose). AGP 9 / Gradle 9, with no kotlin
 plugin applied - AGP brings kotlin itself. Versions in `gradle/libs.versions.toml`. R8,
