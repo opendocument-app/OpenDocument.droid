@@ -1,20 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:clipChildren="false">
 
-    <!-- one tab per sheet for spreadsheets, hidden for every other format -->
-    <com.google.android.material.tabs.TabLayout
-            android:id="@+id/document_tabs"
+    <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            app:tabMode="scrollable" />
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-    <FrameLayout
-            android:id="@+id/page_container"
+        <!-- one tab per sheet for spreadsheets, hidden for every other format -->
+        <com.google.android.material.tabs.TabLayout
+                android:id="@+id/document_tabs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:tabMode="scrollable" />
+
+        <FrameLayout
+                android:id="@+id/page_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+    </LinearLayout>
+
+    <!--
+         over the document rather than beside it. nothing in here is clickable while the actions
+         are folded up, so every touch that misses a button reaches the page below.
+    -->
+    <app.opendocument.droid.ui.widget.DocumentActions
+            android:id="@+id/document_actions"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
-</LinearLayout>
+</FrameLayout>

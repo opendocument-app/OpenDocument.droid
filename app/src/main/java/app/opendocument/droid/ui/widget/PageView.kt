@@ -54,10 +54,6 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
     private var isBridgeAttached = false
 
-    /** What [toggleDarkMode] was last set to, so printing can turn it off and put it back. */
-    var isDarkEnabled = false
-        private set
-
     init {
         settings.builtInZoomControls = true
         settings.displayZoomControls = false
@@ -145,22 +141,30 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         }
     }
 
+    /**
+     * Keeps the document on the background it was authored against, whatever the app theme is.
+     *
+     * The app shell follows night mode, the page does not: inverting a document is a rendering
+     * decision the reader has not asked for, and it goes badly on the tables, coloured text and
+     * images a real odt or docx is full of. Note this only became a live question when the theme
+     * moved to Material3.DayNight - at targetSdk 33 and up the webview only darkens when the app
+     * theme reports itself as dark, so under the old AppCompat.Light theme none of this ever fired.
+     *
+     * There is no parameter to this any more. It used to take an `isDarkModeSupported` that nothing
+     * in here ever read - both callers reached the same three lines - while [DocumentFragment] went
+     * to the trouble of working out that a pdf is not worth inverting. A user facing "dark
+     * documents" setting can grow the argument back when there is something on the other end of it.
+     */
     @Suppress("DEPRECATION") // setForceDarkAllowed and setForceDark are the pre-webkit-1.6 api
-    fun toggleDarkMode(isDarkEnabled: Boolean) {
-        this.isDarkEnabled = isDarkEnabled
-
+    fun disableDarkening() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            isForceDarkAllowed = isDarkEnabled
+            isForceDarkAllowed = false
         }
 
         if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
-            WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, isDarkEnabled)
+            WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, false)
         } else if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-            WebSettingsCompat.setForceDark(
-                settings,
-                if (isDarkEnabled) WebSettingsCompat.FORCE_DARK_AUTO
-                else WebSettingsCompat.FORCE_DARK_OFF,
-            )
+            WebSettingsCompat.setForceDark(settings, WebSettingsCompat.FORCE_DARK_OFF)
         }
     }
 

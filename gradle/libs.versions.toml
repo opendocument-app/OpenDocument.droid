@@ -11,6 +11,8 @@ androidxAnnotation = "1.10.0"
 androidxAppcompat = "1.7.1"
 androidxCore = "1.19.0"
 androidxWebkit = "1.16.0"
+androidxRecyclerview = "1.4.0"
+androidxLifecycle = "2.9.4"
 material = "1.14.0"
 
 playServicesAds = "25.4.0"
@@ -29,6 +31,12 @@ androidx-annotation ={ module = "androidx.annotation:annotation", version.ref = 
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppcompat" }
 androidx-core = { module = "androidx.core:core", version.ref = "androidxCore" }
 androidx-webkit = { module = "androidx.webkit:webkit", version.ref = "androidxWebkit" }
+# recyclerview and lifecycle already arrive transitively through material, but the landing
+# screen and DocumentFragment's ViewModel compile against them - declaring them keeps a
+# material bump from silently taking a compile dependency away
+androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "androidxRecyclerview" }
+androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidxLifecycle" }
+androidx-lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata", version.ref = "androidxLifecycle" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 
 play-services-ads = { module = "com.google.android.gms:play-services-ads", version.ref = "playServicesAds" }
@@ -38,6 +46,7 @@ user-messaging-platform = { module = "com.google.android.ump:user-messaging-plat
 junit = { module = "junit:junit", version.ref = "junit" }
 espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 espresso-intents = { module = "androidx.test.espresso:espresso-intents", version.ref = "espresso" }
+espresso-contrib = { module = "androidx.test.espresso:espresso-contrib", version.ref = "espresso" }
 espresso-idling-resource = { module = "androidx.test.espresso:espresso-idling-resource", version.ref = "espresso" }
 androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxTest" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTest" }

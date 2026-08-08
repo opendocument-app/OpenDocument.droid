@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+        Whether the system bars are drawn over light UI and therefore need dark icons.
+        Follows night mode, so it is flipped in values-night.
+    -->
+    <bool name="window_light_system_bars">true</bool>
+
+</resources>

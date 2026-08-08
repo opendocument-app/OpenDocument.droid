@@ -39,7 +39,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="?android:attr/textColorPrimary"
+            android:textColor="@color/house_ad_headline"
             android:textSize="13sp"
             android:textStyle="bold"
             tools:text="@string/house_ad_support_headline" />

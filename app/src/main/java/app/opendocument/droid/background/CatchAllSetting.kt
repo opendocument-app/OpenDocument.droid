@@ -2,7 +2,6 @@ package app.opendocument.droid.background
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 
 /**
@@ -37,10 +36,10 @@ object CatchAllSetting {
 
     fun isEnabled(context: Context): Boolean =
         // opt-in: the default is STRICT_CATCH, so the app does not volunteer for contacts (#477)
-        preferences(context).getBoolean(PREF_CATCH_ALL_ENABLED, false)
+        AppPreferences.of(context).getBoolean(PREF_CATCH_ALL_ENABLED, false)
 
     fun setEnabled(context: Context, enabled: Boolean) {
-        preferences(context).edit().putBoolean(PREF_CATCH_ALL_ENABLED, enabled).apply()
+        AppPreferences.of(context).edit().putBoolean(PREF_CATCH_ALL_ENABLED, enabled).apply()
 
         apply(context, enabled)
     }
@@ -61,12 +60,4 @@ object CatchAllSetting {
             PackageManager.DONT_KILL_APP,
         )
     }
-
-    /**
-     * The file android.preference.PreferenceManager used to hand out, opened by name so upgrading
-     * users keep their setting - its androidx replacement needs a preference-ui library we do not
-     * otherwise want.
-     */
-    private fun preferences(context: Context): SharedPreferences =
-        context.getSharedPreferences(context.packageName + "_preferences", Context.MODE_PRIVATE)
 }

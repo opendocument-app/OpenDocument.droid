@@ -67,9 +67,15 @@
              the OS persists component names for pinned launcher icons and for "always open
              .odt with this app". See the package names section of CLAUDE.md.
         -->
+        <!--
+             uiMode is deliberately absent from configChanges: the theme picks its colours from
+             values-night, and those only get re-resolved when the activity is recreated.
+             Swallowing the config change would leave already-inflated views on their day
+             colours until the next launch.
+        -->
         <activity
             android:name="app.opendocument.droid.ui.activity.MainActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize"
             android:exported="true" />
 
         <!--

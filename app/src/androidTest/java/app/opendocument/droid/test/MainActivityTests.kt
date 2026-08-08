@@ -15,15 +15,14 @@ import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.IdlingResource
 import androidx.test.espresso.action.ViewActions.clearText
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
-import androidx.test.espresso.matcher.ViewMatchers.isEnabled
 import androidx.test.espresso.matcher.ViewMatchers.withClassName
-import androidx.test.espresso.matcher.ViewMatchers.withContentDescription
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -47,8 +46,6 @@ import java.net.URL
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
-import org.hamcrest.Matchers.allOf
-import org.hamcrest.Matchers.anyOf
 import org.hamcrest.Matchers.equalTo
 import org.junit.After
 import org.junit.AfterClass
@@ -109,9 +106,13 @@ class MainActivityTests {
 
         openDocumentThroughPicker()
 
-        // the click blocks on the idling resource, which covers the load itself - so finding
-        // the Edit item enabled is the assertion that the document opened
-        clickEditWithOverflowFallback()
+        // next onView will be blocked until the idling resource is idle, which now covers
+        // the load itself and not just the picker round trip.
+        waitForDocumentActions()
+
+        unfoldDocumentActions()
+
+        onView(withText(R.string.menu_edit)).check(matches(isDisplayed()))
     }
 
     @Test
@@ -120,13 +121,14 @@ class MainActivityTests {
 
         openDocumentThroughPicker()
 
-        // the core does not write pdf back, so Edit is not what says this opened - Search is.
-        // this asserted on Edit until the click was live, which it never can be here
-        onView(allOf(withId(R.id.menu_search), withContentDescription("Search in document")))
-            .check(matches(isDisplayed()))
+        // next onView will be blocked until the idling resource is idle, which now covers
+        // the load itself and not just the picker round trip. the buttons being up is what
+        // says the pdf opened - Edit is not, because the core does not write pdf back
+        waitForDocumentActions()
 
-        // menu_edit is showAsAction="always", so an offered one would be in the toolbar
-        onView(withId(R.id.menu_edit)).check(doesNotExist())
+        unfoldDocumentActions()
+
+        onView(withText(R.string.menu_edit)).check(doesNotExist())
     }
 
     @Test
@@ -143,7 +145,8 @@ class MainActivityTests {
 
         onView(withClassName(equalTo("android.widget.EditText"))).perform(typeText("wrongpassword"))
 
-        onView(withId(android.R.id.button1)).perform(click())
+        // typing leaves the keyboard up, and on a short screen it covers the dialog's buttons
+        onView(withId(android.R.id.button1)).perform(closeSoftKeyboard(), click())
 
         // Should show password dialog again for wrong password
         onView(withText("This document is password-protected")).check(matches(isDisplayed()))
@@ -151,10 +154,10 @@ class MainActivityTests {
         onView(withClassName(equalTo("android.widget.EditText")))
             .perform(clearText(), typeText("passwort"))
 
-        onView(withId(android.R.id.button1)).perform(click())
+        onView(withId(android.R.id.button1)).perform(closeSoftKeyboard(), click())
 
-        // Check if edit button becomes available (indicating successful load)
-        clickEditWithOverflowFallback()
+        // Check if the document buttons become available (indicating successful load)
+        waitForDocumentActions()
     }
 
     @Test
@@ -233,46 +236,32 @@ class MainActivityTests {
             )
     }
 
+    // the landing screen is the only thing offering to open a document now that the toolbar
+    // action is gone. the fab is the entry point that is there whatever the list holds - the
+    // empty state has one of its own, but only while it is up, so matching either would be
+    // ambiguous rather than tolerant.
+    //
+    // closeSoftKeyboard first, and it is not decoration: the fab sits in the lower half of the
+    // screen, where a keyboard left over from an earlier test covers it. the ime window is
+    // above ours, so the tap lands on it, espresso reports the click as performed, and nothing
+    // happens - see the note on waitForDocumentActions.
     private fun openDocumentThroughPicker() {
-        onView(
-                allOf(
-                    withId(R.id.menu_open),
-                    withContentDescription("Open document"),
-                    isDisplayed(),
-                )
-            )
-            .perform(click())
-
-        // The menu item could be either Documents or Files.
-        onView(
-                allOf(
-                    withId(android.R.id.text1),
-                    anyOf(withText("Documents"), withText("Files")),
-                    isDisplayed(),
-                )
-            )
-            .perform(click())
+        onView(withId(R.id.landing_open_fab)).perform(closeSoftKeyboard(), click())
     }
 
-    private fun clickEditWithOverflowFallback() {
-        onView(allOf(withId(R.id.menu_edit), withContentDescription("Edit document"), isEnabled()))
-            .withFailureHandler { _, _ ->
-                // fails on small screens, try again with overflow menu
-                onView(allOf(withContentDescription("More options"), isDisplayed()))
-                    .perform(click())
+    // the buttons of the open document are up once it has loaded, so this blocks on the idling
+    // resource and then says whether anything came of the load. only the button that unfolds the
+    // rest is checked: what is inside it differs per format, a pdf cannot be edited.
+    //
+    // a click that never reached the app fails here rather than where it happened: nothing was
+    // ever queued, so the idling resource stays idle, this does not wait, and the landing screen
+    // is still what is on screen.
+    private fun waitForDocumentActions() {
+        onView(withId(R.id.document_actions_more)).check(matches(isDisplayed()))
+    }
 
-                onView(
-                        allOf(
-                            withId(R.id.menu_edit),
-                            withContentDescription("Edit document"),
-                            isDisplayed(),
-                        )
-                    )
-                    .perform(click())
-            }
-            // the perform is what the handler above catches for; without it onView is lazy
-            // and this helper silently does nothing
-            .perform(click())
+    private fun unfoldDocumentActions() {
+        onView(withId(R.id.document_actions_more)).perform(click())
     }
 
     private fun recreate(activity: MainActivity): MainActivity? {

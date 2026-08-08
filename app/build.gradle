@@ -180,11 +180,17 @@ dependencies {
     implementation libs.androidx.core
     implementation libs.material
     implementation libs.androidx.webkit
+    implementation libs.androidx.recyclerview
+    implementation libs.androidx.lifecycle.viewmodel
+    implementation libs.androidx.lifecycle.livedata
 
     testImplementation libs.junit
 
     androidTestImplementation libs.espresso.core
     androidTestImplementation libs.espresso.intents
+    // RecyclerViewActions: the landing screen is one list, and what a test wants to reach
+    // is regularly a row that has not been bound yet on a small screen
+    androidTestImplementation libs.espresso.contrib
     androidTestImplementation libs.androidx.test.rules
     androidTestImplementation libs.androidx.test.runner
     androidTestImplementation libs.androidx.test.junit

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- The way in, kept at the top of the list whatever the list holds: with documents below it
+     it sits directly above them, and with nothing below it, it is the only thing to do. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="20dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="4dp">
+
+    <com.google.android.material.button.MaterialButton
+            android:id="@+id/landing_open"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/landing_open_file"
+            app:icon="@drawable/ic_folder_open" />
+</FrameLayout>

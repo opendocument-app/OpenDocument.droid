@@ -2,6 +2,7 @@ package app.opendocument.droid.background
 
 import android.content.Context
 import android.content.Intent
+import android.content.UriPermission
 import android.net.Uri
 
 /**
@@ -17,7 +18,7 @@ object PersistedUriPermissions {
     private const val READ_FLAG = Intent.FLAG_GRANT_READ_URI_PERMISSION
 
     /**
-     * The grants taken during this process that the recent list does not name yet.
+     * The grants taken during this process that nothing on disk names yet.
      *
      * A document only reaches the list once [MetadataLoader] has read it, long after [takeRead]
      * ran; a [prune] in that window would find nothing referring to the fresh grant and hand it
@@ -48,32 +49,27 @@ object PersistedUriPermissions {
     }
 
     /**
-     * Whether [uri] is readable through a grant that survives a restart, either because it is
-     * persisted itself or because it sits below a directory tree we hold a grant for.
+     * Whether [uri] is already readable through a grant that survives a restart.
+     *
+     * What [takeRead] cannot answer on its own: a uri that did not arrive on an intent of ours -
+     * one tapped in the recently opened list, say - cannot be persisted again, and the grant an
+     * earlier session took for it is exactly the one that makes it readable now.
      */
     fun isRetained(context: Context, uri: Uri): Boolean {
         val value = uri.toString()
 
-        for (permission in context.contentResolver.persistedUriPermissions) {
-            if (!permission.isReadPermission) {
-                continue
-            }
-
-            val held = permission.uri.toString()
-            if (held == value || value.startsWith("$held/")) {
-                return true
-            }
+        return context.contentResolver.persistedUriPermissions.any { permission ->
+            permission.isReadPermission && permission.uri.toString() == value
         }
-
-        return false
     }
 
     /**
      * Releases every persisted grant nothing refers to any more.
      *
-     * Reconciling against the stored lists rather than releasing on eviction keeps this idempotent,
-     * so grants leaked by earlier versions get mopped up too. Does file and binder work, so it must
-     * not run on the main thread.
+     * Reconciling against the stored list rather than releasing on eviction keeps this idempotent,
+     * so grants leaked by earlier versions - the directory trees the folder browser used to hold
+     * among them - get mopped up too. Does file and binder work, so it must not run on the main
+     * thread.
      */
     fun prune(context: Context) {
         // this order on purpose: a grant taken while this runs is either missing from the snapshot
@@ -88,29 +84,30 @@ object PersistedUriPermissions {
         keep.addAll(settlePending(keep))
 
         for (permission in held) {
-            val uri = permission.uri.toString()
-            if (uri in keep) {
-                continue
-            }
-
-            var flags = 0
-            if (permission.isReadPermission) {
-                flags = flags or READ_FLAG
-            }
-            if (permission.isWritePermission) {
-                flags = flags or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-            }
-
-            try {
-                // releasing with flags we do not hold throws, hence taking them off the grant
-                context.contentResolver.releasePersistableUriPermission(permission.uri, flags)
-            } catch (e: Exception) {
-                // nothing to do about it, and it will be retried on the next launch
+            if (permission.uri.toString() !in keep) {
+                release(context, permission)
             }
         }
     }
 
-    /** Remembers a grant until the recent list names it. */
+    private fun release(context: Context, permission: UriPermission) {
+        var flags = 0
+        if (permission.isReadPermission) {
+            flags = flags or READ_FLAG
+        }
+        if (permission.isWritePermission) {
+            flags = flags or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        }
+
+        try {
+            // releasing with flags we do not hold throws, hence taking them off the grant
+            context.contentResolver.releasePersistableUriPermission(permission.uri, flags)
+        } catch (e: Exception) {
+            // nothing to do about it, and it will be retried on the next launch
+        }
+    }
+
+    /** Remembers a grant until one of the stored lists names it. */
     @Synchronized
     internal fun markPending(uri: String) {
         pendingGrants.add(uri)
@@ -118,7 +115,7 @@ object PersistedUriPermissions {
 
     /**
      * Drops the pending grants [keep] has caught up with - those are reclaimable the ordinary way
-     * from now on - and hands back the ones whose document is still on its way onto the list.
+     * from now on - and hands back the ones that are still in flight.
      */
     @Synchronized
     internal fun settlePending(keep: Set<String>): Set<String> {

@@ -9,17 +9,12 @@
     <string name="toast_error_save_failed">Datoteke ni bilo mogoče shraniti. Prosimo, pišite na support@opendocument.app.</string>
     <string name="toast_error_out_of_memory">Telefonu je zmanjkalo pomnilnika! Preveč slik ali prevelika datoteka.</string>
     <string name="toast_error_password_protected">Dokument je zaščiten z geslom</string>
-    <string name="dialog_recent_title">Nedavni dokumenti</string>
-    <string name="dialog_choose_filemanager">Odpri dokument preko:</string>
     <string name="dialog_loading_title">Nalaganje …</string>
     <string name="dialog_uploading_title">Pošiljanje …</string>
     <string name="dialog_generic_loading_message">Počakajte, to lahko traja nekaj minut.</string>
     <string name="dialog_uploading_message_appendix">Poslane datoteke so zasebne in se samodejno izbrišejo po 24-ih urah.</string>
     <string name="dialog_upload_file">Tega dokumenta ne moremo odpreti, ker ne podpiramo njegove oblike. Ali ga želite začasno poslati na naš strežnik, da ga lahko vseeno prikažemo?</string>
-    <string name="dialog_list_no_documents_found">Nobenih dokumentov ni bilo najdenih</string>
-    <string name="menu_recent">Nedavni dokumenti</string>
     <string name="menu_search">Išči</string>
-    <string name="menu_open">Odpri</string>
     <string name="menu_open_with">Odpri s/z …</string>
     <string name="menu_share">Deli dokument</string>
     <string name="menu_edit">Uredi</string>
@@ -36,11 +31,10 @@
     <string name="action_tts_previous">Nazaj</string>
     <string name="action_edit_save">Shrani</string>
     <string name="action_edit_banner">Spodaj uredite dokument in pritisnite Shrani</string>
-    <string name="landing_welcome_title">Dobrodošli v \nOpenDocument Reader</string>
+    <string name="landing_intro_open_all">Ta program se registrira, da privzeto odpre vse vrste datotek, da lahko podpira programe, kot je \"Samsung Moje datoteke\". Če vam ta značilnost povzroča težave, jo lahko tukaj izklopite.</string>
     <string name="landing_intro_view">OpenDocument Reader povsod omogoča ogled dokumentov, ki so shranjeni v obliki OpenDocument (.odt, .ods, .odp).</string>
     <string name="landing_intro_search">S programom OpenDocument Reader lahko berete in hitro iščete po dokumentih.</string>
     <string name="landing_intro_edit">Ste našli še zadnjo napako v dokumentu, ki jo želite popraviti? Sedaj podpira tudi urejanje!</string>
-    <string name="landing_intro_open_all">Ta program se registrira, da privzeto odpre vse vrste datotek, da lahko podpira programe, kot je \"Samsung Moje datoteke\". Če vam ta značilnost povzroča težave, jo lahko tukaj izklopite.</string>
     <string name="tts_status_reading">Branje …</string>
     <string name="tts_status_initializing">Začenjanje TTS-a …</string>
     <string name="tts_status_ready">Pripravljen!</string>
@@ -52,11 +46,5 @@
     <string name="reopen_chooser_title">Odpri z drugim nameščenim programom na napravi:</string>
     <!--  iOS -->
     <string name="ok">V redu</string>
-    <string name="unsaved_changes">Spremembe niso shranjene!</string>
-    <string name="save_now">Shrani jih zdaj?</string>
-    <string name="yes">Da</string>
-    <string name="discard_changes">Zavrzi spremembe</string>
     <string name="cancel">Prekliči</string>
-    <string name="error">Napaka</string>
-    <string name="back_to_documents">Nazaj v dokumente</string>
 </resources>

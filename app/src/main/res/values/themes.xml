@@ -1,12 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="MainTheme" parent="Theme.AppCompat.Light">
-        <item name="colorPrimary">#ffffff</item>
-        <item name="colorPrimaryDark">#6b6b6b</item>
-        <item name="colorAccent">#b5b5b5</item>
-        <item name="android:textColorPrimary">#6b6b6b</item>
-        <item name="android:textColorSecondary">#b5b5b5</item>
+    <!--
+        Everything the theme actually is lives here, so that the qualified variants below only
+        have to add what is specific to them. Copying the whole theme per qualifier is what let
+        the colours drift apart before.
+
+        Not a .NoActionBar variant, even though no screen puts anything in the bar any more:
+        the ActionBar's container is what startSupportActionMode() raises find, tts and edit
+        in, and appcompat only shows it for as long as one of them is up. MainActivity hides
+        the bar itself on start, so the container is off screen the rest of the time and the
+        window inset math stays the one ActionBarOverlayLayout does - which a NoActionBar
+        theme would swap for a decor that pads itself, on top of the padding MainActivity
+        applies.
+    -->
+    <style name="Base.MainTheme" parent="Theme.Material3.DayNight">
+        <item name="colorPrimary">@color/md_primary</item>
+        <item name="colorOnPrimary">@color/md_on_primary</item>
+        <item name="colorPrimaryContainer">@color/md_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/md_on_primary_container</item>
+
+        <item name="colorSecondary">@color/md_secondary</item>
+        <item name="colorOnSecondary">@color/md_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/md_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/md_on_secondary_container</item>
+
+        <item name="android:colorBackground">@color/md_surface</item>
+        <item name="colorSurface">@color/md_surface</item>
+        <item name="colorOnSurface">@color/md_on_surface</item>
+        <item name="colorSurfaceVariant">@color/md_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/md_on_surface_variant</item>
+        <item name="colorSurfaceContainer">@color/md_surface_container</item>
+
+        <item name="colorTertiary">@color/md_tertiary</item>
+        <item name="colorOnTertiary">@color/md_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/md_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/md_on_tertiary_container</item>
+
+        <item name="colorSurfaceInverse">@color/md_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/md_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/md_inverse_primary</item>
+
+        <item name="colorOutline">@color/md_outline</item>
+        <item name="colorOutlineVariant">@color/md_outline_variant</item>
+
+        <item name="colorError">@color/md_error</item>
+        <item name="colorOnError">@color/md_on_error</item>
+        <item name="colorErrorContainer">@color/md_error_container</item>
+        <item name="colorOnErrorContainer">@color/md_on_error_container</item>
+
+        <!-- edge-to-edge: the bars are drawn behind, insets are padded onto main_root -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
+
+    <style name="MainTheme" parent="Base.MainTheme" />
 
 </resources>

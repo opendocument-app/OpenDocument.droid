@@ -102,7 +102,7 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
                 cachePath = coreCacheDirectory.path,
                 password = options.password,
                 editable = options.translatable,
-                paging = USE_PAGING,
+                paging = PaginationSetting.isEnabled(context),
                 keepDocument = true,
             )
 
@@ -336,12 +336,6 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
          * the other flavor, so it is not always free. See [bind].
          */
         const val PREFERRED_SERVER_PORT: Int = 29665
-
-        /**
-         * Whether odrcore renders text documents with page margins. Was the "use_paging" remote
-         * config key, which resolved to false for every user once that store went away.
-         */
-        private const val USE_PAGING = false
 
         private var coreInitialized = false
 

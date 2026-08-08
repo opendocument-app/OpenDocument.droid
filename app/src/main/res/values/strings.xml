@@ -13,17 +13,12 @@
     <string name="toast_error_upload_failed">Upload failed. Try opening the file in another app.</string>
     <string name="toast_error_out_of_memory">Device out of memory! Too many pictures, or file too big.</string>
     <string name="toast_error_password_protected">This document is password-protected</string>
-    <string name="dialog_recent_title">Recent documents</string>
-    <string name="dialog_choose_filemanager">Open document via:</string>
     <string name="dialog_loading_title">Loading…</string>
     <string name="dialog_uploading_title">Uploading…</string>
     <string name="dialog_generic_loading_message">Please wait, this could take a few minutes.</string>
     <string name="dialog_uploading_message_appendix">Uploaded files are private and automatically deleted after 24 hours.</string>
     <string name="dialog_upload_file">We aren\'t able to open this document, because we don\'t support its format. Do you want to upload it to our server temporarily, so we can display it for you anyway? Uploaded files are private and automatically deleted after 24 hours.</string>
-    <string name="dialog_list_no_documents_found">No documents found</string>
-    <string name="menu_recent">Recently opened documents</string>
     <string name="menu_search">Search in document</string>
-    <string name="menu_open">Open document</string>
     <string name="menu_open_with">Open with...</string>
     <string name="menu_share">Share document</string>
     <string name="menu_edit">Edit document</string>
@@ -60,11 +55,21 @@
     <string name="action_upload">Upload</string>
     <string name="action_contact">Contact</string>
     <string name="action_edit_banner">Edit your document below and press Save</string>
-    <string name="landing_welcome_title">Welcome to \nOpenDocument Reader</string>
+    <string name="landing_intro_open_all">By default this app only offers to open document files. If another app like \"Samsung My Files\" won\'t let you open a document here, turn this on to register for all file types.</string>
     <string name="landing_intro_view">OpenDocument Reader allows you to view documents that are stored in OpenDocument format (.odt, .ods, .odp and .odg) wherever you are.</string>
     <string name="landing_intro_search">With OpenDocument Reader you can read and search through your documents in a breeze.</string>
     <string name="landing_intro_edit">Found one last typo left to fix ahead of your big presentation? It now supports modifications too!</string>
-    <string name="landing_intro_open_all">By default this app only offers to open document files. If another app like \"Samsung My Files\" won\'t let you open a document here, turn this on to register for all file types.</string>
+    <string name="landing_section_recent">Recent</string>
+    <string name="landing_section_intro">What you can do</string>
+    <string name="landing_section_settings">Settings</string>
+    <string name="landing_pagination_title">Show page borders</string>
+    <string name="landing_pagination_body">Keep the side margins of a printed page instead of filling the screen.</string>
+    <string name="landing_catch_all_title">Offer to open any file</string>
+    <string name="landing_recent_removed">Removed from recent</string>
+    <string name="landing_undo">Undo</string>
+    <string name="landing_open_file">Open a file</string>
+    <string name="document_actions_more">More actions</string>
+    <string name="document_actions_close">Close actions</string>
     <string name="tts_status_reading">Reading…</string>
     <string name="tts_status_initializing">Initializing TTS…</string>
     <string name="tts_status_ready">Ready!</string>
@@ -81,12 +86,6 @@
 
     <!--  iOS -->
     <string name="ok">OK</string>
-    <string name="unsaved_changes">You have unsaved changes</string>
-    <string name="save_now">Save them now?</string>
-    <string name="yes">Yes</string>
-    <string name="discard_changes">Discard changes</string>
     <string name="cancel">Cancel</string>
-    <string name="error">Error</string>
-    <string name="back_to_documents">Back to documents</string>
 
 </resources>

@@ -11,18 +11,15 @@ import android.text.Spanned
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
 import androidx.core.net.toUri
-import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -40,6 +37,7 @@ import app.opendocument.droid.nonfree.CrashManager
 import app.opendocument.droid.nonfree.InAppReview
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.SnackbarHelper
+import app.opendocument.droid.ui.widget.DocumentActions
 import app.opendocument.droid.ui.widget.PageView
 import app.opendocument.droid.ui.widget.ProgressDialogFragment
 import com.google.android.material.tabs.TabLayout
@@ -47,7 +45,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 
-class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider {
+class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
     private lateinit var analyticsManager: AnalyticsManager
 
@@ -61,7 +59,16 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
     var pageView: PageView? = null
         private set
 
-    private var menu: Menu? = null
+    private lateinit var actions: DocumentActions
+    private var bottomInset = 0
+
+    /** Folding the actions back up is what back does first, while they are unfolded. */
+    private val actionsBackCallback =
+        object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                actions.collapse()
+            }
+        }
 
     /** A loader callback that arrived while the activity was stopped, replayed by [onStart]. */
     private var replayOnStart: (() -> Unit)? = null
@@ -125,11 +132,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View? {
-        requireActivity().addMenuProvider(this, requireActivity())
-
-        return inflater.inflate(R.layout.fragment_document, container, false)
-    }
+    ): View? = inflater.inflate(R.layout.fragment_document, container, false)
 
     private fun initializePageView() {
         pageView?.let {
@@ -144,6 +147,11 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
             this.pageView = pageView
 
             pageView.setDocumentFragment(this)
+
+            // a property of the page, not of the buttons over it - this used to be the last line
+            // of prepareActions(), which reached every new PageView only because the two are set
+            // up together. every one of them passes through here
+            pageView.disableDarkening()
         } catch (t: Throwable) {
             // crashManager is not set yet: onViewCreated has not run
 
@@ -174,6 +182,17 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         analyticsManager = mainActivity.analyticsManager
         crashManager = mainActivity.crashManager
 
+        actions = view.findViewById(R.id.document_actions)
+        actions.setBottomInset(bottomInset)
+        actions.listener = DocumentActions.Listener { action ->
+            mainActivity.onDocumentAction(action)
+        }
+        actions.expandedListener = { expanded -> actionsBackCallback.isEnabled = expanded }
+
+        // on viewLifecycleOwner, so it stacks above the activity's own callback - the dispatcher
+        // runs the most recently added enabled callback first
+        mainActivity.onBackPressedDispatcher.addCallback(viewLifecycleOwner, actionsBackCallback)
+
         serviceQueue = mainActivity.loaderServiceQueue
         serviceQueue.addToQueue { service -> service.setListener(this) }
 
@@ -200,6 +219,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
             crashManager.log("restoring lastResult")
 
             restoreTabs(lastResult)
+            prepareActions(lastResult)
         }
 
         pageView?.restoreState(savedInstanceState)
@@ -228,24 +248,6 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         tabLayout.addOnTabSelectedListener(tabSelectedListener)
     }
 
-    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-        this.menu = menu
-
-        menu.findItem(R.id.menu_fullscreen).isVisible = true
-        menu.findItem(R.id.menu_open_with).isVisible = true
-        menu.findItem(R.id.menu_share).isVisible = true
-        menu.findItem(R.id.menu_save).isVisible = true
-        menu.findItem(R.id.menu_print).isVisible = true
-
-        // the other menu items are dynamically enabled based on the loaded document
-        state.lastResult?.let { prepareMenu(it) }
-    }
-
-    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-        // TODO: handle menu item clicks here. currently done in Activity for historical reasons
-        return false
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
@@ -267,6 +269,10 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
     }
 
     private fun loadWithType(loaderType: FileLoader.LoaderType, options: FileLoader.Options) {
+        // whatever the last load had to say was about the last document. the offers to reopen or
+        // upload are indefinite, so without this they sit over the document that came after them
+        SnackbarHelper.dismiss(requireActivity())
+
         showProgress(loaderType == FileLoader.LoaderType.ONLINE)
 
         state.beginLoadIdling()
@@ -335,8 +341,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
                 requireActivity(),
                 R.string.toast_error_save_nofile,
                 null,
-                true,
-                true,
+                isIndefinite = true,
+                isError = true,
             )
 
             return
@@ -349,7 +355,10 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
     }
 
     private fun unload() {
-        toggleDocumentMenu(false, false, false)
+        // guarded like resetTabs below: a load can fail before there is a view to put right
+        if (::actions.isInitialized) {
+            actions.setActions(null, emptyList())
+        }
 
         resetTabs()
     }
@@ -364,43 +373,102 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
         state.lastSelectedTab = -1
     }
 
-    private fun toggleDocumentMenu(enabled: Boolean, editEnabled: Boolean, ttsEnabled: Boolean) {
-        val menu = this.menu
-        if (menu == null) {
-            val activity = activity
-            val pageView = this.pageView
-            if (activity == null || activity.isFinishing || pageView == null) {
-                return
-            }
+    /**
+     * Puts the buttons of the loaded document up, in the order they are worth reaching for.
+     *
+     * Called for every result rather than from a menu callback, which is what the toolbar version
+     * relied on: the menu was only rebuilt when something happened to invalidate it, and a document
+     * that finished loading is not one of those things.
+     */
+    private fun prepareActions(result: FileLoader.Result) {
+        // whether editing is on offer is the core's answer, not a list of formats kept here: it
+        // knows which of the documents it renders it can also write back, which is why neither the
+        // legacy binary formats nor the spreadsheets of issue #442 need naming
+        val edit =
+            if (!result.isEditable) null
+            else
+                DocumentActions.Action(
+                    DocumentActions.ACTION_EDIT,
+                    R.string.menu_edit,
+                    R.drawable.ic_edit,
+                )
 
-            // menu is not set when loadUri is called via onStart, retry later
-            pageView.post { toggleDocumentMenu(enabled, editEnabled, ttsEnabled) }
+        // read aloud needs the javascript bridge, which PageView keeps off the third party viewers
+        // an ONLINE result loads - offering it there leaves it stuck at "reading" with no paragraph
+        val tts =
+            if (result.loaderType == FileLoader.LoaderType.ONLINE) null
+            else
+                DocumentActions.Action(
+                    DocumentActions.ACTION_TTS,
+                    R.string.menu_tts,
+                    R.drawable.ic_volume_up,
+                )
 
+        // the order they unfold in, most wanted first
+        val unfolding =
+            listOfNotNull(
+                edit,
+                tts,
+                DocumentActions.Action(
+                    DocumentActions.ACTION_SHARE,
+                    R.string.menu_share,
+                    R.drawable.ic_share,
+                ),
+                DocumentActions.Action(
+                    DocumentActions.ACTION_PRINT,
+                    R.string.menu_cloud_print,
+                    R.drawable.ic_print,
+                ),
+                DocumentActions.Action(
+                    DocumentActions.ACTION_OPEN_WITH,
+                    R.string.menu_open_with,
+                    R.drawable.ic_open_in_new,
+                ),
+                DocumentActions.Action(
+                    DocumentActions.ACTION_SAVE,
+                    R.string.action_edit_save,
+                    R.drawable.ic_save,
+                ),
+                DocumentActions.Action(
+                    DocumentActions.ACTION_FULLSCREEN,
+                    R.string.menu_fullscreen,
+                    R.drawable.ic_fullscreen,
+                ),
+            )
+
+        actions.setActions(
+            DocumentActions.Action(
+                DocumentActions.ACTION_SEARCH,
+                R.string.menu_search,
+                R.drawable.ic_search,
+            ),
+            unfolding,
+        )
+    }
+
+    /**
+     * How far the gesture bar reaches into the window. The page itself runs under it - see
+     * MainActivity.applyWindowInsets - but the buttons in that corner have to stay above it.
+     *
+     * Remembered rather than applied straight away: MainActivity creates this fragment inside its
+     * own onCreate, long before there is a view to put it on.
+     */
+    fun setBottomInset(inset: Int) {
+        bottomInset = inset
+
+        if (::actions.isInitialized) {
+            actions.setBottomInset(inset)
+        }
+    }
+
+    /** Takes the buttons away while the document has the screen to itself. */
+    fun setActionsVisible(visible: Boolean) {
+        if (!::actions.isInitialized) {
             return
         }
 
-        menu.findItem(R.id.menu_edit).isVisible = editEnabled
-        menu.findItem(R.id.menu_tts).isVisible = ttsEnabled
-
-        menu.findItem(R.id.menu_search).isVisible = enabled
-    }
-
-    private fun prepareMenu(result: FileLoader.Result) {
-        // whether editing is on offer is the core's answer, not a list of formats kept here: it
-        // knows which of the documents it renders it can also write back, which is why neither the
-        // legacy binary formats nor the spreadsheets of issue #442 need naming.
-        //
-        // read aloud needs the javascript bridge, which PageView keeps off the third party viewers
-        // an ONLINE result loads - offering it there leaves it stuck at "reading" with no paragraph
-        toggleDocumentMenu(
-            enabled = true,
-            editEnabled = result.isEditable,
-            ttsEnabled = result.loaderType != FileLoader.LoaderType.ONLINE,
-        )
-
-        // pdf is the one thing worth leaving alone: inverting a page of scanned paper helps nobody
-        val fileType = result.options.fileType
-        pageView?.toggleDarkMode(fileType?.startsWith("application/pdf") != true)
+        actions.collapse()
+        actions.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
     /**
@@ -457,6 +525,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
             loadData(result.partUris[0].toString())
         }
 
+        prepareActions(result)
+
         // the escape hatch for a file we show rather than read: an image, an archive listing
         if (
             !SupportedDocumentTypes.isDocument(options.fileType) ||
@@ -506,13 +576,15 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
                 // nothing is ever going to be shown for this file, so drop back to the
                 // landing screen and let the dialog come up over that
                 state.endLoadIdling()
-                (activity as MainActivity).closeDocument()
+                giveUp(activity)
 
                 offerContact(activity)
 
                 return
             }
         }
+
+        giveUp(activity)
 
         state.endLoadIdling()
     }
@@ -567,12 +639,16 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
 
         if (result.loaderType == FileLoader.LoaderType.CORE) {
             if (serviceQueue.service?.isOnlineSupported(options) == true) {
+                // the upload offer is the app still having something to try, so the document stays
+                // where it is until the user answers it
                 offerUpload(activity, options)
             } else {
                 offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true)
+                giveUp(activity)
             }
         } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
             offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true)
+            giveUp(activity)
         }
 
         state.endLoadIdling()
@@ -581,7 +657,13 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
     override fun onSaveSuccess(outFile: Uri) {
         state.currentHtmlDiff = null
 
-        SnackbarHelper.show(requireActivity(), R.string.toast_edit_status_saved, null, false, false)
+        SnackbarHelper.show(
+            requireActivity(),
+            R.string.toast_edit_status_saved,
+            null,
+            isIndefinite = false,
+            isError = false,
+        )
 
         loadUri(outFile, true, true)
     }
@@ -589,7 +671,24 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
     override fun onSaveError() {
         state.currentHtmlDiff = null
 
-        SnackbarHelper.show(requireActivity(), R.string.toast_error_save_failed, null, true, true)
+        SnackbarHelper.show(
+            requireActivity(),
+            R.string.toast_error_save_failed,
+            null,
+            isIndefinite = true,
+            isError = true,
+        )
+    }
+
+    /**
+     * Nothing left to try with this document, so stop showing it: the landing screen is a better
+     * answer than a blank page, and the bar raised just before this says what happened.
+     *
+     * Not every failure ends here. The password prompt and the upload offer are both the app still
+     * having something to do with the file, and both need the document on screen to do it.
+     */
+    private fun giveUp(activity: Activity) {
+        (activity as MainActivity).closeFailedDocument()
     }
 
     private fun offerUpload(activity: Activity, options: FileLoader.Options) {
@@ -622,6 +721,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
             )
 
             offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true)
+            giveUp(activity)
 
             dialog.dismiss()
         }
@@ -632,7 +732,9 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
     private fun offerContact(activity: Activity) {
         analyticsManager.report("contact_offer")
 
-        // strings off the activity: closeDocument() already detached this fragment
+        // its own content view rather than setMessage plus the builder's buttons - see
+        // dialog_broken_file.xml. strings off the activity: giveUp() already detached this
+        // fragment, and its own getString() would throw
         val view = activity.layoutInflater.inflate(R.layout.dialog_broken_file, null)
 
         val dialog =
@@ -710,8 +812,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener, MenuProvider 
             activity,
             description,
             { doReopen(options, activity, true, false) },
-            isIndefinite,
-            false,
+            isIndefinite = isIndefinite,
+            isError = false,
         )
     }
 

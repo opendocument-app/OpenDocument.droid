@@ -4,8 +4,9 @@ import org.junit.Assert
 import org.junit.Test
 
 /**
- * Covers the bookkeeping that keeps a grant alive between taking it and the recent list naming it.
- * Taking and releasing the grants themselves needs a content resolver, so that part is device work.
+ * Covers the bookkeeping that keeps a grant alive between taking it and the recently opened list
+ * naming it. Taking and releasing the grants themselves needs a content resolver, so that part is
+ * device work.
  */
 class PersistedUriPermissionsTest {
 
