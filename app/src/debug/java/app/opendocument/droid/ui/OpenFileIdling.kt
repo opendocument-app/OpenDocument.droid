@@ -4,9 +4,8 @@ import androidx.test.espresso.IdlingResource
 import androidx.test.espresso.idling.CountingIdlingResource
 
 /**
- * Debug variant: a real espresso idling resource, so instrumented tests can wait for the document
- * picker round trip. The release variant of this class does nothing, which keeps espresso out of
- * the shipped apk.
+ * Debug variant: a real espresso idling resource, so instrumented tests can wait for a document to
+ * finish loading. The release variant does nothing, keeping espresso out of the shipped apk.
  */
 object OpenFileIdling {
 

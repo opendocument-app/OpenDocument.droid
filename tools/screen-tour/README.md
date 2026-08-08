@@ -83,8 +83,9 @@ document the app reached a way no user can would defeat the point.
 
 **Nothing is seeded into the app's own storage.** Writing three entries into
 `recent_documents.json` would be quicker than opening three documents through a picker, and
-would produce a screenshot of a list the app then throws away: the uris carry no grant, and
-`LandingViewModel.reload()` drops what it cannot resolve.
+would produce a screenshot of a list the app cannot use: the uris carry no grant, so opening
+one of those rows fails. `RecentDocumentDialogFragment.loadRecentDocuments()` reads the list
+straight off disk and shows whatever is in it, grant or no grant.
 
 **Each step looks for several things.** The two designs put their actions in different
 places - a toolbar and a floating button - so `MORE_BUTTON`, `OPEN_BUTTON` and the rest are

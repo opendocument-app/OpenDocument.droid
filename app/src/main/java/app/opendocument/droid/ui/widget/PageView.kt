@@ -44,15 +44,19 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     private var htmlCallback: HtmlCallback? = null
 
     /**
-     * sometimes the page stays invisible after reporting progress 100:
-     * https://stackoverflow.com/q/48082474/198996
-     *
-     * this seems to happen if progress 100 is reported before finish is called. therefore we set a
-     * timer in finish that checks if commit was ever called and reload if not.
+     * Progress 100 reported before the page commits leaves it blank
+     * (https://stackoverflow.com/q/48082474/198996), so onPageFinished schedules a reload for
+     * whatever never committed.
      */
     private val buggyWebViewHandler = Handler(Looper.getMainLooper())
 
     private var wasCommitCalled = false
+
+    private var isBridgeAttached = false
+
+    /** What [toggleDarkMode] was last set to, so printing can turn it off and put it back. */
+    var isDarkEnabled = false
+        private set
 
     init {
         settings.builtInZoomControls = true
@@ -64,17 +68,9 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         settings.useWideViewPort = true
         settings.allowFileAccess = true
 
-        // setWebContentsDebuggingEnabled(true)
-
-        addJavascriptInterface(this, "paragraphListener")
+        attachBridge(true)
 
         keepScreenOn = true
-        try {
-            val method = context.javaClass.getMethod("setSystemUiVisibility", Integer::class.java)
-            method.invoke(context, 1)
-        } catch (e: Exception) {
-            // the context is not an activity that would hide the system ui
-        }
 
         webViewClient =
             object : WebViewClient() {
@@ -98,9 +94,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
                     wasCommitCalled = true
                 }
 
-                // a document that fails to load leaves chrome's own error page on screen and
-                // said nothing to anyone. that cost a full round of ci archaeology to work out
-                // from the outside, so the main frame failing is now reported
+                // a failed load otherwise leaves chrome's error page on screen and tells nobody
                 override fun onReceivedError(
                     view: WebView,
                     request: WebResourceRequest,
@@ -153,6 +147,8 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
     @Suppress("DEPRECATION") // setForceDarkAllowed and setForceDark are the pre-webkit-1.6 api
     fun toggleDarkMode(isDarkEnabled: Boolean) {
+        this.isDarkEnabled = isDarkEnabled
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             isForceDarkAllowed = isDarkEnabled
         }
@@ -171,7 +167,39 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     override fun loadUrl(url: String) {
         wasCommitCalled = false
 
+        // sendFile writes into the cache and opens what it wrote, so the bridge must not reach
+        // the third party viewers an ONLINE result loads here. takes effect on the next load
+        if (!url.startsWith(JAVASCRIPT_SCHEME)) {
+            attachBridge(isOwnContent(url))
+        }
+
         super.loadUrl(url)
+    }
+
+    override fun destroy() {
+        // the reload is scheduled 2.5s out, and this also runs when a second document
+        // replaces the view - so it must not land on a WebView that is gone
+        buggyWebViewHandler.removeCallbacksAndMessages(null)
+
+        super.destroy()
+    }
+
+    /** Whether [url] is a document we produced: a cached file, or the core's own http server. */
+    private fun isOwnContent(url: String): Boolean =
+        url.startsWith("file://") || url.startsWith(LOCAL_SERVER_URL_PREFIX)
+
+    private fun attachBridge(attach: Boolean) {
+        if (attach == isBridgeAttached) {
+            return
+        }
+
+        if (attach) {
+            addJavascriptInterface(this, BRIDGE_NAME)
+        } else {
+            removeJavascriptInterface(BRIDGE_NAME)
+        }
+
+        isBridgeAttached = attach
     }
 
     fun setDocumentFragment(documentFragment: DocumentFragment) {
@@ -201,7 +229,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     fun requestHtml(callback: HtmlCallback) {
         this.htmlCallback = callback
 
-        loadUrl("javascript:window.paragraphListener.sendHtml(odr.generateDiff());")
+        loadUrl("${JAVASCRIPT_SCHEME}window.$BRIDGE_NAME.sendHtml(odr.generateDiff());")
     }
 
     @JavascriptInterface
@@ -255,5 +283,15 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     fun interface HtmlCallback {
 
         fun onHtml(htmlDiff: String)
+    }
+
+    private companion object {
+
+        const val BRIDGE_NAME = "paragraphListener"
+
+        const val JAVASCRIPT_SCHEME = "javascript:"
+
+        /** Where CoreLoader publishes a translated document. */
+        const val LOCAL_SERVER_URL_PREFIX = "http://localhost:"
     }
 }

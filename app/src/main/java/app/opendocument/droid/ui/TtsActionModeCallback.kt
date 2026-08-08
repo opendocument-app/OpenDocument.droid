@@ -17,9 +17,8 @@ import app.opendocument.droid.ui.widget.PageView
  * at [lastParagraphIndex] back through [ParagraphListener], and every finished utterance asks for
  * the next one.
  */
-// the utterance callback and the parameter map are the deprecated TextToSpeech API. Their
-// replacements (UtteranceProgressListener, the Bundle overload) need the utterance to be queued
-// with an id, which is a behaviour change rather than a rename - left for its own change.
+// the replacements for the deprecated utterance callback and parameter map need the utterance
+// queued with an id, which is a behaviour change rather than a rename
 @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
 class TtsActionModeCallback(private val context: Context, private val pageView: PageView) :
     ActionMode.Callback, OnInitListener, ParagraphListener, OnUtteranceCompletedListener {

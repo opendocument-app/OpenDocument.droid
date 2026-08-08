@@ -26,8 +26,7 @@ lite_alias="reader"
 
 fail() {
     if [ -n "${GITHUB_ACTIONS:-}" ]; then
-        # shown in the log the same way, and additionally as an annotation on the
-        # run itself rather than only somewhere in the middle of a step
+        # ::error:: also annotates the run itself
         echo "::error::$1"
     else
         echo "$1" >&2
@@ -48,7 +47,7 @@ fi
 verify_key() {
     local alias="$1" password="${2:-$store_password}"
     if ! keytool -certreq -alias "$alias" -keystore "$keystore" \
-            -storepass "$store_password" -keypass "${password:-$store_password}" > /dev/null; then
+            -storepass "$store_password" -keypass "$password" > /dev/null; then
         fail "the $alias key cannot be used - check its key password secret"
     fi
     echo "usable: $alias"

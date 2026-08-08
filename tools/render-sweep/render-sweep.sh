@@ -119,32 +119,22 @@ while IFS= read -r rel <&3; do
   "$ADB" shell am force-stop "$PKG" >/dev/null 2>&1
   "$ADB" logcat -c -b all >/dev/null 2>&1
 
-  # The app declares only INTERNET, so it cannot read a file pushed anywhere on
-  # shared storage - even its own /sdcard/Android/data/<pkg> comes back EACCES
-  # when the file is owned by shell. Piping it into the app's internal storage
-  # through run-as (which the debug build allows) is the one route that works.
-  #
-  # It lands as doc.<ext> rather than under its own name so that names with
-  # spaces, '$' or '+' need no quoting here and no percent-encoding in the URI
-  # below. Only the extension carries information the app might use.
+  # The app declares only INTERNET, so a file pushed to shared storage is unreadable
+  # to it; run-as into its internal storage is the one route that works. It lands as
+  # doc.<ext> so names with spaces, '$' or '+' need no quoting or percent-encoding.
   "$ADB" shell run-as "$PKG" sh -c "rm -f files/sweep/doc.*" >/dev/null 2>&1
   "$ADB" shell "run-as $PKG sh -c 'cat > files/sweep/doc.$ext'" < "$src" >/dev/null 2>&1
 
-  # No -t: leaving the mime type off is what a real opener rarely does, but it
-  # puts MetadataLoader's libmagic detection in the path instead of taking the
-  # caller's word for it, which is the more interesting half of the app.
+  # No -t: leaving the mime type off puts the app's own detection (Odr.mimetype, via
+  # MetadataLoader) in the path instead of taking the caller's word for it.
   launch=$("$ADB" shell am start -W -a android.intent.action.VIEW \
       -d "file:///data/data/$PKG/files/sweep/doc.$ext" \
       -n "$PKG/$ALIAS_SUFFIX" 2>&1 | grep -E '^Status:' | head -1 | awk '{print $2}')
   [ -z "$launch" ] && launch=nostart
 
-  # Rendering is not something the app signals from outside, so this waits - and a
-  # fixed wait is not enough. A 5MB .doc was still showing "Loading..." at 11s and a
-  # 284KB .csv was still a blank white page at 6s; both render fine given a minute,
-  # so a fixed shutter reports slow documents as broken ones.
-  #
-  # Instead: shoot, wait, shoot again, and keep going until two frames agree in size
-  # to within 1% (the clock and battery icon change, so they are never byte-equal).
+  # A fixed shutter reports slow documents as broken ones: a 5MB .doc still showed
+  # "Loading..." at 11s and rendered fine given a minute. So shoot until two frames
+  # agree in size to within 1% (the clock ticks, so they are never byte-equal).
   wait=$(( 4 + bytes / 2000000 ))
   [ $wait -gt 12 ] && wait=12
   sleep $wait
@@ -197,6 +187,9 @@ while IFS= read -r rel <&3; do
   grep -q "This document is password-protected" "$OUT/ui/$idx.xml" && signal=encrypted
   grep -q "doesn't seem to be a supported file format" "$OUT/ui/$idx.xml" && signal=upload-offer
   grep -q "Unsupported file format" "$OUT/ui/$idx.xml" && signal=unsupported
+  # DocumentFragment's dialog for a format it claimed and then could not render, which is the
+  # failure this sweep exists to find - without this such a document is recorded as ok
+  grep -q "Couldn't open this file" "$OUT/ui/$idx.xml" && signal=broken-file
   [ "$launch" != "ok" ] && signal=launch-$launch
 
   # settled=no means the shutter gave up before the screen stopped changing, so a

@@ -5,7 +5,6 @@ import android.net.Uri
 import android.os.Handler
 import android.system.Os
 import android.util.Log
-import app.opendocument.core.DecodePreference
 import app.opendocument.core.DecodedFile
 import app.opendocument.core.Document
 import app.opendocument.core.DocumentType
@@ -28,42 +27,20 @@ import java.io.IOException
 /**
  * Loads documents through odrcore and publishes them on a local http server.
  *
- * This talks to odrcore's own JNI bindings (`app.opendocument.core`, the java classes and the
- * matching `libodr_jni.so`, both out of the odr-core-android AAR). It used to go through
- * `CoreWrapper` and a hand-written JNI layer in `src/main/cpp/core_wrapper.cpp` that flattened
- * every failure into an integer error code; the core reports typed [OdrException]s instead, so the
- * codes and their mirror exception types are gone.
- *
- * The loader owns the process-wide core state: the one-time initialization, the single http server
- * and the currently open [Document] that [retranslate] edits.
+ * Owns the process wide core state: the one-time initialization, the single http server and the
+ * currently open [Document] that [retranslate] edits.
  */
-// the context is nullable like FileLoader's own field, which close() clears and the unit
-// tests never set - isSupported() is pure and does not need one
 class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
 
     private var document: Document? = null
     private var lastInputPath: String? = null
-    private var lastCachePath: String? = null
 
     /**
-     * Whether the document [host] last opened is one [edit] can do something with.
-     *
-     * This is the core's own answer, not a list of formats kept here: [host] only holds a document
-     * open when it reports itself editable and savable, so having one is the answer. The core says
-     * no to the legacy binary formats, to ooxml spreadsheets and presentations and to opendocument
-     * spreadsheets - the last of those being the same gap as issue #442, which the app used to
-     * check for by mime type on its own.
+     * Whether the document [host] last opened is one [edit] can do something with - the core's own
+     * answer, since [host] only keeps a document that reports itself editable and savable.
      */
     val isDocumentEditable: Boolean
         get() = document != null
-
-    // the shared server and the port it actually got, which is not always the preferred one.
-    // see bind() and startSharedServer()
-    private val server: HttpServer?
-        get() = sharedServer
-
-    private val serverPort: Int
-        get() = sharedServerPort
 
     override fun initialize(
         listener: FileLoaderListener,
@@ -72,9 +49,7 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
         analyticsManager: AnalyticsManager,
         crashManager: CrashManager,
     ) {
-        // loads the native library and points the core at a usable temporary directory. Kept out
-        // of the constructor so that constructing a CoreLoader stays side effect free -
-        // LoaderService calls initialize() right after new CoreLoader() anyway.
+        // loads the native library and points the core at a usable temporary directory
         initializeCore(context)
 
         startSharedServer(crashManager)
@@ -83,8 +58,8 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
     }
 
     /**
-     * Everything odrcore can turn into html, which since 6.2 is much more than documents - only csv
-     * is left out, for [RawLoader]'s table viewer. Wider than what the app offers itself for (see
+     * Everything odrcore can turn into html, which is much more than documents - only csv is left
+     * out, for [RawLoader]'s table viewer. Wider than what the app offers itself for (see
      * [SupportedDocumentTypes]): this decides how a failed load is reported, not the share sheet.
      */
     override fun isSupported(options: Options): Boolean =
@@ -119,7 +94,6 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
         val coreCacheDirectory = File(cacheDirectory, "core_cache")
 
         lastInputPath = cachedFile.path
-        lastCachePath = coreCacheDirectory.path
 
         val views =
             host(
@@ -155,13 +129,13 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
         paging: Boolean = false,
         keepDocument: Boolean = false,
     ): List<HostedView> {
-        val server = checkNotNull(server) { "core server is not running" }
+        val server = checkNotNull(sharedServer) { "core server is not running" }
 
         Log.i(TAG, "host file")
 
         server.clear()
 
-        var file = open(inputPath)
+        var file = Odr.open(inputPath)
 
         if (file.passwordEncrypted()) {
             if (password == null) {
@@ -175,21 +149,16 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
         if (keepDocument) {
             closeDocument()
 
-            // what the format could ever allow, which odrcore 6.1 answers without decoding
-            // anything. A document is only opened here when it might be kept, and opening one
-            // costs a second parse of the whole file (the TODO below) - so the formats that
-            // declare no editing, which is pdf and every spreadsheet and presentation the app
-            // renders, no longer pay for an answer that was always going to be no.
+            // an upper bound the core answers without decoding, so a format that declares no
+            // editing is not opened just to be told no
             val capabilities = file.capabilities()
 
             if (file.isDocumentFile && capabilities.edit && capabilities.save) {
                 // TODO this will cause a second load
                 val document = file.asDocumentFile().document()
 
-                // keep only what [edit] can do something with, and let the core be the one to say
-                // so - see [isDocumentEditable]. The declaration above is an upper bound; the
-                // document itself is the precise answer, and a read only one held open buys a
-                // second parse and nothing else.
+                // the document itself is the precise answer, and a read only one held open buys
+                // that second parse and nothing else
                 if (document.isEditable && document.isSavable) {
                     this.document = document
                 } else {
@@ -216,7 +185,7 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
             Log.i(TAG, "view name=" + view.name() + " path=" + view.path())
             HostedView(
                 view.name(),
-                "http://$SERVER_URL_HOST:$serverPort/file/$prefix/" + view.path(),
+                "http://$SERVER_URL_HOST:$sharedServerPort/file/$prefix/" + view.path(),
             )
         }
     }
@@ -247,10 +216,8 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
     fun edit(htmlDiff: String, outputPathPrefix: String): File {
         val document = checkNotNull(document) { "no editable document is open" }
 
-        // the file type's own extension, not [Odr.fileTypeToString], which is its *name*: the two
-        // read alike for most formats but are not the same table, and the name is not always
-        // something a file can be called (odrcore 6.1 spells the encrypted ooxml one
-        // "ooxml_encrypted")
+        // the file type's extension, not [Odr.fileTypeToString], which is its name - and a name
+        // like "ooxml_encrypted" is not something a file can be called
         val extension = Odr.fileExtensionByFileType(document.fileType())
         val outputFile = File("$outputPathPrefix.$extension")
 
@@ -263,13 +230,11 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
     }
 
     /**
-     * Drops what this loader published and leaves the server itself running - see
-     * [startSharedServer] for why it is never stopped.
+     * Drops what this loader published and leaves the server itself running - see [sharedServer]
+     * for why it is never stopped.
      */
-    override fun close() {
-        super.close()
-
-        server?.clear()
+    override fun onClose() {
+        sharedServer?.clear()
 
         closeDocument()
     }
@@ -288,24 +253,9 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
         /**
          * The one http server of the process, started on the first [initialize] and never stopped.
          *
-         * Never stopped, though no longer because stopping it was unsafe. Both of the ways odrcore
-         * let a server go used to drop the native server while the thread that called
-         * [HttpServer.listen] was still inside it - `close()` as a use after free that surfaced as
-         * a SIGSEGV in `httplib::Server::listen_internal`, and `stop()` by closing the listening
-         * socket twice, the second time after its fd number had been handed to whatever opened a
-         * file next (which android's fdsan catches by aborting the process, "attempted to close
-         * file descriptor N, actually owned by ZipArchive"). That was
-         * opendocument-app/OpenDocument.core#631, and odrcore 6.1 fixed it: `stop()` now closes the
-         * socket and waits for the accept loop to leave before releasing anything, so nothing is
-         * serving by the time it returns.
-         *
-         * What is left is that there is nobody to stop it *for*. The server is process wide, so no
-         * single loader's teardown is the end of it, and [close] drops what it published with
-         * [HttpServer.clear] and leaves the socket listening. The process exit reclaims it, which
-         * is what was really doing the work all along; nothing here ever outlived its process.
-         *
-         * A second consequence is that the port is bound once rather than once per service
-         * lifetime, so [bind]'s fallback stops being reached by our own teardown.
+         * There is nobody to stop it for: the server is process wide, so no single loader's
+         * teardown is the end of it. [close] drops what it published with [HttpServer.clear] and
+         * leaves the socket listening; the process exit reclaims it.
          */
         private var sharedServer: HttpServer? = null
 
@@ -314,34 +264,20 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
         /**
          * Binds [server], preferring [PREFERRED_SERVER_PORT], and returns the port it got.
          *
-         * The preferred port is occupied more often than it looks. Both flavors hardcode it, so
-         * lite and pro collide whenever they run on one device - the instrumented tests do exactly
-         * that, one flavor after the other - and a port does not come free the moment its owner
-         * goes away: the sockets the webview opened linger in TIME_WAIT for a minute. That second
-         * half is what [HttpServer.Options.reuseAddress] covers, on by default since the core
-         * started setting SO_REUSEADDR rather than cpp-httplib's SO_REUSEPORT; a live server of the
-         * other flavor still holds the port for real, hence the fallback to any free one.
-         *
-         * A failed bind used to be invisible: the old `listen(host, port)` returned void either
-         * way, so an occupied port left the app with no server and nothing to show for it - every
-         * document then failed with ERR_CONNECTION_REFUSED behind chrome's own error page.
-         * [HttpServer.bind] throws instead, and reports back the port that a request has to be
-         * addressed to.
+         * The preferred port is hardcoded in both flavors, so lite and pro collide whenever they
+         * run on one device - the instrumented tests do exactly that. A failed bind used to be
+         * silent, leaving every document at ERR_CONNECTION_REFUSED.
          */
         private fun bind(server: HttpServer, crashManager: CrashManager): Int {
-            // a preference of ANY_PORT is a request for an arbitrary free port, which is what the
-            // fallback below asks for anyway - there is nothing to try first
-            if (PREFERRED_SERVER_PORT != ANY_PORT) {
-                try {
-                    return server.bind(SERVER_BIND_ADDRESS, PREFERRED_SERVER_PORT)
-                } catch (e: Throwable) {
-                    crashManager.log(
-                        IOException(
-                            "core server cannot bind $SERVER_BIND_ADDRESS:$PREFERRED_SERVER_PORT",
-                            e,
-                        )
+            try {
+                return server.bind(SERVER_BIND_ADDRESS, PREFERRED_SERVER_PORT)
+            } catch (e: Throwable) {
+                crashManager.log(
+                    IOException(
+                        "core server cannot bind $SERVER_BIND_ADDRESS:$PREFERRED_SERVER_PORT",
+                        e,
                     )
-                }
+                )
             }
 
             try {
@@ -350,11 +286,9 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
                 crashManager.log(IOException("core server cannot bind any port", e))
             }
 
-            // nothing is bound at this point, so [listen] will fail as well and this port only
-            // decides which url the documents that follow are refused at. It must not be
-            // ANY_PORT, which would address every one of them to :0.
-            return if (PREFERRED_SERVER_PORT != ANY_PORT) PREFERRED_SERVER_PORT
-            else FALLBACK_SERVER_PORT
+            // nothing is bound, so listen() fails too - this port only decides which url the
+            // documents that follow are refused at
+            return PREFERRED_SERVER_PORT
         }
 
         /** Starts [sharedServer] if this is the first loader to ask. */
@@ -399,39 +333,19 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
 
         /**
          * The port the server prefers. Only a preference: it is hardcoded and therefore shared with
-         * the other flavor, so it is not always free. Set it to [ANY_PORT] to always take whatever
-         * is going. See [bind].
+         * the other flavor, so it is not always free. See [bind].
          */
         const val PREFERRED_SERVER_PORT: Int = 29665
 
         /**
-         * The port the urls name when nothing could be bound at all and the preference is
-         * [ANY_PORT], which cannot be passed on - the resulting url would address :0. Only reached
-         * when the device has nothing free, where any choice is as good as the next.
-         */
-        private const val FALLBACK_SERVER_PORT: Int = 29665
-
-        /**
-         * Whether odrcore renders text documents with page margins. This used to be read from the
-         * "use_paging" remote config key, but that resolved to false for every user since firebase
-         * remote config was removed - the ConfigManager left behind is a stub without a backing
-         * store. Kept as an explicit constant so the shipped behavior is visible instead of hidden
-         * behind a lookup that cannot return a value.
+         * Whether odrcore renders text documents with page margins. Was the "use_paging" remote
+         * config key, which resolved to false for every user once that store went away.
          */
         private const val USE_PAGING = false
 
         private var coreInitialized = false
 
-        /**
-         * One-time process wide setup of the core: the temporary directory, and nothing else.
-         *
-         * There used to be data to unpack here - the renderer's css and js, and libmagic's
-         * database - out of `assets/core` and into [Context.getFilesDir], with
-         * `GlobalParams.setOdrCoreDataPath` and `setLibmagicDatabasePath` pointing the core at the
-         * result. odrcore 6.2 ended both: the css and js are written into the html it produces, and
-         * `Odr.mimetype` is core's own detection rather than libmagic. Both setters are inert now,
-         * so the extraction only cost startup time and apk size.
-         */
+        /** One-time process wide setup of the core: the temporary directory, and nothing else. */
         @Synchronized
         fun initializeCore(context: Context) {
             if (coreInitialized) {
@@ -439,27 +353,14 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
             }
 
             // core resolves its temporary directory through std::filesystem::temp_directory_path(),
-            // which falls back to /tmp - a path that does not exist on android. this replaces the
-            // tmpfile() interposition that used to live in src/main/cpp/tmpfile_hack.cpp: that only
-            // worked while the app linked the core into a library it compiled itself, and
-            // libodr_jni.so is a prebuilt now. has to happen before the first native call, because
-            // core caches the directory on first use.
+            // which falls back to /tmp - a path that does not exist on android. has to happen
+            // before the first native call, because core caches the directory on first use
             Os.setenv("TMPDIR", context.cacheDir.absolutePath, true)
 
             Log.i(TAG, "odrcore " + Odr.identify())
 
             coreInitialized = true
         }
-
-        /**
-         * Opens [path].
-         *
-         * This used to pass a [DecodePreference] naming core's own decoder engine, since the
-         * pdf2htmlEX and wvWare ones were compiled out of the android build and asking for them
-         * would only produce "unsupported decoder engine" failures. odrcore 6 dropped those
-         * backends and with them the whole engine dimension, so there is nothing left to choose.
-         */
-        private fun open(path: String): DecodedFile = Odr.open(path)
 
         /**
          * Spreadsheets show one tab per sheet; every other format only shows the full "document"

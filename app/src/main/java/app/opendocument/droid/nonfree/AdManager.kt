@@ -46,13 +46,15 @@ class AdManager {
         analyticsManager: AnalyticsManager,
         crashManager: CrashManager,
     ) {
-        if (!enabled) {
-            return
-        }
-
+        // before the guard: removeAds() and destroyAds() reach these even with ads disabled,
+        // which billing does whenever the user has already paid
         this.activity = activity
         this.crashManager = crashManager
         this.analyticsManager = analyticsManager
+
+        if (!enabled) {
+            return
+        }
 
         try {
             MobileAds.initialize(activity)
@@ -138,7 +140,7 @@ class AdManager {
     }
 
     private fun requestConsentInfo(gatherConsent: Boolean) {
-        if (!initialized) {
+        if (!initialized || isActivityGone()) {
             return
         }
 
@@ -149,9 +151,19 @@ class AdManager {
             activity,
             params,
             {
+                // both callbacks come back off the network, seconds later and with the
+                // activity captured, so the one they were meant for may be gone by then
+                if (isActivityGone()) {
+                    return@requestConsentInfoUpdate
+                }
+
                 if (gatherConsent) {
                     UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) {
                         loadAndShowError ->
+                        if (isActivityGone()) {
+                            return@loadAndShowConsentFormIfRequired
+                        }
+
                         if (loadAndShowError != null) {
                             // the ump sdk only logs an unspecific "Error making request."
                             crashManager.log("consent form failed: " + describe(loadAndShowError))
@@ -164,14 +176,20 @@ class AdManager {
                 }
             },
             { requestConsentError ->
-                // fires for the mundane offline case too - a device that was asleep
-                // times out against fundingchoicesmessages.google.com
+                if (isActivityGone()) {
+                    return@requestConsentInfoUpdate
+                }
+
+                // fires for the mundane offline case too, not just a real failure
                 crashManager.log("consent info update failed: " + describe(requestConsentError))
 
                 consentSettled(consentInformation)
             },
         )
     }
+
+    private fun isActivityGone(): Boolean =
+        !::activity.isInitialized || activity.isFinishing || activity.isDestroyed
 
     private fun consentSettled(consentInformation: ConsentInformation) {
         this.consentInformation = consentInformation
@@ -372,15 +390,13 @@ class AdManager {
 
     fun destroyAds() {
         try {
-            // keeps throwing exceptions for some users:
-            // Caused by: java.lang.NullPointerException
-            // android.webkit.WebViewClassic.requestFocus(WebViewClassic.java:9898)
-            // android.webkit.WebView.requestFocus(WebView.java:2133)
-            // android.view.ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
+            // has thrown out of the ad sdk's own focus handling for some users
             adView?.destroy()
         } catch (e: Exception) {
             crashManager.log(e)
         }
+
+        adView = null
     }
 
     private companion object {

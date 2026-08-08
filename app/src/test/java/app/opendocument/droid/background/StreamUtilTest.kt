@@ -28,7 +28,7 @@ class StreamUtilTest {
 
     @Test
     fun copyLargeStream() {
-        // larger than the internal 1024 byte buffer
+        // larger than copyTo's buffer
         val data = ByteArray(10000)
         for (i in data.indices) {
             data[i] = (i % 256).toByte()

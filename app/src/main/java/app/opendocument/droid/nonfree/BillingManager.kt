@@ -11,7 +11,7 @@ class BillingManager {
     private var adManager: AdManager? = null
     private var billingPreferences: BillingPreferences? = null
 
-    fun initialize(context: Context, analyticsManager: AnalyticsManager, adManager: AdManager) {
+    fun initialize(context: Context, adManager: AdManager) {
         this.adManager = adManager
 
         val preferences = BillingPreferences(context)
@@ -48,6 +48,4 @@ class BillingManager {
     fun setEnabled(enabled: Boolean) {
         this.enabled = enabled
     }
-
-    fun isEnabled(): Boolean = enabled
 }

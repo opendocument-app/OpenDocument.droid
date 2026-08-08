@@ -19,11 +19,11 @@ import java.io.File
 
 /**
  * Owns the four loaders and the background thread they run on, and decides what to try next when
- * one of them succeeds or fails: metadata first, then the core, and finally an upload the user has
- * to agree to.
+ * one of them succeeds or fails: metadata first, then raw or the core, and finally an upload the
+ * user has to agree to.
  *
  * [RawLoader] sits outside that chain rather than at the end of it: the core would succeed at a
- * csv, so it has to be asked first. Everything else the core cannot open goes to the upload offer.
+ * csv, so it has to be asked first.
  */
 class LoaderService : Service(), FileLoader.FileLoaderListener {
 
@@ -180,9 +180,8 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
             )
 
             if (coreLoader.isSupported(options)) {
-                // the core names this format and still said no, so the file is what is wrong.
-                // an upload would only run the same engine again - onUnsupported is below,
-                // for the formats the core never claimed
+                // the core names the format and still said no, so the file is what is wrong -
+                // an upload would only run the same engine again
                 withListener { it.onError(result, error) }
             } else {
                 withListener { it.onUnsupported(result) }
@@ -190,9 +189,8 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
 
             return
         } else if (result.loaderType == FileLoader.LoaderType.RAW) {
-            // the core has not had its turn yet and is a real fallback for all three. Not gated
-            // on isSupported, which says no to csv by design; if it fails too, the branch above
-            // reports that properly
+            // the core has not had its turn yet. not gated on isSupported, which says no to csv
+            // by design; if it fails too, the branch above reports that properly
             loadWithType(FileLoader.LoaderType.CORE, options)
 
             return
@@ -253,7 +251,9 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
             backup = backUp(outFile)
 
             try {
-                writeTo(outFile, fileToSave)
+                if (!writeTo(outFile, fileToSave)) {
+                    crashManager.log("saved without truncating: $outFile")
+                }
             } catch (e: Throwable) {
                 backupIsTheLastCopy = !restore(outFile, backup)
 
@@ -276,16 +276,15 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
             // if the rollback did not get the old content back in, this copy is all that is
             // left of it - leave it in the cache rather than finishing the job
             if (!backupIsTheLastCopy) {
-                backup?.delete()
+                backup?.let { AndroidFileCache.deleteCacheFile(it) }
             }
         }
     }
 
     /** Copies [source] over [uri]. False if the provider would not truncate first. */
     private fun writeTo(uri: Uri, source: File): Boolean {
-        // "wt" and not the default "w": not every provider truncates for "w", which leaves the
-        // tail of a longer previous document sitting behind the new content. for a zip container
-        // like odt or docx that trailing garbage is what makes the file stop opening
+        // "wt", not the default "w": not every provider truncates for "w", and the tail of a
+        // longer previous document left behind is what stops an odt or docx opening
         var truncated = true
 
         val outputStream =
@@ -317,23 +316,22 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
                 backup
             } else {
                 // a document that was just created has nothing worth keeping
-                backup.delete()
+                AndroidFileCache.deleteCacheFile(backup)
 
                 null
             }
         } catch (e: Throwable) {
             // unreadable target: no worse than before, the save just cannot be rolled back
             crashManager.log(e, uri)
-            backup.delete()
+            AndroidFileCache.deleteCacheFile(backup)
 
             null
         }
     }
 
     /**
-     * Puts [backup] back into [uri]. False if the old content could not be restored - including the
-     * case where it went in without truncating, which leaves the tail of the failed save behind it
-     * and is no more readable than what it replaced.
+     * Puts [backup] back into [uri]. False if the old content could not be restored, including a
+     * write that did not truncate and so left the tail of the failed save behind it.
      */
     private fun restore(uri: Uri, backup: File?): Boolean {
         if (backup == null) {
@@ -365,7 +363,8 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
         rawLoader.close()
         onlineLoader.close()
 
-        backgroundThread.quit()
+        // quitSafely, not quit: close() posts each loader's teardown, which quit() would drop
+        backgroundThread.quitSafely()
 
         super.onDestroy()
     }

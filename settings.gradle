@@ -6,11 +6,9 @@ pluginManagement {
     }
 }
 
-// odr-core-android carries both halves of odrcore's JNI bindings - the java classes and
-// a libodr_jni.so per ABI, built together and published as one AAR - so the pair cannot
-// drift the way two separately versioned artifacts could. It comes from maven central
-// rather than github packages on purpose: github packages demands authentication even
-// for a public artifact, which no clean source builder such as f-droid can supply.
+// odr-core-android holds odrcore's java classes and libodr_jni.so in one AAR, so the two
+// halves cannot drift apart. From maven central rather than github packages, which wants
+// authentication even for a public artifact - f-droid and other clean builders have none.
 dependencyResolutionManagement {
     repositories {
         google()

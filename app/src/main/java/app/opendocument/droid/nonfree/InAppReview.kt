@@ -4,18 +4,13 @@ import android.app.Activity
 import com.google.android.play.core.review.ReviewManagerFactory
 
 /**
- * The play in-app review sheet.
- *
- * Play decides from an undocumented per-user quota whether the sheet appears at all, and the
- * completion listener fires the same way either way. The analytics events below are the only
- * visibility there is.
+ * The play in-app review sheet. Whether it appears at all is Play's own per-user quota, and the
+ * completion listener fires either way - the analytics events are the only visibility there is.
  */
 object InAppReview {
 
-    /**
-     * Opens before the first ask - a fresh install has nothing to say yet, and asking costs stars.
-     */
-    const val MINIMUM_OPENS: Int = 3
+    /** Opens before the first ask: a fresh install has nothing to say, and asking costs stars. */
+    private const val MINIMUM_OPENS: Int = 3
 
     fun requestIfEarned(activity: Activity, analyticsManager: AnalyticsManager, opens: Int) {
         if (opens < MINIMUM_OPENS) {
@@ -25,7 +20,7 @@ object InAppReview {
         request(activity, analyticsManager)
     }
 
-    fun request(activity: Activity, analyticsManager: AnalyticsManager) {
+    private fun request(activity: Activity, analyticsManager: AnalyticsManager) {
         analyticsManager.report("in_app_review_eligible")
 
         val manager = ReviewManagerFactory.create(activity)

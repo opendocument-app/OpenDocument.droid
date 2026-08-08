@@ -22,6 +22,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ActionMode as SupportActionMode
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.view.MenuProvider
 import androidx.core.view.ViewCompat
@@ -62,9 +63,8 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
     private var fullscreen = false
 
-    // With targetSdk 36 predictive back is enabled by default and neither KEYCODE_BACK
-    // nor onBackPressed() are delivered anymore, so back is intercepted via the
-    // OnBackPressedDispatcher instead.
+    // predictive back (default from targetSdk 36) delivers neither KEYCODE_BACK nor
+    // onBackPressed(), so back is intercepted through the dispatcher
     private val backCallback =
         object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -90,7 +90,9 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         }
 
     private var ttsActionMode: TtsActionModeCallback? = null
-    private var editActionMode: EditActionModeCallback? = null
+
+    /** The action mode on screen, so [closeDocument] and [onDestroy] can take it down with them. */
+    private var currentActionMode: SupportActionMode? = null
 
     lateinit var crashManager: CrashManager
         private set
@@ -106,9 +108,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
     private var loadOnStart: Uri? = null
     private var lastSaveUri: Uri? = null
 
-    // documents opened from another app keep the default back behavior (returning
-    // to that app), while documents opened from within the app go back to the
-    // landing screen instead of closing the app
+    // back returns to the calling app for these, rather than to the landing screen
     private var documentOpenedExternally = false
 
     // set before we start an activity of our own, so coming back from it is not counted as
@@ -120,12 +120,22 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
     private var service: LoaderService? = null
 
+    /**
+     * Whether [bindService] was called. Not the same as holding a [service]: the binder arrives
+     * asynchronously, and an activity destroyed before it does still has to unbind.
+     */
+    private var isBound = false
+
     private val connection =
         object : ServiceConnection {
             override fun onServiceDisconnected(name: ComponentName?) {
                 service?.setListener(null)
 
                 service = null
+
+                // the queue holds its own reference, and handing work to a service whose
+                // background thread has quit drops it without telling anyone
+                loaderServiceQueue.service = null
             }
 
             override fun onServiceConnected(name: ComponentName?, binder: IBinder) {
@@ -168,9 +178,8 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
         setContentView(R.layout.main)
 
-        // Edge-to-edge is enforced from targetSdk 35 on: pad the root view so content
-        // stays clear of the system bars, display cutouts and the keyboard. On older
-        // devices the window does not extend under the bars and the insets are zero.
+        // edge-to-edge is enforced from targetSdk 35 on: pad the root so content stays clear
+        // of the system bars, cutouts and the keyboard
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_root)) { view, windowInsets
             ->
             val insets =
@@ -189,6 +198,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
         loaderServiceQueue = LoaderServiceQueue()
         bindService(Intent(this, LoaderService::class.java), connection, BIND_AUTO_CREATE)
+        isBound = true
 
         handler = Handler(Looper.getMainLooper())
 
@@ -210,8 +220,8 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
         initializeCatchAllSwitch()
 
-        // reclaims the uri permissions of documents that have since dropped off the recently
-        // opened list. touches the filesystem and the permission binder, so not on the main thread
+        // reclaims the grants of documents that dropped off the recent list; hits the
+        // filesystem and the permission binder, so off the main thread
         Thread { PersistedUriPermissions.prune(applicationContext) }.start()
 
         crashManager.log("onCreate")
@@ -276,8 +286,8 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
         crashManager.log("onStart")
 
-        // here rather than in onCreate: tapping the launcher while the task is still alive
-        // resumes this activity instead of creating it, and those opens count too
+        // not in onCreate: a launcher tap onto a live task resumes rather than creates,
+        // and those opens count too
         if (documentFragment == null && loadOnStart == null) {
             if (leftForOwnActivity) {
                 leftForOwnActivity = false
@@ -300,8 +310,6 @@ class MainActivity : AppCompatActivity(), MenuProvider {
     }
 
     private fun initializeCatchAllSwitch() {
-        // retoggles the aliases for users upgrading from a version that shipped different
-        // defaults, and answers with what the stored setting says
         val isCatchAllEnabled = CatchAllSetting.applyOnLaunch(this)
 
         val catchAllSwitch = findViewById<SwitchCompat>(R.id.landing_catch_all)
@@ -350,7 +358,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
             leftForOwnActivity = true
             createDocumentLauncher.launch(intent)
         } catch (e: ActivityNotFoundException) {
-            // happens on a variety devices, e.g. Samsung Galaxy Tab4 7.0 with Android 4.4.2
+            // a device with nothing handling ACTION_CREATE_DOCUMENT - there is nowhere to save to
             crashManager.log(e)
         }
     }
@@ -385,7 +393,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
         billingManager = BillingManager()
         billingManager.setEnabled(useProprietaryLibraries)
-        billingManager.initialize(this, analyticsManager, adManager)
+        billingManager.initialize(this, adManager)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -414,10 +422,8 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         menu.findItem(R.id.menu_privacy_options).isVisible = adManager.isPrivacyOptionsRequired()
     }
 
-    // The play services availability dialog calls startActivityForResult() itself with a
-    // request code we hand it, so its result cannot be routed through an
-    // ActivityResultLauncher. Everything the app launches on its own goes through the
-    // launchers declared above.
+    // the play services availability dialog calls startActivityForResult() itself with a request
+    // code we hand it, so its result cannot come back through an ActivityResultLauncher
     @Deprecated("Deprecated in Java")
     @Suppress("DEPRECATION")
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
@@ -464,15 +470,10 @@ class MainActivity : AppCompatActivity(), MenuProvider {
             uri.toString(),
         )
 
-        // the grant has to outlive this call: loadUri only queues the load onto LoaderService,
-        // so MetadataLoader opens the stream long after we return. releasing it here - as this
-        // used to - also dropped the persisted grant, which left every uri in the recently
-        // opened list unreadable on the next launch. PersistedUriPermissions.prune() reclaims
-        // them instead, once nothing refers to them any more.
-        //
-        // takeRead fails for a document below a directory tree we were granted, because only a
-        // uri that arrived on one of our own intents can be persisted - isRetained covers those,
-        // so browsing to a document still records it as recent
+        // the grant has to outlive this call: the load is only queued, so the stream is opened
+        // long after we return. releasing it here also dropped the persisted grant, leaving the
+        // recent documents unreadable - prune() reclaims instead. isRetained covers a document
+        // below a granted tree, which cannot be persisted on its own
         val isPersistentUri =
             PersistedUriPermissions.takeRead(this, uri) ||
                 PersistedUriPermissions.isRetained(this, uri)
@@ -487,7 +488,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
             R.id.menu_search -> {
                 val findActionModeCallback = FindActionModeCallback(this)
                 documentFragment?.pageView?.let { findActionModeCallback.setWebView(it) }
-                startSupportActionMode(findActionModeCallback)
+                currentActionMode = startSupportActionMode(findActionModeCallback)
 
                 analyticsManager.report("menu_search")
                 analyticsManager.report(AnalyticsConstants.EVENT_SEARCH)
@@ -570,9 +571,14 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                 analyticsManager.report("menu_print")
 
                 documentFragment?.pageView?.let { pageView ->
+                    // printing a dark page wastes ink, but the setting has to come back
+                    // afterwards or the rest of the document is read in light mode. only once
+                    // the job is over: the print framework reads the page well after print()
+                    val wasDark = pageView.isDarkEnabled
+
                     pageView.toggleDarkMode(false)
 
-                    printingManager.print(this, pageView)
+                    printingManager.print(this, pageView) { pageView.toggleDarkMode(wasDark) }
                 }
             }
 
@@ -583,7 +589,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                     val ttsActionMode = TtsActionModeCallback(this, pageView)
                     this.ttsActionMode = ttsActionMode
 
-                    startSupportActionMode(ttsActionMode)
+                    currentActionMode = startSupportActionMode(ttsActionMode)
                 }
             }
 
@@ -591,10 +597,8 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                 analyticsManager.report("menu_edit")
 
                 documentFragment?.let { fragment ->
-                    val editActionMode = EditActionModeCallback(this, fragment)
-                    this.editActionMode = editActionMode
-
-                    startSupportActionMode(editActionMode)
+                    currentActionMode =
+                        startSupportActionMode(EditActionModeCallback(this, fragment))
                 }
             }
 
@@ -626,7 +630,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
     override fun onActionModeFinished(mode: ActionMode?) {
         super.onActionModeFinished(mode)
 
-        editActionMode = null
+        currentActionMode = null
         ttsActionMode = null
     }
 
@@ -646,8 +650,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
     private fun buyAdRemoval() {
         analyticsManager.report(AnalyticsConstants.EVENT_ADD_TO_CART)
 
-        // the play listing id is the applicationId, which stays at.tomtasche.reader.pro
-        // - it is not the java package and does not follow the namespace rename
+        // the play listing id is the applicationId, not the renamed java package
         startActivity(
             Intent(
                 Intent.ACTION_VIEW,
@@ -671,9 +674,11 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         analyticsManager.report("fullscreen_end")
     }
 
-    // also called by DocumentFragment when a load failed for good, so the landing screen is
-    // what the error dialog comes up over rather than an empty document view
+    // also called by DocumentFragment, so an error dialog comes up over the landing screen
     fun closeDocument() {
+        // the fragment goes first: finishing an edit mode reloads the document it acts on, and
+        // that load would put a progress dialog up over a fragment that is about to be removed.
+        // reloadUri() is a no-op once it is detached
         documentFragment?.let { fragment ->
             removeMenuProvider(fragment)
 
@@ -681,6 +686,9 @@ class MainActivity : AppCompatActivity(), MenuProvider {
 
             documentFragment = null
         }
+
+        // an edit or tts mode would otherwise outlive the document it acts on
+        currentActionMode?.finish()
 
         lastUri = null
 
@@ -759,8 +767,13 @@ class MainActivity : AppCompatActivity(), MenuProvider {
     }
 
     override fun onDestroy() {
-        if (service != null) {
+        // appcompat does not finish it for us, and TtsActionModeCallback only shuts its
+        // engine down when the mode is destroyed
+        currentActionMode?.finish()
+
+        if (isBound) {
             unbindService(connection)
+            isBound = false
         }
 
         printingManager.close()
@@ -768,12 +781,7 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         adManager.destroyAds()
 
         try {
-            // keeps throwing exceptions for some users:
-            // Caused by: java.lang.NullPointerException
-            // android.webkit.WebViewClassic.requestFocus(WebViewClassic.java:9898)
-            // android.webkit.WebView.requestFocus(WebView.java:2133)
-            // ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
-
+            // has thrown out of the WebView's focus handling for some users
             super.onDestroy()
         } catch (e: Exception) {
             crashManager.log(e)
