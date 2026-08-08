@@ -111,7 +111,6 @@ android {
 
         pro {
             applicationIdSuffix = ".pro"
-            versionNameSuffix = "-pro"
 
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.releasePro
