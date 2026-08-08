@@ -64,6 +64,11 @@ code says otherwise. Do not add a `BuildConfig.FLAVOR` comparison back - it was 
 resource bool `DISABLE_TRACKING` was both mistakes at once: there is no tracking to
 disable, `AnalyticsManager` and `CrashManager` write to logcat and nowhere else.
 
+Those two take no switch at all, which is why `LoaderService` just constructs them. Ads
+and billing are what `MainActivity.initializeManagers` gates, on `Features.withAds` *and*
+`PlayServices` - the device half of the answer, and the reason that method can run twice,
+once more after google's own dialog comes back.
+
 foss carries `applicationIdSuffix .foss` so a sideload sits beside a play install;
 f-droid strips it, since its listing is `at.tomtasche.reader` and that can never change.
 

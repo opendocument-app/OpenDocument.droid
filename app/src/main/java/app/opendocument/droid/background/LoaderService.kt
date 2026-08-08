@@ -11,8 +11,6 @@ import android.os.Looper
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
-import app.opendocument.droid.nonfree.Features
-import app.opendocument.droid.nonfree.PlayServices
 import app.opendocument.droid.ui.activity.DocumentFragment
 import java.io.File
 
@@ -52,7 +50,11 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
 
         backgroundHandler = Handler(backgroundThread.looper)
 
-        initializeProprietaryLibraries()
+        crashManager = CrashManager()
+        crashManager.initialize()
+
+        analyticsManager = AnalyticsManager()
+        analyticsManager.initialize(this)
 
         metadataLoader = MetadataLoader(this)
         metadataLoader.initialize(
@@ -77,23 +79,6 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
             analyticsManager,
             crashManager,
         )
-    }
-
-    // copied from MainActivity, consider how to deduplicate
-    private fun initializeProprietaryLibraries() {
-        var useProprietaryLibraries = Features.withAds
-
-        if (useProprietaryLibraries) {
-            useProprietaryLibraries = PlayServices.isAvailable(this)
-        }
-
-        crashManager = CrashManager()
-        crashManager.setEnabled(useProprietaryLibraries)
-        crashManager.initialize()
-
-        analyticsManager = AnalyticsManager()
-        analyticsManager.setEnabled(useProprietaryLibraries)
-        analyticsManager.initialize(this)
     }
 
     override fun onBind(intent: Intent?): IBinder = LoaderBinder()
