@@ -17,8 +17,6 @@
 package app.opendocument.droid.ui
 
 import android.content.Context
-import android.graphics.Point
-import android.graphics.Rect
 import android.text.Editable
 import android.text.Selection
 import android.text.Spannable
@@ -46,20 +44,12 @@ class FindActionModeCallback(context: Context) :
     private var webView: WebView? = null
     private var matchesFound = false
     private var numberOfMatches = 0
-    private var activeMatchIndex = 0
     private var actionMode: ActionMode? = null
-
-    private val globalVisibleRect = Rect()
-    private val globalVisibleOffset = Point()
 
     init {
         editText.setOnClickListener(this)
         setText("")
         matches = customView.findViewById(R.id.matches)
-    }
-
-    fun finish() {
-        actionMode?.finish()
     }
 
     /**
@@ -145,14 +135,17 @@ class FindActionModeCallback(context: Context) :
         }
     }
 
-    fun updateMatchCount(matchIndex: Int, matchCount: Int, isEmptyFind: Boolean) {
-        if (!isEmptyFind) {
-            numberOfMatches = matchCount
-            activeMatchIndex = matchIndex
-        } else {
-            matches.visibility = View.GONE
+    private fun updateMatchCount(matchIndex: Int, matchCount: Int, isEmptyFind: Boolean) {
+        if (isEmptyFind) {
             numberOfMatches = 0
+            matches.visibility = View.GONE
+
+            return
         }
+
+        numberOfMatches = matchCount
+        matches.text = "${matchIndex + 1}/$matchCount"
+        matches.visibility = View.VISIBLE
     }
 
     // OnClickListener implementation
@@ -164,11 +157,8 @@ class FindActionModeCallback(context: Context) :
     // ActionMode.Callback implementation
 
     override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-        // the AOSP original this class is derived from bailed out here when
-        // mode.isUiFocusable() was false, to avoid an unusable find field inside a
-        // dialog. That method is @RestrictTo(LIBRARY_GROUP_PREFIX) on the appcompat
-        // ActionMode, so it is not ours to call. We only ever start this action mode
-        // from MainActivity via startSupportActionMode(), never from a dialog.
+        // the AOSP original bailed out here on !mode.isUiFocusable(), which appcompat marks
+        // @RestrictTo. we never start this from a dialog.
 
         mode.customView = customView
         mode.menuInflater.inflate(R.menu.webview_find, menu)
@@ -184,9 +174,13 @@ class FindActionModeCallback(context: Context) :
 
     override fun onDestroyActionMode(mode: ActionMode) {
         actionMode = null
-        val webView = requireWebView("onDestroyActionMode")
-        webView.setFindListener(null)
-        input.hideSoftInputFromWindow(webView.windowToken, 0)
+
+        // tolerant, unlike the paths that need a page to search: the mode is started before
+        // setWebView and dismissing it must not throw out of the framework's own callback
+        webView?.let {
+            it.setFindListener(null)
+            input.hideSoftInputFromWindow(it.windowToken, 0)
+        }
     }
 
     override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
@@ -219,24 +213,5 @@ class FindActionModeCallback(context: Context) :
 
     override fun afterTextChanged(s: Editable?) {
         // Does nothing.  Needed to implement TextWatcher.
-    }
-
-    fun getActionModeGlobalBottom(): Int {
-        if (actionMode == null) {
-            return 0
-        }
-        val view = customView.parent as? View ?: customView
-        view.getGlobalVisibleRect(globalVisibleRect, globalVisibleOffset)
-        return globalVisibleRect.bottom
-    }
-
-    class NoAction : ActionMode.Callback {
-        override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean = false
-
-        override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean = false
-
-        override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean = false
-
-        override fun onDestroyActionMode(mode: ActionMode) {}
     }
 }

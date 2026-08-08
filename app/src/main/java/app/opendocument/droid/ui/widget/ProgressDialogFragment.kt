@@ -9,10 +9,7 @@ import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import app.opendocument.droid.R
 
-/**
- * @JvmOverloads keeps the no-arg constructor the framework needs to re-create the fragment; a
- *   restored dialog reports itself as a load, same as before.
- */
+/** @JvmOverloads keeps the no-arg constructor the fragment framework re-creates this with. */
 @SuppressLint("ValidFragment")
 class ProgressDialogFragment @JvmOverloads constructor(private val isUpload: Boolean = false) :
     DialogFragment() {

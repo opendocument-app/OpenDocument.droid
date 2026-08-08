@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Inflated into the page container of fragment_document every time a document is
-  loaded: the WebView is thrown away and recreated rather than reused, so no state
-  from the previous document can leak into the next one.
+  Re-inflated per document: the WebView is recreated rather than reused, so no state
+  leaks from one document into the next.
 -->
 <app.opendocument.droid.ui.widget.PageView
         xmlns:android="http://schemas.android.com/apk/res/android"

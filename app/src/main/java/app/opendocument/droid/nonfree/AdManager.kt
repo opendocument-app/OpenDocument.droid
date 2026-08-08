@@ -19,22 +19,18 @@ class AdManager {
 
     private lateinit var activity: Activity
     private lateinit var crashManager: CrashManager
-    private lateinit var analyticsManager: AnalyticsManager
     private lateinit var adContainer: LinearLayout
     private var adView: AdView? = null
 
-    fun initialize(
-        activity: Activity,
-        analyticsManager: AnalyticsManager,
-        crashManager: CrashManager,
-    ) {
+    fun initialize(activity: Activity, crashManager: CrashManager) {
+        // before the guard: removeAds() and destroyAds() reach these even with ads disabled,
+        // which billing does whenever the user has already paid
+        this.activity = activity
+        this.crashManager = crashManager
+
         if (!enabled) {
             return
         }
-
-        this.activity = activity
-        this.crashManager = crashManager
-        this.analyticsManager = analyticsManager
 
         try {
             MobileAds.initialize(activity)
@@ -63,6 +59,9 @@ class AdManager {
             return
         }
 
+        // a configuration change builds a fresh banner, and only the field's current occupant
+        // is ever destroyed - so the one being replaced has to go now
+        this.adView?.destroy()
         this.adView = adView
 
         adContainer.removeAllViews()
@@ -82,7 +81,7 @@ class AdManager {
     }
 
     fun showGoogleAds() {
-        if (!enabled) {
+        if (!enabled || isActivityGone()) {
             return
         }
 
@@ -93,12 +92,20 @@ class AdManager {
             activity,
             params,
             {
+                // both callbacks come back off the network, seconds later and with the
+                // activity captured, so the one they were meant for may be gone by then
+                if (isActivityGone()) {
+                    return@requestConsentInfoUpdate
+                }
+
                 UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { loadAndShowError
                     ->
+                    if (isActivityGone()) {
+                        return@loadAndShowConsentFormIfRequired
+                    }
+
                     if (loadAndShowError != null || !consentInformation.canRequestAds()) {
-                        // without this the banner just silently stays hidden,
-                        // and the ump sdk only logs an unspecific "Error
-                        // making request."
+                        // the ump sdk only logs an unspecific "Error making request."
                         crashManager.log(
                             "consent form failed: " +
                                 describe(loadAndShowError) +
@@ -115,14 +122,20 @@ class AdManager {
                 }
             },
             { requestConsentError ->
-                // fires for the mundane offline case too - a device that was asleep
-                // times out against fundingchoicesmessages.google.com
+                if (isActivityGone()) {
+                    return@requestConsentInfoUpdate
+                }
+
+                // fires for the mundane offline case too, not just a real failure
                 crashManager.log("consent info update failed: " + describe(requestConsentError))
 
                 hideGoogleAds()
             },
         )
     }
+
+    private fun isActivityGone(): Boolean =
+        !::activity.isInitialized || activity.isFinishing || activity.isDestroyed
 
     // https://developers.google.com/admob/android/banner/adaptive
     // the anchored adaptive size is deprecated in favour of the inline one, which sizes the
@@ -153,15 +166,13 @@ class AdManager {
 
     fun destroyAds() {
         try {
-            // keeps throwing exceptions for some users:
-            // Caused by: java.lang.NullPointerException
-            // android.webkit.WebViewClassic.requestFocus(WebViewClassic.java:9898)
-            // android.webkit.WebView.requestFocus(WebView.java:2133)
-            // android.view.ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
+            // has thrown out of the ad sdk's own focus handling for some users
             adView?.destroy()
         } catch (e: Exception) {
             crashManager.log(e)
         }
+
+        adView = null
     }
 
     private companion object {

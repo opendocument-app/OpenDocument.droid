@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemClickListener
-import android.widget.AdapterView.OnItemLongClickListener
 import android.widget.ArrayAdapter
 import android.widget.ListAdapter
 import android.widget.ListView
@@ -17,12 +16,10 @@ import app.opendocument.droid.R
 import app.opendocument.droid.background.RecentDocumentsUtil
 import app.opendocument.droid.ui.activity.MainActivity
 
-class RecentDocumentDialogFragment :
-    DialogFragment(), OnItemClickListener, OnItemLongClickListener {
+class RecentDocumentDialogFragment : DialogFragment(), OnItemClickListener {
 
-    // insertion ordered: the adapter is built from keys, so a HashMap here would
-    // throw away the order RecentDocumentsUtil hands the documents back in
-    private var items: MutableMap<String, String?> = LinkedHashMap()
+    // insertion ordered: the adapter is built from the keys, in the order they came back in
+    private val items: MutableMap<String, String?> = LinkedHashMap()
     private lateinit var adapter: ListAdapter
     private lateinit var listView: ListView
 
@@ -37,25 +34,12 @@ class RecentDocumentDialogFragment :
         listView = ListView(requireActivity())
         listView.emptyView = emptyView
         listView.onItemClickListener = this
-        listView.onItemLongClickListener = this
-
-        adapter =
-            ArrayAdapter(
-                requireActivity(),
-                android.R.layout.simple_list_item_1,
-                emptyArray<String>(),
-            )
-        listView.adapter = adapter
 
         builder.setView(listView)
 
         setCancelable(true)
 
-        items = LinkedHashMap()
-
         loadRecentDocuments()
-
-        listView.emptyView = emptyView
 
         return builder.create()
     }
@@ -67,7 +51,6 @@ class RecentDocumentDialogFragment :
         }
 
         if (items.isEmpty()) {
-            items = LinkedHashMap()
             items[getString(R.string.dialog_list_no_documents_found)] = null
         }
 
@@ -89,15 +72,6 @@ class RecentDocumentDialogFragment :
         dismiss()
 
         (requireActivity() as MainActivity).loadUri(Uri.parse(uri))
-    }
-
-    override fun onItemLongClick(
-        parent: AdapterView<*>?,
-        view: View?,
-        position: Int,
-        id: Long,
-    ): Boolean {
-        return false
     }
 
     companion object {

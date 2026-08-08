@@ -22,9 +22,8 @@ import java.util.LinkedList
 abstract class FileLoader(context: Context?, protected val type: LoaderType) {
 
     /**
-     * Null in the unit tests, which only exercise [isSupported], and dropped again by [close].
-     * Everything on the loading path goes through [context] instead, which fails loudly rather than
-     * NPEing somewhere further down.
+     * Null in the unit tests, which only exercise [isSupported], and dropped again by [close]. The
+     * loading path goes through [context], which fails loudly rather than NPEing further down.
      */
     private var contextOrNull: Context? = context
 
@@ -40,10 +39,6 @@ abstract class FileLoader(context: Context?, protected val type: LoaderType) {
     protected lateinit var crashManager: CrashManager
 
     private var initialized = false
-
-    /** Whether a [loadAsync] is still running. */
-    var isLoading: Boolean = false
-        private set
 
     open fun initialize(
         listener: FileLoaderListener,
@@ -68,13 +63,7 @@ abstract class FileLoader(context: Context?, protected val type: LoaderType) {
             throw RuntimeException("not initialized")
         }
 
-        isLoading = true
-
-        backgroundHandler.post {
-            loadSync(options)
-
-            isLoading = false
-        }
+        backgroundHandler.post { loadSync(options) }
     }
 
     protected abstract fun loadSync(options: Options)
@@ -114,13 +103,18 @@ abstract class FileLoader(context: Context?, protected val type: LoaderType) {
         }
     }
 
-    open fun close() {
+    fun close() {
         backgroundHandler.post {
+            onClose()
+
             initialized = false
             listener = null
             contextOrNull = null
         }
     }
+
+    /** Loader specific teardown, on the background thread so it cannot race a load in flight. */
+    protected open fun onClose() {}
 
     enum class LoaderType {
         CORE,

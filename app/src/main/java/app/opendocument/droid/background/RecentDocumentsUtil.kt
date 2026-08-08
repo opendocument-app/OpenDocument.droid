@@ -104,8 +104,7 @@ object RecentDocumentsUtil {
             )
         }
 
-        // the file stays in the append order older versions wrote it in, so that upgrading does
-        // not need a migration - the list is only turned around here, on the way out
+        // kept in the append order older versions wrote, so upgrading needs no migration
         entries.reverse()
 
         return entries

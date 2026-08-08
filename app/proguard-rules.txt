@@ -1,27 +1,3 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
-
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
-
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
-
--keepnames class at.stefl.** { *; }
-
 # libodr_jni.so resolves these by name: FindClass for HtmlConfig, HtmlPage, HtmlResource
 # and the Html result holders, GetFieldID for every HtmlConfig field, and the native
 # methods are bound by signature. it also constructs the OdrException subclasses when
@@ -29,16 +5,11 @@
 # shows up in minified builds, at runtime, as a null field id or a NoSuchMethodError.
 -keep class app.opendocument.core.** { *; }
 
-# play-services-ads drags in androidx.work 2.7, whose WorkDatabase is a room database
-# built on room 2.2.5, and androidx.startup instantiates it on every cold start whether
-# the app uses WorkManager or not. room 2.2.5 ships '-keep class * extends
-# androidx.room.RoomDatabase' without a member spec, and r8 in full mode - the default
-# since AGP 8 - reads that as "keep the class, the members are fair game", so it drops
-# WorkDatabase_Impl's no-arg constructor. room then calls Class.newInstance() on it and
-# the process dies at startup with "Failed to create an instance of
-# androidx.work.impl.WorkDatabase". room only fixed its own rule in 2.7.0; this is that
-# rule, and it can go once work-runtime pulls room that far (work 2.11 does, 2.10 still
-# lands on room 2.6.1 with the broken one).
+# play-services-ads drags in androidx.work, whose WorkDatabase androidx.startup builds on
+# every cold start. room 2.2.5's own keep rule names no members, and r8 in full mode reads
+# that as "the members are fair game" - it drops WorkDatabase_Impl's no-arg constructor and
+# startup dies on "Failed to create an instance of androidx.work.impl.WorkDatabase". room
+# fixed the rule in 2.7.0, so this can go once work-runtime pulls room that far (2.11 does).
 -keep class * extends androidx.room.RoomDatabase { <init>(); }
 
 -keepattributes *Annotation*

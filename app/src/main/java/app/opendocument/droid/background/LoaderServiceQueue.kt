@@ -13,8 +13,8 @@ class LoaderServiceQueue {
     private var boundService: LoaderService? = null
 
     /**
-     * The bound service, or null while the connection is still pending. Setting it replays
-     * everything queued up so far; the queue is deliberately kept, matching the previous behaviour.
+     * The bound service, or null while the connection is pending or after it dropped. Setting it
+     * replays what queued up in the meantime.
      */
     var service: LoaderService?
         @Synchronized get() = boundService
@@ -26,7 +26,12 @@ class LoaderServiceQueue {
                 return
             }
 
-            for (entry in queue) {
+            // drained, not kept: a reconnect would otherwise replay every load this activity has
+            // ever queued, reopening documents the user has moved on from
+            val pending = queue.toList()
+            queue.clear()
+
+            for (entry in pending) {
                 entry.onService(value)
             }
         }
@@ -42,7 +47,6 @@ class LoaderServiceQueue {
         queue.add(entry)
     }
 
-    /** fun interface, so the callers can queue a lambda instead of an anonymous object. */
     fun interface QueueEntry {
         fun onService(service: LoaderService)
     }

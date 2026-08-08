@@ -1,9 +1,8 @@
 package app.opendocument.droid.ui
 
 /**
- * Release variant: does nothing. The debug variant backs these calls with an espresso
- * CountingIdlingResource; keeping the espresso dependency out of release builds is the whole point
- * of the split.
+ * Release variant: does nothing, which is what keeps espresso out of release builds. The debug
+ * variant backs these calls with a CountingIdlingResource.
  */
 object OpenFileIdling {
 

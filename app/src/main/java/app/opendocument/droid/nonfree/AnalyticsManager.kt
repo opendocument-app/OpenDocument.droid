@@ -12,9 +12,7 @@ class AnalyticsManager {
 
     private var enabled = false
 
-    fun initialize(context: Context) {
-        // nothing to set up while reporting is local only
-    }
+    fun initialize(context: Context) {}
 
     fun setEnabled(enabled: Boolean) {
         this.enabled = enabled
@@ -31,9 +29,7 @@ class AnalyticsManager {
             return
         }
 
-        // keys only: callers pass document uris as values, and those have no business in
-        // logcat. an analytics backend wired in here would get the values, a device log
-        // does not
+        // keys only: callers pass document uris as values, which have no business in logcat
         Log.i(
             TAG,
             buildString {

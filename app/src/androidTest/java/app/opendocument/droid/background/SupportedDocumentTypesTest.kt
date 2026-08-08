@@ -8,14 +8,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * What the app offers itself for, by example.
+ * What the app offers itself for, by example: the cases odrcore's table cannot express, which
+ * `SupportedFormatsTest` walks in full.
  *
- * `SupportedFormatsTest` walks odrcore's whole table and holds the manifest against it; this one
- * spells out the cases the table cannot express - that a known extension beats an unhelpful mime
- * type, that a format the core merely recognises is not offered for, and that nothing at all is
- * still nothing.
- *
- * Instrumented rather than a JVM test since odrcore 6.1, which is where the lists come from now.
+ * Instrumented because the lists come from `libodr_jni`.
  */
 @SmallTest
 @RunWith(AndroidJUnit4::class)

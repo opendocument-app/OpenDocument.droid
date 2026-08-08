@@ -26,8 +26,7 @@ object AndroidFileCache {
     }
 
     fun getCacheDirectory(cacheFile: File): File {
-        // !! rather than a graceful fallback: reaching the filesystem root means the file was
-        // never below a cache directory, which the java version blew up on just as loudly
+        // !!: reaching the filesystem root means the file was never below a cache directory
         val parentDirectory = cacheFile.parentFile!!
         if (!parentDirectory.name.startsWith(CACHE_DIRECTORY_PREFIX)) {
             return getCacheDirectory(parentDirectory)
@@ -66,6 +65,17 @@ object AndroidFileCache {
         cacheDirectory.mkdirs()
 
         return File(cacheDirectory, "cached-file.tmp")
+    }
+
+    /**
+     * Deletes [file] along with the directory [createCacheFile] made for it - [cleanup] keeps
+     * whichever sorts last, so an empty leftover would be kept in place of the open document.
+     */
+    fun deleteCacheFile(file: File) {
+        file.delete()
+
+        // delete() on a directory only succeeds while it is empty, which is the intent
+        file.parentFile?.takeIf { it.name.startsWith(CACHE_DIRECTORY_PREFIX) }?.delete()
     }
 
     fun cleanup(context: Context) {

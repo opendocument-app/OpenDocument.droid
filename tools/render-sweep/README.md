@@ -3,7 +3,7 @@
 Opens every document of a corpus on a connected device, one at a time, and screenshots
 what the app made of it.
 
-The instrumented tests open nine files. `OpenDocument.core`'s own input corpus has a couple
+The instrumented tests open ten files. `OpenDocument.core`'s own input corpus has a couple
 of hundred, across formats no test here touches, and the app now hands almost all of them to
 `CoreLoader` (see the supported-file-types section of `CLAUDE.md`). This walks that corpus so
 a format that renders blank, renders half, or takes the process down with it is something you
@@ -60,6 +60,7 @@ The `signal` column is a triage hint, not a verdict:
 | `encrypted` | the password dialog came up (expected for the encrypted fixtures) |
 | `unsupported` | the app put up its "try opening it in another app" snackbar |
 | `upload-offer` | the core declined it and the app offered to convert it online |
+| `broken-file` | the app claimed the format and then failed on the file — "Couldn't open this file" |
 | `still-rendering` | the screen was still changing when the shutter gave up — see below |
 | `launch-*` | `am start` itself did not report `ok` |
 
@@ -92,9 +93,9 @@ site, in more detail:
   `/sdcard/Android/data/<pkg>`, which comes back `EACCES` when shell owns the file. Piping
   into internal storage via `run-as` is the route that works, and it is why this needs the
   debug build rather than the store one.
-- **The intent carries no mime type.** That leaves `MetadataLoader`'s libmagic detection in
-  the path instead of taking a caller's word for the type, which is the half of the app worth
-  exercising.
+- **The intent carries no mime type.** That leaves the app's own detection (`Odr.mimetype`, run
+  by `MetadataLoader`) in the path instead of taking a caller's word for the type, which is the
+  half of the app worth exercising.
 - **`uiautomator dump` runs twice per document.** A WebView only builds its accessibility
   tree once something asks for one, so the first dump after a load has no text in it and the
   second has the document.

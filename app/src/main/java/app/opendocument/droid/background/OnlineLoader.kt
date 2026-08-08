@@ -18,21 +18,8 @@ class OnlineLoader(context: Context?) : FileLoader(context, LoaderType.ONLINE) {
     override fun isSupported(options: Options): Boolean {
         val fileType = options.fileType ?: return false
 
-        for (mime in MIME_WHITELIST) {
-            if (!fileType.startsWith(mime)) {
-                continue
-            }
-
-            for (blackMime in MIME_BLACKLIST) {
-                if (fileType.startsWith(blackMime)) {
-                    return false
-                }
-            }
-
-            return true
-        }
-
-        return false
+        return MIME_WHITELIST.any { fileType.startsWith(it) } &&
+            MIME_BLACKLIST.none { fileType.startsWith(it) }
     }
 
     override fun loadSync(options: Options) {
@@ -52,12 +39,11 @@ class OnlineLoader(context: Context?) : FileLoader(context, LoaderType.ONLINE) {
     }
 
     /**
-     * Whether use.opendocument.app can convert this type itself. Everything else is uploaded and
-     * handed to a third party viewer instead.
+     * Whether use.opendocument.app converts this itself; everything else is uploaded and handed to
+     * a third party viewer.
      *
      * The last term asks whether the core *files* this as a document, not whether it renders one:
-     * the converter runs libreoffice, so an `.xlsb` is worth sending it. It used to ask
-     * [CoreLoader.isSupported], which stopped meaning that when the core loader took on media.
+     * the converter runs libreoffice, so an `.xlsb` is worth sending it.
      */
     fun isConvertible(options: Options): Boolean {
         val fileType = options.fileType
@@ -88,30 +74,36 @@ class OnlineLoader(context: Context?) : FileLoader(context, LoaderType.ONLINE) {
         connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
         connection.instanceFollowRedirects = false
 
-        connection.outputStream.use { output ->
-            PrintWriter(OutputStreamWriter(output, StreamUtil.ENCODING), true).use { writer ->
-                writer.append("--$boundary").append(crlf)
-                writer.append(disposition).append(crlf)
-                writer.append(crlf).flush()
-                StreamUtil.copy(binaryFile, output)
-                output.flush()
-                writer.append(crlf).flush()
+        try {
+            connection.outputStream.use { output ->
+                PrintWriter(OutputStreamWriter(output, StreamUtil.ENCODING), true).use { writer ->
+                    writer.append("--$boundary").append(crlf)
+                    writer.append(disposition).append(crlf)
+                    writer.append(crlf).flush()
+                    StreamUtil.copy(binaryFile, output)
+                    output.flush()
+                    writer.append(crlf).flush()
 
-                writer.append("--$boundary--").append(crlf).flush()
+                    writer.append("--$boundary--").append(crlf).flush()
+                }
             }
-        }
 
-        // a converted document is answered with a redirect to it, so a response without a Location
-        // is the server refusing the file - concatenating the missing header would build a
-        // "...appnull" url that only fails later, inside the webview
-        val responseCode = connection.responseCode
-        val redirectUrl = connection.getHeaderField("Location")
-        if (redirectUrl.isNullOrEmpty()) {
-            val error = readError(connection)
-            throw IOException("server couldn't handle request: $responseCode $error")
-        }
+            // a converted document is answered with a redirect to it, so a response without a
+            // Location is the server refusing the file - concatenating the missing header would
+            // build a "...appnull" url that only fails later, inside the webview
+            val responseCode = connection.responseCode
+            val redirectUrl = connection.getHeaderField("Location")
+            if (redirectUrl.isNullOrEmpty()) {
+                val error = readError(connection)
+                throw IOException("server couldn't handle request: $responseCode $error")
+            }
 
-        return Uri.parse(basePath + redirectUrl)
+            return Uri.parse(basePath + redirectUrl)
+        } finally {
+            // the success path never reads the body, so the socket would sit in the keep-alive
+            // pool with an unconsumed response until it timed out
+            connection.disconnect()
+        }
     }
 
     private fun doTransferUpload(options: Options): Uri {
@@ -145,9 +137,7 @@ class OnlineLoader(context: Context?) : FileLoader(context, LoaderType.ONLINE) {
     }
 
     private fun buildViewerUri(options: Options, downloadUrl: String): Uri {
-        // ODF does not seem to be supported by google docs viewer, but pdf is the one thing the
-        // microsoft viewer will not take - and the core opens both, so what it supports no longer
-        // tells the two apart on its own
+        // google's viewer will not take odf, microsoft's will not take pdf
         val isPdf = options.fileType?.startsWith("application/pdf") == true
 
         // the office viewer wants an office document; an image or an mp3 is google's problem
@@ -183,6 +173,9 @@ class OnlineLoader(context: Context?) : FileLoader(context, LoaderType.ONLINE) {
 
         // https://help.joomlatools.com/article/169-google-viewer
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types
+        //
+        // matched as prefixes, so the four families at the top already cover every "text/..." and
+        // "image/..." spelling of the formats below them
         private val MIME_WHITELIST =
             arrayOf(
                 "text/",
@@ -192,26 +185,16 @@ class OnlineLoader(context: Context?) : FileLoader(context, LoaderType.ONLINE) {
                 // markup
                 "application/json",
                 "application/xml",
-                "text/css",
                 "application/css-stylesheet",
                 "application/xhtml",
                 "application/x-httpd-php",
-                "text/php",
                 "application/php",
                 "application/x-php",
                 "application/x-javascript",
-                "text/javascript",
-                "text/x-java-source",
-                "text/java",
-                "text/x-java",
                 "application/ms-java",
                 // rtf
                 "application/rtf",
-                "text/rtf",
                 // psd: https://filext.com/file-extension/PSD
-                "image/photoshop",
-                "image/x-photoshop",
-                "image/psd",
                 "application/photoshop",
                 "application/psd",
                 "zz-application/zz-winassoc-psd",
@@ -220,8 +203,6 @@ class OnlineLoader(context: Context?) : FileLoader(context, LoaderType.ONLINE) {
                 "application/x-pdf",
                 "application/acrobat",
                 "applications/vnd.pdf",
-                "text/pdf",
-                "text/x-pdf",
                 // odf: https://filext.com/file-extension/ODT
                 "application/vnd.oasis.opendocument",
                 "application/x-vnd.oasis.opendocument",
@@ -242,7 +223,6 @@ class OnlineLoader(context: Context?) : FileLoader(context, LoaderType.ONLINE) {
                 "application/msexcel",
                 "application/x-msexcel",
                 "application/x-ms-excel",
-                "application/vnd.ms-excel",
                 "application/x-excel",
                 "application/x-dos_ms_excel",
                 "application/xls",
@@ -261,23 +241,16 @@ class OnlineLoader(context: Context?) : FileLoader(context, LoaderType.ONLINE) {
                 "application/postscript",
                 "application/eps",
                 "application/x-eps",
-                "image/eps",
-                "image/x-eps",
                 // autocad: https://filext.com/file-extension/DXF
                 "application/dxf",
                 "application/x-autocad",
                 "application/x-dxf",
                 "drawing/x-dxf",
-                "image/vnd.dxf",
-                "image/x-autocad",
-                "image/x-dxf",
                 "zz-application/zz-winassoc-dxf",
                 // zip: https://filext.com/file-extension/ZIP
                 "application/zip",
                 "application/x-zip",
-                "application/x-zip-compressed",
                 "application/x-compress",
-                "application/x-compressed",
                 "multipart/x-zip",
                 // WPD
                 "application/vnd.wordperfect",

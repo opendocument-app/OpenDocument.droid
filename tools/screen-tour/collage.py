@@ -130,6 +130,9 @@ class Sheet:
 
 
 def shot_path(sets, name, shot):
+    if name not in sets:
+        sys.exit(f"no --set named {name} (story asks for it; got {', '.join(sets) or 'none'})")
+
     path = os.path.join(sets[name], f"{shot}.png")
     if not os.path.exists(path):
         sys.exit(f"no {shot}.png in the {name} set ({sets[name]})")
@@ -137,7 +140,16 @@ def shot_path(sets, name, shot):
     return path
 
 
-def cover(story, sets, dpi):
+def pages_for(story, sets):
+    """The story's pages, minus the ones naming a set this run was not given."""
+    return [
+        page
+        for page in story["pages"]
+        if all(column["set"] in sets for column in page["columns"])
+    ]
+
+
+def cover(story, pages, sets, dpi):
     sheet = Sheet(dpi)
     title = sheet.font("bold", 30)
     heading = sheet.font("bold", 12)
@@ -151,42 +163,45 @@ def cover(story, sets, dpi):
     sheet.rule(MARGIN, MARGIN + 122, PAGE_W - MARGIN * 2)
 
     # the contact sheet: every page that compares two sets, one column each
-    pairs = [page for page in story["pages"] if len(page["columns"]) == 2]
-    gap = 8
-    tile_w = (PAGE_W - MARGIN * 2 - gap * (len(pairs) - 1)) / len(pairs)
+    pairs = [page for page in pages if len(page["columns"]) == 2]
+    y = MARGIN + 172
 
-    sample = Image.open(shot_path(sets, pairs[0]["columns"][0]["set"], pairs[0]["shot"]))
-    tile_h = tile_w * sample.height / sample.width
+    if pairs:
+        gap = 8
+        tile_w = (PAGE_W - MARGIN * 2 - gap * (len(pairs) - 1)) / len(pairs)
 
-    rows = [pairs[0]["columns"][0]["set"], pairs[0]["columns"][1]["set"]]
-    y_top = MARGIN + 172
-    tops = [y_top, y_top + tile_h + 34]
+        sample = Image.open(shot_path(sets, pairs[0]["columns"][0]["set"], pairs[0]["shot"]))
+        tile_h = tile_w * sample.height / sample.width
 
-    for name, top in zip(rows, tops):
-        sheet.text(MARGIN, top - 16, name.upper(), heading, ACCENT)
+        rows = [pairs[0]["columns"][0]["set"], pairs[0]["columns"][1]["set"]]
+        tops = [y, y + tile_h + 34]
 
-    for index, page in enumerate(pairs):
-        x = MARGIN + index * (tile_w + gap)
         for name, top in zip(rows, tops):
-            image = Image.open(shot_path(sets, name, page["shot"]))
-            image = image.resize(
-                (sheet.px(tile_w), sheet.px(tile_h)), Image.LANCZOS
-            ).convert("RGB")
-            sheet.paste(image, x, top)
-            sheet.draw.rectangle(
-                (
-                    sheet.px(x),
-                    sheet.px(top),
-                    sheet.px(x + tile_w) - 1,
-                    sheet.px(top + tile_h) - 1,
-                ),
-                outline=(205, 205, 212),
-            )
+            sheet.text(MARGIN, top - 16, name.upper(), heading, ACCENT)
 
-        caption = page["title"].split("·", 1)[-1].strip()
-        sheet.paragraph(x, tops[1] + tile_h + 6, caption, tiny, MUTED, tile_w, 11)
+        for index, page in enumerate(pairs):
+            x = MARGIN + index * (tile_w + gap)
+            for name, top in zip(rows, tops):
+                image = Image.open(shot_path(sets, name, page["shot"]))
+                image = image.resize(
+                    (sheet.px(tile_w), sheet.px(tile_h)), Image.LANCZOS
+                ).convert("RGB")
+                sheet.paste(image, x, top)
+                sheet.draw.rectangle(
+                    (
+                        sheet.px(x),
+                        sheet.px(top),
+                        sheet.px(x + tile_w) - 1,
+                        sheet.px(top + tile_h) - 1,
+                    ),
+                    outline=(205, 205, 212),
+                )
 
-    y = tops[1] + tile_h + 52
+            caption = page["title"].split("·", 1)[-1].strip()
+            sheet.paragraph(x, tops[1] + tile_h + 6, caption, tiny, MUTED, tile_w, 11)
+
+        y = tops[1] + tile_h + 52
+
     y = sheet.paragraph(MARGIN, y, story["footer"], small, MUTED, PAGE_W - MARGIN * 2, 14)
 
     summary = story.get("summary")
@@ -309,8 +324,17 @@ def main():
     with open(args.story, encoding="utf-8") as handle:
         story = json.load(handle)
 
-    pages = [cover(story, sets, args.dpi)]
+    wanted = pages_for(story, sets)
+    if not wanted:
+        sys.exit(f"no page of {args.story} names only sets that were passed")
+
     for page in story["pages"]:
+        missing = [c["set"] for c in page["columns"] if c["set"] not in sets]
+        if missing:
+            print(f"skipping {page['shot']}: no --set for {', '.join(missing)}")
+
+    pages = [cover(story, wanted, sets, args.dpi)]
+    for page in wanted:
         builder = pair_page if len(page["columns"]) == 2 else solo_page
         pages.append(builder(page, sets, args.dpi))
 
