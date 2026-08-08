@@ -335,7 +335,8 @@ class MainActivity : AppCompatActivity(), MenuProvider {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 
-        adManager.showGoogleAds()
+        // the banner's size follows the orientation; the consent flow behind it does not
+        adManager.refreshAds()
     }
 
     fun requestSave() {
@@ -385,7 +386,10 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         adManager = AdManager()
         adManager.setEnabled(!IS_TESTING && useProprietaryLibraries)
         adManager.setAdContainer(adContainer)
-        adManager.initialize(this, crashManager)
+        // the menu is built long before the consent update comes back
+        adManager.setConsentListener { invalidateMenu() }
+        adManager.setPurchaseListener { buyAdRemoval() }
+        adManager.initialize(this, analyticsManager, crashManager)
 
         billingManager = BillingManager()
         billingManager.setEnabled(useProprietaryLibraries)
@@ -414,6 +418,8 @@ class MainActivity : AppCompatActivity(), MenuProvider {
         if (billingManager.hasPurchased()) {
             menu.findItem(R.id.menu_remove_ads).isVisible = false
         }
+
+        menu.findItem(R.id.menu_privacy_options).isVisible = adManager.isPrivacyOptionsRequired()
     }
 
     // the play services availability dialog calls startActivityForResult() itself with a request
@@ -521,6 +527,12 @@ class MainActivity : AppCompatActivity(), MenuProvider {
                 analyticsManager.report("menu_remove_ads")
 
                 buyAdRemoval()
+            }
+
+            R.id.menu_privacy_options -> {
+                analyticsManager.report("menu_privacy_options")
+
+                adManager.showPrivacyOptions()
             }
 
             R.id.menu_fullscreen -> {

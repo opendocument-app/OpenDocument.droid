@@ -28,6 +28,10 @@ class BillingManager {
 
         if (hasPurchased()) {
             adManager.removeAds()
+
+            // no banner to gate, but withdrawal has to survive the purchase, and only an
+            // update tells us whether the sdk wants a way back out
+            adManager.updateConsentInfo()
         } else {
             adManager.showGoogleAds()
         }
