@@ -1,19 +1,14 @@
 package app.opendocument.droid.nonfree
 
 import android.app.Activity
-import android.content.Context
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 
-/** Whether the device has the play services everything else in this package talks to. */
+/** Whether the device has the play services the ad and consent sdks talk to. */
 object PlayServices {
 
-    fun isAvailable(context: Context): Boolean =
-        GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context) ==
-            ConnectionResult.SUCCESS
-
     /**
-     * As [isAvailable], and on a no shows google's own dialog. It reports back through
+     * Whether they are there, and on a no shows google's own dialog. It reports back through
      * [Activity.onActivityResult] under [requestCode], calling `startActivityForResult` itself.
      */
     fun isAvailableOrOffersFix(activity: Activity, requestCode: Int): Boolean {

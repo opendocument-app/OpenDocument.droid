@@ -10,13 +10,7 @@ import android.util.Log
  */
 class AnalyticsManager {
 
-    private var enabled = false
-
     fun initialize(context: Context) {}
-
-    fun setEnabled(enabled: Boolean) {
-        this.enabled = enabled
-    }
 
     fun report(
         event: String,
@@ -25,10 +19,6 @@ class AnalyticsManager {
         key2: String? = null,
         value2: Any? = null,
     ) {
-        if (!enabled) {
-            return
-        }
-
         // keys only: callers pass document uris as values, which have no business in logcat
         Log.i(
             TAG,
@@ -41,10 +31,6 @@ class AnalyticsManager {
     }
 
     fun setCurrentScreen(activity: Activity, name: String) {
-        if (!enabled) {
-            return
-        }
-
         Log.i(TAG, "screen $name (${activity.javaClass.simpleName})")
     }
 
