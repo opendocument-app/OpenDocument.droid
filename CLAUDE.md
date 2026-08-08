@@ -10,16 +10,19 @@ Guidance for Claude Code (claude.ai/code) working in this repository.
   (needs a device or emulator).
 - Format and lint: `./gradlew spotlessApply` / `spotlessCheck` (google-java-format AOSP for
   java, ktfmt kotlinlang for kotlin) and `./gradlew lintProDebug`. Lint errors fail the
-  build; CI runs spotless first.
-- Deploy: `fastlane android deployPro` / `deployLite` to the Play internal track.
+  build; spotless runs from its own `format.yml` workflow.
+- Deploy: `fastlane android deployPro version:v4.8.0` / `deployLite version:v4.8.0` to the
+  Play internal track. The version is required - no number is checked in, and a lane handed
+  none errors out rather than building 0.0.0.
 - `./gradlew clean` removes the build artifacts.
 
 ## Architecture
 
 A document is loaded by a `FileLoader` on `LoaderService`'s background thread and reported
 back through `FileLoaderListener`; `LoaderServiceQueue` holds requests until the service is
-bound. `MetadataLoader` caches the file and identifies it, `RawLoader` covers the three
-files odrcore does not render for us - csv, svg and xml - `CoreLoader` renders everything
+bound. `MetadataLoader` caches the file and identifies it, `RawLoader` covers the three the
+core does not get - csv, which it would render but line by line, plus svg and xml, which it
+has no file type for - `CoreLoader` renders everything
 else odrcore handles and publishes the html on a local http server, and `OnlineLoader`
 uploads to a web viewer what neither can open.
 
@@ -28,6 +31,11 @@ between two fragments: `LandingFragment` (recent documents and settings, under a
 carries the logo and never scrolls away) and
 `DocumentFragment`, which shows the result in `PageView` - a WebView - with `DocumentActions`
 over it.
+
+There is **no options menu**: `menu_main.xml` is gone and the action bar is hidden. Anything
+that used to be a menu item is either a `DocumentActions` button, when it acts on the open
+document, or a row in the landing screen's settings section, when it does not - the ad
+removal and the consent form are both there.
 
 Source sits under `app/src/main/java/app/opendocument/droid/`: `background/` for the loaders
 and stored state, `ui/` for everything on screen, `nonfree/` for analytics, billing and ads.
@@ -60,11 +68,18 @@ no kotlin plugin applied - AGP brings kotlin itself. Versions live in
 cache is on, and release signing comes from gradle properties or the environment (see
 README) - without them release variants build unsigned rather than failing.
 
-**The version is the git tag.** `app/build.gradle` derives both `versionName` and
-`versionCode` from `-Podr.version` (`v4.8.0` -> `4.8.0` / `40800`, two digits per part, a
-part above 99 is an error), and defaults to `0.0.0`. Do not put the attributes back into
-`AndroidManifest.xml`: gradle's values win in the merge, so a second copy can only ever
-disagree with the tag.
+**The version is the release run's `version` input**, not a number in the tree and not a
+tag. `app/build.gradle` derives both `versionName` and `versionCode` from `-Podr.version`
+(`v4.8.0` -> `4.8.0` / `40800`, two digits per part, a part above 99 is an error), and
+defaults to `0.0.0`. All three parts are required: a two-part `v4.7` was once padded to
+`4.7.0`, which let one build carry two names and is why the tags before `v4.8.0` are in two
+formats. Do not put the attributes back into `AndroidManifest.xml`: gradle's values win in
+the merge, so a second copy can only ever disagree.
+
+Tags are written after a release, never before it, and nothing is triggered by one.
+`release.yml` is dispatch-only, builds both flavors once and tags what went out as
+`build/<version>`; the plain `v<version>` tag appears only when the release it drafted is
+published, which is what lets F-Droid ship it. See the README's "Tags" section.
 
 ### Native side
 
@@ -135,7 +150,7 @@ Two declarations are left. The app's own choice of what to *claim*, named in
 `SupportedDocumentTypes` as `CLAIMED_FILE_TYPES` because the core knows nothing about it. And
 the `STRICT_CATCH` `activity-alias` in `AndroidManifest.xml`, which cannot be collapsed into
 the first because XML cannot read any of this. Its three intent-filters are *generated* from
-the same table (an intent-filter matches a mime type exactly, so all 40 spellings and 41
+the same table (an intent-filter matches a mime type exactly, so all 49 spellings and 41
 extensions are written out) and covered by a test rather than by discipline:
 `SupportedFormatsTest` (instrumented) walks every mime type of every `FileType` and asserts
 that `SupportedDocumentTypes` and the package manager give the same answer, so a format added
@@ -145,8 +160,8 @@ The tables live in `libodr_jni`, so anything that reads them needs a device. Tha
 `CoreLoaderTest`, `SupportedDocumentTypesTest`, `RawLoaderTest` and `OnlineLoaderTest` are
 instrumented tests and not JVM ones - none of them opens a file, they just cannot ask the
 table from a plain JVM. What the core decides *after* the file is in the cache is unchanged:
-`MetadataLoader` runs libmagic over the copy, and `CoreLoader.isDocumentEditable` asks the
-opened document.
+`MetadataLoader` runs `Odr.mimetype` over the copy, and `CoreLoader.isDocumentEditable` asks
+the opened document.
 
 One consequence of claiming every spelling: `MetadataLoader` puts whatever mime type it ended
 up with through `SupportedDocumentTypes.canonicalMimeType`, so the loaders behind it see one

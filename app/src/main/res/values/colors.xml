@@ -54,4 +54,14 @@
     -->
     <color name="document_actions_scrim">#52000000</color>
 
+    <!--
+        The house ad stands in for a banner, so it stays on the white a banner comes on in both
+        themes - and takes none of its colours from MainTheme, whose on-surface roles go light
+        in values-night and would leave it white on white.
+    -->
+    <color name="house_ad_headline">#191C1E</color>
+    <color name="house_ad_subline">#6b7280</color>
+    <color name="house_ad_pill">#2f80c8</color>
+    <color name="house_ad_divider">#e3e6ea</color>
+
 </resources>

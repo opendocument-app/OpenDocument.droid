@@ -63,14 +63,9 @@
             android:value="ca-app-pub-8161473686436957~9025061963" />
 
         <!--
-             every component name below deliberately keeps its historical
-             at.tomtasche.reader.* spelling even though the java package is now
-             app.opendocument.droid. component names are persisted by the OS: they are
-             what a launcher stores for a pinned homescreen icon, and what the system
-             records when the user picks "always open .odt with this app". renaming them
-             would silently drop those associations for every existing install. an
-             activity-alias name does not have to correspond to a real class, so the old
-             names live on as aliases pointing at the relocated activity.
+             every component name below keeps its historical at.tomtasche.reader.* spelling:
+             the OS persists component names for pinned launcher icons and for "always open
+             .odt with this app". See the package names section of CLAUDE.md.
         -->
         <!--
              uiMode is deliberately absent from configChanges: the theme picks its colours from
@@ -84,9 +79,8 @@
             android:exported="true" />
 
         <!--
-             the launcher entry, kept under the pre-rename name so pinned homescreen
-             icons keep resolving. the MAIN/LAUNCHER filter lives here and NOT on the
-             activity above, otherwise the app would show two launcher icons.
+             the launcher entry. the MAIN/LAUNCHER filter lives here and NOT on the activity
+             above, or the app would show two launcher icons.
         -->
         <activity-alias
             android:name="at.tomtasche.reader.ui.activity.MainActivity"
@@ -184,10 +178,6 @@
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.odg" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.odg" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.odg" />
-                <data android:pathPattern=".*\\.odt" />
-                <data android:pathPattern=".*\\.ods" />
-                <data android:pathPattern=".*\\.odp" />
-                <data android:pathPattern=".*\\.odg" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -227,10 +217,6 @@
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.odg" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.odg" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.odg" />
-                <data android:pathPattern=".*\\.odt" />
-                <data android:pathPattern=".*\\.ods" />
-                <data android:pathPattern=".*\\.odp" />
-                <data android:pathPattern=".*\\.odg" />
             </intent-filter>
         </activity-alias>
         <activity-alias
@@ -241,15 +227,12 @@
             android:targetActivity="app.opendocument.droid.ui.activity.MainActivity"
             tools:ignore="AppLinkUrlError">
             <!--
-                 STRICT_CATCH: what the app actually opens - opendocument, ooxml, the legacy
-                 binary doc/ppt/xls and pdf, plus text, images, zip and csv. All of it goes to
-                 the core except csv, which RawLoader keeps for its table viewer. The three
-                 filters below are generated from odrcore's own format table and must not be
-                 edited by hand alone; SupportedDocumentTypes reads that same table at runtime,
-                 and SupportedFormatsTest fails when the two stop agreeing.
+                 what the app actually opens. The three filters below are generated from
+                 odrcore's format table - SupportedDocumentTypes reads the same table at
+                 runtime, and SupportedFormatsTest fails when the two stop agreeing.
 
-                 Narrower than what the core can render on purpose: it also turns fonts, audio
-                 and video into a page, none of which belong in a document viewer's share sheet.
+                 Narrower than what the core renders on purpose: fonts, audio and video do not
+                 belong in a document viewer's share sheet.
             -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -258,11 +241,9 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <!--
-                     every mime type spelling odrcore accepts for a format it turns into
-                     html. an intent-filter matches a mime type exactly, so the templates, the
-                     macro enabled variants and the x-vnd spellings all have to be named -
-                     where the old prefix list took each family in one line, and got .xlsb
-                     wrong for it.
+                     every mime type spelling odrcore accepts. an intent-filter matches
+                     exactly, so the templates, the macro enabled variants and the x-vnd
+                     spellings all have to be named - a prefix list got .xlsb wrong.
                 -->
                 <data android:mimeType="application/vnd.oasis.opendocument.text" />
                 <data android:mimeType="application/x-vnd.oasis.opendocument.text" />
@@ -306,15 +287,13 @@
                 <data android:mimeType="application/x-pdf" />
                 <!--
                      the octet-stream a provider volunteers when it knows nothing better.
-                     claimed outright, because only the filename can answer for it - which is
-                     what the pathPattern filter below does.
+                     only the filename can answer for it - the pathPattern filter below.
                 -->
                 <data android:mimeType="application/octet-stream" />
                 <!--
-                     the non-document types worth opening a viewer for: text/plain rather than
-                     text/*, which would re-match the vcard contacts of #477, and image/*
-                     rather than the image formats odrcore names, because it has no file type
-                     for svg - which RawLoader still shows.
+                     text/plain rather than text/*, which would re-match the vcard contacts of
+                     #477; image/* rather than the formats odrcore names, because it has no
+                     file type for svg.
                 -->
                 <data android:mimeType="text/plain" />
                 <data android:mimeType="text/csv" />
@@ -335,11 +314,10 @@
                 <data android:scheme="file" />
                 <data android:host="*" />
                 <!--
-                     a file manager that sends ACTION_VIEW with no mime type at all leaves
-                     the name as the only thing to go on. one pattern per leading dot,
-                     because pathPattern has no way to say "ends with" before API 31, and one
-                     extension per line - the same extensions SupportedDocumentTypes gets
-                     from the core.
+                     ACTION_VIEW with no mime type leaves the name as the only thing to go
+                     on. one pattern per leading dot, because pathPattern has no "ends with"
+                     before API 31, over the extensions SupportedDocumentTypes gets from the
+                     core.
                 -->
                 <data android:pathPattern=".*\\.odt" />
                 <data android:pathPattern=".*\\..*\\.odt" />
@@ -639,13 +617,7 @@
                 <data android:scheme="content" />
                 <data android:scheme="file" />
                 <data android:host="*" />
-                <!--
-                     a file manager that sends ACTION_VIEW with no mime type at all leaves
-                     the name as the only thing to go on. one pattern per leading dot,
-                     because pathPattern has no way to say "ends with" before API 31, and one
-                     extension per line - the same extensions SupportedDocumentTypes gets
-                     from the core.
-                -->
+                <!-- the same extensions as the filter above, for a typed ACTION_VIEW -->
                 <data android:pathPattern=".*\\.odt" />
                 <data android:pathPattern=".*\\..*\\.odt" />
                 <data android:pathPattern=".*\\..*\\..*\\.odt" />

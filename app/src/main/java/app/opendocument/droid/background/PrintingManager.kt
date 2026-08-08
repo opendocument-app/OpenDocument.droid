@@ -37,17 +37,25 @@ class PrintingManager {
         val checkPrintJob =
             object : Runnable {
                 override fun run() {
-                    if (!printJob.isCompleted && !activity.isFinishing && !activity.isDestroyed) {
-                        SnackbarHelper.show(
-                            activity,
-                            R.string.crouton_printing,
-                            null,
-                            isIndefinite = false,
-                            isError = false,
-                        )
-
-                        backgroundHandler.postDelayed(this, 1000)
+                    if (activity.isFinishing || activity.isDestroyed) {
+                        return
                     }
+
+                    // cancelled and failed are ends too - waiting only for isCompleted polls
+                    // forever on the job the user dismissed
+                    if (printJob.isCompleted || printJob.isCancelled || printJob.isFailed) {
+                        return
+                    }
+
+                    SnackbarHelper.show(
+                        activity,
+                        R.string.crouton_printing,
+                        null,
+                        isIndefinite = false,
+                        isError = false,
+                    )
+
+                    backgroundHandler.postDelayed(this, 1000)
                 }
             }
 

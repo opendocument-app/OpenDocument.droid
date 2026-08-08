@@ -95,6 +95,20 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         }
     }
 
+    /**
+     * Re-renders the rows the screen does not own.
+     *
+     * The consent flow settles seconds after launch and decides whether the privacy options row is
+     * there at all - nothing the ViewModel could see, so the activity says when to look again.
+     */
+    fun refresh() {
+        if (!::viewModel.isInitialized) {
+            return
+        }
+
+        viewModel.refresh()
+    }
+
     private fun render(state: LandingViewModel.State) {
         lastDocuments = state.documents
 
@@ -168,6 +182,19 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
                         LandingItem.ACTION_REMOVE_ADS,
                         R.string.menu_remove_ads,
                         R.drawable.ic_block,
+                    )
+                )
+            }
+
+            // the way back into the consent form, which the ump sdk requires an app to offer for
+            // as long as it holds a decision that can be withdrawn. asked the same way as the ad
+            // removal, and for the same reason: only the activity has been told
+            if (mainActivity.offersPrivacyOptions()) {
+                items.add(
+                    LandingItem.Action(
+                        LandingItem.ACTION_PRIVACY_OPTIONS,
+                        R.string.menu_privacy_options,
+                        R.drawable.ic_privacy_tip,
                     )
                 )
             }
@@ -279,6 +306,12 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
                 mainActivity.analyticsManager.report("settings_remove_ads")
 
                 mainActivity.buyAdRemoval()
+            }
+
+            LandingItem.ACTION_PRIVACY_OPTIONS -> {
+                mainActivity.analyticsManager.report("settings_privacy_options")
+
+                mainActivity.showPrivacyOptions()
             }
         }
     }

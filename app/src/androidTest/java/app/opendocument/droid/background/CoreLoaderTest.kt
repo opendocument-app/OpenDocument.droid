@@ -9,13 +9,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * What the core is expected to render. odrcore v6 keeps reference html output for every format
- * asserted here, so these are the types a load is expected to succeed for.
+ * What the core is expected to render: odrcore v6 keeps reference html output for every format
+ * asserted here.
  *
- * Instrumented rather than a JVM test since odrcore 6.1: [SupportedDocumentTypes] reads the core's
- * own format table now instead of keeping a list of mime prefixes, and that table lives in
- * `libodr_jni`. Nothing here opens a file - the loader only asks the table - but a device is what
- * has the library.
+ * Instrumented because [SupportedDocumentTypes] reads the core's format table, which lives in
+ * `libodr_jni`.
  */
 @SmallTest
 @RunWith(AndroidJUnit4::class)
@@ -128,8 +126,8 @@ class CoreLoaderTest {
 
     /**
      * The binary excel package: an ooxml container whose parts are not spreadsheetml, so there is
-     * no decoder for it. Claimed until odrcore 6.1 gave it a file type of its own, because the mime
-     * type starts like every other excel one and the app matched excel by prefix.
+     * no decoder for it. Its mime type starts like every other excel one, which is what the old
+     * prefix match got wrong.
      */
     @Test
     fun theBinaryExcelWorkbookIsNotClaimed() {

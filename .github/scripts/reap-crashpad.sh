@@ -2,16 +2,12 @@
 #
 # Kills the emulator's crash reporter once the emulator it belonged to is gone.
 #
-# crashpad_handler inherits the stdout of the step that started the emulator, and
-# a step cannot finish while anything still holds that pipe open. On api 26 and 29
-# the emulator regularly exits without taking it along - the green jobs end on
-# "Netsim Wifi ... is gone" with only adb and the gradle daemons left over, the
-# hung ones stop at "removeAll" and leave a crashpad_handler - and the runner then
-# sits there until the job times out. 45 minutes a go, several times over.
+# crashpad_handler inherits the emulator step's stdout, and a step cannot finish while
+# anything still holds that pipe open. On api 26 and 29 the emulator regularly exits
+# without taking it along, and the runner then sits there until the job times out.
 #
-# run-instrumented-tests.sh cleans up after itself, but the action can also fail
-# before it ever runs the script: an "input keyevent 82" killed during boot ends
-# the same way. This runs detached from any step, so it covers that too.
+# Detached from any step, because the action can fail before run-instrumented-tests.sh
+# (which cleans up after itself) ever runs - an "input keyevent 82" killed during boot.
 
 set -u
 

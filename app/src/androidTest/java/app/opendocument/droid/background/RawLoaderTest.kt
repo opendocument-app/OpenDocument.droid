@@ -2,11 +2,9 @@ package app.opendocument.droid.background
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
-import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -103,16 +101,5 @@ class RawLoaderTest {
         assertFalse(isSupported("text/vcard"))
         assertFalse(isSupported("text/rtf"))
         assertFalse(isSupported(null))
-    }
-
-    companion object {
-
-        // @JvmStatic because junit requires @BeforeClass to be static
-        @JvmStatic
-        @BeforeClass
-        fun prepare() {
-            // the csv mime types come from a table in libodr_jni
-            CoreLoader.initializeCore(InstrumentationRegistry.getInstrumentation().targetContext)
-        }
     }
 }

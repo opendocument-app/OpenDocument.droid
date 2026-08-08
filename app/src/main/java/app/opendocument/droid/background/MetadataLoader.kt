@@ -28,7 +28,6 @@ class MetadataLoader(context: Context?) : FileLoader(context, LoaderType.METADAT
         try {
             var uri = checkNotNull(options.originalUri) { "nothing to load" }
 
-            // cleanup uri
             val uriString = uri.toString()
             if (uriString.startsWith("/./")) {
                 uri = Uri.parse(uriString.substring(2))
@@ -36,22 +35,17 @@ class MetadataLoader(context: Context?) : FileLoader(context, LoaderType.METADAT
 
             AndroidFileCache.cleanup(context)
 
-            // detecting the filename early so we can use it in the catch-block if something goes
-            // wrong
             var filename: String? = null
             try {
                 // https://stackoverflow.com/a/38304115/198996
-                val fileCursor = context.contentResolver.query(uri, null, null, null, null)
-                if (fileCursor != null && fileCursor.moveToFirst()) {
-                    val nameIndex = fileCursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME)
-                    filename = fileCursor.getString(nameIndex)
-                    fileCursor.close()
+                context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val nameIndex = cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME)
+                        filename = cursor.getString(nameIndex)
+                    }
                 }
             } catch (e: Exception) {
-                // "URI does not contain a valid access token." or
-                // "Couldn't read row 0, col -1 from CursorWindow. Make sure the Cursor is
-                // initialized correctly before accessing data from it."
-
+                // providers throw here for a missing access token or a missing DISPLAY_NAME column
                 crashManager.log(e)
             }
 
@@ -112,9 +106,7 @@ class MetadataLoader(context: Context?) : FileLoader(context, LoaderType.METADAT
                 }
             }
 
-            // whatever spelling this came out as, go on with the core's own from here: a provider
-            // is free to volunteer application/x-zip-compressed or application/csv, and the app
-            // claims those now, but the loaders behind us go by one mime type per format
+            // one spelling per format from here on: a provider may volunteer application/csv
             mimetype = SupportedDocumentTypes.canonicalMimeType(mimetype)
 
             val resolution = MimeTypeResolver.resolve(mimetype, extension, MIME_TYPE_LOOKUP)
@@ -135,8 +127,7 @@ class MetadataLoader(context: Context?) : FileLoader(context, LoaderType.METADAT
                 try {
                     val evicted = RecentDocumentsUtil.addRecentDocument(context, filename, uri)
                     if (evicted.isNotEmpty()) {
-                        // hand the uri permissions of the documents that just fell off the end
-                        // of the list back, so we stay well below the per package grant limit
+                        // stay well below the per package grant limit
                         PersistedUriPermissions.prune(context)
                     }
                 } catch (e: IOException) {

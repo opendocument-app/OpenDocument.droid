@@ -9,11 +9,10 @@ import app.opendocument.droid.R
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 /**
- * @JvmOverloads keeps the no-arg constructor the framework needs to re-create the fragment; a
- *   restored dialog reports itself as a load, same as before.
- *
  * Built on MaterialAlertDialogBuilder rather than the framework ProgressDialog, which resolves
  * android:alertDialogTheme and so would have stayed light once the app theme became DayNight.
+ *
+ * @JvmOverloads keeps the no-arg constructor the fragment framework re-creates this with.
  */
 @SuppressLint("ValidFragment")
 class ProgressDialogFragment @JvmOverloads constructor(private val isUpload: Boolean = false) :

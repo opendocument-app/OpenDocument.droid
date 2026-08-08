@@ -12,11 +12,8 @@ import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
 import java.io.File
 import java.io.FileOutputStream
-import java.io.InputStream
-import org.junit.After
 import org.junit.AfterClass
 import org.junit.Assert
-import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,79 +22,15 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class CoreTest {
 
-    // nullable like the java fields were: a failure while extracting must not turn into an
-    // "uninitialized" error from the cleanup that follows it
-    private var testFile: File? = null
-    private var passwordTestFile: File? = null
-    private var spreadsheetTestFile: File? = null
-    private var docxTestFile: File? = null
-    private var pptxTestFile: File? = null
-    private var docTestFile: File? = null
-    private var pptTestFile: File? = null
-    private var xlsTestFile: File? = null
-
     private val coreLoader: CoreLoader
         get() = checkNotNull(sharedLoader) { "the core loader was not started" }
-
-    private fun requireFile(file: File?): File = checkNotNull(file) { "the test file is missing" }
-
-    @Before
-    fun extractTestFile() {
-        val appCtx = InstrumentationRegistry.getInstrumentation().targetContext
-        val assetManager = InstrumentationRegistry.getInstrumentation().context.assets
-
-        testFile = extract(assetManager.open("test.odt"), File(appCtx.cacheDir, "test.odt"))
-        passwordTestFile =
-            extract(
-                assetManager.open("password-test.odt"),
-                File(appCtx.cacheDir, "password-test.odt"),
-            )
-        spreadsheetTestFile =
-            extract(
-                assetManager.open("spreadsheet-test.ods"),
-                File(appCtx.cacheDir, "spreadsheet-test.ods"),
-            )
-        docxTestFile =
-            extract(
-                assetManager.open("style-various-1.docx"),
-                File(appCtx.cacheDir, "style-various-1.docx"),
-            )
-        pptxTestFile =
-            extract(
-                assetManager.open("style-various-1.pptx"),
-                File(appCtx.cacheDir, "style-various-1.pptx"),
-            )
-        docTestFile = extract(assetManager.open("11KB.doc"), File(appCtx.cacheDir, "11KB.doc"))
-        pptTestFile =
-            extract(
-                assetManager.open("style-various-1.ppt"),
-                File(appCtx.cacheDir, "style-various-1.ppt"),
-            )
-        xlsTestFile =
-            extract(
-                assetManager.open("file_example_XLS_10.xls"),
-                File(appCtx.cacheDir, "file_example_XLS_10.xls"),
-            )
-    }
-
-    @After
-    fun cleanupTestFile() {
-        testFile?.delete()
-        passwordTestFile?.delete()
-        spreadsheetTestFile?.delete()
-        docxTestFile?.delete()
-        pptxTestFile?.delete()
-        docTestFile?.delete()
-        pptTestFile?.delete()
-        xlsTestFile?.delete()
-    }
 
     @Test
     fun test() {
         val views =
             coreLoader.host(
                 prefix = "test",
-                inputPath = requireFile(testFile).absolutePath,
+                inputPath = testFile.absolutePath,
                 cachePath = File(cacheDir(), "core_cache").path,
                 editable = true,
                 keepDocument = true,
@@ -118,7 +51,7 @@ class CoreTest {
         val views =
             coreLoader.host(
                 prefix = "docx-edit",
-                inputPath = requireFile(docxTestFile).absolutePath,
+                inputPath = docxTestFile.absolutePath,
                 cachePath = File(cacheDir(), "core_cache").path,
                 editable = true,
                 keepDocument = true,
@@ -142,7 +75,7 @@ class CoreTest {
         val views =
             coreLoader.host(
                 prefix = "pptx-test",
-                inputPath = requireFile(pptxTestFile).absolutePath,
+                inputPath = pptxTestFile.absolutePath,
                 cachePath = File(cacheDir(), "pptx_cache").path,
             )
         Assert.assertFalse("hosting the PPTX file should produce a view", views.isEmpty())
@@ -153,7 +86,7 @@ class CoreTest {
         val views =
             coreLoader.host(
                 prefix = "doc-test",
-                inputPath = requireFile(docTestFile).absolutePath,
+                inputPath = docTestFile.absolutePath,
                 cachePath = File(cacheDir(), "doc_cache").path,
             )
         Assert.assertFalse("hosting the DOC file should produce a view", views.isEmpty())
@@ -164,7 +97,7 @@ class CoreTest {
         val views =
             coreLoader.host(
                 prefix = "ppt-test",
-                inputPath = requireFile(pptTestFile).absolutePath,
+                inputPath = pptTestFile.absolutePath,
                 cachePath = File(cacheDir(), "ppt_cache").path,
             )
         Assert.assertFalse("hosting the PPT file should produce a view", views.isEmpty())
@@ -175,7 +108,7 @@ class CoreTest {
         val views =
             coreLoader.host(
                 prefix = "xls-test",
-                inputPath = requireFile(xlsTestFile).absolutePath,
+                inputPath = xlsTestFile.absolutePath,
                 cachePath = File(cacheDir(), "xls_cache").path,
             )
         Assert.assertFalse("hosting the XLS file should produce a view", views.isEmpty())
@@ -183,22 +116,20 @@ class CoreTest {
 
     /**
      * Which of the formats the core renders it can also write back again - the answer
-     * `DocumentFragment` puts the Edit button up by. Offering it for a document the core will not
-     * save only gets as far as a failed save, which is what happened to the legacy binary formats
-     * when they started going through the core.
+     * `DocumentFragment` puts the Edit button up by.
      */
     @Test
     fun testEditableFormats() {
-        assertEditable("odt-editable", requireFile(testFile), true)
-        assertEditable("docx-editable", requireFile(docxTestFile), true)
+        assertEditable("odt-editable", testFile, true)
+        assertEditable("docx-editable", docxTestFile, true)
 
         // the core declares these read only: the three legacy binary formats, ooxml presentations
         // and every spreadsheet - the last being issue #442, which the core has its own TODO for
-        assertEditable("doc-editable", requireFile(docTestFile), false)
-        assertEditable("ppt-editable", requireFile(pptTestFile), false)
-        assertEditable("xls-editable", requireFile(xlsTestFile), false)
-        assertEditable("pptx-editable", requireFile(pptxTestFile), false)
-        assertEditable("ods-editable", requireFile(spreadsheetTestFile), false)
+        assertEditable("doc-editable", docTestFile, false)
+        assertEditable("ppt-editable", pptTestFile, false)
+        assertEditable("xls-editable", xlsTestFile, false)
+        assertEditable("pptx-editable", pptxTestFile, false)
+        assertEditable("ods-editable", spreadsheetTestFile, false)
     }
 
     private fun assertEditable(prefix: String, file: File, expected: Boolean) {
@@ -222,7 +153,7 @@ class CoreTest {
         Assert.assertThrows(OdrException.FileEncrypted::class.java) {
             coreLoader.host(
                 prefix = "password-test-no-pw",
-                inputPath = requireFile(passwordTestFile).absolutePath,
+                inputPath = passwordTestFile.absolutePath,
                 cachePath = File(cacheDir(), "core_cache").path,
             )
         }
@@ -233,7 +164,7 @@ class CoreTest {
         Assert.assertThrows(OdrException::class.java) {
             coreLoader.host(
                 prefix = "password-test-wrong-pw",
-                inputPath = requireFile(passwordTestFile).absolutePath,
+                inputPath = passwordTestFile.absolutePath,
                 cachePath = File(cacheDir(), "core_cache").path,
                 password = "wrongpassword",
             )
@@ -245,7 +176,7 @@ class CoreTest {
         val views =
             coreLoader.host(
                 prefix = "password-test-correct-pw",
-                inputPath = requireFile(passwordTestFile).absolutePath,
+                inputPath = passwordTestFile.absolutePath,
                 cachePath = File(cacheDir(), "core_cache").path,
                 password = "passwort",
             )
@@ -257,14 +188,12 @@ class CoreTest {
         val views =
             coreLoader.host(
                 prefix = "spreadsheet-test",
-                inputPath = requireFile(spreadsheetTestFile).absolutePath,
+                inputPath = spreadsheetTestFile.absolutePath,
                 cachePath = File(cacheDir(), "spreadsheet_cache").path,
             )
 
-        // Verify we have exactly 3 sheets
         Assert.assertEquals("ODS file should contain 3 sheets", 3, views.size)
 
-        // Verify sheet names match the actual sheet names from the ODS file
         Assert.assertEquals("First sheet should be named 'hey'", "hey", views[0].name)
         Assert.assertEquals("Second sheet should be named 'ho'", "ho", views[1].name)
         Assert.assertEquals("Third sheet should be named 'Sheet3'", "Sheet3", views[2].name)
@@ -274,15 +203,46 @@ class CoreTest {
 
         private var sharedLoader: CoreLoader? = null
 
+        // extracted once for the whole class: nothing here writes to a fixture
+        private val extracted = mutableListOf<File>()
+
+        private lateinit var testFile: File
+        private lateinit var passwordTestFile: File
+        private lateinit var spreadsheetTestFile: File
+        private lateinit var docxTestFile: File
+        private lateinit var pptxTestFile: File
+        private lateinit var docTestFile: File
+        private lateinit var pptTestFile: File
+        private lateinit var xlsTestFile: File
+
         // @JvmStatic because junit requires @BeforeClass / @AfterClass to be static
+        @JvmStatic
+        @BeforeClass
+        fun extractTestFiles() {
+            testFile = extract("test.odt")
+            passwordTestFile = extract("password-test.odt")
+            spreadsheetTestFile = extract("spreadsheet-test.ods")
+            docxTestFile = extract("style-various-1.docx")
+            pptxTestFile = extract("style-various-1.pptx")
+            docTestFile = extract("11KB.doc")
+            pptTestFile = extract("style-various-1.ppt")
+            xlsTestFile = extract("file_example_XLS_10.xls")
+        }
+
+        @JvmStatic
+        @AfterClass
+        fun cleanupTestFiles() {
+            extracted.forEach { it.delete() }
+            extracted.clear()
+        }
+
         @JvmStatic
         @BeforeClass
         fun startServer() {
             val appCtx = InstrumentationRegistry.getInstrumentation().targetContext
 
-            // the loader owns the core lifecycle now, so the test drives a real one rather than a
-            // set of statics. nothing here goes through loadAsync, so both handlers can be the main
-            // looper and the listener is never called back
+            // nothing here goes through loadAsync, so both handlers can be the main looper and
+            // the listener is never called back
             val handler = Handler(Looper.getMainLooper())
             val loader = CoreLoader(appCtx)
             sharedLoader = loader
@@ -297,10 +257,6 @@ class CoreTest {
                 AnalyticsManager(),
                 CrashManager(),
             )
-
-            // no waiting for the server here: these tests call host() and edit() straight on
-            // the loader and never fetch a url, so whether the socket is listening yet does
-            // not come into it. it used to sleep a second for it anyway
         }
 
         @JvmStatic
@@ -313,8 +269,14 @@ class CoreTest {
         private fun cacheDir(): File =
             InstrumentationRegistry.getInstrumentation().targetContext.cacheDir
 
-        private fun extract(source: InputStream, target: File): File {
-            source.use { input -> FileOutputStream(target).use { output -> input.copyTo(output) } }
+        private fun extract(name: String): File {
+            val instrumentation = InstrumentationRegistry.getInstrumentation()
+            val target = File(instrumentation.targetContext.cacheDir, name)
+
+            instrumentation.context.assets.open(name).use { input ->
+                FileOutputStream(target).use { output -> input.copyTo(output) }
+            }
+            extracted += target
 
             return target
         }

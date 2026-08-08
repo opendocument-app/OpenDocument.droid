@@ -17,6 +17,7 @@ import android.widget.LinearLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ActionMode as SupportActionMode
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -64,9 +65,8 @@ class MainActivity : AppCompatActivity() {
 
     private var fullscreen = false
 
-    // With targetSdk 36 predictive back is enabled by default and neither KEYCODE_BACK
-    // nor onBackPressed() are delivered anymore, so back is intercepted via the
-    // OnBackPressedDispatcher instead.
+    // predictive back (default from targetSdk 36) delivers neither KEYCODE_BACK nor
+    // onBackPressed(), so back is intercepted through the dispatcher
     private val backCallback =
         object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -94,6 +94,9 @@ class MainActivity : AppCompatActivity() {
     // kept because onPause has to stop it; the edit mode needs no such handle
     private var ttsActionMode: TtsActionModeCallback? = null
 
+    /** The action mode on screen, so [closeDocument] and [onDestroy] can take it down with them. */
+    private var currentActionMode: SupportActionMode? = null
+
     lateinit var crashManager: CrashManager
         private set
 
@@ -108,9 +111,7 @@ class MainActivity : AppCompatActivity() {
     private var loadOnStart: Uri? = null
     private var lastSaveUri: Uri? = null
 
-    // documents opened from another app keep the default back behavior (returning
-    // to that app), while documents opened from within the app go back to the
-    // landing screen instead of closing the app
+    // back returns to the calling app for these, rather than to the landing screen
     private var documentOpenedExternally = false
 
     // set before we start an activity of our own, so coming back from it is not counted as
@@ -122,12 +123,22 @@ class MainActivity : AppCompatActivity() {
 
     private var service: LoaderService? = null
 
+    /**
+     * Whether [bindService] was called. Not the same as holding a [service]: the binder arrives
+     * asynchronously, and an activity destroyed before it does still has to unbind.
+     */
+    private var isBound = false
+
     private val connection =
         object : ServiceConnection {
             override fun onServiceDisconnected(name: ComponentName?) {
                 service?.setListener(null)
 
                 service = null
+
+                // the queue holds its own reference, and handing work to a service whose
+                // background thread has quit drops it without telling anyone
+                loaderServiceQueue.service = null
             }
 
             override fun onServiceConnected(name: ComponentName?, binder: IBinder) {
@@ -182,6 +193,7 @@ class MainActivity : AppCompatActivity() {
 
         loaderServiceQueue = LoaderServiceQueue()
         bindService(Intent(this, LoaderService::class.java), connection, BIND_AUTO_CREATE)
+        isBound = true
 
         handler = Handler(Looper.getMainLooper())
 
@@ -207,8 +219,8 @@ class MainActivity : AppCompatActivity() {
         val catchAllEnabled = CatchAllSetting.applyOnLaunch(this)
         analyticsManager.report(if (catchAllEnabled) "catch_all_enabled" else "catch_all_disabled")
 
-        // reclaims the uri permissions of documents that have since dropped off the recently
-        // opened list. touches the filesystem and the permission binder, so not on the main thread
+        // reclaims the grants of documents that dropped off the recent list; hits the
+        // filesystem and the permission binder, so off the main thread
         Thread { PersistedUriPermissions.prune(applicationContext) }.start()
 
         crashManager.log("onCreate")
@@ -309,8 +321,8 @@ class MainActivity : AppCompatActivity() {
 
         crashManager.log("onStart")
 
-        // here rather than in onCreate: tapping the launcher while the task is still alive
-        // resumes this activity instead of creating it, and those opens count too
+        // not in onCreate: a launcher tap onto a live task resumes rather than creates,
+        // and those opens count too
         if (documentFragment == null && loadOnStart == null) {
             if (leftForOwnActivity) {
                 leftForOwnActivity = false
@@ -342,7 +354,8 @@ class MainActivity : AppCompatActivity() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 
-        adManager.showGoogleAds()
+        // the banner's size follows the orientation; the consent flow behind it does not
+        adManager.refreshAds()
     }
 
     fun requestSave() {
@@ -364,7 +377,7 @@ class MainActivity : AppCompatActivity() {
             leftForOwnActivity = true
             createDocumentLauncher.launch(intent)
         } catch (e: ActivityNotFoundException) {
-            // happens on a variety devices, e.g. Samsung Galaxy Tab4 7.0 with Android 4.4.2
+            // a device with nothing handling ACTION_CREATE_DOCUMENT - there is nowhere to save to
             crashManager.log(e)
         }
     }
@@ -392,11 +405,15 @@ class MainActivity : AppCompatActivity() {
         adManager = AdManager()
         adManager.setEnabled(!IS_TESTING && useProprietaryLibraries)
         adManager.setAdContainer(adContainer)
+        // the landing screen is drawn long before the consent update comes back, and the privacy
+        // options row only exists once it has
+        adManager.setConsentListener { landingFragment?.refresh() }
+        adManager.setPurchaseListener { buyAdRemoval() }
         adManager.initialize(this, analyticsManager, crashManager)
 
         billingManager = BillingManager()
         billingManager.setEnabled(useProprietaryLibraries)
-        billingManager.initialize(this, analyticsManager, adManager)
+        billingManager.initialize(this, adManager)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -415,10 +432,8 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    // The play services availability dialog calls startActivityForResult() itself with a
-    // request code we hand it, so its result cannot be routed through an
-    // ActivityResultLauncher. Everything the app launches on its own goes through the
-    // launchers declared above.
+    // the play services availability dialog calls startActivityForResult() itself with a request
+    // code we hand it, so its result cannot come back through an ActivityResultLauncher
     @Deprecated("Deprecated in Java")
     @Suppress("DEPRECATION")
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
@@ -470,15 +485,10 @@ class MainActivity : AppCompatActivity() {
             uri.toString(),
         )
 
-        // the grant has to outlive this call: loadUri only queues the load onto LoaderService,
-        // so MetadataLoader opens the stream long after we return. releasing it here - as this
-        // used to - also dropped the persisted grant, which left every uri in the recently
-        // opened list unreadable on the next launch. PersistedUriPermissions.prune() reclaims
-        // them instead, once nothing refers to them any more.
-        //
-        // takeRead fails for a uri that did not arrive on an intent of ours - one tapped in the
-        // recently opened list, say - so isRetained asks whether an earlier session already took
-        // the grant that is making it readable now
+        // the grant has to outlive this call: the load is only queued, so the stream is opened
+        // long after we return. releasing it here also dropped the persisted grant, leaving the
+        // recent documents unreadable - prune() reclaims instead. isRetained covers a uri that
+        // did not arrive on an intent of ours, such as one tapped in the recently opened list
         val isPersistentUri =
             PersistedUriPermissions.takeRead(this, uri) ||
                 PersistedUriPermissions.isRetained(this, uri)
@@ -498,7 +508,7 @@ class MainActivity : AppCompatActivity() {
             DocumentActions.ACTION_SEARCH -> {
                 val findActionModeCallback = FindActionModeCallback(this)
                 documentFragment?.pageView?.let { findActionModeCallback.setWebView(it) }
-                startSupportActionMode(findActionModeCallback)
+                currentActionMode = startSupportActionMode(findActionModeCallback)
 
                 analyticsManager.report("menu_search")
                 analyticsManager.report(AnalyticsConstants.EVENT_SEARCH)
@@ -571,7 +581,7 @@ class MainActivity : AppCompatActivity() {
                     val ttsActionMode = TtsActionModeCallback(this, pageView)
                     this.ttsActionMode = ttsActionMode
 
-                    startSupportActionMode(ttsActionMode)
+                    currentActionMode = startSupportActionMode(ttsActionMode)
                 }
             }
 
@@ -579,7 +589,8 @@ class MainActivity : AppCompatActivity() {
                 analyticsManager.report("menu_edit")
 
                 documentFragment?.let { fragment ->
-                    startSupportActionMode(EditActionModeCallback(this, fragment))
+                    currentActionMode =
+                        startSupportActionMode(EditActionModeCallback(this, fragment))
                 }
             }
         }
@@ -633,6 +644,7 @@ class MainActivity : AppCompatActivity() {
 
         updateDocumentActionsVisible()
 
+        currentActionMode = null
         ttsActionMode = null
     }
 
@@ -664,11 +676,23 @@ class MainActivity : AppCompatActivity() {
     fun offersAdRemoval(): Boolean =
         ::billingManager.isInitialized && !billingManager.hasPurchased()
 
+    /**
+     * Whether the consent decision can still be withdrawn, which is when the ump sdk requires an
+     * app to offer a way back into the form. Asked the same way as [offersAdRemoval], and it stays
+     * true after an ad removal: withdrawal outlives the ads.
+     */
+    fun offersPrivacyOptions(): Boolean =
+        ::adManager.isInitialized && adManager.isPrivacyOptionsRequired()
+
+    /** Only from a tap - the sdk preloads the form for exactly this. */
+    fun showPrivacyOptions() {
+        adManager.showPrivacyOptions()
+    }
+
     fun buyAdRemoval() {
         analyticsManager.report(AnalyticsConstants.EVENT_ADD_TO_CART)
 
-        // the play listing id is the applicationId, which stays at.tomtasche.reader.pro
-        // - it is not the java package and does not follow the namespace rename
+        // the play listing id is the applicationId, not the renamed java package
         startActivity(
             Intent(
                 Intent.ACTION_VIEW,
@@ -717,11 +741,17 @@ class MainActivity : AppCompatActivity() {
             SnackbarHelper.dismiss(this)
         }
 
+        // the fragment goes first: finishing an edit mode reloads the document it acts on, and
+        // that load would put a progress dialog up over a fragment that is about to be removed.
+        // reloadUri() is a no-op once it is detached
         documentFragment?.let { fragment ->
             supportFragmentManager.beginTransaction().remove(fragment).commitNow()
 
             documentFragment = null
         }
+
+        // an edit or tts mode would otherwise outlive the document it acts on
+        currentActionMode?.finish()
 
         lastUri = null
 
@@ -805,8 +835,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        if (service != null) {
+        // appcompat does not finish it for us, and TtsActionModeCallback only shuts its
+        // engine down when the mode is destroyed
+        currentActionMode?.finish()
+
+        if (isBound) {
             unbindService(connection)
+            isBound = false
         }
 
         printingManager.close()
@@ -814,12 +849,7 @@ class MainActivity : AppCompatActivity() {
         adManager.destroyAds()
 
         try {
-            // keeps throwing exceptions for some users:
-            // Caused by: java.lang.NullPointerException
-            // android.webkit.WebViewClassic.requestFocus(WebViewClassic.java:9898)
-            // android.webkit.WebView.requestFocus(WebView.java:2133)
-            // ViewGroup.onRequestFocusInDescendants(ViewGroup.java:2384)
-
+            // has thrown out of the WebView's focus handling for some users
             super.onDestroy()
         } catch (e: Exception) {
             crashManager.log(e)

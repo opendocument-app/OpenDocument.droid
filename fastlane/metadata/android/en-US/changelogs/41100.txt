@@ -1,0 +1,7 @@
+Presentations open in the app: .pptx and .ppt, along with legacy .xls and .doc.
+
+The list of formats we accept now comes from the rendering engine itself, so templates, macro-enabled files and extensions like .dot, .pot, .pps and .xlt are recognised. .xlsb is no longer offered, because it could never be opened.
+
+The Edit action now follows what the engine says about the open document.
+
+Uploading a file the conversion service refuses now reports the failure.

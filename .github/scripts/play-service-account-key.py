@@ -3,20 +3,13 @@
 # Reads the play console service account key out of the environment and writes a
 # normalised copy of it to the given path.
 #
-# fastlane only ever says "'...' doesn't seem to be a JSON file" about a key it
-# cannot parse, and it says it after the bundles are built, at the one step of
-# the release that cannot simply be re-run - play refuses a version code it has
-# already accepted. So the key is checked here instead, before the build, and
-# with an error that names what is actually wrong.
+# fastlane's own "doesn't seem to be a JSON file" comes at the upload, the one step
+# of a release that cannot be re-run - play refuses a code it has already accepted.
+# So the key is checked here, up front, and with an error that names the problem.
 #
-# The three ways a good key arrives broken are all repaired rather than reported:
-# base64 (which is how the keystore secret is stored, so it is an easy mistake to
-# make), a utf-8 BOM or whitespace picked up on the way through a clipboard, and
-# a private_key whose line breaks were unescaped by hand. Anything that is not a
-# service account key after that is an error.
-#
-# The key is passed in through the environment and never printed: what comes back
-# out is the file.
+# Base64 (how the keystore secret is stored, so an easy mistake), a BOM or clipboard
+# whitespace, and hand-unescaped private_key line breaks are all repaired rather than
+# reported. The key comes in through the environment and is never printed.
 
 import argparse
 import base64
@@ -29,8 +22,7 @@ REQUIRED_FIELDS = ("type", "client_email", "private_key")
 
 def fail(message):
     if os.environ.get("GITHUB_ACTIONS"):
-        # shown in the log the same way, and additionally as an annotation on the
-        # run itself rather than only somewhere in the middle of a step
+        # ::error:: also annotates the run itself
         print(f"::error::{message}")
     else:
         print(message, file=sys.stderr)

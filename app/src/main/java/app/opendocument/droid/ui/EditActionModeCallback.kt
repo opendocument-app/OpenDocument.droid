@@ -31,7 +31,6 @@ class EditActionModeCallback(
     }
 
     override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
-        // reload document with translation enabled
         documentFragment.reloadUri(true)
 
         imm.toggleSoftInputFromWindow(

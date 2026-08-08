@@ -14,19 +14,7 @@ object RecentDocumentList {
      */
     const val MAX_ENTRIES: Int = 32
 
-    class Entry(val filename: String, val uri: String, val lastOpenedAt: Long) {
-
-        override fun equals(other: Any?): Boolean =
-            other is Entry &&
-                other.filename == filename &&
-                other.uri == uri &&
-                other.lastOpenedAt == lastOpenedAt
-
-        override fun hashCode(): Int =
-            filename.hashCode() * 31 * 31 + uri.hashCode() * 31 + lastOpenedAt.hashCode()
-
-        override fun toString(): String = "Entry($filename, $uri, $lastOpenedAt)"
-    }
+    data class Entry(val filename: String, val uri: String, val lastOpenedAt: Long)
 
     /**
      * The list after an [add] or an [insert], plus whatever fell off the end of it. The evicted

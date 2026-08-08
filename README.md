@@ -44,13 +44,25 @@ Without them `bundleProRelease` and friends still build, just unsigned.
 
 ## Releasing
 
-Pushing a `v*` tag runs the `release` workflow, which builds both signed bundles and
-uploads them to the Play Store internal track - the same thing the fastlane lanes did
-from a laptop. It also builds the signed Pro APK and attaches it to the GitHub release
-of that tag, which has to exist already - the workflow does not create one, it fails
-instead. That APK is the sideloadable copy every release up to v4.6 carried, and both APKs are
-archived on the run itself. Both flavors always go out together. Running the workflow
-manually additionally allows picking what to publish.
+The `release` workflow builds both signed bundles and uploads them to the Play Store
+internal track - the same thing the fastlane lanes did from a laptop. It is dispatched
+by hand, with the version it should build:
+
+```sh
+gh workflow run release.yml -f version=v4.14.0
+```
+
+Nothing triggers it on a tag. It runs as three jobs:
+
+| job | what it does |
+|---|---|
+| `build` | one gradle run producing both signed flavors, archived on the run |
+| `upload` | one job per flavor, handing its bundle to fastlane |
+| `record` | once both landed: tag the commit, draft the GitHub release |
+
+Both flavors always go out together, and nothing chooses one: Lite and Pro are the same
+app with ads and tracking switched off. That is what keeps a version on a single commit -
+the one the `v*` tag names and F-Droid builds.
 
 Internal is the only track it uploads to. Anything wider - closed, open, production -
 is a promotion in the Play Console, which moves the same bundle and version code that
@@ -58,17 +70,19 @@ was tested onto the wider track instead of uploading a second one, and is where 
 release notes get written. It is also where the review that a production release waits
 on actually happens, so the workflow finishing is not the same as the release being out.
 
-That last one, `uploads`, defaults to `both`. `none` is a dry run: everything gets
-built, signed and attached to the run, nothing leaves it. `pro` or `lite` finishes a
-half uploaded release - if one of the two lanes fails on its own the run cannot simply
-be repeated, since the Play Store refuses a version code it has already accepted, so
-dispatch it again for the flavor that did not make it.
+**If one flavor's upload fails, press "Re-run failed jobs".** Only that upload runs again,
+against the bundle already built and signed, and `record` runs behind it. Re-running *all*
+jobs is the wrong button: Play refuses a version code it has already accepted, so the half
+that made it cannot go up twice. Past the roughly 30 days GitHub offers re-runs for, the
+way out is a new patch version for both flavors.
 
-A dispatched run has no tag to take the version from, so it either gets one in the
-`version` input or is a dry run; see below. Dispatched on a tag it is the tag that
-counts, and the input may only repeat it: the APK a run produces is attached to the
-release of the tag it ran on, so a run that built some other version would file it
-there under the wrong one.
+`dry_run` builds and signs both flavors without uploading either. It is the only run
+allowed to go without a version, and the only one leaving neither tag nor draft.
+
+In its first seconds the run also refuses a version that has already gone out and one
+with no `CHANGELOG.md` section, which is what the release body is made of.
+`.github/scripts/resolve-version.py` and `changelog-section.py` decide both; run either
+by hand to see what a dispatch would do.
 
 It needs these repository secrets:
 
@@ -90,15 +104,53 @@ and uploads, and takes an optional `track:` (`... track:beta`). The version can 
 `ODR_VERSION` instead, but it cannot be left out - see below. That reads the key from
 `fastlane_google_play.json` in the repository root, as the `Appfile` says.
 
+### Tags
+
+No tag triggers a build, and none is pushed before one. A tag written up front is a
+promise the run can fail to keep: `v4.9.0`'s tag push run failed and the upload came
+from a dispatched run - the same commit that time, which was luck.
+
+Tags are written afterwards instead, in two kinds:
+
+| tag | who writes it | what it means |
+|---|---|---|
+| `build/<version>` | the release workflow, once both flavors are up | this commit went to the internal track |
+| `v<version>` | publishing the drafted release | this is what shipped |
+
+One build tag, not one per flavor: a single run builds both from a single checkout. A
+half uploaded release gets no tag at all, which is the honest answer - nothing yet could
+be published from it. A lane run from a laptop leaves none either.
+
+**The `v*` tag is written neither by hand nor by the workflow.** `record` drafts a GitHub
+release named `v<version>` at the built commit, carrying the Pro APK - the sideloadable
+copy every release up to v4.6 has had - and the version's `CHANGELOG.md` section above
+GitHub's generated list of pull requests. A draft creates no tag; publishing it does, at
+exactly that commit:
+
+```sh
+gh release edit v4.14.0 --draft=false
+```
+
+That is the whole manual step, and it waits because internal is not released: promotion to
+production, and the review it needs, happen in the Play Console days later. F-Droid tracks
+this repository with `UpdateCheckMode: Tags`, so a `v*` tag written any earlier would push
+a version to F-Droid users that Google may never release.
+
 ## Versioning
 
-The version is the git tag, and no version number is checked in anywhere. The release
-workflow hands the tag it was triggered by to gradle as `-Podr.version`, and
-`app/build.gradle` derives both halves of it: `v4.8.0` becomes version name `4.8.0` and
-version code `40800`, two digits per part. Every part therefore has to stay below 100,
-which the build refuses rather than folding `4.100.0` onto the same code as `5.0.0`.
-Nothing has to be raised by hand before tagging, and no number on `main` can describe a
-release that already went out.
+The version is the release run's `version` input, and no version number is checked in
+anywhere. The workflow hands it to gradle as `-Podr.version`, and `app/build.gradle`
+derives both halves of it: `v4.8.0` becomes version name `4.8.0` and version code
+`40800`, two digits per part. Every part therefore has to stay below 100, which the
+build refuses rather than folding `4.100.0` onto the same code as `5.0.0`. Nobody bumps
+it anywhere: a commit on `main` is not a release, and no number on `main` can describe
+one that already went out.
+
+All three parts have to be spelled out. A two-part `v4.7` used to be padded to `4.7.0`,
+which meant one build could be tagged under two names, and the tags older than `v4.8.0`
+are in both formats because of it. They are left as they are - a release asset is served
+from a URL carrying its tag name, and F-Droid rebuilds old versions from those names -
+so the rule only holds for what is tagged from here on.
 
 Builds handed no version - local ones, PR builds, `assembleProDebug` - are `0.0.0`.
 Nothing reads it: no code in the app looks at its own version, and only what the release

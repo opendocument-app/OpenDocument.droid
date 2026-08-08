@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Stands in for a banner that did not fill, in the slot it would have had. AdManager
+     sizes it and drops parts as the slot narrows - see showHouseAd. The white is the point
+     rather than overdraw: the page behind it is grey. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/house_ad_background"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="10dp"
+    android:paddingEnd="10dp"
+    tools:ignore="Overdraw">
+
+    <ImageView
+        android:id="@+id/house_ad_icon"
+        android:layout_width="34dp"
+        android:layout_height="34dp"
+        android:layout_marginEnd="10dp"
+        android:contentDescription="@string/app_title"
+        android:src="@mipmap/ic_launcher" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- both truncate rather than wrap, so a long translation cannot break the height -->
+        <TextView
+            android:id="@+id/house_ad_headline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/house_ad_headline"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="@string/house_ad_support_headline" />
+
+        <TextView
+            android:id="@+id/house_ad_subline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/house_ad_subline"
+            android:textSize="11sp"
+            tools:text="@string/house_ad_support_subline" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/house_ad_cta"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/house_ad_pill"
+        android:paddingStart="10dp"
+        android:paddingTop="5dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="5dp"
+        android:textColor="@android:color/white"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        tools:text="@string/house_ad_cta_go_pro" />
+</LinearLayout>

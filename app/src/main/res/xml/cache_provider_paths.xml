@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <!-- for nnf -->
+    <!-- the whole app directory, for uris handed to us from outside the cache -->
     <root-path
             name="root"
             path="." />
@@ -10,7 +10,7 @@
             name="cache"
             path="." />
 
-<!--    For instrumentation tests-->
+    <!-- for instrumentation tests -->
     <cache-path
             name="test-documents"
             path="test-documents" />

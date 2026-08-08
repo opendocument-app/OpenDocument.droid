@@ -2,20 +2,12 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-// Release signing credentials are supplied out of band - they used to be committed
-// in plain text right here. Set them either as gradle properties (in
-// ~/.gradle/gradle.properties, never in the repo) or as environment variables:
-//
-//   odr.keystore         / ODR_KEYSTORE          path to the keystore
-//   odr.keystorePassword / ODR_KEYSTORE_PASSWORD store password
-//   odr.keyPasswordPro   / ODR_KEY_PASSWORD_PRO  key password, defaults to the store one
-//   odr.keyPasswordLite  / ODR_KEY_PASSWORD_LITE key password, defaults to the store one
-//
-// When they are absent the release variants build unsigned instead of failing, so
-// contributors and CI can still build them.
-// empty counts as absent: a github actions secret that is not set still reaches the
-// build as an empty environment variable, and taking that at face value would use an
-// empty key password instead of falling back to the store one
+// Release signing credentials come from gradle properties or the environment; see the
+// README's "Release signing" section for the names. Absent, the release variants build
+// unsigned rather than failing.
+// empty counts as absent: an unset github actions secret still arrives as an empty
+// environment variable, which would otherwise be used as the key password instead of
+// falling back to the store one
 def signingSetting = { String property, String environmentVariable ->
     providers.gradleProperty(property)
             .orElse(providers.environmentVariable(environmentVariable))
@@ -27,29 +19,27 @@ def releaseKeyPasswordPro = signingSetting('odr.keyPasswordPro', 'ODR_KEY_PASSWO
 def releaseKeyPasswordLite = signingSetting('odr.keyPasswordLite', 'ODR_KEY_PASSWORD_LITE')
 def hasReleaseSigning = releaseKeystore.isPresent() && releaseKeystorePassword.isPresent()
 
-// The version is the tag, and lives nowhere in the tree. A number checked in on main
-// describes either a release that already went out or a guess at the next one, so it is
-// wrong almost all of the time, and versionCode and versionName had to be walked forward
-// together by hand. The release workflow passes the tag it was triggered by as
-// -Podr.version (ODR_VERSION works too, the way the signing settings above take either).
+// The version lives nowhere in the tree: it is the release run's `version` input, handed
+// over as -Podr.version (or ODR_VERSION), and the tags are written afterwards. A number
+// checked in on main would describe either a release that already went out or a guess at
+// the next one, walked forward by hand in two places.
 //
 // Everything else - a local build, a PR build, a dry run - is 0.0.0, which nothing reads:
-// no code in the app looks at its own version, and only what the release workflow builds
-// is ever uploaded anywhere.
+// no code looks at its own version, and only the release workflow uploads anything.
 def parseVersion = { String version ->
     // split rather than tokenize, which would swallow the empty part in '4..8'
     def parts = (version - ~/^v/).split('\\.', -1) as List
-    if (parts.isEmpty() || parts.size() > 3 || !parts.every { it ==~ /\d+/ }) {
+    // all three parts, spelled out. a missing one used to be padded with a zero, so
+    // 'v4.7' and 'v4.7.0' were the same build under two names - which is how the tags
+    // ended up in two formats. the padding is gone rather than the spelling made a
+    // convention, because a convention cannot fail the build
+    if (parts.size() != 3 || !parts.every { it ==~ /\d+/ }) {
         throw new GradleException(
-                "odr.version must look like 4.8 or v4.8.0, not '${version}'")
+                "odr.version must look like 4.8.0 or v4.8.0, not '${version}'")
     }
     def numbers = parts*.toInteger()
-    while (numbers.size() < 3) {
-        numbers << 0
-    }
-    // two digits per component: v4.8.0 is 40800. That is a one way step past the codes
-    // that used to be counted by hand (204 and below) - the play store accepts a higher
-    // code than the last one it saw and never a lower one.
+    // two digits per component: v4.8.0 is 40800, a one way step past the hand counted
+    // codes (204 and below), since play never accepts a lower code than it has seen
     if (numbers.any { it > 99 }) {
         // silently carrying would make 4.100.0 and 5.0.0 the same code, and a collision
         // is only discoverable once the store rejects the upload
@@ -72,18 +62,15 @@ def appVersion = requestedVersion.isPresent()
 
 android {
     defaultConfig {
-        // NOT the java package (see namespace below) but the app identity on google play
-        // and f-droid, and it can never change: play has no rename path, so a new
-        // applicationId is a new listing that existing installs never update to, losing
-        // the install base, ratings and the pro entitlements. store-facing rebranding
-        // goes through the listing title under fastlane/metadata instead.
+        // NOT the java package (see namespace below) but the identity on play and
+        // f-droid, which can never change: a new one is a new listing that existing
+        // installs never update to. Rebranding goes through the listing title instead.
         applicationId = "at.tomtasche.reader"
         minSdk = 26
         targetSdk = 36
 
-        // derived from the tag above, and set here rather than in AndroidManifest.xml:
-        // both spellings end up in the merged manifest, and this one wins, so keeping
-        // the attributes there too would only leave a second number to disagree with
+        // here rather than in AndroidManifest.xml: this one wins in the merged manifest,
+        // so a copy there could only ever disagree
         versionCode = appVersion.code
         versionName = appVersion.name
 
@@ -173,9 +160,8 @@ android {
         // AGP 9 makes resValue opt-in; the flavors use it for DISABLE_TRACKING
         resValues = true
     }
-    // the java/kotlin package, R and BuildConfig. deliberately different from
-    // applicationId above: this one is internal and free to rename, that one is not.
-    // testNamespace is left to default to namespace + ".test".
+    // the java/kotlin package, R and BuildConfig - internal and free to rename, unlike
+    // the applicationId above. testNamespace defaults to this + ".test".
     namespace = 'app.opendocument.droid'
     // ahead of targetSdk on purpose: compiling against newer APIs is independent of
     // opting in to their runtime behavior. androidx.core 1.19.0 requires 37.
@@ -183,10 +169,7 @@ android {
 }
 
 dependencies {
-    // odrcore's JNI bindings. The AAR carries both halves - the java classes and a
-    // libodr_jni.so per ABI, plus the libc++_shared.so it links - built and published
-    // together, so the pair cannot drift the way two separately versioned artifacts
-    // could. Nothing here has to be extracted or wired up at runtime any more.
+    // odrcore's JNI bindings, java and native in one AAR (see settings.gradle)
     implementation libs.odr.core.android
 
     implementation libs.play.services.ads

@@ -1,0 +1,1 @@
+Rendering engine update. Opening a document no longer fails when a network port is still held from an earlier run.

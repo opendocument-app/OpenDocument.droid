@@ -5,8 +5,6 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.InputType
 import android.text.SpannableString
 import android.text.Spanned
@@ -49,8 +47,6 @@ import java.io.IOException
 
 class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
-    private lateinit var mainHandler: Handler
-
     private lateinit var analyticsManager: AnalyticsManager
 
     lateinit var crashManager: CrashManager
@@ -74,21 +70,16 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
             }
         }
 
-    private var resultOnStart: FileLoader.Result? = null
-    private var errorOnStart: Throwable? = null
+    /** A loader callback that arrived while the activity was stopped, replayed by [onStart]. */
+    private var replayOnStart: (() -> Unit)? = null
 
-    /** Set by [loadUri], consumed by the load it belongs to. See [loadUri]. */
     private var freshOpenPending = false
 
     private lateinit var tabLayout: TabLayout
 
     private lateinit var serviceQueue: LoaderServiceQueue
 
-    /**
-     * Survives configuration changes, so a rotation neither reloads the document nor loses unsaved
-     * edits. This used to be setRetainInstance(true), which kept the whole fragment - views
-     * included - alive instead.
-     */
+    /** Survives a configuration change, so the document and any unsaved edits outlive it. */
     class DocumentViewModel : ViewModel() {
         var lastResult: FileLoader.Result? = null
         var currentHtmlDiff: String? = null
@@ -100,21 +91,11 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
         var lastSelectedTab: Int = -1
 
-        // whether a load is outstanding as far as OpenFileIdling is concerned. MainActivity
-        // only keeps espresso busy for the document picker round trip, which ends the moment
-        // the picker returns a uri - long before a loader callback has put anything on screen.
-        // one token per fragment is enough: a load started while another is in flight replaces
-        // it, and the surviving callback releases the single token.
-        //
-        // it lives here rather than in the fragment so a configuration change does not lose it:
-        // the recreated fragment reattaches itself as the service listener and keeps this view
-        // model, so the callback that ends the load still finds a token to release.
+        // one espresso token per fragment: a load started while another is in flight replaces it,
+        // and it lives in the view model so a configuration change does not lose it
         private var loadIsIdling = false
 
-        /**
-         * Marks the app busy for espresso until one of the loader callbacks has run. No-op in
-         * release builds, where [OpenFileIdling] does nothing.
-         */
+        /** Keeps espresso busy until a loader callback has run. */
         fun beginLoadIdling() {
             if (!loadIsIdling) {
                 loadIsIdling = true
@@ -123,7 +104,6 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
             }
         }
 
-        /** Counterpart of [beginLoadIdling]. Called once the load put its result on screen. */
         fun endLoadIdling() {
             if (loadIsIdling) {
                 loadIsIdling = false
@@ -132,9 +112,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
             }
         }
 
-        // the fragment is gone for good, so a load still in flight will never call back.
-        // releasing the token here keeps the idling resource - a singleton - from staying
-        // busy into the next instrumented test
+        // no callback is coming, and the idling resource is a singleton the next test inherits
         override fun onCleared() {
             endLoadIdling()
         }
@@ -175,7 +153,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
             // up together. every one of them passes through here
             pageView.disableDarkening()
         } catch (t: Throwable) {
-            // can't call crashlytics yet at this point (onViewCreated not called)
+            // crashManager is not set yet: onViewCreated has not run
 
             val errorString =
                 "Please install \"Android System WebView\" and restart the app afterwards."
@@ -199,8 +177,6 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
         pageContainer = view.findViewById(R.id.page_container)
         tabLayout = view.findViewById(R.id.document_tabs)
-
-        mainHandler = Handler(Looper.getMainLooper())
 
         val mainActivity = requireActivity() as MainActivity
         analyticsManager = mainActivity.analyticsManager
@@ -242,7 +218,6 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         state.lastResult?.let { lastResult ->
             crashManager.log("restoring lastResult")
 
-            prepareLoad(lastResult.loaderType, false)
             restoreTabs(lastResult)
             prepareActions(lastResult)
         }
@@ -250,10 +225,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         pageView?.restoreState(savedInstanceState)
     }
 
-    /**
-     * Rebuilds the tab strip after the view was recreated. The tabs live in the fragment view, so
-     * unlike the document itself they do not survive a rotation on their own.
-     */
+    /** Rebuilds the tab strip: the tabs live in the view, which the view model does not hold. */
     private fun restoreTabs(result: FileLoader.Result) {
         if (result.partTitles.size <= 1) {
             return
@@ -290,23 +262,10 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
     override fun onStart() {
         super.onStart()
 
-        val resultOnStart = this.resultOnStart ?: return
-        val errorOnStart = this.errorOnStart
+        val replay = replayOnStart ?: return
+        replayOnStart = null
 
-        if (errorOnStart == null) {
-            onLoadSuccess(resultOnStart)
-        } else {
-            onError(resultOnStart, errorOnStart)
-        }
-
-        this.resultOnStart = null
-        this.errorOnStart = null
-    }
-
-    private fun prepareLoad(loaderType: FileLoader.LoaderType, showProgress: Boolean) {
-        if (showProgress) {
-            showProgress(loaderType == FileLoader.LoaderType.ONLINE)
-        }
+        replay()
     }
 
     private fun loadWithType(loaderType: FileLoader.LoaderType, options: FileLoader.Options) {
@@ -314,7 +273,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         // upload are indefinite, so without this they sit over the document that came after them
         SnackbarHelper.dismiss(requireActivity())
 
-        prepareLoad(loaderType, true)
+        showProgress(loaderType == FileLoader.LoaderType.ONLINE)
 
         state.beginLoadIdling()
 
@@ -345,6 +304,12 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
     }
 
     fun reloadUri(translatable: Boolean) {
+        // closeDocument() removes this fragment and only then finishes the edit mode, whose
+        // onDestroyActionMode reloads - a load queued here would have nothing left to land in
+        if (!isAdded) {
+            return
+        }
+
         val lastResult = checkNotNull(state.lastResult) { "nothing was loaded yet" }
         lastResult.options.translatable = translatable
 
@@ -361,8 +326,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
             callback.run()
         }
 
-        // note that a full save runs the callback a second time once the diff arrives; kept
-        // as it is, because changing when the save target is picked is a behaviour change
+        // a full save runs the callback twice, so a second requestSave() would open the
+        // create-document picker twice - masked only by odr.generateDiff() existing in edit mode
         pageView?.requestHtml { htmlDiff ->
             state.currentHtmlDiff = htmlDiff
 
@@ -383,8 +348,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
             return
         }
 
-        // read inside the entry, not before it: the queue replays this once the service is
-        // bound, and the java version looked the result up at that point too
+        // read inside the entry: the queue replays this once the service is bound
         serviceQueue.addToQueue { service ->
             service.saveAsync(requireLastResult(), outFile, state.currentHtmlDiff)
         }
@@ -429,15 +393,22 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
                     R.drawable.ic_edit,
                 )
 
-        // the order they unfold in, most wanted first
-        val unfolding =
-            listOfNotNull(
-                edit,
+        // read aloud needs the javascript bridge, which PageView keeps off the third party viewers
+        // an ONLINE result loads - offering it there leaves it stuck at "reading" with no paragraph
+        val tts =
+            if (result.loaderType == FileLoader.LoaderType.ONLINE) null
+            else
                 DocumentActions.Action(
                     DocumentActions.ACTION_TTS,
                     R.string.menu_tts,
                     R.drawable.ic_volume_up,
-                ),
+                )
+
+        // the order they unfold in, most wanted first
+        val unfolding =
+            listOfNotNull(
+                edit,
+                tts,
                 DocumentActions.Action(
                     DocumentActions.ACTION_SHARE,
                     R.string.menu_share,
@@ -475,7 +446,6 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         )
     }
 
-    /** Takes the buttons away while the document has the screen to itself. */
     /**
      * How far the gesture bar reaches into the window. The page itself runs under it - see
      * MainActivity.applyWindowInsets - but the buttons in that corner have to stay above it.
@@ -491,6 +461,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         }
     }
 
+    /** Takes the buttons away while the document has the screen to itself. */
     fun setActionsVisible(visible: Boolean) {
         if (!::actions.isInitialized) {
             return
@@ -500,7 +471,14 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         actions.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
-    private fun isActivityReadyForResult(result: FileLoader.Result): Boolean {
+    /**
+     * Whether [result] can be acted on now. If not, [replay] is what [onStart] runs instead - it
+     * has to be the caller's own callback, or a failure comes back as a success.
+     */
+    private fun isActivityReadyForResult(
+        result: FileLoader.Result,
+        replay: () -> Unit,
+    ): Boolean {
         val lastRequestedUri = state.lastRequestedUri
         if (lastRequestedUri != null && lastRequestedUri != result.options.originalUri) {
             crashManager.log("dropping result of abandoned load: " + result.options.originalUri)
@@ -509,7 +487,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         }
 
         if (activity == null || isStateSaved) {
-            resultOnStart = result
+            replayOnStart = replay
 
             return false
         }
@@ -517,14 +495,13 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         // needs to be saved for errors too for features like "Open With" to work
         state.lastResult = result
 
-        resultOnStart = null
-        errorOnStart = null
+        replayOnStart = null
 
         return true
     }
 
     override fun onLoadSuccess(result: FileLoader.Result) {
-        if (!isActivityReadyForResult(result)) {
+        if (!isActivityReadyForResult(result) { onLoadSuccess(result) }) {
             return
         }
 
@@ -550,9 +527,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
         prepareActions(result)
 
-        // the escape hatch for a file we show rather than read: an image, an archive listing, a
-        // player. This used to be "the raw loader ran", which meant the same until the core
-        // took those over
+        // the escape hatch for a file we show rather than read: an image, an archive listing
         if (
             !SupportedDocumentTypes.isDocument(options.fileType) ||
                 result.loaderType == FileLoader.LoaderType.ONLINE
@@ -578,7 +553,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
     }
 
     override fun onError(result: FileLoader.Result, error: Throwable) {
-        if (!isActivityReadyForResult(result)) {
+        if (!isActivityReadyForResult(result) { onError(result, error) }) {
             return
         }
 
@@ -593,13 +568,10 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
                 offerReopen(activity, options, R.string.toast_error_find_file, true)
             error is OutOfMemoryError ->
                 offerReopen(activity, options, R.string.toast_error_out_of_memory, true)
-            // an upload that did not come back says nothing about the file - the network or
-            // the server is what failed, and the file was one we never claimed to open in the
-            // first place. keep the reopen offer, which is the useful thing left to do with it
+            // the network or the server failed, which says nothing about the file
             result.loaderType == FileLoader.LoaderType.ONLINE ->
                 offerReopen(activity, options, R.string.toast_error_upload_failed, true)
-            // MetadataLoader could not read the file, or the core names its format and still
-            // could not open it. Neither is worth an upload, so ask to hear about it instead
+            // unreadable, or named and still not openable - neither is worth an upload
             else -> {
                 // nothing is ever going to be shown for this file, so drop back to the
                 // landing screen and let the dialog come up over that
@@ -618,7 +590,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
     }
 
     override fun onEncrypted(result: FileLoader.Result) {
-        if (!isActivityReadyForResult(result)) {
+        if (!isActivityReadyForResult(result) { onEncrypted(result) }) {
             return
         }
 
@@ -655,7 +627,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
     }
 
     override fun onUnsupported(result: FileLoader.Result) {
-        if (!isActivityReadyForResult(result)) {
+        if (!isActivityReadyForResult(result) { onUnsupported(result) }) {
             return
         }
 
@@ -761,8 +733,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         analyticsManager.report("contact_offer")
 
         // its own content view rather than setMessage plus the builder's buttons - see
-        // dialog_broken_file.xml. every string comes off the activity, because giveUp() has
-        // already detached this fragment and its own getString() would throw
+        // dialog_broken_file.xml. strings off the activity: giveUp() already detached this
+        // fragment, and its own getString() would throw
         val view = activity.layoutInflater.inflate(R.layout.dialog_broken_file, null)
 
         val dialog =
@@ -981,7 +953,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
                 // so the previous tab is re-selected instead
                 if (lastResult.options.translatable && state.lastSelectedTab >= 0) {
                     // reselecting from inside onTabSelected() does not take effect
-                    mainHandler.postDelayed(
+                    tabLayout.postDelayed(
                         { tabLayout.getTabAt(state.lastSelectedTab)?.select() },
                         1,
                     )
@@ -1025,12 +997,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
         serviceQueue.service?.setListener(null)
 
-        // the listener is gone, so a load still in flight will never call back - unless this
-        // is a configuration change, where the recreated fragment takes the listener (and the
-        // view model holding the token) over and still gets the callback. anywhere else,
-        // releasing here keeps the idling resource - a singleton - from staying busy into the
-        // next instrumented test. a fragment that goes away for good on top of that has its
-        // view model cleared, which releases as well
+        // no callback is coming, except on a configuration change - there the recreated
+        // fragment inherits both the listener and the view model
         if (!requireActivity().isChangingConfigurations) {
             state.endLoadIdling()
         }

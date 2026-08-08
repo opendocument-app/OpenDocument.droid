@@ -102,8 +102,8 @@ object RecentDocumentsUtil {
                     RecentDocumentList.Entry(filename, uri, document.optLong(KEY_LAST_OPENED_AT, 0))
             }
 
-        // the file stays in the append order older versions wrote it in, so that upgrading does
-        // not need a migration - the list is only turned around here, on the way out
+        // the file stays in the append order older versions wrote, so upgrading needs no
+        // migration - the list is only turned around here, on the way out
         return entries.reversed()
     }
 
