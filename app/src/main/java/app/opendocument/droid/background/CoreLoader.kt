@@ -146,6 +146,15 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
 
         Log.i(TAG, "type=" + Odr.fileTypeToString(file.fileType()))
 
+        // Text is the core's fallback for bytes nothing else claims, and since 6.4 it does not
+        // reject the ones it cannot name a charset for - it opens them and only throws when a
+        // page is rendered, which happens on the server thread long after this returned success.
+        // So ask now: random binary belongs in the "open it in another app" offer, not behind a
+        // success message on a page that cannot draw.
+        if (file.isTextFile && file.asTextFile().charset() == null) {
+            throw OdrException.UnsupportedFileType("no charset could be detected: $inputPath")
+        }
+
         if (keepDocument) {
             closeDocument()
 

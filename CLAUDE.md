@@ -157,6 +157,19 @@ the viewer and its font are gone from `assets/`.
 Routing by name is guarded - see `nameSays`. The core identifies by content, so a
 `drawing.svg` holding an odt is an odt.
 
+### `text/plain` from the core is a guess unless a charset came with it
+
+Text is the core's fallback for bytes nothing else claims. Up to 6.3 it refused the ones
+it could not name a charset for, so random binary reached `MetadataLoader` as *nothing*;
+6.4 opens them and answers `text/plain`, throwing only when a page is finally rendered -
+on the server thread, long after `CoreLoader` reported success.
+
+So `MetadataLoader` drops a `text/plain` whose file has no charset (`hasKnownCharset`) and
+lets the fallbacks below it decide, and `CoreLoader.host()` refuses the same file up front.
+Both are needed: the first keeps `isRenderedByCore` and `OnlineLoader`'s `"text/"` whitelist
+from claiming a `.bin`, the second stops a success bar appearing over a page that cannot
+draw. `LandingTests.aDocumentThatFailsToOpenComesBackToTheList` is what holds this.
+
 ### Editability comes from the core, never from a mime type
 
 `Document.isEditable()`/`isSavable()` decides whether `DocumentFragment` offers the Edit
