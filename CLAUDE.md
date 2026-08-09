@@ -145,30 +145,25 @@ other way round - `mimeTypesOf` lowercases what it stores.
 ### `RawLoader` is asked before `CoreLoader`, not after it
 
 `LoaderService.onSuccess` asks `rawLoader.isSupported` *first*, because the core would
-render an svg itself. `isRenderedByRaw` is the whole list: svg, which odrcore names since 6.3
-but which the WebView draws just as well from the file, and xml, which it names without a
-decoder. A `RawLoader` failure falls through to the core; what the core cannot open goes to
-the upload offer rather than to the WebView on spec.
-
-Csv used to be on that list, for the `text-prefix.html` table viewer. odrcore 6.4 opens one
-as a spreadsheet - dialect probed, quoted fields kept whole - so it is the core's now, and
-the viewer and its font are gone from `assets/`.
+render an svg itself. `isRenderedByRaw` is the whole list: svg, which the WebView draws
+just as well from the file, and xml, which the core names without a decoder. A `RawLoader`
+failure falls through to the core; what the core cannot open goes to the upload offer
+rather than to the WebView on spec.
 
 Routing by name is guarded - see `nameSays`. The core identifies by content, so a
 `drawing.svg` holding an odt is an odt.
 
 ### `text/plain` from the core is a guess unless a charset came with it
 
-Text is the core's fallback for bytes nothing else claims. Up to 6.3 it refused the ones
-it could not name a charset for, so random binary reached `MetadataLoader` as *nothing*;
-6.4 opens them and answers `text/plain`, throwing only when a page is finally rendered -
-on the server thread, long after `CoreLoader` reported success.
+Text is the core's fallback for bytes nothing else claims, and it does not refuse the ones
+it cannot name a charset for - it answers `text/plain` and throws only once a page is
+rendered, on the server thread, long after `CoreLoader` reported success.
 
 So `MetadataLoader` drops a `text/plain` whose file has no charset (`hasKnownCharset`) and
 lets the fallbacks below it decide, and `CoreLoader.host()` refuses the same file up front.
 Both are needed: the first keeps `isRenderedByCore` and `OnlineLoader`'s `"text/"` whitelist
-from claiming a `.bin`, the second stops a success bar appearing over a page that cannot
-draw. `LandingTests.aDocumentThatFailsToOpenComesBackToTheList` is what holds this.
+off a `.bin`, the second stops a success bar appearing over a page that cannot draw.
+`LandingTests.aDocumentThatFailsToOpenComesBackToTheList` holds this.
 
 ### Editability comes from the core, never from a mime type
 

@@ -69,10 +69,7 @@ class RawLoaderTest {
         assertTrue(isSupported("text/xml"))
     }
 
-    /**
-     * Each had a viewer here until odrcore learned to render it - the rest in 6.2, csv in 6.4.
-     * Keeps them from coming back.
-     */
+    /** Each had a viewer here until odrcore learned to render it. Keeps them from coming back. */
     @Test
     fun whatTheCoreRendersIsLeftToIt() {
         assertFalse(isSupported("text/plain"))
@@ -85,7 +82,7 @@ class RawLoaderTest {
         assertFalse(isSupported("text/csv"))
         assertFalse(isSupported("application/csv"))
         assertFalse(isSupported("text/comma-separated-values"))
-        // including the name route, which used to be what caught a csv the core called text
+        // and by name, not only by mime type
         assertFalse(isSupported("text/plain", "rows.csv"))
         assertFalse(isSupported("application/octet-stream", "rows.csv"))
     }

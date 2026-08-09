@@ -21,16 +21,16 @@ import app.opendocument.core.Odr
 object SupportedDocumentTypes {
 
     /**
-     * What [CoreLoader] renders: everything odrcore turns into html. Far more than documents -
-     * images, archives, fonts and media included, and since odrcore 6.4 csv as well.
+     * What [CoreLoader] renders: everything odrcore turns into html. Far more than documents - csv,
+     * images, archives, fonts and media included.
      */
     private val CORE_FILE_TYPES: List<FileType> by lazy {
         Odr.allFileTypes().filter { Odr.capabilitiesByFileType(it).translateHtml }
     }
 
     /**
-     * odrcore has named svg since 6.3 and would render it into an `<img>`, but [RawLoader] is asked
-     * first and hands the WebView the file itself, which draws it just as well.
+     * The core would render this into an `<img>`, but [RawLoader] is asked first and hands the
+     * WebView the file itself, which draws it just as well.
      */
     private const val SVG_MIME_TYPE = "image/svg+xml"
 

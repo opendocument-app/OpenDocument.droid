@@ -81,12 +81,9 @@ class MetadataLoader(context: Context?) : FileLoader(context, LoaderType.METADAT
             try {
                 mimetype = Odr.mimetype(cachedFile.absolutePath)
 
-                // Text is the core's fallback for bytes nothing else claims, and since 6.4 it
-                // answers "text/plain" even where it cannot name a charset - it used to refuse
-                // those outright. That is a guess rather than an identification, and taken at
-                // face value it sends random binary to the text renderer and, because the upload
-                // offer whitelists "text/", to the conversion service. Drop it and let the
-                // fallbacks below have their turn, which is what happened before 6.4.
+                // text/plain without a charset is the core's fallback for bytes nothing else
+                // claims, not an identification - it would hand random binary to the text
+                // renderer, and to the upload offer through its "text/" whitelist
                 if (mimetype == TEXT_MIME_TYPE && !hasKnownCharset(cachedFile)) {
                     mimetype = null
                 }
@@ -163,10 +160,7 @@ class MetadataLoader(context: Context?) : FileLoader(context, LoaderType.METADAT
         }
     }
 
-    /**
-     * Whether the core can name the encoding of a file it decided is text. It opens one either
-     * way - see the call site - so a `false` here means bytes it can neither name nor decode.
-     */
+    /** Whether the core can name the encoding of a file it decided is text. */
     private fun hasKnownCharset(file: File): Boolean =
         try {
             val opened = Odr.open(file.absolutePath)
