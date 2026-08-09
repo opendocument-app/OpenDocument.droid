@@ -58,9 +58,9 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
     }
 
     /**
-     * Everything odrcore can turn into html, which is much more than documents - only csv is left
-     * out, for [RawLoader]'s table viewer. Wider than what the app offers itself for (see
-     * [SupportedDocumentTypes]): this decides how a failed load is reported, not the share sheet.
+     * Everything odrcore can turn into html, which is much more than documents. Wider than what the
+     * app offers itself for (see [SupportedDocumentTypes]): this decides how a failed load is
+     * reported, not the share sheet.
      */
     override fun isSupported(options: Options): Boolean =
         SupportedDocumentTypes.isRenderedByCore(options.fileType)

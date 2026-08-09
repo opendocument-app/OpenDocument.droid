@@ -99,20 +99,27 @@ class CoreLoaderTest {
         // rendered when handed one, never claimed in the share sheet
         assertTrue(isSupported("audio/mpeg"))
         assertTrue(isSupported("video/mp4"))
+        // the image types 6.3 added, svg among them - [RawLoader] takes that one anyway
+        assertTrue(isSupported("image/svg+xml"))
+        assertTrue(isSupported("image/jxl"))
+        assertTrue(isSupported("image/vnd.adobe.photoshop"))
     }
 
-    /** The one format left to RawLoader although the core would take it - its table viewer. */
+    /**
+     * 6.4 opens a csv as a spreadsheet, so the table is the core's to draw now, not RawLoader's.
+     */
     @Test
-    fun whatRawLoaderShowsIsNotClaimed() {
-        assertFalse(isSupported("text/csv"))
-        assertFalse(isSupported("application/csv"))
+    fun csvIsSupported() {
+        assertTrue(isSupported("text/csv"))
+        assertTrue(isSupported("application/csv"))
+        assertTrue(isSupported("text/comma-separated-values"))
     }
 
-    /** No file type in the core at all, so nothing here could name them either. */
+    /** Named by the core since 6.3, but with no decoder behind the name - still [RawLoader]'s. */
     @Test
-    fun whatTheCoreHasNoFileTypeForIsNotClaimed() {
-        assertFalse(isSupported("image/svg+xml"))
+    fun whatTheCoreNamesButCannotTranslateIsNotClaimed() {
         assertFalse(isSupported("application/xml"))
+        assertFalse(isSupported("text/xml"))
     }
 
     @Test

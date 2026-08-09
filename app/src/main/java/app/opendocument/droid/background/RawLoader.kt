@@ -2,15 +2,10 @@ package app.opendocument.droid.background
 
 import android.content.Context
 import android.net.Uri
-import android.util.Base64
-import android.util.Base64OutputStream
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
 
 /**
- * The three files [CoreLoader] does not get: csv, whose table viewer beats the core's line by line
- * text, plus svg and xml, which the core has no file type for.
+ * The two files [CoreLoader] does not get: svg and xml, which the WebView draws by itself.
  *
  * [SupportedDocumentTypes.isRenderedByRaw] decides, and [LoaderService] asks it before the core.
  */
@@ -47,32 +42,6 @@ class RawLoader(context: Context?) : FileLoader(context, LoaderType.RAW) {
                         .buildUpon()
                         .appendQueryParameter("ext", extension)
                         .build()
-            } else if (SupportedDocumentTypes.isCsv(fileType, fileExtension)) {
-                // text-suffix.html reads this back and only cares that it is not "xml"
-                val extension = "csv"
-
-                val htmlFile = File(cacheDirectory, "text.html")
-
-                FileOutputStream(htmlFile).use { outputStream ->
-                    StreamUtil.copy(context.assets.open("text-prefix.html"), outputStream)
-
-                    // NO_CLOSE: closing the encoder has to write its trailing characters
-                    // without closing the html file underneath it
-                    Base64OutputStream(outputStream, Base64.NO_WRAP or Base64.NO_CLOSE).use {
-                        StreamUtil.copy(FileInputStream(cacheFile), it)
-                    }
-
-                    StreamUtil.copy(context.assets.open("text-suffix.html"), outputStream)
-                }
-
-                val fontFile = File(cacheDirectory, "text.ttf")
-                StreamUtil.copy(context.assets.open("text.ttf"), fontFile)
-
-                finalUri =
-                    Uri.fromFile(htmlFile)
-                        .buildUpon()
-                        .appendQueryParameter("ext", extension)
-                        .build()
             } else {
                 // xml, the only case left: the WebView goes by the name, and a shared file
                 // typed application/xml need not have an extension of its own
@@ -92,7 +61,7 @@ class RawLoader(context: Context?) : FileLoader(context, LoaderType.RAW) {
 
     /**
      * Not [Options.fileExtension]: [MimeTypeResolver.resolve] lets the detected mime type's
-     * canonical extension win, so an svg the core called `text/plain` arrives there as "txt".
+     * canonical extension win, so an xml the core called `text/plain` arrives there as "txt".
      */
     private fun nameExtension(options: Options): String? =
         MimeTypeResolver.parseExtension(options.filename)

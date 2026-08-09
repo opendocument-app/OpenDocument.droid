@@ -21,8 +21,8 @@ import java.io.File
  * one of them succeeds or fails: metadata first, then raw or the core, and finally an upload the
  * user has to agree to.
  *
- * [RawLoader] sits outside that chain rather than at the end of it: the core would succeed at a
- * csv, so it has to be asked first.
+ * [RawLoader] sits outside that chain rather than at the end of it: the core would succeed at an
+ * svg, so it has to be asked first.
  */
 class LoaderService : Service(), FileLoader.FileLoaderListener {
 
@@ -123,7 +123,7 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
     override fun onSuccess(result: FileLoader.Result) {
         val options = result.options
         if (result.loaderType == FileLoader.LoaderType.METADATA) {
-            // first, not last: the core would render a csv itself and RawLoader would never run
+            // first, not last: the core would render an svg itself and RawLoader would never run
             if (rawLoader.isSupported(options)) {
                 loadWithType(FileLoader.LoaderType.RAW, options)
 
@@ -184,8 +184,8 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
 
             return
         } else if (result.loaderType == FileLoader.LoaderType.RAW) {
-            // the core has not had its turn yet. not gated on isSupported, which says no to csv
-            // by design; if it fails too, the branch above reports that properly
+            // the core has not had its turn yet. not gated on isSupported, which says nothing
+            // about xml; if it fails too, the branch above reports that properly
             loadWithType(FileLoader.LoaderType.CORE, options)
 
             return

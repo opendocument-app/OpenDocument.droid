@@ -5,7 +5,7 @@ googleJavaFormat = "1.35.0"
 ktfmt = "0.64"
 
 # odrcore's JNI bindings, java and native in one AAR, published from OpenDocument.core
-odrCore = "6.2.0"
+odrCore = "6.4.0"
 
 androidxAnnotation = "1.10.0"
 androidxAppcompat = "1.7.1"

@@ -9,9 +9,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * The three things [RawLoader] still has a viewer for, and the many it handed back to the core.
+ * The two things [RawLoader] still has a viewer for, and the many it handed back to the core.
  *
- * Instrumented because the csv spellings come from odrcore's table in `libodr_jni`.
+ * Instrumented because the mime type spellings come from odrcore's table in `libodr_jni`.
  */
 @SmallTest
 @RunWith(AndroidJUnit4::class)
@@ -41,45 +41,37 @@ class RawLoaderTest {
     fun whatTheCoreMisreadsAsTextIsRoutedByItsName() {
         assertTrue(isSupported("text/plain", "drawing.svg"))
         assertTrue(isSupported("text/plain", "feed.xml"))
-        assertTrue(isSupported("text/plain", "rows.csv"))
         // and a text file is still a text file
         assertFalse(isSupported("text/plain", "readme.txt"))
         assertFalse(isSupported("text/plain", "notes"))
     }
 
     /**
-     * The other half: the bytes win whenever the core recognized them. An odt called `report.csv`
-     * would otherwise reach the table viewer, succeed, and leave no fallback.
+     * The other half: the bytes win whenever the core recognized them. An odt called `drawing.svg`
+     * would otherwise reach the image viewer, succeed, and leave no fallback.
      */
     @Test
     fun aMisnamedDocumentIsStillADocument() {
-        assertFalse(isSupported("application/vnd.oasis.opendocument.text", "report.csv"))
-        assertFalse(isSupported("application/pdf", "report.csv"))
+        assertFalse(isSupported("application/vnd.oasis.opendocument.text", "report.xml"))
+        assertFalse(isSupported("application/pdf", "report.xml"))
         assertFalse(isSupported("application/zip", "archive.svg"))
         assertFalse(isSupported("image/png", "scan.xml"))
         // but nothing detected at all still leaves the name as the only thing to go on
-        assertTrue(isSupported("application/octet-stream", "rows.csv"))
+        assertTrue(isSupported("application/octet-stream", "feed.xml"))
         assertTrue(isSupported(null, "drawing.svg"))
     }
 
-    /** The core renders a csv line by line; `text-prefix.html` builds a table out of one. */
+    /** The WebView draws both, so nothing is gained by translating them first. */
     @Test
-    fun csvIsSupportedInEverySpelling() {
-        assertTrue(isSupported("text/csv"))
-        assertTrue(isSupported("application/csv"))
-        assertTrue(isSupported("text/comma-separated-values"))
-    }
-
-    /** Neither has a file type in odrcore, so nothing else would show them at all. */
-    @Test
-    fun whatTheCoreHasNoFileTypeForIsSupported() {
+    fun whatTheWebViewDrawsItselfIsSupported() {
         assertTrue(isSupported("image/svg+xml"))
         assertTrue(isSupported("application/xml"))
         assertTrue(isSupported("text/xml"))
     }
 
     /**
-     * Each had a viewer here until odrcore 6.2 learned to render it. Keeps them from coming back.
+     * Each had a viewer here until odrcore learned to render it - the rest in 6.2, csv in 6.4.
+     * Keeps them from coming back.
      */
     @Test
     fun whatTheCoreRendersIsLeftToIt() {
@@ -90,6 +82,12 @@ class RawLoaderTest {
         assertFalse(isSupported("audio/mpeg"))
         assertFalse(isSupported("video/mp4"))
         assertFalse(isSupported("application/json"))
+        assertFalse(isSupported("text/csv"))
+        assertFalse(isSupported("application/csv"))
+        assertFalse(isSupported("text/comma-separated-values"))
+        // including the name route, which used to be what caught a csv the core called text
+        assertFalse(isSupported("text/plain", "rows.csv"))
+        assertFalse(isSupported("application/octet-stream", "rows.csv"))
     }
 
     /** No rename-and-hope for these - the upload offer beats a blank page. */
