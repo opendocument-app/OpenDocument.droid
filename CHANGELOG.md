@@ -12,6 +12,19 @@ Play Console when the release is promoted.
 
 ## Unreleased
 
+- A .csv now opens as a real spreadsheet: the separator is worked out from the
+  file, quoted fields stay whole, and a value that only looks like a number is
+  left as text. It used to be listed line by line.
+- Spreadsheets are drawn in a quieter grid, under a row and column ruler that
+  stays put while you scroll.
+- A .docx now breaks onto the pages it was written for, and the markers of a
+  numbered list come along when you copy text out of one.
+- A document that is not saved in UTF-8 comes out as readable text instead of
+  garbled characters.
+- Opening an archive lists its entries as files instead of one page of gibberish.
+- Embedded fonts in a PDF no longer come out as boxes or as the wrong letters.
+- svg, ico, jxl, jp2, psd, wmf and emf are recognised and shown as images.
+
 ## 4.13.0
 
 - Saving is safer. A save that fails no longer leaves the original file damaged,

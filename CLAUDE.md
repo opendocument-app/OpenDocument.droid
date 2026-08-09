@@ -16,7 +16,7 @@ Guidance for Claude Code (claude.ai/code) working in this repository.
 
 A `FileLoader` loads on `LoaderService`'s background thread and reports through
 `FileLoaderListener`; `LoaderServiceQueue` holds requests until the service is bound.
-`MetadataLoader` caches and identifies the file, `RawLoader` takes csv, svg and xml,
+`MetadataLoader` caches and identifies the file, `RawLoader` takes svg and xml,
 `CoreLoader` renders the rest odrcore handles and publishes the html on a local server, and
 `OnlineLoader` uploads to a web viewer what neither can open.
 
@@ -116,8 +116,8 @@ separately versioned artifacts could drift. `CoreLoader` is the only thing wrapp
 `SupportedDocumentTypes` derives two sets rather than listing mime *prefixes*:
 
 - **what `CoreLoader` renders** (`CORE_FILE_TYPES`): `Odr.allFileTypes()` filtered by
-  `capabilitiesByFileType(...).translateHtml`, minus csv. Text, images, zip and cfb, fonts,
-  audio and video included.
+  `capabilitiesByFileType(...).translateHtml`, with nothing taken back out. Text, csv,
+  images, zip and cfb, fonts, audio and video included.
 - **what the app claims** (`CLAIMED_FILE_TYPES`): that, narrowed to
   `fileCategoryByFileType(...) == DOCUMENT`, plus text, csv and zip. Keep it narrow - the
   app plays an mp3 handed to it but does not want it in the share sheet.
@@ -145,12 +145,25 @@ other way round - `mimeTypesOf` lowercases what it stores.
 ### `RawLoader` is asked before `CoreLoader`, not after it
 
 `LoaderService.onSuccess` asks `rawLoader.isSupported` *first*, because the core would
-render csv itself, line by line. `isRenderedByRaw` is the whole list: csv, plus svg and xml,
-which have no odrcore file type at all. A `RawLoader` failure falls through to the core;
-what the core cannot open goes to the upload offer rather than to the WebView on spec.
+render an svg itself. `isRenderedByRaw` is the whole list: svg, which the WebView draws
+just as well from the file, and xml, which the core names without a decoder. A `RawLoader`
+failure falls through to the core; what the core cannot open goes to the upload offer
+rather than to the WebView on spec.
 
 Routing by name is guarded - see `nameSays`. The core identifies by content, so a
-`report.csv` holding an odt is an odt.
+`drawing.svg` holding an odt is an odt.
+
+### `text/plain` from the core is a guess unless a charset came with it
+
+Text is the core's fallback for bytes nothing else claims, and it does not refuse the ones
+it cannot name a charset for - it answers `text/plain` and throws only once a page is
+rendered, on the server thread, long after `CoreLoader` reported success.
+
+So `MetadataLoader` drops a `text/plain` whose file has no charset (`hasKnownCharset`) and
+lets the fallbacks below it decide, and `CoreLoader.host()` refuses the same file up front.
+Both are needed: the first keeps `isRenderedByCore` and `OnlineLoader`'s `"text/"` whitelist
+off a `.bin`, the second stops a success bar appearing over a page that cannot draw.
+`LandingTests.aDocumentThatFailsToOpenComesBackToTheList` holds this.
 
 ### Editability comes from the core, never from a mime type
 

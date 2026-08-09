@@ -5,6 +5,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import android.webkit.MimeTypeMap
 import app.opendocument.core.Odr
+import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -79,6 +80,13 @@ class MetadataLoader(context: Context?) : FileLoader(context, LoaderType.METADAT
             var mimetype: String? = null
             try {
                 mimetype = Odr.mimetype(cachedFile.absolutePath)
+
+                // text/plain without a charset is the core's fallback for bytes nothing else
+                // claims, not an identification - it would hand random binary to the text
+                // renderer, and to the upload offer through its "text/" whitelist
+                if (mimetype == TEXT_MIME_TYPE && !hasKnownCharset(cachedFile)) {
+                    mimetype = null
+                }
             } catch (e: Throwable) {
                 crashManager.log(e)
             }
@@ -152,7 +160,21 @@ class MetadataLoader(context: Context?) : FileLoader(context, LoaderType.METADAT
         }
     }
 
+    /** Whether the core can name the encoding of a file it decided is text. */
+    private fun hasKnownCharset(file: File): Boolean =
+        try {
+            val opened = Odr.open(file.absolutePath)
+
+            !opened.isTextFile || opened.asTextFile().charset() != null
+        } catch (e: Throwable) {
+            crashManager.log(e)
+
+            false
+        }
+
     private companion object {
+        const val TEXT_MIME_TYPE = "text/plain"
+
         val MIME_TYPE_LOOKUP =
             object : MimeTypeResolver.ExtensionLookup {
 

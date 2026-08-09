@@ -88,8 +88,8 @@ class SupportedFormatsTest {
      * Everything the app offers itself for reaches a loader that takes it.
      *
      * Claiming a mime type nobody loads is the "cannot open" the user gets on a file they picked us
-     * for. [CoreLoader] takes almost all of it now; the exception is csv, which [RawLoader] keeps
-     * for its table viewer and which [LoaderService] therefore routes before the core.
+     * for. [CoreLoader] takes all of it that the core names; what is left for [RawLoader] is svg
+     * and xml, which [LoaderService] therefore routes before the core.
      */
     @Test
     fun everythingTheAppClaimsIsLoadedBySomebody() {

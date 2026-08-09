@@ -21,22 +21,17 @@ import app.opendocument.core.Odr
 object SupportedDocumentTypes {
 
     /**
-     * What [CoreLoader] renders: everything odrcore turns into html, minus [RAW_FILE_TYPES]. Far
-     * more than documents - images, archives, fonts and media included.
+     * What [CoreLoader] renders: everything odrcore turns into html. Far more than documents - csv,
+     * images, archives, fonts and media included.
      */
     private val CORE_FILE_TYPES: List<FileType> by lazy {
-        Odr.allFileTypes().filter {
-            Odr.capabilitiesByFileType(it).translateHtml && it !in RAW_FILE_TYPES
-        }
+        Odr.allFileTypes().filter { Odr.capabilitiesByFileType(it).translateHtml }
     }
 
     /**
-     * Kept for [RawLoader] although the core would take it too: csv, whose table beats the core's
-     * line by line text. An app decision, so not derived.
+     * The core would render this into an `<img>`, but [RawLoader] is asked first and hands the
+     * WebView the file itself, which draws it just as well.
      */
-    private val RAW_FILE_TYPES = listOf(FileType.COMMA_SEPARATED_VALUES)
-
-    /** No core file type for this one, so [RawLoader] lets the WebView draw it. */
     private const val SVG_MIME_TYPE = "image/svg+xml"
 
     /**
@@ -54,15 +49,12 @@ object SupportedDocumentTypes {
     }
 
     /**
-     * Images, as a prefix rather than a set of file types: odrcore names all of them except svg,
-     * which the wildcard is what claims. The manifest declares `image` likewise.
+     * Images, as a prefix rather than a set of file types: the wildcard claims the ones odrcore
+     * does not name as well. The manifest declares `image` likewise.
      */
     private val CLAIMED_MIME_PREFIXES = listOf("image/")
 
-    /** Every spelling of [RAW_FILE_TYPES], for [isCsv]. */
-    private val RAW_MIME_TYPES: Set<String> by lazy { mimeTypesOf(RAW_FILE_TYPES) }
-
-    /** Also unknown to the core. Never claimed - only a catch-all or a share gets one here. */
+    /** Unknown to the core. Never claimed - only a catch-all or a share gets one here. */
     private val XML_MIME_TYPES = setOf("application/xml", "text/xml")
 
     /** Every mime type spelling odrcore accepts for a format [CoreLoader] renders. */
@@ -105,30 +97,25 @@ object SupportedDocumentTypes {
         mimeType != null && mimeType.lowercase() in CORE_MIME_TYPES
 
     /**
-     * Whether [RawLoader] takes this instead. Asked *before* [isRenderedByCore], or the core would
-     * render a csv itself and RawLoader would never get its turn.
+     * Whether [RawLoader] takes this instead of [CoreLoader], which is asked after it.
      *
-     * [extension] because an svg or an xml *is* text to the detection: `Odr.mimetype` says
-     * `text/plain` and the provider's `image/svg+xml` never arrives. See [nameSays].
+     * [extension] because an xml *is* text to the detection: `Odr.mimetype` says `text/plain` and
+     * the provider's `application/xml` never arrives. See [nameSays].
      */
     fun isRenderedByRaw(mimeType: String?, extension: String? = null): Boolean =
-        isCsv(mimeType, extension) || isSvg(mimeType, extension) || isXml(mimeType, extension)
+        isSvg(mimeType, extension) || isXml(mimeType, extension)
 
-    /** Csv in any spelling odrcore accepts for it - [RawLoader] builds a table out of one. */
-    fun isCsv(mimeType: String?, extension: String? = null): Boolean =
-        mimeType?.lowercase() in RAW_MIME_TYPES || nameSays(mimeType, extension, "csv")
-
-    /** Svg, which odrcore has no file type for and the WebView draws by itself. */
+    /** Svg, which the WebView draws by itself - see [SVG_MIME_TYPE]. */
     fun isSvg(mimeType: String?, extension: String? = null): Boolean =
         mimeType?.lowercase() == SVG_MIME_TYPE || nameSays(mimeType, extension, "svg")
 
-    /** Xml, likewise unknown to the core and likewise shown by the WebView. */
+    /** Xml, which odrcore names but has no decoder for, and which the WebView shows as it is. */
     fun isXml(mimeType: String?, extension: String? = null): Boolean =
         mimeType?.lowercase() in XML_MIME_TYPES || nameSays(mimeType, extension, "xml")
 
     /**
      * Whether the file is called `.expected` *and* the detection left room for the name to know
-     * better - plain text, or nothing recognized. The bytes win otherwise: a `report.csv` holding
+     * better - plain text, or nothing recognized. The bytes win otherwise: a `drawing.svg` holding
      * an odt is an odt.
      */
     private fun nameSays(mimeType: String?, extension: String?, expected: String): Boolean {
