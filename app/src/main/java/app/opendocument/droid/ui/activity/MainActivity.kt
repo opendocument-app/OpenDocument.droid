@@ -35,6 +35,7 @@ import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.BillingManager
 import app.opendocument.droid.nonfree.CrashManager
+import app.opendocument.droid.nonfree.Features
 import app.opendocument.droid.nonfree.InAppReview
 import app.opendocument.droid.nonfree.PlayServices
 import app.opendocument.droid.ui.EditActionModeCallback
@@ -210,7 +211,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         printingManager = PrintingManager()
-        initializeProprietaryLibraries()
+        initializeManagers()
 
         // has to happen here rather than in LandingFragment: users upgrading from a version
         // with different alias defaults have to be corrected even when the app is launched
@@ -381,23 +382,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun initializeProprietaryLibraries() {
-        var useProprietaryLibraries = !resources.getBoolean(R.bool.DISABLE_TRACKING)
-
-        if (useProprietaryLibraries) {
-            useProprietaryLibraries = PlayServices.isAvailableOrOffersFix(this, GOOGLE_REQUEST_CODE)
-        }
+    private fun initializeManagers() {
+        // the ad and consent sdks are the only thing left that needs play services on the device,
+        // and a flavor without them never asks - the dialog would offer a fix for nothing
+        val adsAvailable =
+            Features.withAds && PlayServices.isAvailableOrOffersFix(this, GOOGLE_REQUEST_CODE)
 
         crashManager = CrashManager()
-        crashManager.setEnabled(useProprietaryLibraries)
         crashManager.initialize()
 
         analyticsManager = AnalyticsManager()
-        analyticsManager.setEnabled(useProprietaryLibraries)
         analyticsManager.initialize(this)
 
         adManager = AdManager()
-        adManager.setEnabled(!IS_TESTING && useProprietaryLibraries)
+        adManager.setEnabled(!IS_TESTING && adsAvailable)
         adManager.setAdContainer(adContainer)
         // the landing screen is drawn long before the consent update comes back, and the privacy
         // options row only exists once it has
@@ -406,7 +404,7 @@ class MainActivity : AppCompatActivity() {
         adManager.initialize(this, analyticsManager, crashManager)
 
         billingManager = BillingManager()
-        billingManager.setEnabled(useProprietaryLibraries)
+        billingManager.setEnabled(adsAvailable)
         billingManager.initialize(this, adManager)
     }
 
@@ -434,7 +432,7 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, intent)
 
         if (requestCode == GOOGLE_REQUEST_CODE) {
-            initializeProprietaryLibraries()
+            initializeManagers()
         }
     }
 
@@ -664,8 +662,8 @@ class MainActivity : AppCompatActivity() {
      * and not once it has been bought.
      *
      * The landing screen asks rather than being told, because billing is set up by
-     * [initializeProprietaryLibraries] - which can run a second time, after the play services
-     * dialog - and it is not something the ViewModel could read off disk itself.
+     * [initializeManagers] - which can run a second time, after the play services dialog - and it
+     * is not something the ViewModel could read off disk itself.
      */
     fun offersAdRemoval(): Boolean =
         ::billingManager.isInitialized && !billingManager.hasPurchased()

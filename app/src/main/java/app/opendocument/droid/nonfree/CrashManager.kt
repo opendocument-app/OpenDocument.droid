@@ -4,15 +4,13 @@ import android.net.Uri
 import android.util.Log
 import java.util.concurrent.TimeoutException
 
+/**
+ * Reporting a crash has been local logging only since the crashlytics integration was removed; the
+ * call sites are kept so a reporting backend can be wired back in here.
+ */
 class CrashManager {
 
-    private var enabled = false
-
     fun initialize() {
-        if (!enabled) {
-            return
-        }
-
         // mitigate TimeoutException on finalize
         // https://stackoverflow.com/a/55999687/198996
         val defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
@@ -25,34 +23,16 @@ class CrashManager {
         }
     }
 
-    fun setEnabled(enabled: Boolean) {
-        this.enabled = enabled
-    }
-
     fun log(message: String) {
-        if (!enabled) {
-            return
-        }
-
         Log.d(TAG, message)
     }
 
     fun log(error: Throwable, uri: Uri?) {
-        if (!enabled) {
-            return
-        }
-
         Log.d(TAG, "could not load document at: " + (uri?.toString() ?: "null"))
         log(error)
     }
 
     fun log(error: Throwable) {
-        error.printStackTrace()
-
-        if (!enabled) {
-            return
-        }
-
         Log.e(TAG, "Error reported", error)
     }
 
