@@ -995,6 +995,10 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         return ::state.isInitialized && state.lastResult != null
     }
 
+    /** Whether the document is in edit mode, so its changes are still only in the page. */
+    fun isEditing(): Boolean =
+        ::state.isInitialized && state.lastResult?.options?.translatable == true
+
     val lastFileType: String?
         get() = requireLastResult().options.fileType
 

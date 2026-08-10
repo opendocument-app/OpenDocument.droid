@@ -16,6 +16,7 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode as SupportActionMode
 import androidx.core.view.ViewCompat
@@ -79,15 +80,19 @@ class MainActivity : AppCompatActivity() {
                 if (documentFragment != null && !documentOpenedExternally) {
                     analyticsManager.report("back_to_landing")
 
-                    closeDocument()
+                    confirmLeavingEdits { closeDocument() }
 
                     return
                 }
 
-                // fall through to the default behavior (close the activity)
-                isEnabled = false
-                onBackPressedDispatcher.onBackPressed()
-                isEnabled = true
+                // an externally opened document leaves the app rather than the document, and
+                // carries unsaved edits out just the same
+                confirmLeavingEdits {
+                    // fall through to the default behavior (close the activity)
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                    isEnabled = true
+                }
             }
         }
 
@@ -724,6 +729,38 @@ class MainActivity : AppCompatActivity() {
         analyticsManager.report("close_failed_document")
 
         closeDocument(keepMessage = true)
+    }
+
+    /**
+     * Asks before walking away from a document being edited, then runs [leave]. Saving does not
+     * also leave: it opens the create-document picker, which still needs the page the diff comes
+     * from.
+     */
+    private fun confirmLeavingEdits(leave: () -> Unit) {
+        val documentFragment = this.documentFragment
+        if (documentFragment == null || !documentFragment.isEditing()) {
+            leave()
+
+            return
+        }
+
+        analyticsManager.report("show_alert_unsaved_changes")
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.alert_unsaved_changes)
+            .setMessage(R.string.alert_save_now)
+            .setPositiveButton(R.string.action_edit_save) { _, _ ->
+                analyticsManager.report("alert_unsaved_changes_yes")
+
+                documentFragment.prepareSave({ requestSave() }, false)
+            }
+            .setNegativeButton(R.string.alert_discard_changes) { _, _ ->
+                analyticsManager.report("alert_unsaved_changes_no")
+
+                leave()
+            }
+            .setNeutralButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun closeDocument(keepMessage: Boolean = false) {
