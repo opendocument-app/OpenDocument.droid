@@ -16,6 +16,7 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode as SupportActionMode
 import androidx.core.view.ViewCompat
@@ -79,7 +80,7 @@ class MainActivity : AppCompatActivity() {
                 if (documentFragment != null && !documentOpenedExternally) {
                     analyticsManager.report("back_to_landing")
 
-                    closeDocument()
+                    confirmLeavingEdits { closeDocument() }
 
                     return
                 }
@@ -724,6 +725,44 @@ class MainActivity : AppCompatActivity() {
         analyticsManager.report("close_failed_document")
 
         closeDocument(keepMessage = true)
+    }
+
+    /**
+     * Asks before walking away from a document that is being edited, and runs [leave] once that is
+     * settled.
+     *
+     * Nothing is written until the user has named a file to save to, so leaving is exactly where
+     * unsaved work goes. It used to go silently. OpenDocument.ios asks the same question on its way
+     * out, under the same three event names.
+     *
+     * Saving does not also leave: the save opens the system's create-document picker, and closing
+     * the document out from under it would take the page the diff still has to come from.
+     */
+    private fun confirmLeavingEdits(leave: () -> Unit) {
+        val documentFragment = this.documentFragment
+        if (documentFragment == null || !documentFragment.isEditing()) {
+            leave()
+
+            return
+        }
+
+        analyticsManager.report("show_alert_unsaved_changes")
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.alert_unsaved_changes)
+            .setMessage(R.string.alert_save_now)
+            .setPositiveButton(R.string.action_edit_save) { _, _ ->
+                analyticsManager.report("alert_unsaved_changes_yes")
+
+                documentFragment.prepareSave({ requestSave() }, false)
+            }
+            .setNegativeButton(R.string.alert_discard_changes) { _, _ ->
+                analyticsManager.report("alert_unsaved_changes_no")
+
+                leave()
+            }
+            .setNeutralButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun closeDocument(keepMessage: Boolean = false) {

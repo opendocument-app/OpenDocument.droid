@@ -87,5 +87,8 @@
     <!--  iOS -->
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="alert_unsaved_changes">Unsaved changes</string>
+    <string name="alert_save_now">Do you want to save them now?</string>
+    <string name="alert_discard_changes">Discard</string>
 
 </resources>
