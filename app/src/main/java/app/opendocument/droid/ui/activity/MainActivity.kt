@@ -85,10 +85,14 @@ class MainActivity : AppCompatActivity() {
                     return
                 }
 
-                // fall through to the default behavior (close the activity)
-                isEnabled = false
-                onBackPressedDispatcher.onBackPressed()
-                isEnabled = true
+                // an externally opened document leaves the app rather than the document, but
+                // it carries unsaved edits out just the same - so it asks first too
+                confirmLeavingEdits {
+                    // fall through to the default behavior (close the activity)
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                    isEnabled = true
+                }
             }
         }
 
