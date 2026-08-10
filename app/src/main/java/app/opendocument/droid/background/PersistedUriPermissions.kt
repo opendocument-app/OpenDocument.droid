@@ -20,7 +20,7 @@ object PersistedUriPermissions {
     /**
      * The grants taken during this process that nothing on disk names yet.
      *
-     * A document only reaches the list once [MetadataLoader] has read it, long after [takeRead]
+     * A document only reaches the list once [DocumentLoader] has read it, long after [takeRead]
      * ran; a [prune] in that window would find nothing referring to the fresh grant and hand it
      * straight back. Empty on a fresh process, so a grant whose document never made the list is
      * reclaimed on the next launch rather than leaking for good.

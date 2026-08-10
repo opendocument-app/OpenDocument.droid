@@ -10,8 +10,8 @@ import org.json.JSONObject
  * Only the fields live here: [JsonFileStore] does the file and json handling, and the ordering and
  * capping rules are in [RecentDocumentList], which is android free and unit tested.
  *
- * Every method is synchronized: the loaders write from [LoaderService]'s background thread while
- * the landing screen reads from its own executor.
+ * Every method is synchronized: [DocumentLoader] writes from its background thread while the
+ * landing screen reads from its own executor.
  */
 object RecentDocumentsUtil {
 
@@ -48,7 +48,7 @@ object RecentDocumentsUtil {
 
         // documents copied into our own cache are reachable through the cache, not through the
         // uri we were handed, so remembering them would hand back a uri that no longer resolves
-        if (AndroidFileCache.isCached(context, uri)) {
+        if (FileCache.isCached(context, uri)) {
             return emptyList()
         }
 

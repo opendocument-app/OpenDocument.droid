@@ -8,8 +8,6 @@ import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
 import app.opendocument.core.Odr
 import app.opendocument.droid.background.CatchAllSetting
-import app.opendocument.droid.background.CoreLoader
-import app.opendocument.droid.background.FileLoader
 import app.opendocument.droid.background.SupportedDocumentTypes
 import org.junit.Assert
 import org.junit.BeforeClass
@@ -84,22 +82,19 @@ class SupportedFormatsTest {
     }
 
     /**
-     * Everything the app offers itself for reaches [CoreLoader]. Claiming a mime type nothing loads
-     * is the "cannot open" the user gets on a file they picked us for, so `CLAIMED_FILE_TYPES` and
-     * `CORE_FILE_TYPES` must not come apart.
+     * Everything the app offers itself for is something the core renders. Claiming a mime type
+     * nothing loads is the "cannot open" the user gets on a file they picked us for, so
+     * `CLAIMED_FILE_TYPES` and `CORE_FILE_TYPES` must not come apart.
      */
     @Test
     fun everythingTheAppClaimsIsLoadedByTheCore() {
-        val coreLoader = CoreLoader(null)
-
         for (mimeType in SupportedDocumentTypes.MIME_TYPES) {
-            val options = FileLoader.Options()
-            options.fileType = SupportedDocumentTypes.canonicalMimeType(mimeType)
+            val canonical = SupportedDocumentTypes.canonicalMimeType(mimeType)
 
             Assert.assertTrue(
-                "$mimeType is claimed by the app, but the core loader does not take it" +
-                    " (as ${options.fileType})",
-                coreLoader.isSupported(options),
+                "$mimeType is claimed by the app, but the core does not render it" +
+                    " (as $canonical)",
+                SupportedDocumentTypes.isRenderedByCore(canonical),
             )
         }
     }

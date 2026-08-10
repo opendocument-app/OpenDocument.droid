@@ -2,14 +2,11 @@ package app.opendocument.droid.ui.activity
 
 import android.app.Activity
 import android.content.ActivityNotFoundException
-import android.content.ComponentName
 import android.content.Intent
-import android.content.ServiceConnection
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
-import android.os.IBinder
 import android.os.Looper
 import android.view.ActionMode
 import android.view.View
@@ -23,10 +20,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.ViewModelProvider
 import app.opendocument.droid.R
 import app.opendocument.droid.background.CatchAllSetting
-import app.opendocument.droid.background.LoaderService
-import app.opendocument.droid.background.LoaderServiceQueue
+import app.opendocument.droid.background.DocumentLoader
 import app.opendocument.droid.background.PersistedUriPermissions
 import app.opendocument.droid.background.PrintingManager
 import app.opendocument.droid.background.SupportedDocumentTypes
@@ -123,36 +120,12 @@ class MainActivity : AppCompatActivity() {
     // the user opening the app
     private var leftForOwnActivity = false
 
-    lateinit var loaderServiceQueue: LoaderServiceQueue
-        private set
-
-    private var service: LoaderService? = null
-
     /**
-     * Whether [bindService] was called. Not the same as holding a [service]: the binder arrives
-     * asynchronously, and an activity destroyed before it does still has to unbind.
+     * Loads and saves the open document. Scoped to the activity, so it survives a configuration
+     * change and [DocumentFragment] finds it already there rather than waiting for a binding.
      */
-    private var isBound = false
-
-    private val connection =
-        object : ServiceConnection {
-            override fun onServiceDisconnected(name: ComponentName?) {
-                service?.setListener(null)
-
-                service = null
-
-                // the queue holds its own reference, and handing work to a service whose
-                // background thread has quit drops it without telling anyone
-                loaderServiceQueue.service = null
-            }
-
-            override fun onServiceConnected(name: ComponentName?, binder: IBinder) {
-                val service = (binder as LoaderService.LoaderBinder).getService()
-                this@MainActivity.service = service
-
-                loaderServiceQueue.service = service
-            }
-        }
+    lateinit var documentLoader: DocumentLoader
+        private set
 
     // ACTION_OPEN_DOCUMENT, dispatched to a file manager the user picked
     private val openDocumentLauncher =
@@ -196,9 +169,8 @@ class MainActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, backCallback)
 
-        loaderServiceQueue = LoaderServiceQueue()
-        bindService(Intent(this, LoaderService::class.java), connection, BIND_AUTO_CREATE)
-        isBound = true
+        // before the fragments below: a restored DocumentFragment reaches for it in onViewCreated
+        documentLoader = ViewModelProvider(this)[DocumentLoader::class.java]
 
         handler = Handler(Looper.getMainLooper())
 
@@ -867,11 +839,6 @@ class MainActivity : AppCompatActivity() {
         // appcompat does not finish it for us, and TtsActionModeCallback only shuts its
         // engine down when the mode is destroyed
         currentActionMode?.finish()
-
-        if (isBound) {
-            unbindService(connection)
-            isBound = false
-        }
 
         printingManager.close()
 

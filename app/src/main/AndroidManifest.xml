@@ -50,11 +50,6 @@
         android:networkSecurityConfig="@xml/network_security_config"
         tools:replace="android:label">
 
-        <service
-            android:name="app.opendocument.droid.background.LoaderService"
-            android:enabled="true"
-            android:exported="false" />
-
         <!--
              every component name below keeps its historical at.tomtasche.reader.* spelling:
              the OS persists component names for pinned launcher icons and for "always open

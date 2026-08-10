@@ -375,11 +375,11 @@ class LandingTests {
     }
 
     /**
-     * A recent document that is not a document at all: bytes no loader can make anything of, so the
+     * A recent document that is not a document at all: bytes the core can make nothing of, so the
      * load fails the way a truncated download or a renamed file does.
      *
      * The extension is part of the fixture. `Odr.mimetype` cannot identify these bytes, so
-     * `MetadataLoader` falls back to what the provider makes of the filename - and that type is
+     * `FileIdentifier` falls back to what the provider makes of the filename - and that type is
      * what decides which failure the user gets. `.bin` gives `application/octet-stream`, which the
      * core does not claim, so the file is reported as an unsupported format. Name it `.odt` and the
      * core claims the format and fails on the bytes, which is the broken-file dialog instead.

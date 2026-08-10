@@ -2,7 +2,7 @@ package app.opendocument.droid.background
 
 /**
  * Derives the final mime type / file extension pair of a document from whatever the detection steps
- * in [MetadataLoader] came up with.
+ * in [FileIdentifier] came up with.
  *
  * Deliberately free of Android dependencies so it can be covered by plain JVM unit tests; in
  * production [ExtensionLookup] is backed by `MimeTypeMap`.

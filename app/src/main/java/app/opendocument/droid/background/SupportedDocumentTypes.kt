@@ -15,7 +15,7 @@ import app.opendocument.core.Odr
  * against the first.
  *
  * All of it is a guess from a name and whatever mime type a provider volunteered. What decides once
- * the file is in the cache is [MetadataLoader], which asks `Odr.mimetype` about the copy, and
+ * the file is in the cache is [FileIdentifier], which asks `Odr.mimetype` about the copy, and
  * [CoreLoader.isDocumentEditable], which asks the opened document.
  */
 object SupportedDocumentTypes {

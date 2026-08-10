@@ -2,7 +2,6 @@ package app.opendocument.droid.background
 
 import android.content.Context
 import android.net.Uri
-import android.os.Handler
 import android.system.Os
 import android.util.Log
 import app.opendocument.core.DecodedFile
@@ -14,12 +13,6 @@ import app.opendocument.core.HtmlView
 import app.opendocument.core.HttpServer
 import app.opendocument.core.Odr
 import app.opendocument.core.OdrException
-import app.opendocument.droid.background.FileLoader.EncryptedDocumentException
-import app.opendocument.droid.background.FileLoader.FileLoaderListener
-import app.opendocument.droid.background.FileLoader.LoaderType
-import app.opendocument.droid.background.FileLoader.Options
-import app.opendocument.droid.background.FileLoader.Result
-import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
 import java.io.File
 import java.io.IOException
@@ -30,7 +23,9 @@ import java.io.IOException
  * Owns the process wide core state: the one-time initialization, the single http server and the
  * currently open [Document] that [retranslate] edits.
  */
-class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
+class CoreLoader(private val context: Context) {
+
+    private lateinit var crashManager: CrashManager
 
     private var document: Document? = null
     private var lastInputPath: String? = null
@@ -42,54 +37,27 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
     val isDocumentEditable: Boolean
         get() = document != null
 
-    override fun initialize(
-        listener: FileLoaderListener,
-        mainHandler: Handler,
-        backgroundHandler: Handler,
-        analyticsManager: AnalyticsManager,
-        crashManager: CrashManager,
-    ) {
+    fun initialize(crashManager: CrashManager) {
+        this.crashManager = crashManager
+
         // loads the native library and points the core at a usable temporary directory
         initializeCore(context)
 
         startSharedServer(crashManager)
-
-        super.initialize(listener, mainHandler, backgroundHandler, analyticsManager, crashManager)
     }
 
     /**
-     * Everything odrcore can turn into html, which is much more than documents. Wider than what the
-     * app offers itself for (see [SupportedDocumentTypes]): this decides how a failed load is
-     * reported, not the share sheet.
+     * Renders [file] and publishes it, replacing whatever was published before.
+     *
+     * Throws what odrcore threw: which failure it is decides which bar the user gets, so
+     * [DocumentLoader] needs the exception itself.
      */
-    override fun isSupported(options: Options): Boolean =
-        SupportedDocumentTypes.isRenderedByCore(options.fileType)
-
-    override fun loadSync(options: Options) {
-        val result = Result(type, options)
-
-        try {
-            translate(options, result)
-
-            callOnSuccess(result)
-        } catch (e: OdrException.FileEncrypted) {
-            callOnError(result, EncryptedDocumentException())
-        } catch (e: OdrException.WrongPassword) {
-            callOnError(result, EncryptedDocumentException())
-        } catch (e: OdrException.DecryptionFailed) {
-            callOnError(result, EncryptedDocumentException())
-        } catch (e: Throwable) {
-            callOnError(result, e)
-        }
-    }
-
-    private fun translate(options: Options, result: Result) {
-        val cacheUri = checkNotNull(options.cacheUri) { "nothing was cached to load" }
+    fun render(request: DocumentRequest, file: IdentifiedFile): LoadedDocument {
         val cachedFile =
-            checkNotNull(AndroidFileCache.getCacheFile(context, cacheUri)) {
-                "not a cached file: $cacheUri"
+            checkNotNull(FileCache.getCacheFile(context, file.cacheUri)) {
+                "not a cached file: " + file.cacheUri
             }
-        val cacheDirectory = AndroidFileCache.getCacheDirectory(cachedFile)
+        val cacheDirectory = FileCache.getCacheDirectory(cachedFile)
 
         val coreCacheDirectory = File(cacheDirectory, "core_cache")
 
@@ -100,18 +68,19 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
                 prefix = "odr",
                 inputPath = cachedFile.path,
                 cachePath = coreCacheDirectory.path,
-                password = options.password,
-                editable = options.translatable,
+                password = request.password,
+                editable = request.editable,
                 paging = PaginationSetting.isEnabled(context),
                 keepDocument = true,
             )
 
-        result.isEditable = isDocumentEditable
-
-        for (view in views) {
-            result.partTitles.add(view.name)
-            result.partUris.add(Uri.parse(view.url))
-        }
+        return LoadedDocument(
+            request,
+            file,
+            views.map { it.name },
+            views.map { Uri.parse(it.url) },
+            isDocumentEditable,
+        )
     }
 
     /**
@@ -196,16 +165,16 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
         }
     }
 
-    override fun retranslate(options: Options, htmlDiff: String): File? {
+    /** The document with [htmlDiff] applied, written to a file of ours. Null if that failed. */
+    fun retranslate(request: DocumentRequest, file: IdentifiedFile, htmlDiff: String): File? {
         try {
             if (document == null) {
-                // necessary if fragment was destroyed in the meanwhile - meaning the Loader is
-                // reinstantiated
-                translate(options, Result(type, options))
+                // nothing is held open after a rebuild, so open it again before editing it
+                render(request, file)
             }
 
             val inputFile = File(checkNotNull(lastInputPath))
-            val inputCacheDirectory = AndroidFileCache.getCacheDirectory(inputFile)
+            val inputCacheDirectory = FileCache.getCacheDirectory(inputFile)
 
             return edit(htmlDiff, File(inputCacheDirectory, "retranslate").path)
         } catch (e: Throwable) {
@@ -238,8 +207,10 @@ class CoreLoader(context: Context?) : FileLoader(context, LoaderType.CORE) {
     /**
      * Drops what this loader published and leaves the server itself running - see [sharedServer]
      * for why it is never stopped.
+     *
+     * Belongs on the thread the loads run on, so it cannot race one in flight.
      */
-    override fun onClose() {
+    fun close() {
         sharedServer?.clear()
 
         closeDocument()

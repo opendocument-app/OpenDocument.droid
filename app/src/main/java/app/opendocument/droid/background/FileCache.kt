@@ -5,7 +5,13 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import java.io.File
 
-object AndroidFileCache {
+/**
+ * The working copy of the document being read.
+ *
+ * A document arrives as a stream that is only readable while the grant lasts, so [store] copies it
+ * in first and every step after that reads a file of ours.
+ */
+object FileCache {
 
     private const val CACHE_DIRECTORY_PREFIX = "cache."
 
@@ -23,6 +29,26 @@ object AndroidFileCache {
         }
 
         return cache
+    }
+
+    /**
+     * Copies what [uri] points at into a fresh cache directory and returns the file, making room
+     * first. A uri that already names a file of ours is handed straight back.
+     *
+     * @throws java.io.FileNotFoundException and the rest of what opening the stream can throw - a
+     *   document that cannot be read has nothing further to be done with it.
+     */
+    fun store(context: Context, uri: Uri): File {
+        cleanup(context)
+
+        if (isCached(context, uri)) {
+            return checkNotNull(getCacheFile(context, uri))
+        }
+
+        return createCacheFile(context).also { cacheFile ->
+            val stream = context.contentResolver.openInputStream(uri)
+            StreamUtil.copy(checkNotNull(stream) { "cannot open $uri" }, cacheFile)
+        }
     }
 
     fun getCacheDirectory(cacheFile: File): File {
@@ -78,7 +104,8 @@ object AndroidFileCache {
         file.parentFile?.takeIf { it.name.startsWith(CACHE_DIRECTORY_PREFIX) }?.delete()
     }
 
-    fun cleanup(context: Context) {
+    /** Drops every cache directory but the newest, which is the document still open. */
+    private fun cleanup(context: Context) {
         val cache = getRootCacheDirectory(context)
         val directories =
             cache.list { _, name -> name.startsWith(CACHE_DIRECTORY_PREFIX) } ?: return

@@ -94,7 +94,7 @@ site, in more detail:
   into internal storage via `run-as` is the route that works, and it is why this needs the
   debug build rather than the store one.
 - **The intent carries no mime type.** That leaves the app's own detection (`Odr.mimetype`, run
-  by `MetadataLoader`) in the path instead of taking a caller's word for the type, which is the
+  by `FileIdentifier`) in the path instead of taking a caller's word for the type, which is the
   half of the app worth exercising.
 - **`uiautomator dump` runs twice per document.** A WebView only builds its accessibility
   tree once something asks for one, so the first dump after a load has no text in it and the

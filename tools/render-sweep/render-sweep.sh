@@ -126,7 +126,7 @@ while IFS= read -r rel <&3; do
   "$ADB" shell "run-as $PKG sh -c 'cat > files/sweep/doc.$ext'" < "$src" >/dev/null 2>&1
 
   # No -t: leaving the mime type off puts the app's own detection (Odr.mimetype, via
-  # MetadataLoader) in the path instead of taking the caller's word for it.
+  # FileIdentifier) in the path instead of taking the caller's word for it.
   launch=$("$ADB" shell am start -W -a android.intent.action.VIEW \
       -d "file:///data/data/$PKG/files/sweep/doc.$ext" \
       -n "$PKG/$ALIAS_SUFFIX" 2>&1 | grep -E '^Status:' | head -1 | awk '{print $2}')
