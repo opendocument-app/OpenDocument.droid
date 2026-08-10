@@ -326,6 +326,8 @@ class AdManager {
 
         crashManager.log("house ad " + houseAdIndex + " at " + adWidth + "dp")
 
+        analyticsManager.report("house_ad_shown")
+
         // the 90dp slot, which only tablets get
         val wide = adWidth >= WIDE_WIDTH
 
@@ -358,7 +360,7 @@ class AdManager {
         }
 
         houseAd.setOnClickListener {
-            analyticsManager.report("house_ad")
+            analyticsManager.report("house_ad_tapped")
 
             onPurchaseRequested?.invoke()
         }
