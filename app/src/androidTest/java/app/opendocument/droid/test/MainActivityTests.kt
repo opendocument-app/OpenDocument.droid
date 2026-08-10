@@ -199,12 +199,7 @@ class MainActivityTests {
         assertBecomesEditable("DOCX", pageView!!, documentFragment)
     }
 
-    /**
-     * A full save copies the file on disk, so it has no use for a diff. It used to ask the page for
-     * one anyway and save again when the answer arrived, which put a second create-document picker
-     * over the first - harmless only while `odr.generateDiff()` was absent outside edit mode, which
-     * it no longer is.
-     */
+    /** A full save needs no diff from the page, and must not ask for one and then save twice. */
     @Test
     fun testSaveOpensOneCreateDocumentPicker() {
         val activity = mainActivityActivityTestRule.activity
@@ -218,8 +213,8 @@ class MainActivityTests {
             activity.onDocumentAction(DocumentActions.ACTION_SAVE)
         }
 
-        // a plain wait, because this asserts that something does not happen: the second picker
-        // only arrived once the web view had answered, which is a round trip nothing idles on
+        // a plain wait: this asserts something does not happen, after a web view round trip
+        // that nothing idles on
         SystemClock.sleep(3000)
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
 
