@@ -85,8 +85,8 @@ class MainActivity : AppCompatActivity() {
                     return
                 }
 
-                // an externally opened document leaves the app rather than the document, but
-                // it carries unsaved edits out just the same - so it asks first too
+                // an externally opened document leaves the app rather than the document, and
+                // carries unsaved edits out just the same
                 confirmLeavingEdits {
                     // fall through to the default behavior (close the activity)
                     isEnabled = false
@@ -732,15 +732,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Asks before walking away from a document that is being edited, and runs [leave] once that is
-     * settled.
-     *
-     * Nothing is written until the user has named a file to save to, so leaving is exactly where
-     * unsaved work goes. It used to go silently. OpenDocument.ios asks the same question on its way
-     * out, under the same three event names.
-     *
-     * Saving does not also leave: the save opens the system's create-document picker, and closing
-     * the document out from under it would take the page the diff still has to come from.
+     * Asks before walking away from a document being edited, then runs [leave]. Saving does not
+     * also leave: it opens the create-document picker, which still needs the page the diff comes
+     * from.
      */
     private fun confirmLeavingEdits(leave: () -> Unit) {
         val documentFragment = this.documentFragment

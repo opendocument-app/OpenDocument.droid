@@ -989,10 +989,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         return ::state.isInitialized && state.lastResult != null
     }
 
-    /**
-     * Whether the document on screen is in edit mode, and so may be carrying changes nothing has
-     * written down yet: the edits live in the page until a save asks it for a diff.
-     */
+    /** Whether the document is in edit mode, so its changes are still only in the page. */
     fun isEditing(): Boolean =
         ::state.isInitialized && state.lastResult?.options?.translatable == true
 
