@@ -224,7 +224,7 @@ class MainActivityTests {
     fun testDocumentSurvivesRecreation() {
         val activity = mainActivityActivityTestRule.activity
         val documentFragment = loadDocument(activity, requireTestFile("test.odt"))
-        val before = documentFragment.lastResult
+        val before = documentFragment.lastDocument
         Assert.assertNotNull(before)
 
         // not rotation, which MainActivity handles itself: recreate() is what a locale or font
@@ -242,8 +242,8 @@ class MainActivityTests {
         )
         Assert.assertEquals(
             "document was reloaded instead of restored",
-            before!!.options.originalUri,
-            afterRecreation.lastResult?.options?.originalUri,
+            before!!.request.uri,
+            afterRecreation.lastDocument?.request?.uri,
         )
     }
 
@@ -405,8 +405,8 @@ class MainActivityTests {
      * lose.
      */
     private fun describeLoadedDocument(fragment: DocumentFragment): String {
-        val result = fragment.lastResult ?: return "no result"
-        val url = result.partUris.firstOrNull() ?: return "no part uri"
+        val document = fragment.lastDocument ?: return "no result"
+        val url = document.partUris.firstOrNull() ?: return "no part uri"
 
         return try {
             val connection = URL(url.toString()).openConnection() as HttpURLConnection
@@ -417,7 +417,7 @@ class MainActivityTests {
                 val html = connection.inputStream.bufferedReader().use { it.readText() }
                 "$url http=${connection.responseCode} length=${html.length}" +
                     " contenteditable=${html.contains("contenteditable")}" +
-                    " translatable=${result.options.translatable}"
+                    " editable=${document.request.editable}"
             } finally {
                 connection.disconnect()
             }

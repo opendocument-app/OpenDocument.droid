@@ -1,14 +1,10 @@
 package app.opendocument.droid.test
 
-import android.os.Handler
-import android.os.Looper
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import app.opendocument.core.OdrException
 import app.opendocument.droid.background.CoreLoader
-import app.opendocument.droid.background.FileLoader
-import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
 import java.io.File
 import java.io.FileOutputStream
@@ -241,22 +237,11 @@ class CoreTest {
         fun startServer() {
             val appCtx = InstrumentationRegistry.getInstrumentation().targetContext
 
-            // nothing here goes through loadAsync, so both handlers can be the main looper and
-            // the listener is never called back
-            val handler = Handler(Looper.getMainLooper())
+            // every test here calls host() straight, so all initialize has to do is start the
+            // core and its server
             val loader = CoreLoader(appCtx)
             sharedLoader = loader
-            loader.initialize(
-                object : FileLoader.FileLoaderListener {
-                    override fun onSuccess(result: FileLoader.Result) {}
-
-                    override fun onError(result: FileLoader.Result, error: Throwable) {}
-                },
-                handler,
-                handler,
-                AnalyticsManager(),
-                CrashManager(),
-            )
+            loader.initialize(CrashManager())
         }
 
         @JvmStatic

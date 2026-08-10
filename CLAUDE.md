@@ -14,15 +14,21 @@ Guidance for Claude Code (claude.ai/code) working in this repository.
 
 ## Architecture
 
-A `FileLoader` loads on `LoaderService`'s background thread and reports through
-`FileLoaderListener`; `LoaderServiceQueue` holds requests until the service is bound.
-`MetadataLoader` caches and identifies the file and `CoreLoader` renders it, publishing the
-html on a local server. Those two are the whole chain - there is no fallback after the core,
-and what it cannot open is reported as an unsupported format.
+`DocumentLoader` opens a document on its own background thread and reports back on the main
+one, straight through: `FileCache` stores the bytes, `FileIdentifier` names and types the
+copy, `CoreLoader` renders it and publishes the html on a local server, and `DocumentSaver`
+writes it back. There is nothing after the core - what it cannot open is reported as an
+unsupported format.
 
-`MainActivity` owns the service binding and the action modes (find, tts, edit), and swaps
-between `LandingFragment` (recent documents and settings) and `DocumentFragment`, which
-shows the result in `PageView` - a WebView - with `DocumentActions` over it.
+It is a `ViewModel` scoped to `MainActivity`, so it survives a configuration change and is
+there before anything asks it for a document. A `DocumentRequest` is what the user asked for,
+an `IdentifiedFile` the cached copy it turned out to be, and a `LoadedDocument` the two plus
+the parts to show. Do not add a loader base class or a loader-type enum: there is one loader,
+and a second one is a format odrcore should learn instead.
+
+`MainActivity` owns the loader and the action modes (find, tts, edit), and swaps between
+`LandingFragment` (recent documents and settings) and `DocumentFragment`, which shows the
+result in `PageView` - a WebView - with `DocumentActions` over it.
 
 There is **no options menu**: `menu_main.xml` is gone and the action bar is hidden. An
 action on the open document is a `DocumentActions` button; anything else - the ad removal,
@@ -64,7 +70,7 @@ code says otherwise. Do not add a `BuildConfig.FLAVOR` comparison back - it was 
 resource bool `DISABLE_TRACKING` was both mistakes at once: there is no tracking to
 disable, `AnalyticsManager` and `CrashManager` write to logcat and nowhere else.
 
-Those two take no switch at all, which is why `LoaderService` just constructs them. Ads
+Those two take no switch at all, which is why `DocumentLoader` just constructs them. Ads
 and billing are what `MainActivity.initializeManagers` gates, on `Features.withAds` *and*
 `PlayServices` - the device half of the answer, and the reason that method can run twice,
 once more after google's own dialog comes back.
@@ -142,13 +148,13 @@ fail to open it.
 XML cannot read any of that, so the `STRICT_CATCH` alias' three intent-filters are
 *generated* from the same table - a filter matches a mime type exactly, so all 49 spellings
 and 41 extensions are written out. `SupportedFormatsTest` asserts that
-`SupportedDocumentTypes` and the package manager agree, and that every claimed mime type
-reaches `CoreLoader`, so a format added upstream and forgotten fails CI.
+`SupportedDocumentTypes` and the package manager agree, and that every claimed mime type is
+one `isRenderedByCore` takes, so a format added upstream and forgotten fails CI.
 
-The tables live in `libodr_jni`, which is why `CoreLoaderTest` and
+The tables live in `libodr_jni`, which is why `RenderedByCoreTest` and
 `SupportedDocumentTypesTest` are instrumented though neither opens a file. After caching it
-is `Odr.mimetype` that decides, canonicalized through `canonicalMimeType` so the loaders see
-one spelling per format.
+is `Odr.mimetype` that decides, canonicalized through `canonicalMimeType` so one spelling per
+format reaches the core.
 
 Reading the core's table directly, as `isDocument` does, must not `lowercase()` first: it
 matches exactly and spells some types with capitals (`macroEnabled`). Our own sets are the
@@ -166,8 +172,8 @@ Text is the core's fallback for bytes nothing else claims, and it does not refus
 it cannot name a charset for - it answers `text/plain` and throws only once a page is
 rendered, on the server thread, long after `CoreLoader` reported success.
 
-So `MetadataLoader` drops a `text/plain` whose file has no charset (`hasKnownCharset`) and
-lets the fallbacks below it decide, and `CoreLoader.host()` refuses the same file up front.
+So `FileIdentifier` drops a `text/plain` whose file has no charset (`hasKnownCharset`) and
+lets the guesses below it decide, and `CoreLoader.host()` refuses the same file up front.
 Both are needed: the first keeps `isRenderedByCore` off a `.bin`, the second stops a success
 bar appearing over a page that cannot draw.
 `LandingTests.aDocumentThatFailsToOpenComesBackToTheList` holds this.
@@ -175,7 +181,7 @@ bar appearing over a page that cannot draw.
 ### Editability comes from the core, never from a mime type
 
 `Document.isEditable()`/`isSavable()` decides whether `DocumentFragment` offers the Edit
-button, carried on `FileLoader.Result.isEditable`. `CoreLoader.host()` only holds a document
+button, carried on `LoadedDocument.isEditable`. `CoreLoader.host()` only holds a document
 open when the core says yes, so having one *is* the answer. Do not reintroduce a list of
 editable formats in the UI.
 
@@ -201,8 +207,8 @@ The only java is `com/commonsware/android/print`, vendored so it can be diffed a
 upstream. It calls nothing of ours, so no java-to-kotlin call exists and `@JvmStatic`,
 `@JvmField`, `@JvmOverloads` and `@Throws` are not needed for interop.
 
-What remains is for runtimes that reflect over the bytecode: `@JvmField` on `FileLoader`'s
-`CREATOR`s (parcelable needs a static field) and `@JvmStatic` on `@BeforeClass` /
-`@AfterClass` in the instrumented tests. `ProgressDialogFragment` needed `@JvmOverloads` too
-while it took an argument - a fragment the framework re-creates has to have a no-arg
-constructor.
+What remains is for runtimes that reflect over the bytecode: `@JvmField` on the `CREATOR`s of
+`DocumentRequest`, `IdentifiedFile` and `LoadedDocument` (parcelable needs a static field),
+and `@JvmStatic` on `@BeforeClass` / `@AfterClass` in the instrumented tests.
+`ProgressDialogFragment` needed `@JvmOverloads` too while it took an argument - a fragment
+the framework re-creates has to have a no-arg constructor.

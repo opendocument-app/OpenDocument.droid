@@ -4,7 +4,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -17,22 +16,10 @@ import org.junit.runner.RunWith
  */
 @SmallTest
 @RunWith(AndroidJUnit4::class)
-class CoreLoaderTest {
+class RenderedByCoreTest {
 
-    private lateinit var coreLoader: CoreLoader
-
-    @Before
-    fun setUp() {
-        // no context: isSupported() is pure, and constructing a loader has no side effects
-        coreLoader = CoreLoader(null)
-    }
-
-    private fun isSupported(fileType: String?): Boolean {
-        val options = FileLoader.Options()
-        options.fileType = fileType
-
-        return coreLoader.isSupported(options)
-    }
+    private fun isSupported(fileType: String?): Boolean =
+        SupportedDocumentTypes.isRenderedByCore(fileType)
 
     @Test
     fun opendocumentIsSupported() {

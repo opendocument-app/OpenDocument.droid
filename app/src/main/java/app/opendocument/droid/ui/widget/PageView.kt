@@ -18,7 +18,7 @@ import android.webkit.WebViewClient
 import androidx.annotation.Keep
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
-import app.opendocument.droid.background.AndroidFileCache
+import app.opendocument.droid.background.FileCache
 import app.opendocument.droid.background.StreamUtil
 import app.opendocument.droid.nonfree.CrashManager
 import app.opendocument.droid.ui.ParagraphListener
@@ -238,7 +238,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     @Keep
     fun sendFile(base64: String) {
         try {
-            val tmpFile = AndroidFileCache.createCacheFile(context)
+            val tmpFile = FileCache.createCacheFile(context)
 
             ByteArrayInputStream(base64.toByteArray(charset(StreamUtil.ENCODING))).use { inputStream
                 ->
@@ -248,7 +248,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
             post {
                 // the user is mid-read, not opening something
                 documentFragment.loadUri(
-                    AndroidFileCache.getCacheFileUri(context, tmpFile),
+                    FileCache.getCacheFileUri(context, tmpFile),
                     false,
                     freshOpen = false,
                 )

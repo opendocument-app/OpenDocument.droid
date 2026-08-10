@@ -24,10 +24,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import app.opendocument.droid.R
-import app.opendocument.droid.background.AndroidFileCache
-import app.opendocument.droid.background.FileLoader
-import app.opendocument.droid.background.LoaderService
-import app.opendocument.droid.background.LoaderServiceQueue
+import app.opendocument.droid.background.DocumentLoader
+import app.opendocument.droid.background.DocumentRequest
+import app.opendocument.droid.background.FileCache
+import app.opendocument.droid.background.IdentifiedFile
+import app.opendocument.droid.background.LoadedDocument
 import app.opendocument.droid.background.StreamUtil
 import app.opendocument.droid.background.SupportedDocumentTypes
 import app.opendocument.droid.background.UsageCounters
@@ -45,7 +46,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 
-class DocumentFragment : Fragment(), LoaderService.LoaderListener {
+class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
     private lateinit var analyticsManager: AnalyticsManager
 
@@ -77,11 +78,22 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
     private lateinit var tabLayout: TabLayout
 
-    private lateinit var serviceQueue: LoaderServiceQueue
+    private lateinit var documentLoader: DocumentLoader
 
     /** Survives a configuration change, so the document and any unsaved edits outlive it. */
     class DocumentViewModel : ViewModel() {
-        var lastResult: FileLoader.Result? = null
+
+        /** The last document asked for, whether or not it opened. */
+        var lastRequest: DocumentRequest? = null
+
+        /**
+         * Null until something was read, and again for a document that could not be read at all.
+         */
+        var lastFile: IdentifiedFile? = null
+
+        /** Only ever the document currently on screen. */
+        var lastDocument: LoadedDocument? = null
+
         var currentHtmlDiff: String? = null
 
         // loads cannot be canceled once running, so results of abandoned loads
@@ -193,8 +205,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         // runs the most recently added enabled callback first
         mainActivity.onBackPressedDispatcher.addCallback(viewLifecycleOwner, actionsBackCallback)
 
-        serviceQueue = mainActivity.loaderServiceQueue
-        serviceQueue.addToQueue { service -> service.setListener(this) }
+        documentLoader = mainActivity.documentLoader
+        documentLoader.listener = this
 
         crashManager.log("onViewCreated")
 
@@ -206,32 +218,54 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
         initializePageView()
 
-        // the view model survives a rotation, the bundle also survives process death
-        if (state.lastResult == null) {
-            @Suppress("DEPRECATION") // the typed getParcelable overload needs API 33
-            state.lastResult = savedInstanceState.getParcelable(SAVED_KEY_LAST_RESULT)
-        }
-        if (state.currentHtmlDiff == null) {
-            state.currentHtmlDiff = savedInstanceState.getString(SAVED_KEY_CURRENT_HTML_DIFF)
-        }
+        restore(savedInstanceState)
 
-        state.lastResult?.let { lastResult ->
-            crashManager.log("restoring lastResult")
+        state.lastDocument?.let { lastDocument ->
+            crashManager.log("restoring lastDocument")
 
-            restoreTabs(lastResult)
-            prepareActions(lastResult)
+            restoreTabs(lastDocument)
+            prepareActions(lastDocument)
         }
+    }
 
-        pageView?.restoreState(savedInstanceState)
+    /**
+     * Reads back what [onSaveInstanceState] wrote. The view model already survives a rotation; the
+     * bundle also survives process death.
+     *
+     * Guarded because it outlives an app update too: a bundle written by an older version can name
+     * classes this one no longer has, and [android.os.Bundle] reads its whole map on the first
+     * access, so one stale entry takes the rest with it. Losing the reopened document beats
+     * throwing on launch.
+     */
+    private fun restore(savedInstanceState: Bundle) {
+        try {
+            if (state.lastRequest == null) {
+                @Suppress("DEPRECATION") // the typed getParcelable overload needs API 33
+                state.lastRequest = savedInstanceState.getParcelable(SAVED_KEY_LAST_REQUEST)
+
+                @Suppress("DEPRECATION")
+                state.lastFile = savedInstanceState.getParcelable(SAVED_KEY_LAST_FILE)
+
+                @Suppress("DEPRECATION")
+                state.lastDocument = savedInstanceState.getParcelable(SAVED_KEY_LAST_DOCUMENT)
+            }
+            if (state.currentHtmlDiff == null) {
+                state.currentHtmlDiff = savedInstanceState.getString(SAVED_KEY_CURRENT_HTML_DIFF)
+            }
+
+            pageView?.restoreState(savedInstanceState)
+        } catch (e: Throwable) {
+            crashManager.log(e)
+        }
     }
 
     /** Rebuilds the tab strip: the tabs live in the view, which the view model does not hold. */
-    private fun restoreTabs(result: FileLoader.Result) {
-        if (result.partTitles.size <= 1) {
+    private fun restoreTabs(document: LoadedDocument) {
+        if (document.partTitles.size <= 1) {
             return
         }
 
-        addTabs(result.partTitles)
+        addTabs(document.partTitles)
 
         val selected = maxOf(state.lastSelectedTab, 0)
         tabLayout.getTabAt(selected)?.select()
@@ -253,7 +287,9 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
         crashManager.log("onSaveInstanceState")
 
-        outState.putParcelable(SAVED_KEY_LAST_RESULT, state.lastResult)
+        outState.putParcelable(SAVED_KEY_LAST_REQUEST, state.lastRequest)
+        outState.putParcelable(SAVED_KEY_LAST_FILE, state.lastFile)
+        outState.putParcelable(SAVED_KEY_LAST_DOCUMENT, state.lastDocument)
         outState.putString(SAVED_KEY_CURRENT_HTML_DIFF, state.currentHtmlDiff)
 
         pageView?.saveState(outState)
@@ -268,7 +304,13 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         replay()
     }
 
-    private fun loadWithType(loaderType: FileLoader.LoaderType, options: FileLoader.Options) {
+    private fun load(request: DocumentRequest) {
+        beforeLoad()
+
+        documentLoader.load(request)
+    }
+
+    private fun beforeLoad() {
         // whatever the last load had to say was about the last document. the offer to reopen is
         // indefinite, so without this it sits over the document that came after it
         SnackbarHelper.dismiss(requireActivity())
@@ -276,8 +318,6 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         showProgress()
 
         state.beginLoadIdling()
-
-        serviceQueue.addToQueue { service -> service.loadWithType(loaderType, options) }
     }
 
     /**
@@ -295,28 +335,30 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
         state.lastRequestedUri = uri
 
-        val options = FileLoader.Options()
-        options.originalUri = uri
-        options.persistentUri = persistentUri
-        options.translatable = editable
-
-        loadWithType(FileLoader.LoaderType.METADATA, options)
+        load(DocumentRequest(uri, persistentUri).apply { this.editable = editable })
     }
 
-    fun reloadUri(translatable: Boolean) {
+    fun reloadUri(editable: Boolean) {
         // closeDocument() removes this fragment and only then finishes the edit mode, whose
         // onDestroyActionMode reloads - a load queued here would have nothing left to land in
         if (!isAdded) {
             return
         }
 
-        val lastResult = checkNotNull(state.lastResult) { "nothing was loaded yet" }
-        lastResult.options.translatable = translatable
+        val lastRequest = requireLastRequest()
+        lastRequest.editable = editable
 
         // entering or leaving edit mode is not a new document, and the user is working
         freshOpenPending = false
 
-        loadWithType(lastResult.loaderType, lastResult.options)
+        reload(lastRequest, requireLastFile())
+    }
+
+    /** The same document again, rendered differently - see [DocumentLoader.reload]. */
+    private fun reload(request: DocumentRequest, file: IdentifiedFile) {
+        beforeLoad()
+
+        documentLoader.reload(request, file)
     }
 
     /**
@@ -354,13 +396,14 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
             return
         }
 
-        // read inside the entry: the queue replays this once the service is bound
-        serviceQueue.addToQueue { service ->
-            service.saveAsync(requireLastResult(), outFile, state.currentHtmlDiff)
-        }
+        documentLoader.save(requireLastDocument(), outFile, state.currentHtmlDiff)
     }
 
     private fun unload() {
+        // nothing left to save or to switch tabs on. the request and the file stay: they are what
+        // the reopen offer raised over this works from
+        state.lastDocument = null
+
         // guarded like resetTabs below: a load can fail before there is a view to put right
         if (::actions.isInitialized) {
             actions.setActions(null, emptyList())
@@ -386,12 +429,12 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
      * relied on: the menu was only rebuilt when something happened to invalidate it, and a document
      * that finished loading is not one of those things.
      */
-    private fun prepareActions(result: FileLoader.Result) {
+    private fun prepareActions(document: LoadedDocument) {
         // whether editing is on offer is the core's answer, not a list of formats kept here: it
         // knows which of the documents it renders it can also write back, which is why neither the
         // legacy binary formats nor the spreadsheets of issue #442 need naming
         val edit =
-            if (!result.isEditable) null
+            if (!document.isEditable) null
             else
                 DocumentActions.Action(
                     DocumentActions.ACTION_EDIT,
@@ -471,16 +514,17 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
     }
 
     /**
-     * Whether [result] can be acted on now. If not, [replay] is what [onStart] runs instead - it
-     * has to be the caller's own callback, or a failure comes back as a success.
+     * Whether an outcome for [request] can be acted on now. If not, [replay] is what [onStart] runs
+     * instead - it has to be the caller's own callback, or a failure comes back as a success.
      */
-    private fun isActivityReadyForResult(
-        result: FileLoader.Result,
+    private fun isActivityReadyForOutcome(
+        request: DocumentRequest,
+        file: IdentifiedFile?,
         replay: () -> Unit,
     ): Boolean {
         val lastRequestedUri = state.lastRequestedUri
-        if (lastRequestedUri != null && lastRequestedUri != result.options.originalUri) {
-            crashManager.log("dropping result of abandoned load: " + result.options.originalUri)
+        if (lastRequestedUri != null && lastRequestedUri != request.uri) {
+            crashManager.log("dropping result of abandoned load: " + request.uri)
 
             return false
         }
@@ -491,44 +535,46 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
             return false
         }
 
-        // needs to be saved for errors too for features like "Open With" to work
-        state.lastResult = result
+        // needs to be kept for errors too for features like "Open With" to work
+        state.lastRequest = request
+        state.lastFile = file
 
         replayOnStart = null
 
         return true
     }
 
-    override fun onLoadSuccess(result: FileLoader.Result) {
-        if (!isActivityReadyForResult(result) { onLoadSuccess(result) }) {
+    override fun onLoadSuccess(document: LoadedDocument) {
+        if (
+            !isActivityReadyForOutcome(document.request, document.file) { onLoadSuccess(document) }
+        ) {
             return
         }
 
-        val activity = requireActivity()
-        val options = result.options
+        state.lastDocument = document
 
-        analyticsManager.setCurrentScreen(
-            activity,
-            result.loaderType.toString() + "_" + options.fileType,
-        )
+        val activity = requireActivity()
+        val file = document.file
+
+        analyticsManager.setCurrentScreen(activity, file.mimeType ?: UNKNOWN_FILE_TYPE)
 
         resetTabs()
 
-        val titles = result.partTitles
+        val titles = document.partTitles
         val pages = titles.size
         if (pages > 1) {
             addTabs(titles)
 
             tabLayout.getTabAt(0)?.select()
         } else if (pages == 1) {
-            loadData(result.partUris[0].toString())
+            loadData(document.partUris[0].toString())
         }
 
-        prepareActions(result)
+        prepareActions(document)
 
         // the escape hatch for a file we show rather than read: an image, an archive listing
-        if (!SupportedDocumentTypes.isDocument(options.fileType)) {
-            offerReopen(activity, options, R.string.toast_hint_unsupported_file, false)
+        if (!SupportedDocumentTypes.isDocument(file.mimeType)) {
+            offerReopen(activity, R.string.toast_hint_unsupported_file, false)
         }
 
         dismissProgress()
@@ -548,22 +594,21 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         }
     }
 
-    override fun onError(result: FileLoader.Result, error: Throwable) {
-        if (!isActivityReadyForResult(result) { onError(result, error) }) {
+    override fun onError(request: DocumentRequest, file: IdentifiedFile?, error: Throwable) {
+        if (!isActivityReadyForOutcome(request, file) { onError(request, file, error) }) {
             return
         }
 
         val activity = requireActivity()
-        val options = result.options
 
         unload()
         dismissProgress()
 
         when {
             error is FileNotFoundException ->
-                offerReopen(activity, options, R.string.toast_error_find_file, true)
+                offerReopen(activity, R.string.toast_error_find_file, true)
             error is OutOfMemoryError ->
-                offerReopen(activity, options, R.string.toast_error_out_of_memory, true)
+                offerReopen(activity, R.string.toast_error_out_of_memory, true)
             // unreadable, or named and still not openable
             else -> {
                 // nothing is ever going to be shown for this file, so drop back to the
@@ -582,13 +627,12 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         state.endLoadIdling()
     }
 
-    override fun onEncrypted(result: FileLoader.Result) {
-        if (!isActivityReadyForResult(result) { onEncrypted(result) }) {
+    override fun onEncrypted(request: DocumentRequest, file: IdentifiedFile) {
+        if (!isActivityReadyForOutcome(request, file) { onEncrypted(request, file) }) {
             return
         }
 
         val activity = requireActivity()
-        val options = result.options
 
         unload()
         dismissProgress()
@@ -601,16 +645,13 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         builder.setView(input)
 
         builder.setPositiveButton(getString(android.R.string.ok)) { dialog, _ ->
-            options.password = input.text.toString()
+            request.password = input.text.toString()
 
             // close dialog before progress is shown again
             dialog.dismiss()
 
-            if (result.loaderType != FileLoader.LoaderType.CORE) {
-                throw RuntimeException("encryption not supported for type: " + result.loaderType)
-            }
-
-            loadWithType(FileLoader.LoaderType.CORE, options)
+            // the file is already in the cache - only the key to it was missing
+            reload(request, file)
         }
         builder.setNegativeButton(getString(android.R.string.cancel), null)
         builder.show()
@@ -619,24 +660,23 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         state.endLoadIdling()
     }
 
-    override fun onUnsupported(result: FileLoader.Result) {
-        if (!isActivityReadyForResult(result) { onUnsupported(result) }) {
+    override fun onUnsupported(request: DocumentRequest, file: IdentifiedFile) {
+        if (!isActivityReadyForOutcome(request, file) { onUnsupported(request, file) }) {
             return
         }
 
         val activity = requireActivity()
-        val options = result.options
 
         unload()
         dismissProgress()
 
-        offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true)
+        offerReopen(activity, R.string.toast_error_illegal_file_reopen, true)
         giveUp(activity)
 
         state.endLoadIdling()
     }
 
-    override fun onSaveSuccess(outFile: Uri) {
+    override fun onSaveSuccess(target: Uri) {
         state.currentHtmlDiff = null
 
         SnackbarHelper.show(
@@ -647,7 +687,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
             isError = false,
         )
 
-        loadUri(outFile, true, true)
+        loadUri(target, true, true)
     }
 
     override fun onSaveError() {
@@ -738,55 +778,58 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         }
     }
 
-    private fun offerReopen(
-        activity: Activity,
-        options: FileLoader.Options,
-        description: Int,
-        isIndefinite: Boolean,
-    ) {
+    private fun offerReopen(activity: Activity, description: Int, isIndefinite: Boolean) {
+        // taken here rather than when the button is tapped: the bar is about the document that
+        // raised it, and it outlives the fragment on its way over the landing screen
+        val request = requireLastRequest()
+        val file = state.lastFile
+
         analyticsManager.report(
             "reopen_offer",
             AnalyticsConstants.PARAM_CONTENT_TYPE,
-            options.fileType,
+            file?.mimeType,
             AnalyticsConstants.PARAM_CONTENT,
-            options.originalUri,
+            request.uri,
         )
 
         SnackbarHelper.show(
             activity,
             description,
-            { doReopen(options, activity, true, false) },
+            { doReopen(activity, request, file, true, false) },
             isIndefinite = isIndefinite,
             isError = false,
         )
     }
 
     fun openWith(activity: Activity) {
-        doReopen(requireLastResult().options, activity, true, false)
+        doReopen(activity, requireLastRequest(), state.lastFile, true, false)
     }
 
     fun share(activity: Activity) {
-        doReopen(requireLastResult().options, activity, true, true)
+        doReopen(activity, requireLastRequest(), state.lastFile, true, true)
     }
 
     private fun doReopen(
-        options: FileLoader.Options,
         activity: Activity,
+        request: DocumentRequest,
+        file: IdentifiedFile?,
         grantPermission: Boolean,
         share: Boolean,
     ) {
-        val fileType = options.fileType
+        val fileType = file?.mimeType
 
-        var reopenUri = options.originalUri
-        if (options.fileExists) {
-            val cacheFile = AndroidFileCache.getCacheFile(activity, checkNotNull(options.cacheUri))
-            val cacheDirectory = AndroidFileCache.getCacheDirectory(checkNotNull(cacheFile))
+        var reopenUri = request.uri
+        // having a file is having read it whole: what is handed on is our copy, under a name the
+        // receiving app can make sense of
+        if (file != null) {
+            val cacheFile = FileCache.getCacheFile(activity, file.cacheUri)
+            val cacheDirectory = FileCache.getCacheDirectory(checkNotNull(cacheFile))
 
-            val reopenFile = File(cacheDirectory, "yourdocument." + options.fileExtension)
+            val reopenFile = File(cacheDirectory, "yourdocument." + file.extension)
             try {
                 StreamUtil.copy(cacheFile, reopenFile)
 
-                reopenUri = AndroidFileCache.getCacheFileUri(activity, reopenFile)
+                reopenUri = FileCache.getCacheFileUri(activity, reopenFile)
             } catch (e: IOException) {
                 crashManager.log(e)
             }
@@ -796,7 +839,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
         intent.action = if (share) Intent.ACTION_SEND else Intent.ACTION_VIEW
 
-        if ("N/A" != fileType) {
+        if (fileType != null) {
             intent.setDataAndType(reopenUri, fileType)
         } else {
             intent.data = reopenUri
@@ -834,7 +877,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
 
             if (grantPermission) {
                 // if we're trying to reopen the originalUri, the provider might decline the request
-                doReopen(options, activity, false, share)
+                doReopen(activity, request, file, false, share)
             }
         }
     }
@@ -891,11 +934,11 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
     private val tabSelectedListener =
         object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
-                val lastResult = requireLastResult()
+                val lastDocument = requireLastDocument()
 
                 // an edited document must not switch away from the page being edited,
                 // so the previous tab is re-selected instead
-                if (lastResult.options.translatable && state.lastSelectedTab >= 0) {
+                if (lastDocument.request.editable && state.lastSelectedTab >= 0) {
                     // reselecting from inside onTabSelected() does not take effect
                     tabLayout.postDelayed(
                         { tabLayout.getTabAt(state.lastSelectedTab)?.select() },
@@ -909,7 +952,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
                 // the user was looking at after the view is recreated
                 state.lastSelectedTab = tab.position
 
-                loadData(lastResult.partUris[tab.position].toString())
+                loadData(lastDocument.partUris[tab.position].toString())
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab) {}
@@ -921,29 +964,40 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         pageView?.loadUrl(url)
     }
 
-    private fun requireLastResult(): FileLoader.Result =
-        checkNotNull(state.lastResult) { "nothing was loaded yet" }
+    private fun requireLastRequest(): DocumentRequest =
+        checkNotNull(state.lastRequest) { "nothing was loaded yet" }
+
+    private fun requireLastFile(): IdentifiedFile =
+        checkNotNull(state.lastFile) { "nothing was read yet" }
+
+    private fun requireLastDocument(): LoadedDocument =
+        checkNotNull(state.lastDocument) { "no document is open" }
 
     @get:VisibleForTesting
-    val lastResult: FileLoader.Result?
-        get() = state.lastResult
+    val lastDocument: LoadedDocument?
+        get() = state.lastDocument
+
+    @get:VisibleForTesting
+    val lastRequest: DocumentRequest?
+        get() = state.lastRequest
 
     fun hasLastResult(): Boolean {
         // the activity can hold a freshly constructed fragment that has not been created yet
-        return ::state.isInitialized && state.lastResult != null
+        return ::state.isInitialized && state.lastRequest != null
     }
 
     /** Whether the document is in edit mode, so its changes are still only in the page. */
-    fun isEditing(): Boolean =
-        ::state.isInitialized && state.lastResult?.options?.translatable == true
+    fun isEditing(): Boolean = ::state.isInitialized && state.lastRequest?.editable == true
 
     val lastFileType: String?
-        get() = requireLastResult().options.fileType
+        get() = state.lastFile?.mimeType
 
     override fun onDestroyView() {
         super.onDestroyView()
 
-        serviceQueue.service?.setListener(null)
+        if (::documentLoader.isInitialized) {
+            documentLoader.listener = null
+        }
 
         // no callback is coming, except on a configuration change - there the recreated
         // fragment inherits both the listener and the view model
@@ -955,7 +1009,12 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
     }
 
     private companion object {
-        const val SAVED_KEY_LAST_RESULT = "LAST_RESULT"
+        const val SAVED_KEY_LAST_REQUEST = "LAST_REQUEST"
+        const val SAVED_KEY_LAST_FILE = "LAST_FILE"
+        const val SAVED_KEY_LAST_DOCUMENT = "LAST_DOCUMENT"
         const val SAVED_KEY_CURRENT_HTML_DIFF = "CURRENT_HTML_DIFF"
+
+        /** What the analytics screen name is when nothing could name the bytes. */
+        const val UNKNOWN_FILE_TYPE = "N/A"
     }
 }
