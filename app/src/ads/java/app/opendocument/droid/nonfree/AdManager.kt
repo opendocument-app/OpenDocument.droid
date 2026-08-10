@@ -41,11 +41,8 @@ class AdManager {
     private var onPurchaseRequested: (() -> Unit)? = null
 
     /**
-     * Which rotation of the house ad comes next.
-     *
-     * On disk rather than in a field: this object is built in MainActivity.onCreate, so a field
-     * restarts at the first variant on every cold start and that one is the only one most users
-     * ever see. OpenDocument.ios keeps the same counter in its own defaults.
+     * Which rotation of the house ad comes next. On disk, because this object is rebuilt on every
+     * cold start - as OpenDocument.ios keeps it in its own defaults.
      */
     private var houseAdIndex: Int
         get() = AppPreferences.of(activity).getInt(PREF_HOUSE_AD_INDEX, 0)
@@ -335,7 +332,7 @@ class AdManager {
 
         val index = houseAdIndex % HOUSE_ADS.size
         val variant = HOUSE_ADS[index]
-        houseAdIndex = index + 1
+        houseAdIndex = (index + 1) % HOUSE_ADS.size
 
         crashManager.log("house ad " + index + " at " + adWidth + "dp")
 
