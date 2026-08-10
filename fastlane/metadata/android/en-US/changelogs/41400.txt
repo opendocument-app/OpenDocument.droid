@@ -1,11 +1,7 @@
-The app opens on the documents you had open recently, in a new look that follows your phone's light or dark setting, with what you can do to an open document moved down within reach of your thumb.
+The app now opens on your recent documents, in a new look that follows your phone's light or dark setting, with the document actions in reach of your thumb.
 
-Leaving a document with unsaved changes now asks first, and saving asks only once where to put the file.
+Leaving a document with unsaved changes asks first, and saving asks only once where to put the file.
 
-A .csv opens as a real spreadsheet, a .docx breaks onto the pages it was written for, and spreadsheets are drawn in a quieter grid under a row and column ruler that stays put while you scroll.
+A .csv opens as a real spreadsheet, a .docx breaks onto real pages, and more file types are recognised and shown.
 
-Documents that are not saved in UTF-8 come out readable, archives list their entries as files, embedded fonts in a PDF are shown correctly, and svg, ico, jxl, jp2, psd, wmf and emf are recognised as images.
-
-A file we cannot open is no longer offered for upload to our conversion service, so no document leaves your device.
-
-The paid app no longer carries Google's advertising code at all.
+Nothing is uploaded to our conversion service any more, so no document leaves your device.
