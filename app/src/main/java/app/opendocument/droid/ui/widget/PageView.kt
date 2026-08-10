@@ -110,8 +110,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
                 @Suppress("DEPRECATION") // the request based overload needs API 24 semantics
                 override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
-                    // everything this view shows is served from localhost, so a link out of it is
-                    // a link out of the app
+                    // everything shown here is served from localhost, so any link leaves the app
                     return try {
                         getContext().startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
 

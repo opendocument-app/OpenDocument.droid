@@ -15,11 +15,8 @@ import app.opendocument.droid.ui.activity.DocumentFragment
 import java.io.File
 
 /**
- * Owns the two loaders and the background thread they run on, and decides what to try next when one
- * of them succeeds or fails: metadata first, then the core.
- *
- * There is nothing after the core: what it cannot open is reported as unsupported rather than
- * routed somewhere else.
+ * Owns the two loaders and the background thread they run on: metadata first, then the core.
+ * Nothing follows the core - what it cannot open is reported as unsupported.
  */
 class LoaderService : Service(), FileLoader.FileLoaderListener {
 

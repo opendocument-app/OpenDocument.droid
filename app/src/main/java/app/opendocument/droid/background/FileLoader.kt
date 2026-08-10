@@ -123,13 +123,8 @@ abstract class FileLoader(context: Context?, protected val type: LoaderType) {
         companion object {
 
             /**
-             * The type a parcelled [Result] names, or [CORE] for one this version no longer has.
-             *
-             * Saved instance state outlives an app update, so a bundle written before the raw and
-             * online loaders were dropped still names them - and `valueOf` would throw on that,
-             * inside the `getParcelable` that is meant to bring the document back. [CORE] is the
-             * right answer for both: what those two loaded is the core's now, so a reload of the
-             * restored result goes where it would go anyway.
+             * The type a parcelled [Result] names. Saved state outlives an app update and can name
+             * a loader this version does not have, which `valueOf` would throw on.
              */
             fun ofParcelled(name: String?): LoaderType =
                 entries.firstOrNull { it.name == name } ?: CORE

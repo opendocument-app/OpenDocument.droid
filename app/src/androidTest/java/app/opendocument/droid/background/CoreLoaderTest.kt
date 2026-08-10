@@ -113,10 +113,7 @@ class CoreLoaderTest {
         assertTrue(isSupported("text/comma-separated-values"))
     }
 
-    /**
-     * 6.5 puts a decoder behind the name it gave xml in 6.3, which is what let the raw loader go:
-     * svg above and xml here were the two formats it existed for.
-     */
+    /** 6.5 puts a decoder behind the name the core gave xml in 6.3. */
     @Test
     fun xmlIsSupported() {
         assertTrue(isSupported("application/xml"))

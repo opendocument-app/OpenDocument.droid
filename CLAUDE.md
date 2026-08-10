@@ -156,14 +156,9 @@ other way round - `mimeTypesOf` lowercases what it stores.
 
 ### There is nothing after `CoreLoader`
 
-The app used to route around the core twice: `RawLoader` handed svg and xml straight to the
-WebView, and `OnlineLoader` uploaded to use.opendocument.app or a third party viewer what
-neither could open. odrcore 6.5 renders svg and xml itself, and both are gone.
-
-So the only answer to a file the core cannot open is to say so - `onUnsupported`, the reopen
-bar and the contact dialog. Do not add a route around the core back: a format the app should
-open is a format odrcore should learn, and rtf and WordPerfect are on that list. Nothing in
-the app makes an outbound request for a document any more, and no document leaves the device.
+The only answer to a file the core cannot open is to say so - `onUnsupported`, the reopen bar
+and the contact dialog. Do not add a route around it: a format the app should open is a format
+odrcore should learn, and rtf and WordPerfect are on that list. No document leaves the device.
 
 ### `text/plain` from the core is a guess unless a charset came with it
 

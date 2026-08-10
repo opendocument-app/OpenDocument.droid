@@ -84,12 +84,9 @@ class SupportedFormatsTest {
     }
 
     /**
-     * Everything the app offers itself for reaches [CoreLoader], which is the only loader that
-     * renders anything.
-     *
-     * Claiming a mime type nobody loads is the "cannot open" the user gets on a file they picked us
-     * for. The app claims from the core's own table, so this asks that the two ways of reading that
-     * table - `CLAIMED_FILE_TYPES` and `CORE_FILE_TYPES` - cannot come apart.
+     * Everything the app offers itself for reaches [CoreLoader]. Claiming a mime type nothing loads
+     * is the "cannot open" the user gets on a file they picked us for, so `CLAIMED_FILE_TYPES` and
+     * `CORE_FILE_TYPES` must not come apart.
      */
     @Test
     fun everythingTheAppClaimsIsLoadedByTheCore() {
