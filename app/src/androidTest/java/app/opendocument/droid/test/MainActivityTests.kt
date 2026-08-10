@@ -20,6 +20,7 @@ import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
+import androidx.test.espresso.intent.VerificationModes.times
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withClassName
@@ -36,6 +37,7 @@ import app.opendocument.droid.ui.EditActionModeCallback
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.activity.DocumentFragment
 import app.opendocument.droid.ui.activity.MainActivity
+import app.opendocument.droid.ui.widget.DocumentActions
 import app.opendocument.droid.ui.widget.PageView
 import java.io.File
 import java.io.FileOutputStream
@@ -195,6 +197,28 @@ class MainActivityTests {
         Assert.assertNotNull(pageView)
 
         assertBecomesEditable("DOCX", pageView!!, documentFragment)
+    }
+
+    /** A full save needs no diff from the page, and must not ask for one and then save twice. */
+    @Test
+    fun testSaveOpensOneCreateDocumentPicker() {
+        val activity = mainActivityActivityTestRule.activity
+        loadDocument(activity, requireTestFile("test.odt"))
+
+        // cancelled: how many pickers were opened is the whole question, not what came back
+        Intents.intending(hasAction(Intent.ACTION_CREATE_DOCUMENT))
+            .respondWith(Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null))
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            activity.onDocumentAction(DocumentActions.ACTION_SAVE)
+        }
+
+        // a plain wait: this asserts something does not happen, after a web view round trip
+        // that nothing idles on
+        SystemClock.sleep(3000)
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+
+        Intents.intended(hasAction(Intent.ACTION_CREATE_DOCUMENT), times(1))
     }
 
     @Test

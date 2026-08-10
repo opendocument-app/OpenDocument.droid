@@ -319,16 +319,22 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         loadWithType(lastResult.loaderType, lastResult.options)
     }
 
+    /**
+     * Collects whatever the save needs and runs [callback] - exactly once. A full save writes the
+     * file as it is on disk, so it has no diff to ask the page for.
+     */
     fun prepareSave(callback: Runnable, fullSave: Boolean) {
-        if (fullSave) {
+        val pageView = this.pageView
+
+        if (fullSave || pageView == null) {
             state.currentHtmlDiff = null
 
             callback.run()
+
+            return
         }
 
-        // a full save runs the callback twice, so a second requestSave() would open the
-        // create-document picker twice - masked only by odr.generateDiff() existing in edit mode
-        pageView?.requestHtml { htmlDiff ->
+        pageView.requestHtml { htmlDiff ->
             state.currentHtmlDiff = htmlDiff
 
             callback.run()
