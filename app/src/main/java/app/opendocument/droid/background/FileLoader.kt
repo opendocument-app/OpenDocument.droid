@@ -118,7 +118,22 @@ abstract class FileLoader(context: Context?, protected val type: LoaderType) {
 
     enum class LoaderType {
         CORE,
-        METADATA,
+        METADATA;
+
+        companion object {
+
+            /**
+             * The type a parcelled [Result] names, or [CORE] for one this version no longer has.
+             *
+             * Saved instance state outlives an app update, so a bundle written before the raw and
+             * online loaders were dropped still names them - and `valueOf` would throw on that,
+             * inside the `getParcelable` that is meant to bring the document back. [CORE] is the
+             * right answer for both: what those two loaded is the core's now, so a reload of the
+             * restored result goes where it would go anyway.
+             */
+            fun ofParcelled(name: String?): LoaderType =
+                entries.firstOrNull { it.name == name } ?: CORE
+        }
     }
 
     /**
@@ -219,7 +234,7 @@ abstract class FileLoader(context: Context?, protected val type: LoaderType) {
                     override fun createFromParcel(parcel: Parcel): Result {
                         // in the order writeToParcel wrote them
                         val classLoader = Result::class.java.classLoader
-                        val loaderType = LoaderType.valueOf(parcel.readString()!!)
+                        val loaderType = LoaderType.ofParcelled(parcel.readString())
                         val options = parcel.readParcelable<Options>(classLoader)!!
 
                         return Result(loaderType, options).also {
