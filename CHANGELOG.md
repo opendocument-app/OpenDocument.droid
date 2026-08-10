@@ -7,8 +7,10 @@ listed here too.
 Entries go under `Unreleased` as the change lands, in the same pull request. That
 heading is cut to the version when the version is dispatched to the release
 workflow, which refuses a version without a section and makes it the body of the
-GitHub release. It is not the store copy - Play's "What's new" is written in the
-Play Console when the release is promoted.
+GitHub release. It is not the store copy: Play's "What's new" is written for
+users, one file per version code under
+`fastlane/metadata/android/en-US/changelogs/`, and pasted into the Play Console
+when the release is promoted.
 
 ## 4.14.0
 
