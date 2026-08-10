@@ -12,7 +12,7 @@ import java.io.File
 import java.util.LinkedList
 
 /**
- * Base of the four loaders: each one turns a document into something the WebView can display and
+ * Base of the two loaders: each one turns a document into something the WebView can display and
  * reports back on the main thread through a [FileLoaderListener].
  *
  * The lifecycle is construct - [initialize] - [loadAsync]* - [close]. Constructing is deliberately
@@ -118,8 +118,6 @@ abstract class FileLoader(context: Context?, protected val type: LoaderType) {
 
     enum class LoaderType {
         CORE,
-        ONLINE,
-        RAW,
         METADATA,
     }
 
@@ -196,8 +194,8 @@ abstract class FileLoader(context: Context?, protected val type: LoaderType) {
 
         /**
          * Whether the loaded document can be edited and saved again, as the core reports it - see
-         * [CoreLoader.isDocumentEditable]. False for every other loader, which have nothing to
-         * edit.
+         * [CoreLoader.isDocumentEditable]. False for a [MetadataLoader] result, which has nothing
+         * to edit.
          */
         var isEditable: Boolean = false
 

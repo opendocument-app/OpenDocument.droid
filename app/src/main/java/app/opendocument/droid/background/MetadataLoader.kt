@@ -83,7 +83,7 @@ class MetadataLoader(context: Context?) : FileLoader(context, LoaderType.METADAT
 
                 // text/plain without a charset is the core's fallback for bytes nothing else
                 // claims, not an identification - it would hand random binary to the text
-                // renderer, and to the upload offer through its "text/" whitelist
+                // renderer
                 if (mimetype == TEXT_MIME_TYPE && !hasKnownCharset(cachedFile)) {
                     mimetype = null
                 }

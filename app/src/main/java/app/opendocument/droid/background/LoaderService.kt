@@ -15,12 +15,11 @@ import app.opendocument.droid.ui.activity.DocumentFragment
 import java.io.File
 
 /**
- * Owns the four loaders and the background thread they run on, and decides what to try next when
- * one of them succeeds or fails: metadata first, then raw or the core, and finally an upload the
- * user has to agree to.
+ * Owns the two loaders and the background thread they run on, and decides what to try next when one
+ * of them succeeds or fails: metadata first, then the core.
  *
- * [RawLoader] sits outside that chain rather than at the end of it: the core would succeed at an
- * svg, so it has to be asked first.
+ * There is nothing after the core: what it cannot open is reported as unsupported rather than
+ * routed somewhere else.
  */
 class LoaderService : Service(), FileLoader.FileLoaderListener {
 
@@ -34,8 +33,6 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
 
     private lateinit var metadataLoader: MetadataLoader
     private lateinit var coreLoader: CoreLoader
-    private lateinit var rawLoader: RawLoader
-    private lateinit var onlineLoader: OnlineLoader
 
     private var currentListener: LoaderListener? = null
 
@@ -67,18 +64,6 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
 
         coreLoader = CoreLoader(this)
         coreLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager)
-
-        rawLoader = RawLoader(this)
-        rawLoader.initialize(this, mainHandler, backgroundHandler, analyticsManager, crashManager)
-
-        onlineLoader = OnlineLoader(this)
-        onlineLoader.initialize(
-            this,
-            mainHandler,
-            backgroundHandler,
-            analyticsManager,
-            crashManager,
-        )
     }
 
     override fun onBind(intent: Intent?): IBinder = LoaderBinder()
@@ -97,8 +82,6 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
         val loader =
             when (loaderType) {
                 FileLoader.LoaderType.CORE -> coreLoader
-                FileLoader.LoaderType.ONLINE -> onlineLoader
-                FileLoader.LoaderType.RAW -> rawLoader
                 FileLoader.LoaderType.METADATA -> metadataLoader
             }
 
@@ -108,13 +91,6 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
     override fun onSuccess(result: FileLoader.Result) {
         val options = result.options
         if (result.loaderType == FileLoader.LoaderType.METADATA) {
-            // first, not last: the core would render an svg itself and RawLoader would never run
-            if (rawLoader.isSupported(options)) {
-                loadWithType(FileLoader.LoaderType.RAW, options)
-
-                return
-            }
-
             if (!coreLoader.isSupported(options)) {
                 crashManager.log("we do not expect this file to be an ODF: " + options.originalUri)
                 analyticsManager.report(
@@ -160,27 +136,17 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
             )
 
             if (coreLoader.isSupported(options)) {
-                // the core names the format and still said no, so the file is what is wrong -
-                // an upload would only run the same engine again
+                // the core names the format and still said no, so the file is what is wrong,
+                // not the format
                 withListener { it.onError(result, error) }
             } else {
                 withListener { it.onUnsupported(result) }
             }
 
             return
-        } else if (result.loaderType == FileLoader.LoaderType.RAW) {
-            // the core has not had its turn yet. not gated on isSupported, which says nothing
-            // about xml; if it fails too, the branch above reports that properly
-            loadWithType(FileLoader.LoaderType.CORE, options)
-
-            return
-        } else if (result.loaderType != FileLoader.LoaderType.METADATA) {
-            withListener { it.onError(result, error) }
-
-            return
         }
 
-        // MetadataLoader failed, so there's no point in trying to parse or upload the file
+        // MetadataLoader failed, so there's no point in trying to parse the file
 
         analyticsManager.report(
             "load_error",
@@ -192,8 +158,6 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
 
         withListener { it.onError(result, error) }
     }
-
-    fun isOnlineSupported(options: FileLoader.Options): Boolean = onlineLoader.isSupported(options)
 
     fun saveAsync(lastResult: FileLoader.Result, outFile: Uri, htmlDiff: String?) {
         backgroundHandler.post { saveSync(lastResult, outFile, htmlDiff) }
@@ -340,8 +304,6 @@ class LoaderService : Service(), FileLoader.FileLoaderListener {
     override fun onDestroy() {
         metadataLoader.close()
         coreLoader.close()
-        rawLoader.close()
-        onlineLoader.close()
 
         // quitSafely, not quit: close() posts each loader's teardown, which quit() would drop
         backgroundThread.quitSafely()

@@ -2,12 +2,9 @@
 <resources>
     <string name="toast_error_generic">Произошла ошибка. Не удалось открыть файл.</string>
     <string name="toast_error_find_file">Не удалось найти файл. Возможно, его больше не существует?</string>
-    <string name="toast_error_illegal_file">Возможно, этот формат файла не поддерживается.</string>
     <string name="toast_error_out_of_memory">Недостаточно памяти на телефоне! Слишком много изображений, или файл слишком большой.</string>
     <string name="toast_error_password_protected">Документ защищён паролем</string>
     <string name="dialog_loading_title">Загрузка…</string>
-    <string name="dialog_uploading_title">Выгрузка...</string>
-    <string name="dialog_upload_file">Мы не можем открыть этот документ, потому что его формат не поддерживается. Хотите загрузить его на наш сервер временно, чтобы его можно было отобразить? Загруженные файлы предназначены только для вашего личного использования и автоматически удаляются через 24 часа.</string>
     <string name="menu_search">Поиск в документе</string>
     <string name="menu_edit">Редактировать документ</string>
     <string name="menu_remove_ads">Убрать рекламные объявления</string>

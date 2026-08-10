@@ -2,7 +2,6 @@
 <resources>
     <string name="toast_error_generic">문제가 발생해서 파일을 열지 못 했습니다</string>
     <string name="toast_error_find_file">파일이 없어서 더 이상 찾을 수 없습니다. </string>
-    <string name="toast_error_illegal_file">지원하지 않는 파일입니다. </string>
     <string name="toast_error_illegal_file_reopen">지원하지 않는 파일입니다. 다른 앱에서 열어 보세요. </string>
     <string name="toast_hint_unsupported_file">열린 파일이 제대로 보여지지 않습니까? 다른 앱에서 여시겠습니까?</string>
     <string name="toast_error_save_nofile">선택한 파일을 저장할 위치가 없습니다.</string>
@@ -10,10 +9,7 @@
     <string name="toast_error_out_of_memory">메모리가 부족합니다! 사진이 너무 많거나 파일이 너무 큽니다.</string>
     <string name="toast_error_password_protected">문서가 암호로 잠겨 있습니다.</string>
     <string name="dialog_loading_title">로딩 중...</string>
-    <string name="dialog_uploading_title">업로드 중...</string>
     <string name="dialog_generic_loading_message">잠시 기다려 주세요.</string>
-    <string name="dialog_uploading_message_appendix">업로드한 파일은 비공개이고, 24시간 뒤에 자동 삭제됩니다.</string>
-    <string name="dialog_upload_file">이 포맷을 지원하지 않기에 문서를 열 수 없습니다. 임시로 서버에 업로드해서 여시겠습니까? 업로드한 파일은 비공개이고, 24 시간 뒤에 자동으로 삭제합니다.</string>
     <string name="menu_search">문서 검색</string>
     <string name="menu_open_with">다른 앱으로 열기...</string>
     <string name="menu_share">문서 공유</string>

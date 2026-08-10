@@ -5,19 +5,14 @@
     <string name="dialog_broken_file_title">Couldn\'t open this file</string>
     <string name="dialog_broken_file">The file may be damaged, or something went wrong on our side. If you think the file is fine, tell us at support@opendocument.app</string>
     <string name="toast_error_find_file">Couldn\'t find file. Maybe it doesn\'t exist any longer?</string>
-    <string name="toast_error_illegal_file">This doesn\'t seem to be a supported file format.</string>
     <string name="toast_error_illegal_file_reopen">Unsupported file format. Try opening it in another app.</string>
     <string name="toast_hint_unsupported_file">Not happy with how the file is displayed? Open it in another app instead.</string>
     <string name="toast_error_save_nofile">No place to save the file to chosen.</string>
     <string name="toast_error_save_failed">File could not be saved. Please contact support@opendocument.app</string>
-    <string name="toast_error_upload_failed">Upload failed. Try opening the file in another app.</string>
     <string name="toast_error_out_of_memory">Device out of memory! Too many pictures, or file too big.</string>
     <string name="toast_error_password_protected">This document is password-protected</string>
     <string name="dialog_loading_title">Loading…</string>
-    <string name="dialog_uploading_title">Uploading…</string>
     <string name="dialog_generic_loading_message">Please wait, this could take a few minutes.</string>
-    <string name="dialog_uploading_message_appendix">Uploaded files are private and automatically deleted after 24 hours.</string>
-    <string name="dialog_upload_file">We aren\'t able to open this document, because we don\'t support its format. Do you want to upload it to our server temporarily, so we can display it for you anyway? Uploaded files are private and automatically deleted after 24 hours.</string>
     <string name="menu_search">Search in document</string>
     <string name="menu_open_with">Open with...</string>
     <string name="menu_share">Share document</string>
@@ -52,7 +47,6 @@
     <string name="action_tts_next">Next</string>
     <string name="action_tts_previous">Previous</string>
     <string name="action_edit_save">Save</string>
-    <string name="action_upload">Upload</string>
     <string name="action_contact">Contact</string>
     <string name="action_edit_banner">Edit your document below and press Save</string>
     <string name="landing_intro_open_all">By default this app only offers to open document files. If another app like \"Samsung My Files\" won\'t let you open a document here, turn this on to register for all file types.</string>

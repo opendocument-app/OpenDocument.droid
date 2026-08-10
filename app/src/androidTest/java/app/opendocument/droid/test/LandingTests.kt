@@ -380,9 +380,9 @@ class LandingTests {
      *
      * The extension is part of the fixture. `Odr.mimetype` cannot identify these bytes, so
      * `MetadataLoader` falls back to what the provider makes of the filename - and that type is
-     * what decides which failure the user gets. `.bin` gives `application/octet-stream`, which no
-     * loader claims, so the app runs out of things to try. Name it `.odt` and the upload offer
-     * takes over instead, because `OnlineLoader` whitelists the type the name implies.
+     * what decides which failure the user gets. `.bin` gives `application/octet-stream`, which the
+     * core does not claim, so the file is reported as an unsupported format. Name it `.odt` and the
+     * core claims the format and fails on the bytes, which is the broken-file dialog instead.
      */
     private fun seedBrokenDocument() {
         val broken = File(requireTestFile().parentFile, BROKEN_DOCUMENT)

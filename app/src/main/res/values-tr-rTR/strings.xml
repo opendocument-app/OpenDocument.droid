@@ -2,7 +2,6 @@
 <resources>
     <string name="toast_error_generic">Kötü bir şey oldu. Dosya açılamadı.</string>
     <string name="toast_error_find_file">Dosya bulunamadı. Belki artık mevcut değil?</string>
-    <string name="toast_error_illegal_file">Bu, desteklenen bir dosya biçimi gibi görünmüyor.</string>
     <string name="toast_error_illegal_file_reopen">Desteklenmeyen dosya biçimi. Başka bir uygulamada açmayı deneyin.</string>
     <string name="toast_hint_unsupported_file">Dosyanın görüntüsünden memnun değil misiniz? Bunun yerine başka bir uygulamada açın.</string>
     <string name="toast_error_save_nofile">Seçilen dosyayı kaydetmek için yer yok.</string>
@@ -10,10 +9,7 @@
     <string name="toast_error_out_of_memory">Aygıt belleği yetersiz! Çok fazla resim var veya dosya çok büyük.</string>
     <string name="toast_error_password_protected">Bu belge parola korumalı</string>
     <string name="dialog_loading_title">Yükleniyor…</string>
-    <string name="dialog_uploading_title">Karşıya yükleniyor…</string>
     <string name="dialog_generic_loading_message">Lütfen bekleyin, bu birkaç dakika sürebilir.</string>
-    <string name="dialog_uploading_message_appendix">Karşıya yüklenen dosyalar özeldir ve 24 saat sonra otomatik olarak silinir.</string>
-    <string name="dialog_upload_file">Bu belgeyi açamıyoruz, çünkü biçimini desteklemiyoruz. Görüntüleyebilmeniz için geçici olarak sunucumuza yüklemek ister misiniz? Yüklenen dosyalar özeldir ve 24 saat sonra otomatik olarak silinir.</string>
     <string name="menu_search">Belgelerde ara</string>
     <string name="menu_open_with">Birlikte aç...</string>
     <string name="menu_share">Belgeyi Paylaş</string>

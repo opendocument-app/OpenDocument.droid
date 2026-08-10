@@ -269,11 +269,11 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
     }
 
     private fun loadWithType(loaderType: FileLoader.LoaderType, options: FileLoader.Options) {
-        // whatever the last load had to say was about the last document. the offers to reopen or
-        // upload are indefinite, so without this they sit over the document that came after them
+        // whatever the last load had to say was about the last document. the offer to reopen is
+        // indefinite, so without this it sits over the document that came after it
         SnackbarHelper.dismiss(requireActivity())
 
-        showProgress(loaderType == FileLoader.LoaderType.ONLINE)
+        showProgress()
 
         state.beginLoadIdling()
 
@@ -399,22 +399,15 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
                     R.drawable.ic_edit,
                 )
 
-        // read aloud needs the javascript bridge, which PageView keeps off the third party viewers
-        // an ONLINE result loads - offering it there leaves it stuck at "reading" with no paragraph
-        val tts =
-            if (result.loaderType == FileLoader.LoaderType.ONLINE) null
-            else
-                DocumentActions.Action(
-                    DocumentActions.ACTION_TTS,
-                    R.string.menu_tts,
-                    R.drawable.ic_volume_up,
-                )
-
         // the order they unfold in, most wanted first
         val unfolding =
             listOfNotNull(
                 edit,
-                tts,
+                DocumentActions.Action(
+                    DocumentActions.ACTION_TTS,
+                    R.string.menu_tts,
+                    R.drawable.ic_volume_up,
+                ),
                 DocumentActions.Action(
                     DocumentActions.ACTION_SHARE,
                     R.string.menu_share,
@@ -534,10 +527,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         prepareActions(result)
 
         // the escape hatch for a file we show rather than read: an image, an archive listing
-        if (
-            !SupportedDocumentTypes.isDocument(options.fileType) ||
-                result.loaderType == FileLoader.LoaderType.ONLINE
-        ) {
+        if (!SupportedDocumentTypes.isDocument(options.fileType)) {
             offerReopen(activity, options, R.string.toast_hint_unsupported_file, false)
         }
 
@@ -574,10 +564,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
                 offerReopen(activity, options, R.string.toast_error_find_file, true)
             error is OutOfMemoryError ->
                 offerReopen(activity, options, R.string.toast_error_out_of_memory, true)
-            // the network or the server failed, which says nothing about the file
-            result.loaderType == FileLoader.LoaderType.ONLINE ->
-                offerReopen(activity, options, R.string.toast_error_upload_failed, true)
-            // unreadable, or named and still not openable - neither is worth an upload
+            // unreadable, or named and still not openable
             else -> {
                 // nothing is ever going to be shown for this file, so drop back to the
                 // landing screen and let the dialog come up over that
@@ -643,19 +630,8 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         unload()
         dismissProgress()
 
-        if (result.loaderType == FileLoader.LoaderType.CORE) {
-            if (serviceQueue.service?.isOnlineSupported(options) == true) {
-                // the upload offer is the app still having something to try, so the document stays
-                // where it is until the user answers it
-                offerUpload(activity, options)
-            } else {
-                offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true)
-                giveUp(activity)
-            }
-        } else if (result.loaderType == FileLoader.LoaderType.ONLINE) {
-            offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true)
-            giveUp(activity)
-        }
+        offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true)
+        giveUp(activity)
 
         state.endLoadIdling()
     }
@@ -690,49 +666,11 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
      * Nothing left to try with this document, so stop showing it: the landing screen is a better
      * answer than a blank page, and the bar raised just before this says what happened.
      *
-     * Not every failure ends here. The password prompt and the upload offer are both the app still
-     * having something to do with the file, and both need the document on screen to do it.
+     * Not every failure ends here. The password prompt is the app still having something to do with
+     * the file, and it needs the document on screen to do it.
      */
     private fun giveUp(activity: Activity) {
         (activity as MainActivity).closeFailedDocument()
-    }
-
-    private fun offerUpload(activity: Activity, options: FileLoader.Options) {
-        val fileType = options.fileType
-
-        analyticsManager.report(
-            "upload_offer_invasive",
-            AnalyticsConstants.PARAM_CONTENT_TYPE,
-            fileType,
-            AnalyticsConstants.PARAM_CONTENT,
-            options.originalUri,
-        )
-
-        val builder = AlertDialog.Builder(activity)
-        builder.setTitle(R.string.toast_error_illegal_file)
-        builder.setMessage(R.string.dialog_upload_file)
-
-        builder.setPositiveButton(getString(R.string.action_upload)) { dialog, _ ->
-            analyticsManager.report("load_upload", AnalyticsConstants.PARAM_CONTENT_TYPE, fileType)
-
-            loadWithType(FileLoader.LoaderType.ONLINE, options)
-
-            dialog.dismiss()
-        }
-        builder.setNegativeButton(getString(android.R.string.cancel)) { dialog, _ ->
-            analyticsManager.report(
-                "load_upload_cancel",
-                AnalyticsConstants.PARAM_CONTENT_TYPE,
-                fileType,
-            )
-
-            offerReopen(activity, options, R.string.toast_error_illegal_file_reopen, true)
-            giveUp(activity)
-
-            dialog.dismiss()
-        }
-
-        builder.show()
     }
 
     private fun offerContact(activity: Activity) {
@@ -901,7 +839,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         }
     }
 
-    private fun showProgress(isUpload: Boolean) {
+    private fun showProgress() {
         // getParentFragmentManager() throws when the fragment is not attached, where the
         // deprecated getFragmentManager() used to return null
         if (!isAdded) {
@@ -921,7 +859,7 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         }
 
         try {
-            val progressDialog = ProgressDialogFragment(isUpload)
+            val progressDialog = ProgressDialogFragment()
             this.progressDialog = progressDialog
 
             progressDialog.show(fragmentManager, ProgressDialogFragment.FRAGMENT_TAG)

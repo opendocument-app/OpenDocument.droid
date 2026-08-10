@@ -16,9 +16,9 @@ Guidance for Claude Code (claude.ai/code) working in this repository.
 
 A `FileLoader` loads on `LoaderService`'s background thread and reports through
 `FileLoaderListener`; `LoaderServiceQueue` holds requests until the service is bound.
-`MetadataLoader` caches and identifies the file, `RawLoader` takes svg and xml,
-`CoreLoader` renders the rest odrcore handles and publishes the html on a local server, and
-`OnlineLoader` uploads to a web viewer what neither can open.
+`MetadataLoader` caches and identifies the file and `CoreLoader` renders it, publishing the
+html on a local server. Those two are the whole chain - there is no fallback after the core,
+and what it cannot open is reported as an unsupported format.
 
 `MainActivity` owns the service binding and the action modes (find, tts, edit), and swaps
 between `LandingFragment` (recent documents and settings) and `DocumentFragment`, which
@@ -143,27 +143,27 @@ XML cannot read any of that, so the `STRICT_CATCH` alias' three intent-filters a
 *generated* from the same table - a filter matches a mime type exactly, so all 49 spellings
 and 41 extensions are written out. `SupportedFormatsTest` asserts that
 `SupportedDocumentTypes` and the package manager agree, and that every claimed mime type
-reaches a loader, so a format added upstream and forgotten fails CI.
+reaches `CoreLoader`, so a format added upstream and forgotten fails CI.
 
-The tables live in `libodr_jni`, which is why `CoreLoaderTest`,
-`SupportedDocumentTypesTest`, `RawLoaderTest` and `OnlineLoaderTest` are instrumented though
-none opens a file. After caching it is `Odr.mimetype` that decides, canonicalized through
-`canonicalMimeType` so the loaders see one spelling per format.
+The tables live in `libodr_jni`, which is why `CoreLoaderTest` and
+`SupportedDocumentTypesTest` are instrumented though neither opens a file. After caching it
+is `Odr.mimetype` that decides, canonicalized through `canonicalMimeType` so the loaders see
+one spelling per format.
 
 Reading the core's table directly, as `isDocument` does, must not `lowercase()` first: it
 matches exactly and spells some types with capitals (`macroEnabled`). Our own sets are the
 other way round - `mimeTypesOf` lowercases what it stores.
 
-### `RawLoader` is asked before `CoreLoader`, not after it
+### There is nothing after `CoreLoader`
 
-`LoaderService.onSuccess` asks `rawLoader.isSupported` *first*, because the core would
-render an svg itself. `isRenderedByRaw` is the whole list: svg, which the WebView draws
-just as well from the file, and xml, which the core names without a decoder. A `RawLoader`
-failure falls through to the core; what the core cannot open goes to the upload offer
-rather than to the WebView on spec.
+The app used to route around the core twice: `RawLoader` handed svg and xml straight to the
+WebView, and `OnlineLoader` uploaded to use.opendocument.app or a third party viewer what
+neither could open. odrcore 6.5 renders svg and xml itself, and both are gone.
 
-Routing by name is guarded - see `nameSays`. The core identifies by content, so a
-`drawing.svg` holding an odt is an odt.
+So the only answer to a file the core cannot open is to say so - `onUnsupported`, the reopen
+bar and the contact dialog. Do not add a route around the core back: a format the app should
+open is a format odrcore should learn, and rtf and WordPerfect are on that list. Nothing in
+the app makes an outbound request for a document any more, and no document leaves the device.
 
 ### `text/plain` from the core is a guess unless a charset came with it
 
@@ -173,8 +173,8 @@ rendered, on the server thread, long after `CoreLoader` reported success.
 
 So `MetadataLoader` drops a `text/plain` whose file has no charset (`hasKnownCharset`) and
 lets the fallbacks below it decide, and `CoreLoader.host()` refuses the same file up front.
-Both are needed: the first keeps `isRenderedByCore` and `OnlineLoader`'s `"text/"` whitelist
-off a `.bin`, the second stops a success bar appearing over a page that cannot draw.
+Both are needed: the first keeps `isRenderedByCore` off a `.bin`, the second stops a success
+bar appearing over a page that cannot draw.
 `LandingTests.aDocumentThatFailsToOpenComesBackToTheList` holds this.
 
 ### Editability comes from the core, never from a mime type
@@ -200,13 +200,14 @@ recent list rather than releasing on close. Do not add a release next to
 `documentFragment.loadUri()`: that call only queues the load, so the stream is opened long
 after it returns.
 
-### Kotlin, and the three `@Jvm` annotations left
+### Kotlin, and the two `@Jvm` annotations left
 
 The only java is `com/commonsware/android/print`, vendored so it can be diffed against
 upstream. It calls nothing of ours, so no java-to-kotlin call exists and `@JvmStatic`,
 `@JvmField`, `@JvmOverloads` and `@Throws` are not needed for interop.
 
 What remains is for runtimes that reflect over the bytecode: `@JvmField` on `FileLoader`'s
-`CREATOR`s (parcelable needs a static field), `@JvmOverloads` on `ProgressDialogFragment`'s
-constructor (the framework re-creates it with no arguments), and `@JvmStatic` on
-`@BeforeClass` / `@AfterClass` in the instrumented tests.
+`CREATOR`s (parcelable needs a static field) and `@JvmStatic` on `@BeforeClass` /
+`@AfterClass` in the instrumented tests. `ProgressDialogFragment` needed `@JvmOverloads` too
+while it took an argument - a fragment the framework re-creates has to have a no-arg
+constructor.

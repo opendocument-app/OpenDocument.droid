@@ -24,6 +24,18 @@ Play Console when the release is promoted.
 - Opening an archive lists its entries as files instead of one page of gibberish.
 - Embedded fonts in a PDF no longer come out as boxes or as the wrong letters.
 - svg, ico, jxl, jp2, psd, wmf and emf are recognised and shown as images.
+- An .xml file opens as a foldable, highlighted source view, in the encoding its
+  declaration names, instead of as one very long line. An .svg is recognised by
+  what is in it rather than by what it is called. Both used to be handed to the
+  browser view as they were.
+- Plain text reads in a quieter gutter: the line numbers line up with their
+  lines and stay out of a copy of the page.
+- No document opens inset by a thin border any more.
+- A file the app cannot open is no longer offered for upload to our conversion
+  service. Nothing about a document leaves the device any more: the reader shows
+  what the engine renders and says plainly when it cannot. .rtf and WordPerfect
+  were the formats this still reached; they come back when the engine reads them
+  itself.
 
 ## 4.13.0
 

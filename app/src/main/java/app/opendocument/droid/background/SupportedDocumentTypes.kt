@@ -29,12 +29,6 @@ object SupportedDocumentTypes {
     }
 
     /**
-     * The core would render this into an `<img>`, but [RawLoader] is asked first and hands the
-     * WebView the file itself, which draws it just as well.
-     */
-    private const val SVG_MIME_TYPE = "image/svg+xml"
-
-    /**
      * What the app offers itself for: the core's document formats plus the three non-document ones
      * worth opening a viewer for. Much narrower than [CORE_FILE_TYPES] - see the class doc.
      */
@@ -53,9 +47,6 @@ object SupportedDocumentTypes {
      * does not name as well. The manifest declares `image` likewise.
      */
     private val CLAIMED_MIME_PREFIXES = listOf("image/")
-
-    /** Unknown to the core. Never claimed - only a catch-all or a share gets one here. */
-    private val XML_MIME_TYPES = setOf("application/xml", "text/xml")
 
     /** Every mime type spelling odrcore accepts for a format [CoreLoader] renders. */
     private val CORE_MIME_TYPES: Set<String> by lazy { mimeTypesOf(CORE_FILE_TYPES) }
@@ -77,7 +68,7 @@ object SupportedDocumentTypes {
     /**
      * odrcore's canonical spelling of [mimeType], so one spelling per format flows downstream - the
      * app claims every spelling in the core's table, `application/csv` and `multipart/x-zip`
-     * included. Anything the core does not name - svg, xml - passes through untouched.
+     * included. Anything the core does not name passes through untouched.
      */
     fun canonicalMimeType(mimeType: String?): String? {
         if (mimeType == null) {
@@ -95,38 +86,6 @@ object SupportedDocumentTypes {
     /** Whether [CoreLoader] is expected to render this - see [CORE_FILE_TYPES]. */
     fun isRenderedByCore(mimeType: String?): Boolean =
         mimeType != null && mimeType.lowercase() in CORE_MIME_TYPES
-
-    /**
-     * Whether [RawLoader] takes this instead of [CoreLoader], which is asked after it.
-     *
-     * [extension] because an xml *is* text to the detection: `Odr.mimetype` says `text/plain` and
-     * the provider's `application/xml` never arrives. See [nameSays].
-     */
-    fun isRenderedByRaw(mimeType: String?, extension: String? = null): Boolean =
-        isSvg(mimeType, extension) || isXml(mimeType, extension)
-
-    /** Svg, which the WebView draws by itself - see [SVG_MIME_TYPE]. */
-    fun isSvg(mimeType: String?, extension: String? = null): Boolean =
-        mimeType?.lowercase() == SVG_MIME_TYPE || nameSays(mimeType, extension, "svg")
-
-    /** Xml, which odrcore names but has no decoder for, and which the WebView shows as it is. */
-    fun isXml(mimeType: String?, extension: String? = null): Boolean =
-        mimeType?.lowercase() in XML_MIME_TYPES || nameSays(mimeType, extension, "xml")
-
-    /**
-     * Whether the file is called `.expected` *and* the detection left room for the name to know
-     * better - plain text, or nothing recognized. The bytes win otherwise: a `drawing.svg` holding
-     * an odt is an odt.
-     */
-    private fun nameSays(mimeType: String?, extension: String?, expected: String): Boolean {
-        if (extension?.lowercase() != expected) {
-            return false
-        }
-
-        val fileType = mimeType?.let { Odr.fileTypeByMimetype(it) } ?: return true
-
-        return fileType == FileType.UNKNOWN || fileType == FileType.TEXT_FILE
-    }
 
     /**
      * Whether the core files this as a document rather than text, an image, an archive, a font or

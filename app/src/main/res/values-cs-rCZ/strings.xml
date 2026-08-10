@@ -2,12 +2,9 @@
 <resources>
     <string name="toast_error_generic">Něco se pokazilo. Nelze otevřít soubor.</string>
     <string name="toast_error_find_file">Soubor nebyl nalezen. Možná už neexistuje.</string>
-    <string name="toast_error_illegal_file">Pravděpodobně se nejedná o podporovaný formát souboru.</string>
     <string name="toast_error_out_of_memory">Nedostatek paměti v telefonu! Soubor je příliš velký, nebo obsahuje příliš mnoho obrázků.</string>
     <string name="toast_error_password_protected">Dokument je chráněn heslem</string>
     <string name="dialog_loading_title">Probíhá načítání…</string>
-    <string name="dialog_uploading_title">Probíhá odesílání…</string>
-    <string name="dialog_upload_file">Nelze otevřít soubor, protože nepodporujeme jeho formát. Chcete jej zobrazit tak, že jej dočasně nahrajete na náš server?</string>
     <string name="menu_search">Vyhledat</string>
     <string name="menu_edit">Upravit dokument</string>
     <string name="menu_cloud_print">Google Cloud Print</string>
