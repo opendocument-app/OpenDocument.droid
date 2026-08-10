@@ -47,6 +47,9 @@ class EditActionModeCallback(
             return false
         }
 
+        // OpenDocument.ios' name for this; menu_save is the button on the document itself
+        activity.analyticsManager.report("menu_edit_save")
+
         documentFragment.prepareSave({ activity.requestSave() }, false)
 
         return true
