@@ -20,6 +20,7 @@ import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
+import androidx.test.espresso.intent.VerificationModes.times
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withClassName
@@ -36,6 +37,7 @@ import app.opendocument.droid.ui.EditActionModeCallback
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.activity.DocumentFragment
 import app.opendocument.droid.ui.activity.MainActivity
+import app.opendocument.droid.ui.widget.DocumentActions
 import app.opendocument.droid.ui.widget.PageView
 import java.io.File
 import java.io.FileOutputStream
@@ -195,6 +197,33 @@ class MainActivityTests {
         Assert.assertNotNull(pageView)
 
         assertBecomesEditable("DOCX", pageView!!, documentFragment)
+    }
+
+    /**
+     * A full save copies the file on disk, so it has no use for a diff. It used to ask the page for
+     * one anyway and save again when the answer arrived, which put a second create-document picker
+     * over the first - harmless only while `odr.generateDiff()` was absent outside edit mode, which
+     * it no longer is.
+     */
+    @Test
+    fun testSaveOpensOneCreateDocumentPicker() {
+        val activity = mainActivityActivityTestRule.activity
+        loadDocument(activity, requireTestFile("test.odt"))
+
+        // cancelled: how many pickers were opened is the whole question, not what came back
+        Intents.intending(hasAction(Intent.ACTION_CREATE_DOCUMENT))
+            .respondWith(Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null))
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            activity.onDocumentAction(DocumentActions.ACTION_SAVE)
+        }
+
+        // a plain wait, because this asserts that something does not happen: the second picker
+        // only arrived once the web view had answered, which is a round trip nothing idles on
+        SystemClock.sleep(3000)
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+
+        Intents.intended(hasAction(Intent.ACTION_CREATE_DOCUMENT), times(1))
     }
 
     @Test

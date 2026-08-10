@@ -319,16 +319,29 @@ class DocumentFragment : Fragment(), LoaderService.LoaderListener {
         loadWithType(lastResult.loaderType, lastResult.options)
     }
 
+    /**
+     * Collects whatever the save needs and then runs [callback] - exactly once, whichever way it
+     * got there.
+     *
+     * A full save writes the file as it is on disk, so there is no diff to ask the page for. It
+     * used to ask anyway and run [callback] a second time when the answer came back. That was
+     * harmless only while `odr.generateDiff()` existed in edit mode alone: odrcore writes its
+     * script into every document now, so the call succeeds while merely reading one, and the second
+     * run opened a second create-document picker and turned a plain copy into a retranslation of an
+     * empty diff - which fails outright for a document the core cannot write back.
+     */
     fun prepareSave(callback: Runnable, fullSave: Boolean) {
-        if (fullSave) {
+        val pageView = this.pageView
+
+        if (fullSave || pageView == null) {
             state.currentHtmlDiff = null
 
             callback.run()
+
+            return
         }
 
-        // a full save runs the callback twice, so a second requestSave() would open the
-        // create-document picker twice - masked only by odr.generateDiff() existing in edit mode
-        pageView?.requestHtml { htmlDiff ->
+        pageView.requestHtml { htmlDiff ->
             state.currentHtmlDiff = htmlDiff
 
             callback.run()
