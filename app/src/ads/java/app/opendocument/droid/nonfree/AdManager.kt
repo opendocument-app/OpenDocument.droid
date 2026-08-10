@@ -7,6 +7,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import app.opendocument.droid.R
+import app.opendocument.droid.background.AppPreferences
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
@@ -39,7 +40,15 @@ class AdManager {
     private var onConsentSettled: (() -> Unit)? = null
     private var onPurchaseRequested: (() -> Unit)? = null
 
-    private var houseAdIndex = 0
+    /**
+     * Which rotation of the house ad comes next. On disk, because this object is rebuilt on every
+     * cold start - as OpenDocument.ios keeps it in its own defaults.
+     */
+    private var houseAdIndex: Int
+        get() = AppPreferences.of(activity).getInt(PREF_HOUSE_AD_INDEX, 0)
+        set(value) {
+            AppPreferences.of(activity).edit().putInt(PREF_HOUSE_AD_INDEX, value).apply()
+        }
 
     fun initialize(
         activity: Activity,
@@ -321,10 +330,11 @@ class AdManager {
 
         val houseAd = activity.layoutInflater.inflate(R.layout.house_ad, adContainer, false)
 
-        val variant = HOUSE_ADS[houseAdIndex % HOUSE_ADS.size]
-        houseAdIndex++
+        val index = houseAdIndex % HOUSE_ADS.size
+        val variant = HOUSE_ADS[index]
+        houseAdIndex = (index + 1) % HOUSE_ADS.size
 
-        crashManager.log("house ad " + houseAdIndex + " at " + adWidth + "dp")
+        crashManager.log("house ad " + index + " at " + adWidth + "dp")
 
         analyticsManager.report("house_ad_shown")
 
@@ -405,6 +415,8 @@ class AdManager {
         const val AD_UNIT_ID = "ca-app-pub-8161473686436957/5931994762"
 
         const val TEST_DEVICE_ID = "46C05048B04145D0724C1ADA7FC17619"
+
+        const val PREF_HOUSE_AD_INDEX = "house_ad_index"
 
         // the slot widths, in dp, at which the house ad loses a part
         const val WIDE_WIDTH = 700
