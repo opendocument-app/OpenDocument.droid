@@ -10,7 +10,6 @@ import app.opendocument.core.Odr
 import app.opendocument.droid.background.CatchAllSetting
 import app.opendocument.droid.background.CoreLoader
 import app.opendocument.droid.background.FileLoader
-import app.opendocument.droid.background.RawLoader
 import app.opendocument.droid.background.SupportedDocumentTypes
 import org.junit.Assert
 import org.junit.BeforeClass
@@ -85,25 +84,22 @@ class SupportedFormatsTest {
     }
 
     /**
-     * Everything the app offers itself for reaches a loader that takes it.
-     *
-     * Claiming a mime type nobody loads is the "cannot open" the user gets on a file they picked us
-     * for. [CoreLoader] takes all of it that the core names; what is left for [RawLoader] is svg
-     * and xml, which [LoaderService] therefore routes before the core.
+     * Everything the app offers itself for reaches [CoreLoader]. Claiming a mime type nothing loads
+     * is the "cannot open" the user gets on a file they picked us for, so `CLAIMED_FILE_TYPES` and
+     * `CORE_FILE_TYPES` must not come apart.
      */
     @Test
-    fun everythingTheAppClaimsIsLoadedBySomebody() {
+    fun everythingTheAppClaimsIsLoadedByTheCore() {
         val coreLoader = CoreLoader(null)
-        val rawLoader = RawLoader(null)
 
         for (mimeType in SupportedDocumentTypes.MIME_TYPES) {
             val options = FileLoader.Options()
             options.fileType = SupportedDocumentTypes.canonicalMimeType(mimeType)
 
             Assert.assertTrue(
-                "$mimeType is claimed by the app, but neither loader takes it" +
+                "$mimeType is claimed by the app, but the core loader does not take it" +
                     " (as ${options.fileType})",
-                coreLoader.isSupported(options) || rawLoader.isSupported(options),
+                coreLoader.isSupported(options),
             )
         }
     }

@@ -811,7 +811,7 @@ class MainActivity : AppCompatActivity() {
      * altogether. The price is that other unnamed binaries stay listed too, which is the harmless
      * half of the trade.
      *
-     * Images are not here, though [RawLoader] shows them: this is a document reader's file picker,
+     * Images are not here, though [CoreLoader] shows them: this is a document reader's file picker,
      * and an image reaches it by being shared or opened from a gallery.
      */
     private fun pickableMimeTypes(): Array<String> =

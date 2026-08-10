@@ -99,15 +99,13 @@ class CoreLoaderTest {
         // rendered when handed one, never claimed in the share sheet
         assertTrue(isSupported("audio/mpeg"))
         assertTrue(isSupported("video/mp4"))
-        // the image types 6.3 added, svg among them - [RawLoader] takes that one anyway
+        // the image types 6.3 added
         assertTrue(isSupported("image/svg+xml"))
         assertTrue(isSupported("image/jxl"))
         assertTrue(isSupported("image/vnd.adobe.photoshop"))
     }
 
-    /**
-     * 6.4 opens a csv as a spreadsheet, so the table is the core's to draw now, not RawLoader's.
-     */
+    /** 6.4 opens a csv as a spreadsheet, so the table is the core's to draw. */
     @Test
     fun csvIsSupported() {
         assertTrue(isSupported("text/csv"))
@@ -115,11 +113,11 @@ class CoreLoaderTest {
         assertTrue(isSupported("text/comma-separated-values"))
     }
 
-    /** Named by the core since 6.3, but with no decoder behind the name - still [RawLoader]'s. */
+    /** 6.5 puts a decoder behind the name the core gave xml in 6.3. */
     @Test
-    fun whatTheCoreNamesButCannotTranslateIsNotClaimed() {
-        assertFalse(isSupported("application/xml"))
-        assertFalse(isSupported("text/xml"))
+    fun xmlIsSupported() {
+        assertTrue(isSupported("application/xml"))
+        assertTrue(isSupported("text/xml"))
     }
 
     @Test

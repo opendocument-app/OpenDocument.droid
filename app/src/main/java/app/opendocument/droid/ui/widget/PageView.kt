@@ -19,7 +19,6 @@ import androidx.annotation.Keep
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import app.opendocument.droid.background.AndroidFileCache
-import app.opendocument.droid.background.OnlineLoader
 import app.opendocument.droid.background.StreamUtil
 import app.opendocument.droid.nonfree.CrashManager
 import app.opendocument.droid.ui.ParagraphListener
@@ -111,14 +110,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
                 @Suppress("DEPRECATION") // the request based overload needs API 24 semantics
                 override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
-                    if (
-                        url.startsWith(OnlineLoader.GOOGLE_VIEWER_URL) ||
-                            url.startsWith(OnlineLoader.MICROSOFT_VIEWER_URL) ||
-                            url.contains("officeapps.live.com/")
-                    ) {
-                        return false
-                    }
-
+                    // everything shown here is served from localhost, so any link leaves the app
                     return try {
                         getContext().startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
 

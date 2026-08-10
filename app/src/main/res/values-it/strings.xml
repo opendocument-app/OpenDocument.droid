@@ -2,12 +2,9 @@
 <resources>
     <string name="toast_error_generic">Si è verificato un errore. Impossibile aprire il file.</string>
     <string name="toast_error_find_file">Impossibile trovare il file. Forse non esiste più?</string>
-    <string name="toast_error_illegal_file">Questo non sembra essere un formato di file supportato.</string>
     <string name="toast_error_out_of_memory">Memoria del telefono esaurita! Troppe immagini o file troppo grandi.</string>
     <string name="toast_error_password_protected">Il documento è protetto da password.</string>
     <string name="dialog_loading_title">Caricamento in corso…</string>
-    <string name="dialog_uploading_title">Caricamento...</string>
-    <string name="dialog_upload_file">Non siamo in grado di aprire questo documento, perché non supportiamo il suo formato. Vuoi caricarlo temporaneamente sul nostro server, in modo da poter visualizzarlo comunque? I file caricati sono privati e cancellati automaticamente dopo 24 ore.</string>
     <string name="menu_search">Cerca nel documento</string>
     <string name="menu_edit">Modifica documento</string>
     <string name="menu_remove_ads">Rimuovi pubblicità</string>

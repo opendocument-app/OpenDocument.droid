@@ -2,16 +2,12 @@
 <resources>
     <string name="toast_error_generic">何か問題が発生しました。ファイルを開くことができませんでした。</string>
     <string name="toast_error_find_file">ファイルが見つかりません。もう存在しないかもしれません?</string>
-    <string name="toast_error_illegal_file">これはサポートされているファイル形式ではないようです。</string>
     <string name="toast_error_illegal_file_reopen">サポートしないファイル形式です。別のアプリで開いてみてください。</string>
     <string name="toast_hint_unsupported_file">ファイルの表示方法に満足できませんか？ 代わりに別のアプリで開きます。</string>
     <string name="toast_error_out_of_memory">デバイスのメモリ不足です! 写真が多すぎるかファイルが大きすぎます。</string>
     <string name="toast_error_password_protected">ドキュメントがパスワードで保護されています</string>
     <string name="dialog_loading_title">読み込んでいます…</string>
-    <string name="dialog_uploading_title">アップロードしています…</string>
     <string name="dialog_generic_loading_message">しばらくお待ちください。数分かかることがあります。</string>
-    <string name="dialog_uploading_message_appendix">アップロードされたファイルは保護され、24 時間後に自動的に削除されます。</string>
-    <string name="dialog_upload_file">その形式をサポートしていないため、このドキュメントを開くことができません。一時的に私たちのサーバーにアップロードして、とにかくそれを表示できるようにしますか? アップロードされたファイルはプライベートで、24 時間後に自動的に削除されます。</string>
     <string name="menu_search">ドキュメントの検索</string>
     <string name="menu_edit">ドキュメントを編集</string>
     <string name="menu_remove_ads">広告を削除する</string>

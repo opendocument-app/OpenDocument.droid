@@ -24,6 +24,10 @@ Play Console when the release is promoted.
 - Opening an archive lists its entries as files instead of one page of gibberish.
 - Embedded fonts in a PDF no longer come out as boxes or as the wrong letters.
 - svg, ico, jxl, jp2, psd, wmf and emf are recognised and shown as images.
+- An .xml file opens properly laid out instead of as one long line.
+- Smaller fixes to plain text and to the margin documents open with.
+- A file the app cannot open is no longer offered for upload to our conversion
+  service, so no document leaves your device. This affected .rtf and WordPerfect.
 
 ## 4.13.0
 

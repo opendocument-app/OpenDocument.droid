@@ -163,15 +163,14 @@ class MainActivityTests {
     }
 
     @Test
-    fun testCorruptODTIsNotOfferedForUpload() {
+    fun testCorruptODTOffersContact() {
         val activity = mainActivityActivityTestRule.activity
 
-        // the core claims the format and fails on the file, which is final - an upload runs the
-        // same core. not loadDocument(), which waits for a fragment this path takes back down
+        // the core claims the format and fails on the file, which is final. not loadDocument(),
+        // which waits for a fragment this path takes back down
         val testFileUri = uriOf(requireTestFile("corrupt.odt"))
         InstrumentationRegistry.getInstrumentation().runOnMainSync { activity.loadUri(testFileUri) }
 
-        onView(withText(R.string.action_upload)).check(doesNotExist())
         onView(withText(R.string.dialog_broken_file)).check(matches(isDisplayed()))
         onView(withText(R.string.action_contact)).check(matches(isDisplayed()))
     }
