@@ -11,6 +11,18 @@ This is an Android frontend for our C++ OpenDocument.core library. Feel free to 
 
 More information at https://opendocument.app/ and in the app itself.
 
+## Installing
+
+F-Droid and Play are the two stores. Sideloaders take `app-foss-release.apk` from the
+[latest release](https://github.com/opendocument-app/OpenDocument.droid/releases/latest),
+which is what Obtainium tracks - point it at this repository and it needs no filter, one
+apk is all a release carries.
+
+That apk is `at.tomtasche.reader.foss`, and up to 4.13.0 it was `at.tomtasche.reader.pro`.
+A different application id is a different app, so the old one neither updates nor complains:
+install the new one, uninstall the old one. Nothing carries over and nothing is worth
+carrying - a recent documents list whose uri permissions die with the old package anyway.
+
 ## Translations
 Please help to translate on the https://crowdin.com/project/opendocument
 
