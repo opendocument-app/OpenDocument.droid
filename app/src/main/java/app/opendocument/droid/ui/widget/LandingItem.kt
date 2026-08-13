@@ -61,6 +61,7 @@ sealed class LandingItem {
     companion object {
         const val ACTION_REMOVE_ADS: Int = 1
         const val ACTION_PRIVACY_OPTIONS: Int = 2
+        const val ACTION_SPONSOR: Int = 3
 
         const val SETTING_CATCH_ALL: Int = 1
         const val SETTING_PAGINATION: Int = 2

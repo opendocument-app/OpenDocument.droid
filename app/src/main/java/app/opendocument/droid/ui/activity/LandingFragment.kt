@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import app.opendocument.droid.R
 import app.opendocument.droid.background.RecentDocumentList
 import app.opendocument.droid.nonfree.AnalyticsConstants
+import app.opendocument.droid.nonfree.Features
 import app.opendocument.droid.ui.SnackbarHelper
 import app.opendocument.droid.ui.widget.LandingAdapter
 import app.opendocument.droid.ui.widget.LandingItem
@@ -186,6 +187,18 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
                 )
             }
 
+            // the way to give something back where there is no pro left to sell. not offered in
+            // lite, whose one money row should stay the purchase that also drops the ads
+            if (!Features.withAds) {
+                items.add(
+                    LandingItem.Action(
+                        LandingItem.ACTION_SPONSOR,
+                        R.string.landing_sponsor,
+                        R.drawable.ic_favorite,
+                    )
+                )
+            }
+
             // the way back into the consent form, which the ump sdk requires an app to offer for
             // as long as it holds a decision that can be withdrawn. asked the same way as the ad
             // removal, and for the same reason: only the activity has been told
@@ -306,6 +319,12 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
                 mainActivity.analyticsManager.report("settings_remove_ads")
 
                 mainActivity.buyAdRemoval()
+            }
+
+            LandingItem.ACTION_SPONSOR -> {
+                mainActivity.analyticsManager.report("settings_sponsor")
+
+                mainActivity.openSponsorPage()
             }
 
             LandingItem.ACTION_PRIVACY_OPTIONS -> {
