@@ -12,7 +12,7 @@ users, one file per version code under
 `fastlane/metadata/android/en-US/changelogs/`, and pasted into the Play Console
 when the release is promoted.
 
-## Unreleased
+## 4.15.0
 
 - PDFs look much closer to the original: text sits at the right place and size,
   colours match, pages are trimmed the way a PDF viewer trims them, and more of
