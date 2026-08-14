@@ -13,6 +13,7 @@ import android.util.Base64InputStream
 import android.webkit.JavascriptInterface
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.annotation.Keep
@@ -101,10 +102,32 @@ constructor(context: Context, attributeSet: AttributeSet?) :
                         return
                     }
 
-                    crashManager.log(
-                        RuntimeException(
-                            "loading ${request.url} failed: ${error.errorCode} ${error.description}"
-                        )
+                    failPage(
+                        request.url,
+                        "loading ${request.url} failed: ${error.errorCode} ${error.description}",
+                    )
+                }
+
+                /**
+                 * An error status is the only shape a rendering failure has here: the core
+                 * translates a page on the server thread, long after `CoreLoader` reported success.
+                 * [onReceivedError] never sees it - the server did answer.
+                 */
+                override fun onReceivedHttpError(
+                    view: WebView,
+                    request: WebResourceRequest,
+                    errorResponse: WebResourceResponse,
+                ) {
+                    super.onReceivedHttpError(view, request, errorResponse)
+
+                    if (!request.isForMainFrame) {
+                        return
+                    }
+
+                    failPage(
+                        request.url,
+                        "serving ${request.url} failed: " +
+                            "${errorResponse.statusCode} ${errorResponse.reasonPhrase}",
                     )
                 }
 
@@ -178,6 +201,19 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         buggyWebViewHandler.removeCallbacksAndMessages(null)
 
         super.destroy()
+    }
+
+    /** Reports a page that will never appear. [description] is all there is of the cause. */
+    private fun failPage(url: Uri, description: String) {
+        crashManager.log(RuntimeException(description))
+
+        // only the document is the app's to give up on. a link shouldOverrideUrlLoading could not
+        // hand to another app is left to the webview, and fails here as a main frame load too
+        if (!isOwnContent(url.toString())) {
+            return
+        }
+
+        documentFragment.onPageFailed()
     }
 
     /** Whether [url] is a document we produced: a cached file, or the core's own http server. */

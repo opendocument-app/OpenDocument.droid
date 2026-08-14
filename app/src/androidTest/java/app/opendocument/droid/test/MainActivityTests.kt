@@ -175,6 +175,56 @@ class MainActivityTests {
         onView(withText(R.string.action_contact)).check(matches(isDisplayed()))
     }
 
+    /** A page the server answers with an error is not a document, whatever the load reported. */
+    @Test
+    fun aPageTheServerCannotServeOffersContact() {
+        val activity = mainActivityActivityTestRule.activity
+        val documentFragment = loadDocument(activity, requireTestFile("test.odt"))
+
+        val partUri = documentFragment.lastDocument?.partUris?.firstOrNull()
+        Assert.assertNotNull("no page was published", partUri)
+
+        val pageView = documentFragment.pageView
+        Assert.assertNotNull(pageView)
+
+        // a path the server has nothing under, which errors the same way a page it cannot render
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            pageView!!.loadUrl("$partUri.missing")
+        }
+
+        // the webview reports the error long after loadUrl returns, and nothing idles on it
+        Assert.assertTrue(
+            "the page that failed was not given up on",
+            waitFor(10000) { documentFragment.lastDocument == null },
+        )
+
+        onView(withText(R.string.dialog_broken_file)).check(matches(isDisplayed()))
+        onView(withText(R.string.action_contact)).check(matches(isDisplayed()))
+    }
+
+    /** A link that fails is not the document failing, and must not be reported as one. */
+    @Test
+    fun aLinkThatFailsLeavesTheDocumentOpen() {
+        val activity = mainActivityActivityTestRule.activity
+        val documentFragment = loadDocument(activity, requireTestFile("test.odt"))
+
+        val pageView = documentFragment.pageView
+        Assert.assertNotNull(pageView)
+
+        // what the webview is left to try when shouldOverrideUrlLoading finds no app for a link
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            pageView!!.loadUrl("nosuchscheme://example")
+        }
+
+        // a plain wait: this asserts something does not happen, after a webview round trip
+        // that nothing idles on
+        SystemClock.sleep(3000)
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+
+        Assert.assertNotNull("the document was given up on", documentFragment.lastDocument)
+        onView(withText(R.string.dialog_broken_file)).check(doesNotExist())
+    }
+
     @Test
     fun testODTEditMode() {
         val activity = mainActivityActivityTestRule.activity
@@ -328,6 +378,17 @@ class MainActivityTests {
             waitForLastResult(fragment!!, 10000),
         )
         return fragment
+    }
+
+    private fun waitFor(timeoutMs: Long, condition: () -> Boolean): Boolean {
+        val startMs = SystemClock.elapsedRealtime()
+        do {
+            if (condition()) {
+                return true
+            }
+            SystemClock.sleep(100)
+        } while (SystemClock.elapsedRealtime() - startMs < timeoutMs)
+        return false
     }
 
     private fun waitForDocumentFragment(
