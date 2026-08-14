@@ -670,6 +670,15 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /** What [buyAdRemoval] is for a build with no ad removal to sell. */
+    fun openSponsorPage() {
+        analyticsManager.report(AnalyticsConstants.EVENT_ADD_TO_CART)
+
+        startActivity(
+            Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/sponsors/opendocument-app"))
+        )
+    }
+
     private fun leaveFullscreen() {
         if (!fullscreen) {
             return
