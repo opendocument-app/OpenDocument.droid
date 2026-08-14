@@ -12,6 +12,23 @@ users, one file per version code under
 `fastlane/metadata/android/en-US/changelogs/`, and pasted into the Play Console
 when the release is promoted.
 
+## Unreleased
+
+- PDFs look much closer to the original: text sits at the right place and size,
+  colours match, pages are trimmed the way a PDF viewer trims them, and more of
+  their images come through. Some PDFs that opened blank now open properly.
+- Text is shown in the font the document asks for. Slides whose writing was
+  there but invisible now show it, and spreadsheet cells are drawn in their own
+  font rather than the sheet's.
+- Documents built on a template keep their layout: a letter's address and date
+  land in their boxes, and the page keeps the margins its letterhead needs.
+- Images sit where the document puts them, centred if the file centres them, and
+  stay inside their frames instead of covering the page.
+- Blank lines survive being copied out of a document.
+- Large or unusually built documents open instead of crashing the app, and take
+  less memory while they do. A single unreadable character no longer costs you
+  the whole document.
+
 ## 4.14.0
 
 - The app opens on the documents you had open recently, instead of a welcome
