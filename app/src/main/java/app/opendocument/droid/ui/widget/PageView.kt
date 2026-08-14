@@ -103,7 +103,8 @@ constructor(context: Context, attributeSet: AttributeSet?) :
                     }
 
                     failPage(
-                        "loading ${request.url} failed: ${error.errorCode} ${error.description}"
+                        request.url,
+                        "loading ${request.url} failed: ${error.errorCode} ${error.description}",
                     )
                 }
 
@@ -124,8 +125,9 @@ constructor(context: Context, attributeSet: AttributeSet?) :
                     }
 
                     failPage(
+                        request.url,
                         "serving ${request.url} failed: " +
-                            "${errorResponse.statusCode} ${errorResponse.reasonPhrase}"
+                            "${errorResponse.statusCode} ${errorResponse.reasonPhrase}",
                     )
                 }
 
@@ -202,8 +204,14 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     }
 
     /** Reports a page that will never appear. [description] is all there is of the cause. */
-    private fun failPage(description: String) {
+    private fun failPage(url: Uri, description: String) {
         crashManager.log(RuntimeException(description))
+
+        // only the document is the app's to give up on. a link shouldOverrideUrlLoading could not
+        // hand to another app is left to the webview, and fails here as a main frame load too
+        if (!isOwnContent(url.toString())) {
+            return
+        }
 
         documentFragment.onPageFailed()
     }
