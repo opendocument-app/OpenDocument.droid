@@ -627,6 +627,41 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         state.endLoadIdling()
     }
 
+    /**
+     * The page [PageView] was given cannot be shown after all, so this ends where a document that
+     * would not open ends: back on the landing screen, offering to tell us about it.
+     *
+     * It arrives after [onLoadSuccess] rather than instead of it, which is why it undoes it instead
+     * of going through [isActivityReadyForOutcome].
+     */
+    fun onPageFailed() {
+        // already given up on, or a second view of the same failure
+        if (state.lastDocument == null) {
+            return
+        }
+
+        if (activity == null || isStateSaved) {
+            replayOnStart = { onPageFailed() }
+
+            return
+        }
+
+        val activity = requireActivity()
+
+        analyticsManager.report(
+            "page_failed",
+            AnalyticsConstants.PARAM_CONTENT_TYPE,
+            state.lastFile?.mimeType,
+        )
+
+        unload()
+        dismissProgress()
+
+        giveUp(activity)
+
+        offerContact(activity)
+    }
+
     override fun onEncrypted(request: DocumentRequest, file: IdentifiedFile) {
         if (!isActivityReadyForOutcome(request, file) { onEncrypted(request, file) }) {
             return
