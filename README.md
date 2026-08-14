@@ -176,3 +176,14 @@ workflow builds ever leaves the machine. Any build can be given a real one anywa
 Version codes up to 204 were counted by hand in `AndroidManifest.xml`, which is why the
 first derived one is a five digit jump. That is one way: the Play Store only ever accepts
 a code above the last one it saw.
+
+## License
+
+Mozilla Public License 2.0, in `LICENSE`, replacing the GPL-3.0-or-later this carried
+before. MPL is copyleft per *file*: a changed file goes back under MPL, and a larger work
+that merely links this can stay under whatever license it likes.
+
+The notice sits in `LICENSE` rather than atop every source file, which Exhibit A of the
+license itself allows. Two things keep their own headers because they came from elsewhere
+under Apache-2.0 and stay that way: `com/commonsware/android/print` and
+`FindActionModeCallback` with the two `webview_find` resources.
