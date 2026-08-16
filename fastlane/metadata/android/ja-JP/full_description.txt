@@ -1,23 +1,37 @@
-<h1><b>OpenDocument リーダーを使用して、外出先で OpenOffice や LibreOffice を使用して作成されたドキュメントを表示および変更しましょう! 📄🚶</b></h1>
+<h2><b>LibreOffice や OpenOffice で作成した文書を、外出先でも閲覧・編集できるドキュメントリーダー＆ドキュメントエディター！</b></h2>📄🚶
 
-OpenDocument リーダーは、どこにいても ODF* (LibreOffice または OpenOffice を使用して作成された OpenDocument 形式) ドキュメントを読むことができます。 学校へ行く途中のバスでも? 大丈夫です! OpenDocument リーダーで、非常に簡単な方法でドキュメントを読んだり、検索することができます。 あなたのドキュメントに修正すべき最後のミスが 1 つだけ残っていますか? ドキュメントの修正もサポートしました! すばやく、簡単に、完全に統合されています。
+ファイルリーダー＆ドキュメントエディターを使えば、LibreOffice や OpenOffice で作成した ODF (Open Document Format) 文書を、どこにいても開けます。学校へ向かうバスの中で、大事な試験の前にノートを見直したい？問題ありません！ドキュメントリーダーなら好きな場所でファイルを開き、すっきりとシンプルな方法で文書を読んだり検索したりできます。同僚に送る前に、あと一つだけ誤字を直したい？ファイルエディターが文書の編集に対応しました！速く、簡単で、しっかり統合されています。
 
-他のアプリからあなたのドキュメントを読み始めることができます。 サポートされているアプリには、GMail、Google ドライブ、Box.net、Dropbox などがあります!
+LibreOffice や OpenOffice で作成した ODF ファイル (ODT、ODS ほか多数) は、他のアプリからも開けます。対応アプリには GMail、Google ドライブ、iCloud、OneDrive、Nextcloud、Box.net、Dropbox などがあります！端末内のファイルは、内蔵のファイルエクスプローラーから開くこともできます。
 
-<h1><b>すべての機能:</b></h1>
-- 手間をかけずに .odt、.ods、.odp 開きます
+<b>オールインワンのドキュメントリーダー＆ドキュメントエディター</b> 📄
 
-- Google クラウドプリントを使用してドキュメントを印刷
+➡️ODF ファイルを手間なく開く: ODT (Writer)、ODS (Calc)、ODP、ODG
+➡️ファイルエディターで基本的な編集: 誤字の修正、文の追加など
+➡️パスワード保護された文書も安全に開く
+➡️ODT (Writer)、ODS (Calc)、ODG 内のキーワードを検索してハイライト
+➡️端末がプリンターに接続されていれば文書を印刷
+➡️全画面表示で、気が散らずに文書を読む
+➡️文書内のテキストを選択してコピー
+➡️インターネット接続がなくても利用可能 - 完全オフライン対応
+➡️音声読み上げ技術で文書を読み上げ
 
-- タイプミス、文章を修正するための、基本的なドキュメントの編集
+<b>ドキュメントを、どこへでも</b> 🚶
 
-- 完全にオフライン対応
+さらに、ドキュメントリーダー＆ドキュメントエディターは、他のさまざまなファイル形式にもできる限り対応することを目指しています:
+- Portable Document Format (PDF)
+- アーカイブ: ZIP
+- 画像: JPG、JPEG、GIF、PNG、WEBP、TIFF、BMP、SVG など
+- 動画: MP4、WEBM など
+- 音声: MP3、OGG など
+- テキストファイル: CSV、TXT、HTML、RTF
+- Microsoft Office (OOXML): Word (DOC, DOCX)、Excel (XLS, XLSX)、PowerPoint (PPT, PPTX)
+- Apple iWork: Pages、Numbers、Keynote
+- LibreOffice および OpenOffice の ODF (ODT, ODS, ODP, ODG)
+- PostScript (EPS)
+- AutoCAD (DXF)
+- Photoshop (PSD)
 
-- 小さなアプリサイズ
+このアプリはオープンソースです。OpenOffice、LibreOffice などとは関係ありません。Made in Austria. このアプリの開発を支えるために広告を表示しています。広告はアプリ内のメニューから一時的に、無料で非表示にできます。メールでのご意見・ご感想はどんなものでも歓迎します。
 
-- テキスト読み上げを使用して、ドキュメントを読み上げ 
-
-
-* ODF 形式は、OpenOffice、LibreOffice のようなオフィススイートによって使用されます。 複雑な書式設定、埋め込み画像を含む、テキスト文書 (.odt)、スプレッドシート (.ods)、またプレゼンテーション (.odp) をサポートします。 グラフも問題ありません。 データを保護する場合でも、パスワードで保護されたドキュメントを開くことができます。
-
-<small>このアプリはオープンソースです。 私たちは OpenOffice、LibreOffice、または類似のものに所属してません。 オーストリアで作成されました。 私たち自身が食事を少し購入するために、このアプリを使用している間に広告を表示します。ご厚意に感謝します!</small>
+ODF は OpenOffice や LibreOffice などのオフィススイートが使用する形式です。文書 (Writer、ODT)、表計算 (Calc、ODS)、プレゼンテーション (Impress、ODP) に対応し、ファイルエディターでは複雑な書式や埋め込み画像にも対応します。グラフも問題ありません。データを保護したい場合は、パスワード付きの文書も開けます。この形式を使用する他のアプリケーションには次のものがあります: NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Collabora Office and 602Office.

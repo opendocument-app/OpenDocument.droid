@@ -1,17 +1,37 @@
-<h1><b>Visa och ändra dokument som skapats med OpenOffice eller LibreOffice omedelbart med OpenDocument Reader! 📄🚶</b></h1>
+<h2><b>Visa och ändra dokument skapade i LibreOffice eller OpenOffice var du än är - med dokumentläsaren och dokumentredigeraren!</b></h2>📄🚶
 
-Med OpenDocument Reader kan du läsa dina ODF * (OpenDocument Format) dokument var du än är. I bussen på väg till skolan? Inga problem! Med OpenDocument Reader kan du läsa och söka igenom dina dokument på ett mycket rent och enkelt sätt. Finns det bara ett sista stavfel kvar att fixa i ditt dokument? Det stöder nu ändring av dokument också! Snabb, enkel och väl integrerad.
+Filläsaren och dokumentredigeraren låter dig öppna ODF-dokument (Open Document Format) skapade i LibreOffice eller OpenOffice var du än befinner dig. Sitter du på bussen till skolan och vill titta på anteckningarna före det stora provet? Inga problem! Med dokumentläsaren öppnar du filer var du vill och läser och söker i dina dokument på ett tydligt och enkelt sätt. Återstår bara ett sista stavfel att rätta innan du skickar dokumentet till kollegorna? Filredigeraren stöder nu ändring av dokument! Snabbt, enkelt och väl integrerat.
 
-Du kan börja läsa dina dokument från andra appar. Stödda appar inkluderar GMail, Google Drive, Box.net, Dropbox och många andra!
+Du kan också öppna ODF-filer (ODT, ODS och många fler) som du skapat i LibreOffice eller OpenOffice direkt från andra appar. Appar som stöds är bland andra GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox och många fler! Eller använd vår inbyggda filhanterare för att öppna filer på din enhet.
 
-<h1><b>Alla funktioner i ett glimt:</b></h1>
-- open .odt, .ods och.odp utan krångel
-- Skriv ut dokument med hjälp av Google Cloud Print
-- basisk redigering av dokument för att fixa stavfel, lägga till meningar, etc.
-- helt offline duglig
-- liten appstorlek
-- läs högt dina dokument med Text-To-Speech
+<b>ALLT-I-ETT-LÄSAREN OCH REDIGERAREN FÖR DOKUMENT</b> 📄
 
-* ODF är det format som används av kontorsvaror som OpenOffice och LibreOffice. Textdokument (.odt), samt kalkylblad (.ods) och även presentationer (.odp) stöds, inklusive stöd för komplex formatering och inbäddade bilder. Grafer är inga problem heller. Om du vill säkra dina uppgifter kan du även öppna lösenordsskyddade dokument.
+➡️öppna ODF-filer utan krångel: ODT (Writer), ODS (Calc), ODP och ODG
+➡️enkel redigering av dokument: rätta stavfel, lägga till meningar med mera
+➡️öppna lösenordsskyddade dokument på ett säkert sätt
+➡️sök efter nyckelord i dina ODT (Writer), ODS (Calc) eller ODG och markera dem
+➡️skriv ut dokument om enheten är ansluten till en skrivare
+➡️läs dina dokument i helskärm utan att bli störd
+➡️markera och kopiera text ur dina dokument
+➡️använd dina dokument även utan internetanslutning - fungerar helt offline
+➡️få dina dokument upplästa med talsyntes
 
-<small>Den här appen är öppen källkod. Vi är inte anslutna till OpenOffice, LibreOffice eller liknande. Tillverkad i Österrike. För att kunna köpa lite mat visas annonser när du använder den här appen. Stå ut med dem är mycket uppskattat!</small>
+<b>DOKUMENTEN MED DIG - VART DU ÄN VILL</b> 🚶
+
+Dessutom strävar dokumentläsaren och dokumentredigeraren efter att stödja en rad andra filformat så bra som möjligt:
+- Portable Document Format (PDF)
+- Arkiv: ZIP
+- Bilder: JPG, JPEG, GIF, PNG, WEBP, TIFF, BMP, SVG med flera
+- Video: MP4, WEBM med flera
+- Ljud: MP3, OGG med flera
+- Textfiler: CSV, TXT, HTML, RTF
+- Microsoft Office (OOXML): Word (DOC, DOCX), Excel (XLS, XLSX), PowerPoint (PPT, PPTX)
+- Apple iWork: Pages, Numbers, Keynote
+- LibreOffice och OpenOffice ODF (ODT, ODS, ODP, ODG)
+- PostScript (EPS)
+- AutoCAD (DXF)
+- Photoshop (PSD)
+
+Den här appen är öppen källkod. Vi är inte knutna till OpenOffice, LibreOffice eller liknande. Made in Austria. Annonser visas för att stödja utvecklingen av appen. De kan tas bort tillfälligt och kostnadsfritt via menyn i appen. Vi uppskattar all form av återkoppling via e-post.
+
+ODF är formatet som används av kontorspaket som OpenOffice och LibreOffice. Textdokument (Writer, ODT), kalkylblad (Calc, ODS) och presentationer (Impress, ODP) stöds, och med filredigeraren även komplex formatering och inbäddade bilder. Diagram är inte heller något problem. Vill du skydda dina data kan du till och med öppna lösenordsskyddade dokument. Andra program som använder det här formatet är NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Collabora Office and 602Office.

@@ -1,17 +1,37 @@
-<h1><b>Vaadake ja muutke liikvel olles OpenDocument Readeri abil dokumente, mis on loodud OpenOffice'is või LibreOffice'is! 📄🚶</b></h1>
+<h2><b>Vaata ja muuda liikvel olles LibreOffice'i või OpenOffice'iga loodud dokumente - dokumendilugeja ja dokumendiredaktoriga!</b></h2>📄🚶
 
-OpenDocument Reader võimaldab lugeda ODF* (LibreOffice'i või OpenOffice'i abil loodud OpenDocument Format) dokumente kõikjal. Bussis teel kooli? Ei ole probleem! OpenDocument Readeri abil saate lugeda ja kasutada dokumentide otsingut puhtal ja lihtsalt viisil. Kas täiuslikust dokumendist on puudu vaid üks viimane parandamist vajav kirjaviga? Nüüd on võimalik ka dokumentide muutmine! Kiire, lihtne ja hästi integreeritud.
+Faililugeja ja dokumendiredaktor võimaldab avada LibreOffice'i või OpenOffice'iga loodud ODF-dokumente (Open Document Format), ükskõik kus sa oled. Sõidad bussiga kooli ja tahad enne suurt eksamit oma märkmeid üle vaadata? Pole probleemi! Dokumendilugejaga avad faile seal, kus soovid, ning loed ja otsid oma dokumentidest selgelt ja lihtsalt. Kas dokumendis on jäänud parandada vaid viimane näpuviga, enne kui saadad selle kolleegidele? Failiredaktor toetab nüüd dokumentide muutmist! Kiire, lihtne ja hästi lõimitud.
 
-Dokumentide lugemist saate alustada ka teistes rakendustes. Toetatud rakenduste hulgas on GMail, Google Drive, Box.net, Dropbox ja paljud teised!
+LibreOffice'i või OpenOffice'iga loodud ODF-faile (ODT, ODS ja palju muud) saad avada ka teistest rakendustest. Toetatud rakenduste hulka kuuluvad GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox ja paljud teised! Või kasuta seadmes olevate failide avamiseks meie sisseehitatud failihaldurit.
 
-<h1><b>Kõik funktsioonid ülevaatlikult:</b></h1>
-- avage muretult .odt, .ods ja .odp faile
-- trükkige dokumente teenuses Google Cloud Print
-- dokumentide lihtsamad muudatused kirjavigade parandamiseks, lausete lisamiseks jne
-- täielik võrguvaba tugi
-- väikesemahuline rakendus
-- Tekst-kõneks funktsiooni abil saate dokumendid ette lugeda
+<b>KÕIK ÜHES DOKUMENDILUGEJA JA DOKUMENDIREDAKTOR</b> 📄
 
-* ODF vormingut kasutab kontoritarkvara OpenOffice ja LibreOffice. Toetatud on tekstidokumendid (.odt), arvutustabelid (.ods) ja esitlused (.odp). Muu hulgas on olemas keeruka vormistuse ja manustatud piltide tugi. Samuti ei ole probleemiks ka graafikud. Kui soovite enda andmeid kaitsta, saate kasutada ka salasõnaga kaitstud dokumente.
+➡️ava ODF-faile vaevata: ODT (Writer), ODS (Calc), ODP ja ODG
+➡️dokumentide põhiline muutmine redaktoriga: paranda näpuvigu, lisa lauseid jne
+➡️ava turvaliselt parooliga kaitstud dokumente
+➡️otsi märksõnu oma ODT (Writer), ODS (Calc) või ODG failidest ja tõsta need esile
+➡️prindi dokumente, kui seade on printeriga ühendatud
+➡️loe dokumente täisekraanil, et miski ei segaks
+➡️vali ja kopeeri teksti oma dokumentidest
+➡️kasuta dokumente ka ilma internetiühenduseta - täielikult võrguühenduseta
+➡️lase dokumente kõnesünteesiga ette lugeda
 
-<small>Rakendus on avatud lähtekoodiga. Meil puudub igasugune seos OpenOffice'i, LibreOffice'i või sarnaste rakendustega. Toodetud Austrias. Leiva lauale saamiseks kuvame rakendused vahel mõnda reklaami. Täname kannatlikkuse eest!</small>
+<b>DOKUMENDID KAASA - KUHU IGANES SOOVID</b> 🚶
+
+Lisaks püüab dokumendilugeja ja -redaktor toetada võimalikult hästi ka mitmesuguseid muid failivorminguid:
+- Portable Document Format (PDF)
+- Arhiivid: ZIP
+- Pildid: JPG, JPEG, GIF, PNG, WEBP, TIFF, BMP, SVG jne
+- Videod: MP4, WEBM jne
+- Heli: MP3, OGG jne
+- Tekstifailid: CSV, TXT, HTML, RTF
+- Microsoft Office (OOXML): Word (DOC, DOCX), Excel (XLS, XLSX), PowerPoint (PPT, PPTX)
+- Apple iWork: Pages, Numbers, Keynote
+- LibreOffice'i ja OpenOffice'i ODF (ODT, ODS, ODP, ODG)
+- PostScript (EPS)
+- AutoCAD (DXF)
+- Photoshop (PSD)
+
+See rakendus on avatud lähtekoodiga. Me ei ole seotud OpenOffice'i, LibreOffice'i ega muu sarnasega. Made in Austria. Reklaame näidatakse selleks, et toetada selle rakenduse arendamist. Neid saab rakenduse menüüst ajutiselt ja tasuta eemaldada. Oleme väga tänulikud igasuguse tagasiside eest e-posti teel.
+
+ODF on vorming, mida kasutavad kontoripaketid nagu OpenOffice ja LibreOffice. Toetatud on tekstidokumendid (Writer, ODT), arvutustabelid (Calc, ODS) ja esitlused (Impress, ODP) ning failiredaktoriga ka keeruline vormindus ja manustatud pildid. Ka diagrammid ei ole probleem. Kui soovid oma andmeid kaitsta, saad avada isegi parooliga kaitstud dokumente. Teised seda vormingut kasutavad rakendused on NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Collabora Office and 602Office.

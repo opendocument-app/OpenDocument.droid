@@ -1,17 +1,37 @@
-<h1><b>使用 OpenDocument 阅读器，随时随地查看或修改由 OpenOffice 或 LibreOffice 创建的文档！ 📄🚶</b></h1>
+<h2><b>使用文档阅读器和文档编辑器，随时随地查看并修改用 LibreOffice 或 OpenOffice 创建的文档！</b></h2>📄🚶
 
-OpenDocument 阅读器允许你随时随地阅读 ODF*（OpenDocument 格式，通常由 LibreOffice 或 OpenOffice 创建）文档。 正在开往学校的公交车上？ 没问题！ 通过 OpenDocument 阅读器，您可以简单利落地阅读、搜索您的文档。 你的文档中是否还剩下最后一个拼写错误需要修正？ OpenDocument 阅读器现已支持修改文档！ 快捷、简单、兼容。
+文件阅读器和文档编辑器让您无论身在何处，都能打开用 LibreOffice 或 OpenOffice 创建的 ODF（开放文档格式）文档。正坐在去学校的公交车上，想在大考前看看笔记？没问题！使用文档阅读器，您可以随时随地打开文件，以清晰简单的方式阅读和搜索文档。文档发给同事之前，只剩最后一个错别字要改？文件编辑器现已支持修改文档！快速、简单，且集成良好。
 
-您可以直接从其他应用程序中打开文件，更快一步阅读您的文档。 支持的应用程序包括 GMail、Google Drive、Box.net、Dropbox 和其他许多应用！
+用 LibreOffice 或 OpenOffice 创建的 ODF 文件（ODT、ODS 等）也可以从其他应用中打开。支持的应用包括 GMail、Google 云端硬盘、iCloud、OneDrive、Nextcloud、Box.net、Dropbox 等等！您也可以使用我们内置的文件浏览器打开设备上的文件。
 
-<h1><b>功能纵览：</b></h1>
-- 毫不费力地打开 .odt、.ods 和 .odp 文件
-- 使用 Google Cloud Print 打印文档
-- 基本的文档编辑功能：修正拼写错误，添加段落，等等
-- 支持完全离线使用
-- 应用体积小，不臃肿
-- 支持使用文字转语音服务阅读您的文档
+<b>一体化的文档阅读器与文档编辑器</b> 📄
 
-* ODF 是 OpenOffice 和 LibreOffice 等办公软件使用的格式。 支持文本文档（.odt），以及电子表格（.ods）和演示文档（.odp），支持复杂的格式和内嵌图像。 图表也不是问题。 如果你想要保证您的数据安全，本应用甚至支持密码保护的文件。
+➡️轻松打开 ODF 文件：ODT (Writer)、ODS (Calc)、ODP 和 ODG
+➡️使用文件编辑器进行基本编辑：修改错别字、添加句子等
+➡️安全地打开受密码保护的文档
+➡️在 ODT (Writer)、ODS (Calc) 或 ODG 中搜索关键词并高亮显示
+➡️如果设备已连接打印机，可打印文档
+➡️全屏阅读文档，避免干扰
+➡️选择并复制文档中的文字
+➡️没有网络也能使用文档 - 完全支持离线
+➡️通过文字转语音技术朗读您的文档
 
-<small>本应用是开源软件。 我们并不附属于 OpenOffice、LibreOffice 或类似组织。 由奥地利程序员手工打造。 为了给我们自己买一点食物，使用此应用程序时会显示广告。Bearing with them is highly appreciated!</small>
+<b>带上文档，走到哪看到哪</b> 🚶
+
+此外，文档阅读器与文档编辑器还力求尽可能好地支持其他多种文件格式：
+- Portable Document Format (PDF)
+- 压缩包：ZIP
+- 图像：JPG、JPEG、GIF、PNG、WEBP、TIFF、BMP、SVG 等
+- 视频：MP4、WEBM 等
+- 音频：MP3、OGG 等
+- 文本文件：CSV、TXT、HTML、RTF
+- Microsoft Office (OOXML)：Word (DOC, DOCX)、Excel (XLS, XLSX)、PowerPoint (PPT, PPTX)
+- Apple iWork：Pages、Numbers、Keynote
+- LibreOffice 和 OpenOffice ODF (ODT, ODS, ODP, ODG)
+- PostScript (EPS)
+- AutoCAD (DXF)
+- Photoshop (PSD)
+
+本应用是开源软件。我们与 OpenOffice、LibreOffice 或类似项目并无关联。Made in Austria. 显示广告是为了支持本应用的开发。您可以通过应用内菜单临时免费移除广告。我们非常欢迎通过电子邮件提出各种反馈。
+
+ODF 是 OpenOffice 和 LibreOffice 等办公套件所使用的格式。支持文本文档 (Writer、ODT)、电子表格 (Calc、ODS) 和演示文稿 (Impress、ODP)，并可通过文件编辑器处理复杂排版和内嵌图像。图表同样不在话下。如果您想保护数据，甚至可以打开受密码保护的文档。使用此格式的其他应用程序包括 NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Collabora Office and 602Office.

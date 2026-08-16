@@ -1,17 +1,37 @@
-<h1><b>Visualizza e modifica i documenti creati usando OpenOffice o LibreOffice mentre sei in movimento usando OpenDocument Reader! 📄🚶</b></h1>
+<h2><b>Leggi e modifica in mobilità i documenti creati con LibreOffice o OpenOffice con il lettore e l'editor di documenti!</b></h2>📄🚶
 
-OpenDocument Reader ti permette di leggere i tuoi documenti ODF * (OpenDocument Format, creati con LibreOffice o OpenOffice) ovunque tu sia. Sei sull'autobus verso scuola? Nessun problema! Con OpenDocument Reader puoi leggere e cercare tra i tuoi documenti in modo molto semplice e pulito. C'è solo un errore di battitura rimasto da correggere nel documento? Ora supporta anche la modifica dei documenti! Veloce, semplice e ben integrato.
+Il lettore di file ed editor di documenti ti permette di aprire documenti ODF (Open Document Format) creati con LibreOffice o OpenOffice ovunque tu sia. Sei sull'autobus verso scuola e vuoi dare un'ultima occhiata agli appunti prima dell'esame? Nessun problema! Con il lettore di documenti apri i file dove vuoi e leggi e cerchi nei tuoi documenti in modo chiaro e semplice. È rimasto solo un ultimo errore di battitura da correggere prima di inviare il documento ai colleghi? L'editor di file ora supporta la modifica dei documenti! Veloce, semplice e ben integrato.
 
- Puoi iniziare a leggere i tuoi documenti da altre app. Le app supportate includono GMail, Google Drive, Box.net, Dropbox e molte altre!
+Puoi aprire i file ODF (ODT, ODS e molti altri) creati con LibreOffice o OpenOffice anche da altre app. Tra le app supportate ci sono GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox e molte altre! Oppure usa il nostro esplora file integrato per aprire i file sul tuo dispositivo.
 
-<h1><b>Tutte le funzionalità in un colpo d'occhio:</b></h1>
-- apri .odt, .ods e .odp senza 
- documenti di hassle-print con Google Cloud Print
- - modifica di base dei documenti per correggere errori di battitura, aggiungere frasi, ecc.
- - completamente funzionante offline 
- - app di piccole dimensioni
- - leggere a voce alta i tuoi documenti usando Sintesi Vocale
+<b>IL LETTORE E EDITOR DI DOCUMENTI TUTTO IN UNO</b> 📄
 
- * ODF è il formato utilizzato da pacchetti di office come OpenOffice e LibreOffice. Sono supportati documenti di testo (.odt), fogli di calcolo (.ods) e anche presentazioni (.odp), incluso il supporto per la formattazione complessa e le immagini incorporate. Anche i grafici non sono un problema. Se vuoi proteggere i tuoi dati puoi persino aprire documenti protetti da password.
+➡️apri i file ODF senza difficoltà: ODT (Writer), ODS (Calc), ODP e ODG
+➡️modifica di base dei documenti con l'editor: correggi errori, aggiungi frasi ecc.
+➡️apri in sicurezza i documenti protetti da password
+➡️cerca parole chiave nei tuoi ODT (Writer), ODS (Calc) o ODG ed evidenziale
+➡️stampa i documenti se il dispositivo è collegato a una stampante
+➡️leggi i documenti a schermo intero per evitare distrazioni
+➡️seleziona e copia il testo dai tuoi documenti
+➡️usa i tuoi documenti anche senza connessione a Internet: funziona offline
+➡️fatti leggere i documenti ad alta voce con la sintesi vocale
 
-<small> Questa app è open-source. Non siamo affiliati con OpenOffice, LibreOffice o simili. Made in Austria. Per guadagnarci da vivere, mostriamo annunci durante l'utilizzo di questa app. Sopportare la loro presenza verrebbe molto apprezzato!</small>
+<b>I TUOI DOCUMENTI SEMPRE CON TE</b> 🚶
+
+Inoltre, il lettore ed editor di documenti punta a supportare al meglio molti altri formati:
+- Portable Document Format (PDF)
+- Archivi: ZIP
+- Immagini: JPG, JPEG, GIF, PNG, WEBP, TIFF, BMP, SVG ecc.
+- Video: MP4, WEBM ecc.
+- Audio: MP3, OGG ecc.
+- File di testo: CSV, TXT, HTML, RTF
+- Microsoft Office (OOXML): Word (DOC, DOCX), Excel (XLS, XLSX), PowerPoint (PPT, PPTX)
+- Apple iWork: Pages, Numbers, Keynote
+- LibreOffice e OpenOffice ODF (ODT, ODS, ODP, ODG)
+- PostScript (EPS)
+- AutoCAD (DXF)
+- Photoshop (PSD)
+
+Questa app è open source. Non siamo affiliati a OpenOffice, LibreOffice o simili. Made in Austria. Gli annunci vengono mostrati per sostenere lo sviluppo dell'app. Possono essere rimossi temporaneamente e gratuitamente dal menu dell'app. Ogni tipo di feedback via e-mail è molto apprezzato.
+
+ODF è il formato usato da suite per ufficio come OpenOffice e LibreOffice. Sono supportati documenti di testo (Writer, ODT), fogli di calcolo (Calc, ODS) e presentazioni (Impress, ODP), inclusi, con l'editor di file, la formattazione complessa e le immagini incorporate. Nemmeno i grafici sono un problema. Se vuoi proteggere i tuoi dati, puoi persino aprire documenti protetti da password. Altre applicazioni che usano questo formato sono NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Collabora Office and 602Office.
