@@ -1,0 +1,7 @@
+Les PDF ressemblent bien plus à l'original : texte bien placé et à la bonne taille, couleurs fidèles, pages rognées et davantage d'images. Certains qui s'ouvraient vides s'ouvrent désormais correctement.
+
+Les documents utilisent les polices demandées : le texte jusque-là invisible sur les diapositives s'affiche.
+
+Les documents basés sur un modèle gardent leur mise en page et leurs marges, et les images ne bougent plus.
+
+Les documents volumineux ou complexes s'ouvrent au lieu de planter.

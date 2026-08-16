@@ -1,0 +1,7 @@
+PDFs ficam muito mais parecidos com o original: texto no lugar e no tamanho certos, cores fiéis, páginas aparadas e mais imagens. Alguns que abriam em branco agora abrem direito.
+
+Os documentos usam as fontes que pedem, então o texto que ficava invisível nos slides aparece.
+
+Documentos feitos a partir de um modelo mantêm o layout e as margens, e as imagens ficam no lugar.
+
+Documentos grandes ou complicados abrem em vez de travar.

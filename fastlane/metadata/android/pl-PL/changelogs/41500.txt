@@ -1,0 +1,7 @@
+Pliki PDF są znacznie bliższe oryginałowi: tekst we właściwym miejscu i rozmiarze, zgodne kolory, przycięte strony i więcej obrazów. Niektóre pliki, które otwierały się jako puste, teraz otwierają się poprawnie.
+
+Dokumenty używają wskazanych czcionek, więc tekst, który znikał na slajdach, znów się pojawia.
+
+Dokumenty oparte na szablonie zachowują układ i marginesy, a obrazy pozostają na miejscu.
+
+Duże lub kłopotliwe dokumenty otwierają się, zamiast powodować awarię.

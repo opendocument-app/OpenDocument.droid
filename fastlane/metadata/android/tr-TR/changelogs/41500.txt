@@ -1,0 +1,7 @@
+PDF'ler artık orijinaline çok daha yakın görünüyor: metin doğru yerde ve boyutta, renkler aslına uygun, sayfalar düzgün kırpılmış ve daha fazla görsel. Boş açılan bazı PDF'ler artık düzgün açılıyor.
+
+Belgeler istedikleri yazı tiplerini kullanıyor, böylece slaytlarda görünmeyen yazılar ortaya çıkıyor.
+
+Şablondan oluşturulan belgeler düzenlerini ve kenar boşluklarını koruyor, görseller yerinde kalıyor.
+
+Büyük veya sorunlu belgeler artık uygulamayı çökertmeden açılıyor.

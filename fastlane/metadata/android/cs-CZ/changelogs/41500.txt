@@ -1,0 +1,7 @@
+PDF se mnohem víc podobají originálu: text na správném místě a ve správné velikosti, věrné barvy, oříznuté stránky a více obrázků. Některé, které se otevíraly prázdné, se nyní otevřou správně.
+
+Dokumenty používají písma, která si vyžadují, takže text, který byl na snímcích neviditelný, je nyní vidět.
+
+Dokumenty založené na šabloně si zachovají rozvržení i okraje a obrázky zůstanou na svém místě.
+
+Velké nebo náročné dokumenty se otevřou, místo aby aplikace spadla.

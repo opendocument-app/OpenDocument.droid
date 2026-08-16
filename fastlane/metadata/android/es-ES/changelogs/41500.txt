@@ -1,0 +1,7 @@
+Los PDF se parecen mucho más al original: texto en su sitio y con el tamaño correcto, colores fieles, páginas bien recortadas y más imágenes. Algunos que salían en blanco ahora se abren bien.
+
+Los documentos usan las fuentes que piden, así que el texto que no se veía en las diapositivas ya aparece.
+
+Los documentos creados a partir de una plantilla conservan su diseño y sus márgenes, y las imágenes no se mueven.
+
+Los documentos grandes o complicados se abren en lugar de fallar.
