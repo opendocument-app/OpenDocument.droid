@@ -84,6 +84,14 @@ jobs:
         version: ${{ steps.version.outputs.version }}
       run: .github/scripts/changelog-section.py --version "$version" > /dev/null
 
+    # before the build, so a locale with no release notes costs seconds rather than
+    # being found once both bundles are already on the store
+    - name: check the store copy is written in every locale
+      if: ${{ steps.version.outputs.version != '' }}
+      env:
+        version: ${{ steps.version.outputs.version }}
+      run: python3 scripts/store-listing.py --version "$version"
+
     - name: setup java
       uses: actions/setup-java@v5.7.0
       with:
@@ -178,9 +186,17 @@ jobs:
           - flavor: lite
             lane: uploadLite
     steps:
-    # for the Gemfile and the lanes; the bundles come from the artifact
+    # for the Gemfile, the lanes and the listing the upload stages
     - name: checkout
       uses: actions/checkout@v7
+
+    # re-resolved rather than carried as a job output, as in the record job below:
+    # the upload needs it to name the release notes it sends with the bundle
+    - name: resolve version
+      id: version
+      env:
+        given: ${{ inputs.version }}
+      run: .github/scripts/resolve-version.py --input "$given" --dry-run "$dry_run"
 
     # back where gradle put them: the Fastfile reads a fixed path under here
     - name: fetch the bundles
@@ -203,10 +219,13 @@ jobs:
         ruby-version: '3.4'
         bundler-cache: true
 
-    # no track: the Fastfile's DEFAULT_TRACK is internal, and wider is a promotion
-    - name: upload ${{ matrix.flavor }} to play store
+    # no track: the Fastfile's DEFAULT_TRACK is internal, and wider is a promotion.
+    # ODR_VERSION rather than a lane argument: the Fastfile falls back to it, and it
+    # is what tells the staging script which release notes go up with the bundle
+    - name: upload ${{ matrix.flavor }} and its listing to play store
       env:
         ODR_PLAY_JSON_KEY: ${{ runner.temp }}/fastlane_google_play.json
+        ODR_VERSION: ${{ steps.version.outputs.version }}
       run: bundle exec fastlane android ${{ matrix.lane }}
 
     - name: drop credentials

@@ -86,3 +86,6 @@ __pycache__/
 
 # local agent state
 .claude/
+
+# staged by scripts/store-listing.py for one upload, then thrown away
+fastlane/.listing/
