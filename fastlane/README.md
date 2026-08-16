@@ -21,7 +21,7 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 [bundle exec] fastlane android deployPro
 ```
 
-Deploy a new version to the Google Play
+Build and upload the Pro version to Google Play
 
 ### android deployLite
 
@@ -29,7 +29,39 @@ Deploy a new version to the Google Play
 [bundle exec] fastlane android deployLite
 ```
 
-Deploy a new version to the Google Play
+Build and upload the Lite version to Google Play
+
+### android uploadPro
+
+```sh
+[bundle exec] fastlane android uploadPro
+```
+
+Upload an already built Pro bundle. Used by the release workflow, which builds both flavors with gradle directly, in one job.
+
+### android uploadLite
+
+```sh
+[bundle exec] fastlane android uploadLite
+```
+
+Upload an already built Lite bundle
+
+### android listingPro
+
+```sh
+[bundle exec] fastlane android listingPro
+```
+
+Upload the Pro listing on its own, without a bundle - to repair a typo, or a locale that came out wrong, without needing a version to carry it
+
+### android listingLite
+
+```sh
+[bundle exec] fastlane android listingLite
+```
+
+Upload the Lite listing on its own, without a bundle
 
 ### android tests
 
