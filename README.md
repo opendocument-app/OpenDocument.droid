@@ -24,7 +24,39 @@ install the new one, uninstall the old one. Nothing carries over and nothing is 
 carrying - a recent documents list whose uri permissions die with the old package anyway.
 
 ## Translations
-Please help to translate on the https://crowdin.com/project/opendocument
+
+The app speaks nineteen languages and the Play listing fifteen, and both are written
+in this repository.
+
+| | source | written by |
+|---|---|---|
+| the app | `app/src/main/res/values/strings.xml` | `scripts/translate-app.py` |
+| the listing | `fastlane/metadata/android/en-US/` | by hand, then translated |
+| the release notes | `CHANGELOG.md` | `scripts/store-copy.py` |
+
+Both scripts run one `claude -p` per language and a second one of the same language
+reading the draft back, and both refuse an answer that has lost something - a key, a
+paragraph, an address the English kept. Neither uploads: `scripts/store-listing.py`
+checks and stages what they write, and the release run sends it. See
+`fastlane/metadata/README.md` for how the two apps share one listing.
+
+```sh
+scripts/translate-app.py                 # fill in whatever strings are missing
+scripts/store-copy.py v4.15.0            # write the release notes of a version
+scripts/store-listing.py --version v4.15.0   # check every locale has them
+```
+
+There is one directory per language and no region qualifier: `values-de` answers for
+every German-speaking region and nothing here differs by one. A pull request adding a
+language adds it to `LANGUAGES` in `scripts/translate-app.py` too, or the next run
+refuses to guess what it should be written in. A language the *store* is sold in goes
+in `LOCALES` in `scripts/store-listing.py`, which the release checks its directories
+against, so a listing that loses one fails rather than ships without it.
+
+This used to be on Crowdin. Nothing came back from it after September 2023 - two years
+before the redesign that added most of the app's current strings - so the app shipped
+with no language more than 58% translated. Corrections in a pull request are very
+welcome; a translated string is a translated string wherever it comes from.
 
 ## Setup
 
@@ -69,7 +101,7 @@ Nothing triggers it on a tag. It runs as three jobs:
 | job | what it does |
 |---|---|
 | `build` | one gradle run producing all three signed flavors, archived on the run |
-| `upload` | one job per play flavor, handing its bundle to fastlane |
+| `upload` | one job per play flavor, handing its bundle and listing to fastlane |
 | `record` | once both landed: tag the commit, draft the GitHub release |
 
 Lite and Pro always go out together, and nothing chooses one: they are the same app with
@@ -79,9 +111,19 @@ the `v*` tag names and F-Droid builds.
 
 Internal is the only track it uploads to. Anything wider - closed, open, production -
 is a promotion in the Play Console, which moves the same bundle and version code that
-was tested onto the wider track instead of uploading a second one, and is where the
-release notes get written. It is also where the review that a production release waits
-on actually happens, so the workflow finishing is not the same as the release being out.
+was tested onto the wider track instead of uploading a second one. It is also where the
+review that a production release waits on actually happens, so the workflow finishing is
+not the same as the release being out.
+
+The listing goes up with the bundle: the title, both descriptions and the release notes
+of that version, in all fifteen locales, for each app. **This overwrites what the Play
+Console says**, which is the point - the copy is written here now, not there. The release
+notes are no longer typed into the promotion box. Graphics are not uploaded; see
+`fastlane/metadata/README.md`.
+
+`fastlane android listingPro` and `listingLite` send the listing without a bundle, which
+is how a typo is fixed: Play refuses a version code twice, so repairing the words should
+not need a version to carry them.
 
 **If one flavor's upload fails, press "Re-run failed jobs".** Only that upload runs again,
 against the bundle already built and signed, and `record` runs behind it. Re-running *all*
@@ -92,10 +134,13 @@ way out is a new patch version for both flavors.
 `dry_run` builds and signs both flavors without uploading either. It is the only run
 allowed to go without a version, and the only one leaving neither tag nor draft.
 
-In its first seconds the run also refuses a version that has already gone out and one
-with no `CHANGELOG.md` section, which is what the release body is made of.
-`.github/scripts/resolve-version.py` and `changelog-section.py` decide both; run either
-by hand to see what a dispatch would do.
+In its first seconds the run also refuses a version that has already gone out, one with
+no `CHANGELOG.md` section - which is what the release body is made of - and one whose
+release notes have not been written in every locale, which `scripts/store-copy.py`
+writes. All three are checked before the build, so they cost seconds rather than a
+version. `.github/scripts/resolve-version.py`, `changelog-section.py` and
+`scripts/store-listing.py` decide them; run any of the three by hand to see what a
+dispatch would do.
 
 It needs these repository secrets:
 

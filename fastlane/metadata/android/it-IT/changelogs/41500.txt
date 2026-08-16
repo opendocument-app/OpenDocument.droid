@@ -1,0 +1,7 @@
+I PDF sono molto più fedeli all'originale: testo nella posizione e nella dimensione giuste, colori corretti, pagine ritagliate e più immagini. Alcuni che si aprivano vuoti ora si aprono correttamente.
+
+I documenti usano i font richiesti, così il testo invisibile nelle diapositive ora si vede.
+
+I documenti basati su un modello mantengono impaginazione e margini, e le immagini restano al loro posto.
+
+I documenti grandi o complessi si aprono invece di causare un arresto anomalo.

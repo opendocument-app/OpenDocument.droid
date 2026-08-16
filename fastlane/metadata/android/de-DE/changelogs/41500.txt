@@ -1,0 +1,7 @@
+PDFs sehen dem Original viel ähnlicher: Text an der richtigen Stelle und in der richtigen Größe, passende Farben, beschnittene Seiten und mehr Bilder. Manche PDFs, die leer blieben, werden jetzt richtig angezeigt.
+
+Dokumente verwenden die Schriften, die sie verlangen – Text, der auf Folien unsichtbar war, erscheint jetzt.
+
+Dokumente aus einer Vorlage behalten Layout und Ränder, Bilder bleiben an ihrem Platz.
+
+Große oder sperrige Dokumente lassen sich öffnen, ohne dass die App abstürzt.

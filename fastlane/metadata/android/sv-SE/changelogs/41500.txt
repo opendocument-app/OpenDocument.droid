@@ -1,0 +1,7 @@
+PDF-filer ser mycket mer ut som originalet: text på rätt plats och i rätt storlek, färger som stämmer, beskurna sidor och fler bilder. Vissa som tidigare öppnades tomma öppnas nu som de ska.
+
+Dokument använder de typsnitt de anger, så text som var osynlig i presentationer syns nu.
+
+Dokument byggda på en mall behåller layout och marginaler, och bilder stannar på plats.
+
+Stora eller besvärliga dokument öppnas i stället för att krascha.

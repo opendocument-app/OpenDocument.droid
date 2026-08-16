@@ -1,17 +1,37 @@
-<h1><b>Prohlížejte a upravujte své dokumenty vytvořené pomocí OpenOffice nebo LibreOffice na cestách pomocí OpenDocument Reader! 📄🚶</b></h1>
+<h2><b>Prohlížejte a upravujte na cestách dokumenty vytvořené v LibreOffice nebo OpenOffice pomocí prohlížeče a editoru dokumentů!</b></h2>📄🚶
 
-OpenDocument Reader Vám umožní číst Vaše soubory ve formátu ODF* (OpenDocument Format) kdekoli. Jste v autobusu na cestě do školy? Není problém! S OpenDocument Reader můžete ve svých dokumentech velmi snadno a jednoduše vyhledávat a číst si je. Je ve Vašem dokumentu ještě nějaká nevychytaná chyba? I úpravy dokumentů jsou už podporovány! Rychlé, jednoduché a velmi integrované.
+Prohlížeč souborů a editor dokumentů vám umožní otevřít dokumenty ODF (Open Document Format) vytvořené v LibreOffice nebo OpenOffice, ať jste kdekoli. Jedete autobusem do školy a chcete se před velkou zkouškou podívat na poznámky? Žádný problém! S prohlížečem dokumentů otevřete soubory kdekoli a své dokumenty přehledně a jednoduše čtete i prohledáváte. Zbývá opravit poslední překlep, než dokument pošlete kolegům? Editor souborů nyní podporuje úpravy dokumentů! Rychle, jednoduše a dobře integrovaně.
 
-Své dokumenty můžete začít číst z ostatních aplikací. K podporovaným aplikacím patří GMail, Google Drive, Box.net, Dropbox a spousta dalších!
+Soubory ODF (ODT, ODS a mnoho dalších) vytvořené v LibreOffice nebo OpenOffice můžete otevírat i z jiných aplikací. Mezi podporované aplikace patří GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox a řada dalších! Nebo si vyberte dokument přímo ve svém zařízení pomocí výběru souborů systému Android.
 
-<h1><b>Všechny funkce jediným pohledem:</b></h1>
-- bez problémové otevírání formátů .odt, .ods a .odp
-- tisk dokumentů pomocí Google Cloud Print
-- základní úpravy dokumentů za účelem opravy chyb, přidávání vět atd.
-- plná schopnost práce off-line
-- nepatrná velikost aplikace
-- čtěte své dokumenty nahlas pomocí funkce Text-To-Speech
+<b>PROHLÍŽEČ A EDITOR DOKUMENTŮ - VŠE V JEDNOM</b> 📄
 
-* ODF je formát používaný v kancelářských balících, jako například OpenOffice a LibreOffice. Podporovány jsou textové dokumenty (.odt), tabulkové sešity (.ods) a také prezentace (.odp), včetně podpory složitého formátování a vložených obrázků. Také grafy nejsou problémem. Jestliže chcete mít svá data zabezpečena, můžete dokonce otevírat dokumenty chráněné heslem.
+➡️otevírejte soubory ODF bez potíží: ODT (Writer), ODS (Calc), ODP a ODG
+➡️základní úpravy dokumentů v editoru: opravit překlepy, přidat věty apod.
+➡️bezpečně otevírejte dokumenty chráněné heslem
+➡️vyhledávejte klíčová slova v ODT (Writer), ODS (Calc) či ODG a zvýrazňujte je
+➡️tiskněte dokumenty, pokud je zařízení připojeno k tiskárně
+➡️čtěte dokumenty na celou obrazovku bez rušivých prvků
+➡️označujte a kopírujte text z dokumentů
+➡️používejte dokumenty i bez připojení k internetu - plně offline
+➡️nechte si dokumenty předčítat nahlas díky převodu textu na řeč
 
-<small>Toto je aplikace s otevřeným zdrojovým kódem. Nejsme pobočkou společností OpenOffice, LibreOffice, ani jiné obdobné společnosti. Vyrobeno v Rakousku. Abychom měli na jídlo, jsou při používání této aplikace zobrazovány reklamy. Budeme velmi rádi, když je strpíte!</small>
+<b>DOKUMENTY S SEBOU, KAMKOLI CHCETE</b> 🚶
+
+Prohlížeč a editor dokumentů se navíc snaží co nejlépe podporovat i další formáty souborů:
+- Portable Document Format (PDF)
+- Archivy: ZIP
+- Obrázky: JPG, JPEG, GIF, PNG, WEBP, TIFF, BMP, SVG atd.
+- Videa: MP4, WEBM atd.
+- Zvuk: MP3, OGG atd.
+- Textové soubory: CSV, TXT, HTML, RTF
+- Microsoft Office (OOXML): Word (DOC, DOCX), Excel (XLS, XLSX), PowerPoint (PPT, PPTX)
+- Apple iWork: Pages, Numbers, Keynote
+- LibreOffice a OpenOffice ODF (ODT, ODS, ODP, ODG)
+- PostScript (EPS)
+- AutoCAD (DXF)
+- Photoshop (PSD)
+
+Tato aplikace je open source. Nejsme spojeni s OpenOffice, LibreOffice ani podobnými projekty. Made in Austria. Vaše dokumenty se otevírají přímo ve vašem zařízení a nikdy se nikam nenahrávají. ${ads} Velmi si vážíme jakékoli zpětné vazby zaslané e-mailem.
+
+ODF je formát, který používají kancelářské balíky jako OpenOffice a LibreOffice. Podporovány jsou textové dokumenty (Writer, ODT), tabulky (Calc, ODS) i prezentace (Impress, ODP), a s editorem souborů také složité formátování a vložené obrázky. Ani grafy nejsou problém. Pokud chcete svá data zabezpečit, můžete otevírat i dokumenty chráněné heslem. Další aplikace, které tento formát používají, jsou NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Collabora Office and 602Office.

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_title">OpenDocument Reader</string>
+    <!-- the app's name, and not translated: OpenDocument is the format's own name, and
+         the play listing carries the same one untranslated in all fifteen storefronts -->
+    <string name="app_title" translatable="false">OpenDocument Reader</string>
 
     <string name="dialog_broken_file_title">Couldn\'t open this file</string>
     <string name="dialog_broken_file">The file may be damaged, or something went wrong on our side. If you think the file is fine, tell us at support@opendocument.app</string>
@@ -73,7 +75,9 @@
     <string name="tts_status_finished">Finished.</string>
     <string name="toast_edit_status_saved">Document saved.</string>
     <string name="crouton_printing">Printing…</string>
-    <string name="crouton_remove_ads">Need more space to read? Remove ads for free via the menu.</string>
+    <!-- a snackbar whose OK button starts the purchase, so it says what OK will do.
+         There has been no menu to remove ads from since the options menu went -->
+    <string name="crouton_remove_ads">Need more space to read? Tap OK to remove the ads for free.</string>
     <string name="reopen_chooser_title">Open using another app installed on your device:</string>
 
     <!-- spelled out in the messages above too, where translators need it in context -->

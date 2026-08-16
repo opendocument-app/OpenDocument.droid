@@ -1,3 +1,5 @@
+require "fileutils"
+
 default_platform(:android)
 
 # flavor name as gradle spells it => play store package name
@@ -8,28 +10,83 @@ PACKAGE_NAMES = {
 
 DEFAULT_TRACK = "internal".freeze
 
+# absolute, because a lane and an action do not agree on what the working directory
+# is, and every path below is handed to something else
+ROOT = File.expand_path("..", __dir__).freeze
+
+# The listing is written in this repository, not in the play console, and supply
+# uploads whatever it finds under metadata_path - so it is pointed at a directory
+# staged by scripts/store-listing.py rather than at fastlane/metadata/android
+# itself. What goes into it is named in that script: the two apps say almost the
+# same thing, and the few places they differ are read over the shared text.
+STAGED_LISTING = File.join(ROOT, "fastlane", ".listing").freeze
+
+def require_version(version)
+  version = version || ENV["ODR_VERSION"]
+  UI.user_error!("no version. pass one as version:v4.15.0, or set ODR_VERSION") if version.to_s.empty?
+  version
+end
+
+# the same two-digits-per-part rule as app/build.gradle and scripts/store-listing.py
+def version_code(version)
+  parts = version.to_s.sub(/\Av/, "").split(".", -1)
+  unless parts.length == 3 && parts.all? { |part| part.match?(/\A\d+\z/) && part.to_i < 100 }
+    UI.user_error!("a version looks like 4.15.0 or v4.15.0, not '#{version}'")
+  end
+  parts[0].to_i * 10_000 + parts[1].to_i * 100 + parts[2].to_i
+end
+
+# Writes the tree supply uploads, and stops the run if any locale is missing its
+# release notes - which is why the release workflow calls the same script before
+# it builds, rather than finding out once both bundles are up.
+def stage_listing(flavor, version)
+  app = flavor.downcase
+  staged = File.join(STAGED_LISTING, app)
+
+  FileUtils.rm_rf(staged)
+  ok = system(
+    "python3", File.join(ROOT, "scripts", "store-listing.py"),
+    "--version", require_version(version),
+    "--stage", staged,
+    "--app", app
+  )
+  UI.user_error!("the #{app} listing could not be staged - see above") unless ok
+  staged
+end
+
 platform :android do
   desc "Build and upload the Pro version to Google Play"
   lane :deployPro do |options|
     buildBundle(flavor: "Pro", version: options[:version])
-    uploadBundle(flavor: "Pro", track: options[:track])
+    uploadBundle(flavor: "Pro", track: options[:track], version: options[:version])
   end
 
   desc "Build and upload the Lite version to Google Play"
   lane :deployLite do |options|
     buildBundle(flavor: "Lite", version: options[:version])
-    uploadBundle(flavor: "Lite", track: options[:track])
+    uploadBundle(flavor: "Lite", track: options[:track], version: options[:version])
   end
 
   desc "Upload an already built Pro bundle. Used by the release workflow, which builds " \
        "both flavors with gradle directly, in one job."
   lane :uploadPro do |options|
-    uploadBundle(flavor: "Pro", track: options[:track])
+    uploadBundle(flavor: "Pro", track: options[:track], version: options[:version])
   end
 
   desc "Upload an already built Lite bundle"
   lane :uploadLite do |options|
-    uploadBundle(flavor: "Lite", track: options[:track])
+    uploadBundle(flavor: "Lite", track: options[:track], version: options[:version])
+  end
+
+  desc "Upload the Pro listing on its own, without a bundle - to repair a typo, or a " \
+       "locale that came out wrong, without needing a version to carry it"
+  lane :listingPro do |options|
+    uploadListing(flavor: "Pro", track: options[:track], version: options[:version])
+  end
+
+  desc "Upload the Lite listing on its own, without a bundle"
+  lane :listingLite do |options|
+    uploadListing(flavor: "Lite", track: options[:track], version: options[:version])
   end
 
   lane :tests do
@@ -69,10 +126,29 @@ platform :android do
       json_key: ENV["ODR_PLAY_JSON_KEY"] ||
         CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file),
       aab: "app/build/outputs/bundle/#{variant}Release/app-#{variant}-release.aab",
-      skip_upload_metadata: true,
-      skip_upload_changelogs: true,
+      metadata_path: stage_listing(flavor, options[:version]),
+      # the graphics are not written down here - see fastlane/metadata/README.md
       skip_upload_images: true,
       skip_upload_screenshots: true
     )
   end
+
+  private_lane :uploadListing do |options|
+    flavor = options[:flavor]
+    version = require_version(options[:version])
+
+    upload_to_play_store(
+      track: options[:track] || DEFAULT_TRACK,
+      package_name: PACKAGE_NAMES.fetch(flavor),
+      json_key: ENV["ODR_PLAY_JSON_KEY"] ||
+        CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file),
+      metadata_path: stage_listing(flavor, version),
+      # without a bundle, supply has to be told which release the notes belong to
+      skip_upload_aab: true,
+      version_code: version_code(version),
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
 end

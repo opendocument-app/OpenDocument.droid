@@ -1,17 +1,37 @@
-<h1><b>OpenDocument Reader'ı kullanarak hareket halindeyken de OpenOffice veya LibreOffice ile oluşturulmuş belgeleri görüntüleyin ve değiştirin! 📄🚶</b></h1>
+<h2><b>LibreOffice veya OpenOffice ile oluşturulan belgeleri yolda görüntüleyin ve düzenleyin - belge okuyucu ve belge düzenleyici ile!</b></h2>📄🚶
 
-OpenDocument Reader, ODF* (OpenDocument Format) belgelerinizi nerede olursanız olun okuyabilmenizi sağlar. Otobüsle okula mı gidiyorsunuz? Sorun değil! OpenDocument Reader ile belgelerinizi çok temiz ve basit bir şekilde okuyabilir ve arayabilirsiniz. Belgenizde düzeltilecek son bir yazım hatası mı kaldı? Uygulama artık belgelerin değiştirilmesini de destekliyor! Hızlı, basit ve iyi entegre edilmiş.
+Dosya okuyucu ve belge düzenleyici, LibreOffice veya OpenOffice ile oluşturulmuş ODF (Open Document Format) belgelerini nerede olursanız olun açmanızı sağlar. Okula giden otobüstesiniz ve büyük sınavdan önce notlarınıza bakmak mı istiyorsunuz? Sorun değil! Belge okuyucu ile dosyalarınızı istediğiniz yerde açar, belgelerinizi sade ve basit bir şekilde okur ve içinde arama yaparsınız. Belgeyi iş arkadaşlarınıza göndermeden önce düzeltilecek son bir yazım hatası mı kaldı? Dosya düzenleyici artık belgelerde değişiklik yapmayı destekliyor! Hızlı, basit ve iyi entegre edilmiş.
 
-Belgelerinizi diğer uygulamalardan okumaya başlayabilirsiniz. Desteklenen uygulamalar arasında GMail, Google Drive, Box.net, Dropbox ve daha fazlası sayılabilir!
+LibreOffice veya OpenOffice ile oluşturduğunuz ODF dosyalarını (ODT, ODS ve daha fazlası) başka uygulamalardan da açabilirsiniz. Desteklenen uygulamalar arasında GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox ve daha pek çoğu bulunur! Ya da Android'in kendi dosya seçicisiyle cihazınızdaki bir belgeyi doğrudan açın.
 
-<h1><b>Tek bakışta tüm özellikler:</b></h1>
-- .odt, .ods ve .odp dosyalarını kolayca açma
-- Google Cloud Print'i kullanarak belge yazdırma
-- yazım hatalarını düzeltmek, cümleler eklemek vb. için temel belge düzenleme
-- tamamen çevrimdışı çalışabilme
-- küçük uygulama boyutu
-- Metin Okuma programı ile belgelerinizi sesli olarak okuma
+<b>HEPSİ BİR ARADA BELGE OKUYUCU VE BELGE DÜZENLEYİCİ</b> 📄
 
-* ODF, OpenOffice ve LibreOffice gibi ofis paketleri tarafından kullanılan formattır. Karmaşık biçimlendirme ve gömülü resimler için destek de dahil olmak üzere, metin belgeleri (.odt), elektronik tablolar (.ods) ve sunumlar (.odp) desteklenmektedir. Grafikler de sorun teşkil etmez. Verilerinizi korumak istiyorsanız parola korumalı belgeleri bile açabilirsiniz.
+➡️ODF dosyalarını zahmetsizce açın: ODT (Writer), ODS (Calc), ODP ve ODG
+➡️dosya düzenleyiciyle temel düzenleme: yazım hatalarını düzeltin, cümle ekleyin vb.
+➡️parola korumalı belgeleri güvenle açın
+➡️ODT (Writer), ODS (Calc) veya ODG dosyalarınızda anahtar kelime arayın ve vurgulayın
+➡️cihazınız bir yazıcıya bağlıysa belgeleri yazdırın
+➡️dikkat dağınıklığını önlemek için belgeleri tam ekranda okuyun
+➡️belgelerinizden metin seçin ve kopyalayın
+➡️internet bağlantısı olmadan da belgelerinizi kullanın - tamamen çevrimdışı
+➡️metin okuma teknolojisiyle belgelerinizi sesli dinleyin
 
-<small>Bu uygulama açık kaynaklıdır. OpenOffice, LibreOffice veya benzeri programlar ile herhangi bir bağlantımız yoktur. Avusturya'da üretilmiştir. Gıda ihtiyacımızı karşılamak için, bu uygulama içinde bazı reklamlar kullandık. Reklamlara karşı göstereceğiniz sabra minnettarız!</small>
+<b>BELGELERİNİZ HER YERDE YANINIZDA</b> 🚶
+
+Ayrıca belge okuyucu ve belge düzenleyici, diğer birçok dosya biçimini de olabildiğince iyi desteklemeyi amaçlar:
+- Portable Document Format (PDF)
+- Arşivler: ZIP
+- Görseller: JPG, JPEG, GIF, PNG, WEBP, TIFF, BMP, SVG vb.
+- Videolar: MP4, WEBM vb.
+- Ses: MP3, OGG vb.
+- Metin dosyaları: CSV, TXT, HTML, RTF
+- Microsoft Office (OOXML): Word (DOC, DOCX), Excel (XLS, XLSX), PowerPoint (PPT, PPTX)
+- Apple iWork: Pages, Numbers, Keynote
+- LibreOffice ve OpenOffice ODF (ODT, ODS, ODP, ODG)
+- PostScript (EPS)
+- AutoCAD (DXF)
+- Photoshop (PSD)
+
+Bu uygulama açık kaynaklıdır. OpenOffice, LibreOffice veya benzerleriyle bir bağlantımız yoktur. Made in Austria. Belgeleriniz kendi cihazınızda açılır ve hiçbir yere yüklenmez. ${ads} E-posta ile ilettiğiniz her türlü geri bildirimi çok değerli buluyoruz.
+
+ODF, OpenOffice ve LibreOffice gibi ofis paketlerinin kullandığı biçimdir. Metin belgeleri (Writer, ODT), hesap tabloları (Calc, ODS) ve sunumlar (Impress, ODP) desteklenir; dosya düzenleyiciyle karmaşık biçimlendirme ve gömülü görseller de desteklenir. Grafikler de sorun değildir. Verilerinizi güvende tutmak isterseniz parola korumalı belgeleri bile açabilirsiniz. Bu biçimi kullanan diğer uygulamalar: NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Collabora Office and 602Office.

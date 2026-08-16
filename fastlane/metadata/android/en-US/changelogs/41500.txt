@@ -1,0 +1,7 @@
+PDFs look much closer to the original: text at the right place and size, matching colours, trimmed pages, and more images. Some that opened blank now open properly.
+
+Documents use the fonts they ask for, so writing that was invisible on slides shows up.
+
+Documents built on a template keep their layout and margins, and images stay put.
+
+Large or awkward documents open instead of crashing.

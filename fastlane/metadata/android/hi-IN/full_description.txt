@@ -1,1 +1,37 @@
-<div><h1><b>आप राह चलते भी OpenDocument Reader का उपयोग कर सकते हैं और LibreOffice या OpenOffice के जरिये बनाए डॉक्यूमेंट्स को देख सकते हैं व संशोधित कर सकते हैं! 📄🚶</b></h1><br><br><b>चाहे आप कहीं भी हों, OpenDocument Reader आपको अपने उन ODF* (ओपन डॉक्यूमेंट फॉर्मेट) डॉक्यूमेंट्स को पढ़ने की सुविधा देता है</b> जिन्हें LibreOffice या OpenOffice के जरिये बनाया गया है। आपका कोई महत्वपूर्ण इम्तहान है और आप स्कूल जाते हुए बस में बैठे-बैठे नोट्स पर एक नजर डाल लेना चाहते हैं? तो कोई दिक्कत नहीं है! <b>OpenDocument Reader की मदद से आप अपने डॉक्यूमेंट्स में मनचाही चीज पढ़ व खोज सकते हैं, वह भी एकदम आसानी से व साफ-सुथरे रूप में।</b> डॉक्यूमेंट अपने साथियों को भेजने से ठीक पहले इसमें एक गड़बड़ी ठीक करने से रह गई दिख रही है? <b>OpenDocument Reader के जरिये अब आप डॉक्यूमेंट्स में सुधार भी कर सकते हैं!</b> झटपट, आसानी से और एकीकृत रूप में।<br><br>आप दूसरे ऐप्स के भीतर भी अपने डॉक्यूमेंट्स पढ़ना शुरू कर सकते हैं। सपोर्टेड ऐप्स में GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox और कई अन्य शामिल हैं! या, अपनी डिवाइस पर स्थानीय फाइलें खोलने के लिए, इसके बजाय हमारे इंटीग्रेटेड फाइल एक्सप्लोरर का भी इस्तेमाल कर सकते हैं।<br><br><h1><b>सभी फीचर्स एक झलक में:</b></h1><br>- बिना किसी झंझट के ODT, ODS, ODP और ODG फाइलें खोलें<br>- डॉक्यूमेंट में टाइपिंग की गड़बड़ियाँ ठीक करने, वाक्य जोड़ने आदि जैसी सामान्य एडिटिंग की सुविधा<br>- पासवर्ड-सुरक्षित डॉक्यूमेंट्स को सुरक्षित ढंग से खोलने की सुविधा<br>- आपके डॉक्यूमेंट में मौजूद कीवर्ड खोजना और उन्हें हाइलाइट करना<br>- डिवाइस के प्रिंटर से कनेक्ट होने पर डॉक्यूमेंट प्रिंट करना<br>- ध्यान भटकने से बचने के लिए अपने डॉक्यूमेंट को फुलस्क्रीन में पढ़ें<br>- अपने डॉक्यूमेंट्स से टेक्स्ट चुनकर कॉपी करें<br>- बिना इंटरनेट के भी अपने डॉक्यूमेंट पढ़ें - ऑफलाइन सुविधा<br>- टेक्स्ट-टू-स्पीच टेक्नोलॉजी के जरिये अपने डॉक्यूमेंट को सुनने की सुविधा<br><br>इसके साथ ही, OpenDocument Reader कई अन्य फाइल फॉर्मेट को भी, जहाँ तक संभव हो, सपोर्ट करता है, जैसे कि:<br>- पोर्टेबल डॉक्यूमेंट फॉर्मेट (PDF)<br>- आर्काइव: ZIP<br>- इमेज: JPG, JPEG, GIF, PNG, WEBP, TIFF, BMP, SVG आदि<br>- वीडियो: MP4, WEBM आदि<br>- ऑडियो: MP3, OGG आदि<br>- टेक्स्ट फाइलें: CSV, TXT, HTML, RTF<br>- Microsoft Office (OOXML): Word (DOC, DOCX), Excel (XLS, XLSX), PowerPoint (PPT, PPTX)<br>- Apple iWork: पेज, नंबर, की-नोट<br>- Libre Office और Open Office का OpenDocument फॉर्मेट: ODF* (ODT, ODS, ODP, ODG)<br>- PostScript (EPS)<br>- AutoCAD (DXF)<br>- Photoshop (PSD)<br><br>यह एक ओपन-सोर्स ऐप है। हम OpenOffice, LibreOffice या इस तरह की किसी अन्य सेवा से संबद्ध नहीं हैं। <b>ऑस्ट्रिया में निर्मित।</b> विज्ञापनों को इस ऐप के डेवलपमेंट में मदद के मकसद से दिखाया जाता है। उन्हें इन-ऐप मेन्यू में जाकर बिना किसी शुल्क के, अस्थायी रूप से हटाया जा सकता है। हम ईमेल के जरिये मिलने वाली किसी भी तरह की फीडबैक का स्वागत करते हैं।<br><br>* ODF (ओपन डॉक्यूमेंट फॉर्मेट) वह फॉर्मेट है जो Open Office और Libre Office जैसे ऑफिस सुइट द्वारा इस्तेमाल होता है। टेक्स्ट डॉक्यूमेंट (Writer, ODT) के साथ ही स्प्रेडशीट (Calc, ODS), प्रेजेंटेशन (Impress, ODP) को भी सपोर्ट किया जाता है। इसमें जटिल फॉर्मेटिंग और इम्बेडेड इमेज को भी सपोर्ट शामिल है। ग्राफ़ में भी कोई समस्या नहीं है। अगर आप अपने डेटा की सुरक्षा के लिए काफी सतर्क रहते हैं, तो आप पासवर्ड-सुरक्षित डॉक्यूमेंट भी खोल सकते हैं। इस फॉर्मेट को इस्तेमाल करने वाले अन्य ऐप्लिकेशन में LibreOffice, OpenOffice, NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Libre Office, Collabora Office और 602Office शामिल हैं।</div>
+<h2><b>डॉक्यूमेंट रीडर और डॉक्यूमेंट एडिटर के साथ LibreOffice या OpenOffice में बने दस्तावेज़ चलते-फिरते देखें और बदलें!</b></h2>📄🚶
+
+फ़ाइल रीडर और डॉक्यूमेंट एडिटर आपको LibreOffice या OpenOffice में बनाए गए ODF (Open Document Format) दस्तावेज़ कहीं भी खोलने देता है। स्कूल जाते हुए बस में हैं और बड़ी परीक्षा से पहले अपने नोट्स देखना चाहते हैं? कोई दिक्कत नहीं! डॉक्यूमेंट रीडर से आप फ़ाइलें कहीं भी खोल सकते हैं और अपने दस्तावेज़ साफ़-सुथरे और आसान तरीके से पढ़ व खोज सकते हैं। सहकर्मियों को दस्तावेज़ भेजने से पहले बस एक आख़िरी टाइपिंग ग़लती सुधारनी है? फ़ाइल एडिटर अब दस्तावेज़ों में बदलाव करने की सुविधा देता है! तेज़, आसान और बख़ूबी एकीकृत।
+
+LibreOffice या OpenOffice में बनाई गई ODF फ़ाइलें (ODT, ODS और कई अन्य) आप दूसरे ऐप्स से भी खोल सकते हैं। समर्थित ऐप्स में GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox और कई अन्य शामिल हैं! या फिर Android के अपने फ़ाइल पिकर से सीधे अपने डिवाइस का कोई दस्तावेज़ चुनें।
+
+<b>ऑल-इन-वन डॉक्यूमेंट रीडर और डॉक्यूमेंट एडिटर</b> 📄
+
+➡️ODF फ़ाइलें बिना झंझट खोलें: ODT (Writer), ODS (Calc), ODP और ODG
+➡️फ़ाइल एडिटर से दस्तावेज़ों का बुनियादी संपादन: टाइपिंग ग़लतियाँ सुधारें, वाक्य जोड़ें आदि
+➡️पासवर्ड से सुरक्षित दस्तावेज़ सुरक्षित रूप से खोलें
+➡️अपने ODT (Writer), ODS (Calc) या ODG में कीवर्ड खोजें और उन्हें हाइलाइट करें
+➡️यदि आपका डिवाइस प्रिंटर से जुड़ा है तो दस्तावेज़ प्रिंट करें
+➡️ध्यान भटकने से बचने के लिए दस्तावेज़ फ़ुलस्क्रीन में पढ़ें
+➡️अपने दस्तावेज़ों से टेक्स्ट चुनें और कॉपी करें
+➡️बिना इंटरनेट के भी अपने दस्तावेज़ों का आनंद लें - पूरी तरह ऑफ़लाइन
+➡️टेक्स्ट-टू-स्पीच तकनीक से अपने दस्तावेज़ ज़ोर से सुनें
+
+<b>दस्तावेज़ साथ लेकर चलें - जहाँ भी आप चाहें</b> 🚶
+
+इसके अलावा, डॉक्यूमेंट रीडर और डॉक्यूमेंट एडिटर कई अन्य फ़ाइल प्रारूपों को भी यथासंभव बेहतर ढंग से समर्थन देने का लक्ष्य रखता है:
+- Portable Document Format (PDF)
+- संग्रह: ZIP
+- चित्र: JPG, JPEG, GIF, PNG, WEBP, TIFF, BMP, SVG आदि
+- वीडियो: MP4, WEBM आदि
+- ऑडियो: MP3, OGG आदि
+- टेक्स्ट फ़ाइलें: CSV, TXT, HTML, RTF
+- Microsoft Office (OOXML): Word (DOC, DOCX), Excel (XLS, XLSX), PowerPoint (PPT, PPTX)
+- Apple iWork: Pages, Numbers, Keynote
+- LibreOffice और OpenOffice ODF (ODT, ODS, ODP, ODG)
+- PostScript (EPS)
+- AutoCAD (DXF)
+- Photoshop (PSD)
+
+यह ऐप ओपन सोर्स है। हम OpenOffice, LibreOffice या इनके जैसे किसी से संबद्ध नहीं हैं। Made in Austria. आपके दस्तावेज़ आपके अपने डिवाइस पर ही खुलते हैं और कहीं भी अपलोड नहीं किए जाते। ${ads} ई-मेल के ज़रिए मिलने वाली हर तरह की प्रतिक्रिया की हम बहुत क़द्र करते हैं।
+
+ODF वह प्रारूप है जिसका उपयोग OpenOffice और LibreOffice जैसे ऑफ़िस सुइट करते हैं। टेक्स्ट दस्तावेज़ (Writer, ODT), स्प्रेडशीट (Calc, ODS) और प्रस्तुतियाँ (Impress, ODP) समर्थित हैं, और फ़ाइल एडिटर के साथ जटिल फ़ॉर्मैटिंग तथा एम्बेडेड चित्र भी। ग्राफ़ भी कोई समस्या नहीं। अगर आप अपना डेटा सुरक्षित रखना चाहते हैं तो पासवर्ड से सुरक्षित दस्तावेज़ भी खोल सकते हैं। इस प्रारूप का उपयोग करने वाले अन्य ऐप्लिकेशन हैं NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Collabora Office and 602Office.

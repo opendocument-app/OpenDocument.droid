@@ -1,0 +1,7 @@
+PDF-id on originaalile palju lähemal: tekst on õiges kohas ja suuruses, värvid on õiged, lehed on kärbitud ja pilte on rohkem. Mõni varem tühjalt avanenud PDF avaneb nüüd korralikult.
+
+Dokumendid kasutavad neis määratud fonte, nii et slaididel varem nähtamatu tekst tuleb nähtavale.
+
+Mallil põhinevad dokumendid säilitavad paigutuse ja veerised ning pildid püsivad paigal.
+
+Suured või keerukad dokumendid avanevad, selle asemel et rakendus kokku jookseks.
