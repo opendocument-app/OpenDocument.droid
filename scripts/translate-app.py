@@ -18,8 +18,7 @@
 # same language then reads the whole file back against the English.
 #
 # There is no region qualifier: `values-de` answers for every German-speaking
-# region and nothing here differs by one. Crowdin used to write `values-de-rDE`
-# beside it and the two drifted apart; see git history.
+# region and nothing here differs by one.
 #
 # The values arrive as plain text and the escaping is put on here, so an agent
 # cannot write an apostrophe that stops the resource compiling.

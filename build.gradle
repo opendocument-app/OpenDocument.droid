@@ -27,7 +27,7 @@ spotless {
         // deliberately explicit: a '**/*.yml' style glob also matches generated
         // output under build/
         target '*.gradle', 'app/*.gradle', 'gradle/*.toml', '*.md', '.gitignore',
-                '.github/**/*.yml', 'crowdin.yml', '_config.yml', '*.sh',
+                '.github/**/*.yml', '_config.yml', '*.sh',
                 '.github/scripts/*', 'tools/**/*.sh', 'tools/**/*.py'
         targetExclude '**/build/**'
 

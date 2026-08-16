@@ -53,10 +53,8 @@ refuses to guess what it should be written in. A language the *store* is sold in
 in `LOCALES` in `scripts/store-listing.py`, which the release checks its directories
 against, so a listing that loses one fails rather than ships without it.
 
-This used to be on Crowdin. Nothing came back from it after September 2023 - two years
-before the redesign that added most of the app's current strings - so the app shipped
-with no language more than 58% translated. Corrections in a pull request are very
-welcome; a translated string is a translated string wherever it comes from.
+Corrections in a pull request are very welcome; a translated string is a translated
+string wherever it comes from.
 
 ## Setup
 
