@@ -25,6 +25,15 @@ directory, then the app's `all/`, then the app's own `<locale>/` - and the last
 one to hold a file wins. So a title that is the same in every language is one
 file, and a sentence that has to be translated is fifteen.
 
+The fifteen locales are named in `LOCALES` there, with the language each is
+written in, and the release checks the tree against that list: a directory gone
+missing fails it rather than quietly shrinking it, and so does one beside them the
+list does not name. A locale left with no title, short description or full
+description in any of the three passes fails it too - supply uploads what it is
+handed and leaves the rest of the console alone, so the missing one is not a blank
+listing but the old one still standing. Adding or dropping a language is a line
+changed in `LOCALES`.
+
 ## The two things the apps do not share
 
 **The title.** Play has served `OpenDocument Reader Pro` in every storefront for

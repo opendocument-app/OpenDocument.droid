@@ -62,25 +62,10 @@ SOURCE = "en-US"
 # there is no translation of it that fits at all.
 ENGLISH_BUDGET = 400
 
-# What each locale directory is asking to be written in. A locale with no name
-# here is refused rather than guessed at, since the guess would be uploaded.
-LANGUAGES = {
-    "cs-CZ": "Czech",
-    "de-DE": "German",
-    "en-US": "English",
-    "es-ES": "Spanish, as written in Spain",
-    "et": "Estonian",
-    "fr-FR": "French",
-    "hi-IN": "Hindi",
-    "it-IT": "Italian",
-    "ja-JP": "Japanese",
-    "pl-PL": "Polish",
-    "pt-BR": "Portuguese, as written in Brazil",
-    "ru-RU": "Russian",
-    "sv-SE": "Swedish",
-    "tr-TR": "Turkish",
-    "zh-CN": "Chinese, simplified",
-}
+# What each locale is asking to be written in comes from listing.LOCALES, which is
+# the same list the release checks the directories against - one place to add a
+# language, and no way to translate into one the release will not upload.
+LANGUAGES = listing.LOCALES
 
 APP = (
     "OpenDocument Reader, an Android app for reading and editing documents made "
@@ -357,15 +342,6 @@ def main(argv=None):
         known = listing.locales()
     except (OSError, ValueError) as reason:
         print(reason, file=sys.stderr)
-        return 1
-
-    unnamed = [locale for locale in known if locale not in LANGUAGES]
-    if unnamed:
-        print(
-            f"no language written down for {', '.join(unnamed)}: add it to LANGUAGES in "
-            f"{Path(__file__).name} rather than let an agent guess",
-            file=sys.stderr,
-        )
         return 1
 
     wanted = known

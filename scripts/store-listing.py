@@ -19,8 +19,10 @@
 # with nothing where the app has none.
 #
 # A release run checks before it builds, so a version missing a translation fails
-# in seconds rather than once both bundles are up. `scripts/store-copy.py` writes
-# the release notes this reads.
+# in seconds rather than once both bundles are up - as does a locale that is no
+# longer in the tree, or a listing with no title or description to put in it, both
+# of which would otherwise leave that storefront saying what it says today.
+# `scripts/store-copy.py` writes the release notes this reads.
 #
 # OpenDocument.ios has the same script against App Store Connect's shape.
 
@@ -39,6 +41,31 @@ METADATA = ROOT / "fastlane" / "metadata" / "android"
 APPS = ("pro", "lite")
 EVERY_LOCALE = "all"
 
+# The locales the listing is written in, and the language each is written in -
+# which `scripts/store-copy.py` hands to the translator, rather than guess at from
+# the directory name. Written down rather than read off the directories, because a
+# locale that lost its directory - or only its full_description.txt - would
+# otherwise drop out of the release without a word, and that storefront would go on
+# showing the listing of whatever version last reached it. Dropping a language is a
+# line deleted here.
+LOCALES = {
+    "cs-CZ": "Czech",
+    "de-DE": "German",
+    "en-US": "English",
+    "es-ES": "Spanish, as written in Spain",
+    "et": "Estonian",
+    "fr-FR": "French",
+    "hi-IN": "Hindi",
+    "it-IT": "Italian",
+    "ja-JP": "Japanese",
+    "pl-PL": "Polish",
+    "pt-BR": "Portuguese, as written in Brazil",
+    "ru-RU": "Russian",
+    "sv-SE": "Swedish",
+    "tr-TR": "Turkish",
+    "zh-CN": "Chinese, simplified",
+}
+
 # what play takes in one locale's "What's new". Far below the App Store's 4000, and
 # the English already sits at 497 - so a translation has less room than the English
 # used, not more, and saying so is the whole reason this is checked here.
@@ -53,6 +80,12 @@ LOCALISED = (
     "full_description.txt",
     "video.txt",
 )
+
+# Of those, what no layer may leave unsaid. Supply uploads what it is handed and
+# leaves the rest of the console alone, so a description missing here is not an
+# empty listing - it is the old one still standing, which is the arrangement this
+# replaces. `video.txt` is not required: a listing without a trailer is a listing.
+REQUIRED = ("title.txt", "short_description.txt", "full_description.txt")
 
 # Left behind deliberately, though supply would take them: `images/` holds the icon,
 # the feature graphic and four phone screenshots that predate the redesign, so
@@ -97,14 +130,37 @@ def version_code(version):
     return numbers[0] * 10000 + numbers[1] * 100 + numbers[2]
 
 
+def shown(path):
+    """A path as an error should read it: from the repository root where it is under it."""
+    return path.relative_to(ROOT) if path.is_relative_to(ROOT) else path
+
+
 def locales(metadata=METADATA):
-    """The locales the listing has, in order."""
-    found = sorted(
+    """The locales of LOCALES, once the tree has been checked against it.
+
+    A directory short of the list, or one beside it that the list does not name,
+    is an error either way round: the first would ship a storefront the old
+    listing, the second would leave a language written and never uploaded.
+    """
+    found = {
         d.name for d in metadata.iterdir() if (d / "full_description.txt").is_file()
-    )
-    if not found:
-        raise ValueError(f"{metadata} holds no locale directories")
-    return found
+    }
+    problems = [
+        f"{locale}: no {shown(metadata / locale / 'full_description.txt')}"
+        for locale in LOCALES
+        if locale not in found
+    ]
+    problems += [
+        f"{locale}: a locale LOCALES does not name - add it there with the "
+        "language it is written in, or delete the directory"
+        for locale in sorted(found - set(LOCALES))
+    ]
+    if problems:
+        raise ValueError(
+            f"the listing is not written in the locales {Path(__file__).name} "
+            "names:\n  " + "\n  ".join(problems)
+        )
+    return list(LOCALES)
 
 
 def copy_path(locale, code, metadata=METADATA):
@@ -159,7 +215,7 @@ def collect(code, metadata=METADATA):
 
     for locale in locales(metadata):
         path = copy_path(locale, code, metadata)
-        display = path.relative_to(ROOT) if path.is_relative_to(ROOT) else path
+        display = shown(path)
 
         if not path.is_file():
             problems.append(f"{locale}: no {display}")
@@ -190,6 +246,7 @@ def stage(texts, directory, code, app=None, metadata=METADATA):
         raise ValueError(f"no such app: {app} - one of {', '.join(APPS)}")
 
     oversized = []
+    unsaid = []
 
     def write(folder, name, text, places):
         text = fill_in(text, places, where=f"{folder.name}/{name}")
@@ -213,8 +270,21 @@ def stage(texts, directory, code, app=None, metadata=METADATA):
 
         for name in LOCALISED:
             text = read(name, places)
-            if text is not None:
-                write(folder, name, text, places)
+            if text is None:
+                if name in REQUIRED:
+                    unsaid.append(
+                        f"{locale}: no {name} in "
+                        + ", ".join(f"{shown(place)}/" for place in places)
+                    )
+                continue
+            write(folder, name, text, places)
+
+    if unsaid:
+        raise ValueError(
+            f"the {app} listing says nothing where it has to:\n  "
+            + "\n  ".join(unsaid)
+            + "\nPlay would keep what the console says today instead."
+        )
 
     if oversized:
         raise ValueError("play would refuse this listing:\n  " + "\n  ".join(oversized))

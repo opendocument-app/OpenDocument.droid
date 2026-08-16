@@ -49,7 +49,9 @@ scripts/store-listing.py --version v4.15.0   # check every locale has them
 There is one directory per language and no region qualifier: `values-de` answers for
 every German-speaking region and nothing here differs by one. A pull request adding a
 language adds it to `LANGUAGES` in `scripts/translate-app.py` too, or the next run
-refuses to guess what it should be written in.
+refuses to guess what it should be written in. A language the *store* is sold in goes
+in `LOCALES` in `scripts/store-listing.py`, which the release checks its directories
+against, so a listing that loses one fails rather than ships without it.
 
 This used to be on Crowdin. Nothing came back from it after September 2023 - two years
 before the redesign that added most of the app's current strings - so the app shipped
