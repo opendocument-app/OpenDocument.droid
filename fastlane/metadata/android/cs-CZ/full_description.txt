@@ -2,7 +2,7 @@
 
 Prohlížeč souborů a editor dokumentů vám umožní otevřít dokumenty ODF (Open Document Format) vytvořené v LibreOffice nebo OpenOffice, ať jste kdekoli. Jedete autobusem do školy a chcete se před velkou zkouškou podívat na poznámky? Žádný problém! S prohlížečem dokumentů otevřete soubory kdekoli a své dokumenty přehledně a jednoduše čtete i prohledáváte. Zbývá opravit poslední překlep, než dokument pošlete kolegům? Editor souborů nyní podporuje úpravy dokumentů! Rychle, jednoduše a dobře integrovaně.
 
-Soubory ODF (ODT, ODS a mnoho dalších) vytvořené v LibreOffice nebo OpenOffice můžete otevírat i z jiných aplikací. Mezi podporované aplikace patří GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox a řada dalších! Nebo použijte náš vestavěný správce souborů a otevřete soubory ve svém zařízení.
+Soubory ODF (ODT, ODS a mnoho dalších) vytvořené v LibreOffice nebo OpenOffice můžete otevírat i z jiných aplikací. Mezi podporované aplikace patří GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox a řada dalších! Nebo si vyberte dokument přímo ve svém zařízení pomocí výběru souborů systému Android.
 
 <b>PROHLÍŽEČ A EDITOR DOKUMENTŮ - VŠE V JEDNOM</b> 📄
 
@@ -32,6 +32,6 @@ Prohlížeč a editor dokumentů se navíc snaží co nejlépe podporovat i dal�
 - AutoCAD (DXF)
 - Photoshop (PSD)
 
-Tato aplikace je open source. Nejsme spojeni s OpenOffice, LibreOffice ani podobnými projekty. Made in Austria. Reklamy se zobrazují, aby podpořily vývoj této aplikace. Lze je dočasně a zdarma odstranit v nabídce aplikace. Velmi si vážíme jakékoli zpětné vazby zaslané e-mailem.
+Tato aplikace je open source. Nejsme spojeni s OpenOffice, LibreOffice ani podobnými projekty. Made in Austria. Vaše dokumenty se otevírají přímo ve vašem zařízení a nikdy se nikam nenahrávají. ${ads} Velmi si vážíme jakékoli zpětné vazby zaslané e-mailem.
 
 ODF je formát, který používají kancelářské balíky jako OpenOffice a LibreOffice. Podporovány jsou textové dokumenty (Writer, ODT), tabulky (Calc, ODS) i prezentace (Impress, ODP), a s editorem souborů také složité formátování a vložené obrázky. Ani grafy nejsou problém. Pokud chcete svá data zabezpečit, můžete otevírat i dokumenty chráněné heslem. Další aplikace, které tento formát používají, jsou NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Collabora Office and 602Office.

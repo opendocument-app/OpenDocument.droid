@@ -2,7 +2,7 @@
 
 Просмотрщик файлов и редактор документов позволяет открывать документы ODF (Open Document Format), созданные в LibreOffice или OpenOffice, где бы вы ни находились. Едете в автобусе в школу и хотите просмотреть конспект перед важным экзаменом? Не проблема! С просмотрщиком документов вы открываете файлы где угодно, читаете документы и ищете по ним - просто и удобно. Осталось исправить последнюю опечатку перед отправкой документа коллегам? Редактор файлов теперь поддерживает изменение документов! Быстро, просто и хорошо интегрировано.
 
-Файлы ODF (ODT, ODS и многие другие), созданные в LibreOffice или OpenOffice, можно открывать и из других приложений. Среди поддерживаемых приложений - GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox и многие другие! Или воспользуйтесь встроенным файловым менеджером, чтобы открыть файлы на устройстве.
+Файлы ODF (ODT, ODS и многие другие), созданные в LibreOffice или OpenOffice, можно открывать и из других приложений. Среди поддерживаемых приложений - GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox и многие другие! Или откройте документ прямо с устройства через системное окно выбора файлов Android.
 
 <b>ПРОСМОТРЩИК И РЕДАКТОР ДОКУМЕНТОВ - ВСЁ В ОДНОМ</b> 📄
 
@@ -32,6 +32,6 @@
 - AutoCAD (DXF)
 - Photoshop (PSD)
 
-Это приложение с открытым исходным кодом. Мы не связаны с OpenOffice, LibreOffice и подобными проектами. Made in Austria. Реклама показывается, чтобы поддержать разработку приложения. Её можно временно и бесплатно убрать через меню в приложении. Мы будем очень рады любым отзывам по электронной почте.
+Это приложение с открытым исходным кодом. Мы не связаны с OpenOffice, LibreOffice и подобными проектами. Made in Austria. Ваши документы открываются прямо на устройстве и никуда не отправляются. ${ads} Мы будем очень рады любым отзывам по электронной почте.
 
 ODF - формат, который используют офисные пакеты вроде OpenOffice и LibreOffice. Поддерживаются текстовые документы (Writer, ODT), таблицы (Calc, ODS) и презентации (Impress, ODP), а с редактором файлов - сложное форматирование и встроенные изображения. Диаграммы тоже не проблема. Если вы хотите защитить данные, можно открывать даже документы с паролем. Другие приложения, использующие этот формат: NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Collabora Office and 602Office.

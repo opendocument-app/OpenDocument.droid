@@ -2,7 +2,7 @@
 
 Faililugeja ja dokumendiredaktor võimaldab avada LibreOffice'i või OpenOffice'iga loodud ODF-dokumente (Open Document Format), ükskõik kus sa oled. Sõidad bussiga kooli ja tahad enne suurt eksamit oma märkmeid üle vaadata? Pole probleemi! Dokumendilugejaga avad faile seal, kus soovid, ning loed ja otsid oma dokumentidest selgelt ja lihtsalt. Kas dokumendis on jäänud parandada vaid viimane näpuviga, enne kui saadad selle kolleegidele? Failiredaktor toetab nüüd dokumentide muutmist! Kiire, lihtne ja hästi lõimitud.
 
-LibreOffice'i või OpenOffice'iga loodud ODF-faile (ODT, ODS ja palju muud) saad avada ka teistest rakendustest. Toetatud rakenduste hulka kuuluvad GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox ja paljud teised! Või kasuta seadmes olevate failide avamiseks meie sisseehitatud failihaldurit.
+LibreOffice'i või OpenOffice'iga loodud ODF-faile (ODT, ODS ja palju muud) saad avada ka teistest rakendustest. Toetatud rakenduste hulka kuuluvad GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox ja paljud teised! Või ava seadmes olev dokument otse Androidi enda failivalijaga.
 
 <b>KÕIK ÜHES DOKUMENDILUGEJA JA DOKUMENDIREDAKTOR</b> 📄
 
@@ -32,6 +32,6 @@ Lisaks püüab dokumendilugeja ja -redaktor toetada võimalikult hästi ka mitme
 - AutoCAD (DXF)
 - Photoshop (PSD)
 
-See rakendus on avatud lähtekoodiga. Me ei ole seotud OpenOffice'i, LibreOffice'i ega muu sarnasega. Made in Austria. Reklaame näidatakse selleks, et toetada selle rakenduse arendamist. Neid saab rakenduse menüüst ajutiselt ja tasuta eemaldada. Oleme väga tänulikud igasuguse tagasiside eest e-posti teel.
+See rakendus on avatud lähtekoodiga. Me ei ole seotud OpenOffice'i, LibreOffice'i ega muu sarnasega. Made in Austria. Sinu dokumendid avatakse sinu enda seadmes ja neid ei laadita kunagi kuhugi üles. ${ads} Oleme väga tänulikud igasuguse tagasiside eest e-posti teel.
 
 ODF on vorming, mida kasutavad kontoripaketid nagu OpenOffice ja LibreOffice. Toetatud on tekstidokumendid (Writer, ODT), arvutustabelid (Calc, ODS) ja esitlused (Impress, ODP) ning failiredaktoriga ka keeruline vormindus ja manustatud pildid. Ka diagrammid ei ole probleem. Kui soovid oma andmeid kaitsta, saad avada isegi parooliga kaitstud dokumente. Teised seda vormingut kasutavad rakendused on NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Collabora Office and 602Office.

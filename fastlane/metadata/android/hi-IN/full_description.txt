@@ -2,7 +2,7 @@
 
 फ़ाइल रीडर और डॉक्यूमेंट एडिटर आपको LibreOffice या OpenOffice में बनाए गए ODF (Open Document Format) दस्तावेज़ कहीं भी खोलने देता है। स्कूल जाते हुए बस में हैं और बड़ी परीक्षा से पहले अपने नोट्स देखना चाहते हैं? कोई दिक्कत नहीं! डॉक्यूमेंट रीडर से आप फ़ाइलें कहीं भी खोल सकते हैं और अपने दस्तावेज़ साफ़-सुथरे और आसान तरीके से पढ़ व खोज सकते हैं। सहकर्मियों को दस्तावेज़ भेजने से पहले बस एक आख़िरी टाइपिंग ग़लती सुधारनी है? फ़ाइल एडिटर अब दस्तावेज़ों में बदलाव करने की सुविधा देता है! तेज़, आसान और बख़ूबी एकीकृत।
 
-LibreOffice या OpenOffice में बनाई गई ODF फ़ाइलें (ODT, ODS और कई अन्य) आप दूसरे ऐप्स से भी खोल सकते हैं। समर्थित ऐप्स में GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox और कई अन्य शामिल हैं! या फिर अपने डिवाइस की फ़ाइलें खोलने के लिए हमारे अंतर्निहित फ़ाइल एक्सप्लोरर का उपयोग करें।
+LibreOffice या OpenOffice में बनाई गई ODF फ़ाइलें (ODT, ODS और कई अन्य) आप दूसरे ऐप्स से भी खोल सकते हैं। समर्थित ऐप्स में GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox और कई अन्य शामिल हैं! या फिर Android के अपने फ़ाइल पिकर से सीधे अपने डिवाइस का कोई दस्तावेज़ चुनें।
 
 <b>ऑल-इन-वन डॉक्यूमेंट रीडर और डॉक्यूमेंट एडिटर</b> 📄
 
@@ -32,6 +32,6 @@ LibreOffice या OpenOffice में बनाई गई ODF फ़ाइल�
 - AutoCAD (DXF)
 - Photoshop (PSD)
 
-यह ऐप ओपन सोर्स है। हम OpenOffice, LibreOffice या इनके जैसे किसी से संबद्ध नहीं हैं। Made in Austria. इस ऐप के विकास में सहयोग के लिए विज्ञापन दिखाए जाते हैं। इन्हें ऐप के मेन्यू से अस्थायी रूप से और निःशुल्क हटाया जा सकता है। ई-मेल के ज़रिए मिलने वाली हर तरह की प्रतिक्रिया की हम बहुत क़द्र करते हैं।
+यह ऐप ओपन सोर्स है। हम OpenOffice, LibreOffice या इनके जैसे किसी से संबद्ध नहीं हैं। Made in Austria. आपके दस्तावेज़ आपके अपने डिवाइस पर ही खुलते हैं और कहीं भी अपलोड नहीं किए जाते। ${ads} ई-मेल के ज़रिए मिलने वाली हर तरह की प्रतिक्रिया की हम बहुत क़द्र करते हैं।
 
 ODF वह प्रारूप है जिसका उपयोग OpenOffice और LibreOffice जैसे ऑफ़िस सुइट करते हैं। टेक्स्ट दस्तावेज़ (Writer, ODT), स्प्रेडशीट (Calc, ODS) और प्रस्तुतियाँ (Impress, ODP) समर्थित हैं, और फ़ाइल एडिटर के साथ जटिल फ़ॉर्मैटिंग तथा एम्बेडेड चित्र भी। ग्राफ़ भी कोई समस्या नहीं। अगर आप अपना डेटा सुरक्षित रखना चाहते हैं तो पासवर्ड से सुरक्षित दस्तावेज़ भी खोल सकते हैं। इस प्रारूप का उपयोग करने वाले अन्य ऐप्लिकेशन हैं NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Collabora Office and 602Office.

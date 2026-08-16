@@ -2,7 +2,7 @@
 
 The file reader & document editor allows you to open files like ODF (Open Document Format) documents created using LibreOffice or OpenOffice wherever you are. In the bus on your way to school wanting to look at your notes before the big exam? No problem! With the Document Reader you can open files wherever you like and read & search through your documents to go in a clean and simple way. Is there just one last typo left to fix in your document before sending it out to colleagues? The File Editor supports modification of documents now! Fast, simple and well integrated.
 
-You can open files from ODF (ODT, ODS & many more) that you have created with Libre Office or OpenOffice also from within other apps. Supported apps include GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox and lots of others! Or use our integrated file explorer instead to open files on your device.
+You can open files from ODF (ODT, ODS & many more) that you have created with Libre Office or OpenOffice also from within other apps. Supported apps include GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox and lots of others! Or pick a document straight off your device with Android's own file picker.
 
 <b>THE ALL IN ONE DOCUMENT READER AND DOCUMENT EDITOR</b> 📄
 
@@ -32,6 +32,6 @@ In addition to that, the document reader & document editor aims to support vario
 - AutoCAD (DXF)
 - Photoshop (PSD)
 
-This app is open source. We are not affiliated with OpenOffice, LibreOffice or similar. Made in Austria. Ads are shown in order to support the development of this app. They are free to remove temporarily via the in-app menu. We highly appreciate all kinds of feedback via email.
+This app is open source. We are not affiliated with OpenOffice, LibreOffice or similar. Made in Austria. Your documents are opened on your own device and are never uploaded anywhere. ${ads} We highly appreciate all kinds of feedback via email.
 
 ODF is the format used by office suites like Open Office and Libre Office. Text documents (Writer, ODT), as well as spreadsheets (Calc, ODS) and also presentations (Impress, ODP) are supported, including support with the file editor for complex formatting and embedded images. Graphs are no problem either. If you want to secure your data you can even open password-protected documents. Other applications that are using this format are NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Collabora Office and 602Office.

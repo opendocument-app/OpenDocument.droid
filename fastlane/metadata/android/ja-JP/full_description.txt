@@ -2,7 +2,7 @@
 
 ファイルリーダー＆ドキュメントエディターを使えば、LibreOffice や OpenOffice で作成した ODF (Open Document Format) 文書を、どこにいても開けます。学校へ向かうバスの中で、大事な試験の前にノートを見直したい？問題ありません！ドキュメントリーダーなら好きな場所でファイルを開き、すっきりとシンプルな方法で文書を読んだり検索したりできます。同僚に送る前に、あと一つだけ誤字を直したい？ファイルエディターが文書の編集に対応しました！速く、簡単で、しっかり統合されています。
 
-LibreOffice や OpenOffice で作成した ODF ファイル (ODT、ODS ほか多数) は、他のアプリからも開けます。対応アプリには GMail、Google ドライブ、iCloud、OneDrive、Nextcloud、Box.net、Dropbox などがあります！端末内のファイルは、内蔵のファイルエクスプローラーから開くこともできます。
+LibreOffice や OpenOffice で作成した ODF ファイル (ODT、ODS ほか多数) は、他のアプリからも開けます。対応アプリには GMail、Google ドライブ、iCloud、OneDrive、Nextcloud、Box.net、Dropbox などがあります！端末内のファイルは、Android 標準のファイル選択ツールから直接選んで開けます。
 
 <b>オールインワンのドキュメントリーダー＆ドキュメントエディター</b> 📄
 
@@ -32,6 +32,6 @@ LibreOffice や OpenOffice で作成した ODF ファイル (ODT、ODS ほか多
 - AutoCAD (DXF)
 - Photoshop (PSD)
 
-このアプリはオープンソースです。OpenOffice、LibreOffice などとは関係ありません。Made in Austria. このアプリの開発を支えるために広告を表示しています。広告はアプリ内のメニューから一時的に、無料で非表示にできます。メールでのご意見・ご感想はどんなものでも歓迎します。
+このアプリはオープンソースです。OpenOffice、LibreOffice などとは関係ありません。Made in Austria. ドキュメントはお使いの端末内で開かれ、どこにもアップロードされません。${ads}メールでのご意見・ご感想はどんなものでも歓迎します。
 
 ODF は OpenOffice や LibreOffice などのオフィススイートが使用する形式です。文書 (Writer、ODT)、表計算 (Calc、ODS)、プレゼンテーション (Impress、ODP) に対応し、ファイルエディターでは複雑な書式や埋め込み画像にも対応します。グラフも問題ありません。データを保護したい場合は、パスワード付きの文書も開けます。この形式を使用する他のアプリケーションには次のものがあります: NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Collabora Office and 602Office.

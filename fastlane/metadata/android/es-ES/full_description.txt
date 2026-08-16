@@ -2,7 +2,7 @@
 
 El lector de archivos y editor de documentos te permite abrir documentos ODF (Open Document Format) creados con LibreOffice u OpenOffice estés donde estés. ¿Vas en el autobús camino del colegio y quieres repasar tus apuntes antes del gran examen? ¡Ningún problema! Con el lector de documentos puedes abrir archivos donde quieras y leer y buscar en tus documentos de forma clara y sencilla. ¿Solo te queda por corregir una última errata antes de enviar el documento a tus compañeros? ¡El editor de archivos ya permite modificar documentos! Rápido, sencillo y bien integrado.
 
-También puedes abrir desde otras aplicaciones los archivos ODF (ODT, ODS y muchos más) que hayas creado con LibreOffice u OpenOffice. Entre las aplicaciones compatibles están GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox y muchas otras. O usa nuestro explorador de archivos integrado para abrir los archivos de tu dispositivo.
+También puedes abrir desde otras aplicaciones los archivos ODF (ODT, ODS y muchos más) que hayas creado con LibreOffice u OpenOffice. Entre las aplicaciones compatibles están GMail, Google Drive, iCloud, OneDrive, Nextcloud, Box.net, Dropbox y muchas otras. O elige un documento directamente de tu dispositivo con el selector de archivos de Android.
 
 <b>EL LECTOR Y EDITOR DE DOCUMENTOS TODO EN UNO</b> 📄
 
@@ -32,6 +32,6 @@ Además, el lector y editor de documentos aspira a admitir lo mejor posible otro
 - AutoCAD (DXF)
 - Photoshop (PSD)
 
-Esta aplicación es de código abierto. No estamos afiliados a OpenOffice, LibreOffice ni similares. Made in Austria. Se muestran anuncios para apoyar el desarrollo de la aplicación. Puedes quitarlos temporalmente y sin coste desde el menú de la aplicación. Agradecemos mucho cualquier comentario por correo electrónico.
+Esta aplicación es de código abierto. No estamos afiliados a OpenOffice, LibreOffice ni similares. Made in Austria. Tus documentos se abren en tu propio dispositivo y nunca se suben a ningún sitio. ${ads} Agradecemos mucho cualquier comentario por correo electrónico.
 
 ODF es el formato que usan suites ofimáticas como OpenOffice y LibreOffice. Se admiten documentos de texto (Writer, ODT), hojas de cálculo (Calc, ODS) y presentaciones (Impress, ODP), incluidos, con el editor de archivos, los formatos complejos y las imágenes incrustadas. Los gráficos tampoco son un problema. Si quieres proteger tus datos, incluso puedes abrir documentos protegidos con contraseña. Otras aplicaciones que usan este formato son NeoOffice, StarOffice, Go-oo, IBM Workplace, IBM Lotus Symphony, ChinaOffice, AndrOpen Office, Co-Create Office, EuroOffice, KaiOffice, Jambo OpenOffice, MagyarOffice, MultiMedia Office, MYOffice, NextOffice, OfficeOne, OfficeTLE, OOo4Kids, OpenOfficePL, OpenOfficeT7, OxOffice, OxygenOffice, Pladao Office, PlusOffice, RedOffice, RomanianOffice, SunShine Office, ThizOffice, UP Office, White Label Office, WPS Office Storm, Collabora Office and 602Office.
