@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="toast_error_generic">Произошла ошибка. Не удалось открыть файл.</string>
     <string name="toast_error_find_file">Не удалось найти файл. Возможно, его больше не существует?</string>
     <string name="toast_error_out_of_memory">Недостаточно памяти на телефоне! Слишком много изображений, или файл слишком большой.</string>
     <string name="toast_error_password_protected">Документ защищён паролем</string>
@@ -8,7 +7,7 @@
     <string name="menu_search">Поиск в документе</string>
     <string name="menu_edit">Редактировать документ</string>
     <string name="menu_remove_ads">Убрать рекламные объявления</string>
-    <string name="menu_fullscreen">Открыть в полноэкранном режиме</string>
+    <string name="menu_fullscreen">Полноэкранный режим</string>
     <string name="menu_cloud_print">Печать документа</string>
     <string name="menu_tts">Преобразование текста в речь</string>
     <string name="crouton_error_open_app">Не удалось открыть выбранное приложение.</string>

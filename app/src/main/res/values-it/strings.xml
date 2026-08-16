@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="toast_error_generic">Si è verificato un errore. Impossibile aprire il file.</string>
     <string name="toast_error_find_file">Impossibile trovare il file. Forse non esiste più?</string>
+    <string name="toast_error_illegal_file_reopen">Formato file non supportato. Prova ad aprirlo in un\'altra app.</string>
+    <string name="toast_hint_unsupported_file">Non sei soddisfatto di come viene visualizzato il documento? Aprilo in un\'altra app.</string>
+    <string name="toast_error_save_nofile">Nessun posto in cui salvare il file da scegliere.</string>
+    <string name="toast_error_save_failed">Impossibile salvare il file. Si prega di contattare support@opendocument.app</string>
     <string name="toast_error_out_of_memory">Memoria del telefono esaurita! Troppe immagini o file troppo grandi.</string>
     <string name="toast_error_password_protected">Il documento è protetto da password.</string>
     <string name="dialog_loading_title">Caricamento in corso…</string>
+    <string name="dialog_generic_loading_message">Si prega di attendere. Questo potrebbe richiedere alcuni minuti.</string>
     <string name="menu_search">Cerca nel documento</string>
+    <string name="menu_open_with">Apri con...</string>
+    <string name="menu_share">Condividi documento</string>
     <string name="menu_edit">Modifica documento</string>
     <string name="menu_remove_ads">Rimuovi pubblicità</string>
     <string name="menu_fullscreen">Apri in modalità schermo intero</string>
@@ -31,6 +37,10 @@
     <string name="tts_status_failed">TTS fallito.</string>
     <string name="tts_status_paused">In pausa.</string>
     <string name="tts_status_finished">Finito.</string>
+    <string name="toast_edit_status_saved">Documento salvato.</string>
     <string name="crouton_printing">Stampa…</string>
     <string name="crouton_remove_ads">Hai bisogno di più spazio da leggere? Rimuovi gli annunci gratuitamente tramite il menu.</string>
+    <string name="reopen_chooser_title">Apri usando un\'altra app installata sul tuo dispositivo:</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Annulla</string>
 </resources>

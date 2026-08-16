@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="toast_error_generic">Etwas Schlimmes ist passiert. Datei konnte nicht geöffnet werden.</string>
     <string name="toast_error_find_file">Datei konnte nicht gefunden werden.</string>
     <string name="toast_error_save_nofile">Kein Ort zum Speichern der Datei ausgewählt.</string>
     <string name="toast_error_save_failed">Datei konnte nicht gespeichert werden. Bitte kontaktiere support@opendocument.app</string>

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="toast_error_generic">Jest jakaś przeszkoda. Nie można otworzyć pliku.</string>
     <string name="toast_error_find_file">Nie można znaleźć pliku. Być może już nie istnieje?</string>
     <string name="toast_error_out_of_memory">Brak pamięci telefonu! Zbyt wiele zdjęć lub plik jest za duży.</string>
     <string name="toast_error_password_protected">Dokument zabezpieczony jest hasłem</string>

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="toast_error_generic">Der er gået noget galt. Filen kunne ikke åbnes.</string>
     <string name="toast_error_find_file">Kunne ikke finde filen. Måske eksisterer den ikke længere?</string>
     <string name="toast_error_out_of_memory">Enheden har ikke mere plads i hukommelsen. Filen er enten for stor eller indeholder for mange billeder.</string>
     <string name="toast_error_password_protected">Dokumentet er låst med et kodeord</string>

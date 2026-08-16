@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="toast_error_generic">Ha pasado algo malo. No se ha podido abrir el archivo.</string>
     <string name="toast_error_find_file">Ha sido imposible encontrar el archivo. ¿Seguro que no se ha eliminado?</string>
     <string name="toast_hint_unsupported_file">¿No está contento con cómo se muestra el archivo? Abrir en su lugar en otra aplicación.</string>
     <string name="toast_error_out_of_memory">¡El teléfono se ha quedado sin memoria! Hay demasiadas imágenes o el archivo es demasiado grande.</string>

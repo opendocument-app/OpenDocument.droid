@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="toast_error_generic">Něco se pokazilo. Nelze otevřít soubor.</string>
     <string name="toast_error_find_file">Soubor nebyl nalezen. Možná už neexistuje.</string>
     <string name="toast_error_out_of_memory">Nedostatek paměti v telefonu! Soubor je příliš velký, nebo obsahuje příliš mnoho obrázků.</string>
     <string name="toast_error_password_protected">Dokument je chráněn heslem</string>

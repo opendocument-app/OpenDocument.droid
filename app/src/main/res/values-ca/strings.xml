@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="toast_error_generic">Hi ha hagut un problema. No s\'ha pogut obrir el fitxer.</string>
     <string name="toast_error_find_file">No s\'ha pogut trobar el fitxer. És possible que ja no existeixi?</string>
     <string name="toast_error_out_of_memory">S\'ha esgotat la memòria del telèfon. Massa imatges o fitxer massa gran.</string>
     <string name="toast_error_password_protected">El document està protegit per contrasenya</string>

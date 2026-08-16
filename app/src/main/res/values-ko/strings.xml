@@ -1,2 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="toast_error_find_file">파일이 없어서 더 이상 찾을 수 없습니다. </string>
+    <string name="toast_error_illegal_file_reopen">지원하지 않는 파일입니다. 다른 앱에서 열어 보세요. </string>
+    <string name="toast_hint_unsupported_file">열린 파일이 제대로 보여지지 않습니까? 다른 앱에서 여시겠습니까?</string>
+    <string name="toast_error_save_nofile">선택한 파일을 저장할 위치가 없습니다.</string>
+    <string name="toast_error_save_failed">파일이 저장되지 않았습니다. support@opendocument.app 으로 문의하세요.</string>
+    <string name="toast_error_out_of_memory">메모리가 부족합니다! 사진이 너무 많거나 파일이 너무 큽니다.</string>
+    <string name="toast_error_password_protected">문서가 암호로 잠겨 있습니다.</string>
+    <string name="dialog_loading_title">로딩 중...</string>
+    <string name="dialog_generic_loading_message">잠시 기다려 주세요.</string>
+    <string name="menu_search">문서 검색</string>
+    <string name="menu_open_with">다른 앱으로 열기...</string>
+    <string name="menu_share">문서 공유</string>
+    <string name="menu_edit">문서 편집</string>
+    <string name="menu_remove_ads">광고 제거</string>
+    <string name="menu_fullscreen">전체 화면 모드</string>
+    <string name="menu_cloud_print">문서 인쇄</string>
+    <string name="menu_tts">텍스트 음성 변환 (TTS)</string>
+    <string name="crouton_error_open_app">선택한 앱을 열 수 없습니다.</string>
+    <string name="action_find_previous">이전</string>
+    <string name="action_find_next">다음</string>
+    <string name="action_find_on_page">페이지에서 찾기</string>
+    <string name="action_tts_play">재생</string>
+    <string name="action_tts_pause">중지</string>
+    <string name="action_tts_next">다음</string>
+    <string name="action_tts_previous">이전</string>
+    <string name="action_edit_save">저장</string>
+    <string name="action_edit_banner">문서를 수정하고, 아래에서 저장을 누르세요.</string>
+    <string name="landing_intro_open_all">이 앱은 삼성 \"My Files\"과 같은 앱을 지원하기 위해, 기본으로 모든 파일 포맷을 열게 등록되어 있습니다. 문제가 발생하면 이 기능을 끌 수 있습니다.</string>
+    <string name="landing_intro_view">OpenDocument Reader를 사용해서 어디서든 OpenDocument 포맷(.odt, .ods, .odp 및 .odg) 문서를 볼 수 있습니다. </string>
+    <string name="landing_intro_search">OpenDocument Reader를 사용해서 쉽게 문서를 찾고 열 수 있습니다. </string>
+    <string name="landing_intro_edit">중요한 프레젠테이션에서 수정할 오타가 하나 남았나요? 이제 수정도 지원합니다!</string>
+    <string name="tts_status_reading">읽는 중...</string>
+    <string name="tts_status_initializing">TTS 초기화 중...</string>
+    <string name="tts_status_ready">준비 완료!</string>
+    <string name="tts_status_failed">TTS를 실패했습니다.</string>
+    <string name="tts_status_paused">일시중지.</string>
+    <string name="tts_status_finished">종료.</string>
+    <string name="toast_edit_status_saved">문서 저장됨.</string>
+    <string name="crouton_printing">인쇄중...</string>
+    <string name="crouton_remove_ads">읽을 공간이 더 필요하신가요? 메뉴에서 무료로 광고를 제거하세요. </string>
+    <string name="reopen_chooser_title">기기에 설치된 다른 앱을 사용해서 열기: </string>
+    <string name="ok">확인</string>
+    <string name="cancel">취소</string>
+</resources>
