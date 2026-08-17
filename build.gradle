@@ -28,7 +28,8 @@ spotless {
         // output under build/
         target '*.gradle', 'app/*.gradle', 'gradle/*.toml', '*.md', '.gitignore',
                 '.github/**/*.yml', '_config.yml', '*.sh',
-                '.github/scripts/*', 'tools/**/*.sh', 'tools/**/*.py'
+                '.github/scripts/*', 'tools/**/*.sh', 'tools/**/*.py',
+                'scripts/*.py', 'fastlane/Fastfile', 'fastlane/**/*.md'
         targetExclude '**/build/**'
 
         trimTrailingWhitespace()

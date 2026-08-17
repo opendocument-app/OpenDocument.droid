@@ -21,6 +21,62 @@ ROOT = File.expand_path("..", __dir__).freeze
 # same thing, and the few places they differ are read over the shared text.
 STAGED_LISTING = File.join(ROOT, "fastlane", ".listing").freeze
 
+# The screenshots, which unlike the copy are not written down here: they are taken
+# during the release run, from the build going out, framed, and handed to supply
+# from there. A picture of the app is worth what the build it came off is worth.
+SCREENSHOT_DIR = File.join(ROOT, "fastlane", "screenshots").freeze
+FRAMED_DIR = File.join(ROOT, "fastlane", "framed").freeze
+
+MAKE_DOCUMENTS = File.join(ROOT, "scripts", "make-screenshot-documents.py").freeze
+FRAME_SCREENSHOTS = File.join(ROOT, "scripts", "frame-screenshots.py").freeze
+STORE_SCREENSHOTS = File.join(ROOT, "scripts", "store_screenshots.py").freeze
+
+# The devices the store keeps a set for. The name is written into every file the
+# capture run produces, so this is also what `store_screenshots.py` reads back.
+SCREENSHOT_DEVICES = %w[phone tablet].freeze
+
+# Where gradle leaves what the run wrote. The test writes into the directory
+# gradle hands it, and gradle copies that back off the device itself - before it
+# uninstalls the apks, which is the part that matters: an app's own storage goes
+# with it when it is uninstalled, so anything pulled by hand afterwards is gone.
+# The middle directory is named after whichever emulator answered, so it is
+# globbed rather than spelled.
+ADDITIONAL_OUTPUT = File.join(
+  ROOT, "app", "build", "outputs", "connected_android_test_additional_output",
+  "proDebugAndroidTest", "connected"
+).freeze
+
+# Which device this run is for. Both would need two emulators at once, so a run
+# says which one it is driving - the release gives each runner one.
+def screenshot_device
+  given = ENV["ODR_SCREENSHOT_DEVICE"].to_s.strip.downcase
+  return SCREENSHOT_DEVICES.first if given.empty?
+
+  unless SCREENSHOT_DEVICES.include?(given)
+    UI.user_error!("no such device: #{given}. One of #{SCREENSHOT_DEVICES.join(', ')}.")
+  end
+
+  given
+end
+
+# The locales to photograph. Every one the listing is written in, unless
+# ODR_SCREENSHOT_LANGUAGES names fewer - which is how to look at one language's
+# pictures without waiting out the other fourteen.
+def screenshot_languages
+  given = ENV["ODR_SCREENSHOT_LANGUAGES"].to_s.strip
+  return given.split(",").map(&:strip) unless given.empty?
+
+  sh("python3", STORE_SCREENSHOTS, "--languages", log: false).split("\n").map(&:strip).reject(&:empty?)
+end
+
+# Whether this run was asked for less than a full set, which is then not checked
+# against one: half a set is what it was asked for, and the release checks the
+# halves together once every runner has handed its own in.
+def screenshots_narrowed?
+  %w[ODR_SCREENSHOT_LANGUAGES ODR_SCREENSHOT_DEVICE]
+    .any? { |name| !ENV[name].to_s.strip.empty? }
+end
+
 def require_version(version)
   version = version || ENV["ODR_VERSION"]
   UI.user_error!("no version. pass one as version:v4.15.0, or set ODR_VERSION") if version.to_s.empty?
@@ -54,32 +110,60 @@ def stage_listing(flavor, version)
   staged
 end
 
+# Puts the framed screenshots into the same tree, under the `images/` directory
+# supply reads a locale's pictures from - so one directory is handed over and one
+# edit goes to play.
+#
+# A run with nothing captured writes the text alone, so fixing a word in a
+# description does not cost a quarter hour of emulators. A run with something
+# captured has to have all of it: half a set is worse in the store than the set
+# already up there, which is what the script checks before it copies anything.
+#
+# @return whether there were any, which is also what tells supply to replace what
+#   the store has rather than leave it alone.
+def stage_screenshots(staged)
+  captured = !Dir.glob(File.join(FRAMED_DIR, "*", "*.png")).empty?
+  unless captured
+    UI.important("no screenshots under #{FRAMED_DIR} - writing the listing text only")
+    return false
+  end
+
+  ok = system("python3", STORE_SCREENSHOTS, "--screenshots", FRAMED_DIR, "--stage", staged)
+  UI.user_error!("the screenshots could not be staged - see above") unless ok
+
+  true
+end
+
 platform :android do
-  desc "Build and upload the Pro version to Google Play"
+  # The whole of one flavor's release, which is what a hand run wants. The release
+  # workflow splits the two uploads across jobs instead - see uploadBundle.
+  desc "Build and upload the Pro version, and its listing, to Google Play"
   lane :deployPro do |options|
     buildBundle(flavor: "Pro", version: options[:version])
     uploadBundle(flavor: "Pro", track: options[:track], version: options[:version])
+    uploadListing(flavor: "Pro", track: options[:track], version: options[:version])
   end
 
-  desc "Build and upload the Lite version to Google Play"
+  desc "Build and upload the Lite version, and its listing, to Google Play"
   lane :deployLite do |options|
     buildBundle(flavor: "Lite", version: options[:version])
     uploadBundle(flavor: "Lite", track: options[:track], version: options[:version])
+    uploadListing(flavor: "Lite", track: options[:track], version: options[:version])
   end
 
-  desc "Upload an already built Pro bundle. Used by the release workflow, which builds " \
-       "both flavors with gradle directly, in one job."
+  desc "Upload an already built Pro bundle, without its listing. Used by the release " \
+       "workflow, which builds both flavors with gradle directly, in one job."
   lane :uploadPro do |options|
     uploadBundle(flavor: "Pro", track: options[:track], version: options[:version])
   end
 
-  desc "Upload an already built Lite bundle"
+  desc "Upload an already built Lite bundle, without its listing"
   lane :uploadLite do |options|
     uploadBundle(flavor: "Lite", track: options[:track], version: options[:version])
   end
 
-  desc "Upload the Pro listing on its own, without a bundle - to repair a typo, or a " \
-       "locale that came out wrong, without needing a version to carry it"
+  desc "Upload the Pro listing on its own, without a bundle - what the release does once " \
+       "the screenshots are in, and how a typo is repaired without a version to carry it"
   lane :listingPro do |options|
     uploadListing(flavor: "Pro", track: options[:track], version: options[:version])
   end
@@ -114,6 +198,10 @@ platform :android do
     )
   end
 
+  # The bundle alone. What the store says about it goes up separately, in
+  # uploadListing, so that a screenshot run that wedged an emulator costs the
+  # release its pictures and not its binary - and so a rejected word can be
+  # rewritten and pushed again without touching a bundle play refuses twice.
   private_lane :uploadBundle do |options|
     flavor = options[:flavor]
     variant = flavor.downcase
@@ -126,29 +214,101 @@ platform :android do
       json_key: ENV["ODR_PLAY_JSON_KEY"] ||
         CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file),
       aab: "app/build/outputs/bundle/#{variant}Release/app-#{variant}-release.aab",
-      metadata_path: stage_listing(flavor, options[:version]),
-      # the graphics are not written down here - see fastlane/metadata/README.md
+      # everything the listing job sends instead. left out here rather than sent
+      # twice: two edits saying the same thing is one edit too many
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
       skip_upload_images: true,
       skip_upload_screenshots: true
     )
   end
 
+  # What the store says about the app: the listing text, this version's release
+  # notes, and the screenshots a capture run left under fastlane/framed.
   private_lane :uploadListing do |options|
     flavor = options[:flavor]
     version = require_version(options[:version])
+
+    staged = stage_listing(flavor, version)
+    captured = stage_screenshots(staged)
 
     upload_to_play_store(
       track: options[:track] || DEFAULT_TRACK,
       package_name: PACKAGE_NAMES.fetch(flavor),
       json_key: ENV["ODR_PLAY_JSON_KEY"] ||
         CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file),
-      metadata_path: stage_listing(flavor, version),
+      metadata_path: staged,
       # without a bundle, supply has to be told which release the notes belong to
       skip_upload_aab: true,
       version_code: version_code(version),
+      # the icon and the feature graphic are still the pre-4.14 ones and are their
+      # own job - see fastlane/metadata/README.md. only the screenshots go up.
       skip_upload_images: true,
-      skip_upload_screenshots: true
+      skip_upload_screenshots: !captured
     )
+  end
+
+  desc "Take the play store screenshots of one device, in every locale the listing is written in"
+  lane :screenshots do
+    device = screenshot_device
+    languages = screenshot_languages
+
+    UI.message("photographing the #{device} in #{languages.join(', ')}")
+
+    # The documents in the pictures, written rather than committed: they are build
+    # output, and the only thing that opens them is the run below. Ahead of the
+    # build, because the test apk picks its assets up off the disk as it is
+    # packaged - a file written later lands in the next build, not this one.
+    sh("python3", MAKE_DOCUMENTS)
+
+    # Left over from an earlier run, and gradle only ever adds to it - a locale
+    # dropped from the list would otherwise still be in the set it hands over.
+    FileUtils.rm_rf(ADDITIONAL_OUTPUT)
+
+    # The Pro flavor: it links no ad sdk, so no consent form can come up in front
+    # of a picture. The two apps are the same app, and what differs - the banner
+    # Lite carries - is not in a screenshot either way, so one set of pictures
+    # goes to both listings.
+    gradle(
+      task: "connectedProDebugAndroidTest",
+      properties: {
+        "android.testInstrumentationRunnerArguments.class" =>
+          "app.opendocument.droid.test.ScreenshotTests",
+        "android.testInstrumentationRunnerArguments.device" => device,
+        "android.testInstrumentationRunnerArguments.locales" => languages.join(",")
+      }
+    )
+
+    taken = Dir.glob(File.join(ADDITIONAL_OUTPUT, "*", "screenshots", "*", "*.png"))
+    if taken.empty?
+      UI.user_error!(
+        "the run wrote no screenshots. A run that photographed nothing and still passed is a " \
+        "run that skipped the test - it needs one emulator on adb, running android 15 or newer."
+      )
+    end
+
+    FileUtils.mkdir_p(SCREENSHOT_DIR)
+    taken.each do |path|
+      locale = File.basename(File.dirname(path))
+      FileUtils.mkdir_p(File.join(SCREENSHOT_DIR, locale))
+      FileUtils.cp(path, File.join(SCREENSHOT_DIR, locale, File.basename(path)))
+    end
+
+    UI.message("took #{taken.length} screenshots")
+
+    # A raw capture is not what the store shows. The framing is separate from the
+    # photography so that changing a headline costs a second of Pillow rather than
+    # a quarter hour of emulators - rerun this script alone after an edit to
+    # fastlane/frames/frames.json.
+    sh("python3", FRAME_SCREENSHOTS)
+
+    # what came out is what the store would be given, so it is checked here rather
+    # than at upload time on the other side of the run
+    if screenshots_narrowed?
+      UI.important("#{device} in #{languages.join(', ')} is not a full set, so it is not checked")
+    else
+      sh("python3", STORE_SCREENSHOTS, "--screenshots", FRAMED_DIR)
+    end
   end
 
 end

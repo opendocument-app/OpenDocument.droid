@@ -1,0 +1,459 @@
+{
+  "_comment": [
+    "What the play store pictures show, and what they say in every language.",
+    "scripts/frame-screenshots.py draws them; see that file for the geometry.",
+    "",
+    "One entry per screen, in the order the store shows them, named as the",
+    "screenshot test writes them. `headline` is two lines: the first is set",
+    "light and the second bold, so each language picks its own break rather",
+    "than inheriting the English one.",
+    "",
+    "Fifteen locales, the ones scripts/store-listing.py names. Nunito sets",
+    "eleven of them; hi-IN, ja-JP and zh-CN are set in a system font, which is",
+    "the one thing frame-screenshots.py needs that is not in this directory."
+  ],
+  "font": "Nunito[wght].ttf",
+  "backgrounds": {
+    "orange": [
+      "#f4b663",
+      "#e8ad5e"
+    ],
+    "green": [
+      "#9fbc77",
+      "#94b46c"
+    ],
+    "blue": [
+      "#90acd6",
+      "#86a2cc"
+    ]
+  },
+  "chips": {
+    "odt": "#4bb3e8",
+    "ods": "#62bc77",
+    "odp": "#fca110",
+    "pdf": "#d63a2f",
+    "docx": "#3b7dd8",
+    "xlsx": "#3fa06a",
+    "pptx": "#e08a2e"
+  },
+  "screens": [
+    {
+      "name": "01-recents",
+      "background": "blue",
+      "chips": [
+        "odt",
+        "ods",
+        "odp"
+      ],
+      "headline": {
+        "cs-CZ": [
+          "Všechny vaše dokumenty,",
+          "kdekoli a kdykoli."
+        ],
+        "de-DE": [
+          "Alle Ihre Dokumente,",
+          "überall. jederzeit."
+        ],
+        "en-US": [
+          "All your documents,",
+          "anywhere. anytime."
+        ],
+        "es-ES": [
+          "Todos tus documentos,",
+          "donde y cuando quieras."
+        ],
+        "et": [
+          "Kõik teie dokumendid,",
+          "kõikjal ja alati."
+        ],
+        "fr-FR": [
+          "Tous vos documents,",
+          "partout, à tout moment."
+        ],
+        "hi-IN": [
+          "आपके सभी दस्तावेज़,",
+          "कहीं भी, कभी भी।"
+        ],
+        "it-IT": [
+          "Tutti i tuoi documenti,",
+          "sempre e ovunque."
+        ],
+        "ja-JP": [
+          "すべての書類を、",
+          "いつでも、どこでも。"
+        ],
+        "pl-PL": [
+          "Wszystkie dokumenty,",
+          "zawsze i wszędzie."
+        ],
+        "pt-BR": [
+          "Todos os seus documentos,",
+          "em qualquer lugar. sempre."
+        ],
+        "ru-RU": [
+          "Все ваши документы —",
+          "везде и всегда."
+        ],
+        "sv-SE": [
+          "Alla dina dokument,",
+          "var och när som helst."
+        ],
+        "tr-TR": [
+          "Tüm belgeleriniz,",
+          "her yerde. her zaman."
+        ],
+        "zh-CN": [
+          "你的所有文档，",
+          "随时随地打开。"
+        ]
+      }
+    },
+    {
+      "name": "02-text",
+      "background": "green",
+      "chips": [
+        "odt"
+      ],
+      "headline": {
+        "cs-CZ": [
+          "Textové dokumenty,",
+          "čtěte a vyhledávejte."
+        ],
+        "de-DE": [
+          "Textdokumente:",
+          "lesen und durchsuchen."
+        ],
+        "en-US": [
+          "Text documents,",
+          "read and searchable."
+        ],
+        "es-ES": [
+          "Documentos de texto,",
+          "léelos y búscalos."
+        ],
+        "et": [
+          "Tekstidokumendid,",
+          "loe ja otsi."
+        ],
+        "fr-FR": [
+          "Documents texte,",
+          "lecture et recherche."
+        ],
+        "hi-IN": [
+          "टेक्स्ट दस्तावेज़,",
+          "पढ़ें और खोजें।"
+        ],
+        "it-IT": [
+          "Documenti di testo,",
+          "da leggere e cercare."
+        ],
+        "ja-JP": [
+          "文書ファイルを",
+          "読んで、検索。"
+        ],
+        "pl-PL": [
+          "Dokumenty tekstowe,",
+          "czytaj i przeszukuj."
+        ],
+        "pt-BR": [
+          "Documentos de texto,",
+          "leia e pesquise."
+        ],
+        "ru-RU": [
+          "Текстовые документы —",
+          "чтение и поиск."
+        ],
+        "sv-SE": [
+          "Textdokument,",
+          "läs och sök."
+        ],
+        "tr-TR": [
+          "Metin belgeleri,",
+          "okuyun ve arayın."
+        ],
+        "zh-CN": [
+          "文本文档，",
+          "阅读并搜索。"
+        ]
+      }
+    },
+    {
+      "name": "03-sheet",
+      "background": "orange",
+      "chips": [
+        "ods"
+      ],
+      "headline": {
+        "cs-CZ": [
+          "Tabulky,",
+          "list po listu."
+        ],
+        "de-DE": [
+          "Tabellen,",
+          "Blatt für Blatt."
+        ],
+        "en-US": [
+          "Spreadsheets,",
+          "sheet by sheet."
+        ],
+        "es-ES": [
+          "Hojas de cálculo,",
+          "hoja por hoja."
+        ],
+        "et": [
+          "Arvutustabelid,",
+          "leht lehe haaval."
+        ],
+        "fr-FR": [
+          "Feuilles de calcul,",
+          "feuille par feuille."
+        ],
+        "hi-IN": [
+          "स्प्रेडशीट,",
+          "शीट दर शीट।"
+        ],
+        "it-IT": [
+          "Fogli di calcolo,",
+          "foglio per foglio."
+        ],
+        "ja-JP": [
+          "表計算ファイルも",
+          "シートごとに。"
+        ],
+        "pl-PL": [
+          "Arkusze kalkulacyjne,",
+          "arkusz po arkuszu."
+        ],
+        "pt-BR": [
+          "Planilhas,",
+          "aba por aba."
+        ],
+        "ru-RU": [
+          "Электронные таблицы,",
+          "лист за листом."
+        ],
+        "sv-SE": [
+          "Kalkylblad,",
+          "blad för blad."
+        ],
+        "tr-TR": [
+          "Hesap tabloları,",
+          "sayfa sayfa."
+        ],
+        "zh-CN": [
+          "电子表格，",
+          "逐张工作表查看。"
+        ]
+      }
+    },
+    {
+      "name": "04-edit",
+      "background": "blue",
+      "chips": [
+        "odt"
+      ],
+      "headline": {
+        "cs-CZ": [
+          "Překlep?",
+          "Opravte ho rovnou tady."
+        ],
+        "de-DE": [
+          "Ein Tippfehler?",
+          "Gleich hier korrigieren."
+        ],
+        "en-US": [
+          "Found a typo?",
+          "Fix it right here."
+        ],
+        "es-ES": [
+          "¿Una errata?",
+          "Corrígela aquí mismo."
+        ],
+        "et": [
+          "Näpuviga?",
+          "Paranda kohe siin."
+        ],
+        "fr-FR": [
+          "Une faute de frappe ?",
+          "Corrigez-la ici."
+        ],
+        "hi-IN": [
+          "कोई गलती मिली?",
+          "यहीं ठीक करें।"
+        ],
+        "it-IT": [
+          "Un refuso?",
+          "Correggilo qui."
+        ],
+        "ja-JP": [
+          "誤字を見つけた？",
+          "その場で直せます。"
+        ],
+        "pl-PL": [
+          "Literówka?",
+          "Popraw ją tutaj."
+        ],
+        "pt-BR": [
+          "Um erro de digitação?",
+          "Corrija aqui mesmo."
+        ],
+        "ru-RU": [
+          "Нашли опечатку?",
+          "Исправьте прямо здесь."
+        ],
+        "sv-SE": [
+          "Ett stavfel?",
+          "Rätta det här."
+        ],
+        "tr-TR": [
+          "Yazım hatası mı?",
+          "Hemen burada düzeltin."
+        ],
+        "zh-CN": [
+          "发现错别字？",
+          "就在这里改。"
+        ]
+      }
+    },
+    {
+      "name": "05-pdf",
+      "background": "green",
+      "chips": [
+        "pdf"
+      ],
+      "headline": {
+        "cs-CZ": [
+          "Otevřete jakékoli PDF",
+          "přímo v aplikaci."
+        ],
+        "de-DE": [
+          "Jedes PDF öffnen,",
+          "direkt in der App."
+        ],
+        "en-US": [
+          "Open any PDF,",
+          "right in the app."
+        ],
+        "es-ES": [
+          "Abre cualquier PDF,",
+          "sin salir de la app."
+        ],
+        "et": [
+          "Ava iga PDF",
+          "otse rakenduses."
+        ],
+        "fr-FR": [
+          "Tous vos PDF,",
+          "directement dans l'appli."
+        ],
+        "hi-IN": [
+          "कोई भी PDF खोलें,",
+          "ऐप में ही।"
+        ],
+        "it-IT": [
+          "Apri qualsiasi PDF,",
+          "direttamente nell'app."
+        ],
+        "ja-JP": [
+          "どんな PDF も",
+          "アプリの中で。"
+        ],
+        "pl-PL": [
+          "Otwórz dowolny PDF,",
+          "od razu w aplikacji."
+        ],
+        "pt-BR": [
+          "Abra qualquer PDF,",
+          "aqui mesmo no app."
+        ],
+        "ru-RU": [
+          "Любой PDF —",
+          "прямо в приложении."
+        ],
+        "sv-SE": [
+          "Öppna vilken PDF som helst,",
+          "direkt i appen."
+        ],
+        "tr-TR": [
+          "Her PDF'i açın,",
+          "doğrudan uygulamada."
+        ],
+        "zh-CN": [
+          "任何 PDF，",
+          "都能在应用里打开。"
+        ]
+      }
+    },
+    {
+      "name": "06-office",
+      "background": "orange",
+      "chips": [
+        "docx",
+        "xlsx",
+        "pptx"
+      ],
+      "headline": {
+        "cs-CZ": [
+          "I soubory Office:",
+          ".docx, .xlsx a .pptx."
+        ],
+        "de-DE": [
+          "Auch Office-Dateien:",
+          ".docx, .xlsx und .pptx."
+        ],
+        "en-US": [
+          "Office files too:",
+          ".docx, .xlsx and .pptx."
+        ],
+        "es-ES": [
+          "También archivos Office:",
+          ".docx, .xlsx y .pptx."
+        ],
+        "et": [
+          "Ka Office'i failid:",
+          ".docx, .xlsx ja .pptx."
+        ],
+        "fr-FR": [
+          "Les fichiers Office aussi :",
+          ".docx, .xlsx et .pptx."
+        ],
+        "hi-IN": [
+          "Office फ़ाइलें भी:",
+          ".docx, .xlsx और .pptx."
+        ],
+        "it-IT": [
+          "Anche i file Office:",
+          ".docx, .xlsx e .pptx."
+        ],
+        "ja-JP": [
+          "Office ファイルにも対応：",
+          ".docx、.xlsx、.pptx。"
+        ],
+        "pl-PL": [
+          "Także pliki Office:",
+          ".docx, .xlsx i .pptx."
+        ],
+        "pt-BR": [
+          "Arquivos do Office também:",
+          ".docx, .xlsx e .pptx."
+        ],
+        "ru-RU": [
+          "И файлы Office:",
+          ".docx, .xlsx и .pptx."
+        ],
+        "sv-SE": [
+          "Även Office-filer:",
+          ".docx, .xlsx och .pptx."
+        ],
+        "tr-TR": [
+          "Office dosyaları da:",
+          ".docx, .xlsx ve .pptx."
+        ],
+        "zh-CN": [
+          "Office 文件也行：",
+          ".docx、.xlsx 和 .pptx。"
+        ]
+      }
+    }
+  ]
+}
