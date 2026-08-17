@@ -80,14 +80,17 @@ class MainActivityTests {
         // Happens frequently on slow emulators.
         mainActivity.sendBroadcast(Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS))
 
+        // before the wait below, which can fail: tearDown releases unconditionally, and
+        // releasing what was never initialised would throw over that failure and skip the
+        // rest of the cleanup
+        Intents.init()
+
         // espresso picks its root by window focus and fails where it finds none, so wait for
         // focus here rather than in the first onView of a test
         Assert.assertTrue(
             "the activity never took window focus",
             waitForWindowFocus(mainActivity, WINDOW_FOCUS_TIMEOUT_MS),
         )
-
-        Intents.init()
     }
 
     @After
