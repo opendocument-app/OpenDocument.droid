@@ -15,6 +15,20 @@ version code per locale under `fastlane/metadata/android/<locale>/changelogs/`,
 written by `scripts/store-copy.py` before the release and uploaded by it. Play
 takes 500 characters, so not everything here reaches the store.
 
+## Unreleased
+
+- PDFs that do not carry their own fonts read properly: the words no longer
+  drift further right along each line, and Find lands on the word you looked for
+  rather than the one beside it. Bold and italic writing is drawn bold and
+  italic, instead of at the plain font's widths.
+- A PDF line that mixes fonts or sizes sits straight: subscripts and
+  superscripts land where the file puts them, and the text after a bullet stays
+  with the highlight that selects it.
+- Selecting or finding across words in a PDF covers the spaces between them
+  rather than leaving a sliver of white in every gap.
+- Tapping the text of a paged document reaches it, so selecting and copying work
+  where the page used to swallow the tap.
+
 ## 4.15.0
 
 - PDFs look much closer to the original: text sits at the right place and size,
