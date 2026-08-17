@@ -537,9 +537,14 @@ class MainActivity : AppCompatActivity() {
                 analyticsManager.report("menu_print")
 
                 documentFragment?.pageView?.let { pageView ->
-                    pageView.disableDarkening()
+                    // printing a dark page wastes ink, but the setting has to come back
+                    // afterwards or the rest of the document is read in light mode. only once
+                    // the job is over: the print framework reads the page well after print()
+                    val wasDark = pageView.isDarkeningAllowed
 
-                    printingManager.print(this, pageView)
+                    pageView.setDarkeningAllowed(false)
+
+                    printingManager.print(this, pageView) { pageView.setDarkeningAllowed(wasDark) }
                 }
             }
 
