@@ -67,18 +67,24 @@ LAYOUT = {
         "headline_size": 0.058,        # before it is shrunk to fit
         "headline_width": 0.86,        # what it is shrunk to fit inside
         "headline_leading": 1.06,
-        "screen_left": 0.285,
+        "screen_left": 0.308,
         "screen_top": 0.200,
-        "screen_width": 0.630,
+        "screen_width": 0.600,         # as wide as it may be; `foot` is the other limit
+        "foot": 0.036,                 # ground left under the device, of the height
         # A Pixel 9 Pro XL, from its published dimensions: a 1344px screen at
         # 486ppi is 70.2mm across a 76.6mm body, which leaves 3.2mm of aluminium
         # and black border on every side - half again what an iPhone carries -
         # and the display corner is a good deal tighter than Apple's.
-        "bezel": 0.0300,               # screen edge to the outside of the body
-        "rim": 0.60,                   # how much of that is the black border
-        "corner": 0.108,               # screen corner, of the screen's width
-        "hole": 0.050,                 # the front camera, of the screen's width
-        "hole_top": 0.030,
+        "bezel": 0.0268,               # screen edge to the outside of the body
+        # Of that, less than half is the black mask and the rest is the polished
+        # frame. Which way round this sits is most of whether the drawing reads
+        # as a current phone: at 0.60 the black dominated, the bright edge was a
+        # sliver, and the whole device looked like something from 2018.
+        "rim": 0.42,                   # how much of the bezel is the black border
+        "corner": 0.122,               # screen corner, of the screen's width
+        "corner_easing": 2.2,          # near a circular arc - see squircle()
+        "hole": 0.046,                 # the front camera, of the screen's width
+        "hole_top": 0.028,
         # Nothing at all on the left edge: a Pixel keeps both its keys on the
         # right, which is the one place this differs from the iPhone frame in a
         # way anybody would notice. The sim tray is drawn instead, low on the
@@ -155,9 +161,11 @@ LAYOUT = {
         "headline_size": 0.052,
         "headline_width": 0.80,
         "headline_leading": 1.06,
-        "screen_left": 0.230,
+        "screen_left": 0.235,
         "screen_top": 0.240,
-        "screen_width": 0.710,
+        "screen_width": 0.700,
+        "foot": 0.036,
+        "corner_easing": 2.2,
         # A Pixel Tablet: a 2560px screen at 276mm of body leaves about 14.5mm
         # of border on every side - four times the phone's, and the thing anyone
         # who has held one would name first. Its display corners are rounder
@@ -165,7 +173,9 @@ LAYOUT = {
         # that becomes the top in portrait, which this frame does not show. No
         # sim tray either: it is a wifi tablet.
         "bezel": 0.0470,
-        "rim": 0.78,
+        # the other way round from the phone: a tablet's border really is mostly
+        # black mask, with the frame a thin bright edge outside it
+        "rim": 0.86,
         "corner": 0.030,
         "buttons": [],
         "chip_top": 0.430,
@@ -197,7 +207,11 @@ LAYOUT = {
 # The device, which is drawn rather than photographed. The rim is read across the
 # body's width: bright where the edge turns towards the light, dark on the flat.
 BODY = "#08080a"
-RIM = ("#c9c9cf", "#6f7076", "#8e8f95", "#7c7d83", "#6a6b71", "#b6b7bd")
+# How warm the frame is, as a multiplier per channel. Apple's titanium is neutral
+# to cold; a Pixel's aluminium is a warm grey, and reading the two side by side
+# that tint is most of what separates them at a glance. Small on purpose - past
+# about a twentieth it stops being aluminium and starts being gold.
+ALUMINIUM = (1.035, 1.0, 0.955)
 # The metal the keys wear. They read as a step in the edge rather than as marks
 # on it, which is what they are.
 BUTTON = ("#d8d8d6", "#a9a9a7", "#c4c4c2")
@@ -414,13 +428,19 @@ def dashed(canvas, points, stroke, on, off, colour=(255, 255, 255, 255), phase=0
         draw.line(run, fill=colour, width=width, joint="curve")
 
 
-def squircle(box, radius, exponent=5.0, per_corner=40):
+def squircle(box, radius, exponent=2.2, per_corner=40):
     """A rounded rectangle whose corners are superellipse quadrants.
 
-    Apple's corners are a continuous curve rather than a circular arc: the
-    curvature eases into the straight edge instead of starting at full bend. A
-    circle reads as an Android phone, or as a 2015 one. Exponent 5 is close
-    enough that nobody looks twice.
+    The exponent is what shape of phone this is. Apple's corner is a continuous
+    curve - the curvature eases into the straight edge instead of starting at
+    full bend - and it takes an exponent around 5. A Pixel's is very close to a
+    circular arc, which is 2, and the difference is not subtle at this size: 5
+    is the single thing that made the first version of this frame read as an
+    iPhone with the logo filed off.
+
+    2.2 rather than a flat 2: a touch of easing is what the glass actually does
+    where it meets the frame, and a mathematically exact circle reads as a
+    render rather than as a photograph.
     """
     x0, y0, x1, y1 = box
     r = min(radius, (x1 - x0) / 2, (y1 - y0) / 2)
@@ -475,22 +495,27 @@ def stencil(size, points, supersample=3):
 def chamfer(share):
     """The metal's colour that far across the band, outside edge to black.
 
-    Read off Apple's own bezel: the edge is turned, so it comes in at a middling
-    grey, climbs to a highlight about two thirds of the way in and falls away
-    again. Lit along its length like this it reads as a rolled edge; filled
-    flat, as a grey stripe.
+    A Pixel Pro's frame is polished aluminium, near enough a mirror, and that is
+    a different thing from the turned titanium this was first drawn as. Brushed
+    metal climbs to one broad highlight two thirds of the way in; a polished one
+    throws a narrow specular right at the outer edge, drops away hard behind it,
+    and picks up a second, weaker sheen where the flat turns down to the glass.
+
+    So: bright at the very edge, a trough, a lesser highlight, and dark where it
+    meets the black surround. Filled flat instead, it is a grey stripe, and with
+    the brushed ramp it is somebody else's phone.
     """
-    stops = ((0.00, 109), (0.19, 157), (0.40, 190), (0.64, 235), (0.79, 195), (1.00, 120))
+    stops = ((0.00, 150), (0.10, 240), (0.22, 208), (0.42, 138), (0.66, 192), (0.85, 164), (1.00, 96))
     place = bisect.bisect_right([at for at, _ in stops], share)
     if place == 0:
-        return (stops[0][1],) * 3
-    if place == len(stops):
-        return (stops[-1][1],) * 3
+        level = stops[0][1]
+    elif place == len(stops):
+        level = stops[-1][1]
+    else:
+        (before, low), (after, high) = stops[place - 1], stops[place]
+        level = low + (high - low) * (share - before) / (after - before)
 
-    (before, low), (after, high) = stops[place - 1], stops[place]
-    level = round(low + (high - low) * (share - before) / (after - before))
-
-    return (level,) * 3
+    return tuple(min(255, round(level * warm)) for warm in ALUMINIUM)
 
 
 def brushed(size, colours):
@@ -540,13 +565,26 @@ def device_body(canvas, shot, layout):
     against each other without the ground showing through the seams.
     """
     width, height = canvas.size
-    screen_width = layout["screen_width"] * width
-    screen_height = screen_width * shot.height / shot.width
-    left, top = layout["screen_left"] * width, layout["screen_top"] * height
-    screen = (left, top, left + screen_width, top + screen_height)
-
     bezel = layout["bezel"] * width          # screen edge to the outside of the body
     rim = bezel * layout["rim"]              # how much of that is metal
+
+    left, top = layout["screen_left"] * width, layout["screen_top"] * height
+
+    # How big the device comes out is the taller of two limits rather than one
+    # fraction: `screen_width` is as wide as it may be, and `foot` is how much
+    # ground has to be left under it. Sized by the fraction alone, a device a
+    # little taller than the one the number was picked for runs its bottom rim
+    # off the canvas, and a device a little shorter leaves a stripe of ground -
+    # neither of which is a decision anybody made.
+    #
+    # Which is what "almost touching" was: 18 pixels of the body past the foot
+    # of the canvas, against 79 down the right hand side. Off the edge is a
+    # composition; a hair short of it is a mistake.
+    standing = (height - layout["foot"] * height) - top - bezel
+    screen_width = min(layout["screen_width"] * width, standing * shot.width / shot.height)
+    screen_height = screen_width * shot.height / shot.width
+
+    screen = (left, top, left + screen_width, top + screen_height)
     corner = layout["corner"] * screen_width
 
     body = (screen[0] - bezel, screen[1] - bezel, screen[2] + bezel, screen[3] + bezel)
@@ -591,7 +629,7 @@ def device_body(canvas, shot, layout):
     # Every edge is the screen's own outline moved out, so the black border and
     # the metal around it are the same width the whole way round - which is what
     # they are on the device, and not what a bigger squircle would give.
-    face = squircle(here(screen), corner)
+    face = squircle(here(screen), corner, layout["corner_easing"])
     outline = outset(face, bezel)
 
     # The metal, lit across the band's own width rather than the body's: the
