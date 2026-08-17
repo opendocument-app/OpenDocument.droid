@@ -80,7 +80,17 @@ class MainActivityTests {
         // Happens frequently on slow emulators.
         mainActivity.sendBroadcast(Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS))
 
+        // before the wait below, which can fail: tearDown releases unconditionally, and
+        // releasing what was never initialised would throw over that failure and skip the
+        // rest of the cleanup
         Intents.init()
+
+        // espresso picks its root by window focus and fails where it finds none, so wait for
+        // focus here rather than in the first onView of a test
+        Assert.assertTrue(
+            "the activity never took window focus",
+            waitForWindowFocus(mainActivity, WINDOW_FOCUS_TIMEOUT_MS),
+        )
     }
 
     @After
@@ -171,6 +181,8 @@ class MainActivityTests {
         val testFileUri = uriOf(requireTestFile("corrupt.odt"))
         InstrumentationRegistry.getInstrumentation().runOnMainSync { activity.loadUri(testFileUri) }
 
+        awaitViewWithText(R.string.dialog_broken_file)
+
         onView(withText(R.string.dialog_broken_file)).check(matches(isDisplayed()))
         onView(withText(R.string.action_contact)).check(matches(isDisplayed()))
     }
@@ -197,6 +209,9 @@ class MainActivityTests {
             "the page that failed was not given up on",
             waitFor(10000) { documentFragment.lastDocument == null },
         )
+
+        // the dialog is a step after the document was given up on, so the wait above is not it
+        awaitViewWithText(R.string.dialog_broken_file)
 
         onView(withText(R.string.dialog_broken_file)).check(matches(isDisplayed()))
         onView(withText(R.string.action_contact)).check(matches(isDisplayed()))
@@ -391,6 +406,34 @@ class MainActivityTests {
         return false
     }
 
+    private fun waitForWindowFocus(activity: Activity, timeoutMs: Long): Boolean =
+        waitFor(timeoutMs) {
+            val focused = AtomicReference(false)
+            InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                focused.set(activity.window.decorView.hasWindowFocus())
+            }
+            focused.get()
+        }
+
+    /**
+     * Espresso matches once, and the broken-file dialog goes up after the idling resource is idle,
+     * so it has to be polled for. A timeout falls through to the caller's assertion, which reports
+     * better than a deadline.
+     */
+    private fun awaitViewWithText(textId: Int, timeoutMs: Long = DIALOG_TIMEOUT_MS) {
+        waitFor(timeoutMs) {
+            try {
+                onView(withText(textId)).check(matches(isDisplayed()))
+                true
+            } catch (e: RuntimeException) {
+                // no matching view yet, or no root focused yet - both mean "not up"
+                false
+            } catch (e: AssertionError) {
+                false
+            }
+        }
+    }
+
     private fun waitForDocumentFragment(
         activity: MainActivity,
         timeoutMs: Long,
@@ -458,7 +501,7 @@ class MainActivityTests {
                 " ' bodyLength=' + html.length + ' bodyEditable=' + !!(b && b.isContentEditable) +" +
                 " ' editableNodes=' + document.querySelectorAll('[contenteditable]').length +" +
                 " ' odr=' + (typeof odr);})()",
-        ) ?: "no result"
+        ) ?: "webview did not answer in ${JS_ANSWER_TIMEOUT_MS}ms"
 
     /**
      * What the loader published, fetched over http the way the webview fetches it: a document the
@@ -516,6 +559,10 @@ class MainActivityTests {
         return "true".equals(result.replace("\"", ""), ignoreCase = true)
     }
 
+    /**
+     * Null when the webview did not answer in time, which is not itself a failure: the caller's
+     * poll owns the deadline and asks again.
+     */
     private fun evaluateJavascript(pageView: PageView, script: String): String? {
         val result = AtomicReference<String>()
         val latch = CountDownLatch(1)
@@ -525,8 +572,8 @@ class MainActivityTests {
                 latch.countDown()
             }
         }
-        if (!latch.await(10, TimeUnit.SECONDS)) {
-            Assert.fail("Timed out waiting for JS evaluation result")
+        if (!latch.await(JS_ANSWER_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+            return null
         }
         return result.get()
     }
@@ -544,6 +591,13 @@ class MainActivityTests {
         // a cold CI emulator needs more than the 10s this used to wait. more than 30s does not
         // help: what still failed at 60s was the core server failing to bind its port
         private const val EDIT_MODE_TIMEOUT_MS = 30000L
+
+        // one round trip to the webview, not the state the test waits for: the poll owns that
+        private const val JS_ANSWER_TIMEOUT_MS = 10000L
+
+        private const val WINDOW_FOCUS_TIMEOUT_MS = 10000L
+
+        private const val DIALOG_TIMEOUT_MS = 10000L
 
         private val testFiles = mutableMapOf<String, File>()
 
