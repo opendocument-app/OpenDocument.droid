@@ -115,7 +115,8 @@ class DarkModeTests {
     @Test
     fun theDrawnPageIsDark() {
         Assume.assumeTrue(
-            "this webview has no darkening api at all - nothing the app sets could reach it",
+            "this webview cannot darken a page - nothing the app sets could reach it. " +
+                "${darkeningDiagnosis()}",
             canDarken(),
         )
 
@@ -141,7 +142,8 @@ class DarkModeTests {
     @Test
     fun theSwitchDarkensADayModeApp() {
         Assume.assumeTrue(
-            "this webview has no darkening api at all - nothing the app sets could reach it",
+            "this webview cannot darken a page - nothing the app sets could reach it. " +
+                "${darkeningDiagnosis()}",
             canDarken(),
         )
         Assume.assumeFalse(
@@ -253,9 +255,32 @@ class DarkModeTests {
             "allowed=${pageView?.isDarkeningAllowed}, setting=${pageView?.let(::darkeningSetting)}"
     }
 
+    /**
+     * Whether this webview can darken a page at all, which is not the same as its saying it can.
+     *
+     * The api 29 image ships webview 74, which reports `FORCE_DARK` supported, takes the setting
+     * and hands it straight back - and draws the page exactly as light as it was. Force dark is
+     * only implemented from 76. What the app does there is still asserted, through
+     * [darkeningSetting]; it is the screen that cannot be asked, so the two tests that read pixels
+     * skip instead of failing for a webview that was never going to darken.
+     *
+     * An unreadable version counts as capable: a missed skip is a failure to look at, a skip taken
+     * by mistake is coverage quietly lost.
+     */
     private fun canDarken() =
         WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING) ||
-            WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)
+            (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) &&
+                webViewMajorVersion() >= FORCE_DARK_MIN_WEBVIEW)
+
+    private fun webViewMajorVersion(): Int =
+        try {
+            WebViewCompat.getCurrentWebViewPackage(targetContext())
+                ?.versionName
+                ?.substringBefore('.')
+                ?.toIntOrNull() ?: Int.MAX_VALUE
+        } catch (t: Throwable) {
+            Int.MAX_VALUE
+        }
 
     /**
      * What the middle of the screen draws, averaged - 0 is black and 255 white.
@@ -399,6 +424,9 @@ class DarkModeTests {
 
     private companion object {
         /** Below this the page is dark rather than the white a document is authored on. */
+        /** Force dark landed in this one; 74, which api 29 ships, takes the setting and lies. */
+        private const val FORCE_DARK_MIN_WEBVIEW = 76
+
         private const val DARK_LUMINANCE = 128
 
         private const val WHITE = 255
