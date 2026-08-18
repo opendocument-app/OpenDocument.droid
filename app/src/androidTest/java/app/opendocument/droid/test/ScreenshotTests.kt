@@ -9,6 +9,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.LocaleList
+import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import android.view.View
 import android.view.ViewGroup
@@ -753,11 +754,24 @@ class ScreenshotTests {
         private fun argument(name: String): String? =
             InstrumentationRegistry.getArguments().getString(name)
 
+        /**
+         * Runs a shell command and waits for it to have finished.
+         *
+         * Waits by reading: the pipe reaches its end when the command exits, and closing it unread
+         * instead returns in a handful of milliseconds whatever the command was doing - five,
+         * measured, for a `sleep 2`. Which is how the store set came back with a status bar reading
+         * the real time: `demo enter` landed and the six commands after it, the clock and the
+         * battery among them, were fired into a device already busy with the next one. `am
+         * broadcast` answers `Broadcast completed` once its receiver has run, so waiting for it is
+         * also what puts them in order.
+         */
         private fun shell(command: String) {
-            InstrumentationRegistry.getInstrumentation()
-                .uiAutomation
-                .executeShellCommand(command)
-                .use { /* the command runs whether or not anything reads its output */ }
+            val pipe =
+                InstrumentationRegistry.getInstrumentation()
+                    .uiAutomation
+                    .executeShellCommand(command)
+
+            ParcelFileDescriptor.AutoCloseInputStream(pipe).use { it.readBytes() }
         }
 
         /**
