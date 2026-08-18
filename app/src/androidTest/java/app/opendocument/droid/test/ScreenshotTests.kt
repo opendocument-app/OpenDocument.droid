@@ -1,5 +1,6 @@
 package app.opendocument.droid.test
 
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.Instrumentation
 import android.app.LocaleManager
 import android.content.Context
@@ -11,6 +12,8 @@ import android.os.LocaleList
 import android.os.SystemClock
 import android.view.View
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityWindowInfo
 import android.widget.EditText
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
@@ -228,6 +231,8 @@ class ScreenshotTests {
                 waitFor(KEYBOARD_TIMEOUT_MS) { keyboardIsUp(activity.window.decorView) }
             },
         )
+
+        sendAwayWhatTheKeyboardIsAsking(activity)
 
         // the keyboard slides in, and a picture taken while it is halfway up is a picture of a
         // keyboard halfway up
@@ -475,6 +480,63 @@ class ScreenshotTests {
         return if (latch.await(JS_ANSWER_TIMEOUT_MS, TimeUnit.MILLISECONDS)) result.get() else null
     }
 
+    /**
+     * Sends away whatever the keyboard has put over itself before it is photographed.
+     *
+     * Asked for a language it has no layout for, gboard covers its own keys with a picker - two
+     * layouts to choose between, `Skip` and `Next` - and the picture comes out of a keyboard being
+     * set up rather than of a document being edited. Japanese is the one that asks; a language
+     * whose layout is not in question never does.
+     *
+     * What is looked for is the *class*: a key is a `FrameLayout` carrying a description, while
+     * what these put up is a real `Button` with a word on it. So there is no list of buttons per
+     * language here, and the next thing gboard decides to ask is dismissed by the same code.
+     */
+    private fun sendAwayWhatTheKeyboardIsAsking(activity: MainActivity) {
+        repeat(SETUP_ASKS) {
+            val asking = buttonOverTheKeyboard() ?: return
+
+            // the first of them, which is the way out: `Skip` sits left of `Next`, and a picker
+            // that answers `Next` instead only comes back with the next thing it wants to know
+            instrumentation.runOnMainSync {
+                asking.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+            }
+            settle()
+        }
+
+        Assert.assertNull(
+            "the keyboard kept asking something, so it cannot be photographed",
+            buttonOverTheKeyboard(),
+        )
+
+        Assert.assertTrue(
+            "the keyboard went away with what it was asking",
+            waitFor(KEYBOARD_TIMEOUT_MS) { keyboardIsUp(activity.window.decorView) },
+        )
+    }
+
+    /** The first button in the keyboard's own window, or null while it is only keys. */
+    private fun buttonOverTheKeyboard(): AccessibilityNodeInfo? {
+        fun below(node: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
+            node ?: return null
+            if (node.className == "android.widget.Button") {
+                return node
+            }
+
+            for (index in 0 until node.childCount) {
+                below(node.getChild(index))?.let {
+                    return it
+                }
+            }
+
+            return null
+        }
+
+        return instrumentation.uiAutomation.windows
+            .filter { it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD }
+            .firstNotNullOfOrNull { below(it.root) }
+    }
+
     private fun keyboardIsUp(decorView: View): Boolean =
         ViewCompat.getRootWindowInsets(decorView)?.isVisible(WindowInsetsCompat.Type.ime()) == true
 
@@ -658,6 +720,9 @@ class ScreenshotTests {
         private const val FOCUS_TIMEOUT_MS = 10000L
         private const val FIND_TIMEOUT_MS = 10000L
         private const val KEYBOARD_TIMEOUT_MS = 5000L
+
+        // one to choose a layout, and room for whatever it wants to know after that
+        private const val SETUP_ASKS = 3
         private const val LOCALE_TIMEOUT_MS = 10000L
         private const val JS_ANSWER_TIMEOUT_MS = 10000L
 
@@ -710,6 +775,14 @@ class ScreenshotTests {
          * changes back to, and it takes a strip off the bottom of every picture.
          */
         fun dressTheDevice() {
+            // the keyboard is not the active window, and without this it is not among the ones
+            // `uiAutomation` will answer with at all
+            val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+            val service = automation.serviceInfo
+            service.flags =
+                service.flags or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+            automation.serviceInfo = service
+
             standUpright()
 
             // Before demo mode and not after: both of these restart system ui, and a system ui

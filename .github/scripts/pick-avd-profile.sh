@@ -27,7 +27,33 @@ case "${1:-}" in
     ;;
 esac
 
-available=$(avdmanager list device -c)
+# Where the catalogue is read from. A runner has the sdk without cmdline-tools on
+# its path, so `avdmanager` is looked for under it rather than called by name -
+# and it is the emulator action, later in the job, that puts one there at all.
+avdmanager=$(command -v avdmanager || true)
+if [ -z "$avdmanager" ]; then
+  for root in "${ANDROID_HOME:-}" "${ANDROID_SDK_ROOT:-}"; do
+    [ -n "$root" ] || continue
+    for found in "$root"/cmdline-tools/*/bin/avdmanager "$root"/tools/bin/avdmanager; do
+      if [ -x "$found" ]; then
+        avdmanager="$found"
+        break 2
+      fi
+    done
+  done
+fi
+
+# The newest one, unchecked, rather than no answer at all: this step is here to
+# save the job twenty minutes, and a job that cannot run for want of a path is
+# the thing it was written to avoid. A name the runner does not have is refused
+# by the emulator action a minute later, and says so.
+if [ -z "$avdmanager" ]; then
+  echo "::warning::no avdmanager to read the device catalogue with - taking the newest name unchecked" >&2
+  echo "${candidates%% *}"
+  exit 0
+fi
+
+available=$("$avdmanager" list device -c)
 
 for candidate in $candidates; do
   if grep -qx "$candidate" <<< "$available"; then
