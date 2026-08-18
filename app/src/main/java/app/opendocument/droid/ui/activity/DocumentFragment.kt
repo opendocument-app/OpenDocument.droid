@@ -24,11 +24,14 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import app.opendocument.droid.R
+import app.opendocument.droid.background.DocumentDarkening
 import app.opendocument.droid.background.DocumentLoader
 import app.opendocument.droid.background.DocumentRequest
 import app.opendocument.droid.background.FileCache
 import app.opendocument.droid.background.IdentifiedFile
 import app.opendocument.droid.background.LoadedDocument
+import app.opendocument.droid.background.NightModeSetting
+import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.background.StreamUtil
 import app.opendocument.droid.background.SupportedDocumentTypes
 import app.opendocument.droid.background.UsageCounters
@@ -159,10 +162,6 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             this.pageView = pageView
 
             pageView.setDocumentFragment(this)
-
-            // every format, pdf included. the one place that is decided, and every new PageView
-            // passes through here
-            pageView.setDarkeningAllowed(true)
         } catch (t: Throwable) {
             // crashManager is not set yet: onViewCreated has not run
 
@@ -221,6 +220,9 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         state.lastDocument?.let { lastDocument ->
             crashManager.log("restoring lastDocument")
+
+            // the page view is a new one, and knows nothing of what the old one was told
+            applyDarkening(lastDocument.file)
 
             restoreTabs(lastDocument)
             prepareActions(lastDocument)
@@ -353,6 +355,49 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         reload(lastRequest, requireLastFile())
     }
 
+    /**
+     * Tells the page whether it may follow the app into night mode - the one place that is decided,
+     * from what [DocumentDarkening] says about this kind of document.
+     */
+    private fun applyDarkening(file: IdentifiedFile) {
+        pageView?.setDarkeningAllowed(DocumentDarkening.isAllowed(requireContext(), file.mimeType))
+    }
+
+    /**
+     * Flips that answer for every document of this kind, and shows it straight away: darkening is a
+     * webview setting, not something the page was translated with, so nothing is rendered again.
+     */
+    fun toggleDarkening() {
+        val document = state.lastDocument ?: return
+
+        val kind = DocumentDarkening.kindOf(document.file.mimeType)
+        DocumentDarkening.setAllowed(
+            requireContext(),
+            kind,
+            !DocumentDarkening.isAllowed(requireContext(), kind),
+        )
+
+        applyDarkening(document.file)
+
+        // the row says what tapping it does, and what it does has just changed
+        prepareActions(document)
+    }
+
+    /**
+     * The document again with the margins [PaginationSetting] now says, which is decided while
+     * translating - so there is no showing the change without rendering it a second time.
+     */
+    fun reloadForMargins() {
+        if (!isAdded) {
+            return
+        }
+
+        // not a new document, and not one the user went and opened either
+        freshOpenPending = false
+
+        reload(requireLastRequest(), requireLastFile())
+    }
+
     /** The same document again, rendered differently - see [DocumentLoader.reload]. */
     private fun reload(request: DocumentRequest, file: IdentifiedFile) {
         beforeLoad()
@@ -441,9 +486,61 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                     R.drawable.ic_edit,
                 )
 
-        // the order they unfold in, most wanted first
+        // what the display rows offer is the opposite of what is on screen, so each says what
+        // tapping it does rather than what it is called
+        val night =
+            DocumentActions.Action(
+                DocumentActions.ACTION_NIGHT_MODE,
+                if (NightModeSetting.isNight(requireContext())) R.string.menu_day_mode
+                else R.string.menu_night_mode,
+                R.drawable.ic_lightbulb,
+            )
+
+        // only while the app is dark: below that the webview darkens nothing whatever it is
+        // allowed, so the row would be a switch with nothing on the other end of it
+        val darkening =
+            if (!NightModeSetting.isNight(requireContext())) null
+            else {
+                val kind = DocumentDarkening.kindOf(document.file.mimeType)
+                val darkened = DocumentDarkening.isAllowed(requireContext(), kind)
+
+                DocumentActions.Action(
+                    DocumentActions.ACTION_DOCUMENT_DARKENING,
+                    // it is remembered for the kind, not for the file, so it says which kind
+                    when (kind) {
+                        DocumentDarkening.Kind.PDF ->
+                            if (darkened) R.string.menu_pdfs_light else R.string.menu_pdfs_dark
+                        DocumentDarkening.Kind.IMAGE ->
+                            if (darkened) R.string.menu_images_light else R.string.menu_images_dark
+                        DocumentDarkening.Kind.DOCUMENT ->
+                            if (darkened) R.string.menu_documents_light
+                            else R.string.menu_documents_dark
+                    },
+                    R.drawable.ic_invert_colors,
+                )
+            }
+
+        val margins =
+            DocumentActions.Action(
+                DocumentActions.ACTION_PAGE_MARGINS,
+                if (PaginationSetting.isEnabled(requireContext())) R.string.menu_fit_to_screen
+                else R.string.menu_page_borders,
+                R.drawable.ic_menu_book,
+            )
+
+        // the order they unfold in, most wanted first - and what a reader reaches for mid-document
+        // is how it is displayed, not what else can be done to it. the margins were only on the
+        // landing screen, which is a document closed away from anyone who wants them
         val unfolding =
             listOfNotNull(
+                night,
+                darkening,
+                margins,
+                DocumentActions.Action(
+                    DocumentActions.ACTION_FULLSCREEN,
+                    R.string.menu_fullscreen,
+                    R.drawable.ic_fullscreen,
+                ),
                 edit,
                 DocumentActions.Action(
                     DocumentActions.ACTION_TTS,
@@ -469,11 +566,6 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                     DocumentActions.ACTION_SAVE,
                     R.string.action_edit_save,
                     R.drawable.ic_save,
-                ),
-                DocumentActions.Action(
-                    DocumentActions.ACTION_FULLSCREEN,
-                    R.string.menu_fullscreen,
-                    R.drawable.ic_fullscreen,
                 ),
             )
 
@@ -554,6 +646,9 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         val activity = requireActivity()
         val file = document.file
+
+        // before the page is put in below, so it is drawn the way it is going to stay
+        applyDarkening(file)
 
         analyticsManager.setCurrentScreen(activity, file.mimeType ?: UNKNOWN_FILE_TYPE)
 

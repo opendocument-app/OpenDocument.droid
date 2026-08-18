@@ -24,6 +24,8 @@ import androidx.lifecycle.ViewModelProvider
 import app.opendocument.droid.R
 import app.opendocument.droid.background.CatchAllSetting
 import app.opendocument.droid.background.DocumentLoader
+import app.opendocument.droid.background.NightModeSetting
+import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.background.PersistedUriPermissions
 import app.opendocument.droid.background.PrintingManager
 import app.opendocument.droid.background.SupportedDocumentTypes
@@ -155,6 +157,11 @@ class MainActivity : AppCompatActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // before super, and remembered rather than left to the delegate: appcompat applies a mode
+        // the moment it is told, so setting it afterwards recreates the activity that has just
+        // been created, and it only keeps a local mode until the process goes
+        delegate.localNightMode = NightModeSetting.mode(this)
+
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.main)
@@ -531,6 +538,36 @@ class MainActivity : AppCompatActivity() {
                 fullscreen = !fullscreen
 
                 updateDocumentActionsVisible()
+            }
+
+            DocumentActions.ACTION_NIGHT_MODE -> {
+                val night = !NightModeSetting.isNight(this)
+
+                analyticsManager.report(
+                    if (night) "menu_night_mode_enter" else "menu_night_mode_leave"
+                )
+
+                // recreates the activity, the way a rotation does - and survives it the same way:
+                // the loader is a ViewModel and the fragment saves the document and its page
+                delegate.localNightMode = NightModeSetting.setNight(this, night)
+            }
+
+            DocumentActions.ACTION_DOCUMENT_DARKENING -> {
+                analyticsManager.report("menu_document_darkening")
+
+                documentFragment?.toggleDarkening()
+            }
+
+            DocumentActions.ACTION_PAGE_MARGINS -> {
+                val margins = !PaginationSetting.isEnabled(this)
+
+                analyticsManager.report(
+                    if (margins) "menu_page_margins_on" else "menu_page_margins_off"
+                )
+
+                PaginationSetting.setEnabled(this, margins)
+
+                documentFragment?.reloadForMargins()
             }
 
             DocumentActions.ACTION_PRINT -> {

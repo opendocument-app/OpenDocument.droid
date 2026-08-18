@@ -173,7 +173,8 @@ constructor(context: Context, attributeSet: AttributeSet?) :
      * app is in it: the webview darkens a page algorithmically, and at targetSdk 33 and up only
      * once the app theme reports itself as dark.
      *
-     * [DocumentFragment] decides which documents get it.
+     * [DocumentFragment] decides which documents get it, out of what `DocumentDarkening` says about
+     * the kind of document this is.
      */
     fun setDarkeningAllowed(allowed: Boolean) {
         isDarkeningAllowed = allowed

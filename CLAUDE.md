@@ -178,6 +178,26 @@ Both are needed: the first keeps `isRenderedByCore` off a `.bin`, the second sto
 bar appearing over a page that cannot draw.
 `LandingTests.aDocumentThatFailsToOpenComesBackToTheList` holds this.
 
+### How the document is displayed is answered over the document, not in the settings
+
+Three of the buttons in `DocumentActions` are about what the page looks like rather than what can
+be done to it, and each remembers what it was last told:
+
+- **Night mode** is the app's, through `AppCompatDelegate.setLocalNightMode` rather than the
+  default one, so a phone that stays light all day can still be read at night. `NightModeSetting`
+  stores no override at all once the choice agrees with the system again, or the app would sit in
+  night mode through a morning the phone had long left.
+- **Darkening** is per kind of document, not per file: a text document inverts into something that
+  still reads, a pdf or an image does not, so `DocumentDarkening` defaults the first to dark and
+  the other two to light, and the button edits that for every document of the kind. It is the one
+  place a mime type decides anything about display - `Odr.fileTypeByMimetype`, not a prefix list.
+  Presentations are documents until someone has looked at enough of them to say otherwise.
+- **The margins** are odrcore's `textDocumentMargin`, decided while translating, so the button
+  renders the document again through `DocumentLoader.reload` - the copy in the cache, not the file.
+
+Do not move these into a settings screen. `PaginationSetting` keeps its landing row because it
+already had one and both write the same preference; the other two never get one.
+
 ### Editability comes from the core, never from a mime type
 
 `Document.isEditable()`/`isSavable()` decides whether `DocumentFragment` offers the Edit

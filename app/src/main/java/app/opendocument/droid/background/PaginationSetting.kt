@@ -11,9 +11,10 @@ import android.content.Context
  * is the user's answer now: the margins are what the document was written to look like, the full
  * width is what reads on a phone.
  *
- * Only [CoreLoader] reads it, and only while translating, so a change reaches a document the next
- * time it is opened. That is enough: the switch is on the landing screen, which is only reached by
- * closing whatever was open, and reopening it translates again.
+ * Only [CoreLoader] reads it, and only while translating, so a change reaches a document by
+ * rendering it again. The landing screen's switch gets that for free - it is a document closed
+ * away, and opening one translates anyway - and the button over the open document asks
+ * `DocumentFragment.reloadForMargins` for it.
  */
 object PaginationSetting {
 

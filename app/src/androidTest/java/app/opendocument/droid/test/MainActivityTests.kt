@@ -33,6 +33,7 @@ import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import app.opendocument.droid.R
+import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.ui.EditActionModeCallback
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.activity.DocumentFragment
@@ -283,6 +284,40 @@ class MainActivityTests {
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
 
         Intents.intended(hasAction(Intent.ACTION_CREATE_DOCUMENT), times(1))
+    }
+
+    /**
+     * The margin switch renders the open document a second time. The margin is odrcore's, decided
+     * while translating, so flipping the setting alone would leave the page as it was until the
+     * document was closed and opened again.
+     */
+    @Test
+    fun theMarginSwitchRendersTheDocumentAgain() {
+        val activity = mainActivityActivityTestRule.activity
+        val documentFragment = loadDocument(activity, requireTestFile("test.odt"))
+
+        val before = documentFragment.lastDocument
+        Assert.assertNotNull(before)
+
+        val margins = PaginationSetting.isEnabled(activity)
+        try {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                activity.onDocumentAction(DocumentActions.ACTION_PAGE_MARGINS)
+            }
+
+            Assert.assertEquals(
+                "the setting did not flip",
+                !margins,
+                PaginationSetting.isEnabled(activity),
+            )
+            Assert.assertTrue(
+                "the document was never rendered again",
+                waitFor(RELOAD_TIMEOUT_MS) { documentFragment.lastDocument !== before },
+            )
+        } finally {
+            // it outlives the test otherwise: it is a preference, not activity state
+            PaginationSetting.setEnabled(activity, margins)
+        }
     }
 
     @Test
@@ -596,6 +631,9 @@ class MainActivityTests {
         private const val JS_ANSWER_TIMEOUT_MS = 10000L
 
         private const val WINDOW_FOCUS_TIMEOUT_MS = 10000L
+
+        // a document already in the cache, translated a second time
+        private const val RELOAD_TIMEOUT_MS = 10000L
 
         private const val DIALOG_TIMEOUT_MS = 10000L
 
