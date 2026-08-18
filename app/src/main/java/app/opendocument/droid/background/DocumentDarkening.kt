@@ -56,7 +56,9 @@ object DocumentDarkening {
      * handed, so that is offered but not taken for granted.
      */
     private fun darkensByDefault(fileType: FileType?): Boolean =
-        fileType != null && Odr.capabilitiesByFileType(fileType).colorScheme
+        // nothing named it, so it is being shown as text or as the html fallback, and both have a
+        // dark of their own - the same answer [Kind.DOCUMENT] is the kind for
+        fileType == null || Odr.capabilitiesByFileType(fileType).colorScheme
 
     /** Whether what [mimeType] names darkens, the button's answer first and the core's after. */
     fun isAllowed(context: Context, mimeType: String?): Boolean {
