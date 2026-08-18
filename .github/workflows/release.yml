@@ -390,6 +390,13 @@ jobs:
   # store has where it is, which is what `stage_screenshots` is written to do.
   # Behind a plain `needs:` that never got to run - a wedged emulator skipped the
   # job outright and cost the release its copy along with its pictures.
+  #
+  # Finishing without them does not spend the release's one chance at them.
+  # "Re-run failed jobs" re-runs what failed and everything downstream, so a
+  # repaired capture brings `screenshot-set` and this job with it and the pictures
+  # go up in a second edit - which is the whole reason the listing is its own job.
+  # The device that did pass is not run again; its artifact carries over from the
+  # attempt before, and the two halves merge as they would have.
   listing:
     needs: [upload, screenshot-set]
     if: ${{ !cancelled() && !inputs.dry_run && needs.upload.result == 'success' }}
