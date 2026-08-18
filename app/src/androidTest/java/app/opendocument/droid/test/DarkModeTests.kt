@@ -72,11 +72,14 @@ class DarkModeTests {
 
         openPageView("test.odt")
 
-        // the darkening lands while compositing, which the load callback does not wait for
-        Assert.assertTrue(
-            "the page stayed light - mean luminance ${meanLuminance()}",
-            waitFor(30000) { meanLuminance() < DARK_LUMINANCE },
-        )
+        // the darkening lands while compositing, which the load callback does not wait for, and
+        // an emulator painting through swiftshader has taken longer than the 30s the loads get.
+        // the last reading is kept for the message: an argument is evaluated before the call it
+        // is an argument to, so measuring it there would report the screen before the wait
+        var luminance = WHITE
+        val darkened = waitFor(60000) { meanLuminance().also { luminance = it } < DARK_LUMINANCE }
+
+        Assert.assertTrue("the page stayed light - mean luminance $luminance", darkened)
     }
 
     /** Printing holds the page light, and only the last job still reading it gives it back. */
