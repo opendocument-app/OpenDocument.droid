@@ -168,11 +168,15 @@ constructor(context: Context, attributeSet: AttributeSet?) :
      */
     val verticalScrollFraction: Float
         get() {
-            val scrollable = computeVerticalScrollRange() - computeVerticalScrollExtent()
+            val scrollable = verticalScrollableHeight
 
             return if (scrollable <= 0) 0f
             else (computeVerticalScrollOffset().toFloat() / scrollable).coerceIn(0f, 1f)
         }
+
+    /** How far the page can be scrolled: its height less the screenful already showing. */
+    val verticalScrollableHeight: Int
+        get() = computeVerticalScrollRange() - computeVerticalScrollExtent()
 
     private var scrollFractionToRestore: Float? = null
 
@@ -200,7 +204,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     private fun restorePendingScroll(attempt: Int) {
         val fraction = scrollFractionToRestore ?: return
 
-        val scrollable = computeVerticalScrollRange() - computeVerticalScrollExtent()
+        val scrollable = verticalScrollableHeight
 
         if (
             (scrollable <= 0 || scrollable != lastScrollableHeight) &&

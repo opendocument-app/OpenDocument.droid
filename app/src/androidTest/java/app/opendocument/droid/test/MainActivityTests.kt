@@ -48,7 +48,9 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.math.abs
 import org.hamcrest.Matchers.equalTo
 import org.junit.After
 import org.junit.AfterClass
@@ -349,6 +351,60 @@ class MainActivityTests {
         Assert.assertFalse("nothing is not a text document", PaginationSetting.affects(null))
     }
 
+    /**
+     * The margins render the document again, and a reader who was halfway down it should still be
+     * halfway down it afterwards - the reload used to hand back the top of the page.
+     *
+     * A fraction on both sides, because the margins are exactly what changes the height: the same
+     * place in the text is a different offset once the page has been laid out again. Polled rather
+     * than asserted straight after the reload, the way the edit mode tests poll - the page has to
+     * be laid out again before there is anywhere to put anyone back to.
+     */
+    @Test
+    fun theMarginSwitchKeepsTheReadingPosition() {
+        val activity = mainActivityActivityTestRule.activity
+        val documentFragment = loadDocument(activity, requireTestFile("style-various-1.docx"))
+        val pageView = checkNotNull(documentFragment.pageView) { "no page view" }
+
+        Assert.assertTrue(
+            "the document never became long enough to scroll. dom=${describeDom(pageView)}",
+            waitFor(EDIT_MODE_TIMEOUT_MS) { scrollableHeight(pageView) > 0 },
+        )
+
+        // a long way down, but not the very end: the last screenful is one position however far
+        // the page is scrolled past it, so it would pass without anything being restored at all
+        val before = scrollToFraction(pageView, READING_POSITION)
+        Assert.assertTrue(
+            "the page did not scroll - it read back at $before",
+            before > READING_POSITION / 2,
+        )
+
+        val document = documentFragment.lastDocument
+        val margins = PaginationSetting.isEnabled(activity)
+        try {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                activity.onDocumentAction(DocumentActions.ACTION_PAGE_MARGINS)
+            }
+
+            Assert.assertTrue(
+                "the document was never rendered again",
+                waitFor(RELOAD_TIMEOUT_MS) { documentFragment.lastDocument !== document },
+            )
+
+            var restored = 0f
+            Assert.assertTrue(
+                "the reader was put back at ${restored} of the page, not around $before",
+                waitFor(EDIT_MODE_TIMEOUT_MS) {
+                    restored = scrollFraction(pageView)
+                    abs(restored - before) < POSITION_TOLERANCE
+                },
+            )
+        } finally {
+            // it outlives the test otherwise: it is a preference, not activity state
+            PaginationSetting.setEnabled(activity, margins)
+        }
+    }
+
     @Test
     fun testDocumentSurvivesRecreation() {
         val activity = mainActivityActivityTestRule.activity
@@ -557,6 +613,36 @@ class MainActivityTests {
         )
     }
 
+    /** What there is to scroll, which is nothing at all until the page has laid out. */
+    private fun scrollableHeight(pageView: PageView): Int {
+        val height = AtomicInteger(0)
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            height.set(pageView.verticalScrollableHeight)
+        }
+        return height.get()
+    }
+
+    private fun scrollFraction(pageView: PageView): Float {
+        val fraction = AtomicReference(0f)
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            fraction.set(pageView.verticalScrollFraction)
+        }
+        return fraction.get()
+    }
+
+    /** Scrolls there and answers where it actually landed. */
+    private fun scrollToFraction(pageView: PageView, fraction: Float): Float {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            pageView.scrollTo(
+                pageView.scrollX,
+                (pageView.verticalScrollableHeight * fraction).toInt(),
+            )
+        }
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+
+        return scrollFraction(pageView)
+    }
+
     private fun describeDom(pageView: PageView): String =
         evaluateJavascript(
             pageView,
@@ -663,6 +749,14 @@ class MainActivityTests {
 
         // a document already in the cache, translated a second time
         private const val RELOAD_TIMEOUT_MS = 10000L
+
+        /** Well down the document, and well clear of the last screenful - see the test. */
+        private const val READING_POSITION = 0.5f
+
+        /**
+         * The page is laid out again, so the same place in the text is near, not at, the offset.
+         */
+        private const val POSITION_TOLERANCE = 0.15f
 
         private const val DIALOG_TIMEOUT_MS = 10000L
 
