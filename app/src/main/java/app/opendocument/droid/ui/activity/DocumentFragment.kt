@@ -80,8 +80,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     private var freshOpenPending = false
 
     /**
-     * Where the reader was before a reload that is not theirs, held from [reloadForMargins] until
-     * the document comes back. Null at every other load: opening a document belongs at its top.
+     * Where the reader was, held from [reloadForMargins] until the document comes back. Null at
+     * every other load: opening a document belongs at its top.
      */
     private var positionToRestore: ReadingPosition? = null
 
@@ -364,17 +364,14 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         reload(lastRequest, requireLastFile())
     }
 
-    /**
-     * Tells the page whether it may follow the app into night mode - the one place that is decided,
-     * from what [DocumentDarkening] says about this kind of document.
-     */
+    /** Tells the page whether it may follow the app into night mode - see [DocumentDarkening]. */
     private fun applyDarkening(file: IdentifiedFile) {
         pageView?.setDarkeningAllowed(DocumentDarkening.isAllowed(requireContext(), file.mimeType))
     }
 
     /**
      * Flips that answer for every document of this kind, and shows it straight away: darkening is a
-     * webview setting, not something the page was translated with, so nothing is rendered again.
+     * webview setting, so nothing is rendered again.
      */
     fun toggleDarkening() {
         val document = state.lastDocument ?: return
@@ -394,15 +391,15 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
     /**
      * The document again with the margins [PaginationSetting] now says, which is decided while
-     * translating - so there is no showing the change without rendering it a second time.
+     * translating - so it has to be rendered a second time to be seen.
      */
     fun reloadForMargins() {
         if (!isAdded) {
             return
         }
 
-        // the page is thrown away and translated again, so where the reader had got to is taken
-        // along by hand - it is the same document, and they did not ask to be put back at the top
+        // the page is thrown away and translated again, so where the reader had got to is carried
+        // by hand - it is the same document, and they did not ask to be put back at the top
         positionToRestore =
             ReadingPosition(
                 maxOf(state.lastSelectedTab, 0),
@@ -514,7 +511,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             )
 
         // only while the app is dark: below that the webview darkens nothing whatever it is
-        // allowed, so the row would be a switch with nothing on the other end of it
+        // allowed, so the row would be a switch with nothing on the other end
         val darkening =
             if (!NightModeSetting.isNight(requireContext())) null
             else {
@@ -550,8 +547,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                 )
 
         // the order they unfold in, most wanted first - and what a reader reaches for mid-document
-        // is how it is displayed, not what else can be done to it. the margins were only on the
-        // landing screen, which is a document closed away from anyone who wants them
+        // is how it is displayed, not what else can be done to it
         val unfolding =
             listOfNotNull(
                 night,
@@ -679,9 +675,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         val restored = positionToRestore
         positionToRestore = null
 
-        // before the load below, which is the one it is waiting for. always, and not only when
-        // there is something to put back: a reload that failed on the way here would otherwise
-        // leave its fraction waiting for whatever document is opened next
+        // always, and not only when there is something to put back: a reload that failed on the
+        // way here would otherwise leave its fraction waiting for the next document opened
         pageView?.restoreScrollFraction(restored?.scrollFraction ?: 0f)
 
         val titles = document.partTitles

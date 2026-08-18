@@ -15,9 +15,8 @@ import app.opendocument.core.Odr
  * width is what reads on a phone.
  *
  * Only [CoreLoader] reads it, and only while translating, so a change reaches a document by
- * rendering it again. The landing screen's switch gets that for free - it is a document closed
- * away, and opening one translates anyway - and the button over the open document asks
- * `DocumentFragment.reloadForMargins` for it.
+ * rendering it again: opening one from the landing screen does that anyway, and the button over an
+ * open document asks `DocumentFragment.reloadForMargins` for it.
  */
 object PaginationSetting {
 
@@ -32,18 +31,16 @@ object PaginationSetting {
     /**
      * Whether this reaches what [mimeType] names at all.
      *
-     * odrcore lays a *text* document out with the margins or without them and nothing else: a
-     * presentation and a drawing are paged whatever it says, and a spreadsheet, a pdf, an image or
-     * a plain text file are never paged. Offering the button on one of those would render the
-     * document again to show nothing new, and quietly answer for the next text document opened.
+     * odrcore lays a *text* document out with the margins or without them and nothing else, so
+     * anywhere else the button would render the document again to show nothing new - and quietly
+     * answer for the next text document opened.
      */
     fun affects(mimeType: String?): Boolean {
-        // not lowercased, and for the same reason as DocumentDarkening.kindOf
+        // not lowercased, and for the same reason as DocumentDarkening.fileTypeOf
         val fileType = mimeType?.let { Odr.fileTypeByMimetype(it) } ?: return false
 
-        // four types call themselves text: odt, docx, doc - and pdf, which is fixed pages the core
-        // lays out with a frontend of its own that the margin never reaches. So it is asked about
-        // the type rather than trusted here
+        // pdf calls itself text too, but is fixed pages laid out by a frontend of its own that the
+        // margin never reaches
         if (fileType == FileType.PORTABLE_DOCUMENT_FORMAT) {
             return false
         }

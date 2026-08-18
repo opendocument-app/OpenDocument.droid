@@ -157,9 +157,8 @@ class MainActivity : AppCompatActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // before super, and remembered rather than left to the delegate: appcompat applies a mode
-        // the moment it is told, so setting it afterwards recreates the activity that has just
-        // been created, and it only keeps a local mode until the process goes
+        // before super: appcompat applies a mode the moment it is told, so setting it afterwards
+        // recreates the activity that has just been created
         delegate.localNightMode = NightModeSetting.mode(this)
 
         super.onCreate(savedInstanceState)
@@ -548,7 +547,7 @@ class MainActivity : AppCompatActivity() {
                 )
 
                 // recreates the activity, the way a rotation does - and survives it the same way:
-                // the loader is a ViewModel and the fragment saves the document and its page
+                // the loader is a ViewModel, and the fragment saves the document
                 delegate.localNightMode = NightModeSetting.setNight(this, night)
             }
 

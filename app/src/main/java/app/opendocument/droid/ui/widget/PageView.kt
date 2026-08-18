@@ -162,9 +162,8 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     /**
      * Where the page sits, as a fraction of what there is to scroll.
      *
-     * A fraction and not the offset itself: the one thing that reloads a document in place is a
-     * change to how it is laid out, and that changes the height the offset would be measured
-     * against.
+     * A fraction and not the offset: the one thing that reloads a document in place is a change to
+     * how it is laid out, which changes the height an offset would mean anything against.
      */
     val verticalScrollFraction: Float
         get() {
@@ -188,8 +187,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     /**
      * Puts the next page loaded back to [fraction] of its height.
      *
-     * Not applied here: the page is still being laid out when the load reports itself finished, and
-     * until it has a height there is nothing to put anything back to.
+     * Not applied here: the page is still being laid out when the load reports itself finished.
      */
     fun restoreScrollFraction(fraction: Float) {
         scrollFractionToRestore = fraction.takeIf { it > 0f }
@@ -198,8 +196,8 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
     /**
      * Waits for a height that has stopped growing and scrolls to it - a long document goes on being
-     * laid out for a while, and measuring against the first height it reports lands near the top of
-     * where the reader was. Gives up after [SCROLL_RESTORE_ATTEMPTS], leaving the page where it is.
+     * laid out, and the first height it reports lands near the top of where the reader was. Gives
+     * up after [SCROLL_RESTORE_ATTEMPTS], leaving the page where it is.
      */
     private fun restorePendingScroll(attempt: Int) {
         val fraction = scrollFractionToRestore ?: return
@@ -243,8 +241,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
      * app is in it: the webview darkens a page algorithmically, and at targetSdk 33 and up only
      * once the app theme reports itself as dark.
      *
-     * [DocumentFragment] decides which documents get it, out of what `DocumentDarkening` says about
-     * the kind of document this is.
+     * [DocumentFragment] decides which documents get it, from `DocumentDarkening`.
      */
     fun setDarkeningAllowed(allowed: Boolean) {
         isDarkeningAllowed = allowed
@@ -282,11 +279,9 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
             WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, darken)
         } else if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-            // Invert, and do not stand aside for the page's own dark theme, which is what this api
-            // does by default. Every page carries one now - CoreLoader translates with
-            // HtmlColorScheme.SYSTEM - but a webview old enough to be on this branch answers
-            // prefers-color-scheme by the system alone and never matches it for a forced dark, so
-            // deferring to that theme is deferring to nothing and the page stays light
+            // invert rather than stand aside for the page's own dark theme, which is the default.
+            // Every page carries one now, but a webview old enough for this branch answers
+            // prefers-color-scheme by the system alone, so standing aside leaves the page light
             if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
                 WebSettingsCompat.setForceDarkStrategy(
                     settings,

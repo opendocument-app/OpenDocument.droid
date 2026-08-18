@@ -150,11 +150,9 @@ class CoreLoader(private val context: Context) {
         htmlConfig.textDocumentMargin = paging
         htmlConfig.editable = editable
 
-        // both schemes, each behind the media query the reader's webview answers, rather than the
-        // one scheme it is being read in right now: what a page carries is decided here, while it
-        // is translated, and darkening is turned on and off over the open document without
-        // translating it again. PageView.setDarkeningAllowed is what picks between them, and a
-        // view whose format has no dark of its own is left to be inverted as before
+        // both schemes, each behind prefers-color-scheme, rather than the one it is being read in
+        // now: this is decided while translating, and darkening is turned on and off over the open
+        // document. PageView.setDarkeningAllowed picks between them
         htmlConfig.colorScheme = HtmlColorScheme.SYSTEM
 
         val cacheDirectory = File(cachePath)
