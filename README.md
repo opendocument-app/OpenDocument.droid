@@ -94,7 +94,7 @@ by hand, with the version it should build:
 gh workflow run release.yml -f version=v4.14.0
 ```
 
-Nothing triggers it on a tag. It runs as five jobs:
+Nothing triggers it on a tag. It runs as six jobs:
 
 | job | what it does |
 |---|---|

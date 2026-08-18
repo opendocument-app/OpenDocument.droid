@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Builds the documents the App Store screenshots are taken of.
+"""Builds the documents the play store screenshots are taken of.
 
 A reader's screenshots are mostly the document it is reading, so these are
 written rather than borrowed: a short report, a small spreadsheet and a three
@@ -29,6 +29,8 @@ import unicodedata
 import zipfile
 from pathlib import Path
 from xml.sax.saxutils import escape
+
+import store_screenshots as store
 
 # 1980-01-01, what zip stores when it is given nothing: a rerun with the same
 # words has to produce the same bytes, or every run is a commit
@@ -1182,12 +1184,9 @@ UNSPACED = {
 }
 
 # What separates one word from the next, everywhere else - written as what breaks
-# a word rather than as what a word is made of.
-#
-# `\w` was the other way round and is wrong for half this list: it matches only
-# letters, digits and underscore, and a Devanagari vowel sign is none of the
-# three. So `रिपोर्ट` came apart at every matra into fragments of one consonant,
-# none of them five characters long, and Hindi had no word to search for at all.
+# a word rather than as what a word is made of. `\w` is the other way round and
+# is wrong for half this list: a Devanagari vowel sign is not a letter, a digit
+# or an underscore, so a Hindi word comes apart at every matra.
 BREAK = re.compile(r"[\s.,;:!?()\[\]{}<>\"'«»„“”‘’—–\-/\\|…।]+")
 
 
@@ -1555,13 +1554,10 @@ PEOPLE = ["A. Bauer", "M. Rossi", "J. Novak", "L. Dubois", "S. Meyer", "K. Larse
 
 # --- the other formats ------------------------------------------------------
 #
-# The first screenshot is a folder, so the folder has to look like somebody's.
-# What it holds is the quiet half of the message: an .odt beside an .xlsx beside
-# a .pdf says what the app opens without a line of copy claiming it.
-#
-# These are written small and plain for the same reason the ODF ones are. They
-# are read by odrcore, not by Word, so they carry the least markup that is still
-# a valid package.
+# The first screenshot is a folder, and an .odt beside an .xlsx beside a .pdf
+# says what the app opens without a line of copy claiming it. Read by odrcore
+# rather than by Word, so they carry the least markup that is still a valid
+# package.
 
 OOXML_RELS = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
@@ -1828,16 +1824,14 @@ def spellable(words: dict, others: dict) -> bool:
 # A4 upright in points, with the same margin the ODF pages take.
 PAGE = (595.0, 842.0)
 MARGIN = 57.0
-COLUMN = PAGE[0] - 2 * MARGIN
 
 
 def pdf_bytes(words: dict, others: dict) -> bytes:
     """A one page PDF, written out by hand rather than through a library.
 
-    Each word is placed at its own position, the way a real producer writes one.
-    Handed over as one run per line instead, a reader that marks a search hit
-    inside the run has nothing to measure the offset with, and the highlight
-    lands beside the word rather than on it.
+    An invoice, which is a page of placed labels and figures rather than of
+    running prose: every cell is set where it belongs, so nothing has to be
+    wrapped and `advance` is only asked how wide a number is.
 
     Helvetica and WinAnsi, so what it says is Latin text only - the languages
     this cannot spell get the English wording, which is also what the search
@@ -1845,22 +1839,6 @@ def pdf_bytes(words: dict, others: dict) -> bytes:
     """
     latin = spellable(words, others)
     said = words if latin else WORDS["en"]
-
-    def lay_out(text: str, weight: str, size: float) -> list:
-        """The text broken into lines of placed words."""
-        lines, line, width = [], [], 0.0
-        space = advance(" ", weight, size)
-        for word in text.split():
-            reach = advance(word, weight, size)
-            if line and width + space + reach > COLUMN:
-                lines.append(line)
-                line, width = [], 0.0
-            line.append((word, width))
-            width += reach + space
-        if line:
-            lines.append(line)
-
-        return lines
 
     def literal(text: str) -> str:
         return text.replace("\\", r"\\").replace("(", r"\(").replace(")", r"\)")
@@ -2058,16 +2036,29 @@ def main(argv=None) -> None:
         (SAMPLES / f"sample-paper-{language}.pdf").write_bytes(pdf_bytes(words, others))
         written += 1
 
+    # The locale table travels with the documents rather than being written out a
+    # second time in `ScreenshotTests`: which locale reads which language's
+    # documents is one fact, and a second copy of it can only disagree.
+    written_in = set(store.LOCALES.values())
+    if written_in != set(WORDS):
+        raise SystemExit(
+            f"the languages here and the ones store_screenshots.py photographs have parted "
+            f"company: {sorted(written_in ^ set(WORDS))}"
+        )
+
     details = {
-        language: {
-            "files": FILE_NAMES[language]
-            | {
-                key: FILLER_NAMES.get(language, {}).get(key, FILLER_NAMES["en"][key])
-                for key in FILLERS
-            },
-            "search": query(words, language),
-        }
-        for language, words in WORDS.items()
+        "locales": store.LOCALES,
+        "languages": {
+            language: {
+                "files": FILE_NAMES[language]
+                | {
+                    key: FILLER_NAMES.get(language, {}).get(key, FILLER_NAMES["en"][key])
+                    for key in FILLERS
+                },
+                "search": query(words, language),
+            }
+            for language, words in WORDS.items()
+        },
     }
     (SAMPLES / "screenshot-names.json").write_text(
         json.dumps(details, ensure_ascii=False, indent=1, sort_keys=True) + "\n", encoding="utf-8"

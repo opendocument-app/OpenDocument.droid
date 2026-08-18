@@ -21,7 +21,7 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 [bundle exec] fastlane android deployPro
 ```
 
-Build and upload the Pro version to Google Play
+Build and upload the Pro version, and its listing, to Google Play
 
 ### android deployLite
 
@@ -29,7 +29,7 @@ Build and upload the Pro version to Google Play
 [bundle exec] fastlane android deployLite
 ```
 
-Build and upload the Lite version to Google Play
+Build and upload the Lite version, and its listing, to Google Play
 
 ### android uploadPro
 
@@ -37,7 +37,7 @@ Build and upload the Lite version to Google Play
 [bundle exec] fastlane android uploadPro
 ```
 
-Upload an already built Pro bundle. Used by the release workflow, which builds both flavors with gradle directly, in one job.
+Upload an already built Pro bundle, without its listing. Used by the release workflow, which builds both flavors with gradle directly, in one job.
 
 ### android uploadLite
 
@@ -45,7 +45,7 @@ Upload an already built Pro bundle. Used by the release workflow, which builds b
 [bundle exec] fastlane android uploadLite
 ```
 
-Upload an already built Lite bundle
+Upload an already built Lite bundle, without its listing
 
 ### android listingPro
 
@@ -53,7 +53,7 @@ Upload an already built Lite bundle
 [bundle exec] fastlane android listingPro
 ```
 
-Upload the Pro listing on its own, without a bundle - to repair a typo, or a locale that came out wrong, without needing a version to carry it
+Upload the Pro listing on its own, without a bundle - what the release does once the screenshots are in, and how a typo is repaired without a version to carry it
 
 ### android listingLite
 
@@ -70,6 +70,14 @@ Upload the Lite listing on its own, without a bundle
 ```
 
 
+
+### android screenshots
+
+```sh
+[bundle exec] fastlane android screenshots
+```
+
+Take the play store screenshots of one device, in every locale the listing is written in
 
 ----
 

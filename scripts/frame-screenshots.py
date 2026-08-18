@@ -49,18 +49,12 @@ FRAMED = ROOT / "fastlane" / "framed"
 # how far across, is a fraction of the width. So a taller canvas gives
 # everything more room without stretching any of it.
 #
-# The canvas is a size of our own rather than the capture's, which is where this
-# parts company with the App Store version. Play refuses a screenshot whose long
-# side is more than twice its short one, and a Pixel 9 Pro XL is 1344x2992 -
-# 2.23:1 - before anything is drawn around it. `store_screenshots.CANVASES` is
-# what the picture comes out as; the capture is a picture inside it.
-#
-# Which leaves the device room to fit whole, so it is not cropped the way the
-# iPhone one is: the buttons the app puts in the bottom right corner of the
-# screen are the ones a reader taps, and a frame that eats them is a frame that
-# hides the app.
-#
-# The proportions came off the 2020 artwork at 1242x2208.
+# The canvas is a size of our own rather than the capture's: play refuses a
+# screenshot whose long side is more than twice its short one, and a Pixel 9 Pro
+# XL is 1344x2992 - 2.23:1 - before anything is drawn around it.
+# `store_screenshots.CANVASES` is what the picture comes out as; the capture is a
+# picture inside it, which leaves the device room to fit whole rather than be
+# cropped past the buttons the app puts in the bottom right corner.
 LAYOUT = {
     "phone": {
         "headline_top": 0.048,
@@ -78,24 +72,19 @@ LAYOUT = {
         "bezel": 0.0268,               # screen edge to the outside of the body
         # Of that, less than half is the black mask and the rest is the polished
         # frame. Which way round this sits is most of whether the drawing reads
-        # as a current phone: at 0.60 the black dominated, the bright edge was a
-        # sliver, and the whole device looked like something from 2018.
+        # as a current phone.
         "rim": 0.42,                   # how much of the bezel is the black border
         "corner": 0.122,               # screen corner, of the screen's width
         "corner_easing": 2.2,          # near a circular arc - see squircle()
         "hole": 0.046,                 # the front camera, of the screen's width
         "hole_top": 0.028,
         # Nothing at all on the left edge: a Pixel keeps both its keys on the
-        # right, which is the one place this differs from the iPhone frame in a
-        # way anybody would notice. The sim tray is drawn instead, low on the
-        # edge where the device carries it - which puts it below the format tabs
-        # on the screens that have only one, and behind them on the screens that
-        # have three. Where it is beats where it would show.
+        # right, and the tray is what the left carries - low on the edge, where
+        # the device has it.
         "buttons": [],
         "tray": (0.620, 0.075),        # how far down the body, how long
         # The power key and the volume rocker, on the right edge: (how far down
-        # the body, how long), both of the body's height. On canvas, unlike the
-        # iPhone's side button - the device fits whole here.
+        # the body, how long), both of the body's height.
         "buttons_right": [(0.175, 0.055), (0.250, 0.105)],
         "chip_top": 0.430,
         "chip_size": (0.230, 0.140),
@@ -104,38 +93,20 @@ LAYOUT = {
         "dash_stroke": 0.0056,
         "dash_on": 0.0236,
         "dash_off": 0.0098,
-        # Each decoration is a line that comes in from off the canvas, turns a
-        # corner and leaves again - one corner of a rounded rectangle far bigger
-        # than the picture. Points are (x, y) in canvas fractions, and a point
-        # past 1 is off the edge on purpose. A y of "chips" starts the line at
-        # the top of the tabs, so it runs behind however many there are and
-        # comes out underneath: anchored to a number instead, a screen with one
-        # tab leaves the line starting in mid air below it.
-        # The line crossing every screen. Each picture takes it in at the height
-        # the one before let it out at, steps it to a new height somewhere along
-        # the way, and hands it on - so no two screens carry the same line and
-        # the gallery still reads as one. There is one height per seam, which is
-        # one more than there are screens.
-        #
-        # Every height sits between the foot of the headline and the top of the
-        # device, the only band that is neither written on nor covered up.
+        # The line crossing every screen: each picture takes it in at the height
+        # the one before let it out at and hands it on, so no two screens carry
+        # the same line and the gallery still reads as one. One height per seam,
+        # which is one more than there are screens, and every one of them in the
+        # band between the foot of the headline and the top of the device - the
+        # only band that is neither written on nor covered up.
         "seams": [0.148, 0.176, 0.158, 0.180, 0.152, 0.172, 0.164],
         # What the line does between the two seams it has to join. "in" is the
         # height it arrived at and "out" the one it has to leave at; anything
-        # else is a height of its own. Only the left quarter is free below the
-        # band - the device covers the rest - so that is where a line can wander
-        # before it has to come back up and go.
-        # A step and, on some, a shallow dip into the left column before it. Kept
-        # shallow on purpose: the line is there to tie the pictures together, and
-        # one that wanders far down the page competes with what it is framing.
-        # One step, at a different place on each. Two of them dip a little
-        # further first, and only a little: the line is there to tie the
-        # pictures together, and anything more reads as decoration for its own
-        # sake across the top of every screen.
-        #
-        # A dip has to come back up left of the body's edge - 0.255 here - or it
-        # goes behind the device and never comes out, and a line that ends
-        # halfway across reads as a rendering fault rather than as a frame.
+        # else is a height of its own. One step each, at a different place, and
+        # two of them dip a little way down first - only the left quarter is
+        # free below the band, the device covers the rest, and a dip has to come
+        # back up left of the body's edge (0.255 here) or it goes behind the
+        # device and never comes out.
         "routes": [
             [(0.34, "in"), (0.34, "out")],
             [(0.17, "in"), (0.17, "out")],
@@ -145,10 +116,12 @@ LAYOUT = {
             [(0.13, "in"), (0.13, 0.235), (0.23, 0.235), (0.23, "out")],
         ],
         "radii": [0.078, 0.066, 0.086, 0.062, 0.072, 0.070],
-        # The lower line. Some of these hang off the tabs, some come in from the
-        # left edge instead - picking up where the picture before let its own
-        # line disappear behind the device - and one leaves to the left again.
-        # A screen with no tabs takes one of the ones that does not need them.
+        # The lower line: in from off the canvas, around a corner and out again.
+        # Points are (x, y) in canvas fractions and a point past 1 is off the
+        # edge on purpose. A y of "chips" hangs the line off the top of the tabs
+        # so it runs behind however many there are and comes out underneath -
+        # anchored to a number, a screen with one tab starts it in mid air, so a
+        # screen with no tabs takes one of the routes that does not need them.
         "decorations": [
             [("chips", "chips"), ("chips", 0.930), (0.55, 0.930)],
             [(-0.2, 0.700), (0.155, 0.700), (0.155, 0.930), (0.62, 0.930)],
@@ -207,10 +180,9 @@ LAYOUT = {
 # The device, which is drawn rather than photographed. The rim is read across the
 # body's width: bright where the edge turns towards the light, dark on the flat.
 BODY = "#08080a"
-# How warm the frame is, as a multiplier per channel. Apple's titanium is neutral
-# to cold; a Pixel's aluminium is a warm grey, and reading the two side by side
-# that tint is most of what separates them at a glance. Small on purpose - past
-# about a twentieth it stops being aluminium and starts being gold.
+# How warm the frame is, as a multiplier per channel: a Pixel's aluminium is a
+# warm grey. Small on purpose - past about a twentieth it stops being aluminium
+# and starts being gold.
 ALUMINIUM = (1.035, 1.0, 0.955)
 # The metal the keys wear. They read as a step in the edge rather than as marks
 # on it, which is what they are.
@@ -237,18 +209,23 @@ def design():
 
 # The scripts Nunito cannot set, and where to find one that can.
 #
-# Nunito covers Latin and Cyrillic, which is eleven of the fifteen locales and
-# the only font asset this repository carries. It has no Devanagari and no CJK,
-# and a font that has them is ten to sixteen megabytes per language - which is
-# not something to put in a git history when every machine that runs this either
-# has one already or is one apt-get away from it. So these three are looked for
-# on the system, and a machine without one is told what to install rather than
-# handed a headline full of tofu.
+# Nunito covers Latin and Cyrillic, which is eleven of the fifteen locales. It
+# has no Devanagari and no CJK, and a font that has them is ten to sixteen
+# megabytes per language - not something to put in a git history when every
+# machine that runs this is an apt-get away from one. So these three are looked
+# for on the system, and a machine without one is told what to install rather
+# than handed a headline full of tofu.
 #
 # A candidate is (regular, bold, marker). The marker picks a face out of a .ttc
 # by family name: the Noto collections hold every CJK language at once and which
 # index is which is not fixed, so it is searched for rather than counted to.
 NOTO_CJK = "/usr/share/fonts/opentype/noto/NotoSansCJK-%s.ttc"
+
+# The last resort on a mac: Hiragino Sans and PingFang are downloadable rather than
+# installed, so a machine that never asked for them has neither at a fixed path, while
+# this one has been in /Library/Fonts since forever. One weight only, so the second
+# headline line comes out light - a picture to look at, not one to ship.
+ARIAL_UNICODE = "/Library/Fonts/Arial Unicode.ttf"
 
 SCRIPTS = {
     "devanagari": (
@@ -267,6 +244,7 @@ SCRIPTS = {
             (NOTO_CJK % "Regular", NOTO_CJK % "Bold", "JP"),
             ("/System/Library/Fonts/Hiragino Sans W4.ttc",
              "/System/Library/Fonts/Hiragino Sans W7.ttc", None),
+            (ARIAL_UNICODE, ARIAL_UNICODE, None),
         ],
     ),
     "chinese": (
@@ -276,6 +254,7 @@ SCRIPTS = {
             ("/System/Library/Fonts/PingFang.ttc", "/System/Library/Fonts/PingFang.ttc", "SC"),
             ("/System/Library/Fonts/Hiragino Sans GB.ttc",
              "/System/Library/Fonts/Hiragino Sans GB.ttc", None),
+            (ARIAL_UNICODE, ARIAL_UNICODE, None),
         ],
     ),
 }
@@ -431,16 +410,11 @@ def dashed(canvas, points, stroke, on, off, colour=(255, 255, 255, 255), phase=0
 def squircle(box, radius, exponent=2.2, per_corner=40):
     """A rounded rectangle whose corners are superellipse quadrants.
 
-    The exponent is what shape of phone this is. Apple's corner is a continuous
-    curve - the curvature eases into the straight edge instead of starting at
-    full bend - and it takes an exponent around 5. A Pixel's is very close to a
-    circular arc, which is 2, and the difference is not subtle at this size: 5
-    is the single thing that made the first version of this frame read as an
-    iPhone with the logo filed off.
-
-    2.2 rather than a flat 2: a touch of easing is what the glass actually does
-    where it meets the frame, and a mathematically exact circle reads as a
-    render rather than as a photograph.
+    The exponent is what shape of phone this is, and the difference is not
+    subtle at this size: a continuous curve, easing into the straight edge, takes
+    around 5 and is an iPhone corner. A Pixel's is near enough a circular arc,
+    which is 2 - 2.2 here, since a touch of easing is what the glass does where
+    it meets the frame and an exact circle reads as a render.
     """
     x0, y0, x1, y1 = box
     r = min(radius, (x1 - x0) / 2, (y1 - y0) / 2)
@@ -466,9 +440,8 @@ def outset(points, distance):
     """The same outline, moved out by a fixed distance along its own normals.
 
     A squircle grown by raising its radius is not parallel to the one it grew
-    from: the gap between the two opens up around the corner and closes down
-    the sides. Drawn that way a bezel is visibly fatter at the corners than
-    along the edges, which is the first thing anybody who owns the phone sees.
+    from - the gap opens up around the corner and closes down the sides - so a
+    bezel drawn that way is visibly fatter at the corners.
     """
     walked = list(zip(points, points[1:] + points[:1]))
     facing = 1.0 if sum(x0 * y1 - x1 * y0 for (x0, y0), (x1, y1) in walked) > 0 else -1.0
@@ -495,15 +468,11 @@ def stencil(size, points, supersample=3):
 def chamfer(share):
     """The metal's colour that far across the band, outside edge to black.
 
-    A Pixel Pro's frame is polished aluminium, near enough a mirror, and that is
-    a different thing from the turned titanium this was first drawn as. Brushed
-    metal climbs to one broad highlight two thirds of the way in; a polished one
-    throws a narrow specular right at the outer edge, drops away hard behind it,
-    and picks up a second, weaker sheen where the flat turns down to the glass.
-
-    So: bright at the very edge, a trough, a lesser highlight, and dark where it
-    meets the black surround. Filled flat instead, it is a grey stripe, and with
-    the brushed ramp it is somebody else's phone.
+    A Pixel Pro's frame is polished aluminium: a narrow specular right at the
+    outer edge, a hard drop behind it, a weaker sheen where the flat turns down
+    to the glass, and dark where it meets the black surround. Brushed metal - one
+    broad highlight two thirds of the way in - is somebody else's phone, and a
+    flat fill is a grey stripe.
     """
     stops = ((0.00, 150), (0.10, 240), (0.22, 208), (0.42, 138), (0.66, 192), (0.85, 164), (1.00, 96))
     place = bisect.bisect_right([at for at, _ in stops], share)
@@ -558,8 +527,7 @@ def device_body(canvas, shot, layout):
     """The device: the capture behind glass, in a metal body.
 
     Drawn rather than pasted from a mockup, so it is the shape of whatever was
-    captured. A frame downloaded for one device is the wrong shape for the next
-    one, and the sets on offer stop at a generation the store no longer asks for.
+    captured - a downloaded frame is the wrong shape for the next device.
 
     Built in its own image and composited once, so the parts can be masked
     against each other without the ground showing through the seams.
@@ -570,16 +538,11 @@ def device_body(canvas, shot, layout):
 
     left, top = layout["screen_left"] * width, layout["screen_top"] * height
 
-    # How big the device comes out is the taller of two limits rather than one
-    # fraction: `screen_width` is as wide as it may be, and `foot` is how much
-    # ground has to be left under it. Sized by the fraction alone, a device a
-    # little taller than the one the number was picked for runs its bottom rim
-    # off the canvas, and a device a little shorter leaves a stripe of ground -
-    # neither of which is a decision anybody made.
-    #
-    # Which is what "almost touching" was: 18 pixels of the body past the foot
-    # of the canvas, against 79 down the right hand side. Off the edge is a
-    # composition; a hair short of it is a mistake.
+    # Two limits rather than one fraction: `screen_width` is as wide as it may
+    # be, and `foot` is how much ground has to be left under it. Sized by the
+    # fraction alone, a device a little taller than the one the number was picked
+    # for runs its bottom rim off the canvas and a shorter one leaves a stripe of
+    # ground - neither of which is a decision anybody made.
     standing = (height - layout["foot"] * height) - top - bezel
     screen_width = min(layout["screen_width"] * width, standing * shot.width / shot.height)
     screen_height = screen_width * shot.height / shot.width
@@ -656,18 +619,16 @@ def device_body(canvas, shot, layout):
                       round(inside[0]) + fitted.width, round(inside[1]) + fitted.height)))
 
     # The hairline where the glass meets the surround, which a real device
-    # catches the light along. Without it a screen that is dark at the top - the
-    # intro is - runs into the black bezel, and the two read as one fat border
-    # off a phone from 2016.
+    # catches the light along. Without it a screen that is dark at the top runs
+    # into the black bezel and the two read as one fat border.
     hair = max(1.0, screen_width * 0.0012)
     halo = ImageChops.subtract(
         stencil(size, face), stencil(size, outset(face, -hair))
     ).point(lambda level: level * GLASS // 255)
     device.paste(Image.new("RGB", size, "white"), (0, 0), halo)
 
-    # The hole the front camera sits in, in the gap the status bar leaves for it.
-    # A circle, where the iPhone frame draws a pill: this is where an Android
-    # phone stops looking like an iPhone with the corners filed off.
+    # The hole the front camera sits in, in the gap the status bar leaves for
+    # it. A circle rather than a pill, which is a Pixel and not an iPhone.
     if layout.get("hole"):
         across = layout["hole"] * screen_width
         middle = (inside[0] + inside[2]) / 2
@@ -698,11 +659,12 @@ def headline(canvas, lines, layout, locale):
     weights = ("Regular", "Bold")
     draw = ImageDraw.Draw(canvas)
 
+    faces = [font(size, weight, locale) for weight in weights]
     while size > 8:
-        faces = [font(size, weight, locale) for weight in weights]
         if max(draw.textlength(line, font=face) for line, face in zip(lines, faces)) <= allowed:
             break
         size -= 2
+        faces = [font(size, weight, locale) for weight in weights]
 
     leading = size * layout["headline_leading"]
     y = layout["headline_top"] * height
@@ -719,13 +681,9 @@ def chips(canvas, names, palette, layout):
     draw = ImageDraw.Draw(canvas)
 
     # As wide as the longest word in the whole design needs, and no narrower
-    # than the design's own tab: "odt" is three letters and "docx" is four, and
-    # a tab cut to fit the shorter one loses the end of the longer.
-    #
-    # Measured across every format rather than the two or three on this screen,
-    # so the tabs are one length through the gallery. Cut to fit each screen
-    # they step in and out as the reader swipes, which reads as the pictures
-    # having been made at different times.
+    # than the design's own tab: measured across every format rather than the
+    # two or three on this screen, so the tabs are one length through the
+    # gallery rather than stepping in and out as the reader swipes.
     padding = layout["chip_text"] * width * 0.42
     chip_width = max([least] + [draw.textlength(name, font=face) + 2 * padding for name in palette])
 

@@ -140,26 +140,26 @@ platform :android do
   desc "Build and upload the Pro version, and its listing, to Google Play"
   lane :deployPro do |options|
     buildBundle(flavor: "Pro", version: options[:version])
-    uploadBundle(flavor: "Pro", track: options[:track], version: options[:version])
+    uploadBundle(flavor: "Pro", track: options[:track])
     uploadListing(flavor: "Pro", track: options[:track], version: options[:version])
   end
 
   desc "Build and upload the Lite version, and its listing, to Google Play"
   lane :deployLite do |options|
     buildBundle(flavor: "Lite", version: options[:version])
-    uploadBundle(flavor: "Lite", track: options[:track], version: options[:version])
+    uploadBundle(flavor: "Lite", track: options[:track])
     uploadListing(flavor: "Lite", track: options[:track], version: options[:version])
   end
 
   desc "Upload an already built Pro bundle, without its listing. Used by the release " \
        "workflow, which builds both flavors with gradle directly, in one job."
   lane :uploadPro do |options|
-    uploadBundle(flavor: "Pro", track: options[:track], version: options[:version])
+    uploadBundle(flavor: "Pro", track: options[:track])
   end
 
   desc "Upload an already built Lite bundle, without its listing"
   lane :uploadLite do |options|
-    uploadBundle(flavor: "Lite", track: options[:track], version: options[:version])
+    uploadBundle(flavor: "Lite", track: options[:track])
   end
 
   desc "Upload the Pro listing on its own, without a bundle - what the release does once " \

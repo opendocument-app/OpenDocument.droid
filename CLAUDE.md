@@ -76,8 +76,11 @@ the test can already reach.
   published dimensions - onto a canvas of its own, because play refuses a picture more
   than twice as long as it is wide and a Pixel 9 Pro XL is 2.23:1 before anything is drawn
   around it. `store_screenshots.py` says what a full set is and stages it.
-- The underscore in `store_screenshots.py` is not a slip: `frame-screenshots.py` imports
-  it, and a dash cannot be imported.
+- Which locale reads which language's documents is one table, in
+  `store_screenshots.py`. The generator checks its own languages against it and writes it
+  into the assets, and `ScreenshotTests` reads it from there - do not write a second copy
+  into the test. The underscore in the name is not a slip either: `frame-screenshots.py`
+  and the generator import it, and a dash cannot be imported.
 
 The release runs the two devices on a runner each, checks the halves together, and only
 then writes the listing - which is a job behind the bundle upload, so a wedged emulator

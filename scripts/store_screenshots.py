@@ -27,10 +27,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SCREENSHOTS = ROOT / "fastlane" / "screenshots"
 
-# Store locale -> the language tag the app is given when it is photographed for
-# it. `None` would mean the app has none, so that locale reads the English
-# pictures; nothing is None today, because every locale the listing is written in
-# is also a language the app speaks. The keys are the locales
+# Store locale -> the language its documents are written in. The one copy of
+# this: `make-screenshot-documents.py` checks its own languages against it and
+# writes it into the test apk's assets, which is where `ScreenshotTests` reads it
+# rather than holding a table that could disagree.
+#
+# `None` would mean the app has no such language, so that locale reads the
+# English pictures; nothing is None today. The keys are the locales
 # `scripts/store-listing.py` names, and the same directories `fastlane/metadata`
 # has.
 LOCALES = {
@@ -44,7 +47,7 @@ LOCALES = {
     "it-IT": "it",
     "ja-JP": "ja",
     "pl-PL": "pl",
-    "pt-BR": "pt",
+    "pt-BR": "pt-BR",
     "ru-RU": "ru",
     "sv-SE": "sv",
     "tr-TR": "tr",

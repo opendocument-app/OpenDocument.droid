@@ -1,18 +1,18 @@
 package app.opendocument.droid.test
 
 import android.app.Instrumentation
+import android.app.LocaleManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
+import android.os.LocaleList
 import android.os.SystemClock
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.FileProvider
-import androidx.core.os.LocaleListCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.test.espresso.Espresso.onView
@@ -29,6 +29,7 @@ import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import androidx.test.filters.SdkSuppress
 import androidx.test.platform.app.InstrumentationRegistry
 import app.opendocument.droid.R
 import app.opendocument.droid.background.RecentDocumentList
@@ -41,6 +42,7 @@ import app.opendocument.droid.ui.widget.DocumentActions
 import app.opendocument.droid.ui.widget.PageView
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Locale
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -60,11 +62,13 @@ import org.junit.runner.RunWith
  * `scripts/store_screenshots.py` checks the set and stages it for supply - the names below are the
  * names those expect, and their order is the order the store shows them in.
  *
+ * Which locales those are, and which language's documents each of them reads, comes out of
+ * `screenshot-names.json` beside the samples: `scripts/store_screenshots.py` holds that table and
+ * `scripts/make-screenshot-documents.py` writes it in, so there is no second copy here to drift.
+ *
  * **This is the whole back door.** An instrumented test runs in the app's own process, so laying
  * the sample documents out, filling the recently opened list and switching the app's language are
  * all things a test can do directly - and none of them needs a line of code in a build that ships.
- * The App Store version of this carries a `ScreenshotMode` inside the app because iOS gives a UI
- * test no such reach; here it would be code in the apk earning nothing.
  *
  * Everything after that goes through the app the way a user does: the recently opened list is
  * tapped-through documents, edit mode is the button, and the find bar is typed into. Photographing
@@ -85,6 +89,9 @@ import org.junit.runner.RunWith
  */
 @LargeTest
 @RunWith(AndroidJUnit4::class)
+// api 33 for `LocaleManager`, which is what puts the app into a language. The pictures want
+// android 15, which is a floor of its own and asserted below rather than skipped over.
+@SdkSuppress(minSdkVersion = Build.VERSION_CODES.TIRAMISU)
 class ScreenshotTests {
 
     // The activity is launched and finished per screen rather than once for the run: every screen
@@ -135,14 +142,18 @@ class ScreenshotTests {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM,
         )
 
-        dressTheDevice()
+        // marked before rather than after: dressing that fails halfway has still changed
+        // the device, and tearDown is the only thing that puts it back
         dressed = true
+        dressTheDevice()
 
         val details = JSONObject(asset("screenshots/screenshot-names.json").decodeToString())
+        val spoken = details.getJSONObject("locales")
+        val languages = details.getJSONObject("languages")
 
-        for (locale in locales()) {
-            val language = LANGUAGES.getValue(locale)
-            val words = details.optJSONObject(language) ?: details.getJSONObject("en")
+        for (locale in locales(spoken)) {
+            val language = spoken.getString(locale)
+            val words = languages.optJSONObject(language) ?: languages.getJSONObject("en")
 
             speak(locale)
             val folder = layOut(language, words.getJSONObject("files"))
@@ -229,10 +240,8 @@ class ScreenshotTests {
     /**
      * The text document with a word of its own searched for, so the hits are highlighted.
      *
-     * The text document and not the pdf, which is where this sat first: the word to search for is
-     * counted out of the report, and the invoice the pdf holds does not say it - so the find bar
-     * came up over a document with no hits in it at all. The headline over this screen is the one
-     * that says "read and searchable", which is the other half of the answer.
+     * The text document and not the pdf: the word is counted out of the report, and a find bar over
+     * a document that does not say it is a picture of a search with no hits in it.
      */
     private fun searching(locale: String, uri: Uri, query: String) {
         val activity = launchWith(uri)
@@ -262,12 +271,28 @@ class ScreenshotTests {
 
     // --- the app's state ----------------------------------------------------
 
-    /** Puts the app into one language, before anything of it is on screen. */
+    /**
+     * Puts the app into one language, and waits for the change to have reached it.
+     *
+     * The framework's own `LocaleManager`, not `AppCompatDelegate`: from api 33 on that only
+     * forwards to this, and only once an AppCompat activity has attached itself to it. Called with
+     * nothing on screen - which is where this has to be called - it returns having done nothing at
+     * all, and the whole set comes out in the language the last one was in.
+     *
+     * The system server is what applies it, so it is waited on rather than assumed: an activity
+     * launched before the new configuration reaches the process comes up in the language it was.
+     */
     private fun speak(locale: String) {
-        instrumentation.runOnMainSync {
-            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(locale))
-        }
-        instrumentation.waitForIdleSync()
+        val wanted = Locale.forLanguageTag(locale)
+        context.getSystemService(LocaleManager::class.java).applicationLocales =
+            LocaleList.forLanguageTags(locale)
+
+        Assert.assertTrue(
+            "the app never came up in $locale",
+            waitFor(LOCALE_TIMEOUT_MS) {
+                context.resources.configuration.locales[0].language == wanted.language
+            },
+        )
     }
 
     /**
@@ -489,10 +514,9 @@ class ScreenshotTests {
     /**
      * Where the pictures go: the directory gradle hands the run for output of its own.
      *
-     * Not `getExternalFilesDir`, which is the obvious answer and the wrong one.
-     * `connectedAndroidTest` uninstalls both apks when the run ends, and uninstalling an app takes
-     * its external directory with it - so the screenshots were written, the test passed, and there
-     * was nothing left on the device to fetch. Quiet in both directions, which is the worst kind.
+     * Not `getExternalFilesDir`: `connectedAndroidTest` uninstalls both apks when the run ends, and
+     * an app's external directory goes with it - so the pictures were written, the test passed, and
+     * there was nothing left to fetch.
      *
      * `additionalTestOutputDir` is gradle's own answer to that: it copies what is in there back to
      * `app/build/outputs/connected_android_test_additional_output/` *before* it uninstalls
@@ -513,16 +537,18 @@ class ScreenshotTests {
     // --- what the run was asked for -----------------------------------------
 
     /** The locales to photograph: every one the listing is written in, unless fewer were named. */
-    private fun locales(): List<String> {
+    private fun locales(spoken: JSONObject): List<String> {
+        val known = spoken.keys().asSequence().sorted().toList()
+
         val given = argument("locales")
         if (given.isNullOrBlank()) {
-            return LANGUAGES.keys.toList()
+            return known
         }
 
         val wanted = given.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-        val unknown = wanted.filterNot { it in LANGUAGES }
+        val unknown = wanted.filterNot { it in known }
         Assert.assertTrue(
-            "no such locale: ${unknown.joinToString()}. One of ${LANGUAGES.keys.joinToString()}",
+            "no such locale: ${unknown.joinToString()}. One of ${known.joinToString()}",
             unknown.isEmpty(),
         )
 
@@ -555,18 +581,6 @@ class ScreenshotTests {
         instrumentation.waitForIdleSync()
     }
 
-    private fun waitFor(timeoutMs: Long, until: () -> Boolean): Boolean {
-        val startMs = SystemClock.elapsedRealtime()
-        while (SystemClock.elapsedRealtime() - startMs < timeoutMs) {
-            if (until()) {
-                return true
-            }
-            SystemClock.sleep(POLL_MS)
-        }
-
-        return until()
-    }
-
     private enum class Shot(val fileName: String) {
         RECENTS("01-recents"),
         TEXT("02-text"),
@@ -577,30 +591,6 @@ class ScreenshotTests {
     }
 
     companion object {
-        /**
-         * Store locale to the language its documents are written in. The same table
-         * `scripts/store_screenshots.py` holds, and the languages
-         * `scripts/make-screenshot-documents.py` writes.
-         */
-        private val LANGUAGES =
-            linkedMapOf(
-                "cs-CZ" to "cs",
-                "de-DE" to "de",
-                "en-US" to "en",
-                "es-ES" to "es",
-                "et" to "et",
-                "fr-FR" to "fr",
-                "hi-IN" to "hi",
-                "it-IT" to "it",
-                "ja-JP" to "ja",
-                "pl-PL" to "pl",
-                "pt-BR" to "pt",
-                "ru-RU" to "ru",
-                "sv-SE" to "sv",
-                "tr-TR" to "tr",
-                "zh-CN" to "zh",
-            )
-
         private val DEVICES = listOf("phone", "tablet")
 
         /**
@@ -668,6 +658,7 @@ class ScreenshotTests {
         private const val FOCUS_TIMEOUT_MS = 10000L
         private const val FIND_TIMEOUT_MS = 10000L
         private const val KEYBOARD_TIMEOUT_MS = 5000L
+        private const val LOCALE_TIMEOUT_MS = 10000L
         private const val JS_ANSWER_TIMEOUT_MS = 10000L
 
         private const val POLL_MS = 200L
@@ -676,8 +667,23 @@ class ScreenshotTests {
         // long enough for system ui to come back after the theme and the navigation bar change
         private const val RESTART_MS = 6000L
 
-        // and for the display to have turned before it is asked which way up it is
+        // for the request to have reached the display, and then for it to have turned: a
+        // runner painting through swiftshader has taken longer over that than any beat worth
+        // waiting on every rotation
         private const val ROTATE_MS = 2500L
+        private const val ROTATE_TIMEOUT_MS = 30000L
+
+        private fun waitFor(timeoutMs: Long, until: () -> Boolean): Boolean {
+            val startMs = SystemClock.elapsedRealtime()
+            while (SystemClock.elapsedRealtime() - startMs < timeoutMs) {
+                if (until()) {
+                    return true
+                }
+                SystemClock.sleep(POLL_MS)
+            }
+
+            return until()
+        }
 
         private fun argument(name: String): String? =
             InstrumentationRegistry.getArguments().getString(name)
@@ -748,27 +754,23 @@ class ScreenshotTests {
          *
          * Tried rather than told: rotation 0 is a device's *natural* orientation, and a tablet's
          * natural orientation is landscape - so the same setting that stands a phone up lays a
-         * tablet down. Asked for by hand, the tablet's whole set came out 2560x1600 and the frame
-         * drawn around it was built for the other shape.
+         * tablet down.
          *
          * What it settles on is checked by photographing the screen, which is the only thing that
          * answers the question actually being asked: `wm size` reports the panel, not the way up
          * the picture will come out.
          */
         private fun standUpright() {
-            val instrumentation = InstrumentationRegistry.getInstrumentation()
-
             shell("settings put system accelerometer_rotation 0")
 
             for (rotation in 0..3) {
                 shell("settings put system user_rotation $rotation")
+
+                // the beat first and the poll after: asked too early the screen still answers
+                // with the way up it is leaving, and a rotation that has really been refused
+                // answers the same way for as long as it is waited on
                 SystemClock.sleep(ROTATE_MS)
-
-                val shot = instrumentation.uiAutomation.takeScreenshot() ?: continue
-                val upright = shot.height > shot.width
-                shot.recycle()
-
-                if (upright) {
+                if (waitFor(ROTATE_TIMEOUT_MS) { isUpright() }) {
                     return
                 }
             }
@@ -776,6 +778,16 @@ class ScreenshotTests {
             throw AssertionError(
                 "no rotation stood this device upright, so it cannot be photographed"
             )
+        }
+
+        private fun isUpright(): Boolean {
+            val shot =
+                InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+                    ?: return false
+            val upright = shot.height > shot.width
+            shot.recycle()
+
+            return upright
         }
 
         fun undressTheDevice() {

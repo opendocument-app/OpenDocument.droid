@@ -1,9 +1,10 @@
 name: release
 
-# Builds three signed flavors once, uploads the two play ones to the internal track, then
-# records what went out; foss rides on the github release. Three jobs so that a half
-# uploaded release is repairable: "Re-run failed jobs" retries one upload against the
-# bundle already built and signed.
+# Builds three signed flavors once, photographs the store screenshots beside it, uploads
+# the two play bundles to the internal track, writes their listings and records what went
+# out; foss rides on the github release. Split into jobs so that a half uploaded release
+# is repairable: "Re-run failed jobs" retries one upload against the bundle already built
+# and signed, and a wedged emulator costs the release its pictures and not its binary.
 #
 # No tag triggers anything and none is written before an upload; build/<version> is
 # written afterwards, and the v<version> tag only when the drafted release is published,

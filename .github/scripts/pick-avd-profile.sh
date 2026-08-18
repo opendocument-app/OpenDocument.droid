@@ -6,11 +6,9 @@
 #   .github/scripts/pick-avd-profile.sh phone
 #
 # Pinned to one name, a release job fails the day the image catalogue renames or
-# retires it - and the answer to "photograph the newest Pixel Pro" is not a name
-# that has to be walked forward by hand every autumn. So the newest one the
-# runner actually has wins, and a runner that has none of them says which it does
-# have rather than letting xcodebuild's android cousin spend twenty minutes not
-# finding it.
+# retires it, and "photograph the newest Pixel Pro" becomes a name to walk
+# forward by hand every autumn. So the newest one the runner has wins, and a
+# runner with none of them says which it does have.
 
 set -euo pipefail
 
