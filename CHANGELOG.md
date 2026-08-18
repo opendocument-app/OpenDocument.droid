@@ -17,6 +17,7 @@ takes 500 characters, so not everything here reaches the store.
 
 ## Unreleased
 
+- Dark mode reaches the document again, not just the screen around it.
 - PDFs that do not carry their own fonts read properly: the words no longer
   drift further right along each line, and Find lands on the word you looked for
   rather than the one beside it. Bold and italic writing is drawn bold and

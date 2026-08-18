@@ -160,10 +160,9 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
             pageView.setDocumentFragment(this)
 
-            // a property of the page, not of the buttons over it - this used to be the last line
-            // of prepareActions(), which reached every new PageView only because the two are set
-            // up together. every one of them passes through here
-            pageView.disableDarkening()
+            // every format, pdf included. the one place that is decided, and every new PageView
+            // passes through here
+            pageView.setDarkeningAllowed(true)
         } catch (t: Throwable) {
             // crashManager is not set yet: onViewCreated has not run
 

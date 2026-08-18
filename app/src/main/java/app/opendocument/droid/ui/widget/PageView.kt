@@ -3,6 +3,7 @@ package app.opendocument.droid.ui.widget
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -156,32 +157,74 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         }
     }
 
+    /** What [setDarkeningAllowed] was last set to, whether or not printing has it suspended. */
+    var isDarkeningAllowed = false
+        private set
+
     /**
-     * Keeps the document on the background it was authored against, whatever the app theme is.
-     *
-     * The app shell follows night mode, the page does not: inverting a document is a rendering
-     * decision the reader has not asked for, and it goes badly on the tables, coloured text and
-     * images a real odt or docx is full of. Note this only became a live question when the theme
-     * moved to Material3.DayNight - at targetSdk 33 and up the webview only darkens when the app
-     * theme reports itself as dark, so under the old AppCompat.Light theme none of this ever fired.
-     *
-     * There is no parameter to this any more. It used to take an `isDarkModeSupported` that nothing
-     * in here ever read - both callers reached the same three lines - while [DocumentFragment] went
-     * to the trouble of working out that a pdf is not worth inverting. A user facing "dark
-     * documents" setting can grow the argument back when there is something on the other end of it.
+     * How many print jobs are still reading the page. Counted rather than a flag: the framework
+     * keeps reading well after `print()` returns, so a second job can start while the first is
+     * still spooling, and the page may only darken again once the last of them is done.
      */
+    private var darkeningSuspensions = 0
+
+    /**
+     * Whether the document follows the app into night mode, which is only ever a question while the
+     * app is in it: the webview darkens a page algorithmically, and at targetSdk 33 and up only
+     * once the app theme reports itself as dark.
+     *
+     * [DocumentFragment] decides which documents get it.
+     */
+    fun setDarkeningAllowed(allowed: Boolean) {
+        isDarkeningAllowed = allowed
+
+        applyDarkening()
+    }
+
+    /**
+     * Holds the page light while the print framework reads it - printing a darkened document wastes
+     * ink. Every call has to be matched by a [resumeDarkening], or the rest of the document is read
+     * in light mode.
+     */
+    fun suspendDarkening() {
+        darkeningSuspensions++
+
+        applyDarkening()
+    }
+
+    fun resumeDarkening() {
+        if (darkeningSuspensions > 0) {
+            darkeningSuspensions--
+        }
+
+        applyDarkening()
+    }
+
     @Suppress("DEPRECATION") // setForceDarkAllowed and setForceDark are the pre-webkit-1.6 api
-    fun disableDarkening() {
+    private fun applyDarkening() {
+        val darken = isDarkeningAllowed && darkeningSuspensions == 0
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            isForceDarkAllowed = false
+            isForceDarkAllowed = darken
         }
 
         if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
-            WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, false)
+            WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, darken)
         } else if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-            WebSettingsCompat.setForceDark(settings, WebSettingsCompat.FORCE_DARK_OFF)
+            // ON rather than AUTO on the pre-webkit-1.6 api: AUTO is the platform's smart dark,
+            // which an app declaring a dark theme is deliberately left out of, so it never fires
+            // here. Asking the app whether it is in night mode is what AUTO cannot do for us
+            WebSettingsCompat.setForceDark(
+                settings,
+                if (darken && isInNightMode()) WebSettingsCompat.FORCE_DARK_ON
+                else WebSettingsCompat.FORCE_DARK_OFF,
+            )
         }
     }
+
+    private fun isInNightMode() =
+        resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+            Configuration.UI_MODE_NIGHT_YES
 
     override fun loadUrl(url: String) {
         wasCommitCalled = false

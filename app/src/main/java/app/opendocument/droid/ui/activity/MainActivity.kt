@@ -537,9 +537,15 @@ class MainActivity : AppCompatActivity() {
                 analyticsManager.report("menu_print")
 
                 documentFragment?.pageView?.let { pageView ->
-                    pageView.disableDarkening()
+                    // printing a dark page wastes ink, so the page is held light for as long as
+                    // the framework is reading it - which is long after print() returns. what it
+                    // is given back to is looked up again: a document closed meanwhile took its
+                    // WebView with it, and the one that replaced it was never suspended
+                    pageView.suspendDarkening()
 
-                    printingManager.print(this, pageView)
+                    printingManager.print(this, pageView) {
+                        documentFragment?.pageView?.resumeDarkening()
+                    }
                 }
             }
 
