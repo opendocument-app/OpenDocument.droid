@@ -11,6 +11,8 @@ Guidance for Claude Code (claude.ai/code) working in this repository.
   and `./gradlew lintProDebug`. Lint errors fail the build; spotless has its own workflow.
 - `fastlane android deployPro version:v4.8.0` / `deployLite version:v4.8.0`. The version is
   required; a lane handed none errors out.
+- `fastlane android screenshots` photographs the store set off one emulator - see
+  **Store screenshots** below.
 
 ## Architecture
 
@@ -45,6 +47,44 @@ Under `tools/`, both for *looking* at the app rather than testing it - nothing a
 and logcat for each. **`screen-tour`** walks a build through six screens and lays two
 builds' screenshots side by side as a PDF; one tour walks both designs, so add to its lookup
 lists rather than forking it. Reach for it before `adb shell input tap`.
+
+## Store screenshots
+
+The store *copy* is written down here; the screenshots are not. A picture of the app is
+worth what the build it came off is worth, so the release run takes its own - six screens
+on a phone and a tablet in all fifteen locales - frames them and hands them to supply.
+Nothing is committed, and `.gitignore` says so. `OpenDocument.ios` does the same thing
+against App Store Connect, and the python is deliberately close enough to lift out later.
+
+**`ScreenshotTests` is the whole of it.** An instrumented test runs in the app's own
+process, so laying the samples out, filling the recent list and switching the app's
+language need no code in a build that ships - there is no `ScreenshotMode` in the apk and
+no line of this in `MainActivity`. Everything past that goes through the app the way a
+user does. Do not add a back door to the app for a screenshot: whatever it would need,
+the test can already reach.
+
+- It **skips itself unless a run names a device**, so `connectedCheck` on five API levels
+  does not photograph a store listing nobody asked for, and it **refuses anything below
+  API 35**, where the app does not tell the system bars to follow a light theme and every
+  picture gets a white clock on a white bar.
+- It writes into gradle's `additionalTestOutputDir`, which gradle copies back *before* it
+  uninstalls the apks. `getExternalFilesDir` is the obvious answer and the wrong one: an
+  app's own storage goes with it when it is uninstalled, so the pictures were written, the
+  test passed, and there was nothing left to fetch.
+- `scripts/make-screenshot-documents.py` writes the documents in them, into the *test*
+  apk's assets, reproducibly. `frame-screenshots.py` draws the frame - a Pixel, from its
+  published dimensions - onto a canvas of its own, because play refuses a picture more
+  than twice as long as it is wide and a Pixel 9 Pro XL is 2.23:1 before anything is drawn
+  around it. `store_screenshots.py` says what a full set is and stages it.
+- Which locale reads which language's documents is one table, in
+  `store_screenshots.py`. The generator checks its own languages against it and writes it
+  into the assets, and `ScreenshotTests` reads it from there - do not write a second copy
+  into the test. The underscore in the name is not a slip either: `frame-screenshots.py`
+  and the generator import it, and a dash cannot be imported.
+
+The release runs the two devices on a runner each, checks the halves together, and only
+then writes the listing - which is a job behind the bundle upload, so a wedged emulator
+costs the release its pictures and not its binary.
 
 ## Build
 

@@ -73,8 +73,24 @@ there is no translation of it that fits at all.
 `CHANGELOG.md` at the root is the other record of the same release, written for
 this repository rather than for the store.
 
+## Screenshots
+
+Not here, and not committed anywhere: they are taken during the release run, from
+the build going out, and staged into this tree beside the text - one directory to
+supply, one edit to Play. `scripts/store_screenshots.py` puts them under
+`<locale>/images/phoneScreenshots/` and `.../tenInchScreenshots/`, which is where
+supply reads a locale's pictures from.
+
+The copy is written; a screenshot is taken. A picture of the app is worth what the
+build it came off is worth, so it is not a file that sits in git going quietly out
+of date. See the README's "Screenshots" section for how to take them by hand.
+
 ## What is not uploaded
 
-`images/` holds an icon, a feature graphic and four phone screenshots that predate
-the 4.14 redesign, so uploading them would put the old screenshots back over the
-current ones. The upload leaves them alone. Graphics are their own job.
+`images/` holds an icon and a feature graphic that predate the 4.14 redesign.
+`skip_upload_images` stays on so they are left where they are; only the screenshots
+staged above go up. Those two graphics are their own job.
+
+The four phone screenshots that used to sit beside them are gone: the release now
+uploads its own, taken from the build it is shipping, so a stale copy in the tree
+could only ever disagree with the store.

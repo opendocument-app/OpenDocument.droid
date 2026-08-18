@@ -94,13 +94,16 @@ by hand, with the version it should build:
 gh workflow run release.yml -f version=v4.14.0
 ```
 
-Nothing triggers it on a tag. It runs as three jobs:
+Nothing triggers it on a tag. It runs as six jobs:
 
 | job | what it does |
 |---|---|
 | `build` | one gradle run producing all three signed flavors, archived on the run |
-| `upload` | one job per play flavor, handing its bundle and listing to fastlane |
-| `record` | once both landed: tag the commit, draft the GitHub release |
+| `screenshots` | beside the build: one emulator per device, photographing six screens in fifteen locales |
+| `screenshot-set` | the two devices put back together, and checked as one set |
+| `upload` | one job per play flavor, handing its bundle to fastlane |
+| `listing` | behind both: the copy and the screenshots, per flavor |
+| `record` | once the bundles landed: tag the commit, draft the GitHub release |
 
 Lite and Pro always go out together, and nothing chooses one: they are the same app with
 ads and tracking switched off. Foss is built in the same run but uploaded nowhere - it is
@@ -113,21 +116,62 @@ was tested onto the wider track instead of uploading a second one. It is also wh
 review that a production release waits on actually happens, so the workflow finishing is
 not the same as the release being out.
 
-The listing goes up with the bundle: the title, both descriptions and the release notes
-of that version, in all fifteen locales, for each app. **This overwrites what the Play
-Console says**, which is the point - the copy is written here now, not there. The release
-notes are no longer typed into the promotion box. Graphics are not uploaded; see
-`fastlane/metadata/README.md`.
+The listing goes up in its own job, behind the bundle: the title, both descriptions, the
+release notes of that version and the screenshots, in all fifteen locales, for each app.
+**This overwrites what the Play Console says**, which is the point - the copy is written
+here now, not there. The release notes are no longer typed into the promotion box. The
+icon and the feature graphic are still not uploaded; see `fastlane/metadata/README.md`.
+
+Separate from the bundle upload on purpose: a bundle cannot go up twice, while the listing
+stays editable for as long as the release sits on the internal track - and the listing is
+the half that waits on the emulators. A screenshot run that wedges costs the release its
+pictures, not its binary.
 
 `fastlane android listingPro` and `listingLite` send the listing without a bundle, which
 is how a typo is fixed: Play refuses a version code twice, so repairing the words should
-not need a version to carry them.
+not need a version to carry them. With nothing under `fastlane/framed` they send the text
+alone, so a word can be corrected without a quarter hour of emulators.
 
 **If one flavor's upload fails, press "Re-run failed jobs".** Only that upload runs again,
 against the bundle already built and signed, and `record` runs behind it. Re-running *all*
 jobs is the wrong button: Play refuses a version code it has already accepted, so the half
 that made it cannot go up twice. Past the roughly 30 days GitHub offers re-runs for, the
 way out is a new patch version for both flavors.
+
+### Screenshots
+
+The store copy is written down here; the screenshots are not. A picture of the app is worth
+what the build it came off is worth, so they are taken during the release run, from the
+build going out, framed there, and handed to supply from there. Nothing is committed.
+
+Six screens - the recently opened list, a text document with a search running, a
+spreadsheet, an edit under way, a PDF and a Word file - on a phone and on a tablet, in the
+fifteen locales the listing is written in. That is 180 pictures a release.
+
+Taking them by hand needs one emulator on adb running **Android 15 or newer**, and Pillow:
+
+```sh
+python3 -m pip install Pillow
+bundle exec fastlane android screenshots                       # every locale, phone
+ODR_SCREENSHOT_DEVICE=tablet bundle exec fastlane android screenshots
+ODR_SCREENSHOT_LANGUAGES=en-US,de-DE bundle exec fastlane android screenshots
+```
+
+With more than one device attached, `ANDROID_SERIAL` picks which. The raw captures land in
+`fastlane/screenshots/`, the framed set in `fastlane/framed/`, and only the second is what
+the store is given. Re-running `scripts/frame-screenshots.py` alone re-frames what is
+already captured, so changing a headline in `fastlane/frames/frames.json` costs a second of
+Pillow rather than a quarter hour of emulators.
+
+Android 15 is the floor because the app only tells the system bars to follow a light theme
+from API 35 on; below that every picture has a white clock on a white bar.
+`ScreenshotTests` refuses to run there rather than photograph it, and skips itself entirely
+unless a run names a device - `connectedCheck` is not the job for this.
+
+`hi-IN`, `ja-JP` and `zh-CN` are set in a system font, since Nunito has neither Devanagari
+nor CJK and one that does is ten to sixteen megabytes per language. On Debian that is
+`fonts-noto-core` and `fonts-noto-cjk`; without them the framing stops and says so rather
+than drawing a row of squares.
 
 `dry_run` builds and signs both flavors without uploading either. It is the only run
 allowed to go without a version, and the only one leaving neither tag nor draft.
@@ -156,7 +200,8 @@ a `service_account` key before the build starts rather than letting fastlane tri
 it once the build is done.
 
 Releasing from a laptop still works: `fastlane android deployPro version:v4.8.0` builds
-and uploads, and takes an optional `track:` (`... track:beta`). The version can come from
+and uploads the bundle *and* its listing - the split into two jobs is the workflow's, not
+the lane's - and takes an optional `track:` (`... track:beta`). The version can come from
 `ODR_VERSION` instead, but it cannot be left out - see below. That reads the key from
 `fastlane_google_play.json` in the repository root, as the `Appfile` says.
 

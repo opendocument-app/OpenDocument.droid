@@ -89,3 +89,11 @@ __pycache__/
 
 # staged by scripts/store-listing.py for one upload, then thrown away
 fastlane/.listing/
+
+# The store screenshots and what they are made of. None of it is committed: the
+# documents are written by scripts/make-screenshot-documents.py before a capture
+# run, and a picture of the app is only worth as much as the build it came off -
+# so the release takes its own. See the README's "Screenshots" section.
+app/src/androidTest/assets/screenshots/
+fastlane/screenshots/
+fastlane/framed/

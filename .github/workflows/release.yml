@@ -1,9 +1,10 @@
 name: release
 
-# Builds three signed flavors once, uploads the two play ones to the internal track, then
-# records what went out; foss rides on the github release. Three jobs so that a half
-# uploaded release is repairable: "Re-run failed jobs" retries one upload against the
-# bundle already built and signed.
+# Builds three signed flavors once, photographs the store screenshots beside it, uploads
+# the two play bundles to the internal track, writes their listings and records what went
+# out; foss rides on the github release. Split into jobs so that a half uploaded release
+# is repairable: "Re-run failed jobs" retries one upload against the bundle already built
+# and signed, and a wedged emulator costs the release its pictures and not its binary.
 #
 # No tag triggers anything and none is written before an upload; build/<version> is
 # written afterwards, and the v<version> tag only when the drafted release is published,
@@ -171,7 +172,166 @@ jobs:
         if-no-files-found: error
         compression-level: 0
 
-  # a job per flavor rather than a loop, so one half can be re-run alone. fail-fast
+  # Beside the build rather than behind it: it signs nothing and uploads nothing, it
+  # just drives an emulator, and it takes about as long. On a dry run too - the
+  # artifact is the only way to look at the pictures before the store does.
+  #
+  # A runner per device, because a runner has one emulator's worth of memory and
+  # because it halves the wall clock: the two halves photograph at once.
+  screenshots:
+    runs-on: ubuntu-24.04
+    # long by nature - ninety launches per device - but the default is six hours for
+    # a wedged emulator to sit in
+    timeout-minutes: 180
+    strategy:
+      # one device failing should not throw away the other's hour of work
+      fail-fast: false
+      matrix:
+        device: [phone, tablet]
+    steps:
+    - name: checkout
+      uses: actions/checkout@v7
+
+    - name: setup java
+      uses: actions/setup-java@v5.7.0
+      with:
+        distribution: 'zulu'
+        java-version: 21
+
+    - name: Gradle cache
+      uses: gradle/actions/setup-gradle@v6
+
+    # spelled out, as in the upload job: setup-ruby reads no .ruby-version here
+    - name: setup ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.4'
+        bundler-cache: true
+
+    - uses: actions/setup-python@v6
+      with:
+        python-version: "3.13"
+
+    # Pillow draws the frames. The fonts are for the three locales Nunito cannot
+    # set - hindi, japanese and chinese - which frame-screenshots.py refuses to
+    # draw as tofu, so a runner without them fails rather than shipping squares.
+    - name: python and fonts
+      run: |
+        python3 -m pip install --quiet Pillow
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq fonts-noto-core fonts-noto-cjk
+
+    # newest first, so a runner with a newer image uses it - see the script
+    - name: pick the ${{ matrix.device }} to photograph
+      id: profile
+      run: |
+        profile=$(.github/scripts/pick-avd-profile.sh "${{ matrix.device }}")
+        echo "profile=$profile" >> "$GITHUB_OUTPUT"
+        echo "photographing $profile" >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Enable KVM group perms
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+
+    # detached, for the reason build_test.yml gives: the step that hangs is the one
+    # running the emulator, so nothing after it in this job would get to run
+    - name: Reap the emulator's crash reporter
+      run: nohup setsid bash .github/scripts/reap-crashpad.sh > /dev/null 2>&1 &
+
+    # api 36, and not the floor the test matrix covers: the app only tells the
+    # system bars to follow a light theme from api 35 on (values-v35/themes.xml),
+    # and below that every picture has a white clock on a white bar. ScreenshotTests
+    # refuses to run there rather than photograph it.
+    - name: photograph the ${{ matrix.device }} in every locale
+      uses: reactivecircus/android-emulator-runner@v2
+      env:
+        ODR_SCREENSHOT_DEVICE: ${{ matrix.device }}
+      with:
+        api-level: 36
+        arch: x86_64
+        target: google_apis
+        profile: ${{ steps.profile.outputs.profile }}
+        force-avd-creation: false
+        ram-size: 4096M
+        emulator-options: -no-snapshot-save -no-snapshot-load -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
+        disable-animations: true
+        script: bash .github/scripts/take-screenshots.sh
+
+    # what the store is given
+    - name: archive the framed screenshots
+      uses: actions/upload-artifact@v7
+      with:
+        name: framed-${{ matrix.device }}
+        path: fastlane/framed
+        if-no-files-found: error
+        # png, so there is nothing left to squeeze out of them
+        compression-level: 0
+
+    # and what they were framed from, which is where to look when a picture comes
+    # out wrong. also when the lane failed: a half finished set is what says which
+    # language it got to
+    - name: archive the raw captures
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: screenshots-${{ matrix.device }}
+        path: fastlane/screenshots
+        if-no-files-found: warn
+        compression-level: 0
+
+    - name: archive the logs
+      if: failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: screenshot-logs-${{ matrix.device }}
+        path: |
+          logcat.txt
+          anr-traces.txt
+          processes.txt
+          app/build/reports/androidTests/
+        if-no-files-found: warn
+
+  # The two halves put back together, and only now checked: a set is both devices
+  # in every locale, and neither runner above can see the other's. Republished
+  # under the name the listing job reads.
+  screenshot-set:
+    needs: screenshots
+    runs-on: ubuntu-24.04
+    steps:
+    - name: checkout
+      uses: actions/checkout@v7
+
+    - uses: actions/setup-python@v6
+      with:
+        python-version: "3.13"
+
+    - name: fetch both halves
+      uses: actions/download-artifact@v8
+      with:
+        pattern: framed-*
+        merge-multiple: true
+        path: fastlane/framed
+
+    # the check the lane cannot do on half a set: every locale, both devices, at
+    # the size the framing draws
+    - name: check the set
+      run: python3 scripts/store_screenshots.py --screenshots fastlane/framed
+
+    - name: archive the framed screenshots
+      uses: actions/upload-artifact@v7
+      with:
+        name: framed
+        path: fastlane/framed
+        if-no-files-found: error
+        compression-level: 0
+
+  # The bundles alone. What the store says about them is the listing job below, so
+  # that a screenshot run that wedged an emulator costs the release its pictures
+  # and not its binary.
+  #
+  # A job per flavor rather than a loop, so one half can be re-run alone. fail-fast
   # off for the same reason
   upload:
     needs: build
@@ -186,17 +346,9 @@ jobs:
           - flavor: lite
             lane: uploadLite
     steps:
-    # for the Gemfile, the lanes and the listing the upload stages
+    # for the Gemfile and the lanes
     - name: checkout
       uses: actions/checkout@v7
-
-    # re-resolved rather than carried as a job output, as in the record job below:
-    # the upload needs it to name the release notes it sends with the bundle
-    - name: resolve version
-      id: version
-      env:
-        given: ${{ inputs.version }}
-      run: .github/scripts/resolve-version.py --input "$given" --dry-run "$dry_run"
 
     # back where gradle put them: the Fastfile reads a fixed path under here
     - name: fetch the bundles
@@ -219,10 +371,68 @@ jobs:
         ruby-version: '3.4'
         bundler-cache: true
 
-    # no track: the Fastfile's DEFAULT_TRACK is internal, and wider is a promotion.
+    # no track: the Fastfile's DEFAULT_TRACK is internal, and wider is a promotion
+    - name: upload the ${{ matrix.flavor }} bundle to play store
+      env:
+        ODR_PLAY_JSON_KEY: ${{ runner.temp }}/fastlane_google_play.json
+      run: bundle exec fastlane android ${{ matrix.lane }}
+
+    - name: drop credentials
+      if: always()
+      run: rm -f "${RUNNER_TEMP}/fastlane_google_play.json"
+
+  # Its own job because the listing is editable for as long as the release is on
+  # the internal track, while a bundle cannot be uploaded twice - and because it
+  # is the half that waits on the emulators.
+  listing:
+    needs: [upload, screenshot-set]
+    if: ${{ !inputs.dry_run }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - flavor: pro
+            lane: listingPro
+          - flavor: lite
+            lane: listingLite
+    steps:
+    - name: checkout
+      uses: actions/checkout@v7
+
+    # re-resolved rather than carried as a job output, as in the record job below:
+    # the listing needs it to name the release its notes belong to
+    - name: resolve version
+      id: version
+      env:
+        given: ${{ inputs.version }}
+      run: .github/scripts/resolve-version.py --input "$given" --dry-run "$dry_run"
+
+    # where the lane looks for them, and the same set both apps are given
+    - name: fetch the screenshots
+      uses: actions/download-artifact@v8
+      with:
+        name: framed
+        path: fastlane/framed
+
+    - name: play store credentials
+      env:
+        GOOGLE_PLAY_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+      run: .github/scripts/play-service-account-key.py "${RUNNER_TEMP}/fastlane_google_play.json"
+
+    - name: setup ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.4'
+        bundler-cache: true
+
+    - uses: actions/setup-python@v6
+      with:
+        python-version: "3.13"
+
     # ODR_VERSION rather than a lane argument: the Fastfile falls back to it, and it
-    # is what tells the staging script which release notes go up with the bundle
-    - name: upload ${{ matrix.flavor }} and its listing to play store
+    # is what tells the staging scripts which release the notes and pictures are for
+    - name: write the ${{ matrix.flavor }} listing to play store
       env:
         ODR_PLAY_JSON_KEY: ${{ runner.temp }}/fastlane_google_play.json
         ODR_VERSION: ${{ steps.version.outputs.version }}
