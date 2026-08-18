@@ -54,8 +54,8 @@ class LargeTextTests {
         Assert.assertTrue("the page never laid out", elements > 1)
 
         // and then the text itself. A megabyte is parsed in bursts, so the element count can stop
-        // changing inside a pause rather than at the end - two equal readings both landing in one
-        // is a page still filling, which the search then ran against and found nothing in
+        // changing inside a pause rather than at the end, and the search would run against a page
+        // still filling
         var needles = -1
         Assert.assertTrue(
             "the text never finished arriving - $NEEDLE is in the page $needles times, not $lines",

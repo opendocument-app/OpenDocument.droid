@@ -289,9 +289,8 @@ class MainActivityTests {
     }
 
     /**
-     * The margin switch renders the open document a second time. The margin is odrcore's, decided
-     * while translating, so flipping the setting alone would leave the page as it was until the
-     * document was closed and opened again.
+     * The margin switch renders the open document a second time: the margin is odrcore's, decided
+     * while translating, so flipping the setting alone would leave the page as it was.
      */
     @Test
     fun theMarginSwitchRendersTheDocumentAgain() {
@@ -324,8 +323,8 @@ class MainActivityTests {
 
     /**
      * The button is only there where tapping it changes something: odrcore lays a text document out
-     * with the margins or without them, and every other view the same either way. Launches nothing
-     * - it is the rule the button is gated on, and the core answers it.
+     * with the margins or without them, and every other view the same either way. Launches
+     * nothing - it is the rule the button is gated on, and the core answers it.
      */
     @Test
     fun theMarginSwitchIsOnlyOfferedForTextDocuments() {
@@ -352,13 +351,11 @@ class MainActivityTests {
     }
 
     /**
-     * The margins render the document again, and a reader who was halfway down it should still be
-     * halfway down it afterwards - the reload used to hand back the top of the page.
+     * The margins render the document again, and a reader halfway down it should still be halfway
+     * down it afterwards - the reload used to hand back the top of the page.
      *
-     * A fraction on both sides, because the margins are exactly what changes the height: the same
-     * place in the text is a different offset once the page has been laid out again. Polled rather
-     * than asserted straight after the reload, the way the edit mode tests poll - the page has to
-     * be laid out again before there is anywhere to put anyone back to.
+     * A fraction on both sides, the margins being exactly what changes the height. Polled rather
+     * than asserted straight after the reload, the way the edit mode tests poll.
      */
     @Test
     fun theMarginSwitchKeepsTheReadingPosition() {
@@ -371,8 +368,8 @@ class MainActivityTests {
             waitFor(EDIT_MODE_TIMEOUT_MS) { scrollableHeight(pageView) > 0 },
         )
 
-        // a long way down, but not the very end: the last screenful is one position however far
-        // the page is scrolled past it, so it would pass without anything being restored at all
+        // a long way down, but not the end: the last screenful is one position however far the page
+        // is scrolled past it, so it would pass with nothing restored at all
         val before = scrollToFraction(pageView, READING_POSITION)
         Assert.assertTrue(
             "the page did not scroll - it read back at $before",

@@ -38,8 +38,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * The document follows the app into night mode, if it is a kind of document that reads better for
- * it, and the switches over it are what say otherwise.
+ * The document follows the app into night mode where it reads better for it, and the switches over
+ * it are what say otherwise.
  *
  * A webview darkens a page algorithmically and only while the app theme reports itself dark, so
  * every test here puts the app in night mode first - in day mode nothing below would fail.
@@ -61,16 +61,15 @@ class DarkModeTests {
     fun leaveNightMode() {
         setNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
-        // both switches keep their answer on disk, where the next test would find it. asking for
-        // what the system says is what stores no override at all - see NightModeSetting.setNight
+        // both switches keep their answer on disk, where the next test would find it
         NightModeSetting.setNight(targetContext(), systemIsNight())
 
         for (kind in DocumentDarkening.Kind.entries) {
             DocumentDarkening.clear(targetContext(), kind)
         }
 
-        // switching night mode recreates the activity, leaving one behind that the rule does not
-        // know about - and it would still be up when the next test launches its own
+        // switching night mode recreates the activity, leaving one behind the rule knows nothing
+        // of - and it would still be up when the next test launches its own
         val resumed = resumedMainActivity()
         if (resumed != null && resumed !== mainActivityActivityTestRule.activity) {
             onMainThread { resumed.finish() }
@@ -83,8 +82,7 @@ class DarkModeTests {
     }
 
     /**
-     * A pdf does not, which is the one kind the app is sure about: a scanned page inverts into
-     * something nobody wrote. See [DocumentDarkening].
+     * A pdf does not: a scanned page inverts into something nobody wrote. See [DocumentDarkening].
      */
     @Test
     fun aPdfIsNotDarkened() {
@@ -136,8 +134,8 @@ class DarkModeTests {
     }
 
     /**
-     * The switch over the document, which is the answer for a phone that stays in day mode all
-     * night - the only test here that starts in day mode, since that is what it switches out of.
+     * The switch over the document, for a phone that stays in day mode all night - the only test
+     * here that starts in day mode, since that is what it switches out of.
      */
     @Test
     fun theSwitchDarkensADayModeApp() {
@@ -151,8 +149,7 @@ class DarkModeTests {
             systemIsNight(),
         )
 
-        // undoing what every other test here starts from: the switch is the only thing that
-        // should be putting this app in night mode
+        // the switch is the only thing that should be putting this app in night mode
         setNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
         openPageView("test.odt")
@@ -163,8 +160,8 @@ class DarkModeTests {
             )
         }
 
-        // 60s and the last reading kept, for the reason theDrawnPageIsDark gives: this waits on
-        // the same screenshot, and an activity recreation happens before it
+        // 60s and the last reading kept, for the reason theDrawnPageIsDark gives - and an
+        // activity recreation happens before it
         var luminance = WHITE
         val darkened = waitFor(60000) { meanLuminance().also { luminance = it } < DARK_LUMINANCE }
 
@@ -233,9 +230,8 @@ class DarkModeTests {
     }
 
     /**
-     * What the webview is and what it was given, for a failure message: these tests fail on one api
-     * level at a time, on emulators whose webview is far older than any developer machine's, and
-     * "the page stayed light" alone does not say which of the two darkening apis was even in play.
+     * What the webview is and what it was given, for a failure message: these fail on one api level
+     * at a time, and "the page stayed light" does not say which darkening api was even in play.
      */
     private fun darkeningDiagnosis(): String {
         val algorithmic = WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)
@@ -258,14 +254,10 @@ class DarkModeTests {
     /**
      * Whether this webview can darken a page at all, which is not the same as its saying it can.
      *
-     * The api 29 image ships webview 74, which reports `FORCE_DARK` supported, takes the setting
-     * and hands it straight back - and draws the page exactly as light as it was. Force dark is
-     * only implemented from 76. What the app does there is still asserted, through
-     * [darkeningSetting]; it is the screen that cannot be asked, so the two tests that read pixels
-     * skip instead of failing for a webview that was never going to darken.
-     *
-     * An unreadable version counts as capable: a missed skip is a failure to look at, a skip taken
-     * by mistake is coverage quietly lost.
+     * The api 29 image ships webview 74, which reports `FORCE_DARK` supported, hands the setting
+     * straight back and draws the page as light as it was - force dark only arrived in 76. What the
+     * app does is still asserted through [darkeningSetting]; only the two tests that read pixels
+     * skip. An unreadable version counts as capable: a skip taken by mistake is coverage lost.
      */
     private fun canDarken() =
         WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING) ||
@@ -340,8 +332,8 @@ class DarkModeTests {
         val uri = uriOf(extract(name))
         onMainThread { activity.loadUri(uri) }
 
-        // not the uri, which is the one it already had: what says this load landed is a
-        // document that is not the one from the load before it
+        // not the uri, which is the one it already had: what says this load landed is a document
+        // that is not the one from the load before
         Assert.assertTrue(
             "$name never loaded again",
             waitFor(30000) { fragment.lastDocument != null && fragment.lastDocument !== before },

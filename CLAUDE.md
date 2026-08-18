@@ -187,21 +187,17 @@ be done to it, and each remembers what it was last told:
   default one, so a phone that stays light all day can still be read at night. `NightModeSetting`
   stores no override at all once the choice agrees with the system again, or the app would sit in
   night mode through a morning the phone had long left.
-- **Darkening** defaults to what the core says and is overridden per kind of document, not per
-  file. `CoreLoader` translates every page with `HtmlColorScheme.SYSTEM`, so a format that has a
-  dark of its own carries both behind `prefers-color-scheme`, and
-  `capabilitiesByFileType(...).colorScheme` is whether it has one - which is what
-  `DocumentDarkening` defaults to rather than a list. A pdf and the media views have none, so
-  there all the webview can do is invert, which is offered but off. Do not put the guesses back:
-  it was a guess that presentations and images invert badly, and the core answers both.
-  `PageView.setDarkeningAllowed` picks between the two schemes at display time, which is why the
-  button changes nothing about the translation and renders nothing again.
+- **Darkening** defaults to `capabilitiesByFileType(...).colorScheme` - whether the format has a
+  dark of its own - and is overridden per kind of document, not per file. `CoreLoader` translates
+  every page with `HtmlColorScheme.SYSTEM` so both schemes ride behind `prefers-color-scheme`, and
+  `PageView.setDarkeningAllowed` picks between them at display time, which is why the button
+  renders nothing again. Do not put a list of formats back: it was a guess that presentations and
+  images invert badly, and the core answers both.
 - **The margins** are odrcore's `textDocumentMargin`, decided while translating, so the button
   renders the document again through `DocumentLoader.reload` - the copy in the cache, not the file.
-  It reaches a *text* document only, which `PaginationSetting.affects` answers and the button is
-  gated on: everything else would be translated again to look exactly the same. A reload throws
-  the page away, so `DocumentFragment` carries the tab and how far down it the reader was over to
-  the document that comes back - as a fraction, the margins having changed the height.
+  `PaginationSetting.affects` gates it on a *text* document: everything else would be translated
+  again to look the same. `DocumentFragment` carries the tab and how far down it the reader was
+  over to the document that comes back - as a fraction, the margins having changed the height.
 
 Do not move these into a settings screen. `PaginationSetting` keeps its landing row because it
 already had one and both write the same preference; the other two never get one.
