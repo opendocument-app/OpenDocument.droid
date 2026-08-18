@@ -17,6 +17,7 @@ import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import app.opendocument.droid.background.DocumentDarkening
 import app.opendocument.droid.background.NightModeSetting
@@ -127,7 +128,10 @@ class DarkModeTests {
         var luminance = WHITE
         val darkened = waitFor(60000) { meanLuminance().also { luminance = it } < DARK_LUMINANCE }
 
-        Assert.assertTrue("the page stayed light - mean luminance $luminance", darkened)
+        Assert.assertTrue(
+            "the page stayed light - mean luminance $luminance; ${darkeningDiagnosis()}",
+            darkened,
+        )
     }
 
     /**
@@ -162,7 +166,10 @@ class DarkModeTests {
         var luminance = WHITE
         val darkened = waitFor(60000) { meanLuminance().also { luminance = it } < DARK_LUMINANCE }
 
-        Assert.assertTrue("the page stayed light - mean luminance $luminance", darkened)
+        Assert.assertTrue(
+            "the page stayed light - mean luminance $luminance; ${darkeningDiagnosis()}",
+            darkened,
+        )
         Assert.assertEquals(
             "the switch was not remembered",
             AppCompatDelegate.MODE_NIGHT_YES,
@@ -221,6 +228,29 @@ class DarkModeTests {
         }
 
         return darkening.get()
+    }
+
+    /**
+     * What the webview is and what it was given, for a failure message: these tests fail on one api
+     * level at a time, on emulators whose webview is far older than any developer machine's, and
+     * "the page stayed light" alone does not say which of the two darkening apis was even in play.
+     */
+    private fun darkeningDiagnosis(): String {
+        val algorithmic = WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)
+        val force = WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)
+
+        val webView =
+            try {
+                WebViewCompat.getCurrentWebViewPackage(targetContext())?.versionName ?: "none"
+            } catch (t: Throwable) {
+                "unknown (${t.javaClass.simpleName})"
+            }
+
+        val pageView = resumedMainActivity()?.let { waitForFragment(it)?.pageView }
+
+        return "webview $webView, algorithmicDarkening=$algorithmic, forceDark=$force, " +
+            "night=${NightModeSetting.isNight(targetContext())}, " +
+            "allowed=${pageView?.isDarkeningAllowed}, setting=${pageView?.let(::darkeningSetting)}"
     }
 
     private fun canDarken() =
