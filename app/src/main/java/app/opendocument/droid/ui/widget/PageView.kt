@@ -53,6 +53,9 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
     private var wasCommitCalled = false
 
+    /** What [loadUrl] was last given: the only page whose failure is this document's. */
+    private var loadedUrl: String? = null
+
     private var isBridgeAttached = false
 
     init {
@@ -316,6 +319,14 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         // the third party viewers an ONLINE result loads here. takes effect on the next load
         if (!url.startsWith(JAVASCRIPT_SCHEME)) {
             attachBridge(isOwnContent(url))
+
+            // a page that never committed left a retry waiting in onPageFinished. Now that another
+            // page has been asked for, that retry would load the old one back over it - and the
+            // document it belonged to has taken its server with it, so what it would find there is
+            // a 404 this page is then given up on for
+            buggyWebViewHandler.removeCallbacksAndMessages(null)
+
+            loadedUrl = url
         }
 
         super.loadUrl(url)
@@ -336,6 +347,13 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         // only the document is the app's to give up on. a link shouldOverrideUrlLoading could not
         // hand to another app is left to the webview, and fails here as a main frame load too
         if (!isOwnContent(url.toString())) {
+            return
+        }
+
+        // and only the page being shown. A request made for a document already closed can still be
+        // answered here, long after the page moved on, and the document on screen is not the one
+        // that failed
+        if (loadedUrl != null && url.toString() != loadedUrl) {
             return
         }
 
