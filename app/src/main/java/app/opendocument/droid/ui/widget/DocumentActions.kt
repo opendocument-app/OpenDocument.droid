@@ -214,6 +214,9 @@ class DocumentActions(context: Context, attributeSet: AttributeSet?) :
         const val ACTION_OPEN_WITH: Int = 6
         const val ACTION_SAVE: Int = 7
         const val ACTION_FULLSCREEN: Int = 8
+        const val ACTION_NIGHT_MODE: Int = 9
+        const val ACTION_PAGE_MARGINS: Int = 10
+        const val ACTION_DOCUMENT_DARKENING: Int = 11
 
         private const val ANIMATION_MILLIS = 150L
 

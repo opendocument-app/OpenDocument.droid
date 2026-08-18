@@ -3,6 +3,9 @@
 
 package app.opendocument.droid.test
 
+import android.content.Context
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.net.Uri
 import android.os.SystemClock
 import androidx.appcompat.app.AppCompatDelegate
@@ -11,10 +14,16 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
 import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import app.opendocument.droid.background.DocumentDarkening
+import app.opendocument.droid.background.NightModeSetting
 import app.opendocument.droid.ui.activity.DocumentFragment
 import app.opendocument.droid.ui.activity.MainActivity
+import app.opendocument.droid.ui.widget.DocumentActions
 import app.opendocument.droid.ui.widget.PageView
 import java.io.File
 import java.io.FileOutputStream
@@ -29,10 +38,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * The document follows the app into night mode.
+ * The document follows the app into night mode where it reads better for it, and the switches over
+ * it are what say otherwise.
  *
  * A webview darkens a page algorithmically and only while the app theme reports itself dark, so
  * every test here puts the app in night mode first - in day mode nothing below would fail.
+ * [theSwitchDarkensADayModeApp] is the exception, and undoes it.
  */
 @LargeTest
 @RunWith(AndroidJUnit4::class)
@@ -49,6 +60,20 @@ class DarkModeTests {
     @After
     fun leaveNightMode() {
         setNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+
+        // both switches keep their answer on disk, where the next test would find it
+        NightModeSetting.setNight(targetContext(), systemIsNight())
+
+        for (kind in DocumentDarkening.Kind.entries) {
+            DocumentDarkening.clear(targetContext(), kind)
+        }
+
+        // switching night mode recreates the activity, leaving one behind the rule knows nothing
+        // of - and it would still be up when the next test launches its own
+        val resumed = resumedMainActivity()
+        if (resumed != null && resumed !== mainActivityActivityTestRule.activity) {
+            onMainThread { resumed.finish() }
+        }
     }
 
     @Test
@@ -56,17 +81,40 @@ class DarkModeTests {
         assertDarkened(openPageView("test.odt"))
     }
 
-    /** Every format, pdf included - see [PageView.setDarkeningAllowed]. */
+    /**
+     * A pdf does not: a scanned page inverts into something nobody wrote. See [DocumentDarkening].
+     */
     @Test
-    fun aPdfIsDarkenedToo() {
-        assertDarkened(openPageView("dummy.pdf"))
+    fun aPdfIsNotDarkened() {
+        val pageView = openPageView("dummy.pdf")
+
+        Assert.assertFalse("the pdf was allowed to darken", pageView.isDarkeningAllowed)
+        assertNotDarkened(pageView)
+    }
+
+    /** What the button says is kept for every document of that kind, not for the file it was on. */
+    @Test
+    fun theDocumentSwitchIsRememberedForTheKind() {
+        // after openPageView, which is what launches it
+        val pageView = openPageView("dummy.pdf")
+        val activity = mainActivityActivityTestRule.activity
+
+        Assert.assertFalse("the pdf started out darkened", pageView.isDarkeningAllowed)
+
+        onMainThread { activity.onDocumentAction(DocumentActions.ACTION_DOCUMENT_DARKENING) }
+
+        // no reload: darkening is a webview setting, not something the page was translated with
+        assertDarkened(pageView)
+
+        assertDarkened(reopenPageView(activity, "dummy.pdf"))
     }
 
     /** What is drawn, not only the flag: a webview ignoring the setting passes the flag check. */
     @Test
     fun theDrawnPageIsDark() {
         Assume.assumeTrue(
-            "this webview has no darkening api at all - nothing the app sets could reach it",
+            "this webview cannot darken a page - nothing the app sets could reach it. " +
+                "${darkeningDiagnosis()}",
             canDarken(),
         )
 
@@ -79,7 +127,53 @@ class DarkModeTests {
         var luminance = WHITE
         val darkened = waitFor(60000) { meanLuminance().also { luminance = it } < DARK_LUMINANCE }
 
-        Assert.assertTrue("the page stayed light - mean luminance $luminance", darkened)
+        Assert.assertTrue(
+            "the page stayed light - mean luminance $luminance; ${darkeningDiagnosis()}",
+            darkened,
+        )
+    }
+
+    /**
+     * The switch over the document, for a phone that stays in day mode all night - the only test
+     * here that starts in day mode, since that is what it switches out of.
+     */
+    @Test
+    fun theSwitchDarkensADayModeApp() {
+        Assume.assumeTrue(
+            "this webview cannot darken a page - nothing the app sets could reach it. " +
+                "${darkeningDiagnosis()}",
+            canDarken(),
+        )
+        Assume.assumeFalse(
+            "the device itself is in night mode - there is no day mode to switch out of",
+            systemIsNight(),
+        )
+
+        // the switch is the only thing that should be putting this app in night mode
+        setNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+
+        openPageView("test.odt")
+
+        onMainThread {
+            mainActivityActivityTestRule.activity.onDocumentAction(
+                DocumentActions.ACTION_NIGHT_MODE
+            )
+        }
+
+        // 60s and the last reading kept, for the reason theDrawnPageIsDark gives - and an
+        // activity recreation happens before it
+        var luminance = WHITE
+        val darkened = waitFor(60000) { meanLuminance().also { luminance = it } < DARK_LUMINANCE }
+
+        Assert.assertTrue(
+            "the page stayed light - mean luminance $luminance; ${darkeningDiagnosis()}",
+            darkened,
+        )
+        Assert.assertEquals(
+            "the switch was not remembered",
+            AppCompatDelegate.MODE_NIGHT_YES,
+            NightModeSetting.mode(targetContext()),
+        )
     }
 
     /** Printing holds the page light, and only the last job still reading it gives it back. */
@@ -135,9 +229,50 @@ class DarkModeTests {
         return darkening.get()
     }
 
+    /**
+     * What the webview is and what it was given, for a failure message: these fail on one api level
+     * at a time, and "the page stayed light" does not say which darkening api was even in play.
+     */
+    private fun darkeningDiagnosis(): String {
+        val algorithmic = WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)
+        val force = WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)
+
+        val webView =
+            try {
+                WebViewCompat.getCurrentWebViewPackage(targetContext())?.versionName ?: "none"
+            } catch (t: Throwable) {
+                "unknown (${t.javaClass.simpleName})"
+            }
+
+        val pageView = resumedMainActivity()?.let { waitForFragment(it)?.pageView }
+
+        return "webview $webView, algorithmicDarkening=$algorithmic, forceDark=$force, " +
+            "night=${NightModeSetting.isNight(targetContext())}, " +
+            "allowed=${pageView?.isDarkeningAllowed}, setting=${pageView?.let(::darkeningSetting)}"
+    }
+
+    /**
+     * Whether this webview can darken a page at all, which is not the same as its saying it can.
+     *
+     * The api 29 image ships webview 74, which reports `FORCE_DARK` supported, hands the setting
+     * straight back and draws the page as light as it was - force dark only arrived in 76. What the
+     * app does is still asserted through [darkeningSetting]; only the two tests that read pixels
+     * skip. An unreadable version counts as capable: a skip taken by mistake is coverage lost.
+     */
     private fun canDarken() =
         WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING) ||
-            WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)
+            (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) &&
+                webViewMajorVersion() >= FORCE_DARK_MIN_WEBVIEW)
+
+    private fun webViewMajorVersion(): Int =
+        try {
+            WebViewCompat.getCurrentWebViewPackage(targetContext())
+                ?.versionName
+                ?.substringBefore('.')
+                ?.toIntOrNull() ?: Int.MAX_VALUE
+        } catch (t: Throwable) {
+            Int.MAX_VALUE
+        }
 
     /**
      * What the middle of the screen draws, averaged - 0 is black and 255 white.
@@ -189,6 +324,24 @@ class DarkModeTests {
         return checkNotNull(fragment.pageView) { "no page view" }
     }
 
+    /** The same file again in the activity already up: a page view that was told nothing yet. */
+    private fun reopenPageView(activity: MainActivity, name: String): PageView {
+        val fragment = checkNotNull(waitForFragment(activity)) { "no document fragment" }
+        val before = fragment.lastDocument
+
+        val uri = uriOf(extract(name))
+        onMainThread { activity.loadUri(uri) }
+
+        // not the uri, which is the one it already had: what says this load landed is a document
+        // that is not the one from the load before
+        Assert.assertTrue(
+            "$name never loaded again",
+            waitFor(30000) { fragment.lastDocument != null && fragment.lastDocument !== before },
+        )
+
+        return checkNotNull(fragment.pageView) { "no page view" }
+    }
+
     private fun waitForFragment(activity: MainActivity): DocumentFragment? {
         var fragment: DocumentFragment? = null
         waitFor(30000) {
@@ -220,6 +373,29 @@ class DarkModeTests {
         onMainThread { AppCompatDelegate.setDefaultNightMode(mode) }
     }
 
+    /** The device's own answer, which an activity carrying a local mode no longer gives. */
+    private fun systemIsNight(): Boolean =
+        Resources.getSystem().configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+            Configuration.UI_MODE_NIGHT_YES
+
+    private fun targetContext(): Context =
+        InstrumentationRegistry.getInstrumentation().targetContext
+
+    /** Whatever is on screen, which after a night mode switch is not what the rule launched. */
+    private fun resumedMainActivity(): MainActivity? {
+        val current = AtomicReference<MainActivity>()
+        onMainThread {
+            for (candidate in
+                ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED)) {
+                if (candidate is MainActivity) {
+                    current.set(candidate)
+                }
+            }
+        }
+        return current.get()
+    }
+
     private fun uriOf(file: File): Uri {
         val appCtx = InstrumentationRegistry.getInstrumentation().targetContext
 
@@ -240,6 +416,9 @@ class DarkModeTests {
 
     private companion object {
         /** Below this the page is dark rather than the white a document is authored on. */
+        /** Force dark landed in this one; 74, which api 29 ships, takes the setting and lies. */
+        private const val FORCE_DARK_MIN_WEBVIEW = 76
+
         private const val DARK_LUMINANCE = 128
 
         private const val WHITE = 255

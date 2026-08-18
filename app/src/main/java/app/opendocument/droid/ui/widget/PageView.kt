@@ -53,6 +53,9 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
     private var wasCommitCalled = false
 
+    /** What [loadUrl] was last given: the only page whose failure is this document's. */
+    private var loadedUrl: String? = null
+
     private var isBridgeAttached = false
 
     init {
@@ -75,9 +78,16 @@ constructor(context: Context, attributeSet: AttributeSet?) :
                 override fun onPageFinished(view: WebView, url: String) {
                     super.onPageFinished(view, url)
 
+                    restorePendingScroll(0)
+
                     buggyWebViewHandler.postDelayed(
                         {
-                            if (!wasCommitCalled) {
+                            // [url] and not whatever is loaded now: this callback can arrive after
+                            // another page was asked for, which cancels the retries queued until
+                            // then but not the one queued here. wasCommitCalled is about the page
+                            // being waited on, so on its own it would answer for that other page
+                            // and put this one back over it
+                            if (!wasCommitCalled && url == loadedUrl) {
                                 crashManager.log(RuntimeException("commit was not called"))
 
                                 loadUrl(url)
@@ -157,6 +167,72 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         }
     }
 
+    /**
+     * Where the page sits, as a fraction of what there is to scroll.
+     *
+     * A fraction and not the offset: the one thing that reloads a document in place is a change to
+     * how it is laid out, which changes the height an offset would mean anything against.
+     */
+    val verticalScrollFraction: Float
+        get() {
+            val scrollable = verticalScrollableHeight
+
+            return if (scrollable <= 0) 0f
+            else (computeVerticalScrollOffset().toFloat() / scrollable).coerceIn(0f, 1f)
+        }
+
+    /** How far the page can be scrolled: its height less the screenful already showing. */
+    val verticalScrollableHeight: Int
+        get() = computeVerticalScrollRange() - computeVerticalScrollExtent()
+
+    private var scrollFractionToRestore: Float? = null
+
+    /** The height the last attempt at restoring measured, to see whether it is still growing. */
+    private var lastScrollableHeight = -1
+
+    private val scrollRestoreHandler = Handler(Looper.getMainLooper())
+
+    /**
+     * Puts the next page loaded back to [fraction] of its height.
+     *
+     * Not applied here: the page is still being laid out when the load reports itself finished.
+     */
+    fun restoreScrollFraction(fraction: Float) {
+        scrollFractionToRestore = fraction.takeIf { it > 0f }
+        lastScrollableHeight = -1
+    }
+
+    /**
+     * Waits for a height that has stopped growing and scrolls to it - a long document goes on being
+     * laid out, and the first height it reports lands near the top of where the reader was. Gives
+     * up after [SCROLL_RESTORE_ATTEMPTS], leaving the page where it is.
+     */
+    private fun restorePendingScroll(attempt: Int) {
+        val fraction = scrollFractionToRestore ?: return
+
+        val scrollable = verticalScrollableHeight
+
+        if (
+            (scrollable <= 0 || scrollable != lastScrollableHeight) &&
+                attempt < SCROLL_RESTORE_ATTEMPTS
+        ) {
+            lastScrollableHeight = scrollable
+
+            scrollRestoreHandler.postDelayed(
+                { restorePendingScroll(attempt + 1) },
+                SCROLL_RESTORE_INTERVAL_MS,
+            )
+
+            return
+        }
+
+        scrollFractionToRestore = null
+
+        if (scrollable > 0) {
+            scrollTo(scrollX, (fraction * scrollable).toInt())
+        }
+    }
+
     /** What [setDarkeningAllowed] was last set to, whether or not printing has it suspended. */
     var isDarkeningAllowed = false
         private set
@@ -173,7 +249,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
      * app is in it: the webview darkens a page algorithmically, and at targetSdk 33 and up only
      * once the app theme reports itself as dark.
      *
-     * [DocumentFragment] decides which documents get it.
+     * [DocumentFragment] decides which documents get it, from `DocumentDarkening`.
      */
     fun setDarkeningAllowed(allowed: Boolean) {
         isDarkeningAllowed = allowed
@@ -211,6 +287,16 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
             WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, darken)
         } else if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+            // invert rather than stand aside for the page's own dark theme, which is the default.
+            // Every page carries one now, but a webview old enough for this branch answers
+            // prefers-color-scheme by the system alone, so standing aside leaves the page light
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
+                WebSettingsCompat.setForceDarkStrategy(
+                    settings,
+                    WebSettingsCompat.DARK_STRATEGY_USER_AGENT_DARKENING_ONLY,
+                )
+            }
+
             // ON rather than AUTO on the pre-webkit-1.6 api: AUTO is the platform's smart dark,
             // which an app declaring a dark theme is deliberately left out of, so it never fires
             // here. Asking the app whether it is in night mode is what AUTO cannot do for us
@@ -233,6 +319,14 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         // the third party viewers an ONLINE result loads here. takes effect on the next load
         if (!url.startsWith(JAVASCRIPT_SCHEME)) {
             attachBridge(isOwnContent(url))
+
+            // a page that never committed left a retry waiting in onPageFinished. Now that another
+            // page has been asked for, that retry would load the old one back over it - and the
+            // document it belonged to has taken its server with it, so what it would find there is
+            // a 404 this page is then given up on for
+            buggyWebViewHandler.removeCallbacksAndMessages(null)
+
+            loadedUrl = url
         }
 
         super.loadUrl(url)
@@ -253,6 +347,13 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         // only the document is the app's to give up on. a link shouldOverrideUrlLoading could not
         // hand to another app is left to the webview, and fails here as a main frame load too
         if (!isOwnContent(url.toString())) {
+            return
+        }
+
+        // and only the page being shown. A request made for a document already closed can still be
+        // answered here, long after the page moved on, and the document on screen is not the one
+        // that failed
+        if (loadedUrl != null && url.toString() != loadedUrl) {
             return
         }
 
@@ -368,5 +469,10 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
         /** Where CoreLoader publishes a translated document. */
         const val LOCAL_SERVER_URL_PREFIX = "http://localhost:"
+
+        /** Two seconds of them, which a megabyte of text lays out well inside of. */
+        const val SCROLL_RESTORE_ATTEMPTS = 20
+
+        const val SCROLL_RESTORE_INTERVAL_MS = 100L
     }
 }

@@ -38,6 +38,16 @@
     <string name="house_ad_cta_go_pro">Go Pro</string>
     <string name="house_ad_cta_get_pro">Get Pro</string>
     <string name="menu_fullscreen">Fullscreen mode</string>
+    <string name="menu_night_mode">Night mode</string>
+    <string name="menu_day_mode">Day mode</string>
+    <string name="menu_documents_dark">Darken documents</string>
+    <string name="menu_documents_light">Keep documents light</string>
+    <string name="menu_pdfs_dark">Darken PDFs</string>
+    <string name="menu_pdfs_light">Keep PDFs light</string>
+    <string name="menu_images_dark">Darken images</string>
+    <string name="menu_images_light">Keep images light</string>
+    <string name="menu_fit_to_screen">Fit to screen</string>
+    <string name="menu_page_borders">Show page borders</string>
     <string name="menu_cloud_print">Print document</string>
     <string name="menu_tts">Text-To-Speech</string>
     <string name="crouton_error_open_app">Couldn\'t open selected app.</string>

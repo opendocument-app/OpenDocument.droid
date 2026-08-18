@@ -8,6 +8,7 @@ import app.opendocument.core.DecodedFile
 import app.opendocument.core.Document
 import app.opendocument.core.DocumentType
 import app.opendocument.core.Html
+import app.opendocument.core.HtmlColorScheme
 import app.opendocument.core.HtmlConfig
 import app.opendocument.core.HtmlView
 import app.opendocument.core.HttpServer
@@ -148,6 +149,11 @@ class CoreLoader(private val context: Context) {
         htmlConfig.relativeResourcePaths = false
         htmlConfig.textDocumentMargin = paging
         htmlConfig.editable = editable
+
+        // both schemes, each behind prefers-color-scheme, rather than the one it is being read in
+        // now: this is decided while translating, and darkening is turned on and off over the open
+        // document. PageView.setDarkeningAllowed picks between them
+        htmlConfig.colorScheme = HtmlColorScheme.SYSTEM
 
         val cacheDirectory = File(cachePath)
         cacheDirectory.deleteRecursively()
