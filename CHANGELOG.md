@@ -33,8 +33,20 @@ takes 500 characters, so not everything here reaches the store.
   with the highlight that selects it.
 - Selecting or finding across words in a PDF covers the spaces between them
   rather than leaving a sliver of white in every gap.
+- A filled-in PDF form shows what was filled in, and a marked-up one shows its
+  notes and highlights.
+- A scanned PDF shows the scan rather than a blank page.
+- Justified writing in a PDF is spaced the way the file asks instead of falling
+  short of the margin, and a page written sideways is turned the right way up.
+- More PDFs come out right: writing set in a cut-down font shows the characters
+  it should, and files whose compressed parts end short open at all.
 - Tapping the text of a paged document reaches it, so selecting and copying work
   where the page used to swallow the tap.
+- A Word document is spaced the way Word spaces it: the gaps above and below
+  paragraphs, the height of a line, lists that stay tight, and table rows that
+  keep the height they were given.
+- A Word table follows the style it was built with, so its writing looks the way
+  the document sets it up.
 
 ## 4.15.0
 
