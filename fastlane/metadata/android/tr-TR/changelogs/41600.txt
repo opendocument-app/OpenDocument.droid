@@ -1,0 +1,7 @@
+PDF'ler yazıldıkları gibi okunuyor: kalın ve italik yerli yerinde, doldurulmuş formlar ve notlar görünüyor, taranmış sayfalar artık boş açılmıyor ve arama doğru kelimeyi buluyor.
+
+Gece modu artık telefonun tamamı için bir ayar değil, açık belgenin üzerinde bir düğme.
+
+Büyük bir metin dosyası dakikalarca değil, bir anda açılıyor.
+
+DOCX belgeleri yazıldıkları hâldeki aralıkları koruyor: satır yüksekliği ve tablo satırları dahil.

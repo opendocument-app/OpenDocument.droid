@@ -1,0 +1,7 @@
+I PDF si leggono come sono stati scritti: grassetto e corsivo al posto giusto, moduli compilati e note visibili, pagine scansionate non più vuote e la ricerca che trova la parola giusta.
+
+La modalità notte ora è un pulsante sul documento aperto, non un'impostazione per tutto il telefono.
+
+Un file di testo grande si apre in un istante, non in un minuto.
+
+Un .docx mantiene la spaziatura con cui è stato scritto, interlinea e righe delle tabelle comprese.

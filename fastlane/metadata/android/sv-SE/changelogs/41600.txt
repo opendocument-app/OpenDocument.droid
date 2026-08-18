@@ -1,0 +1,7 @@
+PDF-filer visas som de skrevs: fetstil och kursiv på rätt plats, ifyllda formulär och anteckningar syns, skannade sidor öppnas inte längre tomma, och sökningen hittar rätt ord.
+
+Nattläge är nu en knapp över det öppna dokumentet, inte en inställning för hela telefonen.
+
+En stor textfil öppnas på ett ögonblick i stället för en minut.
+
+Ett .docx behåller avstånden det skrevs med, både radhöjd och tabellrader.

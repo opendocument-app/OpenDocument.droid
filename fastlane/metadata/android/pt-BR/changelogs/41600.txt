@@ -1,0 +1,7 @@
+PDFs abrem como foram escritos: negrito e itálico no lugar certo, formulários preenchidos e anotações à vista, páginas digitalizadas não ficam mais em branco e a pesquisa leva à palavra certa.
+
+O modo noturno agora é um botão no documento aberto, não uma configuração do celular todo.
+
+Um arquivo de texto grande abre em um instante, não em um minuto.
+
+Um .docx mantém o espaçamento com que foi escrito, incluindo altura de linha e linhas de tabela.

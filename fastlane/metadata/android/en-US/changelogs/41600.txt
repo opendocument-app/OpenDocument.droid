@@ -1,0 +1,7 @@
+PDFs read the way they were written: bold and italic where they belong, filled-in forms and notes shown, scanned pages no longer blank, and Find landing on the right word.
+
+Night mode is a switch over the open document now, not a setting for the whole phone.
+
+A large text file opens in a moment, not a minute.
+
+A .docx keeps the spacing it was written with, line height and table rows included.

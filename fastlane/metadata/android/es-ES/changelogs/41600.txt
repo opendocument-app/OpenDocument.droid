@@ -1,0 +1,7 @@
+Los PDF se leen como se escribieron: negrita y cursiva en su sitio, formularios rellenados y notas a la vista, páginas escaneadas que ya no salen en blanco y una búsqueda que da con la palabra exacta.
+
+El modo nocturno ahora es un botón sobre el documento abierto, no un ajuste de todo el móvil.
+
+Un archivo de texto grande se abre en un momento, no en un minuto.
+
+Un .docx conserva el espaciado con el que se escribió, incluidos el interlineado y las filas de las tablas.

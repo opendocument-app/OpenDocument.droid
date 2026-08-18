@@ -1,0 +1,7 @@
+PDFs werden angezeigt, wie sie geschrieben wurden: Fett und Kursiv an ihrem Platz, ausgefüllte Formulare und Notizen sichtbar, gescannte Seiten nicht mehr leer, und die Suche führt zum richtigen Wort.
+
+Der Nachtmodus ist jetzt ein Schalter über dem geöffneten Dokument, keine Einstellung für das ganze Handy.
+
+Eine große Textdatei öffnet sich im Nu, nicht in einer Minute.
+
+Eine .docx behält die Abstände, mit denen sie geschrieben wurde – samt Zeilenhöhe und Tabellenzeilen.

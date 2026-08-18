@@ -1,0 +1,7 @@
+Les PDF s'affichent comme ils ont été écrits : gras et italique à leur place, formulaires remplis et annotations visibles, pages numérisées qui ne sont plus vides, et la recherche qui trouve le bon mot.
+
+Le mode nuit est désormais un bouton sur le document ouvert, et non un réglage pour tout le téléphone.
+
+Un gros fichier texte s'ouvre en un instant, et non plus en une minute.
+
+Un .docx garde l'espacement d'origine, interligne et lignes de tableau compris.

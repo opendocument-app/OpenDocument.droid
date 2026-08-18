@@ -1,0 +1,7 @@
+PDF-id on loetavad nii, nagu need kirjutati: paks kiri ja kaldkiri õiges kohas, täidetud vormid ja märkmed nähtaval, skannitud lehed enam tühjad ei ole ning otsing leiab õige sõna.
+
+Öörežiim on nüüd lüliti avatud dokumendi kohal, mitte kogu telefoni seade.
+
+Suur tekstifail avaneb hetkega, mitte minutiga.
+
+DOCX säilitab kirjutamisel määratud vahed, sealhulgas reakõrguse ja tabeliread.
