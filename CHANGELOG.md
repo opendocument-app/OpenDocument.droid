@@ -18,6 +18,12 @@ takes 500 characters, so not everything here reaches the store.
 ## Unreleased
 
 - Dark mode reaches the document again, not just the screen around it.
+- A large text file appears at once. A megabyte took the better part of a minute
+  to lay out and now takes under a second.
+- A text file of prose is read as text, not mistaken for a spreadsheet because
+  its sentences contain commas. Short comma-separated values still open as one.
+- Text reflowed to the screen keeps a small margin from the edge instead of
+  starting at the very first pixel.
 - PDFs that do not carry their own fonts read properly: the words no longer
   drift further right along each line, and Find lands on the word you looked for
   rather than the one beside it. Bold and italic writing is drawn bold and
