@@ -82,7 +82,12 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
                     buggyWebViewHandler.postDelayed(
                         {
-                            if (!wasCommitCalled) {
+                            // [url] and not whatever is loaded now: this callback can arrive after
+                            // another page was asked for, which cancels the retries queued until
+                            // then but not the one queued here. wasCommitCalled is about the page
+                            // being waited on, so on its own it would answer for that other page
+                            // and put this one back over it
+                            if (!wasCommitCalled && url == loadedUrl) {
                                 crashManager.log(RuntimeException("commit was not called"))
 
                                 loadUrl(url)
