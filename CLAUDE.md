@@ -82,9 +82,12 @@ the test can already reach.
   into the test. The underscore in the name is not a slip either: `frame-screenshots.py`
   and the generator import it, and a dash cannot be imported.
 
-The release runs the two devices on a runner each, checks the halves together, and only
-then writes the listing - which is a job behind the bundle upload, so a wedged emulator
-costs the release its pictures and not its binary.
+The release runs the two devices on a runner each and checks the halves together, then
+writes the listing. That job is behind the bundle upload but **not gated on the pictures**:
+without them the lane writes the listing text and the release notes alone and leaves what
+the store has, so a wedged emulator costs the release its pictures and nothing else. Do not
+put the screenshots back into a plain `needs:` - that is what made a failed capture take the
+copy down with it.
 
 ## Build
 
