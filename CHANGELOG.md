@@ -15,7 +15,7 @@ version code per locale under `fastlane/metadata/android/<locale>/changelogs/`,
 written by `scripts/store-copy.py` before the release and uploaded by it. Play
 takes 500 characters, so not everything here reaches the store.
 
-## Unreleased
+## 4.16.0
 
 - Dark mode reaches the document again, not just the screen around it.
 - Night mode is the app's own now, switched over the open document: reading at
