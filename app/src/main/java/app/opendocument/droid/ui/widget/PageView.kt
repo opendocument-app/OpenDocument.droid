@@ -278,6 +278,18 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
             WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, darken)
         } else if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+            // Invert, and do not stand aside for the page's own dark theme, which is what this api
+            // does by default. Every page carries one now - CoreLoader translates with
+            // HtmlColorScheme.SYSTEM - but a webview old enough to be on this branch answers
+            // prefers-color-scheme by the system alone and never matches it for a forced dark, so
+            // deferring to that theme is deferring to nothing and the page stays light
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
+                WebSettingsCompat.setForceDarkStrategy(
+                    settings,
+                    WebSettingsCompat.DARK_STRATEGY_USER_AGENT_DARKENING_ONLY,
+                )
+            }
+
             // ON rather than AUTO on the pre-webkit-1.6 api: AUTO is the platform's smart dark,
             // which an app declaring a dark theme is deliberately left out of, so it never fires
             // here. Asking the app whether it is in night mode is what AUTO cannot do for us
