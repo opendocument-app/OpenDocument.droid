@@ -4,7 +4,7 @@ name: release
 # the two play bundles to the internal track, writes their listings and records what went
 # out; foss rides on the github release. Split into jobs so that a half uploaded release
 # is repairable: "Re-run failed jobs" retries one upload against the bundle already built
-# and signed, and a wedged emulator costs the release its pictures and not its binary.
+# and signed, and a wedged emulator costs the release its pictures and nothing else.
 #
 # No tag triggers anything and none is written before an upload; build/<version> is
 # written afterwards, and the v<version> tag only when the drafted release is published,
@@ -329,7 +329,7 @@ jobs:
 
   # The bundles alone. What the store says about them is the listing job below, so
   # that a screenshot run that wedged an emulator costs the release its pictures
-  # and not its binary.
+  # and neither its binary nor its copy.
   #
   # A job per flavor rather than a loop, so one half can be re-run alone. fail-fast
   # off for the same reason
@@ -384,9 +384,15 @@ jobs:
   # Its own job because the listing is editable for as long as the release is on
   # the internal track, while a bundle cannot be uploaded twice - and because it
   # is the half that waits on the emulators.
+  #
+  # `screenshot-set` supplies this job, it does not gate it: without the pictures
+  # the lane writes the listing text and this version's notes and leaves what the
+  # store has where it is, which is what `stage_screenshots` is written to do.
+  # Behind a plain `needs:` that never got to run - a wedged emulator skipped the
+  # job outright and cost the release its copy along with its pictures.
   listing:
     needs: [upload, screenshot-set]
-    if: ${{ !inputs.dry_run }}
+    if: ${{ !cancelled() && !inputs.dry_run && needs.upload.result == 'success' }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -408,12 +414,22 @@ jobs:
         given: ${{ inputs.version }}
       run: .github/scripts/resolve-version.py --input "$given" --dry-run "$dry_run"
 
-    # where the lane looks for them, and the same set both apps are given
+    # where the lane looks for them, and the same set both apps are given. Only
+    # when there is a set: the artifact is written with if-no-files-found: error,
+    # so a screenshot-set that passed is the same answer as one that exists
     - name: fetch the screenshots
+      if: ${{ needs.screenshot-set.result == 'success' }}
       uses: actions/download-artifact@v8
       with:
         name: framed
         path: fastlane/framed
+
+    # said out loud, since the release otherwise finishes green over a listing
+    # still showing the pictures of some earlier version
+    - name: say there are no pictures this time
+      if: ${{ needs.screenshot-set.result != 'success' }}
+      run: |
+        echo "::warning::no screenshots for this release - the listing goes up with its text alone, and the store keeps the pictures it already has"
 
     - name: play store credentials
       env:

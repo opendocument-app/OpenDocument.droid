@@ -125,7 +125,8 @@ icon and the feature graphic are still not uploaded; see `fastlane/metadata/READ
 Separate from the bundle upload on purpose: a bundle cannot go up twice, while the listing
 stays editable for as long as the release sits on the internal track - and the listing is
 the half that waits on the emulators. A screenshot run that wedges costs the release its
-pictures, not its binary.
+pictures and nothing else: the listing still goes up, with its text and this version's
+release notes, over the screenshots the store already has. The run says so as a warning.
 
 `fastlane android listingPro` and `listingLite` send the listing without a bundle, which
 is how a typo is fixed: Play refuses a version code twice, so repairing the words should

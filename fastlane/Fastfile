@@ -200,7 +200,7 @@ platform :android do
 
   # The bundle alone. What the store says about it goes up separately, in
   # uploadListing, so that a screenshot run that wedged an emulator costs the
-  # release its pictures and not its binary - and so a rejected word can be
+  # release its pictures and nothing else - and so a rejected word can be
   # rewritten and pushed again without touching a bundle play refuses twice.
   private_lane :uploadBundle do |options|
     flavor = options[:flavor]
