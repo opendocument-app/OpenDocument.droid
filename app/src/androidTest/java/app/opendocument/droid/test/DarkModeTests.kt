@@ -65,7 +65,7 @@ class DarkModeTests {
         NightModeSetting.setNight(targetContext(), systemIsNight())
 
         for (kind in DocumentDarkening.Kind.entries) {
-            DocumentDarkening.setAllowed(targetContext(), kind, kind.darkensByDefault)
+            DocumentDarkening.clear(targetContext(), kind)
         }
 
         // switching night mode recreates the activity, leaving one behind that the rule does not

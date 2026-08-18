@@ -8,6 +8,7 @@ import app.opendocument.core.DecodedFile
 import app.opendocument.core.Document
 import app.opendocument.core.DocumentType
 import app.opendocument.core.Html
+import app.opendocument.core.HtmlColorScheme
 import app.opendocument.core.HtmlConfig
 import app.opendocument.core.HtmlView
 import app.opendocument.core.HttpServer
@@ -148,6 +149,13 @@ class CoreLoader(private val context: Context) {
         htmlConfig.relativeResourcePaths = false
         htmlConfig.textDocumentMargin = paging
         htmlConfig.editable = editable
+
+        // both schemes, each behind the media query the reader's webview answers, rather than the
+        // one scheme it is being read in right now: what a page carries is decided here, while it
+        // is translated, and darkening is turned on and off over the open document without
+        // translating it again. PageView.setDarkeningAllowed is what picks between them, and a
+        // view whose format has no dark of its own is left to be inverted as before
+        htmlConfig.colorScheme = HtmlColorScheme.SYSTEM
 
         val cacheDirectory = File(cachePath)
         cacheDirectory.deleteRecursively()

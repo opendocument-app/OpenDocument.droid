@@ -320,6 +320,35 @@ class MainActivityTests {
         }
     }
 
+    /**
+     * The button is only there where tapping it changes something: odrcore lays a text document out
+     * with the margins or without them, and every other view the same either way. Launches nothing
+     * - it is the rule the button is gated on, and the core answers it.
+     */
+    @Test
+    fun theMarginSwitchIsOnlyOfferedForTextDocuments() {
+        Assert.assertTrue(
+            "a text document is what the margins are for",
+            PaginationSetting.affects("application/vnd.oasis.opendocument.text"),
+        )
+
+        for (mimeType in
+            listOf(
+                "application/pdf",
+                "image/png",
+                "application/vnd.oasis.opendocument.spreadsheet",
+                "application/vnd.oasis.opendocument.presentation",
+                "text/plain",
+            )) {
+            Assert.assertFalse(
+                "$mimeType would have been rendered again to look exactly the same",
+                PaginationSetting.affects(mimeType),
+            )
+        }
+
+        Assert.assertFalse("nothing is not a text document", PaginationSetting.affects(null))
+    }
+
     @Test
     fun testDocumentSurvivesRecreation() {
         val activity = mainActivityActivityTestRule.activity

@@ -79,6 +79,15 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
     private var freshOpenPending = false
 
+    /**
+     * Where the reader was before a reload that is not theirs, held from [reloadForMargins] until
+     * the document comes back. Null at every other load: opening a document belongs at its top.
+     */
+    private var positionToRestore: ReadingPosition? = null
+
+    /** A tab and how far down it, which survives the document being translated again. */
+    private data class ReadingPosition(val tab: Int, val scrollFraction: Float)
+
     private lateinit var tabLayout: TabLayout
 
     private lateinit var documentLoader: DocumentLoader
@@ -374,7 +383,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         DocumentDarkening.setAllowed(
             requireContext(),
             kind,
-            !DocumentDarkening.isAllowed(requireContext(), kind),
+            !DocumentDarkening.isAllowed(requireContext(), document.file.mimeType),
         )
 
         applyDarkening(document.file)
@@ -391,6 +400,14 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         if (!isAdded) {
             return
         }
+
+        // the page is thrown away and translated again, so where the reader had got to is taken
+        // along by hand - it is the same document, and they did not ask to be put back at the top
+        positionToRestore =
+            ReadingPosition(
+                maxOf(state.lastSelectedTab, 0),
+                pageView?.verticalScrollFraction ?: 0f,
+            )
 
         // not a new document, and not one the user went and opened either
         freshOpenPending = false
@@ -502,7 +519,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             if (!NightModeSetting.isNight(requireContext())) null
             else {
                 val kind = DocumentDarkening.kindOf(document.file.mimeType)
-                val darkened = DocumentDarkening.isAllowed(requireContext(), kind)
+                val darkened = DocumentDarkening.isAllowed(requireContext(), document.file.mimeType)
 
                 DocumentActions.Action(
                     DocumentActions.ACTION_DOCUMENT_DARKENING,
@@ -520,13 +537,17 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                 )
             }
 
+        // odrcore applies them to a text document and nothing else, so anywhere else the row would
+        // render the document again to show nothing new - see PaginationSetting.affects
         val margins =
-            DocumentActions.Action(
-                DocumentActions.ACTION_PAGE_MARGINS,
-                if (PaginationSetting.isEnabled(requireContext())) R.string.menu_fit_to_screen
-                else R.string.menu_page_borders,
-                R.drawable.ic_menu_book,
-            )
+            if (!PaginationSetting.affects(document.file.mimeType)) null
+            else
+                DocumentActions.Action(
+                    DocumentActions.ACTION_PAGE_MARGINS,
+                    if (PaginationSetting.isEnabled(requireContext())) R.string.menu_fit_to_screen
+                    else R.string.menu_page_borders,
+                    R.drawable.ic_menu_book,
+                )
 
         // the order they unfold in, most wanted first - and what a reader reaches for mid-document
         // is how it is displayed, not what else can be done to it. the margins were only on the
@@ -652,14 +673,23 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         analyticsManager.setCurrentScreen(activity, file.mimeType ?: UNKNOWN_FILE_TYPE)
 
+        // clears lastSelectedTab, so what reloadForMargins put aside is read after it
         resetTabs()
+
+        val restored = positionToRestore
+        positionToRestore = null
+
+        // before the load below, which is the one it is waiting for. always, and not only when
+        // there is something to put back: a reload that failed on the way here would otherwise
+        // leave its fraction waiting for whatever document is opened next
+        pageView?.restoreScrollFraction(restored?.scrollFraction ?: 0f)
 
         val titles = document.partTitles
         val pages = titles.size
         if (pages > 1) {
             addTabs(titles)
 
-            tabLayout.getTabAt(0)?.select()
+            tabLayout.getTabAt(restored?.tab?.coerceAtMost(pages - 1) ?: 0)?.select()
         } else if (pages == 1) {
             loadData(document.partUris[0].toString())
         }

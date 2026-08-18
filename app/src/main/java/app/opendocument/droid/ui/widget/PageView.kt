@@ -75,6 +75,8 @@ constructor(context: Context, attributeSet: AttributeSet?) :
                 override fun onPageFinished(view: WebView, url: String) {
                     super.onPageFinished(view, url)
 
+                    restorePendingScroll(0)
+
                     buggyWebViewHandler.postDelayed(
                         {
                             if (!wasCommitCalled) {
@@ -154,6 +156,70 @@ constructor(context: Context, attributeSet: AttributeSet?) :
             } catch (e: Exception) {
                 crashManager.log(e)
             }
+        }
+    }
+
+    /**
+     * Where the page sits, as a fraction of what there is to scroll.
+     *
+     * A fraction and not the offset itself: the one thing that reloads a document in place is a
+     * change to how it is laid out, and that changes the height the offset would be measured
+     * against.
+     */
+    val verticalScrollFraction: Float
+        get() {
+            val scrollable = computeVerticalScrollRange() - computeVerticalScrollExtent()
+
+            return if (scrollable <= 0) 0f
+            else (computeVerticalScrollOffset().toFloat() / scrollable).coerceIn(0f, 1f)
+        }
+
+    private var scrollFractionToRestore: Float? = null
+
+    /** The height the last attempt at restoring measured, to see whether it is still growing. */
+    private var lastScrollableHeight = -1
+
+    private val scrollRestoreHandler = Handler(Looper.getMainLooper())
+
+    /**
+     * Puts the next page loaded back to [fraction] of its height.
+     *
+     * Not applied here: the page is still being laid out when the load reports itself finished, and
+     * until it has a height there is nothing to put anything back to.
+     */
+    fun restoreScrollFraction(fraction: Float) {
+        scrollFractionToRestore = fraction.takeIf { it > 0f }
+        lastScrollableHeight = -1
+    }
+
+    /**
+     * Waits for a height that has stopped growing and scrolls to it - a long document goes on being
+     * laid out for a while, and measuring against the first height it reports lands near the top of
+     * where the reader was. Gives up after [SCROLL_RESTORE_ATTEMPTS], leaving the page where it is.
+     */
+    private fun restorePendingScroll(attempt: Int) {
+        val fraction = scrollFractionToRestore ?: return
+
+        val scrollable = computeVerticalScrollRange() - computeVerticalScrollExtent()
+
+        if (
+            (scrollable <= 0 || scrollable != lastScrollableHeight) &&
+                attempt < SCROLL_RESTORE_ATTEMPTS
+        ) {
+            lastScrollableHeight = scrollable
+
+            scrollRestoreHandler.postDelayed(
+                { restorePendingScroll(attempt + 1) },
+                SCROLL_RESTORE_INTERVAL_MS,
+            )
+
+            return
+        }
+
+        scrollFractionToRestore = null
+
+        if (scrollable > 0) {
+            scrollTo(scrollX, (fraction * scrollable).toInt())
         }
     }
 
@@ -369,5 +435,10 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
         /** Where CoreLoader publishes a translated document. */
         const val LOCAL_SERVER_URL_PREFIX = "http://localhost:"
+
+        /** Two seconds of them, which a megabyte of text lays out well inside of. */
+        const val SCROLL_RESTORE_ATTEMPTS = 20
+
+        const val SCROLL_RESTORE_INTERVAL_MS = 100L
     }
 }
