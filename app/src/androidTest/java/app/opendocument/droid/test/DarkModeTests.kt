@@ -22,6 +22,7 @@ import java.io.InputStream
 import java.util.concurrent.atomic.AtomicReference
 import org.junit.After
 import org.junit.Assert
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -64,6 +65,11 @@ class DarkModeTests {
     /** What is drawn, not only the flag: a webview ignoring the setting passes the flag check. */
     @Test
     fun theDrawnPageIsDark() {
+        Assume.assumeTrue(
+            "this webview has no darkening api at all - nothing the app sets could reach it",
+            canDarken(),
+        )
+
         openPageView("test.odt")
 
         // the darkening lands while compositing, which the load callback does not wait for
@@ -73,20 +79,62 @@ class DarkModeTests {
         )
     }
 
+    /** Printing holds the page light, and only the last job still reading it gives it back. */
+    @Test
+    fun printingGivesTheDarkeningBack() {
+        val pageView = openPageView("test.odt")
+
+        onMainThread {
+            pageView.suspendDarkening()
+            pageView.suspendDarkening()
+        }
+        assertNotDarkened(pageView)
+
+        onMainThread { pageView.resumeDarkening() }
+        assertNotDarkened(pageView)
+
+        onMainThread { pageView.resumeDarkening() }
+        assertDarkened(pageView)
+    }
+
     private fun assertDarkened(pageView: PageView) {
         Assert.assertTrue("the page was not allowed to darken", pageView.isDarkeningAllowed)
 
-        if (!WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
-            return
-        }
+        val darkening = darkeningSetting(pageView) ?: return
 
-        val allowed = AtomicReference(false)
-        onMainThread {
-            allowed.set(WebSettingsCompat.isAlgorithmicDarkeningAllowed(pageView.settings))
-        }
-
-        Assert.assertTrue("the webview was not told to darken the page", allowed.get())
+        Assert.assertTrue("the webview was not told to darken the page", darkening)
     }
+
+    private fun assertNotDarkened(pageView: PageView) {
+        val darkening = darkeningSetting(pageView) ?: return
+
+        Assert.assertFalse("the webview was still told to darken the page", darkening)
+    }
+
+    /**
+     * What the webview was actually given, or null where it has neither api to ask - an old webview
+     * cannot darken a page whatever the app asks of it.
+     */
+    private fun darkeningSetting(pageView: PageView): Boolean? {
+        val darkening = AtomicReference<Boolean?>(null)
+
+        onMainThread {
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                darkening.set(WebSettingsCompat.isAlgorithmicDarkeningAllowed(pageView.settings))
+            } else if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+                darkening.set(
+                    WebSettingsCompat.getForceDark(pageView.settings) !=
+                        WebSettingsCompat.FORCE_DARK_OFF
+                )
+            }
+        }
+
+        return darkening.get()
+    }
+
+    private fun canDarken() =
+        WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING) ||
+            WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)
 
     /**
      * What the middle of the screen draws, averaged - 0 is black and 255 white.

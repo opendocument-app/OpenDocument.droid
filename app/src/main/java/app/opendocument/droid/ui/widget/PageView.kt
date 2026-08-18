@@ -3,6 +3,7 @@ package app.opendocument.droid.ui.widget
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -156,9 +157,16 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         }
     }
 
-    /** What [setDarkeningAllowed] was last set to, so printing can turn it off and put it back. */
+    /** What [setDarkeningAllowed] was last set to, whether or not printing has it suspended. */
     var isDarkeningAllowed = false
         private set
+
+    /**
+     * How many print jobs are still reading the page. Counted rather than a flag: the framework
+     * keeps reading well after `print()` returns, so a second job can start while the first is
+     * still spooling, and the page may only darken again once the last of them is done.
+     */
+    private var darkeningSuspensions = 0
 
     /**
      * Whether the document follows the app into night mode, which is only ever a question while the
@@ -167,26 +175,56 @@ constructor(context: Context, attributeSet: AttributeSet?) :
      *
      * [DocumentFragment] decides which documents get it.
      */
-    @Suppress("DEPRECATION") // setForceDarkAllowed and setForceDark are the pre-webkit-1.6 api
     fun setDarkeningAllowed(allowed: Boolean) {
         isDarkeningAllowed = allowed
 
+        applyDarkening()
+    }
+
+    /**
+     * Holds the page light while the print framework reads it - printing a darkened document wastes
+     * ink. Every call has to be matched by a [resumeDarkening], or the rest of the document is read
+     * in light mode.
+     */
+    fun suspendDarkening() {
+        darkeningSuspensions++
+
+        applyDarkening()
+    }
+
+    fun resumeDarkening() {
+        if (darkeningSuspensions > 0) {
+            darkeningSuspensions--
+        }
+
+        applyDarkening()
+    }
+
+    @Suppress("DEPRECATION") // setForceDarkAllowed and setForceDark are the pre-webkit-1.6 api
+    private fun applyDarkening() {
+        val darken = isDarkeningAllowed && darkeningSuspensions == 0
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            isForceDarkAllowed = allowed
+            isForceDarkAllowed = darken
         }
 
         if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
-            WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, allowed)
+            WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, darken)
         } else if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-            // AUTO rather than ON: the pre-webkit-1.6 api darkens unconditionally otherwise,
-            // which would invert the page in a light themed app too
+            // ON rather than AUTO on the pre-webkit-1.6 api: AUTO is the platform's smart dark,
+            // which an app declaring a dark theme is deliberately left out of, so it never fires
+            // here. Asking the app whether it is in night mode is what AUTO cannot do for us
             WebSettingsCompat.setForceDark(
                 settings,
-                if (allowed) WebSettingsCompat.FORCE_DARK_AUTO
+                if (darken && isInNightMode()) WebSettingsCompat.FORCE_DARK_ON
                 else WebSettingsCompat.FORCE_DARK_OFF,
             )
         }
     }
+
+    private fun isInNightMode() =
+        resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+            Configuration.UI_MODE_NIGHT_YES
 
     override fun loadUrl(url: String) {
         wasCommitCalled = false
