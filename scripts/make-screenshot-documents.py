@@ -76,6 +76,12 @@ PAGE_LAYOUTS = {
 ACCENT = "#1c6fd6"
 RULE = "#d4d9e0"
 
+# Which section of the report the figures sit under - the costs one, second of the
+# five - and how many rows of them there are. The rows are what carry the report
+# past the foot of a phone screen, so this is the number to turn if it stops.
+COSTS_SECTION = 1
+REPORT_ROWS = 26
+
 
 def styles(kind: str) -> str:
     return f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -114,24 +120,57 @@ def paragraph_style(name: str, *, size: str, weight: str = "normal", colour: str
 
 
 def report(words: dict) -> str:
-    """A page of text: a title, a lead, two headed sections and a closing line."""
+    """A title, a lead, headed sections with the costs figures under theirs, and a
+    closing line.
+
+    Long on purpose. A page fitted to the width of a phone is about two thirds of
+    its height, so a document that ends after one is photographed with a third of
+    the screen showing the backdrop behind it. Which is why there is a table in
+    here at all: the figures are the only length the report can be given that is
+    already written in all fifteen languages.
+    """
     automatic = "\n".join(
         [
             paragraph_style("Title", size="26pt", weight="bold", space="0.8cm"),
             paragraph_style("Heading", size="16pt", weight="bold", colour=ACCENT, space="0.3cm"),
             paragraph_style("Body", size="12pt", space="0.5cm"),
+            CELL_STYLES,
+            """  <style:style style:name="coReportLabel" style:family="table-column">
+   <style:table-column-properties style:column-width="5.4cm"/>
+  </style:style>""",
+            """  <style:style style:name="coReportFigure" style:family="table-column">
+   <style:table-column-properties style:column-width="2.9cm"/>
+  </style:style>""",
         ]
+    )
+
+    head, body, foot = table(words, columns=3, rows=REPORT_ROWS)
+    marks = "\n".join(
+        ['    <table:table-column table:style-name="coReportLabel"/>']
+        + ['    <table:table-column table:style-name="coReportFigure"/>'] * (len(head) - 1)
+    )
+    figures = (
+        f'   <table:table table:name="{escape(words["sheets"][0])}">\n{marks}\n'
+        + "\n".join([odf_row(head, "ceHead")] + [odf_row(line) for line in body] + [odf_row(foot, "ceTotal")])
+        + "\n   </table:table>"
     )
 
     lines = [
         f'   <text:p text:style-name="Title">{escape(words["title"])}</text:p>',
         f'   <text:p text:style-name="Body">{escape(words["lead"])}</text:p>',
     ]
-    for heading, paragraphs in words["sections"]:
+    for index, (heading, paragraphs) in enumerate(words["sections"]):
         lines.append(
             f'   <text:h text:style-name="Heading" text:outline-level="1">{escape(heading)}</text:h>'
         )
         lines += [f'   <text:p text:style-name="Body">{escape(text)}</text:p>' for text in paragraphs]
+
+        # under the costs section, which is the one it is the figures for. Its own
+        # heading would be a word to translate fifteen times for nothing
+        if index == COSTS_SECTION:
+            lines.append(figures)
+            lines.append('   <text:p text:style-name="Body"/>')
+
     lines.append(f'   <text:p text:style-name="Body">{escape(words["closing"])}</text:p>')
 
     return content("  <office:text>\n" + "\n".join(lines) + "\n  </office:text>", automatic)
@@ -166,6 +205,41 @@ def table(words: dict, columns: int = 4, rows: int = 0, scale: int = 1) -> tuple
     return head, body, foot
 
 
+def odf_row(cells: list, style: str | None = None) -> str:
+    """One row of an ODF table, as the report and the sheet both write it.
+
+    A figure carries its value in the attribute as well as in the text, or the
+    spreadsheet holds a column of text that happens to look like numbers.
+    """
+    marked = f' table:style-name="{style}"' if style else ""
+    out = ["    <table:table-row>"]
+    for cell in cells:
+        if isinstance(cell, int):
+            out.append(
+                f'     <table:table-cell{marked} office:value-type="float" office:value="{cell}">'
+                f"<text:p>{cell}</text:p></table:table-cell>"
+            )
+        else:
+            out.append(
+                f'     <table:table-cell{marked} office:value-type="string">'
+                f"<text:p>{escape(cell)}</text:p></table:table-cell>"
+            )
+    out.append("    </table:table-row>")
+
+    return "\n".join(out)
+
+
+# The head and the totals row, which the report and the sheet mark the same way.
+CELL_STYLES = """  <style:style style:name="ceHead" style:family="table-cell">
+   <style:table-cell-properties fo:background-color="#eef3fa" fo:border-bottom="0.06pt solid %s"/>
+   <style:text-properties fo:font-weight="bold" fo:color="%s"/>
+  </style:style>
+  <style:style style:name="ceTotal" style:family="table-cell">
+   <style:table-cell-properties fo:border-top="0.06pt solid %s"/>
+   <style:text-properties fo:font-weight="bold"/>
+  </style:style>""" % (RULE, ACCENT, RULE)
+
+
 def sheet(words: dict) -> str:
     """Two sheets, so the tab bar under the document has something to show."""
     automatic = "\n".join(
@@ -178,40 +252,15 @@ def sheet(words: dict) -> str:
             """  <style:style style:name="coFigure" style:family="table-column">
    <style:table-column-properties style:column-width="2.2cm"/>
   </style:style>""",
-            """  <style:style style:name="ceHead" style:family="table-cell">
-   <style:table-cell-properties fo:background-color="#eef3fa" fo:border-bottom="0.06pt solid %s"/>
-   <style:text-properties fo:font-weight="bold" fo:color="%s"/>
-  </style:style>""" % (RULE, ACCENT),
-            """  <style:style style:name="ceTotal" style:family="table-cell">
-   <style:table-cell-properties fo:border-top="0.06pt solid %s"/>
-   <style:text-properties fo:font-weight="bold"/>
-  </style:style>""" % (RULE,),
+            CELL_STYLES,
         ]
     )
 
-    def row(cells: list, style: str | None = None) -> str:
-        marked = f' table:style-name="{style}"' if style else ""
-        out = ["    <table:table-row>"]
-        for cell in cells:
-            if isinstance(cell, int):
-                out.append(
-                    f'     <table:table-cell{marked} office:value-type="float" office:value="{cell}">'
-                    f"<text:p>{cell}</text:p></table:table-cell>"
-                )
-            else:
-                out.append(
-                    f'     <table:table-cell{marked} office:value-type="string">'
-                    f"<text:p>{escape(cell)}</text:p></table:table-cell>"
-                )
-        out.append("    </table:table-row>")
-
-        return "\n".join(out)
-
     head, body, foot = table(words, columns=6)
 
-    overview = [row(head, "ceHead")] + [row(line) for line in body] + [row(foot, "ceTotal")]
-    costs = [row([words["item"], words["total"]], "ceHead")]
-    costs += [row([line[0], line[-1]]) for line in body]
+    overview = [odf_row(head, "ceHead")] + [odf_row(line) for line in body] + [odf_row(foot, "ceTotal")]
+    costs = [odf_row([words["item"], words["total"]], "ceHead")]
+    costs += [odf_row([line[0], line[-1]]) for line in body]
 
     tables = []
     for name, rows, columns in (
@@ -1568,6 +1617,37 @@ OOXML_RELS = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 WORD_MAIN = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"
 
 
+# How many lines the contract's appendix lists, and the half-points the whole of it
+# is set in. Between them they are what carries it past the foot of a phone screen,
+# the clauses above being fourteen short sentences - and they are the only length
+# there is to give it, the renderer honouring neither `w:spacing` on a paragraph nor
+# `w:trHeight` on a row.
+ANNEX_ROWS = 40
+CONTRACT_TEXT = 28
+
+
+def cell_rows(lines: list) -> str:
+    """A Word table of two columns, the first line of it the head."""
+    out = [
+        '<w:tbl><w:tblPr><w:tblW w:w="9070" w:type="dxa"/>'
+        '<w:tblBorders><w:insideH w:val="single" w:sz="4" w:color="D4D9E0"/></w:tblBorders>'
+        "</w:tblPr>"
+        '<w:tblGrid><w:gridCol w:w="6350"/><w:gridCol w:w="2720"/></w:tblGrid>'
+    ]
+    for number, (name, value) in enumerate(lines):
+        marks = '<w:b/>' if number == 0 else ""
+        cells = "".join(
+            f'<w:tc><w:tcPr><w:tcW w:w="{width}" w:type="dxa"/></w:tcPr>'
+            f'<w:p><w:r><w:rPr>{marks}<w:sz w:val="{CONTRACT_TEXT}"/></w:rPr>'
+            f'<w:t xml:space="preserve">{escape(text)}</w:t></w:r></w:p></w:tc>'
+            for text, width in ((name, 6350), (value, 2720))
+        )
+        out.append(f"<w:tr>{cells}</w:tr>")
+    out.append("</w:tbl>")
+
+    return "".join(out)
+
+
 def docx_parts(words: dict, others: dict) -> dict:
     """The Word file is the contract, not another copy of the report."""
     title, lead, clauses = others["contract"]
@@ -1583,18 +1663,18 @@ def docx_parts(words: dict, others: dict) -> dict:
     def para(runs: str, after: int) -> str:
         return f'<w:p><w:pPr><w:spacing w:after="{after}"/></w:pPr>{runs}</w:p>'
 
-    # A clause is two sentences in one paragraph, numbered in line with the
-    # first. A number on a line of its own above a single sentence reads as a
-    # list of scraps rather than as a contract.
+    # A clause a paragraph, numbered in line with its first word. A number on a
+    # line of its own above the sentence reads as a list of scraps rather than as
+    # a contract.
     paragraphs = [
         para(run(title, size=72, bold=True), 640),
-        para(run(lead, size=22), 420),
+        para(run(lead, size=CONTRACT_TEXT), 420),
     ]
-    for number, index in enumerate(range(0, len(clauses) - 1, 2), start=1):
-        body = " ".join(clauses[index:index + 2])
+    for number, clause in enumerate(clauses, start=1):
         paragraphs.append(
             para(
-                run(f"{number}.  ", size=22, bold=True, colour=ACCENT[1:]) + run(body, size=22),
+                run(f"{number}.  ", size=CONTRACT_TEXT, bold=True, colour=ACCENT[1:])
+                + run(clause, size=CONTRACT_TEXT),
                 300,
             )
         )
@@ -1603,6 +1683,14 @@ def docx_parts(words: dict, others: dict) -> dict:
     # renderer sets the clauses flush against each other whatever `w:after`
     # says, and a contract whose clauses touch reads as one block of text.
     body = '<w:p/>'.join(paragraphs)
+
+    # The appendix the last clauses promise, and the length that carries the
+    # contract past the foot of the screen. Its two columns are words the report
+    # already has in every language, so it costs no translation.
+    head, rows, _ = table(words, columns=1, rows=ANNEX_ROWS)
+    body += cell_rows(
+        [[words["item"], words["total"]]] + [[line[0], str(line[-1])] for line in rows]
+    )
 
     return {
         "[Content_Types].xml": '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
@@ -1825,6 +1913,11 @@ def spellable(words: dict, others: dict) -> bool:
 PAGE = (595.0, 842.0)
 MARGIN = 57.0
 
+# How many lines the invoice bills for. Enough to run onto a second page, for the
+# reason `report` gives: a page is two thirds of a phone's height, and what fills
+# the rest is the top of the page after it.
+INVOICE_ROWS = 40
+
 
 def pdf_bytes(words: dict, others: dict) -> bytes:
     """A one page PDF, written out by hand rather than through a library.
@@ -1845,20 +1938,21 @@ def pdf_bytes(words: dict, others: dict) -> bytes:
 
     invoice = others["invoice"] if latin else OTHERS["en"]["invoice"]
     number, issued, due, billed, subtotal, vat, due_label, thanks, quantity, unit = invoice
-    head, body, foot = table(said, columns=1, rows=20)
+    head, body, foot = table(said, columns=1, rows=INVOICE_ROWS)
 
     money = foot[-1]
     tax = round(money * 0.2)
     right = PAGE[0] - MARGIN
 
-    drawn = []
+    pages = [[]]
 
     def put(text, x, y, weight="regular", size=10, align="left"):
-        """One line, placed. Numbers are hung off the right, which is what makes
-        a column of figures a column rather than a ragged list."""
+        """One line, placed on whichever page is open. Numbers are hung off the
+        right, which is what makes a column of figures a column rather than a
+        ragged list."""
         name = "F2" if weight == "bold" else "F1"
         at = x - advance(text, weight, size) if align == "right" else x
-        drawn.append(f"BT /{name} {size:g} Tf {at:.1f} {y:.1f} Td ({literal(text)}) Tj ET")
+        pages[-1].append(f"BT /{name} {size:g} Tf {at:.1f} {y:.1f} Td ({literal(text)}) Tj ET")
 
     # the head: who it is from and when, against who it is to
     y = PAGE[1] - MARGIN - 26
@@ -1884,6 +1978,20 @@ def pdf_bytes(words: dict, others: dict) -> bytes:
         count = index % 4 + 1
         amount = line[-1]
         y -= 15
+
+        # A line that would be set in the bottom margin opens the next page
+        # instead, with the column heads written again above it - which is what a
+        # producer does, and what makes the last page short rather than the first
+        # page overfull.
+        if y < MARGIN + 80:
+            pages.append([])
+            y = PAGE[1] - MARGIN - 26
+            put(head[0], columns[0], y, "bold", 10)
+            put(quantity, columns[1], y, "bold", 10, "right")
+            put(unit, columns[2], y, "bold", 10, "right")
+            put(head[-1], columns[3], y, "bold", 10, "right")
+            y -= 15
+
         put(str(line[0]), columns[0], y)
         put(str(count), columns[1], y, align="right")
         put(f"{amount / count:.2f}", columns[2], y, align="right")
@@ -1900,17 +2008,28 @@ def pdf_bytes(words: dict, others: dict) -> bytes:
     y -= 12
     put(thanks, MARGIN, y)
 
-    stream = ("\n".join(drawn) + "\n").encode("cp1252")
+    # 1 catalog, 2 the page tree, 3 and 4 the two fonts, then a page each and a
+    # content stream each - so a page is 4+n and the stream it points at 4+len+n.
+    first_page = 5
+    first_stream = first_page + len(pages)
+    kids = " ".join(f"{first_page + n} 0 R" for n in range(len(pages)))
 
     objects = [
         b"<</Type/Catalog/Pages 2 0 R>>",
-        b"<</Type/Pages/Kids[3 0 R]/Count 1>>",
-        b"<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]"
-        b"/Resources<</Font<</F1 4 0 R/F2 6 0 R>>>>/Contents 5 0 R>>",
+        f"<</Type/Pages/Kids[{kids}]/Count {len(pages)}>>".encode(),
         b"<</Type/Font/Subtype/Type1/BaseFont/Helvetica/Encoding/WinAnsiEncoding>>",
-        b"<</Length " + str(len(stream)).encode() + b">>\nstream\n" + stream + b"endstream",
         b"<</Type/Font/Subtype/Type1/BaseFont/Helvetica-Bold/Encoding/WinAnsiEncoding>>",
     ]
+    objects += [
+        f"<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]"
+        f"/Resources<</Font<</F1 3 0 R/F2 4 0 R>>>>/Contents {first_stream + n} 0 R>>".encode()
+        for n in range(len(pages))
+    ]
+    for drawn in pages:
+        stream = ("\n".join(drawn) + "\n").encode("cp1252")
+        objects.append(
+            b"<</Length " + str(len(stream)).encode() + b">>\nstream\n" + stream + b"endstream"
+        )
 
     out = bytearray(b"%PDF-1.4\n")
     offsets = []
