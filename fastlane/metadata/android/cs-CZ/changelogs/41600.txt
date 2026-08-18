@@ -1,0 +1,7 @@
+PDF se čtou tak, jak byly napsány: tučné písmo i kurzíva na svém místě, vyplněné formuláře a poznámky se zobrazí, skenované stránky už nejsou prázdné a vyhledávání najde správné slovo.
+
+Noční režim je teď přepínač nad otevřeným dokumentem, ne nastavení celého telefonu.
+
+Velký textový soubor se otevře za okamžik, ne za minutu.
+
+Dokument .docx si zachová rozestupy, se kterými byl napsán – včetně výšky řádků i řádků v tabulce.

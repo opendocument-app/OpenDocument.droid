@@ -18,6 +18,13 @@ takes 500 characters, so not everything here reaches the store.
 ## Unreleased
 
 - Dark mode reaches the document again, not just the screen around it.
+- Night mode is the app's own now, switched over the open document: reading at
+  night no longer means turning the whole phone dark first.
+- Whether the document itself is darkened is a switch over it too, remembered
+  for documents, PDFs and images apart, so a scanned page or a photograph can
+  stay as it was written while text goes dark.
+- The page borders are switched over the open document as well as from the
+  landing screen, and the document comes back where you were reading it.
 - A large text file appears at once. A megabyte took the better part of a minute
   to lay out and now takes under a second.
 - A text file of prose is read as text, not mistaken for a spreadsheet because

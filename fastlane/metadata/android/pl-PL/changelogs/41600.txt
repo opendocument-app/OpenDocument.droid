@@ -1,0 +1,7 @@
+Pliki PDF czytają się tak, jak je napisano: pogrubienie i kursywa na swoim miejscu, widoczne wypełnione formularze i notatki, zeskanowane strony nie są już puste, a wyszukiwanie trafia we właściwe słowo.
+
+Tryb nocny to teraz przełącznik nad otwartym dokumentem, a nie ustawienie całego telefonu.
+
+Duży plik tekstowy otwiera się w chwilę, nie w minutę.
+
+Plik .docx zachowuje odstępy, z jakimi go napisano, w tym interlinię i wiersze tabeli.
