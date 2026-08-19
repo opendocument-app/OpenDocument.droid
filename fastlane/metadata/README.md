@@ -36,15 +36,19 @@ changed in `LOCALES`.
 
 ## The two things the apps do not share
 
-**The title.** Play has served `OpenDocument Reader Pro` in every storefront for
-years, and lite `OpenDocument Reader`. Neither is translated: OpenDocument is the
-format's own name, and one name is one app people can pass to each other. Nothing
-is lost to search by it - play indexes the title, the short description and the
-full description alike, so `LibreOffice` and the local words live in the short
-description, where there is room for them.
+**The title.** Pro is `OpenDocument Reader Pro`, lite `OpenDocument Reader - view
+ODT`. Neither is translated: OpenDocument is the format's own name, and one name is
+one app people can pass to each other - lite says what it opens after the name, not
+instead of it.
 
-Play refuses a title over 30 characters. The ones that used to be checked in here
-were written when the limit was 50 and eleven of the fifteen were over it.
+**Play refuses a title over 30 characters, and lite's is exactly 30.** So a word
+added to it has to take one out, and pro has no room for the same tail at all:
+`OpenDocument Reader Pro - view ODT` is 34. `scripts/store-listing.py` measures
+both before an upload rather than letting Play refuse the release.
+
+The rest of what a search should find goes in the short description, which play
+indexes just as it does the title: `LibreOffice`, and each language's own words for
+a document, live there, where there is room for them.
 
 **Advertising.** Pro links no ad SDK and shows none, but every description said
 ads were shown, in all fifteen languages. Rather than keep two descriptions per
