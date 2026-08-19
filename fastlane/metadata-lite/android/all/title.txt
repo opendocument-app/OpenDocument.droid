@@ -1,1 +1,1 @@
-OpenDocument Reader
+OpenDocument Reader - view ODT
