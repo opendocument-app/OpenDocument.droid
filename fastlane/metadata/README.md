@@ -73,24 +73,36 @@ there is no translation of it that fits at all.
 `CHANGELOG.md` at the root is the other record of the same release, written for
 this repository rather than for the store.
 
-## Screenshots
+## Screenshots and the feature graphic
 
 Not here, and not committed anywhere: they are taken during the release run, from
 the build going out, and staged into this tree beside the text - one directory to
-supply, one edit to Play. `scripts/store_screenshots.py` puts them under
-`<locale>/images/phoneScreenshots/` and `.../tenInchScreenshots/`, which is where
-supply reads a locale's pictures from.
+supply, one edit to Play. `scripts/store_screenshots.py` puts the screenshots under
+`<locale>/images/phoneScreenshots/`, `.../tenInchScreenshots/` and
+`.../sevenInchScreenshots/`, and the feature graphic at
+`<locale>/images/featureGraphic.png`, which is where supply reads a locale's
+pictures from.
 
-The copy is written; a screenshot is taken. A picture of the app is worth what the
+The tablet's pictures go into both tablet slots. Play falls back to the phone set
+only where a slot is *empty*, and the 7" one was not - it held five pictures of the
+pre-4.14 app, and went on showing them through every release that rewrote the rest.
+
+The feature graphic is the one Play shows above the listing. It is drawn from the
+first screenshot's capture, by `scripts/frame-screenshots.py`, and says what that
+screenshot says in the same fifteen languages - so it cannot be a picture of an app
+that no longer looks like that, which is exactly what the committed one had become.
+
+The copy is written; a picture is taken. A picture of the app is worth what the
 build it came off is worth, so it is not a file that sits in git going quietly out
 of date. See the README's "Screenshots" section for how to take them by hand.
 
 ## What is not uploaded
 
-`images/` holds an icon and a feature graphic that predate the 4.14 redesign.
-`skip_upload_images` stays on so they are left where they are; only the screenshots
-staged above go up. Those two graphics are their own job.
+`images/` holds an icon that predates the 4.14 redesign. Nothing stages it, and
+what supply does not find in the staged tree it leaves alone, so it stays where it
+is - the app's own launcher icon is a job of its own and a release is a poor moment
+for it.
 
-The four phone screenshots that used to sit beside them are gone: the release now
-uploads its own, taken from the build it is shipping, so a stale copy in the tree
-could only ever disagree with the store.
+The feature graphic and the four phone screenshots that used to sit beside it are
+gone: the release now draws and uploads its own, from the build it is shipping, so
+a stale copy in the tree could only ever disagree with the store.

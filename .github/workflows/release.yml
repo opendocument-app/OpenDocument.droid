@@ -294,8 +294,9 @@ jobs:
         if-no-files-found: warn
 
   # The two halves put back together, and only now checked: a set is both devices
-  # in every locale, and neither runner above can see the other's. Republished
-  # under the name the listing job reads.
+  # in every locale, plus the feature graphic the phone's half draws, and neither
+  # runner above can see the other's. Republished under the name the listing job
+  # reads.
   screenshot-set:
     needs: screenshots
     runs-on: ubuntu-24.04

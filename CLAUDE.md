@@ -50,11 +50,12 @@ lists rather than forking it. Reach for it before `adb shell input tap`.
 
 ## Store screenshots
 
-The store *copy* is written down here; the screenshots are not. A picture of the app is
+The store *copy* is written down here; the pictures are not. A picture of the app is
 worth what the build it came off is worth, so the release run takes its own - six screens
-on a phone and a tablet in all fifteen locales - frames them and hands them to supply.
-Nothing is committed, and `.gitignore` says so. `OpenDocument.ios` does the same thing
-against App Store Connect, and the python is deliberately close enough to lift out later.
+on a phone and a tablet in all fifteen locales - frames them, draws the feature graphic
+off the first of them, and hands the lot to supply. Nothing is committed, and
+`.gitignore` says so. `OpenDocument.ios` does the same thing against App Store Connect,
+and the python is deliberately close enough to lift out later.
 
 **`ScreenshotTests` is the whole of it.** An instrumented test runs in the app's own
 process, so laying the samples out, filling the recent list and switching the app's
@@ -76,6 +77,15 @@ the test can already reach.
   published dimensions - onto a canvas of its own, because play refuses a picture more
   than twice as long as it is wide and a Pixel 9 Pro XL is 2.23:1 before anything is drawn
   around it. `store_screenshots.py` says what a full set is and stages it.
+- **The feature graphic is one of the pictures**, not a file in the tree: the same parts
+  laid out across a 1024x500 canvas, drawn from the first screenshot's capture and
+  carrying its headline, so there is no second copy to write or translate. The one that
+  *was* committed showed the pre-4.14 app in every storefront for three releases, which
+  is what a listing asset nothing regenerates comes to. Only the launcher icon is left.
+- **The tablet's pictures go into both tablet slots.** Play falls back to the phone set
+  only where a slot is *empty*, and the 7" one was not - so it, too, showed the old app.
+  One capture serves both: 1600x2560 is inside the 7" slot's limits as well as the 10"
+  one's.
 - Which locale reads which language's documents is one table, in
   `store_screenshots.py`. The generator checks its own languages against it and writes it
   into the assets, and `ScreenshotTests` reads it from there - do not write a second copy

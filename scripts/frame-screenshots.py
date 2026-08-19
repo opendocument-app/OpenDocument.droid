@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 #
-# Puts the captured screenshots into the picture the store shows: the app on a
+# Puts the captured screenshots into the pictures the store shows: the app on a
 # phone, on a coloured ground, under a line of copy in that locale's language.
+# The feature graphic, which play shows above the listing rather than in the
+# gallery, is the same parts laid out across instead of down - drawn here too, off
+# the first screenshot's capture, so it cannot be a picture of an older app.
 #
 #   scripts/frame-screenshots.py                    frame the whole capture
 #   scripts/frame-screenshots.py --locale en-US     one locale, for a look
@@ -177,6 +180,52 @@ LAYOUT = {
     },
 }
 
+# What the phone is, as opposed to where it stands: the parts of a layout that
+# describe the device itself and read the same on any canvas, because each is a
+# fraction of the screen or of the body rather than of the picture.
+DEVICE_PARTS = ("rim", "corner", "corner_easing", "hole", "hole_top",
+                "buttons", "buttons_right", "tray")
+
+# The feature graphic, which is not a screenshot: one picture per locale, above
+# the listing rather than in the gallery, and landscape where every other picture
+# here stands up. So it is laid out rather than fitted - the phone to the right of
+# the copy instead of below it - out of the same parts, and drawn from the first
+# screenshot's capture so that it says what the app looks like today.
+FEATURE = {
+    **{key: LAYOUT["phone"][key] for key in DEVICE_PARTS},
+    "headline_top": 0.105,
+    "headline_size": 0.046,
+    "headline_width": 0.42,
+    "headline_leading": 1.18,
+    "headline_middle": 0.315,      # the copy has its own column, left of the phone
+    "screen_left": 0.700,
+    "screen_top": 0.100,
+    "screen_width": 0.175,
+    "foot": 0.070,
+    "chip_top": 0.470,
+    "chip_size": (0.140, 0.070),
+    "chip_step": 0.080,
+    "chip_text": 0.041,
+    "dash_stroke": 0.0040,
+    "dash_on": 0.0166,
+    "dash_off": 0.0069,
+    # The one line, drawn once rather than handed on: there is no next picture to
+    # hand it to. In from the left between the copy and the tabs, down the gap
+    # the copy leaves before the phone, and out along the foot - behind the
+    # device, which is drawn over it, and out the other side.
+    "decoration": [(-0.2, 0.395), (0.600, 0.395), (0.600, 0.900), (1.2, 0.900)],
+    "radius": 0.040,
+}
+
+# The bezel is the one number of the phone's that cannot simply be carried over:
+# it is a fraction of the canvas' width, and the phone is less than a third as wide
+# across this canvas as it is across a screenshot's, so the phone's own would draw
+# a border three times too fat. Scaled with the device instead, and derived rather
+# than written down, so that a phone made bigger here keeps its own proportions.
+FEATURE["bezel"] = (
+    LAYOUT["phone"]["bezel"] * FEATURE["screen_width"] / LAYOUT["phone"]["screen_width"]
+)
+
 # The device, which is drawn rather than photographed. The rim is read across the
 # body's width: bright where the edge turns towards the light, dark on the flat.
 BODY = "#08080a"
@@ -261,6 +310,11 @@ SCRIPTS = {
 
 # The locales written in one of them. Everything else is Nunito.
 WRITTEN_IN = {"hi-IN": "devanagari", "ja-JP": "japanese", "zh-CN": "chinese"}
+
+# What the feature graphic is drawn from: the phone's first screen, which is the
+# app's landing screen and already carries the line the listing opens with. So
+# there is no copy of its own to write, and none to translate fifteen times.
+FEATURE_FROM = f"phone-{store.SCREENS[0]}"
 
 
 def face_in(path, size, marker):
@@ -667,9 +721,10 @@ def headline(canvas, lines, layout, locale):
         faces = [font(size, weight, locale) for weight in weights]
 
     leading = size * layout["headline_leading"]
+    middle = layout.get("headline_middle", 0.5) * width
     y = layout["headline_top"] * height
     for line, face in zip(lines, faces):
-        draw.text((width / 2, y), line, font=face, fill="white", anchor="ma")
+        draw.text((middle, y), line, font=face, fill="white", anchor="ma")
         y += leading
 
 
@@ -746,6 +801,33 @@ def frame(shot, device, screen, locale, spec, order=0):
     return canvas.convert("RGB")
 
 
+def feature(shot, screen, locale, spec):
+    """The picture above the listing: the app on a phone, beside the copy.
+
+    The same parts as a screenshot and the same phone, laid out across instead of
+    down - which is the whole of what a 1024x500 canvas changes.
+    """
+    layout = FEATURE
+    size = store.FEATURE_CANVAS
+    width, height = size
+    canvas = gradient(size, *spec["backgrounds"][screen["background"]])
+
+    dashed(
+        canvas,
+        rounded_path([(x * width, y * height) for x, y in layout["decoration"]],
+                     layout["radius"] * width),
+        layout["dash_stroke"] * width,
+        layout["dash_on"] * width,
+        layout["dash_off"] * width,
+    )
+
+    device_body(canvas, shot, layout)
+    chips(canvas, screen["chips"], spec["chips"], layout)
+    headline(canvas, copy(screen, locale), layout, locale)
+
+    return canvas.convert("RGB")
+
+
 def copy(screen, locale):
     """This screen's two lines in that language, or the English if it has none."""
     lines = screen["headline"].get(locale) or screen["headline"][store.FALLBACK]
@@ -768,7 +850,7 @@ def main(argv=None):
     captured, framed = Path(args.captured), Path(args.framed)
 
     wanted = args.locale or store.languages()
-    written = 0
+    written = graphics = 0
 
     for locale in wanted:
         folder = captured / locale
@@ -800,7 +882,21 @@ def main(argv=None):
             picture.save(out / path.name)
             written += 1
 
-    print(f"framed {written} screenshots into {framed}")
+        # The feature graphic, off the same capture the first screenshot is drawn
+        # from. Only the run that photographed the phone has one to draw it from,
+        # and only that half of a release writes it - which is why nothing here
+        # fails without it.
+        source = folder / f"{FEATURE_FROM}.png"
+        if source.is_file() and store.SCREENS[0] in screens:
+            with Image.open(source) as shot:
+                picture = feature(
+                    shot.convert("RGB"), screens[store.SCREENS[0]], locale, spec
+                )
+
+            picture.save(out / f"{store.FEATURE}.png")
+            graphics += 1
+
+    print(f"framed {written} screenshots and {graphics} feature graphics into {framed}")
 
     return 0 if written else 1
 

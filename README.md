@@ -117,10 +117,11 @@ review that a production release waits on actually happens, so the workflow fini
 not the same as the release being out.
 
 The listing goes up in its own job, behind the bundle: the title, both descriptions, the
-release notes of that version and the screenshots, in all fifteen locales, for each app.
-**This overwrites what the Play Console says**, which is the point - the copy is written
-here now, not there. The release notes are no longer typed into the promotion box. The
-icon and the feature graphic are still not uploaded; see `fastlane/metadata/README.md`.
+release notes of that version, the screenshots and the feature graphic, in all fifteen
+locales, for each app. **This overwrites what the Play Console says**, which is the point
+- the copy is written here now, not there. The release notes are no longer typed into the
+promotion box. The launcher icon is the one listing asset still left where it is; see
+`fastlane/metadata/README.md`.
 
 Separate from the bundle upload on purpose: a bundle cannot go up twice, while the listing
 stays editable for as long as the release sits on the internal track - and the listing is
@@ -141,13 +142,20 @@ way out is a new patch version for both flavors.
 
 ### Screenshots
 
-The store copy is written down here; the screenshots are not. A picture of the app is worth
+The store copy is written down here; the pictures of the app are not. A picture is worth
 what the build it came off is worth, so they are taken during the release run, from the
 build going out, framed there, and handed to supply from there. Nothing is committed.
 
 Six screens - the recently opened list, a text document with a search running, a
 spreadsheet, an edit under way, a PDF and a Word file - on a phone and on a tablet, in the
-fifteen locales the listing is written in. That is 180 pictures a release.
+fifteen locales the listing is written in. That is 180 pictures a release. The tablet's go
+into both of Play's tablet slots: it falls back to the phone set only where a slot is
+*empty*, and the 7" one was not.
+
+The feature graphic, the one picture above the listing, is drawn beside them - the same
+frame laid out across a 1024x500 canvas, off the first screenshot's capture and carrying
+its headline in each of the fifteen languages. One per locale, where the store had one
+picture of the pre-4.14 app in every storefront.
 
 Taking them by hand needs one emulator on adb running **Android 15 or newer**, and Pillow:
 
@@ -159,8 +167,8 @@ ODR_SCREENSHOT_LANGUAGES=en-US,de-DE bundle exec fastlane android screenshots
 ```
 
 With more than one device attached, `ANDROID_SERIAL` picks which. The raw captures land in
-`fastlane/screenshots/`, the framed set in `fastlane/framed/`, and only the second is what
-the store is given. Re-running `scripts/frame-screenshots.py` alone re-frames what is
+`fastlane/screenshots/`, the framed set and the feature graphics in `fastlane/framed/`, and
+only the second is what the store is given. Re-running `scripts/frame-screenshots.py` alone re-frames what is
 already captured, so changing a headline in `fastlane/frames/frames.json` costs a second of
 Pillow rather than a quarter hour of emulators.
 
