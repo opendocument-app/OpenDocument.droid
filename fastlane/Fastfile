@@ -21,9 +21,10 @@ ROOT = File.expand_path("..", __dir__).freeze
 # same thing, and the few places they differ are read over the shared text.
 STAGED_LISTING = File.join(ROOT, "fastlane", ".listing").freeze
 
-# The screenshots, which unlike the copy are not written down here: they are taken
+# The pictures, which unlike the copy are not written down here: they are taken
 # during the release run, from the build going out, framed, and handed to supply
-# from there. A picture of the app is worth what the build it came off is worth.
+# from there. A picture of the app is worth what the build it came off is worth -
+# as true of the feature graphic drawn beside them as of a screenshot.
 SCREENSHOT_DIR = File.join(ROOT, "fastlane", "screenshots").freeze
 FRAMED_DIR = File.join(ROOT, "fastlane", "framed").freeze
 
@@ -110,9 +111,9 @@ def stage_listing(flavor, version)
   staged
 end
 
-# Puts the framed screenshots into the same tree, under the `images/` directory
-# supply reads a locale's pictures from - so one directory is handed over and one
-# edit goes to play.
+# Puts the framed pictures - the screenshots and the feature graphic - into the
+# same tree, under the `images/` directory supply reads a locale's pictures from,
+# so one directory is handed over and one edit goes to play.
 #
 # A run with nothing captured writes the text alone, so fixing a word in a
 # description does not cost a quarter hour of emulators. A run with something
@@ -224,7 +225,8 @@ platform :android do
   end
 
   # What the store says about the app: the listing text, this version's release
-  # notes, and the screenshots a capture run left under fastlane/framed.
+  # notes, and the pictures a capture run left under fastlane/framed - the
+  # screenshots and the feature graphic drawn beside them.
   private_lane :uploadListing do |options|
     flavor = options[:flavor]
     version = require_version(options[:version])
@@ -241,9 +243,11 @@ platform :android do
       # without a bundle, supply has to be told which release the notes belong to
       skip_upload_aab: true,
       version_code: version_code(version),
-      # the icon and the feature graphic are still the pre-4.14 ones and are their
-      # own job - see fastlane/metadata/README.md. only the screenshots go up.
-      skip_upload_images: true,
+      # Both come off the same capture run, and without one both are left alone.
+      # `images` is the feature graphic here: the icon is not staged, and what
+      # supply does not find in the tree it does not touch - see
+      # fastlane/metadata/README.md.
+      skip_upload_images: !captured,
       skip_upload_screenshots: !captured
     )
   end

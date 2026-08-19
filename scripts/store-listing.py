@@ -87,10 +87,10 @@ LOCALISED = (
 # replaces. `video.txt` is not required: a listing without a trailer is a listing.
 REQUIRED = ("title.txt", "short_description.txt", "full_description.txt")
 
-# Left behind deliberately, though supply would take them: `images/` holds the icon,
-# the feature graphic and four phone screenshots that predate the redesign, so
-# uploading them would put pre-4.14 screenshots back over the current ones. Graphics
-# are their own job, and a release is a poor moment to do it.
+# Left behind deliberately, though supply would take it: `images/` holds an icon that
+# predates the redesign, and the launcher icon is a job of its own. The pictures of
+# the app are not in this tree at all - `scripts/store_screenshots.py` stages those,
+# from a capture of the build going out.
 
 # What play refuses, rather than truncates. Checked against what is staged, since
 # that is what goes up - a title is short enough on its own and too long once an

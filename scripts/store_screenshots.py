@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
-# The play store screenshots: which ones there are, and the supply tree built out
-# of what a capture run wrote.
+# The play store pictures - the screenshots and the feature graphic: which ones
+# there are, and the supply tree built out of what a capture run wrote.
 #
 # Unlike the store copy, these are not committed. A picture of the app is only
 # worth as much as the app it was taken from, so they are taken during the
@@ -68,15 +68,18 @@ SCREENS = (
     "06-office",
 )
 
-# The devices photographed, and the directory supply uploads each one to. Play
+# The devices photographed, and the directories supply uploads each one to. Play
 # keeps a set per form factor and shows the phone one everywhere it has nothing
 # better, so the tablet set is what makes the listing a tablet listing.
 #
-# `sevenInchScreenshots` is deliberately not among them: nothing is made for a
-# 7" tablet in particular, and play falls back to the phone pictures there.
+# The tablet's pictures go into both tablet slots. Play falls back to the phone
+# set only where a slot is *empty*, and the 7" one has not been empty since long
+# before the 4.14 redesign - so it went on showing the old app while every other
+# slot was rewritten. One capture serves both: a 1600x2560 picture is inside the
+# 7" slot's 320 to 3840 as well as the 10" slot's 1080 to 7680.
 DIRECTORIES = {
-    "phone": "phoneScreenshots",
-    "tablet": "tenInchScreenshots",
+    "phone": ("phoneScreenshots",),
+    "tablet": ("tenInchScreenshots", "sevenInchScreenshots"),
 }
 
 # What the framed picture is, per device, in pixels. Not the size of the capture:
@@ -95,6 +98,17 @@ CANVASES = {
 # What play takes per form factor. Under two and it refuses the listing; over
 # eight and it ignores the rest.
 LEAST, MOST = 2, 8
+
+# The feature graphic: the one picture play shows above the listing rather than in
+# the gallery, and the only listing asset that is not a screenshot. It is drawn
+# from a capture like they are - see `frame-screenshots.py` - because the one that
+# was committed here instead was a mockup of the app as it looked before the 4.14
+# redesign, and nothing in a release would ever have told us so.
+#
+# 1024x500 exactly, which is what play takes and not a size of our own: unlike a
+# screenshot it is not scaled to fit, it is refused.
+FEATURE = "featureGraphic"
+FEATURE_CANVAS = (1024, 500)
 
 
 def languages():
@@ -134,9 +148,16 @@ def named(stem):
 
 
 def collect(directory):
-    """What one capture run wrote. Returns (files by locale and device, problems)."""
+    """What one capture run wrote.
+
+    Returns (screenshots by locale and device, feature graphics by locale,
+    problems). The feature graphic is kept apart from the screenshots because
+    that is how play keeps it: one picture per locale, in no gallery and of no
+    form factor.
+    """
     directory = Path(directory)
     found = {}
+    features = {}
     problems = []
 
     for locale in languages():
@@ -147,11 +168,26 @@ def collect(directory):
 
         pictures = {}
         for path in sorted(folder.glob("*.png")):
+            if path.stem == FEATURE:
+                try:
+                    width, height = size(path)
+                except (OSError, ValueError) as reason:
+                    problems.append(f"{locale}: {reason}")
+                    continue
+
+                if (width, height) != FEATURE_CANVAS:
+                    wanted = "x".join(str(side) for side in FEATURE_CANVAS)
+                    problems.append(f"{locale}: {path.name} is {width}x{height}, not {wanted}")
+                    continue
+
+                features[locale] = path
+                continue
+
             device, screen = named(path.stem)
             if device is None:
                 problems.append(
                     f"{locale}: {path.name} is not one of "
-                    + ", ".join(f"{d}-{s}" for d in DIRECTORIES for s in SCREENS)
+                    + ", ".join([f"{d}-{s}" for d in DIRECTORIES for s in SCREENS] + [FEATURE])
                 )
                 continue
 
@@ -173,17 +209,21 @@ def collect(directory):
             if missing:
                 problems.append(f"{locale}: no {device} {', '.join(missing)}")
 
+        if locale not in features:
+            problems.append(f"{locale}: no {FEATURE}.png")
+
         found[locale] = pictures
 
-    return found, problems
+    return found, features, problems
 
 
-def stage(found, directory):
-    """Write the screenshots into the metadata tree supply uploads.
+def stage(found, features, directory):
+    """Write the pictures into the metadata tree supply uploads.
 
     Into the same directory `scripts/store-listing.py` stages the text in, under
     the `images/` subdirectory supply reads a locale's pictures from - so one
-    tree is handed over and one edit goes to play.
+    tree is handed over and one edit goes to play. The feature graphic sits in
+    `images/` itself, beside the gallery's directories rather than in one.
 
     The borrowed locales are copied from the English rather than left out: what
     supply does not upload for a locale, play keeps - which would be whatever was
@@ -191,12 +231,18 @@ def stage(found, directory):
     """
     directory = Path(directory)
 
+    for locale, path in features.items():
+        folder = directory / locale / "images"
+        folder.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(path, folder / f"{FEATURE}.png")
+
     for locale, pictures in found.items():
         for device, screens in pictures.items():
-            folder = directory / locale / "images" / DIRECTORIES[device]
-            folder.mkdir(parents=True, exist_ok=True)
-            for screen, path in screens.items():
-                shutil.copyfile(path, folder / f"{screen}.png")
+            for name in DIRECTORIES[device]:
+                folder = directory / locale / "images" / name
+                folder.mkdir(parents=True, exist_ok=True)
+                for screen, path in screens.items():
+                    shutil.copyfile(path, folder / f"{screen}.png")
 
     for locale in borrowed():
         source = directory / FALLBACK / "images"
@@ -245,7 +291,7 @@ def main(argv=None):
     if not LEAST <= len(SCREENS) <= MOST:
         return fail(f"play takes {LEAST} to {MOST} screenshots per device, not {len(SCREENS)}")
 
-    found, problems = collect(args.screenshots)
+    found, features, problems = collect(args.screenshots)
 
     if problems:
         return fail(
@@ -256,16 +302,19 @@ def main(argv=None):
 
     if args.stage:
         try:
-            stage(found, args.stage)
+            stage(found, features, args.stage)
         except OSError as reason:
             return fail(str(reason))
         print(
-            f"staged {len(SCREENS)} screenshots per device for "
+            f"staged {len(SCREENS)} screenshots per device and a feature graphic for "
             f"{len(found) + len(borrowed())} locales in {args.stage}"
         )
     else:
         pictures = sum(len(screens) for locale in found.values() for screens in locale.values())
-        print(f"{pictures} screenshots in all {len(found)} captured locales: {', '.join(found)}")
+        print(
+            f"{pictures} screenshots and {len(features)} feature graphics in all "
+            f"{len(found)} captured locales: {', '.join(found)}"
+        )
 
     return 0
 

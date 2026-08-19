@@ -18,10 +18,10 @@ F-Droid and Play are the two stores. Sideloaders take `app-foss-release.apk` fro
 which is what Obtainium tracks - point it at this repository and it needs no filter, one
 apk is all a release carries.
 
-That apk is `at.tomtasche.reader.foss`, and up to 4.13.0 it was `at.tomtasche.reader.pro`.
-A different application id is a different app, so the old one neither updates nor complains:
-install the new one, uninstall the old one. Nothing carries over and nothing is worth
-carrying - a recent documents list whose uri permissions die with the old package anyway.
+That apk is `at.tomtasche.reader.foss`. A different application id is a different app, so
+a sideload carrying an older one neither updates nor complains: install the new one and
+uninstall the old one. Nothing carries over - a recent documents list whose uri permissions
+die with the old package anyway.
 
 ## Translations
 
@@ -87,8 +87,7 @@ Without them `bundleProRelease` and friends still build, just unsigned.
 ## Releasing
 
 The `release` workflow builds both signed bundles and uploads them to the Play Store
-internal track - the same thing the fastlane lanes did from a laptop. It is dispatched
-by hand, with the version it should build:
+internal track. It is dispatched by hand, with the version it should build:
 
 ```sh
 gh workflow run release.yml -f version=v4.14.0
@@ -117,10 +116,10 @@ review that a production release waits on actually happens, so the workflow fini
 not the same as the release being out.
 
 The listing goes up in its own job, behind the bundle: the title, both descriptions, the
-release notes of that version and the screenshots, in all fifteen locales, for each app.
-**This overwrites what the Play Console says**, which is the point - the copy is written
-here now, not there. The release notes are no longer typed into the promotion box. The
-icon and the feature graphic are still not uploaded; see `fastlane/metadata/README.md`.
+release notes of that version, the screenshots and the feature graphic, in all fifteen
+locales, for each app. **This overwrites what the Play Console says**, which is the point
+- the copy is written here, not there. The launcher icon is the one listing asset left where
+it is; see `fastlane/metadata/README.md`.
 
 Separate from the bundle upload on purpose: a bundle cannot go up twice, while the listing
 stays editable for as long as the release sits on the internal track - and the listing is
@@ -141,13 +140,19 @@ way out is a new patch version for both flavors.
 
 ### Screenshots
 
-The store copy is written down here; the screenshots are not. A picture of the app is worth
+The store copy is written down here; the pictures of the app are not. A picture is worth
 what the build it came off is worth, so they are taken during the release run, from the
 build going out, framed there, and handed to supply from there. Nothing is committed.
 
 Six screens - the recently opened list, a text document with a search running, a
 spreadsheet, an edit under way, a PDF and a Word file - on a phone and on a tablet, in the
-fifteen locales the listing is written in. That is 180 pictures a release.
+fifteen locales the listing is written in. That is 180 pictures a release. The tablet's go
+into both of Play's tablet slots: it falls back to the phone set only where a slot is
+*empty*.
+
+The feature graphic, the one picture above the listing, is drawn beside them - the same
+frame laid out across a 1024x500 canvas, off the first screenshot's capture and carrying
+its headline in each of the fifteen languages. One per locale.
 
 Taking them by hand needs one emulator on adb running **Android 15 or newer**, and Pillow:
 
@@ -159,8 +164,8 @@ ODR_SCREENSHOT_LANGUAGES=en-US,de-DE bundle exec fastlane android screenshots
 ```
 
 With more than one device attached, `ANDROID_SERIAL` picks which. The raw captures land in
-`fastlane/screenshots/`, the framed set in `fastlane/framed/`, and only the second is what
-the store is given. Re-running `scripts/frame-screenshots.py` alone re-frames what is
+`fastlane/screenshots/`, the framed set and the feature graphics in `fastlane/framed/`, and
+only the second is what the store is given. Re-running `scripts/frame-screenshots.py` alone re-frames what is
 already captured, so changing a headline in `fastlane/frames/frames.json` costs a second of
 Pillow rather than a quarter hour of emulators.
 
@@ -208,11 +213,8 @@ the lane's - and takes an optional `track:` (`... track:beta`). The version can 
 
 ### Tags
 
-No tag triggers a build, and none is pushed before one. A tag written up front is a
-promise the run can fail to keep: `v4.9.0`'s tag push run failed and the upload came
-from a dispatched run - the same commit that time, which was luck.
-
-Tags are written afterwards instead, in two kinds:
+No tag triggers a build, and none is pushed before one: a tag written up front is a
+promise the run can fail to keep. Tags are written afterwards instead, in two kinds:
 
 | tag | who writes it | what it means |
 |---|---|---|
@@ -224,11 +226,10 @@ half uploaded release gets no tag at all, which is the honest answer - nothing y
 be published from it. A lane run from a laptop leaves none either.
 
 **The `v*` tag is written neither by hand nor by the workflow.** `record` drafts a GitHub
-release named `v<version>` at the built commit, carrying the Foss APK - the sideloadable
-copy every release up to v4.6 has had, now the flavor that links nothing proprietary -
-a `version.json` naming the version and its code, and the version's `CHANGELOG.md`
-section above GitHub's generated list of pull requests. A draft creates no tag; publishing it does, at
-exactly that commit:
+release named `v<version>` at the built commit, carrying the Foss APK - the flavor that
+links nothing proprietary - a `version.json` naming the version and its code, and the
+version's `CHANGELOG.md` section above GitHub's generated list of pull requests. A draft
+creates no tag; publishing it does, at exactly that commit:
 
 ```sh
 gh release edit v4.14.0 --draft=false
@@ -251,26 +252,22 @@ build refuses rather than folding `4.100.0` onto the same code as `5.0.0`. Nobod
 it anywhere: a commit on `main` is not a release, and no number on `main` can describe
 one that already went out.
 
-All three parts have to be spelled out. A two-part `v4.7` used to be padded to `4.7.0`,
-which meant one build could be tagged under two names, and the tags older than `v4.8.0`
-are in both formats because of it. They are left as they are - a release asset is served
-from a URL carrying its tag name, and F-Droid rebuilds old versions from those names -
-so the rule only holds for what is tagged from here on.
+All three parts have to be spelled out: a two-part `v4.7` is refused rather than padded,
+so one build cannot be tagged under two names.
 
 Builds handed no version - local ones, PR builds, `assembleProDebug` - are `0.0.0`.
 Nothing reads it: no code in the app looks at its own version, and only what the release
 workflow builds ever leaves the machine. Any build can be given a real one anyway, with
 `./gradlew assembleProRelease -Podr.version=v4.8.0`.
 
-Version codes up to 204 were counted by hand in `AndroidManifest.xml`, which is why the
-first derived one is a five digit jump. That is one way: the Play Store only ever accepts
-a code above the last one it saw.
+Version codes only ever go up: the Play Store accepts a code only above the last one it
+saw, so a version number cannot be reused or walked backwards.
 
 ## License
 
-Mozilla Public License 2.0, in `LICENSE`, replacing the GPL-3.0-or-later this carried
-before. MPL is copyleft per *file*: a changed file goes back under MPL, and a larger work
-that merely links this can stay under whatever license it likes.
+Mozilla Public License 2.0, in `LICENSE`. MPL is copyleft per *file*: a changed file goes
+back under MPL, and a larger work that merely links this can stay under whatever license
+it likes.
 
 The notice sits in `LICENSE` rather than atop every source file, which Exhibit A of the
 license itself allows. Two things keep their own headers because they came from elsewhere
