@@ -10,6 +10,10 @@ PACKAGE_NAMES = {
 
 DEFAULT_TRACK = "internal".freeze
 
+# what the console calls open testing. Supply kept the older track names, so the
+# one a promotion has to name is not the one the console shows.
+OPEN_TESTING_TRACK = "beta".freeze
+
 # absolute, because a lane and an action do not agree on what the working directory
 # is, and every path below is handed to something else
 ROOT = File.expand_path("..", __dir__).freeze
@@ -174,6 +178,16 @@ platform :android do
     uploadListing(flavor: "Lite", track: options[:track], version: options[:version])
   end
 
+  desc "Move the Pro version already on the internal track to open testing"
+  lane :openTestingPro do |options|
+    promoteBundle(flavor: "Pro", version: options[:version])
+  end
+
+  desc "Move the Lite version already on the internal track to open testing"
+  lane :openTestingLite do |options|
+    promoteBundle(flavor: "Lite", version: options[:version])
+  end
+
   lane :tests do
     gradle(task: "connectedAndroidTest")
   end
@@ -249,6 +263,43 @@ platform :android do
       # fastlane/metadata/README.md.
       skip_upload_images: !captured,
       skip_upload_screenshots: !captured
+    )
+  end
+
+  # A promotion, not a second upload: the bundle is already in the artifact library
+  # and a version code is spent the moment it goes up, so the wider track is handed
+  # the build the narrower one tested rather than one built again beside it.
+  #
+  # Play reviews this like any other release - what the lane saves is the console,
+  # not the wait. The source track keeps serving the release it is promoted from.
+  private_lane :promoteBundle do |options|
+    flavor = options[:flavor]
+    version = require_version(options[:version])
+
+    upload_to_play_store(
+      track: DEFAULT_TRACK,
+      track_promote_to: OPEN_TESTING_TRACK,
+      # spelled out rather than left to the default: a promotion that lands as a
+      # draft, or at a percent of the testers, is the failure that looks like success
+      track_promote_release_status: "completed",
+      package_name: PACKAGE_NAMES.fetch(flavor),
+      json_key: ENV["ODR_PLAY_JSON_KEY"] ||
+        CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file),
+      # which release moves, and there is no bundle to read it off as uploadBundle
+      # has. It is a filter, not a label: supply keeps the source track's release
+      # carrying this code and errors when none does, so a version that never
+      # reached internal fails the lane rather than promoting what it is serving.
+      version_code: version_code(version),
+      # nothing new goes up here - the listing and its notes are already against
+      # this version code, and resending them is uploadListing's job. Skipping both
+      # binaries is what puts supply on the promotion path at all: hand it one to
+      # upload and it updates the source track and never reads track_promote_to.
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
     )
   end
 
