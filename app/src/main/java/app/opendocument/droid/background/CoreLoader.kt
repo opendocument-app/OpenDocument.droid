@@ -4,9 +4,12 @@ import android.content.Context
 import android.net.Uri
 import android.system.Os
 import android.util.Log
+import app.opendocument.core.DecodePreference
 import app.opendocument.core.DecodedFile
 import app.opendocument.core.Document
 import app.opendocument.core.DocumentType
+import app.opendocument.core.FileCategory
+import app.opendocument.core.FileType
 import app.opendocument.core.Html
 import app.opendocument.core.HtmlColorScheme
 import app.opendocument.core.HtmlConfig
@@ -73,6 +76,7 @@ class CoreLoader(private val context: Context) {
                 editable = request.editable,
                 paging = PaginationSetting.isEnabled(context),
                 keepDocument = true,
+                declaredType = declaredType(file),
             )
 
         return LoadedDocument(
@@ -88,7 +92,8 @@ class CoreLoader(private val context: Context) {
      * Opens [inputPath], translates it to html and publishes it on the shared http server under
      * [prefix], replacing whatever was published before.
      *
-     * [keepDocument] retains the decoded document for [retranslate].
+     * [keepDocument] retains the decoded document for [retranslate]; [declaredType] is what the
+     * document is called - see [openFile].
      */
     fun host(
         prefix: String,
@@ -98,6 +103,7 @@ class CoreLoader(private val context: Context) {
         editable: Boolean = false,
         paging: Boolean = false,
         keepDocument: Boolean = false,
+        declaredType: FileType? = null,
     ): List<HostedView> {
         val server = checkNotNull(sharedServer) { "core server is not running" }
 
@@ -105,7 +111,7 @@ class CoreLoader(private val context: Context) {
 
         server.clear()
 
-        var file = Odr.open(inputPath)
+        var file = openFile(inputPath, declaredType)
 
         if (file.passwordEncrypted()) {
             // the format's own answer rather than a list of ours, and already narrowed to a file
@@ -177,6 +183,59 @@ class CoreLoader(private val context: Context) {
             )
         }
     }
+
+    /**
+     * What the document is *called*. Not [IdentifiedFile.mimeType]: `FileIdentifier` takes that
+     * from `Odr.mimetype` wherever it answered, so it would be the same reading again.
+     */
+    private fun declaredType(file: IdentifiedFile): FileType? {
+        val extension = MimeTypeResolver.parseExtension(file.filename)?.lowercase() ?: return null
+        val type = Odr.fileTypeByFileExtension(extension) ?: return null
+
+        return type.takeIf { it != FileType.UNKNOWN }
+    }
+
+    /**
+     * [inputPath] as odrcore reads its bytes, or as [declaredType] where it answers *text* - its
+     * bucket for bytes nothing else claims, and where a pdf carrying its http response lands.
+     *
+     * Detection stays first, and only a name the core files as a `DOCUMENT` outranks text: whether
+     * comma separated values are a table or prose stays the core's question.
+     */
+    private fun openFile(inputPath: String, declaredType: FileType?): DecodedFile {
+        val detected =
+            try {
+                Odr.open(inputPath)
+            } catch (e: Throwable) {
+                // nothing was recognised at all, which the name may still answer for
+                if (declaredType == null) {
+                    throw e
+                }
+
+                return openAs(inputPath, declaredType) ?: throw e
+            }
+
+        if (
+            declaredType == null ||
+                declaredType == detected.fileType() ||
+                !detected.isTextFile ||
+                Odr.fileCategoryByFileType(declaredType) != FileCategory.DOCUMENT
+        ) {
+            return detected
+        }
+
+        return openAs(inputPath, declaredType) ?: detected
+    }
+
+    /** [inputPath] opened as [type], or null where it is not one after all. */
+    private fun openAs(inputPath: String, type: FileType): DecodedFile? =
+        try {
+            Odr.open(inputPath, DecodePreference().apply { asFileType = type })
+        } catch (e: Throwable) {
+            Log.i(TAG, "not a " + Odr.fileTypeToString(type))
+
+            null
+        }
 
     /** The document with [htmlDiff] applied, written to a file of ours. Null if that failed. */
     fun retranslate(request: DocumentRequest, file: IdentifiedFile, htmlDiff: String): File? {

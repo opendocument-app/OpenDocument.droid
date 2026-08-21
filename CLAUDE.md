@@ -231,6 +231,13 @@ Both are needed: the first keeps `isRenderedByCore` off a `.bin`, the second sto
 bar appearing over a page that cannot draw.
 `LandingTests.aDocumentThatFailsToOpenComesBackToTheList` holds this.
 
+The same guess is why **what the file is called can outrank it**. odrcore never looks at the
+name, so a document whose signature does not sit at the front - a pdf carrying the http response
+that delivered it - reads as text. `CoreLoader.openFile` opens it again as the *filename*'s type,
+but only where the core files that as a `DOCUMENT`: csv and plain text are both `text`, and which
+of the two a file is stays the core's question. Not `IdentifiedFile.mimeType` - `FileIdentifier`
+takes that from `Odr.mimetype`, so it is the same reading again.
+
 ### How the document is displayed is answered over the document, not in the settings
 
 Three of the buttons in `DocumentActions` are about what the page looks like rather than what can
