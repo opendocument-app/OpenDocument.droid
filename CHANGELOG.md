@@ -29,6 +29,8 @@ takes 500 characters, so not everything here reaches the store.
 - More of a PDF's writing shows: text the file places with nothing in between
   was dropped and now appears.
 - More PDFs open at all, including files whose writing nests brackets inside it.
+- Pictures in a Word or Excel document appear, instead of a broken-image mark
+  where each one should be.
 
 ## 4.16.0
 
