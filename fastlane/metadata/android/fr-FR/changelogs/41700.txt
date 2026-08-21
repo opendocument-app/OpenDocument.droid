@@ -1,0 +1,5 @@
+Plus de PDF s'ouvrent, y compris ceux enregistrés directement depuis un navigateur. Le texte copié d'un PDF redevient des mots, et quand vous le sélectionnez ou le recherchez, ce sont bien les mots qui sont surlignés. Plus de texte s'affiche.
+
+Les images d'un document Word ou Excel apparaissent, au lieu d'un symbole d'image manquante.
+
+La ligne d'en-tête répétée d'un tableau reste à sa place.

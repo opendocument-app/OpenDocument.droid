@@ -1,0 +1,5 @@
+Se abren más PDF, incluidos los guardados directamente desde el navegador. El texto que copias de un PDF vuelve a leerse como palabras, y al seleccionarlo o buscarlo se resaltan las palabras exactas. Se ve más texto.
+
+Las imágenes de un documento de Word o Excel aparecen en lugar del icono de imagen rota.
+
+La fila de encabezado que se repite en una tabla se queda en su sitio.

@@ -1,0 +1,5 @@
+Otevře se více PDF, i ta uložená přímo z webového prohlížeče. Text z nich zkopírovaný se zase dá číst a označení i vyhledávání zvýrazní přímo slova. A textu se zobrazí víc.
+
+Obrázky v dokumentu Word nebo Excel se zobrazí místo značky poškozeného obrázku.
+
+Opakující se záhlaví tabulky zůstane tam, kam patří.

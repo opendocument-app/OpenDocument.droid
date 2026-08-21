@@ -1,0 +1,5 @@
+Agora abrem mais PDFs, inclusive os salvos direto do navegador. O texto copiado de um PDF volta a ser palavras, e ao selecionar ou pesquisar, o destaque cai sobre as próprias palavras. E mais partes do texto aparecem.
+
+As imagens de um documento Word ou Excel aparecem, em vez do ícone de imagem quebrada.
+
+A linha de cabeçalho que se repete numa tabela fica onde deve.

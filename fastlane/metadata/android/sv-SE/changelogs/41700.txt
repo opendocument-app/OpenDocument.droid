@@ -1,0 +1,5 @@
+Fler PDF-filer öppnas, även sådana som sparats direkt från en webbläsare. Text du kopierar ur en blir ord igen, och markerar du eller söker i den hamnar markeringen på orden själva. Mer av texten syns.
+
+Bilder i ett Word- eller Excel-dokument visas i stället för en trasig bildsymbol.
+
+En tabells upprepade rubrikrad stannar där den hör hemma.

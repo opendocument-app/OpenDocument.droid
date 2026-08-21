@@ -1,0 +1,5 @@
+Si aprono più PDF, anche quelli salvati direttamente dal browser. Il testo copiato da un PDF torna a leggersi come parole, e selezionandolo o cercandolo si evidenziano le parole stesse. Si vede più testo della pagina.
+
+Le immagini in un documento Word o Excel compaiono al posto dell'icona di immagine mancante.
+
+La riga di intestazione ripetuta di una tabella resta al suo posto.

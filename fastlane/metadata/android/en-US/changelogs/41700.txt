@@ -1,0 +1,5 @@
+More PDFs open, including ones saved straight out of a browser. Text copied from one reads as words again, and selecting or finding it highlights the words themselves. More of the writing shows.
+
+Pictures in a Word or Excel document appear instead of a broken-image mark.
+
+A table's repeating header row stays where it belongs.
