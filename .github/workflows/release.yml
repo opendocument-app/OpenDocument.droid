@@ -208,7 +208,7 @@ jobs:
         ruby-version: '3.4'
         bundler-cache: true
 
-    - uses: actions/setup-python@v6
+    - uses: actions/setup-python@v7
       with:
         python-version: "3.13"
 
@@ -304,7 +304,7 @@ jobs:
     - name: checkout
       uses: actions/checkout@v7
 
-    - uses: actions/setup-python@v6
+    - uses: actions/setup-python@v7
       with:
         python-version: "3.13"
 
@@ -450,7 +450,7 @@ jobs:
         ruby-version: '3.4'
         bundler-cache: true
 
-    - uses: actions/setup-python@v6
+    - uses: actions/setup-python@v7
       with:
         python-version: "3.13"
 
