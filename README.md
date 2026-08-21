@@ -110,10 +110,21 @@ the APK on the GitHub release. That is what keeps a version on a single commit -
 the `v*` tag names and F-Droid builds.
 
 Internal is the only track it uploads to. Anything wider - closed, open, production -
-is a promotion in the Play Console, which moves the same bundle and version code that
-was tested onto the wider track instead of uploading a second one. It is also where the
-review that a production release waits on actually happens, so the workflow finishing is
-not the same as the release being out.
+is a promotion, which moves the same bundle and version code that was tested onto the
+wider track instead of uploading a second one. A version code is spent the moment it
+goes up, so there is one upload per release and every track after it is an assignment
+of what is already there.
+
+`fastlane android openTestingPro` and `openTestingLite` promote to open testing, given
+the version whose code should move:
+
+```sh
+fastlane android openTestingLite version:v4.17.0
+```
+
+Closed testing and production are still the Play Console. Play reviews a promotion like
+any other release - only the internal track is immediate - so neither the workflow
+finishing nor the promotion running is the same as the release being out.
 
 The listing goes up in its own job, behind the bundle: the title, both descriptions, the
 release notes of that version, the screenshots and the feature graphic, in all fifteen
