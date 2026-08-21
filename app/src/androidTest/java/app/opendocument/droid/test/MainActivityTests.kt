@@ -13,10 +13,9 @@ import androidx.core.content.FileProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.IdlingResource
-import androidx.test.espresso.action.ViewActions.clearText
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
-import androidx.test.espresso.action.ViewActions.typeText
+import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
@@ -158,18 +157,20 @@ class MainActivityTests {
         // stays busy until it is on screen - so this does not have to poll for it.
         onView(withText("This document is password-protected")).check(matches(isDisplayed()))
 
-        onView(withClassName(equalTo("android.widget.EditText"))).perform(typeText("wrongpassword"))
+        // replaceText rather than typeText: typing raises the keyboard, which lifts the dialog
+        // 519px up the screen, and closing it again drops the dialog back while the click is
+        // already being injected - the tap lands outside, which cancels the dialog
+        onView(withClassName(equalTo("android.widget.EditText")))
+            .perform(replaceText("wrongpassword"))
 
-        // typing leaves the keyboard up, and on a short screen it covers the dialog's buttons
-        onView(withId(android.R.id.button1)).perform(closeSoftKeyboard(), click())
+        onView(withId(android.R.id.button1)).perform(click())
 
         // Should show password dialog again for wrong password
         onView(withText("This document is password-protected")).check(matches(isDisplayed()))
 
-        onView(withClassName(equalTo("android.widget.EditText")))
-            .perform(clearText(), typeText("passwort"))
+        onView(withClassName(equalTo("android.widget.EditText"))).perform(replaceText("passwort"))
 
-        onView(withId(android.R.id.button1)).perform(closeSoftKeyboard(), click())
+        onView(withId(android.R.id.button1)).perform(click())
 
         // Check if the document buttons become available (indicating successful load)
         waitForDocumentActions()
