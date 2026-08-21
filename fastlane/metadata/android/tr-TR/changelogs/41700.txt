@@ -1,0 +1,5 @@
+Tarayıcıdan doğrudan kaydedilenler dahil daha fazla PDF açılıyor. Bir PDF'ten kopyalanan metin yeniden kelimeler olarak okunuyor; seçerken ve ararken kelimelerin kendisi vurgulanıyor. Yazının daha fazla bölümü görünüyor.
+
+Word veya Excel belgelerindeki görseller, bozuk görsel işareti yerine artık görünüyor.
+
+Tablolarda tekrar eden başlık satırı olması gereken yerde kalıyor.

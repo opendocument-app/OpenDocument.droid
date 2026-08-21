@@ -1,0 +1,5 @@
+Avaneb rohkem PDF-e, sealhulgas need, mis on salvestatud otse veebilehitsejast. Neist kopeeritud tekst on taas sõnad ning valimine ja otsing tõstavad esile sõnad ise. Kirja on rohkem näha.
+
+Wordi või Exceli dokumendi pildid on näha, mitte katkise pildi märk.
+
+Tabeli korduv päiserida püsib omal kohal.

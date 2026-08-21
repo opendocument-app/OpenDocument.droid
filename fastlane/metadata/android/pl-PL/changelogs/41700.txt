@@ -1,0 +1,5 @@
+Otwiera się więcej plików PDF, także tych zapisanych prosto z przeglądarki. Skopiowany z nich tekst znów czyta się jak słowa, a zaznaczanie i wyszukiwanie podświetlają same słowa. Widać więcej tekstu.
+
+Obrazy w dokumencie Worda lub Excela wyświetlają się zamiast ikony uszkodzonego obrazu.
+
+Powtarzany wiersz nagłówka tabeli zostaje na swoim miejscu.

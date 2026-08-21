@@ -1,0 +1,5 @@
+Mehr PDFs lassen sich öffnen, auch direkt aus dem Browser gespeicherte. Aus einem PDF kopierter Text ergibt wieder Wörter, und beim Markieren oder Suchen werden die Wörter selbst hervorgehoben. Außerdem wird mehr vom Text angezeigt.
+
+Bilder in einem Word- oder Excel-Dokument erscheinen, statt eines Platzhalters für ein kaputtes Bild.
+
+Die sich wiederholende Überschriftenzeile einer Tabelle bleibt, wo sie hingehört.

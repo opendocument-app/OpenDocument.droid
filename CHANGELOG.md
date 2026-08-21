@@ -15,7 +15,7 @@ version code per locale under `fastlane/metadata/android/<locale>/changelogs/`,
 written by `scripts/store-copy.py` before the release and uploaded by it. Play
 takes 500 characters, so not everything here reaches the store.
 
-## Unreleased
+## 4.17.0
 
 - A PDF saved straight out of a browser opens. The web server's response was
   still sitting in front of the file, so it was read as plain text and shown as
