@@ -17,6 +17,9 @@ takes 500 characters, so not everything here reaches the store.
 
 ## Unreleased
 
+- A PDF saved straight out of a browser opens. The web server's response was
+  still sitting in front of the file, so it was read as plain text and shown as
+  pages of its own source, or refused as an unsupported format.
 - A password-protected Word, Excel or PowerPoint file says so, instead of
   failing to open for no stated reason. No password opens one yet, so the app no
   longer asks for one either.

@@ -3,11 +3,13 @@ package app.opendocument.droid.test
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
+import app.opendocument.core.FileType
 import app.opendocument.core.OdrException
 import app.opendocument.droid.background.CoreLoader
 import app.opendocument.droid.nonfree.CrashManager
 import java.io.File
 import java.io.FileOutputStream
+import java.net.URL
 import org.junit.AfterClass
 import org.junit.Assert
 import org.junit.BeforeClass
@@ -224,6 +226,52 @@ class CoreTest {
         }
     }
 
+    /** A pdf behind the http response that delivered it reads as text until the name is asked. */
+    @Test
+    fun testWhatTheFileIsCalledOpensWhatDetectionReadsAsText() {
+        val prefixed = File(cacheDir(), "http-prefixed.pdf")
+        prefixed.writeBytes(HTTP_PREAMBLE.toByteArray() + pdfTestFile.readBytes())
+
+        val asDetected = firstView("preamble-detected", prefixed, declaredType = null)
+        Assert.assertTrue(
+            "detection alone should read the preamble and call the whole file text",
+            asDetected.contains("HTTP/1.0 200 OK"),
+        )
+
+        val asNamed = firstView("preamble-named", prefixed, FileType.PORTABLE_DOCUMENT_FORMAT)
+        Assert.assertFalse(
+            "a file called .pdf should open as one rather than as its own source",
+            asNamed.contains("HTTP/1.0 200 OK"),
+        )
+    }
+
+    /** Only a text reading is outranked, so a real format still opens as itself. */
+    @Test
+    fun testWhatTheFileIsCalledDoesNotOverrideARealFormat() {
+        val views =
+            coreLoader.host(
+                prefix = "odt-called-pdf",
+                inputPath = testFile.absolutePath,
+                cachePath = File(cacheDir(), "odt_called_pdf").path,
+                declaredType = FileType.PORTABLE_DOCUMENT_FORMAT,
+            )
+
+        Assert.assertFalse("the odt should still open as an odt", views.isEmpty())
+    }
+
+    /** The html odrcore serves for [file]'s first view. */
+    private fun firstView(prefix: String, file: File, declaredType: FileType?): String {
+        val views =
+            coreLoader.host(
+                prefix = prefix,
+                inputPath = file.absolutePath,
+                cachePath = File(cacheDir(), prefix).path,
+                declaredType = declaredType,
+            )
+
+        return URL(views.first().url).readText()
+    }
+
     @Test
     fun testSpreadsheetSheetNames() {
         val views =
@@ -256,6 +304,14 @@ class CoreTest {
         private lateinit var pptTestFile: File
         private lateinit var xlsTestFile: File
         private lateinit var encryptedDocTestFile: File
+        private lateinit var pdfTestFile: File
+
+        /** What a document saved straight out of a browser carries in front of itself. */
+        private const val HTTP_PREAMBLE =
+            "HTTP/1.0 200 OK\r\n" +
+                "Cache-Control:       no-cache, private\r\n" +
+                "Content-Disposition: inline\r\n" +
+                "Content-Type:        application/pdf\r\n\r\n"
 
         // @JvmStatic because junit requires @BeforeClass / @AfterClass to be static
         @JvmStatic
@@ -270,6 +326,7 @@ class CoreTest {
             pptTestFile = extract("style-various-1.ppt")
             xlsTestFile = extract("file_example_XLS_10.xls")
             encryptedDocTestFile = extract("encrypted.doc")
+            pdfTestFile = extract("dummy.pdf")
         }
 
         @JvmStatic
