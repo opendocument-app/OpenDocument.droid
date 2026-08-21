@@ -182,13 +182,8 @@ class CoreTest {
     }
 
     /**
-     * The legacy binary formats keep what says they are encrypted in the clear, so an encrypted
-     * `.doc` is known to be one. It used to be parsed as if it were not, and failed with whatever
-     * the ciphertext happened to mean - a locked document looked like a broken one.
-     *
-     * odrcore has no way into any of the three, and says so through `capabilities().decrypt`, so
-     * [CoreLoader.host] refuses it up front rather than raising the password prompt: a dialog no
-     * password can close is worse than being told the document is locked.
+     * An encrypted `.doc` says so rather than failing as a parse error, and odrcore has no way into
+     * it, so [CoreLoader.host] refuses it instead of raising a prompt no password can close.
      */
     @Test
     fun testEncryptedLegacyDocument() {
@@ -211,10 +206,7 @@ class CoreTest {
         }
     }
 
-    /**
-     * The refusal above is the core's answer for the format, not a rule of ours: an encrypted odf
-     * document is one odrcore can open, so it still asks for the password.
-     */
+    /** The refusal is per format, so an odf document odrcore can decrypt still prompts. */
     @Test
     fun testEncryptedOdfDocumentStillPrompts() {
         Assert.assertThrows(OdrException.FileEncrypted::class.java) {

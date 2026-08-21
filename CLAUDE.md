@@ -264,17 +264,14 @@ already had one and both write the same preference; the other two never get one.
 
 ### Fitting the page to the screen is the WebView's job
 
-`PageView` sets `useWideViewPort` and `loadWithOverviewMode`, so a page wider than the screen -
-a slide, a pdf, a text document with its margins - opens scaled down to fit, and is scaled again
-every time the phone is turned.
+`PageView` sets `useWideViewPort` and `loadWithOverviewMode`, so a page wider than the screen
+opens scaled down to fit and is scaled again every time the phone is turned.
 
-odrcore's `HtmlConfig.viewportWidth` writes the same fit into the page's own css. That is for an
-embedder rendering into a frame, where the viewport meta tag is inert; do not set it here. It is
-decided while translating, so it freezes the fit at the width the document was opened at, and a
-deck opened in portrait then keeps a portrait-sized slide in the middle of a landscape screen -
-measured, on a deck and on a text document. `initialZoom` and the `odr.setZoom` api behind it are
-for a host with a zoom control of its own, which this app does not have: the pinch is the
-WebView's.
+odrcore's `HtmlConfig.viewportWidth` writes the same fit into the page's css, for an embedder
+rendering into a frame where the viewport meta tag is inert. Do not set it here: it is decided
+while translating, so it freezes the fit at the width the document was opened at - measured, a
+deck opened in portrait keeps a portrait-sized slide in a landscape screen. `initialZoom` and
+`odr.setZoom` are for a host with a zoom control of its own; here the pinch is the WebView's.
 
 ### Editability comes from the core, never from a mime type
 
@@ -287,11 +284,9 @@ editable formats in the UI.
 second parse, so a format declaring no `edit`/`save` is never opened to be told no. It is an
 upper bound - the document still answers.
 
-Decryption is the same question in the same shape. `capabilities().decrypt` says whether a
-password is worth asking for, already narrowed to a file that really is encrypted, and
-`CoreLoader.host` refuses an encrypted `.doc`, `.ppt` or `.xls` on it rather than raising a
-dialog no password can close - the core knows it cannot decrypt those, and the app must not
-learn the list for itself.
+Decryption is the same shape. `capabilities().decrypt` says whether a password is worth asking
+for, and `CoreLoader.host` refuses an encrypted `.doc`, `.ppt` or `.xls` on it rather than
+raising a dialog no password can close. The app must not learn that list for itself.
 
 ### Storage access
 

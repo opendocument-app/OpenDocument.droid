@@ -792,8 +792,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         dismissProgress()
 
         if (!canDecrypt) {
-            // no password opens one of these, so the dialog could only ask again. another app
-            // might have a way in, which is what the bar offers
+            // no password opens one of these; another app might, which is what the bar offers
             offerReopen(activity, R.string.toast_error_password_protected, true)
             giveUp(activity)
 
