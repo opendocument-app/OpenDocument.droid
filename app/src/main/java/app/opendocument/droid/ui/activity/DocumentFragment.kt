@@ -781,8 +781,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         offerContact(activity)
     }
 
-    override fun onEncrypted(request: DocumentRequest, file: IdentifiedFile) {
-        if (!isActivityReadyForOutcome(request, file) { onEncrypted(request, file) }) {
+    override fun onEncrypted(request: DocumentRequest, file: IdentifiedFile, canDecrypt: Boolean) {
+        if (!isActivityReadyForOutcome(request, file) { onEncrypted(request, file, canDecrypt) }) {
             return
         }
 
@@ -790,6 +790,17 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         unload()
         dismissProgress()
+
+        if (!canDecrypt) {
+            // no password opens one of these, so the dialog could only ask again. another app
+            // might have a way in, which is what the bar offers
+            offerReopen(activity, R.string.toast_error_password_protected, true)
+            giveUp(activity)
+
+            state.endLoadIdling()
+
+            return
+        }
 
         val builder = AlertDialog.Builder(activity)
         builder.setTitle(R.string.toast_error_password_protected)

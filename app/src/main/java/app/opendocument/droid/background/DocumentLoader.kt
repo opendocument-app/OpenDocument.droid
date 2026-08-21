@@ -110,6 +110,8 @@ class DocumentLoader(application: Application) : AndroidViewModel(application) {
             report("load_success", file)
 
             deliver { it.onLoadSuccess(document) }
+        } catch (e: CoreLoader.UndecryptableFile) {
+            encrypted(request, file, e, canDecrypt = false)
         } catch (e: OdrException.FileEncrypted) {
             encrypted(request, file, e)
         } catch (e: OdrException.WrongPassword) {
@@ -129,10 +131,15 @@ class DocumentLoader(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun encrypted(request: DocumentRequest, file: IdentifiedFile, error: Throwable) {
+    private fun encrypted(
+        request: DocumentRequest,
+        file: IdentifiedFile,
+        error: Throwable,
+        canDecrypt: Boolean = true,
+    ) {
         failed("load_error_encrypted", file, request, error)
 
-        deliver { it.onEncrypted(request, file) }
+        deliver { it.onEncrypted(request, file, canDecrypt) }
     }
 
     /**
@@ -228,8 +235,13 @@ class DocumentLoader(application: Application) : AndroidViewModel(application) {
 
         fun onLoadSuccess(document: LoadedDocument)
 
-        /** The document needs a password, or the one it was given was wrong. */
-        fun onEncrypted(request: DocumentRequest, file: IdentifiedFile)
+        /**
+         * The document needs a password, or the one it was given was wrong.
+         *
+         * [canDecrypt] is false where odrcore cannot decrypt the format at all - asking for a
+         * password would only ask again, so there is nothing to prompt for.
+         */
+        fun onEncrypted(request: DocumentRequest, file: IdentifiedFile, canDecrypt: Boolean)
 
         /** Not a format the core renders, so nothing is ever going to show it. */
         fun onUnsupported(request: DocumentRequest, file: IdentifiedFile)

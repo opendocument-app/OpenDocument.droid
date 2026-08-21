@@ -15,6 +15,21 @@ version code per locale under `fastlane/metadata/android/<locale>/changelogs/`,
 written by `scripts/store-copy.py` before the release and uploaded by it. Play
 takes 500 characters, so not everything here reaches the store.
 
+## Unreleased
+
+- A password-protected Word, Excel or PowerPoint file says so, instead of
+  failing to open for no stated reason. No password opens one yet, so the app no
+  longer asks for one either.
+- A table's repeating header row is no longer dropped, in documents and
+  spreadsheets alike.
+- Text copied out of a PDF reads as words rather than as letters spaced apart,
+  where the file draws it one glyph at a time.
+- Selecting or finding text in a PDF highlights the words themselves rather than
+  a trail of narrow boxes beside them.
+- More of a PDF's writing shows: text the file places with nothing in between
+  was dropped and now appears.
+- More PDFs open at all, including files whose writing nests brackets inside it.
+
 ## 4.16.0
 
 - Dark mode reaches the document again, not just the screen around it.

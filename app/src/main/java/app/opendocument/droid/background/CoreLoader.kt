@@ -108,6 +108,13 @@ class CoreLoader(private val context: Context) {
         var file = Odr.open(inputPath)
 
         if (file.passwordEncrypted()) {
+            // the format's own answer rather than a list of ours, and already narrowed to a file
+            // that really is encrypted: a legacy .doc, .ppt or .xls says so and has no way in
+            // whatever the password, so asking for one would be a dialog that can never close
+            if (!file.capabilities().decrypt) {
+                throw UndecryptableFile(inputPath)
+            }
+
             if (password == null) {
                 throw OdrException.FileEncrypted(inputPath)
             }
@@ -229,6 +236,9 @@ class CoreLoader(private val context: Context) {
 
     /** A translated view of a document, ready to be opened in the WebView. */
     data class HostedView(val name: String, val url: String)
+
+    /** An encrypted file whose format odrcore cannot decrypt, whatever the password. */
+    class UndecryptableFile(path: String) : IOException("cannot be decrypted: $path")
 
     companion object {
         private const val TAG = "CoreLoader"

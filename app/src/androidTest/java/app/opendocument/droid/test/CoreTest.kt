@@ -179,6 +179,51 @@ class CoreTest {
         Assert.assertFalse("the decrypted document should produce a view", views.isEmpty())
     }
 
+    /**
+     * The legacy binary formats keep what says they are encrypted in the clear, so an encrypted
+     * `.doc` is known to be one. It used to be parsed as if it were not, and failed with whatever
+     * the ciphertext happened to mean - a locked document looked like a broken one.
+     *
+     * odrcore has no way into any of the three, and says so through `capabilities().decrypt`, so
+     * [CoreLoader.host] refuses it up front rather than raising the password prompt: a dialog no
+     * password can close is worse than being told the document is locked.
+     */
+    @Test
+    fun testEncryptedLegacyDocument() {
+        Assert.assertThrows(CoreLoader.UndecryptableFile::class.java) {
+            coreLoader.host(
+                prefix = "encrypted-doc",
+                inputPath = encryptedDocTestFile.absolutePath,
+                cachePath = File(cacheDir(), "encrypted_doc_cache").path,
+            )
+        }
+
+        // and a password does not get it any further
+        Assert.assertThrows(CoreLoader.UndecryptableFile::class.java) {
+            coreLoader.host(
+                prefix = "encrypted-doc-pw",
+                inputPath = encryptedDocTestFile.absolutePath,
+                cachePath = File(cacheDir(), "encrypted_doc_cache").path,
+                password = "passwort",
+            )
+        }
+    }
+
+    /**
+     * The refusal above is the core's answer for the format, not a rule of ours: an encrypted odf
+     * document is one odrcore can open, so it still asks for the password.
+     */
+    @Test
+    fun testEncryptedOdfDocumentStillPrompts() {
+        Assert.assertThrows(OdrException.FileEncrypted::class.java) {
+            coreLoader.host(
+                prefix = "encrypted-odt-prompts",
+                inputPath = passwordTestFile.absolutePath,
+                cachePath = File(cacheDir(), "core_cache").path,
+            )
+        }
+    }
+
     @Test
     fun testSpreadsheetSheetNames() {
         val views =
@@ -210,6 +255,7 @@ class CoreTest {
         private lateinit var docTestFile: File
         private lateinit var pptTestFile: File
         private lateinit var xlsTestFile: File
+        private lateinit var encryptedDocTestFile: File
 
         // @JvmStatic because junit requires @BeforeClass / @AfterClass to be static
         @JvmStatic
@@ -223,6 +269,7 @@ class CoreTest {
             docTestFile = extract("11KB.doc")
             pptTestFile = extract("style-various-1.ppt")
             xlsTestFile = extract("file_example_XLS_10.xls")
+            encryptedDocTestFile = extract("encrypted.doc")
         }
 
         @JvmStatic
