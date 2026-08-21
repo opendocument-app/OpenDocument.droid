@@ -236,10 +236,8 @@ class DocumentLoader(application: Application) : AndroidViewModel(application) {
         fun onLoadSuccess(document: LoadedDocument)
 
         /**
-         * The document needs a password, or the one it was given was wrong.
-         *
-         * [canDecrypt] is false where odrcore cannot decrypt the format at all - asking for a
-         * password would only ask again, so there is nothing to prompt for.
+         * The document needs a password, or the one it was given was wrong. [canDecrypt] is false
+         * where odrcore cannot decrypt the format at all, so there is nothing to prompt for.
          */
         fun onEncrypted(request: DocumentRequest, file: IdentifiedFile, canDecrypt: Boolean)
 

@@ -108,9 +108,8 @@ class CoreLoader(private val context: Context) {
         var file = Odr.open(inputPath)
 
         if (file.passwordEncrypted()) {
-            // the format's own answer rather than a list of ours, and already narrowed to a file
-            // that really is encrypted: a legacy .doc, .ppt or .xls says so and has no way in
-            // whatever the password, so asking for one would be a dialog that can never close
+            // the core's answer, not a list of ours: a legacy .doc, .ppt or .xls has no way in
+            // whatever the password, so the prompt would be a dialog that can never close
             if (!file.capabilities().decrypt) {
                 throw UndecryptableFile(inputPath)
             }
