@@ -285,10 +285,15 @@ platform :android do
       package_name: PACKAGE_NAMES.fetch(flavor),
       json_key: ENV["ODR_PLAY_JSON_KEY"] ||
         CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file),
-      # which release moves. There is no bundle to read it off, as uploadBundle has
+      # which release moves, and there is no bundle to read it off as uploadBundle
+      # has. It is a filter, not a label: supply keeps the source track's release
+      # carrying this code and errors when none does, so a version that never
+      # reached internal fails the lane rather than promoting what it is serving.
       version_code: version_code(version),
       # nothing new goes up here - the listing and its notes are already against
-      # this version code, and resending them is uploadListing's job
+      # this version code, and resending them is uploadListing's job. Skipping both
+      # binaries is what puts supply on the promotion path at all: hand it one to
+      # upload and it updates the source track and never reads track_promote_to.
       skip_upload_aab: true,
       skip_upload_apk: true,
       skip_upload_metadata: true,
