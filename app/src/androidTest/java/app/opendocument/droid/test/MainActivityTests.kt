@@ -23,6 +23,7 @@ import androidx.test.espresso.intent.VerificationModes.times
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withClassName
+import androidx.test.espresso.matcher.ViewMatchers.withContentDescription
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -124,9 +125,20 @@ class MainActivityTests {
         // the load itself and not just the picker round trip.
         waitForDocumentActions()
 
-        unfoldDocumentActions()
+        // nothing unfolded: Edit stands on its own where the core can write the document back
+        onView(withContentDescription(R.string.menu_edit)).check(matches(isDisplayed()))
 
-        onView(withText(R.string.menu_edit)).check(matches(isDisplayed()))
+        // and pressing it edits the document, which is the whole of why it stands on its own:
+        // the listener on the standing button reaches MainActivity and the page turns editable
+        onView(withContentDescription(R.string.menu_edit)).perform(click())
+
+        val activity = mainActivityActivityTestRule.activity
+        val documentFragment = waitForDocumentFragment(activity, 10000)
+        Assert.assertNotNull(documentFragment)
+
+        val pageView = documentFragment!!.pageView
+        Assert.assertNotNull(pageView)
+        assertBecomesEditable("ODT", pageView!!, documentFragment)
     }
 
     @Test
@@ -140,9 +152,9 @@ class MainActivityTests {
         // says the pdf opened - Edit is not, because the core does not write pdf back
         waitForDocumentActions()
 
-        unfoldDocumentActions()
-
-        onView(withText(R.string.menu_edit)).check(doesNotExist())
+        // no unfolding first: every unfolding row is in the hierarchy whether the column is
+        // open or not, and doesNotExist walks all of it
+        onView(withContentDescription(R.string.menu_edit)).check(doesNotExist())
     }
 
     @Test
@@ -464,10 +476,6 @@ class MainActivityTests {
     // is still what is on screen.
     private fun waitForDocumentActions() {
         onView(withId(R.id.document_actions_more)).check(matches(isDisplayed()))
-    }
-
-    private fun unfoldDocumentActions() {
-        onView(withId(R.id.document_actions_more)).perform(click())
     }
 
     private fun recreate(activity: MainActivity): MainActivity? {
