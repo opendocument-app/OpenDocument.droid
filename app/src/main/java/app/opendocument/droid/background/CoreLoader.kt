@@ -17,6 +17,7 @@ import app.opendocument.core.HtmlView
 import app.opendocument.core.HttpServer
 import app.opendocument.core.Odr
 import app.opendocument.core.OdrException
+import app.opendocument.core.TableDimensions
 import app.opendocument.droid.nonfree.CrashManager
 import java.io.File
 import java.io.IOException
@@ -167,6 +168,11 @@ class CoreLoader(private val context: Context) {
         // document. PageView.setDarkeningAllowed picks between them
         htmlConfig.colorScheme = HtmlColorScheme.SYSTEM
 
+        // stated rather than inherited: a sheet past it is cut off silently
+        htmlConfig.spreadsheetLimit =
+            TableDimensions(SPREADSHEET_LIMIT_ROWS, SPREADSHEET_LIMIT_COLUMNS)
+        htmlConfig.spreadsheetLimitByContent = true
+
         val cacheDirectory = File(cachePath)
         cacheDirectory.deleteRecursively()
         cacheDirectory.mkdirs()
@@ -300,6 +306,10 @@ class CoreLoader(private val context: Context) {
 
     companion object {
         private const val TAG = "CoreLoader"
+
+        /** The largest sheet region translated - every cell in it becomes a `<td>`. */
+        private const val SPREADSHEET_LIMIT_ROWS = 10000
+        private const val SPREADSHEET_LIMIT_COLUMNS = 500
 
         /**
          * The one http server of the process, started on the first [initialize] and never stopped.
