@@ -253,7 +253,7 @@ not counted: they say nothing about the app, and would only bring the ask forwar
 who do read something.
 
 Play's per-user quota is undocumented and does not stop a second sheet, so the spacing is ours:
-5 documents, then 10, 20, 50, 100 more, and a 30-day rail under all of them so a folder walked
+5 documents, then 10, 20, 50, 100 more, and a two-week rail under all of them so a folder walked
 through in one afternoon cannot carry two asks. Five asks and it stops. The ask is recorded when
 the sheet is handed to play, not when it comes back - play may swallow it, and spending an ask on
 a sheet nobody saw is the cheaper mistake. Nothing about the sheet itself is ours: `launchReviewFlow`

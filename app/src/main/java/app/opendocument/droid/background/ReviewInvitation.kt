@@ -25,7 +25,7 @@ object ReviewInvitation {
      * The rail under [DOCUMENTS_BEFORE_ASK]: a folder walked through in one afternoon crosses two
      * of those, and one sitting must never carry two asks.
      */
-    private const val DAYS_BETWEEN_ASKS = 30
+    private const val DAYS_BETWEEN_ASKS = 14
 
     private const val KEY_DOCUMENT_OPENS = "usage_document_opens"
     private const val KEY_ASKS = "usage_review_asks"
