@@ -28,8 +28,8 @@ import app.opendocument.droid.background.NightModeSetting
 import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.background.PersistedUriPermissions
 import app.opendocument.droid.background.PrintingManager
+import app.opendocument.droid.background.ReviewInvitation
 import app.opendocument.droid.background.SupportedDocumentTypes
-import app.opendocument.droid.background.UsageCounters
 import app.opendocument.droid.nonfree.AdManager
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
@@ -79,7 +79,14 @@ class MainActivity : AppCompatActivity() {
                 if (documentFragment != null && !documentOpenedExternally) {
                     analyticsManager.report("back_to_landing")
 
-                    confirmLeavingEdits { closeDocument() }
+                    confirmLeavingEdits {
+                        closeDocument()
+
+                        // a document read and put down again: the best moment there is to ask, and
+                        // the reason onLoadSuccess does not - that one lands on a document the user
+                        // just asked for and is about to read
+                        askForReviewIfEarned()
+                    }
 
                     return
                 }
@@ -304,17 +311,15 @@ class MainActivity : AppCompatActivity() {
 
         crashManager.log("onStart")
 
-        // not in onCreate: a launcher tap onto a live task resumes rather than creates,
-        // and those opens count too
+        // the landing screen with nothing on its way to it. the only moment left for someone who
+        // arrives with a document from another app: back takes them out of the app, not to the
+        // list.
+        // not in onCreate: a launcher tap onto a live task resumes rather than creates
         if (documentFragment == null && loadOnStart == null) {
             if (leftForOwnActivity) {
                 leftForOwnActivity = false
             } else {
-                InAppReview.requestIfEarned(
-                    this,
-                    analyticsManager,
-                    UsageCounters.recordAppOpen(this),
-                )
+                askForReviewIfEarned()
             }
         }
 
@@ -784,6 +789,19 @@ class MainActivity : AppCompatActivity() {
             }
             .setNeutralButton(android.R.string.cancel, null)
             .show()
+    }
+
+    /**
+     * Both call sites are moments where the user is waiting for nothing: they closed a document, or
+     * they are looking at the list. Deliberately not [closeFailedDocument], which is the last
+     * moment on earth to ask for stars.
+     */
+    private fun askForReviewIfEarned() {
+        if (!ReviewInvitation.isEarned(this)) {
+            return
+        }
+
+        InAppReview.request(this, analyticsManager) { ReviewInvitation.recordAsk(this) }
     }
 
     private fun closeDocument(keepMessage: Boolean = false) {
