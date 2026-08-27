@@ -59,13 +59,16 @@
                     android:orientation="vertical" />
         </ScrollView>
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/document_actions_primary"
-                style="@style/Widget.Material3.FloatingActionButton.Secondary"
+        <!-- the actions that do not fold away, above the button the rest unfold from -->
+        <LinearLayout
+                android:id="@+id/document_actions_standing"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
-                android:layout_marginBottom="16dp" />
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:gravity="end"
+                android:orientation="vertical" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/document_actions_more"

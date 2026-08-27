@@ -28,8 +28,8 @@ import app.opendocument.droid.background.NightModeSetting
 import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.background.PersistedUriPermissions
 import app.opendocument.droid.background.PrintingManager
+import app.opendocument.droid.background.ReviewInvitation
 import app.opendocument.droid.background.SupportedDocumentTypes
-import app.opendocument.droid.background.UsageCounters
 import app.opendocument.droid.nonfree.AdManager
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
@@ -79,7 +79,14 @@ class MainActivity : AppCompatActivity() {
                 if (documentFragment != null && !documentOpenedExternally) {
                     analyticsManager.report("back_to_landing")
 
-                    confirmLeavingEdits { closeDocument() }
+                    confirmLeavingEdits {
+                        closeDocument()
+
+                        // a document read and put down again: the best moment there is to ask, and
+                        // the reason onLoadSuccess does not - that one lands on a document the user
+                        // just asked for and is about to read
+                        askForReviewIfEarned()
+                    }
 
                     return
                 }
@@ -119,8 +126,12 @@ class MainActivity : AppCompatActivity() {
     private var documentOpenedExternally = false
 
     // set before we start an activity of our own, so coming back from it is not counted as
-    // the user opening the app
+    // the user opening the app. saved, or a rotation under the picker resets it
     private var leftForOwnActivity = false
+
+    // requestReviewFlow answers asynchronously, so a second qualifying moment before recordAsk
+    // lands would pass isEarned again. never reset: one hand-off per activity is plenty
+    private var reviewRequested = false
 
     /**
      * Loads and saves the open document. Scoped to the activity, so it survives a configuration
@@ -214,6 +225,8 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState != null) {
             documentOpenedExternally =
                 savedInstanceState.getBoolean(SAVED_KEY_OPENED_EXTERNALLY, false)
+            leftForOwnActivity =
+                savedInstanceState.getBoolean(SAVED_KEY_LEFT_FOR_OWN_ACTIVITY, false)
         }
 
         val documentFragment = this.documentFragment
@@ -304,17 +317,15 @@ class MainActivity : AppCompatActivity() {
 
         crashManager.log("onStart")
 
-        // not in onCreate: a launcher tap onto a live task resumes rather than creates,
-        // and those opens count too
+        // the landing screen with nothing on its way to it. the only moment left for someone who
+        // arrives with a document from another app: back takes them out of the app, not to the
+        // list.
+        // not in onCreate: a launcher tap onto a live task resumes rather than creates
         if (documentFragment == null && loadOnStart == null) {
             if (leftForOwnActivity) {
                 leftForOwnActivity = false
             } else {
-                InAppReview.requestIfEarned(
-                    this,
-                    analyticsManager,
-                    UsageCounters.recordAppOpen(this),
-                )
+                askForReviewIfEarned()
             }
         }
 
@@ -332,6 +343,7 @@ class MainActivity : AppCompatActivity() {
 
         outState.putParcelable(SAVED_KEY_LAST_CACHE_URI, lastUri)
         outState.putBoolean(SAVED_KEY_OPENED_EXTERNALLY, documentOpenedExternally)
+        outState.putBoolean(SAVED_KEY_LEFT_FOR_OWN_ACTIVITY, leftForOwnActivity)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -786,6 +798,16 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    /** Deliberately not from [closeFailedDocument], the last moment on earth to ask for stars. */
+    private fun askForReviewIfEarned() {
+        if (reviewRequested || !ReviewInvitation.isEarned(this)) {
+            return
+        }
+
+        reviewRequested = true
+        InAppReview.request(this, analyticsManager) { ReviewInvitation.recordAsk(this) }
+    }
+
     private fun closeDocument(keepMessage: Boolean = false) {
         // whatever the document had to say goes with it - an indefinite "could not be opened" is
         // about a document that is no longer on the screen. unless it is the reason we are leaving
@@ -906,6 +928,7 @@ class MainActivity : AppCompatActivity() {
     private companion object {
         const val SAVED_KEY_LAST_CACHE_URI = "LAST_CACHE_URI"
         const val SAVED_KEY_OPENED_EXTERNALLY = "OPENED_EXTERNALLY"
+        const val SAVED_KEY_LEFT_FOR_OWN_ACTIVITY = "LEFT_FOR_OWN_ACTIVITY"
         const val GOOGLE_REQUEST_CODE = 1993
         const val DOCUMENT_FRAGMENT_TAG = "document_fragment"
 

@@ -23,6 +23,7 @@ import androidx.test.espresso.intent.VerificationModes.times
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withClassName
+import androidx.test.espresso.matcher.ViewMatchers.withContentDescription
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -33,6 +34,7 @@ import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import app.opendocument.droid.R
 import app.opendocument.droid.background.PaginationSetting
+import app.opendocument.droid.background.ReviewInvitation
 import app.opendocument.droid.ui.EditActionModeCallback
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.activity.DocumentFragment
@@ -124,9 +126,20 @@ class MainActivityTests {
         // the load itself and not just the picker round trip.
         waitForDocumentActions()
 
-        unfoldDocumentActions()
+        // nothing unfolded: Edit stands on its own where the core can write the document back
+        onView(withContentDescription(R.string.menu_edit)).check(matches(isDisplayed()))
 
-        onView(withText(R.string.menu_edit)).check(matches(isDisplayed()))
+        // and pressing it edits the document, which is the whole of why it stands on its own:
+        // the listener on the standing button reaches MainActivity and the page turns editable
+        onView(withContentDescription(R.string.menu_edit)).perform(click())
+
+        val activity = mainActivityActivityTestRule.activity
+        val documentFragment = waitForDocumentFragment(activity, 10000)
+        Assert.assertNotNull(documentFragment)
+
+        val pageView = documentFragment!!.pageView
+        Assert.assertNotNull(pageView)
+        assertBecomesEditable("ODT", pageView!!, documentFragment)
     }
 
     @Test
@@ -140,9 +153,9 @@ class MainActivityTests {
         // says the pdf opened - Edit is not, because the core does not write pdf back
         waitForDocumentActions()
 
-        unfoldDocumentActions()
-
-        onView(withText(R.string.menu_edit)).check(doesNotExist())
+        // no unfolding first: every unfolding row is in the hierarchy whether the column is
+        // open or not, and doesNotExist walks all of it
+        onView(withContentDescription(R.string.menu_edit)).check(doesNotExist())
     }
 
     @Test
@@ -323,6 +336,50 @@ class MainActivityTests {
     }
 
     /**
+     * The margin switch reloads through the same success callback as a fresh open, and must not
+     * count towards the review ask.
+     */
+    @Test
+    fun aReloadDoesNotCountTowardsTheReviewAsk() {
+        val activity = mainActivityActivityTestRule.activity
+        val opensBefore = ReviewInvitation.documentOpens(activity)
+
+        val documentFragment = loadDocument(activity, requireTestFile("test.odt"))
+
+        // polled: the counter is written after the result the load waits on
+        Assert.assertTrue(
+            "the open itself did not count",
+            waitFor(RELOAD_TIMEOUT_MS) {
+                ReviewInvitation.documentOpens(activity) == opensBefore + 1
+            },
+        )
+
+        val before = documentFragment.lastDocument
+        val margins = PaginationSetting.isEnabled(activity)
+        try {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                activity.onDocumentAction(DocumentActions.ACTION_PAGE_MARGINS)
+            }
+
+            Assert.assertTrue(
+                "the document was never rendered again",
+                waitFor(RELOAD_TIMEOUT_MS) { documentFragment.lastDocument !== before },
+            )
+        } finally {
+            PaginationSetting.setEnabled(activity, margins)
+        }
+
+        // let the reload's success callback run to its end before reading the counter
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+
+        Assert.assertEquals(
+            "the reload counted as a document open",
+            opensBefore + 1,
+            ReviewInvitation.documentOpens(activity),
+        )
+    }
+
+    /**
      * The button is only there where tapping it changes something: odrcore lays a text document out
      * with the margins or without them, and every other view the same either way. Launches
      * nothing - it is the rule the button is gated on, and the core answers it.
@@ -464,10 +521,6 @@ class MainActivityTests {
     // is still what is on screen.
     private fun waitForDocumentActions() {
         onView(withId(R.id.document_actions_more)).check(matches(isDisplayed()))
-    }
-
-    private fun unfoldDocumentActions() {
-        onView(withId(R.id.document_actions_more)).perform(click())
     }
 
     private fun recreate(activity: MainActivity): MainActivity? {

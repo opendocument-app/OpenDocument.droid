@@ -32,13 +32,12 @@ import app.opendocument.droid.background.IdentifiedFile
 import app.opendocument.droid.background.LoadedDocument
 import app.opendocument.droid.background.NightModeSetting
 import app.opendocument.droid.background.PaginationSetting
+import app.opendocument.droid.background.ReviewInvitation
 import app.opendocument.droid.background.StreamUtil
 import app.opendocument.droid.background.SupportedDocumentTypes
-import app.opendocument.droid.background.UsageCounters
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
-import app.opendocument.droid.nonfree.InAppReview
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.SnackbarHelper
 import app.opendocument.droid.ui.widget.DocumentActions
@@ -331,7 +330,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     }
 
     /**
-     * [freshOpen] is false for a load the user did not ask for, which then never asks for a review.
+     * [freshOpen] is false for a load the user did not ask for, which then does not count towards a
+     * review being earned.
      */
     fun loadUri(
         uri: Uri,
@@ -464,7 +464,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         // guarded like resetTabs below: a load can fail before there is a view to put right
         if (::actions.isInitialized) {
-            actions.setActions(null, emptyList())
+            actions.setActions(emptyList(), emptyList())
         }
 
         resetTabs()
@@ -558,7 +558,6 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                     R.string.menu_fullscreen,
                     R.drawable.ic_fullscreen,
                 ),
-                edit,
                 DocumentActions.Action(
                     DocumentActions.ACTION_TTS,
                     R.string.menu_tts,
@@ -586,11 +585,16 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                 ),
             )
 
+        // Edit above Search, not below it: Search is offered for every document and Edit is not,
+        // so this is the order that keeps the button nearest the thumb the same one throughout
         actions.setActions(
-            DocumentActions.Action(
-                DocumentActions.ACTION_SEARCH,
-                R.string.menu_search,
-                R.drawable.ic_search,
+            listOfNotNull(
+                edit,
+                DocumentActions.Action(
+                    DocumentActions.ACTION_SEARCH,
+                    R.string.menu_search,
+                    R.drawable.ic_search,
+                ),
             ),
             unfolding,
         )
@@ -700,16 +704,13 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         state.endLoadIdling()
 
-        // only a fresh open earns the ask - reloadUri and the webview reach here mid-task.
-        // a save reloads through loadUri and so still counts, which is wanted
+        // only a fresh open counts - reloadUri and the webview reach here mid-task.
+        // a save reloads through loadUri and so still counts, which is wanted.
+        // the ask itself waits for the document to be closed again, where nothing is pending
         if (freshOpenPending) {
             freshOpenPending = false
 
-            InAppReview.requestIfEarned(
-                activity,
-                analyticsManager,
-                UsageCounters.recordDocumentOpen(activity),
-            )
+            ReviewInvitation.recordDocumentOpen(activity)
         }
     }
 
