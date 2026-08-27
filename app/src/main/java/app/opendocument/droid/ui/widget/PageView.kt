@@ -68,6 +68,15 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         settings.useWideViewPort = true
         settings.allowFileAccess = true
 
+        // the webview refuses to draw text below 8px - 6pt - which is a size a document is
+        // entitled to ask for: a footnote, a table's fine print, or a pdf page whose text is
+        // positioned absolutely and overlaps once it is enlarged. 1 is as close to none as
+        // the setting goes, 0 being pinned back up to it
+        settings.minimumFontSize = 1
+        // the same floor again, for the sizes the page leaves to the browser - keywords,
+        // percentages, anything inherited - which the first of the two does not cover
+        settings.minimumLogicalFontSize = 1
+
         attachBridge(true)
 
         keepScreenOn = true
