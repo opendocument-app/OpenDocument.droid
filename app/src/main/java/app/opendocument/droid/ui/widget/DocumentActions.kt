@@ -10,12 +10,13 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.appcompat.widget.TooltipCompat
 import app.opendocument.droid.R
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 /**
  * What can be done with the open document, as buttons over the bottom right corner of it: one for
- * the action worth its own button, and one that unfolds the rest.
+ * each action worth its own button, and one that unfolds the rest.
  *
  * This is what the toolbar menu used to be. A document is read with the phone in one hand, and the
  * top right corner of a modern screen is the one place a thumb cannot reach - so the actions sit
@@ -23,7 +24,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
  * are.
  *
  * Material ships no speed dial component (the one it had was never brought over to Material 3), so
- * the rows are built here from [R.layout.item_document_action].
+ * the buttons are built here, from [R.layout.item_document_action_standing] and
+ * [R.layout.item_document_action].
  */
 class DocumentActions(context: Context, attributeSet: AttributeSet?) :
     FrameLayout(context, attributeSet) {
@@ -44,7 +46,7 @@ class DocumentActions(context: Context, attributeSet: AttributeSet?) :
     private val buttons: LinearLayout
     private val rowsScroll: ScrollView
     private val rows: LinearLayout
-    private val primaryButton: FloatingActionButton
+    private val standingButtons: LinearLayout
     private val moreButton: FloatingActionButton
 
     private val basePaddingBottom: Int
@@ -64,7 +66,7 @@ class DocumentActions(context: Context, attributeSet: AttributeSet?) :
         buttons = findViewById(R.id.document_actions_buttons)
         rowsScroll = findViewById(R.id.document_actions_rows_scroll)
         rows = findViewById(R.id.document_actions_rows)
-        primaryButton = findViewById(R.id.document_actions_primary)
+        standingButtons = findViewById(R.id.document_actions_standing)
         moreButton = findViewById(R.id.document_actions_more)
 
         basePaddingBottom = buttons.paddingBottom
@@ -72,7 +74,7 @@ class DocumentActions(context: Context, attributeSet: AttributeSet?) :
         scrim.setOnClickListener { collapse() }
         moreButton.setOnClickListener { if (isExpanded) collapse() else expand() }
 
-        setActions(null, emptyList())
+        setActions(emptyList(), emptyList())
     }
 
     /**
@@ -92,22 +94,21 @@ class DocumentActions(context: Context, attributeSet: AttributeSet?) :
     }
 
     /**
-     * What the document can do right now. [primary] gets a button of its own, the rest unfold out
-     * of the second one, the first of them closest to it - so the order is most wanted first.
+     * What the document can do right now. Each of [standing] keeps a button of its own whether the
+     * rest are folded up or not, read top to bottom, so its last entry is the one closest to the
+     * thumb; [unfolding] comes out of the button below them and reads outward from it, its first
+     * entry closest.
      *
-     * Nothing and an empty list take the buttons away entirely, which is what a document that
-     * failed to load leaves behind.
+     * Two empty lists take the buttons away entirely, which is what a document that failed to load
+     * leaves behind.
      */
-    fun setActions(primary: Action?, unfolding: List<Action>) {
+    fun setActions(standing: List<Action>, unfolding: List<Action>) {
         collapse()
 
-        if (primary == null) {
-            primaryButton.visibility = View.GONE
-        } else {
-            primaryButton.visibility = View.VISIBLE
-            primaryButton.setImageResource(primary.icon)
-            primaryButton.contentDescription = context.getString(primary.label)
-            primaryButton.setOnClickListener { listener?.onDocumentActionClicked(primary.id) }
+        standingButtons.removeAllViews()
+
+        for (action in standing) {
+            standingButtons.addView(newStandingButton(action))
         }
 
         rows.removeAllViews()
@@ -119,6 +120,23 @@ class DocumentActions(context: Context, attributeSet: AttributeSet?) :
         }
 
         moreButton.visibility = if (unfolding.isEmpty()) View.GONE else View.VISIBLE
+    }
+
+    private fun newStandingButton(action: Action): View {
+        val button =
+            LayoutInflater.from(context)
+                .inflate(R.layout.item_document_action_standing, standingButtons, false)
+                as FloatingActionButton
+
+        button.setImageResource(action.icon)
+        button.contentDescription = context.getString(action.label)
+
+        // no label plate beside it, so the name is what a long press turns up
+        TooltipCompat.setTooltipText(button, context.getString(action.label))
+
+        button.setOnClickListener { listener?.onDocumentActionClicked(action.id) }
+
+        return button
     }
 
     private fun newRow(action: Action): View {
