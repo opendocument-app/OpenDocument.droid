@@ -238,6 +238,27 @@ but only where the core files that as a `DOCUMENT`: csv and plain text are both 
 of the two a file is stays the core's question. Not `IdentifiedFile.mimeType` - `FileIdentifier`
 takes that from `Odr.mimetype`, so it is the same reading again.
 
+### The review sheet is asked for where the user is waiting for nothing
+
+`ReviewInvitation` decides, `MainActivity.askForReviewIfEarned` asks, and `InAppReview` - the
+flavor-split half - only hands the sheet to play. Two moments qualify: a document closed back to
+the list, and the landing screen at app start, which is all that is left for someone who arrived
+with a document from another app and whose back press leaves. **Not `onLoadSuccess`**, where it
+used to be: that is a document the user just asked for and is about to read. Not
+`closeFailedDocument` either.
+
+Only documents count towards it, and only fresh opens - `DocumentFragment.freshOpenPending` keeps
+the reloads that edit mode, the margins button and the WebView drive from counting. App opens are
+not counted: they say nothing about the app, and would only bring the ask forward for the people
+who do read something.
+
+Play's per-user quota is undocumented and does not stop a second sheet, so the spacing is ours:
+5 documents, then 10, 20, 50, 100 more, and a two-week rail under all of them so a folder walked
+through in one afternoon cannot carry two asks. Five asks and it stops. The ask is recorded when
+the sheet is handed to play, not when it comes back - play may swallow it, and spending an ask on
+a sheet nobody saw is the cheaper mistake. Nothing about the sheet itself is ours: `launchReviewFlow`
+takes an activity and a token, so what it shows is play's.
+
 ### How the document is displayed is answered over the document, not in the settings
 
 Three of the buttons in `DocumentActions` are about what the page looks like rather than what can
