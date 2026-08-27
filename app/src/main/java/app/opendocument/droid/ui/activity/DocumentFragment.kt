@@ -464,7 +464,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         // guarded like resetTabs below: a load can fail before there is a view to put right
         if (::actions.isInitialized) {
-            actions.setActions(null, emptyList())
+            actions.setActions(emptyList(), emptyList())
         }
 
         resetTabs()
@@ -558,7 +558,6 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                     R.string.menu_fullscreen,
                     R.drawable.ic_fullscreen,
                 ),
-                edit,
                 DocumentActions.Action(
                     DocumentActions.ACTION_TTS,
                     R.string.menu_tts,
@@ -586,11 +585,16 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                 ),
             )
 
+        // Edit above Search, not below it: Search is offered for every document and Edit is not,
+        // so this is the order that keeps the button nearest the thumb the same one throughout
         actions.setActions(
-            DocumentActions.Action(
-                DocumentActions.ACTION_SEARCH,
-                R.string.menu_search,
-                R.drawable.ic_search,
+            listOfNotNull(
+                edit,
+                DocumentActions.Action(
+                    DocumentActions.ACTION_SEARCH,
+                    R.string.menu_search,
+                    R.drawable.ic_search,
+                ),
             ),
             unfolding,
         )
