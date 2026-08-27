@@ -1,7 +1,6 @@
 package app.opendocument.droid.background
 
 import android.content.Context
-import android.content.SharedPreferences
 
 /**
  * Whether the user has earned being asked for a review, and whether we have already asked.
@@ -33,7 +32,7 @@ object ReviewInvitation {
     private const val KEY_ASKED_AFTER = "usage_review_asked_after"
 
     fun recordDocumentOpen(context: Context) {
-        val preferences = preferences(context)
+        val preferences = AppPreferences.of(context)
 
         // apply, not commit: nothing reads this back synchronously
         preferences
@@ -42,28 +41,40 @@ object ReviewInvitation {
             .apply()
     }
 
-    /** Only ever asked at a moment where the user is waiting for nothing - see `MainActivity`. */
     fun isEarned(context: Context): Boolean {
-        val preferences = preferences(context)
+        val preferences = AppPreferences.of(context)
 
-        val asks = preferences.getInt(KEY_ASKS, 0)
+        return isEarned(
+            documentOpens = preferences.getInt(KEY_DOCUMENT_OPENS, 0),
+            asks = preferences.getInt(KEY_ASKS, 0),
+            askedAfterOpens = preferences.getInt(KEY_ASKED_AFTER, 0),
+            askedAtMillis = preferences.getLong(KEY_ASKED_AT, 0),
+            nowMillis = System.currentTimeMillis(),
+        )
+    }
+
+    /** The decision alone, over the stored values, so a jvm test can reach every branch. */
+    internal fun isEarned(
+        documentOpens: Int,
+        asks: Int,
+        askedAfterOpens: Int,
+        askedAtMillis: Long,
+        nowMillis: Long,
+    ): Boolean {
         if (asks >= DOCUMENTS_BEFORE_ASK.size) {
             return false
         }
 
-        val documents =
-            preferences.getInt(KEY_DOCUMENT_OPENS, 0) - preferences.getInt(KEY_ASKED_AFTER, 0)
-        if (documents < DOCUMENTS_BEFORE_ASK[asks]) {
+        if (documentOpens - askedAfterOpens < DOCUMENTS_BEFORE_ASK[asks]) {
             return false
         }
 
-        val askedAt = preferences.getLong(KEY_ASKED_AT, 0)
-        if (askedAt == 0L) {
+        if (askedAtMillis == 0L) {
             return true
         }
 
         // a clock moved backwards reads as no time passed, which only delays the ask
-        return System.currentTimeMillis() - askedAt >= DAYS_BETWEEN_ASKS * 24L * 60 * 60 * 1000
+        return nowMillis - askedAtMillis >= DAYS_BETWEEN_ASKS * 24L * 60 * 60 * 1000
     }
 
     /**
@@ -72,7 +83,7 @@ object ReviewInvitation {
      * It also survives the process dying while the sheet is up.
      */
     fun recordAsk(context: Context) {
-        val preferences = preferences(context)
+        val preferences = AppPreferences.of(context)
 
         preferences
             .edit()
@@ -82,7 +93,7 @@ object ReviewInvitation {
             .apply()
     }
 
-    /** The same default preference file [CatchAllSetting] uses. */
-    private fun preferences(context: Context): SharedPreferences =
-        context.getSharedPreferences(context.packageName + "_preferences", Context.MODE_PRIVATE)
+    /** Read back only by the instrumented test pinning what counts as a document open. */
+    internal fun documentOpens(context: Context): Int =
+        AppPreferences.of(context).getInt(KEY_DOCUMENT_OPENS, 0)
 }

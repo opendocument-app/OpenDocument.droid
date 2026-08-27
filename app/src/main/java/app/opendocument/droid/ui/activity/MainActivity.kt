@@ -126,8 +126,14 @@ class MainActivity : AppCompatActivity() {
     private var documentOpenedExternally = false
 
     // set before we start an activity of our own, so coming back from it is not counted as
-    // the user opening the app
+    // the user opening the app. saved: a rotation under the picker recreates the activity, and
+    // onStart must not read the return trip as a quiet landing screen - a document is on its way
     private var leftForOwnActivity = false
+
+    // requestReviewFlow answers asynchronously, so recordAsk lands only later - and a second
+    // qualifying moment inside that window would pass isEarned again and spend two of the five
+    // asks in one sitting. never reset: one hand-off per activity is plenty
+    private var reviewRequested = false
 
     /**
      * Loads and saves the open document. Scoped to the activity, so it survives a configuration
@@ -221,6 +227,8 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState != null) {
             documentOpenedExternally =
                 savedInstanceState.getBoolean(SAVED_KEY_OPENED_EXTERNALLY, false)
+            leftForOwnActivity =
+                savedInstanceState.getBoolean(SAVED_KEY_LEFT_FOR_OWN_ACTIVITY, false)
         }
 
         val documentFragment = this.documentFragment
@@ -337,6 +345,7 @@ class MainActivity : AppCompatActivity() {
 
         outState.putParcelable(SAVED_KEY_LAST_CACHE_URI, lastUri)
         outState.putBoolean(SAVED_KEY_OPENED_EXTERNALLY, documentOpenedExternally)
+        outState.putBoolean(SAVED_KEY_LEFT_FOR_OWN_ACTIVITY, leftForOwnActivity)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -791,16 +800,13 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    /**
-     * Both call sites are moments where the user is waiting for nothing: they closed a document, or
-     * they are looking at the list. Deliberately not [closeFailedDocument], which is the last
-     * moment on earth to ask for stars.
-     */
+    /** Deliberately not from [closeFailedDocument], the last moment on earth to ask for stars. */
     private fun askForReviewIfEarned() {
-        if (!ReviewInvitation.isEarned(this)) {
+        if (reviewRequested || !ReviewInvitation.isEarned(this)) {
             return
         }
 
+        reviewRequested = true
         InAppReview.request(this, analyticsManager) { ReviewInvitation.recordAsk(this) }
     }
 
@@ -924,6 +930,7 @@ class MainActivity : AppCompatActivity() {
     private companion object {
         const val SAVED_KEY_LAST_CACHE_URI = "LAST_CACHE_URI"
         const val SAVED_KEY_OPENED_EXTERNALLY = "OPENED_EXTERNALLY"
+        const val SAVED_KEY_LEFT_FOR_OWN_ACTIVITY = "LEFT_FOR_OWN_ACTIVITY"
         const val GOOGLE_REQUEST_CODE = 1993
         const val DOCUMENT_FRAGMENT_TAG = "document_fragment"
 

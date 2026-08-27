@@ -34,6 +34,7 @@ import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import app.opendocument.droid.R
 import app.opendocument.droid.background.PaginationSetting
+import app.opendocument.droid.background.ReviewInvitation
 import app.opendocument.droid.ui.EditActionModeCallback
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.activity.DocumentFragment
@@ -332,6 +333,53 @@ class MainActivityTests {
             // it outlives the test otherwise: it is a preference, not activity state
             PaginationSetting.setEnabled(activity, margins)
         }
+    }
+
+    /**
+     * Only a fresh open counts towards the review ask. The margin switch renders the document again
+     * through the loader, and that reload reaches the same success callback - so this pins that one
+     * document read with the margins flipped is one document, not two.
+     */
+    @Test
+    fun aReloadDoesNotCountTowardsTheReviewAsk() {
+        val activity = mainActivityActivityTestRule.activity
+        val opensBefore = ReviewInvitation.documentOpens(activity)
+
+        val documentFragment = loadDocument(activity, requireTestFile("test.odt"))
+
+        // polled: the counter is written at the tail of the success callback, after the result
+        // the load is waited on
+        Assert.assertTrue(
+            "the open itself did not count",
+            waitFor(RELOAD_TIMEOUT_MS) {
+                ReviewInvitation.documentOpens(activity) == opensBefore + 1
+            },
+        )
+
+        val before = documentFragment.lastDocument
+        val margins = PaginationSetting.isEnabled(activity)
+        try {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                activity.onDocumentAction(DocumentActions.ACTION_PAGE_MARGINS)
+            }
+
+            Assert.assertTrue(
+                "the document was never rendered again",
+                waitFor(RELOAD_TIMEOUT_MS) { documentFragment.lastDocument !== before },
+            )
+        } finally {
+            PaginationSetting.setEnabled(activity, margins)
+        }
+
+        // the reload's success callback has run once the document changed above; the idle sync
+        // lets it run to its end before the counter is read
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+
+        Assert.assertEquals(
+            "the reload counted as a document open",
+            opensBefore + 1,
+            ReviewInvitation.documentOpens(activity),
+        )
     }
 
     /**
