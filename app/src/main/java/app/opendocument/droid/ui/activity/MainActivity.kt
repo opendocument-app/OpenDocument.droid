@@ -126,13 +126,11 @@ class MainActivity : AppCompatActivity() {
     private var documentOpenedExternally = false
 
     // set before we start an activity of our own, so coming back from it is not counted as
-    // the user opening the app. saved: a rotation under the picker recreates the activity, and
-    // onStart must not read the return trip as a quiet landing screen - a document is on its way
+    // the user opening the app. saved, or a rotation under the picker resets it
     private var leftForOwnActivity = false
 
-    // requestReviewFlow answers asynchronously, so recordAsk lands only later - and a second
-    // qualifying moment inside that window would pass isEarned again and spend two of the five
-    // asks in one sitting. never reset: one hand-off per activity is plenty
+    // requestReviewFlow answers asynchronously, so a second qualifying moment before recordAsk
+    // lands would pass isEarned again. never reset: one hand-off per activity is plenty
     private var reviewRequested = false
 
     /**

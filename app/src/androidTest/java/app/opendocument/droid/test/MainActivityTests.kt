@@ -336,9 +336,8 @@ class MainActivityTests {
     }
 
     /**
-     * Only a fresh open counts towards the review ask. The margin switch renders the document again
-     * through the loader, and that reload reaches the same success callback - so this pins that one
-     * document read with the margins flipped is one document, not two.
+     * The margin switch reloads through the same success callback as a fresh open, and must not
+     * count towards the review ask.
      */
     @Test
     fun aReloadDoesNotCountTowardsTheReviewAsk() {
@@ -347,8 +346,7 @@ class MainActivityTests {
 
         val documentFragment = loadDocument(activity, requireTestFile("test.odt"))
 
-        // polled: the counter is written at the tail of the success callback, after the result
-        // the load is waited on
+        // polled: the counter is written after the result the load waits on
         Assert.assertTrue(
             "the open itself did not count",
             waitFor(RELOAD_TIMEOUT_MS) {
@@ -371,8 +369,7 @@ class MainActivityTests {
             PaginationSetting.setEnabled(activity, margins)
         }
 
-        // the reload's success callback has run once the document changed above; the idle sync
-        // lets it run to its end before the counter is read
+        // let the reload's success callback run to its end before reading the counter
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
 
         Assert.assertEquals(

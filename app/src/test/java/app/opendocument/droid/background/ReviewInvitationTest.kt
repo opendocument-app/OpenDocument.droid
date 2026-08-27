@@ -5,9 +5,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Pins the decision in [ReviewInvitation.isEarned]: the escalating ladder, counting from the ask
- * before, the stop after five, and the two-week rail. The stored values and the clock are passed
- * in, so every branch is reachable without a device or a fortnight.
+ * The stored values and the clock are passed into [ReviewInvitation.isEarned], so every branch is
+ * reachable without a device or a fortnight.
  */
 class ReviewInvitationTest {
 
@@ -78,14 +77,13 @@ class ReviewInvitationTest {
 
     @Test
     fun anInstallThatWasNeverAskedHasNoRail() {
-        // zero is "never asked", not 1970 - the rail only exists between asks
+        // zero is "never asked", not 1970
         assertTrue(earned(documentOpens = 5, askedAtMillis = 0, nowMillis = ASKED_AT))
     }
 
     @Test
     fun documentsReadBeforeTheCountersExistedStillCount() {
-        // an upgrading user brings usage_document_opens along from UsageCounters with everything
-        // else at its default: someone that far in has earned the first ask on the spot
+        // only the document counter set, as an upgrade leaves it
         assertTrue(earned(documentOpens = 40))
     }
 

@@ -53,7 +53,7 @@ object ReviewInvitation {
         )
     }
 
-    /** The decision alone, over the stored values, so a jvm test can reach every branch. */
+    /** The decision alone, so the jvm test can reach every branch. */
     internal fun isEarned(
         documentOpens: Int,
         asks: Int,
@@ -93,7 +93,7 @@ object ReviewInvitation {
             .apply()
     }
 
-    /** Read back only by the instrumented test pinning what counts as a document open. */
+    /** Read back only by the instrumented test. */
     internal fun documentOpens(context: Context): Int =
         AppPreferences.of(context).getInt(KEY_DOCUMENT_OPENS, 0)
 }
