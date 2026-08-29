@@ -1179,6 +1179,9 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     val lastFileType: String?
         get() = state.lastFile?.mimeType
 
+    val lastFilename: String?
+        get() = state.lastFile?.filename
+
     override fun onDestroyView() {
         super.onDestroyView()
 
