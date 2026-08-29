@@ -6,6 +6,7 @@ package app.opendocument.droid.test
 import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.SystemClock
 import androidx.appcompat.app.AppCompatDelegate
@@ -27,6 +28,7 @@ import app.opendocument.droid.ui.widget.DocumentActions
 import app.opendocument.droid.ui.widget.PageView
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicReference
 import org.junit.After
@@ -128,7 +130,8 @@ class DarkModeTests {
         val darkened = waitFor(60000) { meanLuminance().also { luminance = it } < DARK_LUMINANCE }
 
         Assert.assertTrue(
-            "the page stayed light - mean luminance $luminance; ${darkeningDiagnosis()}",
+            "the page stayed light - mean luminance $luminance; ${darkeningDiagnosis()}" +
+                keptScreenshot(darkened, "theDrawnPageIsDark"),
             darkened,
         )
     }
@@ -166,7 +169,8 @@ class DarkModeTests {
         val darkened = waitFor(60000) { meanLuminance().also { luminance = it } < DARK_LUMINANCE }
 
         Assert.assertTrue(
-            "the page stayed light - mean luminance $luminance; ${darkeningDiagnosis()}",
+            "the page stayed light - mean luminance $luminance; ${darkeningDiagnosis()}" +
+                keptScreenshot(darkened, "theSwitchDarkensADayModeApp"),
             darkened,
         )
         Assert.assertEquals(
@@ -304,6 +308,39 @@ class DarkModeTests {
         screen.recycle()
 
         return if (counted == 0) WHITE else (total / counted).toInt()
+    }
+
+    /**
+     * The screen a failed reading was taken off, written where gradle collects it: a mean luminance
+     * cannot tell a page that drew light from one that never drew.
+     *
+     * `additionalTestOutputDir` is gradle's own, copied back before the apks go - see
+     * `ScreenshotTests`. A run started by hand is given none.
+     */
+    private fun keptScreenshot(darkened: Boolean, name: String): String {
+        if (darkened) {
+            return ""
+        }
+
+        val given =
+            InstrumentationRegistry.getArguments().getString("additionalTestOutputDir")
+                ?: return "; no additionalTestOutputDir to write the screen to"
+
+        return try {
+            val directory = File(given, "dark-mode").apply { mkdirs() }
+            val target = File(directory, "$name.png")
+
+            val screen =
+                InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+                    ?: return "; the screen could not be photographed either"
+
+            FileOutputStream(target).use { screen.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            screen.recycle()
+
+            "; the screen is in ${target.name}"
+        } catch (e: IOException) {
+            "; the screen could not be written: $e"
+        }
     }
 
     private fun openPageView(name: String): PageView {

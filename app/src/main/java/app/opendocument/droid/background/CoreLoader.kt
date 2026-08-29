@@ -35,6 +35,9 @@ class CoreLoader(private val context: Context) {
     private var document: Document? = null
     private var lastInputPath: String? = null
 
+    /** Counts the renders, so each one publishes under a prefix of its own - see [render]. */
+    private var renderCount = 0
+
     /**
      * Whether the document [host] last opened is one [edit] can do something with - the core's own
      * answer, since [host] only keeps a document that reports itself editable and savable.
@@ -54,6 +57,9 @@ class CoreLoader(private val context: Context) {
     /**
      * Renders [file] and publishes it, replacing whatever was published before.
      *
+     * Under a prefix of its own, so a request the page it replaces still had in flight cannot be
+     * mistaken for one for the new page - `PageView.failPage` tells them apart by url.
+     *
      * Throws what odrcore threw: which failure it is decides which bar the user gets, so
      * [DocumentLoader] needs the exception itself.
      */
@@ -70,7 +76,7 @@ class CoreLoader(private val context: Context) {
 
         val views =
             host(
-                prefix = "odr",
+                prefix = "odr" + renderCount++,
                 inputPath = cachedFile.path,
                 cachePath = coreCacheDirectory.path,
                 password = request.password,
