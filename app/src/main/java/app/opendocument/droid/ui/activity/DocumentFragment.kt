@@ -34,7 +34,6 @@ import app.opendocument.droid.background.LoadedDocument
 import app.opendocument.droid.background.NightModeSetting
 import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.background.ReviewInvitation
-import app.opendocument.droid.background.SupportedDocumentTypes
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
@@ -710,8 +709,10 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         prepareActions(document)
 
-        // the escape hatch for a file we show rather than read: an image, an archive listing
-        if (!SupportedDocumentTypes.isDocument(file.mimeType)) {
+        // the escape hatch for a file we show rather than read: an image, an archive listing.
+        // the core's answer, not the mime type: a markdown file is read as prose while its bytes
+        // are still named text/plain
+        if (!document.readsAsDocument) {
             offerReopen(activity, R.string.toast_hint_unsupported_file, false)
         }
 

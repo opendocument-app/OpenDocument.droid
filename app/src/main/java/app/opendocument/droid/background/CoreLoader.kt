@@ -34,6 +34,7 @@ class CoreLoader(private val context: Context) {
 
     private var document: Document? = null
     private var lastInputPath: String? = null
+    private var lastDocumentType: DocumentType = DocumentType.UNKNOWN
 
     /** Counts the renders, so each one publishes under a prefix of its own - see [render]. */
     private var renderCount = 0
@@ -44,6 +45,13 @@ class CoreLoader(private val context: Context) {
      */
     val isDocumentEditable: Boolean
         get() = document != null
+
+    /**
+     * Whether the core reads what [host] last opened as a document rather than only showing it -
+     * true of csv and markdown as well as the document formats, false of an image or an archive.
+     */
+    val readsAsDocument: Boolean
+        get() = lastDocumentType != DocumentType.UNKNOWN
 
     fun initialize(crashManager: CrashManager) {
         this.crashManager = crashManager
@@ -92,6 +100,7 @@ class CoreLoader(private val context: Context) {
             views.map { it.name },
             views.map { Uri.parse(it.url) },
             isDocumentEditable,
+            readsAsDocument,
         )
     }
 
@@ -134,6 +143,9 @@ class CoreLoader(private val context: Context) {
         }
 
         Log.i(TAG, "type=" + Odr.fileTypeToString(file.fileType()))
+
+        // the type it opened as, which a markdown file read by its name is not the mime type of
+        lastDocumentType = Odr.documentTypeByFileType(file.fileType()) ?: DocumentType.UNKNOWN
 
         // the core opens text it cannot name a charset for and only fails once a page is
         // rendered - on the server thread, long after this reported success. so ask now

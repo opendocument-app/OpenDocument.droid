@@ -23,6 +23,8 @@ takes 500 characters, so not everything here reaches the store.
   files saved as flat XML, all open.
 - Markdown files open as prose - headings, emphasis, lists, tables and links -
   rather than as their own source.
+- Markdown and CSV files no longer offer to open themselves in another app. That
+  offer is for a file the app shows rather than reads, and both are read.
 - PowerPoint presentations render in colour, and line breaks in them are kept.
 - PDFs open faster, zoom faster, and their text can be selected and searched
   where it came out garbled before.

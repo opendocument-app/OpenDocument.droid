@@ -105,6 +105,7 @@ class DocumentParcelTest {
                     Uri.parse("http://localhost:29665/file/odr/2.html"),
                 ),
                 isEditable = true,
+                readsAsDocument = true,
             )
 
         val restored = roundTrip(document, LoadedDocument.CREATOR)
@@ -114,6 +115,7 @@ class DocumentParcelTest {
         assertEquals(listOf("hey", "ho", "Sheet3"), restored.partTitles)
         assertEquals(document.partUris, restored.partUris)
         assertTrue(restored.isEditable)
+        assertTrue(restored.readsAsDocument)
     }
 
     /** Everything but a spreadsheet: one part, and the core does not name it. */
@@ -132,6 +134,7 @@ class DocumentParcelTest {
                     listOf<String?>(null),
                     listOf(Uri.parse("http://localhost:29665/file/odr/document.html")),
                     isEditable = false,
+                    readsAsDocument = true,
                 ),
                 LoadedDocument.CREATOR,
             )
@@ -139,6 +142,7 @@ class DocumentParcelTest {
         assertEquals(1, restored.partTitles.size)
         assertNull(restored.partTitles[0])
         assertEquals(false, restored.isEditable)
+        assertTrue(restored.readsAsDocument)
     }
 
     private fun <T> roundTrip(value: T, creator: Parcelable.Creator<T>): T {
