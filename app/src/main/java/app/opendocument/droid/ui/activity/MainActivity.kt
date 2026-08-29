@@ -369,8 +369,6 @@ class MainActivity : AppCompatActivity() {
 
             intent.type = documentFragment.lastFileType
 
-            // the picker opens with an empty name field otherwise, and what the user wants to
-            // call the copy is almost always what the document is already called
             documentFragment.lastFilename?.let { intent.putExtra(Intent.EXTRA_TITLE, it) }
 
             leftForOwnActivity = true
