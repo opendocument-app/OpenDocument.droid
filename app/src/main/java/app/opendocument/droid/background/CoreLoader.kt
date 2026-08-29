@@ -318,7 +318,7 @@ class CoreLoader(private val context: Context) {
         private const val SPREADSHEET_LIMIT_ROWS = 100000
         private const val SPREADSHEET_LIMIT_COLUMNS = 500
 
-        /** What bounds the rows in practice: the wider the sheet, the fewer it keeps. */
+        /** Bounds the rows by the sheet's width. */
         private const val SPREADSHEET_LIMIT_CELLS = 500000L
 
         /**

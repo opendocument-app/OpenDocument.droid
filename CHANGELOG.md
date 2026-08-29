@@ -15,6 +15,17 @@ version code per locale under `fastlane/metadata/android/<locale>/changelogs/`,
 written by `scripts/store-copy.py` before the release and uploaded by it. Play
 takes 500 characters, so not everything here reaches the store.
 
+## Unreleased
+
+- A spreadsheet shows ten times as many rows: the cap rises from 10,000 to
+  100,000, bounded by how wide the sheet is.
+- Rich text (.rtf), Apple Pages, Numbers and Keynote files, and OpenDocument
+  files saved as flat XML, all open.
+- PowerPoint presentations render in colour, and line breaks in them are kept.
+- PDFs open faster, zoom faster, and their text can be selected and searched
+  where it came out garbled before.
+- A document saved by the app opens in LibreOffice again.
+
 ## 4.17.0
 
 - A PDF saved straight out of a browser opens. The web server's response was
