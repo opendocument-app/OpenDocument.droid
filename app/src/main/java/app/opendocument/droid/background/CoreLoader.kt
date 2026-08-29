@@ -177,6 +177,7 @@ class CoreLoader(private val context: Context) {
         // stated rather than inherited: a sheet past it is cut off silently
         htmlConfig.spreadsheetLimit =
             TableDimensions(SPREADSHEET_LIMIT_ROWS, SPREADSHEET_LIMIT_COLUMNS)
+        htmlConfig.spreadsheetCellLimit = SPREADSHEET_LIMIT_CELLS
         htmlConfig.spreadsheetLimitByContent = true
 
         val cacheDirectory = File(cachePath)
@@ -314,8 +315,11 @@ class CoreLoader(private val context: Context) {
         private const val TAG = "CoreLoader"
 
         /** The largest sheet region translated - every cell in it becomes a `<td>`. */
-        private const val SPREADSHEET_LIMIT_ROWS = 10000
+        private const val SPREADSHEET_LIMIT_ROWS = 100000
         private const val SPREADSHEET_LIMIT_COLUMNS = 500
+
+        /** What bounds the rows in practice: the wider the sheet, the fewer it keeps. */
+        private const val SPREADSHEET_LIMIT_CELLS = 500000L
 
         /**
          * The one http server of the process, started on the first [initialize] and never stopped.
