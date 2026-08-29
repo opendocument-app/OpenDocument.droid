@@ -82,8 +82,7 @@ class DocumentLoader(application: Application) : AndroidViewModel(application) {
      * Copies the cached document to a file named after it, for handing to another app, and answers
      * on the main thread. Null where the copy failed.
      *
-     * On the background thread because a copy is as long as the document is big - on the main one
-     * it holds the input dispatcher for the whole of it.
+     * On the background thread: a copy is as long as the document is big.
      */
     fun copyForHandover(file: IdentifiedFile, onCopied: (Uri?) -> Unit) {
         backgroundHandler.post {
@@ -96,8 +95,8 @@ class DocumentLoader(application: Application) : AndroidViewModel(application) {
                             "yourdocument." + file.extension,
                         )
 
-                    // a document handed over and opened back into this app is already the
-                    // copy - copying it onto itself truncates it to nothing
+                    // a document opened back into this app is already the copy, and
+                    // copying it onto itself empties it
                     if (cacheFile != handoverFile) {
                         StreamUtil.copy(cacheFile, handoverFile)
                     }
