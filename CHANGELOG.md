@@ -15,7 +15,7 @@ version code per locale under `fastlane/metadata/android/<locale>/changelogs/`,
 written by `scripts/store-copy.py` before the release and uploaded by it. Play
 takes 500 characters, so not everything here reaches the store.
 
-## Unreleased
+## 4.18.0
 
 - A spreadsheet shows ten times as many rows: the cap rises from 10,000 to
   100,000, bounded by how wide the sheet is.

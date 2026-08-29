@@ -1,0 +1,7 @@
+Rich text files, Apple Pages, Numbers and Keynote documents now open. Markdown files read as writing rather than as their markings.
+
+A spreadsheet shows ten times as many rows.
+
+PowerPoint slides keep their colours and their line breaks.
+
+PDFs open and zoom faster, and more of their text can be selected and searched.

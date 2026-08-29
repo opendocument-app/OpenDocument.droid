@@ -1,0 +1,7 @@
+Les fichiers RTF et les documents Apple Pages, Numbers et Keynote s'ouvrent désormais. Les fichiers Markdown se lisent comme du texte, et non comme des balises.
+
+Une feuille de calcul affiche dix fois plus de lignes.
+
+Les diapositives PowerPoint gardent leurs couleurs et leurs retours à la ligne.
+
+Les PDF s'ouvrent plus vite, le zoom aussi, et vous pouvez sélectionner et rechercher une plus grande partie de leur texte.

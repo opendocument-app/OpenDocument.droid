@@ -1,0 +1,7 @@
+Ya se abren los archivos de texto enriquecido y los documentos de Apple Pages, Numbers y Keynote. Los archivos Markdown se leen como texto y no como sus símbolos de formato.
+
+Una hoja de cálculo muestra diez veces más filas.
+
+Las diapositivas de PowerPoint mantienen sus colores y sus saltos de línea.
+
+Los PDF se abren y se amplían más rápido, y se puede seleccionar y buscar más texto en ellos.
