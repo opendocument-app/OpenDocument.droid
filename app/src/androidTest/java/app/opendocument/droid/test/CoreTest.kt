@@ -218,17 +218,17 @@ class CoreTest {
         }
     }
 
-    /** A pdf behind the http response that delivered it reads as text until the name is asked. */
+    /** A pdf behind the http response that delivered it opens only once the name is asked. */
     @Test
-    fun testWhatTheFileIsCalledOpensWhatDetectionReadsAsText() {
+    fun testWhatTheFileIsCalledOpensWhatDetectionCannotRead() {
         val prefixed = File(cacheDir(), "http-prefixed.pdf")
         prefixed.writeBytes(HTTP_PREAMBLE.toByteArray() + pdfTestFile.readBytes())
 
-        val asDetected = firstView("preamble-detected", prefixed, declaredType = null)
-        Assert.assertTrue(
-            "detection alone should read the preamble and call the whole file text",
-            asDetected.contains("HTTP/1.0 200 OK"),
-        )
+        // the preamble puts the signature off the front, and the nul bytes behind it stop the
+        // core reading the whole thing as text
+        Assert.assertThrows(OdrException.UnknownFileType::class.java) {
+            firstView("preamble-detected", prefixed, declaredType = null)
+        }
 
         val asNamed = firstView("preamble-named", prefixed, FileType.PORTABLE_DOCUMENT_FORMAT)
         Assert.assertFalse(

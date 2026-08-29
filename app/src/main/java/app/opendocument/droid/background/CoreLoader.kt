@@ -211,8 +211,7 @@ class CoreLoader(private val context: Context) {
      * [inputPath] as odrcore reads its bytes, or as [declaredType] where it answers *text* - its
      * bucket for bytes nothing else claims, and where a pdf carrying its http response lands.
      *
-     * Detection stays first, and only a name the core files as a `DOCUMENT` outranks text: whether
-     * comma separated values are a table or prose stays the core's question.
+     * Detection stays first, and only some names outrank text - see [nameOutranksText].
      */
     private fun openFile(inputPath: String, declaredType: FileType?): DecodedFile {
         val detected =
@@ -231,13 +230,24 @@ class CoreLoader(private val context: Context) {
             declaredType == null ||
                 declaredType == detected.fileType() ||
                 !detected.isTextFile ||
-                Odr.fileCategoryByFileType(declaredType) != FileCategory.DOCUMENT
+                !nameOutranksText(declaredType)
         ) {
             return detected
         }
 
         return openAs(inputPath, declaredType) ?: detected
     }
+
+    /**
+     * Whether what the file is called beats a text reading: a document, or a format the core says
+     * it cannot recognise from its bytes.
+     *
+     * Csv is neither - the core decides it from plain text itself - and markdown is the case it
+     * says it cannot, so the name is all there is.
+     */
+    private fun nameOutranksText(declaredType: FileType): Boolean =
+        Odr.fileCategoryByFileType(declaredType) == FileCategory.DOCUMENT ||
+            !Odr.capabilitiesByFileType(declaredType).detectByContent
 
     /** [inputPath] opened as [type], or null where it is not one after all. */
     private fun openAs(inputPath: String, type: FileType): DecodedFile? =
