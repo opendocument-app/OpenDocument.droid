@@ -11,6 +11,7 @@ import app.opendocument.core.OdrException
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
+import java.io.File
 import java.io.IOException
 
 /**
@@ -75,6 +76,41 @@ class DocumentLoader(application: Application) : AndroidViewModel(application) {
 
     fun save(document: LoadedDocument, target: Uri, htmlDiff: String?) {
         backgroundHandler.post { saveSync(document, target, htmlDiff) }
+    }
+
+    /**
+     * Copies the cached document to a file named after it, for handing to another app, and answers
+     * on the main thread. Null where the copy failed.
+     *
+     * On the background thread because a copy is as long as the document is big - on the main one
+     * it holds the input dispatcher for the whole of it.
+     */
+    fun copyForHandover(file: IdentifiedFile, onCopied: (Uri?) -> Unit) {
+        backgroundHandler.post {
+            val handoverUri =
+                try {
+                    val cacheFile = checkNotNull(FileCache.getCacheFile(context, file.cacheUri))
+                    val handoverFile =
+                        File(
+                            FileCache.getCacheDirectory(cacheFile),
+                            "yourdocument." + file.extension,
+                        )
+
+                    // a document handed over and opened back into this app is already the
+                    // copy - copying it onto itself truncates it to nothing
+                    if (cacheFile != handoverFile) {
+                        StreamUtil.copy(cacheFile, handoverFile)
+                    }
+
+                    FileCache.getCacheFileUri(context, handoverFile)
+                } catch (e: Throwable) {
+                    crashManager.log(e)
+
+                    null
+                }
+
+            mainHandler.post { onCopied(handoverUri) }
+        }
     }
 
     private fun loadSync(request: DocumentRequest) {
