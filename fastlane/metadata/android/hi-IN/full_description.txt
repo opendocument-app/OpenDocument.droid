@@ -24,13 +24,10 @@ LibreOffice या OpenOffice में बनाई गई ODF फ़ाइल�
 - चित्र: JPG, JPEG, GIF, PNG, WEBP, TIFF, BMP, SVG आदि
 - वीडियो: MP4, WEBM आदि
 - ऑडियो: MP3, OGG आदि
-- टेक्स्ट फ़ाइलें: CSV, TXT, HTML, RTF
+- टेक्स्ट फ़ाइलें: CSV, TXT, MD, RTF
 - Microsoft Office (OOXML): Word (DOC, DOCX), Excel (XLS, XLSX), PowerPoint (PPT, PPTX)
 - Apple iWork: Pages, Numbers, Keynote
-- LibreOffice और OpenOffice ODF (ODT, ODS, ODP, ODG)
-- PostScript (EPS)
-- AutoCAD (DXF)
-- Photoshop (PSD)
+- LibreOffice और OpenOffice ODF (ODT, ODS, ODP, ODG, FODT, FODS, FODP, FODG)
 
 यह ऐप ओपन सोर्स है। हम OpenOffice, LibreOffice या इनके जैसे किसी से संबद्ध नहीं हैं। Made in Austria. आपके दस्तावेज़ आपके अपने डिवाइस पर ही खुलते हैं और कहीं भी अपलोड नहीं किए जाते। ${ads} ई-मेल के ज़रिए मिलने वाली हर तरह की प्रतिक्रिया की हम बहुत क़द्र करते हैं।
 

@@ -24,13 +24,10 @@ Prohlížeč a editor dokumentů se navíc snaží co nejlépe podporovat i dal�
 - Obrázky: JPG, JPEG, GIF, PNG, WEBP, TIFF, BMP, SVG atd.
 - Videa: MP4, WEBM atd.
 - Zvuk: MP3, OGG atd.
-- Textové soubory: CSV, TXT, HTML, RTF
+- Textové soubory: CSV, TXT, MD, RTF
 - Microsoft Office (OOXML): Word (DOC, DOCX), Excel (XLS, XLSX), PowerPoint (PPT, PPTX)
 - Apple iWork: Pages, Numbers, Keynote
-- LibreOffice a OpenOffice ODF (ODT, ODS, ODP, ODG)
-- PostScript (EPS)
-- AutoCAD (DXF)
-- Photoshop (PSD)
+- LibreOffice a OpenOffice ODF (ODT, ODS, ODP, ODG, FODT, FODS, FODP, FODG)
 
 Tato aplikace je open source. Nejsme spojeni s OpenOffice, LibreOffice ani podobnými projekty. Made in Austria. Vaše dokumenty se otevírají přímo ve vašem zařízení a nikdy se nikam nenahrávají. ${ads} Velmi si vážíme jakékoli zpětné vazby zaslané e-mailem.
 

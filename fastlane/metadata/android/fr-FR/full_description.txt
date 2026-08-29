@@ -24,13 +24,10 @@ Le lecteur et éditeur de documents vise en outre à prendre en charge au mieux 
 - Images : JPG, JPEG, GIF, PNG, WEBP, TIFF, BMP, SVG, etc.
 - Vidéos : MP4, WEBM, etc.
 - Audio : MP3, OGG, etc.
-- Fichiers texte : CSV, TXT, HTML, RTF
+- Fichiers texte : CSV, TXT, MD, RTF
 - Microsoft Office (OOXML) : Word (DOC, DOCX), Excel (XLS, XLSX), PowerPoint (PPT, PPTX)
 - Apple iWork : Pages, Numbers, Keynote
-- LibreOffice et OpenOffice ODF (ODT, ODS, ODP, ODG)
-- PostScript (EPS)
-- AutoCAD (DXF)
-- Photoshop (PSD)
+- LibreOffice et OpenOffice ODF (ODT, ODS, ODP, ODG, FODT, FODS, FODP, FODG)
 
 Cette application est open source. Nous ne sommes affiliés ni à OpenOffice, ni à LibreOffice, ni à des projets similaires. Made in Austria. Vos documents sont ouverts sur votre propre appareil et ne sont jamais envoyés en ligne. ${ads} Tous vos retours par e-mail sont les bienvenus.
 

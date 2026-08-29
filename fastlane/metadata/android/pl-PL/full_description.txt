@@ -24,13 +24,10 @@ Poza tym czytnik i edytor dokumentów stara się jak najlepiej obsługiwać tak�
 - Obrazy: JPG, JPEG, GIF, PNG, WEBP, TIFF, BMP, SVG itp.
 - Filmy: MP4, WEBM itp.
 - Dźwięk: MP3, OGG itp.
-- Pliki tekstowe: CSV, TXT, HTML, RTF
+- Pliki tekstowe: CSV, TXT, MD, RTF
 - Microsoft Office (OOXML): Word (DOC, DOCX), Excel (XLS, XLSX), PowerPoint (PPT, PPTX)
 - Apple iWork: Pages, Numbers, Keynote
-- LibreOffice i OpenOffice ODF (ODT, ODS, ODP, ODG)
-- PostScript (EPS)
-- AutoCAD (DXF)
-- Photoshop (PSD)
+- LibreOffice i OpenOffice ODF (ODT, ODS, ODP, ODG, FODT, FODS, FODP, FODG)
 
 Ta aplikacja jest oprogramowaniem open source. Nie jesteśmy powiązani z OpenOffice, LibreOffice ani podobnymi projektami. Made in Austria. Twoje dokumenty są otwierane na Twoim urządzeniu i nigdy nigdzie nie są wysyłane. ${ads} Bardzo cenimy wszelkie opinie przesyłane e-mailem.
 

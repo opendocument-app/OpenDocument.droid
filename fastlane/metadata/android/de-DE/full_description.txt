@@ -24,13 +24,10 @@ Darüber hinaus möchten der Dokumenten-Reader & Dokumenten-Editor möglichst vi
 - Bilder: JPG, JPEG, GIF, PNG, WEBP, TIFF, BMP, SVG usw.
 - Videos: MP4, WEBM usw.
 - Audio: MP3, OGG usw.
-- Textdateien: CSV, TXT, HTML, RTF
+- Textdateien: CSV, TXT, MD, RTF
 - Microsoft Office (OOXML): Word (DOC, DOCX), Excel (XLS, XLSX), PowerPoint (PPT, PPTX)
 - Apple iWork: Pages, Numbers, Keynote
-- LibreOffice und OpenOffice ODF (ODT, ODS, ODP, ODG)
-- PostScript (EPS)
-- AutoCAD (DXF)
-- Photoshop (PSD)
+- LibreOffice und OpenOffice ODF (ODT, ODS, ODP, ODG, FODT, FODS, FODP, FODG)
 
 Diese App ist Open Source. Wir sind nicht mit OpenOffice, LibreOffice oder Ähnlichem verbunden. Made in Austria. Ihre Dokumente werden auf Ihrem eigenen Gerät geöffnet und niemals irgendwohin hochgeladen. ${ads} Über Feedback jeder Art per E-Mail freuen wir uns sehr.
 
