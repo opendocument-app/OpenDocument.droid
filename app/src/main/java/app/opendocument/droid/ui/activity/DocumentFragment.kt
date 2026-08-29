@@ -5,6 +5,8 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.InputType
 import android.text.SpannableString
 import android.text.Spanned
@@ -27,13 +29,11 @@ import app.opendocument.droid.R
 import app.opendocument.droid.background.DocumentDarkening
 import app.opendocument.droid.background.DocumentLoader
 import app.opendocument.droid.background.DocumentRequest
-import app.opendocument.droid.background.FileCache
 import app.opendocument.droid.background.IdentifiedFile
 import app.opendocument.droid.background.LoadedDocument
 import app.opendocument.droid.background.NightModeSetting
 import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.background.ReviewInvitation
-import app.opendocument.droid.background.StreamUtil
 import app.opendocument.droid.background.SupportedDocumentTypes
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
@@ -44,9 +44,7 @@ import app.opendocument.droid.ui.widget.DocumentActions
 import app.opendocument.droid.ui.widget.PageView
 import app.opendocument.droid.ui.widget.ProgressDialogFragment
 import com.google.android.material.tabs.TabLayout
-import java.io.File
 import java.io.FileNotFoundException
-import java.io.IOException
 
 class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
@@ -75,6 +73,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
     /** A loader callback that arrived while the activity was stopped, replayed by [onStart]. */
     private var replayOnStart: (() -> Unit)? = null
+
+    private val handler = Handler(Looper.getMainLooper())
 
     private var freshOpenPending = false
 
@@ -320,7 +320,9 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         val replay = replayOnStart ?: return
         replayOnStart = null
 
-        replay()
+        // posted: onStart runs inside the fragment manager's state dispatch, and a failure ends
+        // in closeFailedDocument's commitNow(), which throws while a dispatch is executing
+        handler.post(replay)
     }
 
     private fun load(request: DocumentRequest) {
@@ -973,46 +975,53 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         SnackbarHelper.show(
             activity,
             description,
-            { doReopen(activity, request, file, true, false) },
+            { doReopen(activity, request, file, share = false) },
             isIndefinite = isIndefinite,
             isError = false,
         )
     }
 
     fun openWith(activity: Activity) {
-        doReopen(activity, requireLastRequest(), state.lastFile, true, false)
+        doReopen(activity, requireLastRequest(), state.lastFile, share = false)
     }
 
     fun share(activity: Activity) {
-        doReopen(activity, requireLastRequest(), state.lastFile, true, true)
+        doReopen(activity, requireLastRequest(), state.lastFile, share = true)
     }
 
     private fun doReopen(
         activity: Activity,
         request: DocumentRequest,
         file: IdentifiedFile?,
+        share: Boolean,
+    ) {
+        // nothing was read whole, so there is no copy of ours to hand on
+        if (file == null) {
+            startReopen(activity, request.uri, null, true, share)
+
+            return
+        }
+
+        // having a file is having read it whole: what is handed on is our copy, under a name the
+        // receiving app can make sense of
+        documentLoader.copyForHandover(file) { handoverUri ->
+            // the reopen bar outlives the fragment, and the copy outlives the tap
+            if (activity.isFinishing || activity.isDestroyed) {
+                return@copyForHandover
+            }
+
+            startReopen(activity, handoverUri ?: request.uri, file.mimeType, true, share)
+        }
+    }
+
+    /** Puts the document in front of whatever else on the device can take it. */
+    private fun startReopen(
+        activity: Activity,
+        reopenUri: Uri,
+        fileType: String?,
         grantPermission: Boolean,
         share: Boolean,
     ) {
-        val fileType = file?.mimeType
-
-        var reopenUri = request.uri
-        // having a file is having read it whole: what is handed on is our copy, under a name the
-        // receiving app can make sense of
-        if (file != null) {
-            val cacheFile = FileCache.getCacheFile(activity, file.cacheUri)
-            val cacheDirectory = FileCache.getCacheDirectory(checkNotNull(cacheFile))
-
-            val reopenFile = File(cacheDirectory, "yourdocument." + file.extension)
-            try {
-                StreamUtil.copy(cacheFile, reopenFile)
-
-                reopenUri = FileCache.getCacheFileUri(activity, reopenFile)
-            } catch (e: IOException) {
-                crashManager.log(e)
-            }
-        }
-
         val intent = Intent()
 
         intent.action = if (share) Intent.ACTION_SEND else Intent.ACTION_VIEW
@@ -1055,7 +1064,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
             if (grantPermission) {
                 // if we're trying to reopen the originalUri, the provider might decline the request
-                doReopen(activity, request, file, false, share)
+                startReopen(activity, reopenUri, fileType, false, share)
             }
         }
     }
