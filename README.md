@@ -8,6 +8,9 @@ This is an Android frontend for our C++ OpenDocument.core library. Feel free to 
 [<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
      alt="Get it on Google Play"
      height="80">](https://play.google.com/store/apps/details?id=at.tomtasche.reader)
+[<img src="assets/badge_obtainium.png"
+     alt="Get it on Obtainium"
+     height="80">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22at.tomtasche.reader.foss%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fopendocument-app%2FOpenDocument.droid%22%2C%22author%22%3A%22opendocument-app%22%2C%22name%22%3A%22OpenDocument%20Reader%22%7D)
 
 More information at https://opendocument.app/ and in the app itself.
 
@@ -15,8 +18,13 @@ More information at https://opendocument.app/ and in the app itself.
 
 F-Droid and Play are the two stores. Sideloaders take `app-foss-release.apk` from the
 [latest release](https://github.com/opendocument-app/OpenDocument.droid/releases/latest),
-which is what Obtainium tracks - point it at this repository and it needs no filter, one
-apk is all a release carries.
+which is what Obtainium tracks. The badge above hands it the whole configuration in one
+tap; pasting this repository's url into it by hand arrives at the same app. Neither needs
+a filter or a setting off its default - one apk is all a release carries, its name has not
+changed, and the tag is the version.
+
+That is a promise the release run keeps rather than a coincidence, so
+`.github/workflows/release.yml` says so where it uploads.
 
 That apk is `at.tomtasche.reader.foss`. A different application id is a different app, so
 a sideload carrying an older one neither updates nor complains: install the new one and
