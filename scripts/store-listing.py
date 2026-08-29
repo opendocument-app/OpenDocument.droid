@@ -101,6 +101,14 @@ LIMITS = {
     "full_description.txt": 4000,
 }
 
+# Of the localised files, the ones play shows verbatim. An html entity in either
+# is a leftover from wherever the text was copied through and reaches the store
+# spelled out: pt-BR read "É&#39;o primeiro" for three releases before anyone
+# looked. `full_description.txt` is deliberately not here - play takes a subset
+# of html there, where `&amp;` is a spelling rather than a slip.
+PLAIN = ("title.txt", "short_description.txt")
+ENTITY = re.compile(r"&(#[0-9]+|#[xX][0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]*);")
+
 # The names a `${...}` may have. Declared, so that a misspelt one is an error
 # rather than a sentence that quietly disappears from the store.
 FILL_INS = ("ads",)
@@ -246,6 +254,7 @@ def stage(texts, directory, code, app=None, metadata=METADATA):
         raise ValueError(f"no such app: {app} - one of {', '.join(APPS)}")
 
     oversized = []
+    escaped = []
     unsaid = []
 
     def write(folder, name, text, places):
@@ -255,6 +264,11 @@ def stage(texts, directory, code, app=None, metadata=METADATA):
             oversized.append(
                 f"{folder.name}/{name} is {len(text.strip())} characters, "
                 f"over play's {limit}"
+            )
+        if name in PLAIN:
+            escaped.extend(
+                f"{folder.name}/{name} says '&{entity};' where play shows no markup"
+                for entity in ENTITY.findall(text)
             )
         (folder / name).write_text(text, encoding="utf-8")
 
@@ -288,6 +302,11 @@ def stage(texts, directory, code, app=None, metadata=METADATA):
 
     if oversized:
         raise ValueError("play would refuse this listing:\n  " + "\n  ".join(oversized))
+
+    if escaped:
+        raise ValueError(
+            "play would show this listing's markup as text:\n  " + "\n  ".join(escaped)
+        )
 
     return directory
 
