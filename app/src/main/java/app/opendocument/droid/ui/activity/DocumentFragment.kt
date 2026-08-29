@@ -224,7 +224,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         initializePageView()
 
-        restore(savedInstanceState)
+        val pageRestored = restore(savedInstanceState)
 
         state.lastDocument?.let { lastDocument ->
             crashManager.log("restoring lastDocument")
@@ -234,6 +234,12 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
             restoreTabs(lastDocument)
             prepareActions(lastDocument)
+
+            // a webview saves nothing until it has committed a page, and the night mode switch
+            // recreating this activity can come sooner than that. the tabs load a part themselves
+            if (!pageRestored && lastDocument.partUris.size == 1) {
+                loadData(lastDocument.partUris[0].toString())
+            }
         }
     }
 
@@ -245,8 +251,10 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
      * classes this one no longer has, and [android.os.Bundle] reads its whole map on the first
      * access, so one stale entry takes the rest with it. Losing the reopened document beats
      * throwing on launch.
+     *
+     * Answers whether the page view got a page back out of it.
      */
-    private fun restore(savedInstanceState: Bundle) {
+    private fun restore(savedInstanceState: Bundle): Boolean {
         try {
             if (state.lastRequest == null) {
                 @Suppress("DEPRECATION") // the typed getParcelable overload needs API 33
@@ -262,9 +270,11 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                 state.currentHtmlDiff = savedInstanceState.getString(SAVED_KEY_CURRENT_HTML_DIFF)
             }
 
-            pageView?.restoreState(savedInstanceState)
+            return pageView?.restoreState(savedInstanceState) != null
         } catch (e: Throwable) {
             crashManager.log(e)
+
+            return false
         }
     }
 
@@ -320,6 +330,9 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     }
 
     private fun beforeLoad() {
+        // the page on screen is about to be published over - see expectNewPage
+        pageView?.expectNewPage()
+
         // whatever the last load had to say was about the last document. the offer to reopen is
         // indefinite, so without this it sits over the document that came after it
         SnackbarHelper.dismiss(requireActivity())

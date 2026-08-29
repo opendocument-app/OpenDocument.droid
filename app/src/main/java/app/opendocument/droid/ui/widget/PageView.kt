@@ -56,6 +56,9 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     /** What [loadUrl] was last given: the only page whose failure is this document's. */
     private var loadedUrl: String? = null
 
+    /** Whether the page on screen is being replaced - see [expectNewPage]. */
+    private var isAwaitingNewPage = false
+
     private var isBridgeAttached = false
 
     init {
@@ -321,6 +324,22 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
             Configuration.UI_MODE_NIGHT_YES
 
+    /**
+     * Stops answering for the page until the one replacing it is asked for.
+     *
+     * `CoreLoader` clears the server before connecting the new translation, so a request the page
+     * still has in flight is answered with a 404 in between - which is not the document failing.
+     * After [loadUrl] the url tells the two apart, each render having a prefix of its own.
+     */
+    fun expectNewPage() {
+        isAwaitingNewPage = true
+
+        stopLoading()
+
+        // the reload waiting in onPageFinished would load the old page back over the new one
+        buggyWebViewHandler.removeCallbacksAndMessages(null)
+    }
+
     override fun loadUrl(url: String) {
         wasCommitCalled = false
 
@@ -336,6 +355,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
             buggyWebViewHandler.removeCallbacksAndMessages(null)
 
             loadedUrl = url
+            isAwaitingNewPage = false
         }
 
         super.loadUrl(url)
@@ -363,6 +383,11 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         // answered here, long after the page moved on, and the document on screen is not the one
         // that failed
         if (loadedUrl != null && url.toString() != loadedUrl) {
+            return
+        }
+
+        // nor the page that is being replaced right now, whose url is the one replacing it
+        if (isAwaitingNewPage) {
             return
         }
 
