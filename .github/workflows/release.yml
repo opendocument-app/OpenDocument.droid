@@ -517,7 +517,13 @@ jobs:
         name: apks
 
     # a draft creates no tag; publishing it does. --target takes the sha rather than
-    # a branch, which would resolve to whatever main had become by then
+    # a branch, which would resolve to whatever main had become by then.
+    #
+    # One apk per release, always named app-foss-release.apk, never a prerelease:
+    # that is what lets obtainium track this repository on its defaults, with no
+    # asset filter and nothing to configure - see the readme's "Installing". A
+    # second apk here, or a split per abi, would leave every obtainium user
+    # picking an asset by hand. version.json is not an apk and is ignored.
     - name: draft the github release
       env:
         GH_TOKEN: ${{ github.token }}
