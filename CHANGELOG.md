@@ -15,6 +15,15 @@ version code per locale under `fastlane/metadata/android/<locale>/changelogs/`,
 written by `scripts/store-copy.py` before the release and uploaded by it. Play
 takes 500 characters, so not everything here reaches the store.
 
+## Unreleased
+
+- A document that fails to open while the app is in the background no longer
+  crashes it on the way back.
+- Sharing a document, or opening it in another app, no longer freezes the app
+  while its copy is written. A large document could freeze it long enough for
+  Android to offer to close it.
+- Handing the same document on twice no longer empties the copy.
+
 ## 4.17.0
 
 - A PDF saved straight out of a browser opens. The web server's response was

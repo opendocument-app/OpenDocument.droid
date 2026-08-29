@@ -320,8 +320,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         val replay = replayOnStart ?: return
         replayOnStart = null
 
-        // posted: onStart runs inside the fragment manager's state dispatch, and a failure ends
-        // in closeFailedDocument's commitNow(), which throws while a dispatch is executing
+        // posted: onStart runs inside the fragment manager's dispatch, where the commitNow()
+        // that closeFailedDocument ends in throws
         handler.post(replay)
     }
 
@@ -1014,7 +1014,6 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         }
     }
 
-    /** Puts the document in front of whatever else on the device can take it. */
     private fun startReopen(
         activity: Activity,
         reopenUri: Uri,
