@@ -1,0 +1,7 @@
+RTF-filer samt dokument från Apple Pages, Numbers och Keynote öppnas nu. Markdown-filer visas som formaterad text i stället för som formateringstecken.
+
+Ett kalkylblad visar tio gånger så många rader.
+
+Bilderna i en PowerPoint-presentation behåller sina färger och sina radbrytningar.
+
+PDF-filer öppnas och zoomas snabbare, och mer av texten går att markera och söka i.

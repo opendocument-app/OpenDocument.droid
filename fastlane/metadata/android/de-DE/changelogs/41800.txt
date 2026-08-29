@@ -1,0 +1,7 @@
+Rich-Text-Dateien sowie Pages-, Numbers- und Keynote-Dokumente von Apple lassen sich jetzt öffnen. Markdown-Dateien werden als fertiger Text angezeigt, nicht mit ihren Auszeichnungszeichen.
+
+Tabellenkalkulationen zeigen zehnmal so viele Zeilen.
+
+PowerPoint-Folien behalten ihre Farben und ihre Zeilenumbrüche.
+
+PDFs lassen sich schneller öffnen und zoomen, und mehr Text darin können Sie markieren und durchsuchen.

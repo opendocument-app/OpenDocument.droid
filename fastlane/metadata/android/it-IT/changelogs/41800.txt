@@ -1,0 +1,7 @@
+Ora si aprono i file RTF e i documenti Apple Pages, Numbers e Keynote. I file Markdown si leggono come testo, non più come simboli.
+
+Un foglio di calcolo mostra dieci volte più righe.
+
+Le diapositive PowerPoint mantengono i colori e le interruzioni di riga.
+
+I PDF si aprono e si ingrandiscono più velocemente, e si può selezionare e cercare una parte maggiore del loro testo.

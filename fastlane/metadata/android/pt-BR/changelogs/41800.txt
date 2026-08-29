@@ -1,0 +1,7 @@
+Agora abrem arquivos RTF e documentos do Apple Pages, Numbers e Keynote. Os arquivos Markdown aparecem como texto, e não como marcações.
+
+Uma planilha mostra dez vezes mais linhas.
+
+Os slides do PowerPoint mantêm as cores e as quebras de linha.
+
+Os PDFs abrem e dão zoom mais rápido, e mais partes do texto podem ser selecionadas e pesquisadas.

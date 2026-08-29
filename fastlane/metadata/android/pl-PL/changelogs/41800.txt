@@ -1,0 +1,7 @@
+Teraz otwierają się pliki RTF oraz dokumenty Apple Pages, Numbers i Keynote. Pliki Markdown czyta się jak tekst, a nie jak zbiór znaczników.
+
+Arkusz kalkulacyjny pokazuje dziesięć razy więcej wierszy.
+
+Slajdy PowerPointa zachowują kolory i podziały wierszy.
+
+Pliki PDF szybciej się otwierają i powiększają, a większą część ich tekstu można zaznaczyć i przeszukać.

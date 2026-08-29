@@ -1,0 +1,7 @@
+Nově se otevírají soubory RTF a dokumenty Apple Pages, Numbers a Keynote. Soubory Markdown se čtou jako text, ne jako značky.
+
+Tabulka zobrazí desetkrát víc řádků.
+
+Snímky PowerPointu si zachovají barvy i zalomení řádků.
+
+PDF se otevírají a přibližují rychleji a dá se z nich označit a vyhledat víc textu.

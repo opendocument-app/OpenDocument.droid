@@ -1,0 +1,7 @@
+RTF dosyaları ile Apple Pages, Numbers ve Keynote belgeleri artık açılıyor. Markdown dosyaları, işaretleriyle değil, yazının kendisi olarak okunuyor.
+
+Hesap tabloları on kat daha fazla satır gösteriyor.
+
+PowerPoint slaytları renklerini ve satır sonlarını koruyor.
+
+PDF'ler daha hızlı açılıyor ve daha hızlı yakınlaştırılıyor; metinlerinin daha büyük bölümü seçilip aranabiliyor.

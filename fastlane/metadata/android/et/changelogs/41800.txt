@@ -1,0 +1,7 @@
+Nüüd avanevad RTF-failid ning Apple'i Pages'i, Numbersi ja Keynote'i dokumendid. Markdown-failid on näha vormindatud tekstina, mitte märgistusena.
+
+Arvutustabelis on näha kümme korda rohkem ridu.
+
+PowerPointi slaidid säilitavad oma värvid ja reavahetused.
+
+PDF-id avanevad ja suurenevad kiiremini ning nende tekstist saab rohkem valida ja otsida.
