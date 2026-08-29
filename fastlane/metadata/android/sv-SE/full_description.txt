@@ -24,13 +24,10 @@ Dessutom strävar dokumentläsaren och dokumentredigeraren efter att stödja en 
 - Bilder: JPG, JPEG, GIF, PNG, WEBP, TIFF, BMP, SVG med flera
 - Video: MP4, WEBM med flera
 - Ljud: MP3, OGG med flera
-- Textfiler: CSV, TXT, HTML, RTF
+- Textfiler: CSV, TXT, MD, RTF
 - Microsoft Office (OOXML): Word (DOC, DOCX), Excel (XLS, XLSX), PowerPoint (PPT, PPTX)
 - Apple iWork: Pages, Numbers, Keynote
-- LibreOffice och OpenOffice ODF (ODT, ODS, ODP, ODG)
-- PostScript (EPS)
-- AutoCAD (DXF)
-- Photoshop (PSD)
+- LibreOffice och OpenOffice ODF (ODT, ODS, ODP, ODG, FODT, FODS, FODP, FODG)
 
 Den här appen är öppen källkod. Vi är inte knutna till OpenOffice, LibreOffice eller liknande. Made in Austria. Dina dokument öppnas på din egen enhet och laddas aldrig upp någonstans. ${ads} Vi uppskattar all form av återkoppling via e-post.
 

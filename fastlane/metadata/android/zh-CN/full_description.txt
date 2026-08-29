@@ -24,13 +24,10 @@
 - 图像：JPG、JPEG、GIF、PNG、WEBP、TIFF、BMP、SVG 等
 - 视频：MP4、WEBM 等
 - 音频：MP3、OGG 等
-- 文本文件：CSV、TXT、HTML、RTF
+- 文本文件：CSV、TXT、MD、RTF
 - Microsoft Office (OOXML)：Word (DOC, DOCX)、Excel (XLS, XLSX)、PowerPoint (PPT, PPTX)
 - Apple iWork：Pages、Numbers、Keynote
-- LibreOffice 和 OpenOffice ODF (ODT, ODS, ODP, ODG)
-- PostScript (EPS)
-- AutoCAD (DXF)
-- Photoshop (PSD)
+- LibreOffice 和 OpenOffice ODF (ODT, ODS, ODP, ODG, FODT, FODS, FODP, FODG)
 
 本应用是开源软件。我们与 OpenOffice、LibreOffice 或类似项目并无关联。Made in Austria. 您的文档在您自己的设备上打开，绝不会上传到任何地方。${ads}我们非常欢迎通过电子邮件提出各种反馈。
 

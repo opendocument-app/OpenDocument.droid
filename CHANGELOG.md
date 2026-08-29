@@ -17,6 +17,18 @@ takes 500 characters, so not everything here reaches the store.
 
 ## Unreleased
 
+- A spreadsheet shows ten times as many rows: the cap rises from 10,000 to
+  100,000, bounded by how wide the sheet is.
+- Rich text (.rtf), Apple Pages, Numbers and Keynote files, and OpenDocument
+  files saved as flat XML, all open.
+- Markdown files open as prose - headings, emphasis, lists, tables and links -
+  rather than as their own source.
+- Markdown and CSV files no longer offer to open themselves in another app. That
+  offer is for a file the app shows rather than reads, and both are read.
+- PowerPoint presentations render in colour, and line breaks in them are kept.
+- PDFs open faster, zoom faster, and their text can be selected and searched
+  where it came out garbled before.
+- A document saved by the app opens in LibreOffice again.
 - A document that fails to open while the app is in the background no longer
   crashes it on the way back.
 - Sharing a document, or opening it in another app, no longer freezes the app

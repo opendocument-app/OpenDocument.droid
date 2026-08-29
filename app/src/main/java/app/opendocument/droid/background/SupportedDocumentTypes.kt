@@ -29,7 +29,7 @@ object SupportedDocumentTypes {
     }
 
     /**
-     * What the app offers itself for: the core's document formats plus the three non-document ones
+     * What the app offers itself for: the core's document formats plus the four non-document ones
      * worth opening a viewer for. Much narrower than [CORE_FILE_TYPES] - see the class doc.
      */
     private val CLAIMED_FILE_TYPES: List<FileType> by lazy {
@@ -39,7 +39,15 @@ object SupportedDocumentTypes {
                     Odr.fileCategoryByFileType(it) == FileCategory.DOCUMENT
             }
 
-        documents + listOf(FileType.TEXT_FILE, FileType.COMMA_SEPARATED_VALUES, FileType.ZIP)
+        documents +
+            listOf(
+                FileType.TEXT_FILE,
+                FileType.COMMA_SEPARATED_VALUES,
+                // text the core renders as prose, like csv - and it only does so when asked for
+                // by name, which is what CoreLoader.nameOutranksText is for
+                FileType.MARKDOWN,
+                FileType.ZIP,
+            )
     }
 
     /**

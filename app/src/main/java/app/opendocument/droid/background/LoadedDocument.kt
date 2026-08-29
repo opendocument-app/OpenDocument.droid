@@ -9,8 +9,8 @@ import android.os.Parcelable
  * be, and one uri per part (spreadsheets have one per sheet, everything else a single one with a
  * null title).
  *
- * [isEditable] is the core's own answer about this document, never a guess from its mime type - see
- * `CoreLoader.isDocumentEditable`.
+ * [isEditable] and [readsAsDocument] are the core's own answers about this document, never a guess
+ * from its mime type - see `CoreLoader.isDocumentEditable` and `CoreLoader.readsAsDocument`.
  */
 class LoadedDocument(
     val request: DocumentRequest,
@@ -18,6 +18,7 @@ class LoadedDocument(
     val partTitles: List<String?>,
     val partUris: List<Uri>,
     val isEditable: Boolean,
+    val readsAsDocument: Boolean,
 ) : Parcelable {
 
     override fun describeContents(): Int = 0
@@ -28,6 +29,7 @@ class LoadedDocument(
         parcel.writeList(partTitles)
         parcel.writeList(partUris)
         ParcelUtil.writeBoolean(parcel, isEditable)
+        ParcelUtil.writeBoolean(parcel, readsAsDocument)
     }
 
     companion object {
@@ -54,6 +56,7 @@ class LoadedDocument(
                         file,
                         partTitles,
                         partUris,
+                        ParcelUtil.readBoolean(parcel),
                         ParcelUtil.readBoolean(parcel),
                     )
                 }

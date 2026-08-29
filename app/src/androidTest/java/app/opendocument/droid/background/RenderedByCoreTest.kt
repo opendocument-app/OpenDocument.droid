@@ -89,7 +89,25 @@ class RenderedByCoreTest {
         // the image types 6.3 added
         assertTrue(isSupported("image/svg+xml"))
         assertTrue(isSupported("image/jxl"))
-        assertTrue(isSupported("image/vnd.adobe.photoshop"))
+    }
+
+    /** 6.11 opens rtf and the three iwork formats. */
+    @Test
+    fun whatSixElevenAddedIsSupported() {
+        assertTrue(isSupported("application/rtf"))
+        assertTrue(isSupported("text/rtf"))
+        assertTrue(isSupported("application/vnd.apple.pages"))
+        assertTrue(isSupported("application/vnd.apple.numbers"))
+        assertTrue(isSupported("application/vnd.apple.keynote"))
+    }
+
+    /** 6.11 stopped claiming html for these: no browser paints them. */
+    @Test
+    fun theImagesNoBrowserPaintsAreNotRendered() {
+        assertFalse(isSupported("image/vnd.adobe.photoshop"))
+        assertFalse(isSupported("image/jp2"))
+        assertFalse(isSupported("image/wmf"))
+        assertFalse(isSupported("image/emf"))
     }
 
     /** 6.4 opens a csv as a spreadsheet, so the table is the core's to draw. */
@@ -110,8 +128,6 @@ class RenderedByCoreTest {
     @Test
     fun whatTheCoreCannotOpenIsNotClaimed() {
         assertFalse(isSupported("application/vnd.wordperfect"))
-        assertFalse(isSupported("text/rtf"))
-        assertFalse(isSupported("application/vnd.apple.pages"))
         assertFalse(isSupported("application/octet-stream"))
         assertFalse(isSupported(null))
     }

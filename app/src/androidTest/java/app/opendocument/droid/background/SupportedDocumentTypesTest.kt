@@ -88,16 +88,25 @@ class SupportedDocumentTypesTest {
     }
 
     /**
-     * Formats odrcore can name but has no decoder for. They used to slip through: rtf and word
-     * perfect by never being claimed at all, but a `.xlsb` by its mime type starting like an excel
-     * one, which is exactly what a prefix match cannot tell apart.
+     * Formats odrcore can name but has no decoder for. A `.xlsb` slips through a prefix match by
+     * its mime type starting like an excel one, which is what such a match cannot tell apart.
      */
     @Test
     fun formatsWithoutADecoderAreNotSupported() {
         assertFalse(supported("application/vnd.ms-excel.sheet.binary.macroEnabled.12", "old.xlsb"))
-        assertFalse(supported("application/rtf", "letter.rtf"))
         assertFalse(supported("application/vnd.wordperfect", "letter.wpd"))
-        assertFalse(supported("text/markdown", "readme.md"))
+    }
+
+    /** 6.11 claims rtf and the three iwork formats. */
+    @Test
+    fun whatSixElevenAddedIsSupported() {
+        assertTrue(supported("application/rtf", "letter.rtf"))
+        assertTrue(supported(null, "letter.rtf"))
+        assertTrue(supported("application/vnd.apple.pages", "essay.pages"))
+        assertTrue(supported(null, "budget.numbers"))
+        assertTrue(supported(null, "deck.key"))
+        assertTrue(supported("text/markdown", "readme.md"))
+        assertTrue(supported(null, "readme.md"))
     }
 
     @Test

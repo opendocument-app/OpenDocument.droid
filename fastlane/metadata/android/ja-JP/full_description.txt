@@ -24,13 +24,10 @@ LibreOffice や OpenOffice で作成した ODF ファイル (ODT、ODS ほか多
 - 画像: JPG、JPEG、GIF、PNG、WEBP、TIFF、BMP、SVG など
 - 動画: MP4、WEBM など
 - 音声: MP3、OGG など
-- テキストファイル: CSV、TXT、HTML、RTF
+- テキストファイル: CSV、TXT、MD、RTF
 - Microsoft Office (OOXML): Word (DOC, DOCX)、Excel (XLS, XLSX)、PowerPoint (PPT, PPTX)
 - Apple iWork: Pages、Numbers、Keynote
-- LibreOffice および OpenOffice の ODF (ODT, ODS, ODP, ODG)
-- PostScript (EPS)
-- AutoCAD (DXF)
-- Photoshop (PSD)
+- LibreOffice および OpenOffice の ODF (ODT, ODS, ODP, ODG, FODT, FODS, FODP, FODG)
 
 このアプリはオープンソースです。OpenOffice、LibreOffice などとは関係ありません。Made in Austria. ドキュメントはお使いの端末内で開かれ、どこにもアップロードされません。${ads}メールでのご意見・ご感想はどんなものでも歓迎します。
 

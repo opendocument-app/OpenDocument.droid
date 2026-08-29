@@ -24,13 +24,10 @@ Lisaks püüab dokumendilugeja ja -redaktor toetada võimalikult hästi ka mitme
 - Pildid: JPG, JPEG, GIF, PNG, WEBP, TIFF, BMP, SVG jne
 - Videod: MP4, WEBM jne
 - Heli: MP3, OGG jne
-- Tekstifailid: CSV, TXT, HTML, RTF
+- Tekstifailid: CSV, TXT, MD, RTF
 - Microsoft Office (OOXML): Word (DOC, DOCX), Excel (XLS, XLSX), PowerPoint (PPT, PPTX)
 - Apple iWork: Pages, Numbers, Keynote
-- LibreOffice'i ja OpenOffice'i ODF (ODT, ODS, ODP, ODG)
-- PostScript (EPS)
-- AutoCAD (DXF)
-- Photoshop (PSD)
+- LibreOffice'i ja OpenOffice'i ODF (ODT, ODS, ODP, ODG, FODT, FODS, FODP, FODG)
 
 See rakendus on avatud lähtekoodiga. Me ei ole seotud OpenOffice'i, LibreOffice'i ega muu sarnasega. Made in Austria. Sinu dokumendid avatakse sinu enda seadmes ja neid ei laadita kunagi kuhugi üles. ${ads} Oleme väga tänulikud igasuguse tagasiside eest e-posti teel.
 

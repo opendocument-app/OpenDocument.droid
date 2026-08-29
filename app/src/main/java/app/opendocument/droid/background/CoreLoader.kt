@@ -34,6 +34,7 @@ class CoreLoader(private val context: Context) {
 
     private var document: Document? = null
     private var lastInputPath: String? = null
+    private var lastDocumentType: DocumentType = DocumentType.UNKNOWN
 
     /** Counts the renders, so each one publishes under a prefix of its own - see [render]. */
     private var renderCount = 0
@@ -44,6 +45,13 @@ class CoreLoader(private val context: Context) {
      */
     val isDocumentEditable: Boolean
         get() = document != null
+
+    /**
+     * Whether the core reads what [host] last opened as a document rather than only showing it -
+     * true of csv and markdown as well as the document formats, false of an image or an archive.
+     */
+    val readsAsDocument: Boolean
+        get() = lastDocumentType != DocumentType.UNKNOWN
 
     fun initialize(crashManager: CrashManager) {
         this.crashManager = crashManager
@@ -92,6 +100,7 @@ class CoreLoader(private val context: Context) {
             views.map { it.name },
             views.map { Uri.parse(it.url) },
             isDocumentEditable,
+            readsAsDocument,
         )
     }
 
@@ -135,6 +144,9 @@ class CoreLoader(private val context: Context) {
 
         Log.i(TAG, "type=" + Odr.fileTypeToString(file.fileType()))
 
+        // the type it opened as, which a markdown file read by its name is not the mime type of
+        lastDocumentType = Odr.documentTypeByFileType(file.fileType()) ?: DocumentType.UNKNOWN
+
         // the core opens text it cannot name a charset for and only fails once a page is
         // rendered - on the server thread, long after this reported success. so ask now
         if (file.isTextFile && file.asTextFile().charset() == null) {
@@ -177,6 +189,7 @@ class CoreLoader(private val context: Context) {
         // stated rather than inherited: a sheet past it is cut off silently
         htmlConfig.spreadsheetLimit =
             TableDimensions(SPREADSHEET_LIMIT_ROWS, SPREADSHEET_LIMIT_COLUMNS)
+        htmlConfig.spreadsheetCellLimit = SPREADSHEET_LIMIT_CELLS
         htmlConfig.spreadsheetLimitByContent = true
 
         val cacheDirectory = File(cachePath)
@@ -210,8 +223,7 @@ class CoreLoader(private val context: Context) {
      * [inputPath] as odrcore reads its bytes, or as [declaredType] where it answers *text* - its
      * bucket for bytes nothing else claims, and where a pdf carrying its http response lands.
      *
-     * Detection stays first, and only a name the core files as a `DOCUMENT` outranks text: whether
-     * comma separated values are a table or prose stays the core's question.
+     * Detection stays first, and only some names outrank text - see [nameOutranksText].
      */
     private fun openFile(inputPath: String, declaredType: FileType?): DecodedFile {
         val detected =
@@ -230,13 +242,24 @@ class CoreLoader(private val context: Context) {
             declaredType == null ||
                 declaredType == detected.fileType() ||
                 !detected.isTextFile ||
-                Odr.fileCategoryByFileType(declaredType) != FileCategory.DOCUMENT
+                !nameOutranksText(declaredType)
         ) {
             return detected
         }
 
         return openAs(inputPath, declaredType) ?: detected
     }
+
+    /**
+     * Whether what the file is called beats a text reading: a document, or a format the core says
+     * it cannot recognise from its bytes.
+     *
+     * Csv is neither - the core decides it from plain text itself - and markdown is the case it
+     * says it cannot, so the name is all there is.
+     */
+    private fun nameOutranksText(declaredType: FileType): Boolean =
+        Odr.fileCategoryByFileType(declaredType) == FileCategory.DOCUMENT ||
+            !Odr.capabilitiesByFileType(declaredType).detectByContent
 
     /** [inputPath] opened as [type], or null where it is not one after all. */
     private fun openAs(inputPath: String, type: FileType): DecodedFile? =
@@ -314,8 +337,11 @@ class CoreLoader(private val context: Context) {
         private const val TAG = "CoreLoader"
 
         /** The largest sheet region translated - every cell in it becomes a `<td>`. */
-        private const val SPREADSHEET_LIMIT_ROWS = 10000
+        private const val SPREADSHEET_LIMIT_ROWS = 100000
         private const val SPREADSHEET_LIMIT_COLUMNS = 500
+
+        /** Bounds the rows by the sheet's width. */
+        private const val SPREADSHEET_LIMIT_CELLS = 500000L
 
         /**
          * The one http server of the process, started on the first [initialize] and never stopped.
