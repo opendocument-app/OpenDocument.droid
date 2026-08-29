@@ -34,7 +34,7 @@ INSTALL=0
 # because the tables live in libodr_jni and reading them needs a device - the
 # same reason SupportedDocumentTypesTest is an instrumented test. A format added
 # upstream and missing here just means this sweep skips it.
-CLAIMED='csv|doc|docm|docx|dot|dotm|dotx|fodg|fodp|fods|fodt|odg|odm|odp|ods|odt|otg|otm|otp|ots|ott|pdf|pot|potm|potx|pps|ppsm|ppsx|ppt|pptm|pptx|text|txt|xlm|xls|xlsm|xlsx|xlt|xltm|xltx|zip'
+CLAIMED='csv|doc|docm|docx|dot|dotm|dotx|fodg|fodp|fods|fodt|key|numbers|odg|odm|odp|ods|odt|otg|otm|otp|ots|ott|pages|pdf|pot|potm|potx|pps|ppsm|ppsx|ppt|pptm|pptx|rtf|text|txt|xlm|xls|xlsm|xlsx|xlt|xltm|xltx|zip'
 
 usage() {
   cat <<'EOF'

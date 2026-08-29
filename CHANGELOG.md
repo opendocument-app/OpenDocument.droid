@@ -21,6 +21,8 @@ takes 500 characters, so not everything here reaches the store.
   100,000, bounded by how wide the sheet is.
 - Rich text (.rtf), Apple Pages, Numbers and Keynote files, and OpenDocument
   files saved as flat XML, all open.
+- Markdown files open as prose - headings, emphasis, lists, tables and links -
+  rather than as their own source.
 - PowerPoint presentations render in colour, and line breaks in them are kept.
 - PDFs open faster, zoom faster, and their text can be selected and searched
   where it came out garbled before.

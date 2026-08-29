@@ -95,8 +95,6 @@ class SupportedDocumentTypesTest {
     fun formatsWithoutADecoderAreNotSupported() {
         assertFalse(supported("application/vnd.ms-excel.sheet.binary.macroEnabled.12", "old.xlsb"))
         assertFalse(supported("application/vnd.wordperfect", "letter.wpd"))
-        // renders, but as text rather than prose, so it is not offered for
-        assertFalse(supported("text/markdown", "readme.md"))
     }
 
     /** 6.11 claims rtf and the three iwork formats. */
@@ -107,6 +105,8 @@ class SupportedDocumentTypesTest {
         assertTrue(supported("application/vnd.apple.pages", "essay.pages"))
         assertTrue(supported(null, "budget.numbers"))
         assertTrue(supported(null, "deck.key"))
+        assertTrue(supported("text/markdown", "readme.md"))
+        assertTrue(supported(null, "readme.md"))
     }
 
     @Test
