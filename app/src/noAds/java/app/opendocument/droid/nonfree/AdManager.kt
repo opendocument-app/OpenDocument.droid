@@ -33,6 +33,10 @@ class AdManager {
 
     fun showPrivacyOptions() {}
 
+    fun pauseAds() {}
+
+    fun resumeAds() {}
+
     fun removeAds() {}
 
     fun destroyAds() {}
