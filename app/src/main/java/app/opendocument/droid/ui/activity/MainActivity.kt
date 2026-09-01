@@ -382,6 +382,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeManagers() {
+        // the play services dialog can bring us back here; the first manager still owns a slot
+        if (::adManager.isInitialized) {
+            adManager.destroyAds()
+        }
+
         // the ad and consent sdks are the only thing left that needs play services on the device,
         // and a flavor without them never asks - the dialog would offer a fix for nothing
         val adsAvailable =
@@ -909,7 +914,19 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         ttsActionMode?.stop()
 
+        if (::adManager.isInitialized) {
+            adManager.pauseAds()
+        }
+
         super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (::adManager.isInitialized) {
+            adManager.resumeAds()
+        }
     }
 
     override fun onDestroy() {
