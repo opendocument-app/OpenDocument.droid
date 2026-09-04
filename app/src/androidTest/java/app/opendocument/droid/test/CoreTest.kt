@@ -182,6 +182,28 @@ class CoreTest {
     }
 
     /**
+     * A document only held decrypted is read only, so no Edit button appears over it. The same odt
+     * without a password is editable - see [testEditableFormats] - and saving this one would have
+     * written the content back out without the protection its author asked for.
+     */
+    @Test
+    fun testDecryptedDocumentIsNotEditable() {
+        coreLoader.host(
+            prefix = "password-test-editable",
+            inputPath = passwordTestFile.absolutePath,
+            cachePath = File(cacheDir(), "password_editable").path,
+            password = "passwort",
+            editable = true,
+            keepDocument = true,
+        )
+
+        Assert.assertFalse(
+            "a decrypted document should not be editable",
+            coreLoader.isDocumentEditable,
+        )
+    }
+
+    /**
      * An encrypted `.doc` says so rather than failing as a parse error, and odrcore has no way into
      * it, so [CoreLoader.host] refuses it instead of raising a prompt no password can close.
      */

@@ -211,12 +211,15 @@ class CoreLoader(private val context: Context) {
     /**
      * What the document is *called*. Not [IdentifiedFile.mimeType]: `FileIdentifier` takes that
      * from `Odr.mimetype` wherever it answered, so it would be the same reading again.
+     *
+     * Only a name the core has a decoder for: html is named by the table and not opened by it, so
+     * calling a file `.html` answers nothing [openAs] could act on.
      */
     private fun declaredType(file: IdentifiedFile): FileType? {
         val extension = MimeTypeResolver.parseExtension(file.filename)?.lowercase() ?: return null
         val type = Odr.fileTypeByFileExtension(extension) ?: return null
 
-        return type.takeIf { it != FileType.UNKNOWN }
+        return type.takeIf { it != FileType.UNKNOWN && Odr.capabilitiesByFileType(it).open }
     }
 
     /**

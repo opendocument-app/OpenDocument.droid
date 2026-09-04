@@ -15,6 +15,34 @@ version code per locale under `fastlane/metadata/android/<locale>/changelogs/`,
 written by `scripts/store-copy.py` before the release and uploaded by it. Play
 takes 500 characters, so not everything here reaches the store.
 
+## Unreleased
+
+- Charts in OpenDocument files are drawn from the chart itself - bar, line,
+  area, scatter, pie and ring, with their titles, legends, axes and colours -
+  rather than from the flat picture saved beside it.
+- Shapes in OpenDocument drawings and presentations appear as the shapes they
+  are, and where the file puts them. Arrows, stars, callouts, curves,
+  connectors, ellipses and measures used to come out as plain rectangles or not
+  at all, and a rotated or mirrored one sat square.
+- Pictures and charts stored as Windows metafiles draw: their lines, curves,
+  gradients, bitmaps and labels, each in the encoding the file names. Such an
+  image used to be an empty frame, or a table's rules a row of floating numbers.
+- A floating picture in a Word document floats where it was anchored, with the
+  text wrapping around it, instead of sitting in the line.
+- A Word table's own borders are drawn, and at the thickness the file asks for
+  rather than four times it. A table cell's content starts at the top of the
+  cell, as Word and OpenDocument show it.
+- A manual page break starts a new page, on screen and in print.
+- Lines in a PDF are drawn at the width the file sets. A PDF from Canva had
+  every stroke at the same weight, whatever it was meant to be.
+- Spreadsheets open in about half the memory, and two more of them open at all:
+  a sheet whose repeated cells claimed billions of positions, and one with a
+  merged range naming more cells than the sheet has.
+- Pictures in a document load side by side rather than one after another: two
+  parts of the same file can be read at once now.
+- A password-protected document opens read-only. Saving it wrote the content
+  back out without the protection its author asked for, and said nothing.
+
 ## 4.18.0
 
 - A spreadsheet shows ten times as many rows: the cap rises from 10,000 to
