@@ -1,6 +1,6 @@
 [versions]
 agp = "9.3.2"
-spotless = "8.10.0"
+spotless = "8.10.1"
 googleJavaFormat = "1.35.0"
 ktfmt = "0.64"
 
