@@ -1,0 +1,7 @@
+Diagramme in OpenDocument-Dateien werden als Diagramme gezeichnet, mit Titeln, Legenden und Farben. Formen sehen aus wie das, was sie sind: Pfeile, Sterne und Sprechblasen, platziert und gedreht wie in der Datei.
+
+Ein frei platziertes Bild in einem Word-Dokument bleibt an seinem Platz, mit Text darum herum, und ein Seitenumbruch beginnt eine neue Seite.
+
+Tabellenkalkulationen brauchen beim Öffnen halb so viel Speicher.
+
+Ein passwortgeschütztes Dokument wird schreibgeschützt geöffnet.

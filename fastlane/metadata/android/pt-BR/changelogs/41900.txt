@@ -1,0 +1,7 @@
+Os gráficos dos arquivos OpenDocument aparecem como gráficos, com títulos, legendas e cores. As formas — setas, estrelas e balões — têm o formato certo, na posição e no ângulo do arquivo.
+
+Uma imagem flutuante em um documento do Word fica onde foi colocada, com o texto ao redor, e uma quebra de página começa uma página nova.
+
+As planilhas abrem usando metade da memória.
+
+Um documento protegido por senha abre somente para leitura.
