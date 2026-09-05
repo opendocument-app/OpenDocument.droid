@@ -86,8 +86,10 @@ import org.junit.runner.RunWith
  * ./gradlew connectedProDebugAndroidTest \
  *     -Pandroid.testInstrumentationRunnerArguments.class=app.opendocument.droid.test.ScreenshotTests \
  *     -Pandroid.testInstrumentationRunnerArguments.device=phone \
- *     -Pandroid.testInstrumentationRunnerArguments.locales=en-US,de-DE
+ *     -Pandroid.testInstrumentationRunnerArguments.locales=en-US+de-DE
  * ```
+ *
+ * A plus rather than a comma, for the reason [locales] gives.
  *
  * Wants android 15 or newer, and says so rather than photographing what an older one draws.
  */
