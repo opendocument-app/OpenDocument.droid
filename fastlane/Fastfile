@@ -330,7 +330,8 @@ platform :android do
         "android.testInstrumentationRunnerArguments.class" =>
           "app.opendocument.droid.test.ScreenshotTests",
         "android.testInstrumentationRunnerArguments.device" => device,
-        "android.testInstrumentationRunnerArguments.locales" => languages.join(",")
+        # a plus, not a comma: AGP 9.4.0 cuts one of these at the first comma
+        "android.testInstrumentationRunnerArguments.locales" => languages.join("+")
       }
     )
 
@@ -339,6 +340,16 @@ platform :android do
       UI.user_error!(
         "the run wrote no screenshots. A run that photographed nothing and still passed is a " \
         "run that skipped the test - it needs one emulator on adb, running android 15 or newer."
+      )
+    end
+
+    # a short list photographs as a complete run, so the count is what catches it.
+    # Per language rather than as a set, which a release runner does not have.
+    missing = languages - taken.map { |path| File.basename(File.dirname(path)) }.uniq
+    unless missing.empty?
+      UI.user_error!(
+        "the run photographed #{missing.length} of #{languages.length} languages: " \
+        "nothing came out for #{missing.join(', ')}"
       )
     end
 

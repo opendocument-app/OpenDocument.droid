@@ -86,7 +86,7 @@ import org.junit.runner.RunWith
  * ./gradlew connectedProDebugAndroidTest \
  *     -Pandroid.testInstrumentationRunnerArguments.class=app.opendocument.droid.test.ScreenshotTests \
  *     -Pandroid.testInstrumentationRunnerArguments.device=phone \
- *     -Pandroid.testInstrumentationRunnerArguments.locales=en-US,de-DE
+ *     -Pandroid.testInstrumentationRunnerArguments.locales=en-US+de-DE
  * ```
  *
  * Wants android 15 or newer, and says so rather than photographing what an older one draws.
@@ -599,7 +599,11 @@ class ScreenshotTests {
 
     // --- what the run was asked for -----------------------------------------
 
-    /** The locales to photograph: every one the listing is written in, unless fewer were named. */
+    /**
+     * The locales to photograph: every one the listing is written in, unless fewer were named.
+     *
+     * A plus separates them as well as a comma, which AGP 9.4.0 cuts such a property at.
+     */
     private fun locales(spoken: JSONObject): List<String> {
         val known = spoken.keys().asSequence().sorted().toList()
 
@@ -608,7 +612,7 @@ class ScreenshotTests {
             return known
         }
 
-        val wanted = given.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        val wanted = given.split(',', '+').map { it.trim() }.filter { it.isNotEmpty() }
         val unknown = wanted.filterNot { it in known }
         Assert.assertTrue(
             "no such locale: ${unknown.joinToString()}. One of ${known.joinToString()}",
