@@ -599,7 +599,13 @@ class ScreenshotTests {
 
     // --- what the run was asked for -----------------------------------------
 
-    /** The locales to photograph: every one the listing is written in, unless fewer were named. */
+    /**
+     * The locales to photograph: every one the listing is written in, unless fewer were named.
+     *
+     * Either separator, because gradle cannot be trusted with a comma: AGP 9.4.0 cuts a
+     * `-Pandroid.testInstrumentationRunnerArguments.<key>=a,b` at the first one, so the lane hands
+     * this a `+` and only a run driving `am instrument` itself still spells it with a comma.
+     */
     private fun locales(spoken: JSONObject): List<String> {
         val known = spoken.keys().asSequence().sorted().toList()
 
@@ -608,7 +614,7 @@ class ScreenshotTests {
             return known
         }
 
-        val wanted = given.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        val wanted = given.split(',', '+').map { it.trim() }.filter { it.isNotEmpty() }
         val unknown = wanted.filterNot { it in known }
         Assert.assertTrue(
             "no such locale: ${unknown.joinToString()}. One of ${known.joinToString()}",
