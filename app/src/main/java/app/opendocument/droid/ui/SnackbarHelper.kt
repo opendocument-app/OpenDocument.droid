@@ -65,6 +65,24 @@ object SnackbarHelper {
         )
     }
 
+    /** Same, where the message carries numbers and is built rather than looked up. */
+    fun show(
+        activity: Activity,
+        message: String,
+        callback: Runnable?,
+        isIndefinite: Boolean,
+        isError: Boolean,
+    ) {
+        show(
+            activity,
+            activity.getString(android.R.string.ok),
+            message,
+            callback,
+            isIndefinite,
+            isError,
+        )
+    }
+
     private fun show(
         activity: Activity,
         buttonText: String,

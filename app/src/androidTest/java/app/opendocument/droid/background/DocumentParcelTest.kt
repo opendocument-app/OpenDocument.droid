@@ -104,6 +104,8 @@ class DocumentParcelTest {
                     Uri.parse("http://localhost:29665/file/odr/1.html"),
                     Uri.parse("http://localhost:29665/file/odr/2.html"),
                 ),
+                // the middle sheet is the only one the budget cut
+                listOf(null, SheetCut(80000, 12, 8333, 12), null),
                 isEditable = true,
                 readsAsDocument = true,
             )
@@ -116,6 +118,17 @@ class DocumentParcelTest {
         assertEquals(document.partUris, restored.partUris)
         assertTrue(restored.isEditable)
         assertTrue(restored.readsAsDocument)
+
+        assertNull(restored.partCuts[0])
+        assertNull(restored.partCuts[2])
+
+        val cut = checkNotNull(restored.partCuts[1])
+        assertEquals(80000, cut.contentRows)
+        assertEquals(12, cut.contentColumns)
+        assertEquals(8333, cut.renderedRows)
+        assertEquals(12, cut.renderedColumns)
+        assertTrue(cut.rowsWereCut)
+        assertEquals(false, cut.columnsWereCut)
     }
 
     /** Everything but a spreadsheet: one part, and the core does not name it. */
@@ -133,6 +146,7 @@ class DocumentParcelTest {
                     ),
                     listOf<String?>(null),
                     listOf(Uri.parse("http://localhost:29665/file/odr/document.html")),
+                    listOf(null),
                     isEditable = false,
                     readsAsDocument = true,
                 ),
@@ -141,6 +155,7 @@ class DocumentParcelTest {
 
         assertEquals(1, restored.partTitles.size)
         assertNull(restored.partTitles[0])
+        assertNull(restored.partCuts[0])
         assertEquals(false, restored.isEditable)
         assertTrue(restored.readsAsDocument)
     }

@@ -8,6 +8,11 @@
     <string name="dialog_broken_file">The file may be damaged, or something went wrong on our side. If you think the file is fine, tell us at support@opendocument.app</string>
     <string name="toast_error_find_file">Couldn\'t find file. Maybe it doesn\'t exist any longer?</string>
     <string name="toast_error_illegal_file_reopen">Unsupported file format. Try opening it in another app.</string>
+    <!-- a sheet bigger than the device can lay out - see SpreadsheetBudget. The numbers are
+         the sheet's own, grouped for the reader's locale -->
+    <string name="toast_hint_sheet_cut_rows">This sheet is too big to show in full. Showing the first %1$s of %2$s rows.</string>
+    <string name="toast_hint_sheet_cut_columns">This sheet is too big to show in full. Showing the first %1$s of %2$s columns.</string>
+    <string name="toast_hint_sheet_cut_rows_and_columns">This sheet is too big to show in full. Showing the first %1$s of %2$s rows and %3$s of %4$s columns.</string>
     <string name="toast_hint_unsupported_file">Not happy with how the file is displayed? Open it in another app instead.</string>
     <string name="toast_error_save_nofile">No place to save the file to chosen.</string>
     <string name="toast_error_save_failed">File could not be saved. Please contact support@opendocument.app</string>

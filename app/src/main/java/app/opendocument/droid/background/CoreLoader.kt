@@ -99,6 +99,7 @@ class CoreLoader(private val context: Context) {
             file,
             views.map { it.name },
             views.map { Uri.parse(it.url) },
+            views.map { it.sheetCut },
             isDocumentEditable,
             readsAsDocument,
         )
@@ -186,10 +187,12 @@ class CoreLoader(private val context: Context) {
         // document. PageView.setDarkeningAllowed picks between them
         htmlConfig.colorScheme = HtmlColorScheme.SYSTEM
 
-        // stated rather than inherited: a sheet past it is cut off silently
+        // stated rather than inherited, and this device's answer rather than one number for
+        // every phone - see SpreadsheetBudget. What is cut is reported rather than dropped
+        // silently: HostedView carries the core's own account of it
         htmlConfig.spreadsheetLimit =
-            TableDimensions(SPREADSHEET_LIMIT_ROWS, SPREADSHEET_LIMIT_COLUMNS)
-        htmlConfig.spreadsheetCellLimit = SPREADSHEET_LIMIT_CELLS
+            TableDimensions(SpreadsheetBudget.ROWS, SpreadsheetBudget.COLUMNS)
+        htmlConfig.spreadsheetCellLimit = SpreadsheetBudget.cells(context)
         htmlConfig.spreadsheetLimitByContent = true
 
         val cacheDirectory = File(cachePath)
@@ -204,6 +207,14 @@ class CoreLoader(private val context: Context) {
             HostedView(
                 view.name(),
                 "http://$SERVER_URL_HOST:$sharedServerPort/file/$prefix/" + view.path(),
+                view.sheetCut()?.let {
+                    SheetCut(
+                        it.content.rows,
+                        it.content.columns,
+                        it.rendered.rows,
+                        it.rendered.columns,
+                    )
+                },
             )
         }
     }
@@ -330,21 +341,17 @@ class CoreLoader(private val context: Context) {
         document = null
     }
 
-    /** A translated view of a document, ready to be opened in the WebView. */
-    data class HostedView(val name: String, val url: String)
+    /**
+     * A translated view of a document, ready to be opened in the WebView. [sheetCut] is set only
+     * where the budget cut the sheet this view renders.
+     */
+    data class HostedView(val name: String, val url: String, val sheetCut: SheetCut?)
 
     /** An encrypted file whose format odrcore cannot decrypt, whatever the password. */
     class UndecryptableFile(path: String) : IOException("cannot be decrypted: $path")
 
     companion object {
         private const val TAG = "CoreLoader"
-
-        /** The largest sheet region translated - every cell in it becomes a `<td>`. */
-        private const val SPREADSHEET_LIMIT_ROWS = 100000
-        private const val SPREADSHEET_LIMIT_COLUMNS = 500
-
-        /** Bounds the rows by the sheet's width. */
-        private const val SPREADSHEET_LIMIT_CELLS = 500000L
 
         /**
          * The one http server of the process, started on the first [initialize] and never stopped.

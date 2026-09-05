@@ -34,6 +34,7 @@ import app.opendocument.droid.background.LoadedDocument
 import app.opendocument.droid.background.NightModeSetting
 import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.background.ReviewInvitation
+import app.opendocument.droid.background.SheetCut
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
@@ -44,6 +45,7 @@ import app.opendocument.droid.ui.widget.PageView
 import app.opendocument.droid.ui.widget.ProgressDialogFragment
 import com.google.android.material.tabs.TabLayout
 import java.io.FileNotFoundException
+import java.text.NumberFormat
 
 class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
@@ -82,6 +84,12 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
      * every other load: opening a document belongs at its top.
      */
     private var positionToRestore: ReadingPosition? = null
+
+    /**
+     * Whether the bar on show is the one [reportSheetCut] raised, so that moving to a whole sheet
+     * takes it down and leaves anything else alone.
+     */
+    private var sheetCutReported = false
 
     /** A tab and how far down it, which survives the document being translated again. */
     private data class ReadingPosition(val tab: Int, val scrollFraction: Float)
@@ -705,6 +713,9 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             tabLayout.getTabAt(restored?.tab?.coerceAtMost(pages - 1) ?: 0)?.select()
         } else if (pages == 1) {
             loadData(document.partUris[0].toString())
+
+            // the tab listener says it for a document that has tabs, and this one has none
+            reportSheetCut(document, 0)
         }
 
         prepareActions(document)
@@ -982,6 +993,67 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         )
     }
 
+    /**
+     * Says what a sheet leaves out, for the sheet being shown.
+     *
+     * A sheet past what the device can lay out is cut by `SpreadsheetBudget`, and a spreadsheet
+     * that simply stops is what a user reports as a document that will not load. The bar names the
+     * numbers instead; there is nothing to offer beyond them, since the budget is what the WebView
+     * can hold and not a preference.
+     */
+    private fun reportSheetCut(document: LoadedDocument, part: Int) {
+        val cut = document.partCuts.getOrNull(part)
+
+        if (cut == null) {
+            // the reader moved to a sheet that is whole, so the bar about the one before it is no
+            // longer about anything on screen. only ours: any other bar is about the document
+            if (sheetCutReported) {
+                sheetCutReported = false
+
+                SnackbarHelper.dismiss(requireActivity())
+            }
+
+            return
+        }
+
+        SnackbarHelper.show(
+            requireActivity(),
+            describeSheetCut(cut),
+            null,
+            isIndefinite = false,
+            isError = false,
+        )
+
+        sheetCutReported = true
+    }
+
+    private fun describeSheetCut(cut: SheetCut): String {
+        val numbers = NumberFormat.getIntegerInstance()
+
+        return when {
+            cut.rowsWereCut && cut.columnsWereCut ->
+                getString(
+                    R.string.toast_hint_sheet_cut_rows_and_columns,
+                    numbers.format(cut.renderedRows),
+                    numbers.format(cut.contentRows),
+                    numbers.format(cut.renderedColumns),
+                    numbers.format(cut.contentColumns),
+                )
+            cut.columnsWereCut ->
+                getString(
+                    R.string.toast_hint_sheet_cut_columns,
+                    numbers.format(cut.renderedColumns),
+                    numbers.format(cut.contentColumns),
+                )
+            else ->
+                getString(
+                    R.string.toast_hint_sheet_cut_rows,
+                    numbers.format(cut.renderedRows),
+                    numbers.format(cut.contentRows),
+                )
+        }
+    }
+
     fun openWith(activity: Activity) {
         doReopen(activity, requireLastRequest(), state.lastFile, share = false)
     }
@@ -1140,6 +1212,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                 state.lastSelectedTab = tab.position
 
                 loadData(lastDocument.partUris[tab.position].toString())
+
+                reportSheetCut(lastDocument, tab.position)
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab) {}

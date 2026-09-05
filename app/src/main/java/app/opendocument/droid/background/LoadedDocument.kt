@@ -9,6 +9,9 @@ import android.os.Parcelable
  * be, and one uri per part (spreadsheets have one per sheet, everything else a single one with a
  * null title).
  *
+ * [partCuts] runs alongside those: the entry for a sheet the budget cut says how much of it the
+ * markup carries, and every other part's is null.
+ *
  * [isEditable] and [readsAsDocument] are the core's own answers about this document, never a guess
  * from its mime type - see `CoreLoader.isDocumentEditable` and `CoreLoader.readsAsDocument`.
  */
@@ -17,6 +20,7 @@ class LoadedDocument(
     val file: IdentifiedFile,
     val partTitles: List<String?>,
     val partUris: List<Uri>,
+    val partCuts: List<SheetCut?>,
     val isEditable: Boolean,
     val readsAsDocument: Boolean,
 ) : Parcelable {
@@ -28,6 +32,7 @@ class LoadedDocument(
         parcel.writeParcelable(file, 0)
         parcel.writeList(partTitles)
         parcel.writeList(partUris)
+        parcel.writeList(partCuts)
         ParcelUtil.writeBoolean(parcel, isEditable)
         ParcelUtil.writeBoolean(parcel, readsAsDocument)
     }
@@ -51,11 +56,15 @@ class LoadedDocument(
                     val partUris = ArrayList<Uri>()
                     parcel.readList(partUris, classLoader)
 
+                    val partCuts = ArrayList<SheetCut?>()
+                    parcel.readList(partCuts, classLoader)
+
                     return LoadedDocument(
                         request,
                         file,
                         partTitles,
                         partUris,
+                        partCuts,
                         ParcelUtil.readBoolean(parcel),
                         ParcelUtil.readBoolean(parcel),
                     )
