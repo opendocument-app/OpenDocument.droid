@@ -6,6 +6,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import app.opendocument.core.FileType
 import app.opendocument.core.OdrException
 import app.opendocument.droid.background.CoreLoader
+import app.opendocument.droid.background.SpreadsheetBudget
 import app.opendocument.droid.nonfree.CrashManager
 import java.io.File
 import java.io.FileOutputStream
@@ -286,6 +287,48 @@ class CoreTest {
         return URL(views.first().url).readText()
     }
 
+    /**
+     * A cut sheet says how much of it was written. Generated rather than shipped, since
+     * `SpreadsheetBudget` answers per device.
+     */
+    @Test
+    fun aSheetPastTheBudgetSaysWhatItLeftOut() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val budget = SpreadsheetBudget.cells(context)
+
+        val columns = 10
+        val expectedRows = (budget / columns).toInt()
+        val rows = expectedRows + 500
+
+        val views =
+            coreLoader.host(
+                prefix = "big-sheet",
+                inputPath = generateCsv(rows, columns).absolutePath,
+                cachePath = File(cacheDir(), "big_sheet_cache").path,
+            )
+
+        val cut =
+            checkNotNull(views.first().sheetCut) { "a sheet past the budget should report a cut" }
+
+        Assert.assertEquals("every row written should be counted", rows, cut.contentRows)
+        Assert.assertEquals(columns, cut.contentColumns)
+        Assert.assertEquals("the budget decides the rows", expectedRows, cut.renderedRows)
+        Assert.assertEquals("a narrow sheet loses no columns", columns, cut.renderedColumns)
+    }
+
+    /** The other side of it: a sheet written whole reports nothing to say. */
+    @Test
+    fun aSheetInsideTheBudgetReportsNoCut() {
+        val views =
+            coreLoader.host(
+                prefix = "whole-sheet",
+                inputPath = spreadsheetTestFile.absolutePath,
+                cachePath = File(cacheDir(), "whole_sheet_cache").path,
+            )
+
+        views.forEach { Assert.assertNull("nothing was cut from " + it.name, it.sheetCut) }
+    }
+
     @Test
     fun testSpreadsheetSheetNames() {
         val views =
@@ -371,6 +414,31 @@ class CoreTest {
 
         private fun cacheDir(): File =
             InstrumentationRegistry.getInstrumentation().targetContext.cacheDir
+
+        /** A csv of [rows] x [columns] cells, each one a short string. */
+        private fun generateCsv(rows: Int, columns: Int): File {
+            val target = File(cacheDir(), "generated-sheet.csv")
+
+            target.bufferedWriter().use { writer ->
+                for (row in 1..rows) {
+                    for (column in 1..columns) {
+                        if (column > 1) {
+                            writer.write(",")
+                        }
+
+                        writer.write("r")
+                        writer.write(row.toString())
+                        writer.write("c")
+                        writer.write(column.toString())
+                    }
+
+                    writer.write("\n")
+                }
+            }
+            extracted += target
+
+            return target
+        }
 
         private fun extract(name: String): File {
             val instrumentation = InstrumentationRegistry.getInstrumentation()
