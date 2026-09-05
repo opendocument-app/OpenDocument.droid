@@ -89,8 +89,6 @@ import org.junit.runner.RunWith
  *     -Pandroid.testInstrumentationRunnerArguments.locales=en-US+de-DE
  * ```
  *
- * A plus rather than a comma, for the reason [locales] gives.
- *
  * Wants android 15 or newer, and says so rather than photographing what an older one draws.
  */
 @LargeTest
@@ -604,9 +602,7 @@ class ScreenshotTests {
     /**
      * The locales to photograph: every one the listing is written in, unless fewer were named.
      *
-     * Either separator, because gradle cannot be trusted with a comma: AGP 9.4.0 cuts a
-     * `-Pandroid.testInstrumentationRunnerArguments.<key>=a,b` at the first one, so the lane hands
-     * this a `+` and only a run driving `am instrument` itself still spells it with a comma.
+     * A plus separates them as well as a comma, which AGP 9.4.0 cuts such a property at.
      */
     private fun locales(spoken: JSONObject): List<String> {
         val known = spoken.keys().asSequence().sorted().toList()

@@ -330,12 +330,7 @@ platform :android do
         "android.testInstrumentationRunnerArguments.class" =>
           "app.opendocument.droid.test.ScreenshotTests",
         "android.testInstrumentationRunnerArguments.device" => device,
-        # joined with a plus rather than a comma: AGP 9.4.0 cuts one of these
-        # properties at the first comma, so `cs-CZ,de-DE,...` reached the runner
-        # as `cs-CZ` and 4.19.0 went to the store with one locale photographed.
-        # The same bug drops every class but the first from the documented
-        # `class=TestA,TestB`, so it is AGP's rather than ours - and the check
-        # below is here because that run still passed.
+        # a plus, not a comma: AGP 9.4.0 cuts one of these at the first comma
         "android.testInstrumentationRunnerArguments.locales" => languages.join("+")
       }
     )
@@ -348,12 +343,8 @@ platform :android do
       )
     end
 
-    # Every language this run asked for, or the run did less than it was told and
-    # said nothing: the test photographs the locales it was handed and passes on
-    # whatever that turned out to be, so a list mangled on the way in - which is
-    # what the plus above is for - looks exactly like a run that was asked for
-    # one language. Checked per language rather than as a full set, so it holds
-    # for the release's half a set too.
+    # a short list photographs as a complete run, so the count is what catches it.
+    # Per language rather than as a set, which a release runner does not have.
     missing = languages - taken.map { |path| File.basename(File.dirname(path)) }.uniq
     unless missing.empty?
       UI.user_error!(
