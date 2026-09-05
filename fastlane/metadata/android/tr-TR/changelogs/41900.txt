@@ -1,0 +1,7 @@
+OpenDocument dosyalarındaki grafikler başlıkları, göstergeleri ve renkleriyle grafik olarak çiziliyor. Şekiller kendi hâlleriyle görünüyor: oklar, yıldızlar ve belirtme çizgileri, dosyadaki yerleri ve açılarıyla.
+
+Word belgelerindeki kayan görseller, çevrelerindeki metinle birlikte konuldukları yerde kalıyor; sayfa sonu yeni bir sayfa açıyor.
+
+Hesap tabloları yarı yarıya daha az bellekle açılıyor.
+
+Parola korumalı belgeler salt okunur olarak açılıyor.

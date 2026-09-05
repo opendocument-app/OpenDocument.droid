@@ -1,0 +1,7 @@
+OpenDocument-failide diagrammid on näha diagrammidena koos pealkirjade, legendide ja värvidega. Kujundid näevad välja nii, nagu peavad: nooled, tähed ja viiktekstid on paigutatud ja pööratud nii, nagu failis.
+
+Wordi dokumendis püsib hõljuv pilt oma kohal koos ümbritseva tekstiga ja leheküljepiir alustab uut lehekülge.
+
+Arvutustabelid avanevad poole väiksema mäluga.
+
+Parooliga kaitstud dokument avaneb ainult lugemiseks.

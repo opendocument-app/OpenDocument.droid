@@ -1,0 +1,7 @@
+Les graphiques des fichiers OpenDocument s'affichent comme des graphiques, avec titres, légendes et couleurs. Les formes ont bien l'allure de flèches, d'étoiles ou de bulles, placées et pivotées comme dans le fichier.
+
+Dans un document Word, une image flottante reste à sa place, le texte autour, et un saut de page ouvre une nouvelle page.
+
+Une feuille de calcul s'ouvre avec deux fois moins de mémoire.
+
+Un document protégé par mot de passe s'ouvre en lecture seule.

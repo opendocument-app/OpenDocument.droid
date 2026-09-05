@@ -1,0 +1,7 @@
+I grafici nei file OpenDocument vengono disegnati come grafici, con titoli, legende e colori. Le forme si vedono per quello che sono: frecce, stelle e fumetti, posizionate e ruotate come nel file.
+
+Un'immagine fluttuante in un documento Word resta dove è stata messa, con il testo attorno, e un'interruzione di pagina fa iniziare una pagina nuova.
+
+I fogli di calcolo si aprono usando la metà della memoria.
+
+Un documento protetto da password si apre in sola lettura.

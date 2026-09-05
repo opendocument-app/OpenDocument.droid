@@ -1,0 +1,7 @@
+Los gráficos de los archivos OpenDocument se dibujan como gráficos, con sus títulos, leyendas y colores. Las formas se ven como lo que son: flechas, estrellas y llamadas, colocadas y giradas como en el archivo.
+
+Una imagen flotante en un documento de Word se queda donde se puso, con el texto alrededor, y un salto de página empieza una página nueva.
+
+Las hojas de cálculo se abren con la mitad de memoria.
+
+Un documento con contraseña se abre en modo de solo lectura.

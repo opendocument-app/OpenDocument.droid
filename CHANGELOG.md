@@ -15,7 +15,7 @@ version code per locale under `fastlane/metadata/android/<locale>/changelogs/`,
 written by `scripts/store-copy.py` before the release and uploaded by it. Play
 takes 500 characters, so not everything here reaches the store.
 
-## Unreleased
+## 4.19.0
 
 - Charts in OpenDocument files are drawn from the chart itself - bar, line,
   area, scatter, pie and ring, with their titles, legends, axes and colours -
