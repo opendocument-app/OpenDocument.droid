@@ -15,6 +15,12 @@ version code per locale under `fastlane/metadata/android/<locale>/changelogs/`,
 written by `scripts/store-copy.py` before the release and uploaded by it. Play
 takes 500 characters, so not everything here reaches the store.
 
+## 4.19.1
+
+- The app no longer closes when the screen is rotated while an advertisement is
+  on screen. 4.19.0 was held before release for this, so its changes reach the
+  store here.
+
 ## 4.19.0
 
 - Charts in OpenDocument files are drawn from the chart itself - bar, line,
