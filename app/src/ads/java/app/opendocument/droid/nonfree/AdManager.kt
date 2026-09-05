@@ -23,6 +23,7 @@ import com.google.android.ump.FormError
 import com.google.android.ump.UserMessagingPlatform
 
 /** The banner in the lite flavor, behind the consent form the ump sdk puts in front of it. */
+// ci control: no-op comment, see PR 655
 class AdManager {
 
     private var enabled = false
