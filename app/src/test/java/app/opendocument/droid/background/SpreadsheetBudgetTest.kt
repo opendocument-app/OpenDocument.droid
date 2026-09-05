@@ -3,10 +3,7 @@ package app.opendocument.droid.background
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/**
- * The device's memory is passed into [SpreadsheetBudget.cellsFor], so every step is reachable
- * without the phones it stands for.
- */
+/** [SpreadsheetBudget.cellsFor] takes the memory, so every step is reachable without the phones. */
 class SpreadsheetBudgetTest {
 
     @Test

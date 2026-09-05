@@ -187,9 +187,7 @@ class CoreLoader(private val context: Context) {
         // document. PageView.setDarkeningAllowed picks between them
         htmlConfig.colorScheme = HtmlColorScheme.SYSTEM
 
-        // stated rather than inherited, and this device's answer rather than one number for
-        // every phone - see SpreadsheetBudget. What is cut is reported rather than dropped
-        // silently: HostedView carries the core's own account of it
+        // stated rather than inherited, and this device's answer - see SpreadsheetBudget
         htmlConfig.spreadsheetLimit =
             TableDimensions(SpreadsheetBudget.ROWS, SpreadsheetBudget.COLUMNS)
         htmlConfig.spreadsheetCellLimit = SpreadsheetBudget.cells(context)
@@ -343,7 +341,7 @@ class CoreLoader(private val context: Context) {
 
     /**
      * A translated view of a document, ready to be opened in the WebView. [sheetCut] is set only
-     * where the budget cut the sheet this view renders.
+     * where the budget cut this view's sheet.
      */
     data class HostedView(val name: String, val url: String, val sheetCut: SheetCut?)
 

@@ -86,8 +86,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     private var positionToRestore: ReadingPosition? = null
 
     /**
-     * Whether the bar on show is the one [reportSheetCut] raised, so that moving to a whole sheet
-     * takes it down and leaves anything else alone.
+     * Whether the bar on show is [reportSheetCut]'s, so moving to a whole sheet takes that one down
+     * and leaves any other alone.
      */
     private var sheetCutReported = false
 
@@ -714,7 +714,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         } else if (pages == 1) {
             loadData(document.partUris[0].toString())
 
-            // the tab listener says it for a document that has tabs, and this one has none
+            // with tabs it is the tab listener that says this
             reportSheetCut(document, 0)
         }
 
@@ -994,19 +994,13 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     }
 
     /**
-     * Says what a sheet leaves out, for the sheet being shown.
-     *
-     * A sheet past what the device can lay out is cut by `SpreadsheetBudget`, and a spreadsheet
-     * that simply stops is what a user reports as a document that will not load. The bar names the
-     * numbers instead; there is nothing to offer beyond them, since the budget is what the WebView
-     * can hold and not a preference.
+     * Names what the sheet on screen leaves out. Nothing is offered beyond the numbers: the budget
+     * is what the WebView can hold, not a preference.
      */
     private fun reportSheetCut(document: LoadedDocument, part: Int) {
         val cut = document.partCuts.getOrNull(part)
 
         if (cut == null) {
-            // the reader moved to a sheet that is whole, so the bar about the one before it is no
-            // longer about anything on screen. only ours: any other bar is about the document
             if (sheetCutReported) {
                 sheetCutReported = false
 

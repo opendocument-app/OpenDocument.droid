@@ -9,8 +9,7 @@ import android.os.Parcelable
  * be, and one uri per part (spreadsheets have one per sheet, everything else a single one with a
  * null title).
  *
- * [partCuts] runs alongside those: the entry for a sheet the budget cut says how much of it the
- * markup carries, and every other part's is null.
+ * [partCuts] runs alongside them, null for every part but a sheet that was cut.
  *
  * [isEditable] and [readsAsDocument] are the core's own answers about this document, never a guess
  * from its mime type - see `CoreLoader.isDocumentEditable` and `CoreLoader.readsAsDocument`.

@@ -7,21 +7,13 @@ import androidx.core.content.getSystemService
 /**
  * How much of a sheet is translated to html.
  *
- * The budget is the *WebView's*, not the core's. Every cell translated becomes a `<td>` the browser
- * engine then holds: measured on two devices, a rendered cell costs 10-20 KB in the WebView's
- * renderer process against some 226 bytes of html, so a sheet the core writes in a second can be
- * one no phone can lay out. A budget too high does not show more of the document - the page fails
- * to load and the user is told the file could not be opened.
- *
- * Hence the ladder below, and hence its steps being small next to what the core would allow.
+ * The budget is the *WebView's*, not the core's: a rendered cell costs 10-20 KB in the renderer
+ * process against some 226 bytes of html, so a budget too high shows none of the document rather
+ * than more of it - the page fails to load and the file is reported as one that cannot be opened.
  */
 object SpreadsheetBudget {
 
-    /**
-     * The furthest a sheet is followed, before [cells] narrows it further. Bounds the two
-     * directions on their own, so one very long or very wide sheet cannot spend the whole budget in
-     * a direction nothing can scroll to.
-     */
+    /** Each direction on its own, before [cells] narrows the two together. */
     const val ROWS = 100000
     const val COLUMNS = 500
 
@@ -35,11 +27,8 @@ object SpreadsheetBudget {
     }
 
     /**
-     * The device's memory decides, not its api level or its screen: what is being budgeted is the
-     * renderer process, which is killed by the same low memory killer as everything else.
-     *
-     * [totalMemoryBytes] of zero is what a device that would not answer looks like, and takes the
-     * smallest step.
+     * Memory decides, since what is budgeted is the renderer process. [totalMemoryBytes] of zero is
+     * a device that would not answer, and takes the smallest step.
      */
     fun cellsFor(totalMemoryBytes: Long, isLowRamDevice: Boolean): Long {
         if (isLowRamDevice || totalMemoryBytes < 3L * GIGABYTE) {

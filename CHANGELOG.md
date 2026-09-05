@@ -15,6 +15,14 @@ version code per locale under `fastlane/metadata/android/<locale>/changelogs/`,
 written by `scripts/store-copy.py` before the release and uploaded by it. Play
 takes 500 characters, so not everything here reaches the store.
 
+## Unreleased
+
+- A spreadsheet too big to show in full says so, and names how many of its rows
+  and columns are on screen. It used to stop without a word.
+- How much of a sheet is shown follows the device's memory now, rather than one
+  number for every phone. A big sheet used to take the app past what the phone
+  could hold and fail to open at all.
+
 ## 4.19.1
 
 - The app no longer closes when the screen is rotated while an advertisement is

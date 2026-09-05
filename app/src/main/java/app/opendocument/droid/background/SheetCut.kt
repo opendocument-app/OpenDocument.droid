@@ -4,10 +4,8 @@ import android.os.Parcel
 import android.os.Parcelable
 
 /**
- * What a sheet's markup leaves out: the extent its cells span against the extent that was written.
- *
- * odrcore's own answer (`HtmlView.sheetCut()`), and only present for a sheet [SpreadsheetBudget]
- * cut - a sheet written whole has none.
+ * How much of a sheet the markup carries against how much was written - odrcore's own
+ * `HtmlView.sheetCut()`, and only present where [SpreadsheetBudget] cut the sheet.
  */
 class SheetCut(
     val contentRows: Int,
@@ -37,7 +35,6 @@ class SheetCut(
         val CREATOR: Parcelable.Creator<SheetCut> =
             object : Parcelable.Creator<SheetCut> {
                 override fun createFromParcel(parcel: Parcel): SheetCut =
-                    // in the order writeToParcel wrote them
                     SheetCut(
                         parcel.readInt(),
                         parcel.readInt(),

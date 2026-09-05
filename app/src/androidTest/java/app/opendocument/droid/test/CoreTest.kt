@@ -288,11 +288,8 @@ class CoreTest {
     }
 
     /**
-     * A sheet past what the device can lay out says how much of it was written - the numbers the
-     * bar over the document names.
-     *
-     * The sheet is generated rather than shipped: `SpreadsheetBudget` answers per device, so a
-     * fixture big enough to be cut on one would be too small on the next.
+     * A cut sheet says how much of it was written. Generated rather than shipped, since
+     * `SpreadsheetBudget` answers per device.
      */
     @Test
     fun aSheetPastTheBudgetSaysWhatItLeftOut() {
