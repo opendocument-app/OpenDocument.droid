@@ -1,0 +1,9 @@
+Diagram i OpenDocument-filer ritas som diagram, med titlar, teckenförklaringar och färger. Figurer ser ut som de figurer de är - pilar, stjärnor och pratbubblor, placerade och vridna som i filen.
+
+En flytande bild i ett Word-dokument stannar där den placerats, med text runt omkring, och en sidbrytning börjar en ny sida.
+
+Kalkylblad öppnas med hälften så mycket minne.
+
+Ett lösenordsskyddat dokument öppnas skrivskyddat.
+
+Appen stängs inte längre när skärmen vrids.

@@ -1,0 +1,9 @@
+Charts in OpenDocument files are drawn as charts, with their titles, legends and colours. Shapes look like the shapes they are, arrows, stars and callouts, placed and turned as the file has them.
+
+A floating picture in a Word document stays where it was put, with text around it, and a page break starts a new page.
+
+Spreadsheets open in half the memory.
+
+A document with a password opens read-only.
+
+The app no longer closes when the screen is rotated.

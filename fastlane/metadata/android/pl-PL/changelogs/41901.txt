@@ -1,0 +1,9 @@
+Wykresy w plikach OpenDocument rysowane są jako wykresy, z tytułami, legendami i kolorami. Kształty wyglądają jak to, czym są: strzałki, gwiazdy i dymki, umieszczone i obrócone jak w pliku.
+
+Obraz umieszczony swobodnie w dokumencie Word zostaje tam, gdzie go wstawiono, z tekstem dookoła, a podział strony zaczyna nową stronę.
+
+Arkusze kalkulacyjne otwierają się, zużywając o połowę mniej pamięci.
+
+Dokument chroniony hasłem otwiera się tylko do odczytu.
+
+Obrót ekranu nie zamyka już aplikacji.

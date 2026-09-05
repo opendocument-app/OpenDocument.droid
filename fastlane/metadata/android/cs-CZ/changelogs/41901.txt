@@ -1,0 +1,9 @@
+Grafy v souborech ODF se vykreslí jako grafy, s názvy, legendou i barvami. Obrazce vypadají jako obrazce – šipky, hvězdy i bubliny – umístěné a otočené tak, jak jsou v souboru.
+
+Plovoucí obrázek v dokumentu Word zůstane tam, kam byl vložen, a text ho obtéká; na zalomení stránky začíná nová stránka.
+
+Tabulky se otevřou s poloviční spotřebou paměti.
+
+Dokument chráněný heslem se otevře jen pro čtení.
+
+Aplikace se už při otočení obrazovky nezavře.
