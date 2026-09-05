@@ -317,14 +317,23 @@ class AdManager {
             return
         }
 
-        val adView = this.adView ?: addAdView().also { this.adView = it }
-
         // an anchored banner keeps the size it was asked at, so a real width change needs a new
         // one - but a keyboard opening, or a rotation back, does not
-        if (adWidth == requestedWidth) {
+        val previous = this.adView
+        if (previous != null && adWidth == requestedWidth) {
             return
         }
         requestedWidth = adWidth
+
+        // AdView.setAdSize throws once the view has a size, so a width change replaces the banner
+        // rather than resizing it, and the ad that was up goes with it
+        if (previous != null) {
+            destroyAdView()
+            adContainer.removeView(previous)
+            hasAd = false
+        }
+
+        val adView = addAdView().also { this.adView = it }
 
         adView.setAdSize(adSize)
 
