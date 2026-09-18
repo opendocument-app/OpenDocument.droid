@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">Subrayado ondulado</string>
     <string name="tool_mark_draw">Dibujar</string>
     <string name="color_black">Negro</string>
-    <string name="color_gray">Gris</string>
     <string name="color_red">Rojo</string>
-    <string name="color_orange">Naranja</string>
     <string name="color_yellow">Amarillo</string>
     <string name="color_green">Verde</string>
     <string name="color_blue">Azul</string>
-    <string name="color_purple">Morado</string>
     <string name="color_pink">Rosa</string>
     <string name="color_none">Sin resaltado</string>
     <string name="tool_pro_badge">Pro</string>

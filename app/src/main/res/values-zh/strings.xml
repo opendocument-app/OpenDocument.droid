@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">波浪线</string>
     <string name="tool_mark_draw">绘图</string>
     <string name="color_black">黑色</string>
-    <string name="color_gray">灰色</string>
     <string name="color_red">红色</string>
-    <string name="color_orange">橙色</string>
     <string name="color_yellow">黄色</string>
     <string name="color_green">绿色</string>
     <string name="color_blue">蓝色</string>
-    <string name="color_purple">紫色</string>
     <string name="color_pink">粉色</string>
     <string name="color_none">无突出显示</string>
     <string name="tool_pro_badge">Pro</string>

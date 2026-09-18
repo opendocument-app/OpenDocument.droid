@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">Dalgalı alt çizgi</string>
     <string name="tool_mark_draw">Çiz</string>
     <string name="color_black">Siyah</string>
-    <string name="color_gray">Gri</string>
     <string name="color_red">Kırmızı</string>
-    <string name="color_orange">Turuncu</string>
     <string name="color_yellow">Sarı</string>
     <string name="color_green">Yeşil</string>
     <string name="color_blue">Mavi</string>
-    <string name="color_purple">Mor</string>
     <string name="color_pink">Pembe</string>
     <string name="color_none">Vurgu yok</string>
     <string name="tool_pro_badge">Pro</string>

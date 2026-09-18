@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">波線</string>
     <string name="tool_mark_draw">描画</string>
     <string name="color_black">黒</string>
-    <string name="color_gray">グレー</string>
     <string name="color_red">赤</string>
-    <string name="color_orange">オレンジ</string>
     <string name="color_yellow">黄</string>
     <string name="color_green">緑</string>
     <string name="color_blue">青</string>
-    <string name="color_purple">紫</string>
     <string name="color_pink">ピンク</string>
     <string name="color_none">ハイライトなし</string>
     <string name="tool_pro_badge">Pro</string>

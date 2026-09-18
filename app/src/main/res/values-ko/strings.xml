@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">물결 밑줄</string>
     <string name="tool_mark_draw">그리기</string>
     <string name="color_black">검정</string>
-    <string name="color_gray">회색</string>
     <string name="color_red">빨강</string>
-    <string name="color_orange">주황</string>
     <string name="color_yellow">노랑</string>
     <string name="color_green">초록</string>
     <string name="color_blue">파랑</string>
-    <string name="color_purple">보라</string>
     <string name="color_pink">분홍</string>
     <string name="color_none">강조 표시 없음</string>
     <string name="tool_pro_badge">Pro</string>

@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">Vlnité podtržení</string>
     <string name="tool_mark_draw">Kreslit</string>
     <string name="color_black">Černá</string>
-    <string name="color_gray">Šedá</string>
     <string name="color_red">Červená</string>
-    <string name="color_orange">Oranžová</string>
     <string name="color_yellow">Žlutá</string>
     <string name="color_green">Zelená</string>
     <string name="color_blue">Modrá</string>
-    <string name="color_purple">Fialová</string>
     <string name="color_pink">Růžová</string>
     <string name="color_none">Bez zvýraznění</string>
     <string name="tool_pro_badge">Pro</string>

@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">लहरदार रेखांकन</string>
     <string name="tool_mark_draw">ड्रॉ करें</string>
     <string name="color_black">काला</string>
-    <string name="color_gray">धूसर</string>
     <string name="color_red">लाल</string>
-    <string name="color_orange">नारंगी</string>
     <string name="color_yellow">पीला</string>
     <string name="color_green">हरा</string>
     <string name="color_blue">नीला</string>
-    <string name="color_purple">बैंगनी</string>
     <string name="color_pink">गुलाबी</string>
     <string name="color_none">कोई हाइलाइट नहीं</string>
     <string name="tool_pro_badge">Pro</string>

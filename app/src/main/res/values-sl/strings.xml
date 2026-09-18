@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">Valovito podčrtovanje</string>
     <string name="tool_mark_draw">Risanje</string>
     <string name="color_black">Črna</string>
-    <string name="color_gray">Siva</string>
     <string name="color_red">Rdeča</string>
-    <string name="color_orange">Oranžna</string>
     <string name="color_yellow">Rumena</string>
     <string name="color_green">Zelena</string>
     <string name="color_blue">Modra</string>
-    <string name="color_purple">Vijolična</string>
     <string name="color_pink">Rožnata</string>
     <string name="color_none">Brez označevanja</string>
     <string name="tool_pro_badge">Pro</string>

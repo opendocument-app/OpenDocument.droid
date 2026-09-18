@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">Líne chasta faoi</string>
     <string name="tool_mark_draw">Tarraing</string>
     <string name="color_black">Dubh</string>
-    <string name="color_gray">Liath</string>
     <string name="color_red">Dearg</string>
-    <string name="color_orange">Oráiste</string>
     <string name="color_yellow">Buí</string>
     <string name="color_green">Glas</string>
     <string name="color_blue">Gorm</string>
-    <string name="color_purple">Corcra</string>
     <string name="color_pink">Bándearg</string>
     <string name="color_none">Gan aibhsiú</string>
     <string name="tool_pro_badge">Pro</string>

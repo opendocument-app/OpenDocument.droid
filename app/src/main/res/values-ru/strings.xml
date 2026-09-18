@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">Волнистое подчёркивание</string>
     <string name="tool_mark_draw">Рисование</string>
     <string name="color_black">Чёрный</string>
-    <string name="color_gray">Серый</string>
     <string name="color_red">Красный</string>
-    <string name="color_orange">Оранжевый</string>
     <string name="color_yellow">Жёлтый</string>
     <string name="color_green">Зелёный</string>
     <string name="color_blue">Синий</string>
-    <string name="color_purple">Фиолетовый</string>
     <string name="color_pink">Розовый</string>
     <string name="color_none">Без выделения</string>
     <string name="tool_pro_badge">Pro</string>

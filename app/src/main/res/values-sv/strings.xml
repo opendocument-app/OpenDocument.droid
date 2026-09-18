@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">Vågig understrykning</string>
     <string name="tool_mark_draw">Rita</string>
     <string name="color_black">Svart</string>
-    <string name="color_gray">Grå</string>
     <string name="color_red">Röd</string>
-    <string name="color_orange">Orange</string>
     <string name="color_yellow">Gul</string>
     <string name="color_green">Grön</string>
     <string name="color_blue">Blå</string>
-    <string name="color_purple">Lila</string>
     <string name="color_pink">Rosa</string>
     <string name="color_none">Ingen överstrykning</string>
     <string name="tool_pro_badge">Pro</string>

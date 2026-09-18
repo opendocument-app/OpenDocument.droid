@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">Wellenlinie</string>
     <string name="tool_mark_draw">Zeichnen</string>
     <string name="color_black">Schwarz</string>
-    <string name="color_gray">Grau</string>
     <string name="color_red">Rot</string>
-    <string name="color_orange">Orange</string>
     <string name="color_yellow">Gelb</string>
     <string name="color_green">Grün</string>
     <string name="color_blue">Blau</string>
-    <string name="color_purple">Lila</string>
     <string name="color_pink">Rosa</string>
     <string name="color_none">Keine Hervorhebung</string>
     <string name="tool_pro_badge">Pro</string>

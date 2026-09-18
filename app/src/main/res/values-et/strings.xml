@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">Lainjas allajoonimine</string>
     <string name="tool_mark_draw">Joonista</string>
     <string name="color_black">Must</string>
-    <string name="color_gray">Hall</string>
     <string name="color_red">Punane</string>
-    <string name="color_orange">Oranž</string>
     <string name="color_yellow">Kollane</string>
     <string name="color_green">Roheline</string>
     <string name="color_blue">Sinine</string>
-    <string name="color_purple">Lilla</string>
     <string name="color_pink">Roosa</string>
     <string name="color_none">Esiletõstuta</string>
     <string name="tool_pro_badge">Pro</string>

@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">Podkreślenie falowane</string>
     <string name="tool_mark_draw">Rysowanie</string>
     <string name="color_black">Czarny</string>
-    <string name="color_gray">Szary</string>
     <string name="color_red">Czerwony</string>
-    <string name="color_orange">Pomarańczowy</string>
     <string name="color_yellow">Żółty</string>
     <string name="color_green">Zielony</string>
     <string name="color_blue">Niebieski</string>
-    <string name="color_purple">Fioletowy</string>
     <string name="color_pink">Różowy</string>
     <string name="color_none">Bez wyróżnienia</string>
     <string name="tool_pro_badge">Pro</string>

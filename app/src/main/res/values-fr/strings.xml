@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">Soulignement ondulé</string>
     <string name="tool_mark_draw">Dessiner</string>
     <string name="color_black">Noir</string>
-    <string name="color_gray">Gris</string>
     <string name="color_red">Rouge</string>
-    <string name="color_orange">Orange</string>
     <string name="color_yellow">Jaune</string>
     <string name="color_green">Vert</string>
     <string name="color_blue">Bleu</string>
-    <string name="color_purple">Violet</string>
     <string name="color_pink">Rose</string>
     <string name="color_none">Aucun surlignage</string>
     <string name="tool_pro_badge">Pro</string>

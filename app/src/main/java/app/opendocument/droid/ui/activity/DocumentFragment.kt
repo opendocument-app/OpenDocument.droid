@@ -73,8 +73,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     /** Whether lite offered pro during this edit - see [showRefusal]. */
     private var proOfferedThisEdit = false
 
-    /** Told when [canUndo] or [canRedo] changed, so the edit mode's bar can follow. */
-    var editStateListener: (() -> Unit)? = null
+    /** How many formula cells the page last said were out of date - see `onCellsStale`. */
+    private var staleCells = 0
 
     /** Folding the actions back up is what back does first, while they are unfolded. */
     private val actionsBackCallback =
@@ -129,9 +129,6 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         /** Whether the page holds edits or marks no save has written - see [hasUnsavedEdits]. */
         var editsDirty = false
-
-        var canUndo = false
-        var canRedo = false
 
         // loads cannot be canceled once running, so results of abandoned loads
         // (e.g. user navigated back while the document was still loading) are
@@ -416,6 +413,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         if (editing) {
             proOfferedThisEdit = false
+            staleCells = 0
         }
 
         pageView?.setEditing(document.editing, editing)
@@ -444,14 +442,14 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         reload(requireLastRequest(), requireLastFile())
     }
 
-    /** The strip under the bar, for the kinds of document that have tools to put in it. */
+    /** The strip under the bar: what the kind of document takes, and undo and redo. */
     private fun showEditingTools(document: LoadedDocument, editing: Boolean) {
         when {
-            !editing -> editingTools.hide()
+            !editing || !document.editing.isEditable -> editingTools.hide()
             document.editing == EditingKind.DOCUMENT ->
                 editingTools.showFormatting(locked = !Features.advancedEditing)
             document.editing == EditingKind.ANNOTATION -> editingTools.showMarking()
-            else -> editingTools.hide()
+            else -> editingTools.showPlain()
         }
     }
 
@@ -484,7 +482,10 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             }
 
             override fun onCellsStale(count: Int) {
-                if (count == 0) {
+                // said as it grows: an undo that brings it down needs no word
+                val grew = count > staleCells
+                staleCells = count
+                if (!grew) {
                     return
                 }
 
@@ -523,6 +524,18 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             override fun onLocked() {
                 (requireActivity() as MainActivity).offerPro(MainActivity.ProFeature.FORMATTING)
             }
+
+            override fun onUndo() {
+                analyticsManager.report("menu_edit_undo")
+
+                undo()
+            }
+
+            override fun onRedo() {
+                analyticsManager.report("menu_edit_redo")
+
+                redo()
+            }
         }
 
     private fun setEditState(dirty: Boolean, canUndo: Boolean, canRedo: Boolean) {
@@ -531,17 +544,11 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         }
 
         state.editsDirty = dirty
-        state.canUndo = canUndo
-        state.canRedo = canRedo
 
-        editStateListener?.invoke()
+        if (::editingTools.isInitialized) {
+            editingTools.setUndoState(canUndo, canRedo)
+        }
     }
-
-    val canUndo: Boolean
-        get() = ::state.isInitialized && state.canUndo
-
-    val canRedo: Boolean
-        get() = ::state.isInitialized && state.canRedo
 
     /**
      * What an edit the page did not take says. The page gives a reason and an english message for a

@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">Sottolineatura ondulata</string>
     <string name="tool_mark_draw">Disegna</string>
     <string name="color_black">Nero</string>
-    <string name="color_gray">Grigio</string>
     <string name="color_red">Rosso</string>
-    <string name="color_orange">Arancione</string>
     <string name="color_yellow">Giallo</string>
     <string name="color_green">Verde</string>
     <string name="color_blue">Blu</string>
-    <string name="color_purple">Viola</string>
     <string name="color_pink">Rosa</string>
     <string name="color_none">Nessuna evidenziazione</string>
     <string name="tool_pro_badge">Pro</string>

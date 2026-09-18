@@ -95,13 +95,10 @@
     <string name="tool_mark_squiggly">Bølget understregning</string>
     <string name="tool_mark_draw">Tegn</string>
     <string name="color_black">Sort</string>
-    <string name="color_gray">Grå</string>
     <string name="color_red">Rød</string>
-    <string name="color_orange">Orange</string>
     <string name="color_yellow">Gul</string>
     <string name="color_green">Grøn</string>
     <string name="color_blue">Blå</string>
-    <string name="color_purple">Lilla</string>
     <string name="color_pink">Lyserød</string>
     <string name="color_none">Ingen fremhævning</string>
     <string name="tool_pro_badge">Pro</string>

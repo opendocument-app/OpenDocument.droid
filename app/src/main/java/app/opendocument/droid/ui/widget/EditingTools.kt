@@ -21,7 +21,8 @@ import org.json.JSONObject
 
 /**
  * The strip of tools under the edit mode's bar: formatting for a text document or a presentation,
- * the marking tools for a pdf. OpenDocument.website's viewer has the same strip under its bar.
+ * the marking tools for a pdf, and undo and redo at the end of every one of them. The website's
+ * viewer is the reference, and OpenDocument.ios has the same row.
  *
  * It only reports taps. What a tool does to the page is the page's, through `PageView`, and which
  * tool is on is what the page reports back - [setSelectionStyle] and [setArmedTool].
@@ -45,6 +46,10 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
 
         /** A tool of pro's was tapped in a build without it. */
         fun onLocked()
+
+        fun onUndo()
+
+        fun onRedo()
     }
 
     var listener: Listener? = null
@@ -66,7 +71,13 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
 
     private var textColorBar: View? = null
     private var highlightTool: View? = null
+    private var highlightBar: View? = null
     private var sizeTool: TextView? = null
+    private var undoTool: View? = null
+    private var redoTool: View? = null
+
+    private var canUndo = false
+    private var canRedo = false
 
     init {
         LayoutInflater.from(context).inflate(R.layout.view_editing_tools, this, true)
@@ -103,24 +114,21 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
             R.string.tool_strikethrough,
         )
 
+        // one control: the colors open under it, and the bar shows the selection's own
         val textColorTool = newTool(R.drawable.ic_text_color, R.string.tool_text_color)
         textColorBar = barOf(textColorTool).also { paintBar(it, textColor) }
-        textColorTool.setOnClickListener {
-            ifUnlocked { listener?.onFormat(JSONObject().put("color", hex(textColor))) }
-        }
-        row.addView(textColorTool)
-        addChevron(R.string.tool_text_color) { anchor ->
-            showPalette(anchor, TEXT_COLORS) { color ->
-                textColor = color
-                textColorBar?.let { paintBar(it, color) }
-
-                listener?.onFormat(JSONObject().put("color", hex(color)))
+        textColorTool.setOnClickListener { anchor ->
+            ifUnlocked {
+                showPalette(anchor, TEXT_COLORS) { color ->
+                    listener?.onFormat(JSONObject().put("color", hex(color)))
+                }
             }
         }
+        row.addView(textColorTool)
 
         // a split button: the tool turns the highlight on and off, the arrow picks its colour
         val highlight = newTool(R.drawable.ic_marker, R.string.tool_highlight)
-        paintBar(barOf(highlight), highlightColor)
+        highlightBar = barOf(highlight).also { paintBar(it, highlightColor) }
         highlight.setOnClickListener {
             ifUnlocked {
                 // isNull is also true of a key the page left out, where the runs disagree
@@ -142,7 +150,7 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
                 }
 
                 highlightColor = color
-                paintBar(barOf(highlight), color)
+                highlightBar?.let { paintBar(it, color) }
 
                 listener?.onFormat(JSONObject().put("highlight", hex(color)))
             }
@@ -155,7 +163,18 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         sizeTool = size
         row.addView(size)
 
+        addUndoRedo(redo = true)
+
         setSelectionStyle(selectionStyle)
+
+        visibility = View.VISIBLE
+    }
+
+    /** A sheet or a plain text file: nothing to format, so only the way back. */
+    fun showPlain() {
+        reset(false)
+
+        addUndoRedo(redo = true)
 
         visibility = View.VISIBLE
     }
@@ -185,7 +204,41 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
             }
         }
 
+        // a mark is taken back one at a time and never put back
+        addUndoRedo(redo = false)
+
         visibility = View.VISIBLE
+    }
+
+    /** What the page says can be taken back and put back. */
+    fun setUndoState(canUndo: Boolean, canRedo: Boolean) {
+        this.canUndo = canUndo
+        this.canRedo = canRedo
+
+        undoTool?.let { setUsable(it, canUndo) }
+        redoTool?.let { setUsable(it, canRedo) }
+    }
+
+    /** Undo and redo are the page's in every edition, so they are never locked. */
+    private fun addUndoRedo(redo: Boolean) {
+        val undo = newTool(R.drawable.ic_undo, R.string.action_undo)
+        undo.setOnClickListener { listener?.onUndo() }
+        undoTool = undo
+        row.addView(undo)
+
+        if (redo) {
+            val tool = newTool(R.drawable.ic_redo, R.string.action_redo)
+            tool.setOnClickListener { listener?.onRedo() }
+            redoTool = tool
+            row.addView(tool)
+        }
+
+        setUndoState(canUndo, canRedo)
+    }
+
+    private fun setUsable(tool: View, usable: Boolean) {
+        tool.isEnabled = usable
+        tool.alpha = if (usable) 1f else DISABLED_ALPHA
     }
 
     /** Shows which of the toggles the selection has on, and the size it is set in. */
@@ -197,6 +250,24 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         }
 
         highlightTool?.isSelected = !locked && !style.isNull("highlight")
+
+        // the bars follow the selection, as the website's do; where the runs disagree they keep
+        // what they showed
+        style
+            .optString("color")
+            .takeIf { !style.isNull("color") }
+            ?.let { parseColor(it) }
+            ?.let { color ->
+                textColorBar?.let { paintBar(it, color) }
+            }
+        style
+            .optString("highlight")
+            .takeIf { !style.isNull("highlight") }
+            ?.let { parseColor(it) }
+            ?.let { color ->
+                highlightColor = color
+                highlightBar?.let { paintBar(it, color) }
+            }
 
         sizeTool?.text =
             style
@@ -222,7 +293,10 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         markTools.clear()
         textColorBar = null
         highlightTool = null
+        highlightBar = null
         sizeTool = null
+        undoTool = null
+        redoTool = null
         selectionStyle = JSONObject()
 
         scrollTo(0, 0)
@@ -379,27 +453,35 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         /** `#rrggbb`, the one spelling `odr.editing.format` takes. */
         private fun hex(@ColorInt color: Int) = String.format("#%06x", color and 0xffffff)
 
+        private fun parseColor(hex: String): Int? =
+            try {
+                Color.parseColor(hex)
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+
+        /** Material's opacity for a disabled icon, 38%. */
+        private const val DISABLED_ALPHA = 0.38f
+
         /** Point sizes a document commonly uses. */
         private val FONT_SIZES = listOf(8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48)
 
+        // the colors both apps offer, OpenDocument.ios' EditToolBar being the other copy. the
+        // first of each is the website's own default
         private val TEXT_COLORS =
             listOf(
-                NamedColor(0xff000000.toInt(), R.string.color_black),
-                NamedColor(0xff757575.toInt(), R.string.color_gray),
+                NamedColor(0xff191c1e.toInt(), R.string.color_black),
                 NamedColor(0xffe53935.toInt(), R.string.color_red),
-                NamedColor(0xfffb8c00.toInt(), R.string.color_orange),
-                NamedColor(0xff43a047.toInt(), R.string.color_green),
                 NamedColor(0xff1e88e5.toInt(), R.string.color_blue),
-                NamedColor(0xff8e24aa.toInt(), R.string.color_purple),
+                NamedColor(0xff43a047.toInt(), R.string.color_green),
             )
 
         private val HIGHLIGHT_COLORS =
             listOf(
                 NamedColor(0xfffff59d.toInt(), R.string.color_yellow),
                 NamedColor(0xffc5e1a5.toInt(), R.string.color_green),
-                NamedColor(0xff90caf9.toInt(), R.string.color_blue),
-                NamedColor(0xfff48fb1.toInt(), R.string.color_pink),
-                NamedColor(0xffffcc80.toInt(), R.string.color_orange),
+                NamedColor(0xfff8bbd0.toInt(), R.string.color_pink),
+                NamedColor(0xffb3e5fc.toInt(), R.string.color_blue),
                 NamedColor(Color.TRANSPARENT, R.string.color_none),
             )
 
@@ -407,9 +489,8 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
             listOf(
                 NamedColor(0xffffe633.toInt(), R.string.color_yellow),
                 NamedColor(0xffe53935.toInt(), R.string.color_red),
-                NamedColor(0xff43a047.toInt(), R.string.color_green),
                 NamedColor(0xff1e88e5.toInt(), R.string.color_blue),
-                NamedColor(0xff000000.toInt(), R.string.color_black),
+                NamedColor(0xff43a047.toInt(), R.string.color_green),
             )
 
         /**
