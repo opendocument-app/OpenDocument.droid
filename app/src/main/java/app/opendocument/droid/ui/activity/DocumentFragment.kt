@@ -15,6 +15,7 @@ import android.text.style.ClickableSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -29,6 +30,7 @@ import app.opendocument.droid.R
 import app.opendocument.droid.background.DocumentDarkening
 import app.opendocument.droid.background.DocumentLoader
 import app.opendocument.droid.background.DocumentRequest
+import app.opendocument.droid.background.EditingKind
 import app.opendocument.droid.background.IdentifiedFile
 import app.opendocument.droid.background.LoadedDocument
 import app.opendocument.droid.background.NightModeSetting
@@ -38,14 +40,17 @@ import app.opendocument.droid.background.SheetCut
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
 import app.opendocument.droid.nonfree.CrashManager
+import app.opendocument.droid.nonfree.Features
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.SnackbarHelper
 import app.opendocument.droid.ui.widget.DocumentActions
+import app.opendocument.droid.ui.widget.EditingTools
 import app.opendocument.droid.ui.widget.PageView
 import app.opendocument.droid.ui.widget.ProgressDialogFragment
 import com.google.android.material.tabs.TabLayout
 import java.io.FileNotFoundException
 import java.text.NumberFormat
+import org.json.JSONObject
 
 class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
@@ -62,7 +67,11 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         private set
 
     private lateinit var actions: DocumentActions
+    private lateinit var editingTools: EditingTools
     private var bottomInset = 0
+
+    /** Told when [canUndo] or [canRedo] changed, so the edit mode's bar can follow. */
+    var editStateListener: (() -> Unit)? = null
 
     /** Folding the actions back up is what back does first, while they are unfolded. */
     private val actionsBackCallback =
@@ -112,7 +121,14 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         /** Only ever the document currently on screen. */
         var lastDocument: LoadedDocument? = null
 
-        var currentHtmlDiff: String? = null
+        /** What the page handed over for the save in progress: its operations, or its marks. */
+        var currentEditPayload: String? = null
+
+        /** Whether the page holds edits or marks no save has written - see [hasUnsavedEdits]. */
+        var editsDirty = false
+
+        var canUndo = false
+        var canRedo = false
 
         // loads cannot be canceled once running, so results of abandoned loads
         // (e.g. user navigated back while the document was still loading) are
@@ -177,6 +193,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             this.pageView = pageView
 
             pageView.setDocumentFragment(this)
+            pageView.editingListener = pageEditingListener
         } catch (t: Throwable) {
             // crashManager is not set yet: onViewCreated has not run
 
@@ -214,6 +231,9 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         }
         actions.expandedListener = { expanded -> actionsBackCallback.isEnabled = expanded }
 
+        editingTools = view.findViewById(R.id.editing_tools)
+        editingTools.listener = editingToolsListener
+
         // on viewLifecycleOwner, so it stacks above the activity's own callback - the dispatcher
         // runs the most recently added enabled callback first
         mainActivity.onBackPressedDispatcher.addCallback(viewLifecycleOwner, actionsBackCallback)
@@ -238,6 +258,10 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
             // the page view is a new one, and knows nothing of what the old one was told
             applyDarkening(lastDocument.file)
+
+            // an action mode does not outlive its activity, so neither does the edit mode
+            state.lastRequest?.editable = false
+            pageView?.setEditing(lastDocument.editing, false)
 
             restoreTabs(lastDocument)
             prepareActions(lastDocument)
@@ -273,8 +297,9 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                 @Suppress("DEPRECATION")
                 state.lastDocument = savedInstanceState.getParcelable(SAVED_KEY_LAST_DOCUMENT)
             }
-            if (state.currentHtmlDiff == null) {
-                state.currentHtmlDiff = savedInstanceState.getString(SAVED_KEY_CURRENT_HTML_DIFF)
+            if (state.currentEditPayload == null) {
+                state.currentEditPayload =
+                    savedInstanceState.getString(SAVED_KEY_CURRENT_EDIT_PAYLOAD)
             }
 
             return pageView?.restoreState(savedInstanceState) != null
@@ -316,7 +341,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         outState.putParcelable(SAVED_KEY_LAST_REQUEST, state.lastRequest)
         outState.putParcelable(SAVED_KEY_LAST_FILE, state.lastFile)
         outState.putParcelable(SAVED_KEY_LAST_DOCUMENT, state.lastDocument)
-        outState.putString(SAVED_KEY_CURRENT_HTML_DIFF, state.currentHtmlDiff)
+        outState.putString(SAVED_KEY_CURRENT_EDIT_PAYLOAD, state.currentEditPayload)
 
         pageView?.saveState(outState)
     }
@@ -348,6 +373,9 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         showProgress()
 
+        // the page that held them is going, and the one replacing it starts with a clean log
+        setEditState(dirty = false, canUndo = false, canRedo = false)
+
         state.beginLoadIdling()
     }
 
@@ -370,20 +398,169 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         load(DocumentRequest(uri, persistentUri).apply { this.editable = editable })
     }
 
-    fun reloadUri(editable: Boolean) {
-        // closeDocument() removes this fragment and only then finishes the edit mode, whose
-        // onDestroyActionMode reloads - a load queued here would have nothing left to land in
+    /**
+     * Turns the page's edit mode on or off. No render: a document the core can write back carries
+     * its editor from the start, so this is a switch in the page - see `PageView.setEditing`.
+     */
+    fun setEditing(editing: Boolean) {
+        // closeDocument() removes this fragment and only then finishes the edit mode
         if (!isAdded) {
             return
         }
 
-        val lastRequest = requireLastRequest()
-        lastRequest.editable = editable
+        val document = state.lastDocument ?: return
+        requireLastRequest().editable = editing
 
-        // entering or leaving edit mode is not a new document, and the user is working
+        pageView?.setEditing(document.editing, editing)
+
+        showEditingTools(document, editing)
+
+        if (!editing) {
+            // a keyboard left up over a document that no longer takes typing
+            val imm = requireContext().getSystemService(InputMethodManager::class.java)
+            imm?.hideSoftInputFromWindow(requireView().windowToken, 0)
+        }
+    }
+
+    /**
+     * Drops the edits the page holds by rendering the document again from the copy in the cache,
+     * which no edit reached.
+     */
+    fun discardEdits() {
+        if (!isAdded || state.lastDocument == null) {
+            return
+        }
+
+        // not a new document, and not one the user went and opened either
         freshOpenPending = false
 
-        reload(lastRequest, requireLastFile())
+        reload(requireLastRequest(), requireLastFile())
+    }
+
+    /** The strip under the bar, for the kinds of document that have tools to put in it. */
+    private fun showEditingTools(document: LoadedDocument, editing: Boolean) {
+        when {
+            !editing -> editingTools.hide()
+            document.editing == EditingKind.DOCUMENT ->
+                editingTools.showFormatting(locked = !Features.withAdvancedEditing)
+            document.editing == EditingKind.ANNOTATION -> editingTools.showMarking()
+            else -> editingTools.hide()
+        }
+    }
+
+    fun undo() {
+        pageView?.undo()
+    }
+
+    fun redo() {
+        pageView?.redo()
+    }
+
+    /** What the page reports while a document is edited. */
+    private val pageEditingListener =
+        object : PageView.EditingListener {
+            override fun onEditChanged(dirty: Boolean, canUndo: Boolean, canRedo: Boolean) {
+                setEditState(dirty, canUndo, canRedo)
+            }
+
+            override fun onEditRefused(reason: String) {
+                showRefusal(reason)
+            }
+
+            override fun onSelectionChanged(style: JSONObject) {
+                editingTools.setSelectionStyle(style)
+            }
+
+            override fun onMarksChanged(count: Int) {
+                // a mark is taken back one at a time and never put back, so there is no redo
+                setEditState(dirty = count > 0, canUndo = count > 0, canRedo = false)
+            }
+
+            override fun onCellsStale(count: Int) {
+                if (count == 0) {
+                    return
+                }
+
+                SnackbarHelper.show(
+                    requireActivity(),
+                    resources.getQuantityString(R.plurals.edit_cells_stale, count, count),
+                    null,
+                    isIndefinite = false,
+                    isError = false,
+                )
+            }
+        }
+
+    private val editingToolsListener =
+        object : EditingTools.Listener {
+            override fun onToggleStyle(property: String) {
+                analyticsManager.report("edit_format_$property")
+
+                pageView?.toggleStyle(property)
+            }
+
+            override fun onFormat(style: JSONObject) {
+                analyticsManager.report("edit_format_" + style.keys().asSequence().joinToString())
+
+                pageView?.formatStyle(style)
+            }
+
+            override fun onMarkTool(tool: String, color: Int, recolor: Boolean) {
+                analyticsManager.report("edit_mark_$tool")
+
+                pageView?.pressMarkTool(tool, color, EditingTools.INK_WIDTH, recolor) { armed ->
+                    editingTools.setArmedTool(armed)
+                }
+            }
+
+            override fun onLocked() {
+                (requireActivity() as MainActivity).offerPro(R.string.pro_offer_formatting)
+            }
+        }
+
+    private fun setEditState(dirty: Boolean, canUndo: Boolean, canRedo: Boolean) {
+        if (!::state.isInitialized) {
+            return
+        }
+
+        state.editsDirty = dirty
+        state.canUndo = canUndo
+        state.canRedo = canRedo
+
+        editStateListener?.invoke()
+    }
+
+    val canUndo: Boolean
+        get() = ::state.isInitialized && state.canUndo
+
+    val canRedo: Boolean
+        get() = ::state.isInitialized && state.canRedo
+
+    /**
+     * What an edit the page did not take says. The page gives a reason and an english message for a
+     * console; the wording a reader sees is ours.
+     */
+    private fun showRefusal(reason: String) {
+        if (reason == "outOfScope" && !Features.withAdvancedEditing) {
+            // the one refusal pro answers: an edit that splits or merges a paragraph
+            (requireActivity() as MainActivity).offerPro(R.string.pro_offer_paragraphs)
+
+            return
+        }
+
+        val message =
+            when (reason) {
+                "newLine" -> R.string.edit_refused_new_line
+                "formula" -> R.string.edit_refused_formula
+                "formulaInput" -> R.string.edit_refused_formula_input
+                "rich" -> R.string.edit_refused_rich
+                "shapes" -> R.string.edit_refused_shapes
+                "readOnly" -> R.string.edit_refused_read_only
+                "range" -> R.string.edit_refused_range
+                else -> R.string.edit_refused_unsupported
+            }
+
+        SnackbarHelper.show(requireActivity(), message, null, isIndefinite = false, isError = false)
     }
 
     /** Tells the page whether it may follow the app into night mode - see [DocumentDarkening]. */
@@ -443,21 +620,22 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
     /**
      * Collects whatever the save needs and runs [callback] - exactly once. A full save writes the
-     * file as it is on disk, so it has no diff to ask the page for.
+     * file as it is on disk, so it has nothing to ask the page for.
      */
     fun prepareSave(callback: Runnable, fullSave: Boolean) {
         val pageView = this.pageView
+        val document = state.lastDocument
 
-        if (fullSave || pageView == null) {
-            state.currentHtmlDiff = null
+        if (fullSave || pageView == null || document == null) {
+            state.currentEditPayload = null
 
             callback.run()
 
             return
         }
 
-        pageView.requestHtml { htmlDiff ->
-            state.currentHtmlDiff = htmlDiff
+        pageView.requestEditPayload(document.editing) { payload ->
+            state.currentEditPayload = payload
 
             callback.run()
         }
@@ -476,7 +654,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             return
         }
 
-        documentLoader.save(requireLastDocument(), outFile, state.currentHtmlDiff)
+        documentLoader.save(requireLastDocument(), outFile, state.currentEditPayload)
     }
 
     private fun unload() {
@@ -512,15 +690,24 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     private fun prepareActions(document: LoadedDocument) {
         // whether editing is on offer is the core's answer, not a list of formats kept here: it
         // knows which of the documents it renders it can also write back, which is why neither the
-        // legacy binary formats nor the spreadsheets of issue #442 need naming
+        // legacy binary formats nor the spreadsheets of issue #442 need naming. a pdf is marked up
+        // rather than edited, and says so - in lite too, where the button offers pro
         val edit =
-            if (!document.isEditable) null
-            else
-                DocumentActions.Action(
-                    DocumentActions.ACTION_EDIT,
-                    R.string.menu_edit,
-                    R.drawable.ic_edit,
-                )
+            when (document.editing) {
+                EditingKind.NONE -> null
+                EditingKind.ANNOTATION ->
+                    DocumentActions.Action(
+                        DocumentActions.ACTION_EDIT,
+                        R.string.menu_annotate,
+                        R.drawable.ic_marker,
+                    )
+                else ->
+                    DocumentActions.Action(
+                        DocumentActions.ACTION_EDIT,
+                        R.string.menu_edit,
+                        R.drawable.ic_edit,
+                    )
+            }
 
         // what the display rows offer is the opposite of what is on screen, so each says what
         // tapping it does rather than what it is called
@@ -692,6 +879,12 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         // before the page is put in below, so it is drawn the way it is going to stay
         applyDarkening(file)
+
+        // and put into the mode it is meant to be in once it has loaded: a save loads the written
+        // document back in the mode the old one was in. The kind has to be told either way,
+        // because it decides what leaving the mode does to the page
+        pageView?.setEditing(document.editing, document.request.editable)
+        showEditingTools(document, document.request.editable)
 
         analyticsManager.setCurrentScreen(activity, file.mimeType ?: UNKNOWN_FILE_TYPE)
 
@@ -869,7 +1062,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     }
 
     override fun onSaveSuccess(target: Uri) {
-        state.currentHtmlDiff = null
+        state.currentEditPayload = null
 
         SnackbarHelper.show(
             requireActivity(),
@@ -879,11 +1072,12 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             isError = false,
         )
 
-        loadUri(target, true, true)
+        // the written document, in the mode the user left the old one in
+        loadUri(target, true, requireLastRequest().editable)
     }
 
     override fun onSaveError() {
-        state.currentHtmlDiff = null
+        state.currentEditPayload = null
 
         SnackbarHelper.show(
             requireActivity(),
@@ -1241,8 +1435,14 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         return ::state.isInitialized && state.lastRequest != null
     }
 
-    /** Whether the document is in edit mode, so its changes are still only in the page. */
+    /** Whether the document is in edit mode. */
     fun isEditing(): Boolean = ::state.isInitialized && state.lastRequest?.editable == true
+
+    /** Whether the page holds edits or marks that are only in the page, which leaving loses. */
+    fun hasUnsavedEdits(): Boolean = ::state.isInitialized && state.editsDirty
+
+    val editingKind: EditingKind
+        get() = state.lastDocument?.editing ?: EditingKind.NONE
 
     val lastFileType: String?
         get() = state.lastFile?.mimeType
@@ -1270,7 +1470,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         const val SAVED_KEY_LAST_REQUEST = "LAST_REQUEST"
         const val SAVED_KEY_LAST_FILE = "LAST_FILE"
         const val SAVED_KEY_LAST_DOCUMENT = "LAST_DOCUMENT"
-        const val SAVED_KEY_CURRENT_HTML_DIFF = "CURRENT_HTML_DIFF"
+        const val SAVED_KEY_CURRENT_EDIT_PAYLOAD = "CURRENT_HTML_DIFF"
 
         /** What the analytics screen name is when nothing could name the bytes. */
         const val UNKNOWN_FILE_TYPE = "N/A"

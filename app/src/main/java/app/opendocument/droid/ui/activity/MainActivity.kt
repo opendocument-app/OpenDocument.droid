@@ -24,6 +24,7 @@ import androidx.lifecycle.ViewModelProvider
 import app.opendocument.droid.R
 import app.opendocument.droid.background.CatchAllSetting
 import app.opendocument.droid.background.DocumentLoader
+import app.opendocument.droid.background.EditingKind
 import app.opendocument.droid.background.NightModeSetting
 import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.background.PersistedUriPermissions
@@ -620,6 +621,16 @@ class MainActivity : AppCompatActivity() {
             DocumentActions.ACTION_EDIT -> {
                 analyticsManager.report("menu_edit")
 
+                // marking up a pdf is pro's, and the button is there in lite to say so
+                if (
+                    documentFragment?.editingKind == EditingKind.ANNOTATION &&
+                        !Features.withAdvancedEditing
+                ) {
+                    offerPro(R.string.pro_offer_markup)
+
+                    return
+                }
+
                 documentFragment?.let { fragment ->
                     currentActionMode =
                         startSupportActionMode(EditActionModeCallback(this, fragment))
@@ -733,6 +744,27 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * Says that what was just tried is pro's, with a button to the pro listing. Lite is the only
+     * build that asks: pro and foss have every edit.
+     */
+    fun offerPro(messageRes: Int) {
+        analyticsManager.report("present_pro_offer")
+
+        SnackbarHelper.show(
+            this,
+            messageRes,
+            R.string.house_ad_cta_get_pro,
+            {
+                analyticsManager.report("present_pro_offer_clicked")
+
+                buyAdRemoval()
+            },
+            isIndefinite = false,
+            isError = false,
+        )
+    }
+
     /** What [buyAdRemoval] is for a build with no ad removal to sell. */
     fun openSponsorPage() {
         analyticsManager.report(AnalyticsConstants.EVENT_ADD_TO_CART)
@@ -776,13 +808,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Asks before walking away from a document being edited, then runs [leave]. Saving does not
-     * also leave: it opens the create-document picker, which still needs the page the diff comes
-     * from.
+     * Asks before walking away from edits that are only in the page, then runs [leave]. Saving does
+     * not also leave: it opens the create-document picker, which still needs the page the edits
+     * come from.
      */
-    private fun confirmLeavingEdits(leave: () -> Unit) {
+    fun confirmLeavingEdits(leave: () -> Unit) {
         val documentFragment = this.documentFragment
-        if (documentFragment == null || !documentFragment.isEditing()) {
+        if (documentFragment == null || !documentFragment.hasUnsavedEdits()) {
             leave()
 
             return
@@ -824,9 +856,9 @@ class MainActivity : AppCompatActivity() {
             SnackbarHelper.dismiss(this)
         }
 
-        // the fragment goes first: finishing an edit mode reloads the document it acts on, and
-        // that load would put a progress dialog up over a fragment that is about to be removed.
-        // reloadUri() is a no-op once it is detached
+        // the fragment goes first: finishing an edit mode with edits in the page asks about them,
+        // and that question is about a document that is being closed. EditActionModeCallback only
+        // asks while the fragment is still added
         documentFragment?.let { fragment ->
             supportFragmentManager.beginTransaction().remove(fragment).commitNow()
 

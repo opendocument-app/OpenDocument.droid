@@ -20,6 +20,7 @@ import android.webkit.WebViewClient
 import androidx.annotation.Keep
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
+import app.opendocument.droid.background.EditingKind
 import app.opendocument.droid.background.FileCache
 import app.opendocument.droid.background.StreamUtil
 import app.opendocument.droid.nonfree.CrashManager
@@ -27,6 +28,8 @@ import app.opendocument.droid.ui.ParagraphListener
 import app.opendocument.droid.ui.activity.DocumentFragment
 import java.io.ByteArrayInputStream
 import java.io.IOException
+import org.json.JSONObject
+import org.json.JSONTokener
 
 /**
  * The WebView the documents are displayed in, plus the javascript bridge the page talks back on.
@@ -42,7 +45,16 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     private lateinit var documentFragment: DocumentFragment
     private lateinit var crashManager: CrashManager
 
-    private var htmlCallback: HtmlCallback? = null
+    /** Told what the page's editor reports, on the main thread - see `editing-bridge.js`. */
+    var editingListener: EditingListener? = null
+
+    /** What [setEditing] was last told, which every page loaded after it is put into as well. */
+    private var editingKind = EditingKind.NONE
+    private var isEditing = false
+
+    private val editingBridgeScript: String by lazy {
+        context.assets.open(EDITING_BRIDGE_ASSET).bufferedReader().use { it.readText() }
+    }
 
     /**
      * Progress 100 reported before the page commits leaves it blank
@@ -91,6 +103,15 @@ constructor(context: Context, attributeSet: AttributeSet?) :
                     super.onPageFinished(view, url)
 
                     restorePendingScroll(0)
+
+                    // a sheet loads a page per tab, and each one is a page of its own to wire up
+                    if (isOwnContent(url)) {
+                        evaluateJavascript(editingBridgeScript, null)
+
+                        if (isEditing) {
+                            applyEditing()
+                        }
+                    }
 
                     buggyWebViewHandler.postDelayed(
                         {
@@ -436,16 +457,142 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         }
     }
 
-    fun requestHtml(callback: HtmlCallback) {
-        this.htmlCallback = callback
+    /**
+     * Turns the page's edit mode on or off. A pdf has no mode: its tools arm themselves, so leaving
+     * only disarms whatever tool is armed.
+     */
+    fun setEditing(kind: EditingKind, editing: Boolean) {
+        editingKind = kind
+        isEditing = editing
 
-        loadUrl("${JAVASCRIPT_SCHEME}window.$BRIDGE_NAME.sendHtml(odr.generateDiff());")
+        applyEditing()
+    }
+
+    private fun applyEditing() {
+        evaluateJavascript(
+            when {
+                editingKind == EditingKind.ANNOTATION ->
+                    if (isEditing) "void 0"
+                    else "window.odr && odr.androidEditing && odr.androidEditing.disarm()"
+                isEditing -> "window.odr && odr.editing && odr.editing.enable()"
+                else -> "window.odr && odr.editing && odr.editing.disable()"
+            },
+            null,
+        )
+    }
+
+    fun undo() {
+        evaluateJavascript(
+            if (editingKind == EditingKind.ANNOTATION)
+                "window.odr && odr.androidEditing && odr.androidEditing.undoMark()"
+            else "window.odr && odr.editing && odr.editing.undo()",
+            null,
+        )
+    }
+
+    fun redo() {
+        evaluateJavascript("window.odr && odr.editing && odr.editing.redo()", null)
+    }
+
+    /** Flips `bold`, `italic`, `underline` or `strikethrough` on the selection. */
+    fun toggleStyle(property: String) {
+        evaluateJavascript("odr.editing.toggle(${JSONObject.quote(property)})", null)
+    }
+
+    /** States [style] on the selection, in the keys `odr.editing.format` takes. */
+    fun formatStyle(style: JSONObject) {
+        evaluateJavascript("odr.editing.format($style)", null)
+    }
+
+    /**
+     * A marking tool was pressed, or [recolor] given a new colour. [callback] gets the tool left
+     * armed, or null.
+     */
+    fun pressMarkTool(
+        tool: String,
+        color: Int,
+        width: Float,
+        recolor: Boolean,
+        callback: (String?) -> Unit,
+    ) {
+        val rgb =
+            "[${android.graphics.Color.red(color) / 255f}," +
+                "${android.graphics.Color.green(color) / 255f}," +
+                "${android.graphics.Color.blue(color) / 255f}]"
+        val method = if (recolor) "recolor" else "tool"
+
+        evaluateJavascript(
+            "window.odr && odr.androidEditing ? " +
+                "odr.androidEditing.$method(${JSONObject.quote(tool)}, $rgb, $width) : null"
+        ) {
+            callback(decodeString(it))
+        }
+    }
+
+    /**
+     * What a save hands the core: the page's operation log, or for a pdf the marks drawn over it.
+     * Null where the page could not say.
+     */
+    fun requestEditPayload(kind: EditingKind, callback: (String?) -> Unit) {
+        val expression =
+            if (kind == EditingKind.ANNOTATION) {
+                "window.odr && odr.annotation ? odr.annotation.getAnnotations() : null"
+            } else {
+                "window.odr && odr.editing ? odr.editing.getOperations() : null"
+            }
+
+        evaluateJavascript("(function(){return $expression;})()") { callback(decodeString(it)) }
+    }
+
+    /** A string evaluateJavascript answered with, which arrives as a json literal. */
+    private fun decodeString(result: String?): String? =
+        try {
+            JSONTokener(result ?: "null").nextValue() as? String
+        } catch (e: Exception) {
+            crashManager.log(e)
+
+            null
+        }
+
+    // called by editing-bridge.js on the javabridge thread, so each posts to the main one
+
+    @JavascriptInterface
+    @Keep
+    fun editChanged(dirty: Boolean, canUndo: Boolean, canRedo: Boolean) {
+        post { editingListener?.onEditChanged(dirty, canUndo, canRedo) }
     }
 
     @JavascriptInterface
     @Keep
-    fun sendHtml(htmlDiff: String) {
-        htmlCallback?.onHtml(htmlDiff)
+    fun editRefused(reason: String) {
+        post { editingListener?.onEditRefused(reason) }
+    }
+
+    @JavascriptInterface
+    @Keep
+    fun selectionChanged(style: String) {
+        val parsed =
+            try {
+                JSONObject(style)
+            } catch (e: Exception) {
+                crashManager.log(e)
+
+                return
+            }
+
+        post { editingListener?.onSelectionChanged(parsed) }
+    }
+
+    @JavascriptInterface
+    @Keep
+    fun marksChanged(count: Int) {
+        post { editingListener?.onMarksChanged(count) }
+    }
+
+    @JavascriptInterface
+    @Keep
+    fun cellsStale(count: Int) {
+        post { editingListener?.onCellsStale(count) }
     }
 
     @JavascriptInterface
@@ -490,14 +637,28 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         paragraphListener?.end()
     }
 
-    fun interface HtmlCallback {
+    interface EditingListener {
 
-        fun onHtml(htmlDiff: String)
+        fun onEditChanged(dirty: Boolean, canUndo: Boolean, canRedo: Boolean)
+
+        /** [reason] is the page's name for it, such as `outOfScope` or `range`. */
+        fun onEditRefused(reason: String)
+
+        /** What the selection shows, a key per property the runs under it agree on. */
+        fun onSelectionChanged(style: JSONObject)
+
+        /** How many marks the pdf holds that no save has written. */
+        fun onMarksChanged(count: Int)
+
+        /** How many formula cells an edit left showing an old result. */
+        fun onCellsStale(count: Int)
     }
 
     private companion object {
 
         const val BRIDGE_NAME = "paragraphListener"
+
+        const val EDITING_BRIDGE_ASSET = "editing-bridge.js"
 
         const val JAVASCRIPT_SCHEME = "javascript:"
 

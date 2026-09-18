@@ -10,6 +10,17 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
+        <!--
+             under the edit mode's bar, and only while it is up: formatting for a text document or
+             a presentation, the marking tools for a pdf. gone for everything else
+        -->
+        <app.opendocument.droid.ui.widget.EditingTools
+                android:id="@+id/editing_tools"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/colorSurfaceContainer"
+                android:visibility="gone" />
+
         <!-- one tab per sheet for spreadsheets, hidden for every other format -->
         <com.google.android.material.tabs.TabLayout
                 android:id="@+id/document_tabs"

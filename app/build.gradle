@@ -101,7 +101,12 @@ android {
     }
 
     productFlavors {
+        // the edits a document takes in one paragraph, a sheet's cells and a plain text file are
+        // in every flavor; ADVANCED_EDITING adds what reaches past that - a paragraph split or
+        // merged, formatting, and marking up a pdf - and is what pro is sold on
         lite {
+            buildConfigField 'boolean', 'ADVANCED_EDITING', 'false'
+
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.releaseLite
             }
@@ -109,6 +114,8 @@ android {
 
         pro {
             applicationIdSuffix = ".pro"
+
+            buildConfigField 'boolean', 'ADVANCED_EDITING', 'true'
 
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.releasePro
@@ -119,6 +126,8 @@ android {
         // the apk on the github release, and what f-droid builds
         foss {
             applicationIdSuffix = ".foss"
+
+            buildConfigField 'boolean', 'ADVANCED_EDITING', 'true'
 
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.releaseLite

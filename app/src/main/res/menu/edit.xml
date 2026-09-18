@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- the edit mode's bar. Undo and redo are the page's own, which cancels every edit it takes and
+     so leaves the browser's undo stack empty -->
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+            android:id="@+id/edit_undo"
+            android:enabled="false"
+            android:icon="@drawable/ic_undo"
+            app:showAsAction="always"
+            android:title="@string/action_undo" />
+
+    <item
+            android:id="@+id/edit_redo"
+            android:enabled="false"
+            android:icon="@drawable/ic_redo"
+            app:showAsAction="always"
+            android:title="@string/action_redo" />
 
     <item
             android:id="@+id/edit_save"
