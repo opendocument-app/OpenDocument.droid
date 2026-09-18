@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Součást verze Pro</string>
     <string name="pro_offer_formatting">Formátování textu a přidávání nebo spojování odstavců je součástí OpenDocument Reader Pro.</string>
     <string name="pro_offer_markup">Označování PDF je součástí OpenDocument Reader Pro.</string>
-    <string name="pro_offer_sheets">Úpravy tabulek jsou součástí OpenDocument Reader Pro.</string>
-    <string name="pro_offer_text">Úpravy prostých textových souborů jsou součástí OpenDocument Reader Pro.</string>
     <string name="not_now">Teď ne</string>
     <string name="edit_refused_new_line">Zalomení řádku uvnitř odstavce nelze uložit. Pro nový odstavec stiskněte Enter.</string>
     <string name="edit_refused_formula">Tato buňka obsahuje vzorec a zůstane beze změny.</string>

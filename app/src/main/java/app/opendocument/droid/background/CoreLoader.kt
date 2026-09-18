@@ -144,8 +144,7 @@ class CoreLoader(private val context: Context) {
         htmlConfig.textDocumentMargin = paging
 
         // the scaffolding only: the mode starts off, and odr.editing.enable() is what the edit
-        // button calls. not where this build does not offer the edit - the markup would buy
-        // nothing - and a pdf needs none of it: every pdf page carries odr.annotation
+        // button calls. a pdf needs none of it: every pdf page carries odr.annotation
         htmlConfig.editable = editing != EditingKind.ANNOTATION && Features.offersEditing(editing)
 
         // an edit that splits or merges a paragraph, and formatting, are pro's. the page refuses

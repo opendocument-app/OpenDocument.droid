@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Osa Pro-versioonist</string>
     <string name="pro_offer_formatting">Teksti vormindamine ning lõikude lisamine või ühendamine on osa rakendusest OpenDocument Reader Pro.</string>
     <string name="pro_offer_markup">PDF-i märgistamine on osa rakendusest OpenDocument Reader Pro.</string>
-    <string name="pro_offer_sheets">Arvutustabelite muutmine on osa rakendusest OpenDocument Reader Pro.</string>
-    <string name="pro_offer_text">Lihttekstifailide muutmine on osa rakendusest OpenDocument Reader Pro.</string>
     <string name="not_now">Mitte praegu</string>
     <string name="edit_refused_new_line">Reavahetust lõigu sees ei saa salvestada. Uue lõigu jaoks vajuta Enter.</string>
     <string name="edit_refused_formula">Selles lahtris on valem ja see jääb nii, nagu on.</string>

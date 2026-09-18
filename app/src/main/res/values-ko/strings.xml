@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Pro 기능</string>
     <string name="pro_offer_formatting">텍스트 서식 지정과 단락 추가 또는 병합은 OpenDocument Reader Pro 기능입니다.</string>
     <string name="pro_offer_markup">PDF 표시는 OpenDocument Reader Pro 기능입니다.</string>
-    <string name="pro_offer_sheets">스프레드시트 편집은 OpenDocument Reader Pro 기능입니다.</string>
-    <string name="pro_offer_text">일반 텍스트 파일 편집은 OpenDocument Reader Pro 기능입니다.</string>
     <string name="not_now">나중에</string>
     <string name="edit_refused_new_line">단락 안의 줄 바꿈은 저장할 수 없습니다. 새 단락을 만들려면 Enter를 누르세요.</string>
     <string name="edit_refused_formula">이 셀에는 수식이 있어 그대로 유지됩니다.</string>

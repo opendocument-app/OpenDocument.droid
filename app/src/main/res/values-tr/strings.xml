@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Pro\'nun bir parçası</string>
     <string name="pro_offer_formatting">Metni biçimlendirmek ve paragraf eklemek ya da birleştirmek OpenDocument Reader Pro\'nun bir parçasıdır.</string>
     <string name="pro_offer_markup">PDF işaretlemek OpenDocument Reader Pro\'nun bir parçasıdır.</string>
-    <string name="pro_offer_sheets">Elektronik tabloları düzenlemek OpenDocument Reader Pro\'nun bir parçasıdır.</string>
-    <string name="pro_offer_text">Düz metin dosyalarını düzenlemek OpenDocument Reader Pro\'nun bir parçasıdır.</string>
     <string name="not_now">Şimdi değil</string>
     <string name="edit_refused_new_line">Paragraf içindeki bir satır sonu kaydedilemez. Yeni paragraf için Enter tuşuna basın.</string>
     <string name="edit_refused_formula">Bu hücre bir formül içeriyor ve olduğu gibi kalıyor.</string>

@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Parte do Pro</string>
     <string name="pro_offer_formatting">Formatar texto e adicionar ou juntar parágrafos faz parte do OpenDocument Reader Pro.</string>
     <string name="pro_offer_markup">Marcar um PDF faz parte do OpenDocument Reader Pro.</string>
-    <string name="pro_offer_sheets">Editar planilhas faz parte do OpenDocument Reader Pro.</string>
-    <string name="pro_offer_text">Editar arquivos de texto simples faz parte do OpenDocument Reader Pro.</string>
     <string name="not_now">Agora não</string>
     <string name="edit_refused_new_line">Uma quebra de linha dentro de um parágrafo não pode ser salva. Pressione Enter para um novo parágrafo.</string>
     <string name="edit_refused_formula">Essa célula contém uma fórmula e fica como está.</string>

@@ -134,8 +134,6 @@
     <string name="pro_offer_title">Part of Pro</string>
     <string name="pro_offer_formatting">Formatting text, and adding or joining paragraphs, is part of OpenDocument Reader Pro.</string>
     <string name="pro_offer_markup">Marking up a PDF is part of OpenDocument Reader Pro.</string>
-    <string name="pro_offer_sheets">Editing spreadsheets is part of OpenDocument Reader Pro.</string>
-    <string name="pro_offer_text">Editing plain text files is part of OpenDocument Reader Pro.</string>
     <string name="not_now">Not now</string>
     <!-- what the document says when an edit is not taken, by the reason the page gives -->
     <string name="edit_refused_new_line">A line break inside a paragraph cannot be saved. Press Enter for a new paragraph.</string>

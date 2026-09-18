@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Parte di Pro</string>
     <string name="pro_offer_formatting">Formattare il testo e aggiungere o unire paragrafi fa parte di OpenDocument Reader Pro.</string>
     <string name="pro_offer_markup">Annotare un PDF fa parte di OpenDocument Reader Pro.</string>
-    <string name="pro_offer_sheets">Modificare i fogli di calcolo fa parte di OpenDocument Reader Pro.</string>
-    <string name="pro_offer_text">Modificare i file di testo semplice fa parte di OpenDocument Reader Pro.</string>
     <string name="not_now">Non ora</string>
     <string name="edit_refused_new_line">Un\'interruzione di riga all\'interno di un paragrafo non può essere salvata. Premi Invio per un nuovo paragrafo.</string>
     <string name="edit_refused_formula">Questa cella contiene una formula e resta così com\'è.</string>

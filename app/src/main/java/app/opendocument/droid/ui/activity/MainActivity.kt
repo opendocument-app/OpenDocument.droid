@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode as SupportActionMode
@@ -24,7 +25,6 @@ import androidx.lifecycle.ViewModelProvider
 import app.opendocument.droid.R
 import app.opendocument.droid.background.CatchAllSetting
 import app.opendocument.droid.background.DocumentLoader
-import app.opendocument.droid.background.EditingKind
 import app.opendocument.droid.background.NightModeSetting
 import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.background.PersistedUriPermissions
@@ -621,17 +621,11 @@ class MainActivity : AppCompatActivity() {
             DocumentActions.ACTION_EDIT -> {
                 analyticsManager.report("menu_edit")
 
-                // the button stands on the core's answer, so in lite it is there over a sheet, a
-                // plain text file and a pdf too, and says what pro would do with them
+                // the button stands on the core's answer, so in lite it is there over a pdf too,
+                // and says what pro would do with it
                 val kind = documentFragment?.editingKind ?: return
                 if (!Features.offersEditing(kind)) {
-                    offerPro(
-                        when (kind) {
-                            EditingKind.ANNOTATION -> R.string.pro_offer_markup
-                            EditingKind.SHEET -> R.string.pro_offer_sheets
-                            else -> R.string.pro_offer_text
-                        }
-                    )
+                    offerPro(MainActivity.ProFeature.PDF)
 
                     return
                 }
@@ -753,19 +747,29 @@ class MainActivity : AppCompatActivity() {
      * Says that what was just tried is pro's, and leads to the pro listing. Lite is the only build
      * that asks: pro and foss have every edit.
      */
-    fun offerPro(messageRes: Int) {
-        analyticsManager.report("present_pro_offer")
+    fun offerPro(feature: ProFeature) {
+        // the names OpenDocument.ios reports the same gate under
+        analyticsManager.report("pro_gate_shown", "feature", feature.name.lowercase())
 
         AlertDialog.Builder(this)
             .setTitle(R.string.pro_offer_title)
-            .setMessage(messageRes)
+            .setMessage(feature.message)
             .setPositiveButton(R.string.house_ad_cta_get_pro) { _, _ ->
-                analyticsManager.report("present_pro_offer_clicked")
+                analyticsManager.report("pro_gate_tapped", "feature", feature.name.lowercase())
 
                 buyAdRemoval()
             }
             .setNegativeButton(R.string.not_now, null)
             .show()
+    }
+
+    /** What pro adds, as the reader runs into it. */
+    enum class ProFeature(@param:StringRes val message: Int) {
+        /** Formatting text, and starting or joining a paragraph. */
+        FORMATTING(R.string.pro_offer_formatting),
+
+        /** Marking up a pdf. */
+        PDF(R.string.pro_offer_markup),
     }
 
     /** What [buyAdRemoval] is for a build with no ad removal to sell. */

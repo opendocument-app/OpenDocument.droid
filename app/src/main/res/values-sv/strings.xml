@@ -108,8 +108,6 @@
     <string name="pro_offer_title">En del av Pro</string>
     <string name="pro_offer_formatting">Att formatera text och lägga till eller slå ihop stycken ingår i OpenDocument Reader Pro.</string>
     <string name="pro_offer_markup">Att markera en PDF ingår i OpenDocument Reader Pro.</string>
-    <string name="pro_offer_sheets">Att redigera kalkylblad ingår i OpenDocument Reader Pro.</string>
-    <string name="pro_offer_text">Att redigera vanliga textfiler ingår i OpenDocument Reader Pro.</string>
     <string name="not_now">Inte nu</string>
     <string name="edit_refused_new_line">En radbrytning inuti ett stycke kan inte sparas. Tryck på Enter för ett nytt stycke.</string>
     <string name="edit_refused_formula">Cellen innehåller en formel och förblir som den är.</string>

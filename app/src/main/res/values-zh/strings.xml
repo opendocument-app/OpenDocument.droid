@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Pro 功能</string>
     <string name="pro_offer_formatting">设置文本格式以及添加或合并段落是 OpenDocument Reader Pro 的功能。</string>
     <string name="pro_offer_markup">标注 PDF 是 OpenDocument Reader Pro 的功能。</string>
-    <string name="pro_offer_sheets">编辑电子表格是 OpenDocument Reader Pro 的功能。</string>
-    <string name="pro_offer_text">编辑纯文本文件是 OpenDocument Reader Pro 的功能。</string>
     <string name="not_now">以后再说</string>
     <string name="edit_refused_new_line">段落内的换行无法保存。按 Enter 键可新建段落。</string>
     <string name="edit_refused_formula">该单元格包含公式，将保持不变。</string>

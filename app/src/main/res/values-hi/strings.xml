@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Pro का हिस्सा</string>
     <string name="pro_offer_formatting">टेक्स्ट को फ़ॉर्मैट करना और अनुच्छेद जोड़ना या मिलाना OpenDocument Reader Pro का हिस्सा है।</string>
     <string name="pro_offer_markup">PDF चिह्नित करना OpenDocument Reader Pro का हिस्सा है।</string>
-    <string name="pro_offer_sheets">स्प्रेडशीट संपादित करना OpenDocument Reader Pro का हिस्सा है।</string>
-    <string name="pro_offer_text">सादी टेक्स्ट फ़ाइलें संपादित करना OpenDocument Reader Pro का हिस्सा है।</string>
     <string name="not_now">अभी नहीं</string>
     <string name="edit_refused_new_line">अनुच्छेद के भीतर लाइन ब्रेक सहेजा नहीं जा सकता। नए अनुच्छेद के लिए Enter दबाएँ।</string>
     <string name="edit_refused_formula">इस सेल में एक सूत्र है, इसलिए यह जैसा है वैसा ही रहेगा।</string>

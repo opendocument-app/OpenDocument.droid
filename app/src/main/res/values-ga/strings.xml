@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Cuid de Pro</string>
     <string name="pro_offer_formatting">Is cuid de OpenDocument Reader Pro é téacs a fhormáidiú, agus míreanna a chur leis nó a chumasc.</string>
     <string name="pro_offer_markup">Is cuid de OpenDocument Reader Pro é PDF a mharcáil.</string>
-    <string name="pro_offer_sheets">Is cuid de OpenDocument Reader Pro é scarbhileoga a chur in eagar.</string>
-    <string name="pro_offer_text">Is cuid de OpenDocument Reader Pro é comhaid ghnáth-théacs a chur in eagar.</string>
     <string name="not_now">Ní anois</string>
     <string name="edit_refused_new_line">Ní féidir briseadh líne laistigh de mhír a shábháil. Brúigh Enter le haghaidh míre nua.</string>
     <string name="edit_refused_formula">Tá foirmle sa chill sin agus fanfaidh sí mar atá.</string>

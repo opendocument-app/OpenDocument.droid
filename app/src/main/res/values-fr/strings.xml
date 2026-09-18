@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Inclus dans Pro</string>
     <string name="pro_offer_formatting">La mise en forme du texte, ainsi que l\'ajout ou la fusion de paragraphes, fait partie d\'OpenDocument Reader Pro.</string>
     <string name="pro_offer_markup">L\'annotation des PDF fait partie d\'OpenDocument Reader Pro.</string>
-    <string name="pro_offer_sheets">La modification des feuilles de calcul fait partie d\'OpenDocument Reader Pro.</string>
-    <string name="pro_offer_text">La modification des fichiers texte brut fait partie d\'OpenDocument Reader Pro.</string>
     <string name="not_now">Pas maintenant</string>
     <string name="edit_refused_new_line">Un saut de ligne à l\'intérieur d\'un paragraphe ne peut pas être enregistré. Appuyez sur Entrée pour créer un nouveau paragraphe.</string>
     <string name="edit_refused_formula">Cette cellule contient une formule et reste telle quelle.</string>

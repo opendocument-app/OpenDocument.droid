@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Teil von Pro</string>
     <string name="pro_offer_formatting">Text formatieren sowie Absätze einfügen oder zusammenführen ist Teil von OpenDocument Reader Pro.</string>
     <string name="pro_offer_markup">PDFs markieren ist Teil von OpenDocument Reader Pro.</string>
-    <string name="pro_offer_sheets">Tabellendokumente bearbeiten ist Teil von OpenDocument Reader Pro.</string>
-    <string name="pro_offer_text">Reine Textdateien bearbeiten ist Teil von OpenDocument Reader Pro.</string>
     <string name="not_now">Nicht jetzt</string>
     <string name="edit_refused_new_line">Ein Zeilenumbruch innerhalb eines Absatzes kann nicht gespeichert werden. Drücken Sie die Eingabetaste für einen neuen Absatz.</string>
     <string name="edit_refused_formula">Diese Zelle enthält eine Formel und bleibt, wie sie ist.</string>

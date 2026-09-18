@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Pro の機能</string>
     <string name="pro_offer_formatting">テキストの書式設定と段落の追加・結合は OpenDocument Reader Pro の機能です。</string>
     <string name="pro_offer_markup">PDF への書き込みは OpenDocument Reader Pro の機能です。</string>
-    <string name="pro_offer_sheets">スプレッドシートの編集は OpenDocument Reader Pro の機能です。</string>
-    <string name="pro_offer_text">プレーンテキストファイルの編集は OpenDocument Reader Pro の機能です。</string>
     <string name="not_now">今はしない</string>
     <string name="edit_refused_new_line">段落内の改行は保存できません。新しい段落にするには Enter を押してください。</string>
     <string name="edit_refused_formula">このセルには数式があるため、そのままになります。</string>

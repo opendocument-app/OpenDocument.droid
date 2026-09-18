@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Part de Pro</string>
     <string name="pro_offer_formatting">Donar format al text, i afegir o unir paràgrafs, forma part d\'OpenDocument Reader Pro.</string>
     <string name="pro_offer_markup">Marcar un PDF forma part d\'OpenDocument Reader Pro.</string>
-    <string name="pro_offer_sheets">Editar fulls de càlcul forma part d\'OpenDocument Reader Pro.</string>
-    <string name="pro_offer_text">Editar fitxers de text pla forma part d\'OpenDocument Reader Pro.</string>
     <string name="not_now">Ara no</string>
     <string name="edit_refused_new_line">Un salt de línia dins d\'un paràgraf no es pot desar. Premeu Retorn per a un paràgraf nou.</string>
     <string name="edit_refused_formula">Aquesta cel·la conté una fórmula i es queda tal com està.</string>

@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Del različice Pro</string>
     <string name="pro_offer_formatting">Oblikovanje besedila ter dodajanje ali združevanje odstavkov je del aplikacije OpenDocument Reader Pro.</string>
     <string name="pro_offer_markup">Označevanje PDF-jev je del aplikacije OpenDocument Reader Pro.</string>
-    <string name="pro_offer_sheets">Urejanje preglednic je del aplikacije OpenDocument Reader Pro.</string>
-    <string name="pro_offer_text">Urejanje navadnih besedilnih datotek je del aplikacije OpenDocument Reader Pro.</string>
     <string name="not_now">Ne zdaj</string>
     <string name="edit_refused_new_line">Preloma vrstice znotraj odstavka ni mogoče shraniti. Za nov odstavek pritisnite Enter.</string>
     <string name="edit_refused_formula">Ta celica vsebuje formulo in ostane nespremenjena.</string>

@@ -169,34 +169,27 @@ class MainActivityTests {
         }
     }
 
-    /** A sheet takes cell edits where the edition offers them, and offers pro where it does not. */
+    /**
+     * A sheet takes cell edits in every edition: only formatting, paragraphs and pdf marks are
+     * pro's.
+     */
     @Test
-    fun aSheetIsEditedWhereTheEditionOffersIt() {
+    fun aSheetIsEditedInEveryEdition() {
         respondToOpenDocumentWith(requireTestFile("spreadsheet-test.ods"))
 
         openDocumentThroughPicker()
         waitForDocumentActions()
 
-        // the button stands on the core's answer, whichever the edition
         onView(withContentDescription(R.string.menu_edit)).perform(click())
 
         val activity = mainActivityActivityTestRule.activity
         val pageView = requireNotNull(waitForDocumentFragment(activity, 10000)?.pageView)
 
-        if (Features.advancedEditing) {
-            Assert.assertTrue(
-                "the sheet should turn editable",
-                waitFor(EDIT_MODE_TIMEOUT_MS) { pageAnswers(pageView, "odr.editing.isEnabled()") },
-            )
-        } else {
-            awaitViewWithText(R.string.pro_offer_title)
-            onView(withText(R.string.pro_offer_title)).check(matches(isDisplayed()))
-
-            Assert.assertFalse(
-                "lite should render a sheet without its editor",
-                pageAnswers(pageView, "odr.editing.isEditable()"),
-            )
-        }
+        Assert.assertTrue(
+            "the sheet should turn editable",
+            waitFor(EDIT_MODE_TIMEOUT_MS) { pageAnswers(pageView, "odr.editing.isEnabled()") },
+        )
+        onView(withText(R.string.pro_offer_title)).check(doesNotExist())
     }
 
     /** Lite edits a text document inside one paragraph, and the page itself holds it to that. */

@@ -16,8 +16,9 @@ object Features {
     val withAds = LINKS_ADS
 
     /**
-     * Every edit the core takes: pro and foss. Lite edits the text of a document inside one
-     * paragraph, and the rest is what pro is sold on.
+     * The editing that goes past typing inside a paragraph - formatting, new and joined
+     * paragraphs - and marks on a pdf: pro and foss. Every other edit the core takes, a sheet cell
+     * and a plain text file among them, is in every build.
      */
     val advancedEditing = ADVANCED_EDITING
 
@@ -27,5 +28,5 @@ object Features {
      * editing there is.
      */
     fun offersEditing(kind: EditingKind): Boolean =
-        kind == EditingKind.DOCUMENT || (kind.isEditable && advancedEditing)
+        kind.isEditable && (kind != EditingKind.ANNOTATION || advancedEditing)
 }

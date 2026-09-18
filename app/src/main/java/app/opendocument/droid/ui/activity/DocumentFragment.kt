@@ -521,7 +521,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             }
 
             override fun onLocked() {
-                (requireActivity() as MainActivity).offerPro(R.string.pro_offer_formatting)
+                (requireActivity() as MainActivity).offerPro(MainActivity.ProFeature.FORMATTING)
             }
         }
 
@@ -554,7 +554,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             if (!proOfferedThisEdit) {
                 proOfferedThisEdit = true
 
-                (requireActivity() as MainActivity).offerPro(R.string.pro_offer_formatting)
+                (requireActivity() as MainActivity).offerPro(MainActivity.ProFeature.FORMATTING)
             }
 
             return

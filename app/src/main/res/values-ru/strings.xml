@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Входит в Pro</string>
     <string name="pro_offer_formatting">Форматирование текста, а также добавление и объединение абзацев входят в OpenDocument Reader Pro.</string>
     <string name="pro_offer_markup">Разметка PDF входит в OpenDocument Reader Pro.</string>
-    <string name="pro_offer_sheets">Редактирование электронных таблиц входит в OpenDocument Reader Pro.</string>
-    <string name="pro_offer_text">Редактирование простых текстовых файлов входит в OpenDocument Reader Pro.</string>
     <string name="not_now">Не сейчас</string>
     <string name="edit_refused_new_line">Разрыв строки внутри абзаца нельзя сохранить. Нажмите Enter, чтобы начать новый абзац.</string>
     <string name="edit_refused_formula">В этой ячейке формула, и она останется без изменений.</string>

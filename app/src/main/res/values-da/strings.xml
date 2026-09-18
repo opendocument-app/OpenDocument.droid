@@ -108,8 +108,6 @@
     <string name="pro_offer_title">En del af Pro</string>
     <string name="pro_offer_formatting">Formatering af tekst og tilføjelse eller sammenlægning af afsnit er en del af OpenDocument Reader Pro.</string>
     <string name="pro_offer_markup">Markering af PDF-filer er en del af OpenDocument Reader Pro.</string>
-    <string name="pro_offer_sheets">Redigering af regneark er en del af OpenDocument Reader Pro.</string>
-    <string name="pro_offer_text">Redigering af almindelige tekstfiler er en del af OpenDocument Reader Pro.</string>
     <string name="not_now">Ikke nu</string>
     <string name="edit_refused_new_line">Et linjeskift inde i et afsnit kan ikke gemmes. Tryk på Enter for et nyt afsnit.</string>
     <string name="edit_refused_formula">Cellen indeholder en formel og forbliver, som den er.</string>

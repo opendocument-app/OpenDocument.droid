@@ -108,8 +108,6 @@
     <string name="pro_offer_title">Część wersji Pro</string>
     <string name="pro_offer_formatting">Formatowanie tekstu oraz dodawanie i łączenie akapitów to część OpenDocument Reader Pro.</string>
     <string name="pro_offer_markup">Oznaczanie plików PDF to część OpenDocument Reader Pro.</string>
-    <string name="pro_offer_sheets">Edycja arkuszy kalkulacyjnych to część OpenDocument Reader Pro.</string>
-    <string name="pro_offer_text">Edycja zwykłych plików tekstowych to część OpenDocument Reader Pro.</string>
     <string name="not_now">Nie teraz</string>
     <string name="edit_refused_new_line">Podziału wiersza wewnątrz akapitu nie można zapisać. Naciśnij Enter, aby utworzyć nowy akapit.</string>
     <string name="edit_refused_formula">Ta komórka zawiera formułę i pozostaje bez zmian.</string>
