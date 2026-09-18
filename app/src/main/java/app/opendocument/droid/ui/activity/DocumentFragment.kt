@@ -70,6 +70,9 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     private lateinit var editingTools: EditingTools
     private var bottomInset = 0
 
+    /** Whether lite offered pro during this edit - see [showRefusal]. */
+    private var proOfferedThisEdit = false
+
     /** Told when [canUndo] or [canRedo] changed, so the edit mode's bar can follow. */
     var editStateListener: (() -> Unit)? = null
 
@@ -411,6 +414,10 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         val document = state.lastDocument ?: return
         requireLastRequest().editable = editing
 
+        if (editing) {
+            proOfferedThisEdit = false
+        }
+
         pageView?.setEditing(document.editing, editing)
 
         showEditingTools(document, editing)
@@ -442,7 +449,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         when {
             !editing -> editingTools.hide()
             document.editing == EditingKind.DOCUMENT ->
-                editingTools.showFormatting(locked = !Features.withAdvancedEditing)
+                editingTools.showFormatting(locked = !Features.advancedEditing)
             document.editing == EditingKind.ANNOTATION -> editingTools.showMarking()
             else -> editingTools.hide()
         }
@@ -541,9 +548,14 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
      * console; the wording a reader sees is ours.
      */
     private fun showRefusal(reason: String) {
-        if (reason == "outOfScope" && !Features.withAdvancedEditing) {
-            // the one refusal pro answers: an edit that splits or merges a paragraph
-            (requireActivity() as MainActivity).offerPro(R.string.pro_offer_paragraphs)
+        if (reason == "outOfScope" && !Features.advancedEditing) {
+            // the one refusal pro answers. once an edit, so a page of refused line breaks is not a
+            // dialog each
+            if (!proOfferedThisEdit) {
+                proOfferedThisEdit = true
+
+                (requireActivity() as MainActivity).offerPro(R.string.pro_offer_formatting)
+            }
 
             return
         }

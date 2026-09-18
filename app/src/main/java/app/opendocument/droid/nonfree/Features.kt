@@ -1,12 +1,12 @@
 package app.opendocument.droid.nonfree
 
-import app.opendocument.droid.BuildConfig
+import app.opendocument.droid.background.EditingKind
 
 /**
  * What this build links and what it sells, asked by name rather than by flavor.
  *
- * [withAds] comes from [LINKS_ADS], which the `ads` and `noAds` source sets define next to the
- * classes it describes, so the flag and the code it stands for cannot disagree.
+ * Both flags come from `Linked.kt`, which the `ads` and `noAds` source sets define next to the
+ * classes [withAds] describes, so a flag and the code it stands for cannot disagree.
  */
 object Features {
 
@@ -16,9 +16,16 @@ object Features {
     val withAds = LINKS_ADS
 
     /**
-     * The edits that reach past one paragraph, formatting, and marking up a pdf: pro and foss. The
-     * other edits are in every build. Declared per flavor in `app/build.gradle`, because no library
-     * stands behind it.
+     * Every edit the core takes: pro and foss. Lite edits the text of a document inside one
+     * paragraph, and the rest is what pro is sold on.
      */
-    val withAdvancedEditing = BuildConfig.ADVANCED_EDITING
+    val advancedEditing = ADVANCED_EDITING
+
+    /**
+     * Whether this build lets the user into the edit mode for [kind]. The core answers whether the
+     * document can be edited at all; this is the edition's policy on top of it, and the one list of
+     * editing there is.
+     */
+    fun offersEditing(kind: EditingKind): Boolean =
+        kind == EditingKind.DOCUMENT || (kind.isEditable && advancedEditing)
 }

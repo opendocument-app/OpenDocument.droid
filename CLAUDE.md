@@ -117,10 +117,12 @@ to the other, which `assembleDebug` catches - it builds all three.
 
 Code that has to *ask* reads `Features`, never the flavor name. `Features.withAds` comes
 from `LINKS_ADS`, which sits in `src/ads` and `src/noAds` next to the classes it stands for,
-so the flag cannot end up in a build whose code says otherwise. `Features.withAdvancedEditing`
-is what pro is sold on - an edit that splits or merges a paragraph, formatting, marking up a
-pdf - and is a `buildConfigField` per flavor, because no library stands behind it: false in
-lite, true in pro and foss. Everything else the core can edit is in every build.
+so the flag cannot end up in a build whose code says otherwise. `Features.advancedEditing`,
+from `ADVANCED_EDITING` in the same two files, is what pro is sold on: lite edits the text of
+a document inside one paragraph, and pro and foss take every edit the core does - paragraphs,
+formatting, sheet cells, plain text, pdf marks. `Features.offersEditing` is the one list of
+it; the Edit button still stands on the core's answer, so in lite it offers pro instead.
+`OpenDocument.ios` has the same flag beside its own `LINKS_ADS`.
 
 Do not add a `BuildConfig.FLAVOR` comparison back - it was what made `BillingManager` miss
 foss - and do not name a flag after a behaviour it only implies. The resource bool
@@ -320,8 +322,9 @@ rendered with `HtmlConfig.editable`, and the edit button only calls `odr.editing
 no second render, so the reader stays where they were. The page owns the operation log, undo
 and the refusals; `editing-bridge.js` (injected by `PageView` on every page load) forwards its
 callbacks. Lite narrows `HtmlConfig.editingScope` to `PARAGRAPH`, and the page refuses the
-rest with `outOfScope`, which `DocumentFragment` answers with the offer of pro. A pdf needs no
-scaffolding: every pdf page carries `odr.annotation`.
+rest with `outOfScope`, which `DocumentFragment` answers with the offer of pro, once an edit.
+A kind of document lite does not edit is rendered without the scaffolding. A pdf needs none:
+every pdf page carries `odr.annotation`.
 
 **Nothing is held open between the render and the save.** `CoreLoader.writeEdits` opens the
 cached copy again and applies the page's payload with the call its kind takes -

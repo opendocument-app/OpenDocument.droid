@@ -621,12 +621,17 @@ class MainActivity : AppCompatActivity() {
             DocumentActions.ACTION_EDIT -> {
                 analyticsManager.report("menu_edit")
 
-                // marking up a pdf is pro's, and the button is there in lite to say so
-                if (
-                    documentFragment?.editingKind == EditingKind.ANNOTATION &&
-                        !Features.withAdvancedEditing
-                ) {
-                    offerPro(R.string.pro_offer_markup)
+                // the button stands on the core's answer, so in lite it is there over a sheet, a
+                // plain text file and a pdf too, and says what pro would do with them
+                val kind = documentFragment?.editingKind ?: return
+                if (!Features.offersEditing(kind)) {
+                    offerPro(
+                        when (kind) {
+                            EditingKind.ANNOTATION -> R.string.pro_offer_markup
+                            EditingKind.SHEET -> R.string.pro_offer_sheets
+                            else -> R.string.pro_offer_text
+                        }
+                    )
 
                     return
                 }
@@ -745,24 +750,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Says that what was just tried is pro's, with a button to the pro listing. Lite is the only
-     * build that asks: pro and foss have every edit.
+     * Says that what was just tried is pro's, and leads to the pro listing. Lite is the only build
+     * that asks: pro and foss have every edit.
      */
     fun offerPro(messageRes: Int) {
         analyticsManager.report("present_pro_offer")
 
-        SnackbarHelper.show(
-            this,
-            messageRes,
-            R.string.house_ad_cta_get_pro,
-            {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.pro_offer_title)
+            .setMessage(messageRes)
+            .setPositiveButton(R.string.house_ad_cta_get_pro) { _, _ ->
                 analyticsManager.report("present_pro_offer_clicked")
 
                 buyAdRemoval()
-            },
-            isIndefinite = false,
-            isError = false,
-        )
+            }
+            .setNegativeButton(R.string.not_now, null)
+            .show()
     }
 
     /** What [buyAdRemoval] is for a build with no ad removal to sell. */

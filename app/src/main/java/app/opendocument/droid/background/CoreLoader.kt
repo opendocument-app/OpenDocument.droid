@@ -144,17 +144,14 @@ class CoreLoader(private val context: Context) {
         htmlConfig.textDocumentMargin = paging
 
         // the scaffolding only: the mode starts off, and odr.editing.enable() is what the edit
-        // button calls. a pdf needs none of it - every pdf page carries odr.annotation
-        htmlConfig.editable =
-            editing == EditingKind.TEXT ||
-                editing == EditingKind.DOCUMENT ||
-                editing == EditingKind.SHEET
+        // button calls. not where this build does not offer the edit - the markup would buy
+        // nothing - and a pdf needs none of it: every pdf page carries odr.annotation
+        htmlConfig.editable = editing != EditingKind.ANNOTATION && Features.offersEditing(editing)
 
         // an edit that splits or merges a paragraph, and formatting, are pro's. the page refuses
         // them in lite with outOfScope, which DocumentFragment answers with the offer
         htmlConfig.editingScope =
-            if (Features.withAdvancedEditing) HtmlEditingScope.DOCUMENT
-            else HtmlEditingScope.PARAGRAPH
+            if (Features.advancedEditing) HtmlEditingScope.DOCUMENT else HtmlEditingScope.PARAGRAPH
 
         // both schemes, each behind prefers-color-scheme, rather than the one it is being read in
         // now: this is decided while translating, and darkening is turned on and off over the open
