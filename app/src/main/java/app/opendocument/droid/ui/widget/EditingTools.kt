@@ -40,7 +40,7 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
 
         /**
          * A marking tool was pressed, or picked a new [color] where [recolor] - see
-         * `editing-bridge.js` for what either does to a selection.
+         * `odr.annotation.press` and `recolor` for what either does to a selection.
          */
         fun onMarkTool(tool: String, @ColorInt color: Int, recolor: Boolean)
 

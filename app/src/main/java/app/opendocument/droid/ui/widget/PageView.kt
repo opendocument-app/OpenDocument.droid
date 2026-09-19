@@ -473,7 +473,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
             when {
                 editingKind == EditingKind.ANNOTATION ->
                     if (isEditing) "void 0"
-                    else "window.odr && odr.androidEditing && odr.androidEditing.disarm()"
+                    else "window.odr && odr.annotation && odr.annotation.setTool(null)"
                 isEditing -> "window.odr && odr.editing && odr.editing.enable()"
                 else -> "window.odr && odr.editing && odr.editing.disable()"
             },
@@ -484,7 +484,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     fun undo() {
         evaluateJavascript(
             if (editingKind == EditingKind.ANNOTATION)
-                "window.odr && odr.androidEditing && odr.androidEditing.undoMark()"
+                "window.odr && odr.annotation && odr.annotation.undo()"
             else "window.odr && odr.editing && odr.editing.undo()",
             null,
         )
@@ -505,8 +505,8 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     }
 
     /**
-     * A marking tool was pressed, or [recolor] given a new colour. [callback] gets the tool left
-     * armed, or null.
+     * A marking tool was pressed, or [recolor] given a new colour - `odr.annotation.press` and
+     * `recolor` decide what that does to a selection. [callback] gets the tool left armed, or null.
      */
     fun pressMarkTool(
         tool: String,
@@ -519,11 +519,11 @@ constructor(context: Context, attributeSet: AttributeSet?) :
             "[${android.graphics.Color.red(color) / 255f}," +
                 "${android.graphics.Color.green(color) / 255f}," +
                 "${android.graphics.Color.blue(color) / 255f}]"
-        val method = if (recolor) "recolor" else "tool"
+        val method = if (recolor) "recolor" else "press"
 
         evaluateJavascript(
-            "window.odr && odr.androidEditing ? " +
-                "odr.androidEditing.$method(${JSONObject.quote(tool)}, $rgb, $width) : null"
+            "window.odr && odr.annotation ? odr.annotation.$method(" +
+                "${JSONObject.quote(tool)}, {color: $rgb, width: $width}) : null"
         ) {
             callback(decodeString(it))
         }

@@ -328,7 +328,7 @@ A pdf needs no scaffolding: every pdf page carries `odr.annotation`.
 
 **Nothing is held open between the render and the save.** `CoreLoader.writeEdits` opens the
 cached copy again and applies the page's payload with the call its kind takes -
-`Document.edit` and `save`, `TextFile.writeEdited`, `PdfFile.annotate`. An edit that throws
+`Document.edit` and `save`, `TextFile.edit` and `save`, `PdfFile.annotate`. An edit that throws
 halfway leaves the document it was applied to half changed, so a retry must not start from it.
 
 ### Storage access

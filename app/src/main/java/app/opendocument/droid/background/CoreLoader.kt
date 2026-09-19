@@ -24,7 +24,6 @@ import app.opendocument.droid.nonfree.CrashManager
 import app.opendocument.droid.nonfree.Features
 import java.io.File
 import java.io.IOException
-import org.json.JSONObject
 
 /**
  * Loads documents through odrcore and publishes them on a local http server.
@@ -324,16 +323,15 @@ class CoreLoader(private val context: Context) {
             when (editingOf(file)) {
                 EditingKind.NONE -> throw IOException("cannot be written back: $inputPath")
                 EditingKind.ANNOTATION -> outputFile.writeBytes(file.asPdfFile().annotate(payload))
-                EditingKind.TEXT -> outputFile.writeBytes(file.asTextFile().writeEdited(payload))
+                EditingKind.TEXT ->
+                    file.asTextFile().let { textFile ->
+                        textFile.edit(payload)
+                        textFile.save(outputFile.path)
+                    }
                 EditingKind.DOCUMENT,
                 EditingKind.SHEET ->
                     file.asDocumentFile().document().use { document ->
-                        // an envelope with no operations is refused, and a save with nothing to
-                        // apply is the file as it was
-                        if (JSONObject(payload).getJSONArray("ops").length() > 0) {
-                            document.edit(payload)
-                        }
-
+                        document.edit(payload)
                         document.save(outputFile.path)
                     }
             }
