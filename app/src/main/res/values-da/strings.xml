@@ -75,4 +75,47 @@
     <string name="alert_unsaved_changes">Ikke-gemte ændringer</string>
     <string name="alert_save_now">Vil du gemme dem nu?</string>
     <string name="alert_discard_changes">Kassér</string>
+    <!-- the edit mode: the bar, the tools under it, and the offer of Pro -->
+    <string name="menu_annotate">Markér PDF</string>
+    <string name="action_annotate_banner">Vælg tekst og derefter et værktøj for at markere den</string>
+    <string name="action_undo">Fortryd</string>
+    <string name="action_redo">Gentag</string>
+    <string name="tool_bold">Fed</string>
+    <string name="tool_italic">Kursiv</string>
+    <string name="tool_underline">Understreget</string>
+    <string name="tool_strikethrough">Gennemstreget</string>
+    <string name="tool_text_color">Tekstfarve</string>
+    <string name="tool_highlight">Fremhæv</string>
+    <string name="tool_font_size">Tekststørrelse</string>
+    <string name="tool_color_of">Farve til %1$s</string>
+    <string name="tool_font_size_points">%1$s pt</string>
+    <string name="tool_mark_highlight">Fremhæv</string>
+    <string name="tool_mark_underline">Understreg</string>
+    <string name="tool_mark_strike_out">Gennemstreg</string>
+    <string name="tool_mark_squiggly">Bølget understregning</string>
+    <string name="tool_mark_draw">Tegn</string>
+    <string name="color_black">Sort</string>
+    <string name="color_red">Rød</string>
+    <string name="color_yellow">Gul</string>
+    <string name="color_green">Grøn</string>
+    <string name="color_blue">Blå</string>
+    <string name="color_pink">Lyserød</string>
+    <string name="color_none">Ingen fremhævning</string>
+    <string name="tool_pro_badge">Pro</string>
+    <string name="pro_offer_title">En del af Pro</string>
+    <string name="pro_offer_formatting">Formatering af tekst og tilføjelse eller sammenlægning af afsnit er en del af OpenDocument Reader Pro.</string>
+    <string name="pro_offer_markup">Markering af PDF-filer er en del af OpenDocument Reader Pro.</string>
+    <string name="not_now">Ikke nu</string>
+    <string name="edit_refused_new_line">Et linjeskift inde i et afsnit kan ikke gemmes. Tryk på Enter for et nyt afsnit.</string>
+    <string name="edit_refused_formula">Cellen indeholder en formel og forbliver, som den er.</string>
+    <string name="edit_refused_formula_input">Indtastning af formler understøttes endnu ikke.</string>
+    <string name="edit_refused_rich">Cellen indeholder mere end almindelig tekst og forbliver, som den er.</string>
+    <string name="edit_refused_shapes">Cellen indeholder en tegning og forbliver, som den er.</string>
+    <string name="edit_refused_read_only">Dette dokument kan ikke redigeres.</string>
+    <string name="edit_refused_range">En redigering kan ikke strække sig over et billede eller en tabel.</string>
+    <string name="edit_refused_unsupported">Den redigering er ikke mulig her.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d formelcelle viser et resultat, som din redigering har gjort forældet. Den gemte fil beholder formlen, og et regnearksprogram beregner den igen.</item>
+        <item quantity="other">%d formelceller viser resultater, som din redigering har gjort forældede. Den gemte fil beholder formlerne, og et regnearksprogram beregner dem igen.</item>
+    </plurals>
 </resources>

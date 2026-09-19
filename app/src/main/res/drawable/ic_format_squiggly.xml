@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+  <!-- format_underlined with a wave for its line: material has no squiggly underline -->
+  <path
+      android:fillColor="@android:color/white"
+      android:pathData="M12,16c3.31,0 6,-2.69 6,-6L18,2h-2.5v8c0,1.93 -1.57,3.5 -3.5,3.5S8.5,11.93 8.5,10L8.5,2L6,2v8c0,3.31 2.69,6 6,6z"/>
+  <path
+      android:strokeColor="@android:color/white"
+      android:strokeWidth="1.6"
+      android:strokeLineCap="round"
+      android:pathData="M4.5,20.5q1.875,-2.2 3.75,0t3.75,0t3.75,0t3.75,0"/>
+</vector>

@@ -35,6 +35,7 @@ import androidx.test.runner.lifecycle.Stage
 import app.opendocument.droid.R
 import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.background.ReviewInvitation
+import app.opendocument.droid.nonfree.Features
 import app.opendocument.droid.ui.EditActionModeCallback
 import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.activity.DocumentFragment
@@ -150,12 +151,60 @@ class MainActivityTests {
 
         // next onView will be blocked until the idling resource is idle, which now covers
         // the load itself and not just the picker round trip. the buttons being up is what
-        // says the pdf opened - Edit is not, because the core does not write pdf back
+        // says the pdf opened
         waitForDocumentActions()
 
-        // no unfolding first: every unfolding row is in the hierarchy whether the column is
-        // open or not, and doesNotExist walks all of it
+        // a pdf is marked up, not edited. no unfolding first: every unfolding row is in the
+        // hierarchy whether the column is open or not, and doesNotExist walks all of it
         onView(withContentDescription(R.string.menu_edit)).check(doesNotExist())
+
+        // the button is there in every edition: pro marks, lite says what pro would do
+        onView(withContentDescription(R.string.menu_annotate)).perform(click())
+
+        if (Features.advancedEditing) {
+            onView(withContentDescription(R.string.tool_mark_draw)).check(matches(isDisplayed()))
+        } else {
+            awaitViewWithText(R.string.pro_offer_title)
+            onView(withText(R.string.pro_offer_title)).check(matches(isDisplayed()))
+        }
+    }
+
+    /** A sheet takes cell edits in every edition. */
+    @Test
+    fun aSheetIsEditedInEveryEdition() {
+        respondToOpenDocumentWith(requireTestFile("spreadsheet-test.ods"))
+
+        openDocumentThroughPicker()
+        waitForDocumentActions()
+
+        onView(withContentDescription(R.string.menu_edit)).perform(click())
+
+        val activity = mainActivityActivityTestRule.activity
+        val pageView = requireNotNull(waitForDocumentFragment(activity, 10000)?.pageView)
+
+        Assert.assertTrue(
+            "the sheet should turn editable",
+            waitFor(EDIT_MODE_TIMEOUT_MS) { pageAnswers(pageView, "odr.editing.isEnabled()") },
+        )
+        onView(withText(R.string.pro_offer_title)).check(doesNotExist())
+    }
+
+    /** Lite edits a text document inside one paragraph, and the page itself holds it to that. */
+    @Test
+    fun theEditionDecidesHowFarAnEditReaches() {
+        val activity = mainActivityActivityTestRule.activity
+        val documentFragment = loadDocument(activity, requireTestFile("test.odt"))
+        val pageView = requireNotNull(documentFragment.pageView)
+
+        val expected = if (Features.advancedEditing) "document" else "paragraph"
+
+        Assert.assertTrue(
+            "the page should state the scope $expected",
+            waitFor(EDIT_MODE_TIMEOUT_MS) {
+                evaluateJavascript(pageView, "window.odr && odr.editing.scope()")
+                    ?.replace("\"", "") == expected
+            },
+        )
     }
 
     @Test
@@ -779,6 +828,10 @@ class MainActivityTests {
         return result.get()
     }
 
+    /** Whether [expression] is true in the page; false too where the page did not answer. */
+    private fun pageAnswers(pageView: PageView, expression: String): Boolean =
+        evaluateJavascript(pageView, "!!(window.odr && $expression)")?.replace("\"", "") == "true"
+
     private fun requireTestFile(name: String): File =
         checkNotNull(testFiles[name]) { "test file was not extracted: $name" }
 
@@ -833,6 +886,7 @@ class MainActivityTests {
                     "password-test.odt",
                     "style-various-1.docx",
                     "corrupt.odt",
+                    "spreadsheet-test.ods",
                 )) {
                 val targetFile = File(testDocumentsDir, filename)
                 copy(testAssetManager.open(filename), targetFile)

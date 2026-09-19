@@ -11,8 +11,8 @@ import android.os.Parcelable
  *
  * [partCuts] runs alongside them, null for every part but a sheet that was cut.
  *
- * [isEditable] and [readsAsDocument] are the core's own answers about this document, never a guess
- * from its mime type - see `CoreLoader.isDocumentEditable` and `CoreLoader.readsAsDocument`.
+ * [editing] and [readsAsDocument] are the core's own answers about this document, never a guess
+ * from its mime type - see `CoreLoader.editing` and `CoreLoader.readsAsDocument`.
  */
 class LoadedDocument(
     val request: DocumentRequest,
@@ -20,7 +20,7 @@ class LoadedDocument(
     val partTitles: List<String?>,
     val partUris: List<Uri>,
     val partCuts: List<SheetCut?>,
-    val isEditable: Boolean,
+    val editing: EditingKind,
     val readsAsDocument: Boolean,
 ) : Parcelable {
 
@@ -32,7 +32,7 @@ class LoadedDocument(
         parcel.writeList(partTitles)
         parcel.writeList(partUris)
         parcel.writeList(partCuts)
-        ParcelUtil.writeBoolean(parcel, isEditable)
+        parcel.writeInt(editing.ordinal)
         ParcelUtil.writeBoolean(parcel, readsAsDocument)
     }
 
@@ -64,7 +64,7 @@ class LoadedDocument(
                         partTitles,
                         partUris,
                         partCuts,
-                        ParcelUtil.readBoolean(parcel),
+                        EditingKind.entries[parcel.readInt()],
                         ParcelUtil.readBoolean(parcel),
                     )
                 }

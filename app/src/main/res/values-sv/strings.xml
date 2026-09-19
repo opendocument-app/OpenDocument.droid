@@ -75,4 +75,47 @@
     <string name="alert_unsaved_changes">Osparade ändringar</string>
     <string name="alert_save_now">Vill du spara dem nu?</string>
     <string name="alert_discard_changes">Spara inte</string>
+    <!-- the edit mode: the bar, the tools under it, and the offer of Pro -->
+    <string name="menu_annotate">Markera PDF</string>
+    <string name="action_annotate_banner">Välj text och sedan ett verktyg för att markera den</string>
+    <string name="action_undo">Ångra</string>
+    <string name="action_redo">Gör om</string>
+    <string name="tool_bold">Fet</string>
+    <string name="tool_italic">Kursiv</string>
+    <string name="tool_underline">Understruken</string>
+    <string name="tool_strikethrough">Genomstruken</string>
+    <string name="tool_text_color">Textfärg</string>
+    <string name="tool_highlight">Överstrykning</string>
+    <string name="tool_font_size">Textstorlek</string>
+    <string name="tool_color_of">Färg för %1$s</string>
+    <string name="tool_font_size_points">%1$s pt</string>
+    <string name="tool_mark_highlight">Överstrykning</string>
+    <string name="tool_mark_underline">Understrykning</string>
+    <string name="tool_mark_strike_out">Genomstrykning</string>
+    <string name="tool_mark_squiggly">Vågig understrykning</string>
+    <string name="tool_mark_draw">Rita</string>
+    <string name="color_black">Svart</string>
+    <string name="color_red">Röd</string>
+    <string name="color_yellow">Gul</string>
+    <string name="color_green">Grön</string>
+    <string name="color_blue">Blå</string>
+    <string name="color_pink">Rosa</string>
+    <string name="color_none">Ingen överstrykning</string>
+    <string name="tool_pro_badge">Pro</string>
+    <string name="pro_offer_title">En del av Pro</string>
+    <string name="pro_offer_formatting">Att formatera text och lägga till eller slå ihop stycken ingår i OpenDocument Reader Pro.</string>
+    <string name="pro_offer_markup">Att markera en PDF ingår i OpenDocument Reader Pro.</string>
+    <string name="not_now">Inte nu</string>
+    <string name="edit_refused_new_line">En radbrytning inuti ett stycke kan inte sparas. Tryck på Enter för ett nytt stycke.</string>
+    <string name="edit_refused_formula">Cellen innehåller en formel och förblir som den är.</string>
+    <string name="edit_refused_formula_input">Att skriva formler stöds inte ännu.</string>
+    <string name="edit_refused_rich">Cellen innehåller mer än vanlig text och förblir som den är.</string>
+    <string name="edit_refused_shapes">Cellen innehåller en ritning och förblir som den är.</string>
+    <string name="edit_refused_read_only">Det här dokumentet kan inte redigeras.</string>
+    <string name="edit_refused_range">En redigering kan inte sträcka sig över en bild eller en tabell.</string>
+    <string name="edit_refused_unsupported">Den redigeringen är inte möjlig här.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d formelcell visar ett resultat som din redigering har gjort inaktuellt. Den sparade filen behåller formeln, och ett kalkylprogram räknar ut den igen.</item>
+        <item quantity="other">%d formelceller visar resultat som din redigering har gjort inaktuella. Den sparade filen behåller formlerna, och ett kalkylprogram räknar ut dem igen.</item>
+    </plurals>
 </resources>

@@ -106,7 +106,7 @@ class DocumentParcelTest {
                 ),
                 // the middle sheet is the only one the budget cut
                 listOf(null, SheetCut(80000, 12, 8333, 12), null),
-                isEditable = true,
+                editing = EditingKind.DOCUMENT,
                 readsAsDocument = true,
             )
 
@@ -116,7 +116,7 @@ class DocumentParcelTest {
         assertEquals("budget.ods", restored.file.filename)
         assertEquals(listOf("hey", "ho", "Sheet3"), restored.partTitles)
         assertEquals(document.partUris, restored.partUris)
-        assertTrue(restored.isEditable)
+        assertEquals(EditingKind.DOCUMENT, restored.editing)
         assertTrue(restored.readsAsDocument)
 
         assertNull(restored.partCuts[0])
@@ -147,7 +147,7 @@ class DocumentParcelTest {
                     listOf<String?>(null),
                     listOf(Uri.parse("http://localhost:29665/file/odr/document.html")),
                     listOf(null),
-                    isEditable = false,
+                    editing = EditingKind.NONE,
                     readsAsDocument = true,
                 ),
                 LoadedDocument.CREATOR,
@@ -156,7 +156,7 @@ class DocumentParcelTest {
         assertEquals(1, restored.partTitles.size)
         assertNull(restored.partTitles[0])
         assertNull(restored.partCuts[0])
-        assertEquals(false, restored.isEditable)
+        assertEquals(EditingKind.NONE, restored.editing)
         assertTrue(restored.readsAsDocument)
     }
 

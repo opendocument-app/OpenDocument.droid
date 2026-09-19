@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode as SupportActionMode
@@ -620,6 +621,14 @@ class MainActivity : AppCompatActivity() {
             DocumentActions.ACTION_EDIT -> {
                 analyticsManager.report("menu_edit")
 
+                // the button follows the core, so lite shows it over a pdf and offers pro
+                val kind = documentFragment?.editingKind ?: return
+                if (!Features.offersEditing(kind)) {
+                    offerPro(ProFeature.PDF)
+
+                    return
+                }
+
                 documentFragment?.let { fragment ->
                     currentActionMode =
                         startSupportActionMode(EditActionModeCallback(this, fragment))
@@ -733,6 +742,32 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /** Says that what was just tried is pro's, and leads to the pro listing. Lite only. */
+    fun offerPro(feature: ProFeature) {
+        // the names OpenDocument.ios reports the same gate under
+        analyticsManager.report("pro_gate_shown", "feature", feature.name.lowercase())
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.pro_offer_title)
+            .setMessage(feature.message)
+            .setPositiveButton(R.string.house_ad_cta_get_pro) { _, _ ->
+                analyticsManager.report("pro_gate_tapped", "feature", feature.name.lowercase())
+
+                buyAdRemoval()
+            }
+            .setNegativeButton(R.string.not_now, null)
+            .show()
+    }
+
+    /** What pro adds, as the reader runs into it. */
+    enum class ProFeature(@param:StringRes val message: Int) {
+        /** Formatting text, and starting or joining a paragraph. */
+        FORMATTING(R.string.pro_offer_formatting),
+
+        /** Marking up a pdf. */
+        PDF(R.string.pro_offer_markup),
+    }
+
     /** What [buyAdRemoval] is for a build with no ad removal to sell. */
     fun openSponsorPage() {
         analyticsManager.report(AnalyticsConstants.EVENT_ADD_TO_CART)
@@ -776,13 +811,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Asks before walking away from a document being edited, then runs [leave]. Saving does not
-     * also leave: it opens the create-document picker, which still needs the page the diff comes
-     * from.
+     * Asks before walking away from edits that are only in the page, then runs [leave]. Saving does
+     * not also leave: it opens the create-document picker, which still needs the page the edits
+     * come from.
      */
-    private fun confirmLeavingEdits(leave: () -> Unit) {
+    fun confirmLeavingEdits(leave: () -> Unit) {
         val documentFragment = this.documentFragment
-        if (documentFragment == null || !documentFragment.isEditing()) {
+        if (documentFragment == null || !documentFragment.hasUnsavedEdits()) {
             leave()
 
             return
@@ -824,9 +859,7 @@ class MainActivity : AppCompatActivity() {
             SnackbarHelper.dismiss(this)
         }
 
-        // the fragment goes first: finishing an edit mode reloads the document it acts on, and
-        // that load would put a progress dialog up over a fragment that is about to be removed.
-        // reloadUri() is a no-op once it is detached
+        // the fragment goes first, so finishing the edit mode does not ask about its edits again
         documentFragment?.let { fragment ->
             supportFragmentManager.beginTransaction().remove(fragment).commitNow()
 

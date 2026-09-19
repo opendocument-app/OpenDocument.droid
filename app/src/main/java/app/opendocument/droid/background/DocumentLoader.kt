@@ -74,8 +74,8 @@ class DocumentLoader(application: Application) : AndroidViewModel(application) {
         backgroundHandler.post { renderSync(request, file) }
     }
 
-    fun save(document: LoadedDocument, target: Uri, htmlDiff: String?) {
-        backgroundHandler.post { saveSync(document, target, htmlDiff) }
+    fun save(document: LoadedDocument, target: Uri, payload: String?) {
+        backgroundHandler.post { saveSync(document, target, payload) }
     }
 
     /**
@@ -197,9 +197,9 @@ class DocumentLoader(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun saveSync(document: LoadedDocument, target: Uri, htmlDiff: String?) {
+    private fun saveSync(document: LoadedDocument, target: Uri, payload: String?) {
         try {
-            documentSaver.save(document, target, htmlDiff)
+            documentSaver.save(document, target, payload)
 
             deliver { it.onSaveSuccess(target) }
         } catch (e: Throwable) {

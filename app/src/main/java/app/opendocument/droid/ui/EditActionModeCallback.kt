@@ -1,46 +1,37 @@
 package app.opendocument.droid.ui
 
-import android.content.Context
 import android.view.Menu
 import android.view.MenuItem
-import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import androidx.appcompat.view.ActionMode
 import app.opendocument.droid.R
+import app.opendocument.droid.background.EditingKind
 import app.opendocument.droid.ui.activity.DocumentFragment
 import app.opendocument.droid.ui.activity.MainActivity
 
-@Suppress("DEPRECATION")
+/** The edit mode: the bar with save. The tools under it are `EditingTools`. */
 class EditActionModeCallback(
     private val activity: MainActivity,
     private val documentFragment: DocumentFragment,
 ) : ActionMode.Callback {
 
-    private lateinit var imm: InputMethodManager
-
     override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+        val annotating = documentFragment.editingKind == EditingKind.ANNOTATION
+
         val statusView = TextView(activity)
-        statusView.setText(R.string.action_edit_banner)
+        statusView.setText(
+            if (annotating) R.string.action_annotate_banner else R.string.action_edit_banner
+        )
         mode.customView = statusView
 
         mode.menuInflater.inflate(R.menu.edit, menu)
 
-        imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        documentFragment.setEditing(true)
 
         return true
     }
 
-    override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
-        documentFragment.reloadUri(true)
-
-        imm.toggleSoftInputFromWindow(
-            activity.window.decorView.rootView.windowToken,
-            InputMethodManager.SHOW_FORCED,
-            InputMethodManager.HIDE_IMPLICIT_ONLY,
-        )
-
-        return true
-    }
+    override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean = false
 
     override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
         if (item.itemId != R.id.edit_save) {
@@ -56,8 +47,12 @@ class EditActionModeCallback(
     }
 
     override fun onDestroyActionMode(mode: ActionMode) {
-        imm.toggleSoftInputFromWindow(activity.window.decorView.rootView.windowToken, 0, 0)
+        documentFragment.setEditing(false)
 
-        documentFragment.reloadUri(false)
+        // the page keeps its edits with the mode off. not when the document is being closed: that
+        // asked already
+        if (documentFragment.isAdded && documentFragment.hasUnsavedEdits()) {
+            activity.confirmLeavingEdits { documentFragment.discardEdits() }
+        }
     }
 }

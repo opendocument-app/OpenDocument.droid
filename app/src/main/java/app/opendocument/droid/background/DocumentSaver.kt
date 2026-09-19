@@ -23,25 +23,24 @@ class DocumentSaver(
     /**
      * Saves [document] to [target].
      *
-     * @param htmlDiff the edits still only in the page, or null for a "full save" of the file as it
-     *   is on disk.
+     * @param payload the edits or marks still only in the page, or null for a "full save" of the
+     *   file as it is on disk.
      */
-    fun save(document: LoadedDocument, target: Uri, htmlDiff: String?) {
-        // only the retranslated file is ours to remove afterwards - the other branch hands back
-        // the cache file of the document that is still open
-        var retranslated: File? = null
+    fun save(document: LoadedDocument, target: Uri, payload: String?) {
+        // only the edited file is ours to remove afterwards - the other branch hands back the
+        // cache file of the document that is still open
+        var edited: File? = null
         var backup: File? = null
         var backupIsTheLastCopy = false
 
         try {
             val fileToSave =
-                if (htmlDiff != null) {
-                    val edited =
-                        coreLoader.retranslate(document.request, document.file, htmlDiff)
-                            ?: throw RuntimeException("retranslate failed")
-                    retranslated = edited
-
-                    edited
+                if (payload != null) {
+                    coreLoader
+                        .writeEdits(document.request, document.file, document.editing, payload)
+                        ?.also {
+                            edited = it
+                        } ?: throw RuntimeException("writing the edits failed")
                 } else {
                     // "full save" from the main UI
                     checkNotNull(FileCache.getCacheFile(context, document.file.cacheUri)) {
@@ -63,7 +62,7 @@ class DocumentSaver(
                 throw e
             }
         } finally {
-            retranslated?.delete()
+            edited?.delete()
 
             // if the rollback did not get the old content back in, this copy is all that is
             // left of it - leave it in the cache rather than finishing the job

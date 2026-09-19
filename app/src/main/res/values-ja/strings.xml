@@ -75,4 +75,46 @@
     <string name="alert_unsaved_changes">保存されていない変更</string>
     <string name="alert_save_now">今すぐ保存しますか？</string>
     <string name="alert_discard_changes">破棄</string>
+    <!-- the edit mode: the bar, the tools under it, and the offer of Pro -->
+    <string name="menu_annotate">PDF に書き込む</string>
+    <string name="action_annotate_banner">テキストを選択してからツールを選ぶと、マークできます</string>
+    <string name="action_undo">元に戻す</string>
+    <string name="action_redo">やり直す</string>
+    <string name="tool_bold">太字</string>
+    <string name="tool_italic">斜体</string>
+    <string name="tool_underline">下線</string>
+    <string name="tool_strikethrough">取り消し線</string>
+    <string name="tool_text_color">文字の色</string>
+    <string name="tool_highlight">ハイライト</string>
+    <string name="tool_font_size">文字サイズ</string>
+    <string name="tool_color_of">%1$sの色</string>
+    <string name="tool_font_size_points">%1$s pt</string>
+    <string name="tool_mark_highlight">ハイライト</string>
+    <string name="tool_mark_underline">下線</string>
+    <string name="tool_mark_strike_out">取り消し線</string>
+    <string name="tool_mark_squiggly">波線</string>
+    <string name="tool_mark_draw">描画</string>
+    <string name="color_black">黒</string>
+    <string name="color_red">赤</string>
+    <string name="color_yellow">黄</string>
+    <string name="color_green">緑</string>
+    <string name="color_blue">青</string>
+    <string name="color_pink">ピンク</string>
+    <string name="color_none">ハイライトなし</string>
+    <string name="tool_pro_badge">Pro</string>
+    <string name="pro_offer_title">Pro の機能</string>
+    <string name="pro_offer_formatting">テキストの書式設定と段落の追加・結合は OpenDocument Reader Pro の機能です。</string>
+    <string name="pro_offer_markup">PDF への書き込みは OpenDocument Reader Pro の機能です。</string>
+    <string name="not_now">今はしない</string>
+    <string name="edit_refused_new_line">段落内の改行は保存できません。新しい段落にするには Enter を押してください。</string>
+    <string name="edit_refused_formula">このセルには数式があるため、そのままになります。</string>
+    <string name="edit_refused_formula_input">数式の入力にはまだ対応していません。</string>
+    <string name="edit_refused_rich">このセルにはプレーンテキスト以外の内容があるため、そのままになります。</string>
+    <string name="edit_refused_shapes">このセルには図形があるため、そのままになります。</string>
+    <string name="edit_refused_read_only">このドキュメントは編集できません。</string>
+    <string name="edit_refused_range">画像や表をまたいで編集することはできません。</string>
+    <string name="edit_refused_unsupported">ここではその編集はできません。</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="other">%d 個の数式セルに、編集によって古くなった結果が表示されています。保存したファイルには数式が残り、表計算アプリで再計算されます。</item>
+    </plurals>
 </resources>

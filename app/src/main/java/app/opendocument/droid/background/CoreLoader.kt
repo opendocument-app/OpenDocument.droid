@@ -4,47 +4,44 @@ import android.content.Context
 import android.net.Uri
 import android.system.Os
 import android.util.Log
-import app.opendocument.core.DecodePreference
+import app.opendocument.core.DecodeOptions
 import app.opendocument.core.DecodedFile
-import app.opendocument.core.Document
 import app.opendocument.core.DocumentType
 import app.opendocument.core.FileCategory
 import app.opendocument.core.FileType
 import app.opendocument.core.Html
 import app.opendocument.core.HtmlColorScheme
 import app.opendocument.core.HtmlConfig
+import app.opendocument.core.HtmlEditingScope
 import app.opendocument.core.HtmlView
 import app.opendocument.core.HttpServer
 import app.opendocument.core.Odr
 import app.opendocument.core.OdrException
 import app.opendocument.core.TableDimensions
+import app.opendocument.core.TextEncoding
+import app.opendocument.core.TextFile
 import app.opendocument.droid.nonfree.CrashManager
+import app.opendocument.droid.nonfree.Features
 import java.io.File
 import java.io.IOException
 
 /**
  * Loads documents through odrcore and publishes them on a local http server.
  *
- * Owns the process wide core state: the one-time initialization, the single http server and the
- * currently open [Document] that [retranslate] edits.
+ * Owns the process wide core state: the one-time initialization and the single http server.
  */
 class CoreLoader(private val context: Context) {
 
     private lateinit var crashManager: CrashManager
 
-    private var document: Document? = null
-    private var lastInputPath: String? = null
     private var lastDocumentType: DocumentType = DocumentType.UNKNOWN
 
     /** Counts the renders, so each one publishes under a prefix of its own - see [render]. */
     private var renderCount = 0
 
-    /**
-     * Whether the document [host] last opened is one [edit] can do something with - the core's own
-     * answer, since [host] only keeps a document that reports itself editable and savable.
-     */
-    val isDocumentEditable: Boolean
-        get() = document != null
+    /** What the user can change in the document [host] last opened with `askEditing`. */
+    var editing: EditingKind = EditingKind.NONE
+        private set
 
     /**
      * Whether the core reads what [host] last opened as a document rather than only showing it -
@@ -76,21 +73,14 @@ class CoreLoader(private val context: Context) {
             checkNotNull(FileCache.getCacheFile(context, file.cacheUri)) {
                 "not a cached file: " + file.cacheUri
             }
-        val cacheDirectory = FileCache.getCacheDirectory(cachedFile)
-
-        val coreCacheDirectory = File(cacheDirectory, "core_cache")
-
-        lastInputPath = cachedFile.path
 
         val views =
             host(
                 prefix = "odr" + renderCount++,
                 inputPath = cachedFile.path,
-                cachePath = coreCacheDirectory.path,
                 password = request.password,
-                editable = request.editable,
                 paging = PaginationSetting.isEnabled(context),
-                keepDocument = true,
+                askEditing = true,
                 declaredType = declaredType(file),
             )
 
@@ -100,7 +90,7 @@ class CoreLoader(private val context: Context) {
             views.map { it.name },
             views.map { Uri.parse(it.url) },
             views.map { it.sheetCut },
-            isDocumentEditable,
+            editing,
             readsAsDocument,
         )
     }
@@ -109,17 +99,15 @@ class CoreLoader(private val context: Context) {
      * Opens [inputPath], translates it to html and publishes it on the shared http server under
      * [prefix], replacing whatever was published before.
      *
-     * [keepDocument] retains the decoded document for [retranslate]; [declaredType] is what the
-     * document is called - see [openFile].
+     * [askEditing] sets [editing], and renders an editable document with its editor. [declaredType]
+     * is what the document is called - see [openFile].
      */
     fun host(
         prefix: String,
         inputPath: String,
-        cachePath: String,
         password: String? = null,
-        editable: Boolean = false,
         paging: Boolean = false,
-        keepDocument: Boolean = false,
+        askEditing: Boolean = false,
         declaredType: FileType? = null,
     ): List<HostedView> {
         val server = checkNotNull(sharedServer) { "core server is not running" }
@@ -128,20 +116,7 @@ class CoreLoader(private val context: Context) {
 
         server.clear()
 
-        var file = openFile(inputPath, declaredType)
-
-        if (file.passwordEncrypted()) {
-            // the core's answer, not a list of ours: a legacy .doc, .ppt or .xls has no way in
-            // whatever the password, so the prompt would be a dialog that can never close
-            if (!file.capabilities().decrypt) {
-                throw UndecryptableFile(inputPath)
-            }
-
-            if (password == null) {
-                throw OdrException.FileEncrypted(inputPath)
-            }
-            file = file.decrypt(password)
-        }
+        val file = openDecrypted(inputPath, password, declaredType)
 
         Log.i(TAG, "type=" + Odr.fileTypeToString(file.fileType()))
 
@@ -150,37 +125,24 @@ class CoreLoader(private val context: Context) {
 
         // the core opens text it cannot name a charset for and only fails once a page is
         // rendered - on the server thread, long after this reported success. so ask now
-        if (file.isTextFile && file.asTextFile().charset() == null) {
+        if (!hasKnownEncoding(file)) {
             throw OdrException.UnsupportedFileType("no charset could be detected: $inputPath")
         }
 
-        if (keepDocument) {
-            closeDocument()
-
-            // an upper bound the core answers without decoding, so a format that declares no
-            // editing is not opened just to be told no
-            val capabilities = file.capabilities()
-
-            if (file.isDocumentFile && capabilities.edit && capabilities.save) {
-                // TODO this will cause a second load
-                val document = file.asDocumentFile().document()
-
-                // the document itself is the precise answer, and a read only one held open buys
-                // that second parse and nothing else
-                if (document.isEditable && document.isSavable) {
-                    this.document = document
-                } else {
-                    document.close()
-                }
-            }
-        }
+        editing = if (askEditing) editingOf(file) else EditingKind.NONE
 
         val htmlConfig = HtmlConfig()
         htmlConfig.embedImages = false
         htmlConfig.embedShippedResources = true
         htmlConfig.relativeResourcePaths = false
         htmlConfig.textDocumentMargin = paging
-        htmlConfig.editable = editable
+
+        // the mode starts off; a pdf page carries odr.annotation without it
+        htmlConfig.editable = editing != EditingKind.ANNOTATION && Features.offersEditing(editing)
+
+        // lite: the page refuses the rest with outOfScope, and DocumentFragment offers pro
+        htmlConfig.editingScope =
+            if (Features.advancedEditing) HtmlEditingScope.DOCUMENT else HtmlEditingScope.PARAGRAPH
 
         // both schemes, each behind prefers-color-scheme, rather than the one it is being read in
         // now: this is decided while translating, and darkening is turned on and off over the open
@@ -193,11 +155,7 @@ class CoreLoader(private val context: Context) {
         htmlConfig.spreadsheetCellLimit = SpreadsheetBudget.cells(context)
         htmlConfig.spreadsheetLimitByContent = true
 
-        val cacheDirectory = File(cachePath)
-        cacheDirectory.deleteRecursively()
-        cacheDirectory.mkdirs()
-
-        val service = Html.translate(file, cachePath, htmlConfig)
+        val service = Html.translate(file, htmlConfig)
         server.connectService(service, prefix)
 
         return selectViews(file, service.listViews()).map { view ->
@@ -253,7 +211,7 @@ class CoreLoader(private val context: Context) {
         if (
             declaredType == null ||
                 declaredType == detected.fileType() ||
-                !detected.isTextFile ||
+                textOf(detected) == null ||
                 !nameOutranksText(declaredType)
         ) {
             return detected
@@ -276,25 +234,59 @@ class CoreLoader(private val context: Context) {
     /** [inputPath] opened as [type], or null where it is not one after all. */
     private fun openAs(inputPath: String, type: FileType): DecodedFile? =
         try {
-            Odr.open(inputPath, DecodePreference().apply { asFileType = type })
+            Odr.open(inputPath, DecodeOptions().apply { asFileType = type })
         } catch (e: Throwable) {
             Log.i(TAG, "not a " + Odr.fileTypeToString(type))
 
             null
         }
 
-    /** The document with [htmlDiff] applied, written to a file of ours. Null if that failed. */
-    fun retranslate(request: DocumentRequest, file: IdentifiedFile, htmlDiff: String): File? {
+    /** [openFile], and decrypted with [password] where the file is encrypted. */
+    private fun openDecrypted(
+        inputPath: String,
+        password: String?,
+        declaredType: FileType?,
+    ): DecodedFile {
+        val file = openFile(inputPath, declaredType)
+
+        if (!file.passwordEncrypted()) {
+            return file
+        }
+
+        // the core's answer, not a list of ours: a legacy .doc, .ppt or .xls has no way in
+        // whatever the password, so the prompt would be a dialog that can never close
+        if (!file.capabilities().decrypt) {
+            throw UndecryptableFile(inputPath)
+        }
+
+        if (password == null) {
+            throw OdrException.FileEncrypted(inputPath)
+        }
+
+        return file.decrypt(password)
+    }
+
+    /** The document with [payload] from the page applied, written to a file of ours, or null. */
+    fun writeEdits(
+        request: DocumentRequest,
+        file: IdentifiedFile,
+        kind: EditingKind,
+        payload: String,
+    ): File? {
         try {
-            if (document == null) {
-                // nothing is held open after a rebuild, so open it again before editing it
-                render(request, file)
-            }
+            val cachedFile =
+                checkNotNull(FileCache.getCacheFile(context, file.cacheUri)) {
+                    "not a cached file: " + file.cacheUri
+                }
 
-            val inputFile = File(checkNotNull(lastInputPath))
-            val inputCacheDirectory = FileCache.getCacheDirectory(inputFile)
-
-            return edit(htmlDiff, File(inputCacheDirectory, "retranslate").path)
+            return writeEdits(
+                cachedFile.path,
+                request.password,
+                declaredType(file),
+                kind,
+                payload,
+                File(FileCache.getCacheDirectory(cachedFile), "edited").path,
+            )
         } catch (e: Throwable) {
             crashManager.log(e)
 
@@ -303,23 +295,78 @@ class CoreLoader(private val context: Context) {
     }
 
     /**
-     * Applies [htmlDiff] to the document currently held open by [host] and saves it next to
-     * [outputPathPrefix], with the extension that matches the document's own file type.
+     * Opens [inputPath] again, applies [payload] with the call [kind] takes and writes the result
+     * to [outputPathPrefix] plus the file type's extension. Never a document held open since the
+     * render: a failed edit can leave it half changed.
      */
-    fun edit(htmlDiff: String, outputPathPrefix: String): File {
-        val document = checkNotNull(document) { "no editable document is open" }
+    fun writeEdits(
+        inputPath: String,
+        password: String?,
+        declaredType: FileType?,
+        kind: EditingKind,
+        payload: String,
+        outputPathPrefix: String,
+    ): File {
+        openDecrypted(inputPath, password, declaredType).use { file ->
+            // not Odr.fileTypeToString, which gives names like "ooxml_encrypted"
+            val extension = Odr.fileExtensionByFileType(file.fileType())
+            val outputFile = File("$outputPathPrefix.$extension")
 
-        // the file type's extension, not [Odr.fileTypeToString], which is its name - and a name
-        // like "ooxml_encrypted" is not something a file can be called
-        val extension = Odr.fileExtensionByFileType(document.fileType())
-        val outputFile = File("$outputPathPrefix.$extension")
+            when (kind) {
+                EditingKind.NONE -> throw IOException("cannot be written back: $inputPath")
+                EditingKind.ANNOTATION -> outputFile.writeBytes(file.asPdfFile().annotate(payload))
+                EditingKind.TEXT ->
+                    file.asTextFile().let { textFile ->
+                        textFile.edit(payload)
+                        textFile.save(outputFile.path)
+                    }
+                EditingKind.DOCUMENT,
+                EditingKind.SHEET ->
+                    file.asDocumentFile().document().use { document ->
+                        document.edit(payload)
+                        document.save(outputFile.path)
+                    }
+            }
 
-        Log.d(TAG, "HTML diff: $htmlDiff")
+            return outputFile
+        }
+    }
 
-        Html.edit(document, htmlDiff)
-        document.save(outputFile.path)
+    /**
+     * What the user can change in [file]. The capabilities are asked first, because they need no
+     * decode; the file itself has the final answer.
+     */
+    private fun editingOf(file: DecodedFile): EditingKind {
+        val capabilities = file.capabilities()
 
-        return outputFile
+        if (file.isPdfFile) {
+            return if (capabilities.annotate && file.asPdfFile().isAnnotatable) {
+                EditingKind.ANNOTATION
+            } else {
+                EditingKind.NONE
+            }
+        }
+
+        if (!capabilities.edit || !capabilities.save) {
+            return EditingKind.NONE
+        }
+
+        if (file.isTextFile) {
+            return if (file.asTextFile().isSavable) EditingKind.TEXT else EditingKind.NONE
+        }
+
+        if (!file.isDocumentFile) {
+            return EditingKind.NONE
+        }
+
+        file.asDocumentFile().document().use { document ->
+            if (!document.isEditable || !document.isSavable) {
+                return EditingKind.NONE
+            }
+
+            return if (document.documentType() == DocumentType.SPREADSHEET) EditingKind.SHEET
+            else EditingKind.DOCUMENT
+        }
     }
 
     /**
@@ -330,13 +377,6 @@ class CoreLoader(private val context: Context) {
      */
     fun close() {
         sharedServer?.clear()
-
-        closeDocument()
-    }
-
-    private fun closeDocument() {
-        document?.close()
-        document = null
     }
 
     /**
@@ -456,6 +496,22 @@ class CoreLoader(private val context: Context) {
 
             coreInitialized = true
         }
+
+        /**
+         * The text [file] is read as, or null where it is not text. A csv and a markdown file hold
+         * one rather than being one, and are text for every question asked here.
+         */
+        fun textOf(file: DecodedFile): TextFile? =
+            when {
+                file.isTextFile -> file.asTextFile()
+                file.isCsvFile -> file.asCsvFile().textFile()
+                file.isMarkdownFile -> file.asMarkdownFile().textFile()
+                else -> null
+            }
+
+        /** False only for text whose encoding the core cannot name. */
+        fun hasKnownEncoding(file: DecodedFile): Boolean =
+            textOf(file)?.let { it.encoding() != TextEncoding.UNKNOWN } ?: true
 
         /**
          * Spreadsheets show one tab per sheet; every other format only shows the full "document"

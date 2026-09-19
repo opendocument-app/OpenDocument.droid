@@ -7,6 +7,18 @@
         android:orientation="vertical">
 
     <!--
+         the edit mode's tools, driven by DocumentFragment. here rather than in the fragment so
+         they sit right under the edit mode's bar, above the banner
+    -->
+    <app.opendocument.droid.ui.widget.EditingTools
+            android:id="@+id/editing_tools"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:background="?attr/colorSurfaceContainer"
+            android:visibility="gone" />
+
+    <!--
          owned by AdManager, which casts it to a LinearLayout and drives its visibility
          itself. the landing and the document sit below it, so the banner pushes them down
          rather than covering them.
@@ -15,7 +27,7 @@
             android:id="@+id/ad_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
+            android:layout_below="@id/editing_tools"
             android:layout_gravity="center_horizontal"
             android:orientation="horizontal"
             android:visibility="gone" />
