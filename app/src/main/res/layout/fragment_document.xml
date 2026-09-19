@@ -10,14 +10,6 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-        <!-- the tools under the edit mode's bar, only while it is up -->
-        <app.opendocument.droid.ui.widget.EditingTools
-                android:id="@+id/editing_tools"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/colorSurfaceContainer"
-                android:visibility="gone" />
-
         <!-- one tab per sheet for spreadsheets, hidden for every other format -->
         <com.google.android.material.tabs.TabLayout
                 android:id="@+id/document_tabs"

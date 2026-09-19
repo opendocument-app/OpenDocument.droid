@@ -231,7 +231,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         }
         actions.expandedListener = { expanded -> actionsBackCallback.isEnabled = expanded }
 
-        editingTools = view.findViewById(R.id.editing_tools)
+        // the activity's, so it sits above the banner - see main.xml
+        editingTools = mainActivity.findViewById(R.id.editing_tools)
         editingTools.listener = editingToolsListener
 
         // on viewLifecycleOwner, so it stacks above the activity's own callback - the dispatcher
@@ -1462,6 +1463,12 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
     override fun onDestroyView() {
         super.onDestroyView()
+
+        // the row outlives this view, and closing a document ends no edit mode here
+        if (::editingTools.isInitialized) {
+            editingTools.hide()
+            editingTools.listener = null
+        }
 
         if (::documentLoader.isInitialized) {
             documentLoader.listener = null
