@@ -39,8 +39,7 @@ cells of a spreadsheet, and plain text files. Pro also starts and joins paragrap
 text, and marks up PDFs.
 
 The F-Droid build and the apk on the release page are Pro without Play's review sheet: no
-ads, and every edit. They are built from this repository by anyone who wants to, so a gate in
-them would be one line to change.
+ads, and every edit.
 
 ## Translations
 

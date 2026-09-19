@@ -621,11 +621,10 @@ class MainActivity : AppCompatActivity() {
             DocumentActions.ACTION_EDIT -> {
                 analyticsManager.report("menu_edit")
 
-                // the button stands on the core's answer, so in lite it is there over a pdf too,
-                // and says what pro would do with it
+                // the button follows the core, so lite shows it over a pdf and offers pro
                 val kind = documentFragment?.editingKind ?: return
                 if (!Features.offersEditing(kind)) {
-                    offerPro(MainActivity.ProFeature.PDF)
+                    offerPro(ProFeature.PDF)
 
                     return
                 }
@@ -743,10 +742,7 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    /**
-     * Says that what was just tried is pro's, and leads to the pro listing. Lite is the only build
-     * that asks: pro and foss have every edit.
-     */
+    /** Says that what was just tried is pro's, and leads to the pro listing. Lite only. */
     fun offerPro(feature: ProFeature) {
         // the names OpenDocument.ios reports the same gate under
         analyticsManager.report("pro_gate_shown", "feature", feature.name.lowercase())
@@ -863,9 +859,7 @@ class MainActivity : AppCompatActivity() {
             SnackbarHelper.dismiss(this)
         }
 
-        // the fragment goes first: finishing an edit mode with edits in the page asks about them,
-        // and that question is about a document that is being closed. EditActionModeCallback only
-        // asks while the fragment is still added
+        // the fragment goes first, so finishing the edit mode does not ask about its edits again
         documentFragment?.let { fragment ->
             supportFragmentManager.beginTransaction().remove(fragment).commitNow()
 

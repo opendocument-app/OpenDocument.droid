@@ -28,8 +28,7 @@ import java.io.IOException
 /**
  * Loads documents through odrcore and publishes them on a local http server.
  *
- * Owns the process wide core state: the one-time initialization and the single http server. No
- * document is held open between a render and a save: [writeEdits] opens the cached copy again.
+ * Owns the process wide core state: the one-time initialization and the single http server.
  */
 class CoreLoader(private val context: Context) {
 
@@ -40,10 +39,7 @@ class CoreLoader(private val context: Context) {
     /** Counts the renders, so each one publishes under a prefix of its own - see [render]. */
     private var renderCount = 0
 
-    /**
-     * What the user can change in the document [host] last opened, where it was asked to find out.
-     * The core's own answer - see [editingOf].
-     */
+    /** What the user can change in the document [host] last opened with `askEditing`. */
     var editing: EditingKind = EditingKind.NONE
         private set
 
@@ -103,9 +99,8 @@ class CoreLoader(private val context: Context) {
      * Opens [inputPath], translates it to html and publishes it on the shared http server under
      * [prefix], replacing whatever was published before.
      *
-     * [askEditing] finds out what the user can change and sets [editing]; a page the core can write
-     * back is rendered with the editor in it, so the edit mode needs no second render.
-     * [declaredType] is what the document is called - see [openFile].
+     * [askEditing] sets [editing], and renders an editable document with its editor. [declaredType]
+     * is what the document is called - see [openFile].
      */
     fun host(
         prefix: String,
@@ -142,12 +137,10 @@ class CoreLoader(private val context: Context) {
         htmlConfig.relativeResourcePaths = false
         htmlConfig.textDocumentMargin = paging
 
-        // the scaffolding only: the mode starts off, and odr.editing.enable() is what the edit
-        // button calls. a pdf needs none of it: every pdf page carries odr.annotation
+        // the mode starts off; a pdf page carries odr.annotation without it
         htmlConfig.editable = editing != EditingKind.ANNOTATION && Features.offersEditing(editing)
 
-        // an edit that splits or merges a paragraph, and formatting, are pro's. the page refuses
-        // them in lite with outOfScope, which DocumentFragment answers with the offer
+        // lite: the page refuses the rest with outOfScope, and DocumentFragment offers pro
         htmlConfig.editingScope =
             if (Features.advancedEditing) HtmlEditingScope.DOCUMENT else HtmlEditingScope.PARAGRAPH
 
@@ -273,11 +266,13 @@ class CoreLoader(private val context: Context) {
         return file.decrypt(password)
     }
 
-    /**
-     * The document with [payload] from the page applied, written to a file of ours. Null if that
-     * failed.
-     */
-    fun writeEdits(request: DocumentRequest, file: IdentifiedFile, payload: String): File? {
+    /** The document with [payload] from the page applied, written to a file of ours, or null. */
+    fun writeEdits(
+        request: DocumentRequest,
+        file: IdentifiedFile,
+        kind: EditingKind,
+        payload: String,
+    ): File? {
         try {
             val cachedFile =
                 checkNotNull(FileCache.getCacheFile(context, file.cacheUri)) {
@@ -288,6 +283,7 @@ class CoreLoader(private val context: Context) {
                 cachedFile.path,
                 request.password,
                 declaredType(file),
+                kind,
                 payload,
                 File(FileCache.getCacheDirectory(cachedFile), "edited").path,
             )
@@ -299,28 +295,24 @@ class CoreLoader(private val context: Context) {
     }
 
     /**
-     * Opens [inputPath] again, applies [payload] and writes the result next to [outputPathPrefix],
-     * with the extension of the file's own type.
-     *
-     * Opened again rather than held open since the render: an edit that throws halfway leaves the
-     * document it was applied to half changed, and a second attempt must not start from that.
+     * Opens [inputPath] again, applies [payload] with the call [kind] takes and writes the result
+     * to [outputPathPrefix] plus the file type's extension. Never a document held open since the
+     * render: a failed edit can leave it half changed.
      */
     fun writeEdits(
         inputPath: String,
         password: String?,
         declaredType: FileType?,
+        kind: EditingKind,
         payload: String,
         outputPathPrefix: String,
     ): File {
         openDecrypted(inputPath, password, declaredType).use { file ->
-            // the file type's extension, not [Odr.fileTypeToString], which is its name - and a
-            // name like "ooxml_encrypted" is not something a file can be called
+            // not Odr.fileTypeToString, which gives names like "ooxml_encrypted"
             val extension = Odr.fileExtensionByFileType(file.fileType())
             val outputFile = File("$outputPathPrefix.$extension")
 
-            Log.d(TAG, "edit payload: $payload")
-
-            when (editingOf(file)) {
+            when (kind) {
                 EditingKind.NONE -> throw IOException("cannot be written back: $inputPath")
                 EditingKind.ANNOTATION -> outputFile.writeBytes(file.asPdfFile().annotate(payload))
                 EditingKind.TEXT ->
@@ -341,10 +333,8 @@ class CoreLoader(private val context: Context) {
     }
 
     /**
-     * What the user can change in [file]. The format's capabilities come first, answered without
-     * decoding, so a format that declares no editing is not opened just to be told no. The file
-     * itself is the precise answer: a pdf repaired on open takes no marks, a document decrypted
-     * from a password cannot be saved.
+     * What the user can change in [file]. The capabilities are asked first, because they need no
+     * decode; the file itself has the final answer.
      */
     private fun editingOf(file: DecodedFile): EditingKind {
         val capabilities = file.capabilities()

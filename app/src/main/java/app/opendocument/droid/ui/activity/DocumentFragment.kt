@@ -398,10 +398,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         load(DocumentRequest(uri, persistentUri).apply { this.editable = editable })
     }
 
-    /**
-     * Turns the page's edit mode on or off. No render: a document the core can write back carries
-     * its editor from the start, so this is a switch in the page - see `PageView.setEditing`.
-     */
+    /** Turns the page's edit mode on or off, without a render - see `PageView.setEditing`. */
     fun setEditing(editing: Boolean) {
         // closeDocument() removes this fragment and only then finishes the edit mode
         if (!isAdded) {
@@ -427,10 +424,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         }
     }
 
-    /**
-     * Drops the edits the page holds by rendering the document again from the copy in the cache,
-     * which no edit reached.
-     */
+    /** Drops the page's edits by rendering the cached copy again. */
     fun discardEdits() {
         if (!isAdded || state.lastDocument == null) {
             return
@@ -482,10 +476,10 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             }
 
             override fun onCellsStale(count: Int) {
-                // said as it grows: an undo that brings it down needs no word
+                // said only as it grows
                 val grew = count > staleCells
                 staleCells = count
-                if (!grew) {
+                if (!grew || !isAdded) {
                     return
                 }
 
@@ -550,14 +544,14 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         }
     }
 
-    /**
-     * What an edit the page did not take says. The page gives a reason and an english message for a
-     * console; the wording a reader sees is ours.
-     */
+    /** Says why the page refused an edit, in our words rather than the page's. */
     private fun showRefusal(reason: String) {
+        if (!isAdded) {
+            return
+        }
+
         if (reason == "outOfScope" && !Features.advancedEditing) {
-            // the one refusal pro answers. once an edit, so a page of refused line breaks is not a
-            // dialog each
+            // once per edit, not once per refused keystroke
             if (!proOfferedThisEdit) {
                 proOfferedThisEdit = true
 
@@ -709,8 +703,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     private fun prepareActions(document: LoadedDocument) {
         // whether editing is on offer is the core's answer, not a list of formats kept here: it
         // knows which of the documents it renders it can also write back, which is why neither the
-        // legacy binary formats nor the spreadsheets of issue #442 need naming. a pdf is marked up
-        // rather than edited, and says so - in lite too, where the button offers pro
+        // legacy binary formats nor the spreadsheets of issue #442 need naming
         val edit =
             when (document.editing) {
                 EditingKind.NONE -> null
@@ -899,9 +892,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         // before the page is put in below, so it is drawn the way it is going to stay
         applyDarkening(file)
 
-        // and put into the mode it is meant to be in once it has loaded: a save loads the written
-        // document back in the mode the old one was in. The kind has to be told either way,
-        // because it decides what leaving the mode does to the page
+        // the mode it is meant to be in, which a save carries over to the written document
         pageView?.setEditing(document.editing, document.request.editable)
         showEditingTools(document, document.request.editable)
 
@@ -1457,7 +1448,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     /** Whether the document is in edit mode. */
     fun isEditing(): Boolean = ::state.isInitialized && state.lastRequest?.editable == true
 
-    /** Whether the page holds edits or marks that are only in the page, which leaving loses. */
+    /** Whether the page holds edits or marks no save has written. */
     fun hasUnsavedEdits(): Boolean = ::state.isInitialized && state.editsDirty
 
     val editingKind: EditingKind

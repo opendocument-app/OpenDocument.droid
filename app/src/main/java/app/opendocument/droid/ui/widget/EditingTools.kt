@@ -20,12 +20,8 @@ import app.opendocument.droid.R
 import org.json.JSONObject
 
 /**
- * The strip of tools under the edit mode's bar: formatting for a text document or a presentation,
- * the marking tools for a pdf, and undo and redo at the end of every one of them. The website's
- * viewer is the reference, and OpenDocument.ios has the same row.
- *
- * It only reports taps. What a tool does to the page is the page's, through `PageView`, and which
- * tool is on is what the page reports back - [setSelectionStyle] and [setArmedTool].
+ * The tools under the edit mode's bar, with undo and redo at the end. It only reports taps; which
+ * tool is on comes back from the page through [setSelectionStyle] and [setArmedTool].
  */
 class EditingTools(context: Context, attributeSet: AttributeSet?) :
     HorizontalScrollView(context, attributeSet) {
@@ -38,10 +34,7 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         /** State [style] on the selection, in the keys `odr.editing.format` takes. */
         fun onFormat(style: JSONObject)
 
-        /**
-         * A marking tool was pressed, or picked a new [color] where [recolor] - see
-         * `odr.annotation.press` and `recolor` for what either does to a selection.
-         */
+        /** A marking tool was pressed, or given a new [color] where [recolor]. */
         fun onMarkTool(tool: String, @ColorInt color: Int, recolor: Boolean)
 
         /** A tool of pro's was tapped in a build without it. */
@@ -92,10 +85,7 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         visibility = View.GONE
     }
 
-    /**
-     * The formatting tools. [locked] puts pro's badge in front of them, and makes every one of them
-     * an offer of pro instead of an action.
-     */
+    /** The formatting tools. [locked] adds pro's badge, and makes each tool offer pro. */
     fun showFormatting(locked: Boolean) {
         reset(locked)
 
@@ -251,8 +241,7 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
 
         highlightTool?.isSelected = !locked && !style.isNull("highlight")
 
-        // the bars follow the selection, as the website's do; where the runs disagree they keep
-        // what they showed
+        // where the runs disagree, the bars keep what they showed
         style
             .optString("color")
             .takeIf { !style.isNull("color") }
@@ -466,8 +455,7 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         /** Point sizes a document commonly uses. */
         private val FONT_SIZES = listOf(8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48)
 
-        // the colors both apps offer, OpenDocument.ios' EditToolBar being the other copy. the
-        // first of each is the website's own default
+        // the same colors as OpenDocument.ios' EditToolBar; the first of each is the default
         private val TEXT_COLORS =
             listOf(
                 NamedColor(0xff191c1e.toInt(), R.string.color_black),
@@ -493,10 +481,7 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
                 NamedColor(0xff43a047.toInt(), R.string.color_green),
             )
 
-        /**
-         * The five kinds of mark a pdf takes, in the annotator's own names, each with the colour it
-         * starts with: a wash for the highlighter, red for the three lines, blue ink for the pen.
-         */
+        /** The marks a pdf takes, in the annotator's names, each with its starting colour. */
         private val MARKS =
             listOf(
                 Mark(

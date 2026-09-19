@@ -36,9 +36,11 @@ class DocumentSaver(
         try {
             val fileToSave =
                 if (payload != null) {
-                    coreLoader.writeEdits(document.request, document.file, payload)?.also {
-                        edited = it
-                    } ?: throw RuntimeException("writing the edits failed")
+                    coreLoader
+                        .writeEdits(document.request, document.file, document.editing, payload)
+                        ?.also {
+                            edited = it
+                        } ?: throw RuntimeException("writing the edits failed")
                 } else {
                     // "full save" from the main UI
                     checkNotNull(FileCache.getCacheFile(context, document.file.cacheUri)) {

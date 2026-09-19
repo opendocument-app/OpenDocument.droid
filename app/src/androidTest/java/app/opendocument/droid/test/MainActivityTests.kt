@@ -169,10 +169,7 @@ class MainActivityTests {
         }
     }
 
-    /**
-     * A sheet takes cell edits in every edition: only formatting, paragraphs and pdf marks are
-     * pro's.
-     */
+    /** A sheet takes cell edits in every edition. */
     @Test
     fun aSheetIsEditedInEveryEdition() {
         respondToOpenDocumentWith(requireTestFile("spreadsheet-test.ods"))

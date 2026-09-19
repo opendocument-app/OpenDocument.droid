@@ -12,11 +12,7 @@ import android.os.Parcelable
  */
 class DocumentRequest(val uri: Uri, val persistentUri: Boolean) : Parcelable {
 
-    /**
-     * Whether the edit mode is on. The render does not depend on it - a document the core can write
-     * back always carries its editor - so it only says which mode the page is put into once loaded,
-     * including after a save loads the written document again.
-     */
+    /** Whether the edit mode is on. The render does not depend on it. */
     var editable: Boolean = false
 
     var password: String? = null

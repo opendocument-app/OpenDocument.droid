@@ -40,10 +40,7 @@ class CoreTest {
         assertEditRoundTrips("pptx-edit", pptxTestFile)
     }
 
-    /**
-     * Writes one run of [file] the way the page's editor does - an envelope naming the run by the
-     * id the render put on it - and reads the saved file back.
-     */
+    /** Writes one run of [file] as the page's editor does, and reads the saved file back. */
     private fun assertEditRoundTrips(prefix: String, file: File) {
         val html =
             URL(coreLoader.host(prefix, file.absolutePath, askEditing = true)[0].url).readText()
@@ -59,6 +56,7 @@ class CoreTest {
                 file.absolutePath,
                 null,
                 null,
+                coreLoader.editing,
                 payload,
                 File(cacheDir(), "$prefix-result").path,
             )
@@ -82,6 +80,7 @@ class CoreTest {
                 pdfTestFile.absolutePath,
                 null,
                 null,
+                EditingKind.ANNOTATION,
                 payload,
                 File(cacheDir(), "pdf-annotate-result").path,
             )
@@ -113,6 +112,7 @@ class CoreTest {
                 text.absolutePath,
                 null,
                 null,
+                EditingKind.TEXT,
                 """{"version":2,"ops":[{"op":"setContent","text":"$EDITED"}]}""",
                 File(cacheDir(), "text-edit-result").path,
             )

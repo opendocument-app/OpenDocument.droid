@@ -48,7 +48,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     /** Told what the page's editor reports, on the main thread - see `editing-bridge.js`. */
     var editingListener: EditingListener? = null
 
-    /** What [setEditing] was last told, which every page loaded after it is put into as well. */
+    /** What [setEditing] was last told, applied again to every page that loads. */
     private var editingKind = EditingKind.NONE
     private var isEditing = false
 
@@ -457,10 +457,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         }
     }
 
-    /**
-     * Turns the page's edit mode on or off. A pdf has no mode: its tools arm themselves, so leaving
-     * only disarms whatever tool is armed.
-     */
+    /** Turns the page's edit mode on or off. A pdf has no mode, so leaving only disarms. */
     fun setEditing(kind: EditingKind, editing: Boolean) {
         editingKind = kind
         isEditing = editing
@@ -504,10 +501,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         evaluateJavascript("odr.editing.format($style)", null)
     }
 
-    /**
-     * A marking tool was pressed, or [recolor] given a new colour - `odr.annotation.press` and
-     * `recolor` decide what that does to a selection. [callback] gets the tool left armed, or null.
-     */
+    /** A marking tool pressed, or given a new colour; [callback] gets the tool left armed. */
     fun pressMarkTool(
         tool: String,
         color: Int,
@@ -529,10 +523,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         }
     }
 
-    /**
-     * What a save hands the core: the page's operation log, or for a pdf the marks drawn over it.
-     * Null where the page could not say.
-     */
+    /** What a save hands the core: the page's operations, or a pdf's marks. Null if none. */
     fun requestEditPayload(kind: EditingKind, callback: (String?) -> Unit) {
         val expression =
             if (kind == EditingKind.ANNOTATION) {

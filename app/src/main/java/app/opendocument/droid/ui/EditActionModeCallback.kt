@@ -9,10 +9,7 @@ import app.opendocument.droid.background.EditingKind
 import app.opendocument.droid.ui.activity.DocumentFragment
 import app.opendocument.droid.ui.activity.MainActivity
 
-/**
- * The edit mode: the bar on top with save, and under it the strip of tools the document has, undo
- * and redo among them - see `EditingTools`. A pdf is marked up rather than edited.
- */
+/** The edit mode: the bar with save. The tools under it are `EditingTools`. */
 class EditActionModeCallback(
     private val activity: MainActivity,
     private val documentFragment: DocumentFragment,
@@ -52,9 +49,8 @@ class EditActionModeCallback(
     override fun onDestroyActionMode(mode: ActionMode) {
         documentFragment.setEditing(false)
 
-        // the page keeps its edits with the mode off, so they are asked about here rather than
-        // thrown away. not when the document is being closed: that asked already, and the fragment
-        // is gone by the time the mode is finished
+        // the page keeps its edits with the mode off. not when the document is being closed: that
+        // asked already
         if (documentFragment.isAdded && documentFragment.hasUnsavedEdits()) {
             activity.confirmLeavingEdits { documentFragment.discardEdits() }
         }
