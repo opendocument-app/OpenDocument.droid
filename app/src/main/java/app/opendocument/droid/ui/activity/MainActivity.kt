@@ -60,6 +60,11 @@ class MainActivity : AppCompatActivity() {
     // the insets arrived still gets it - see applyWindowInsets
     private var bottomInset = 0
 
+    /**
+     * the decor's stack once [liftBanner] has moved the banner into it - see [applyWindowInsets]
+     */
+    private var windowRoot: ViewGroup? = null
+
     private val landingFragment: LandingFragment?
         get() =
             supportFragmentManager.findFragmentByTag(LandingFragment.FRAGMENT_TAG)
@@ -276,6 +281,7 @@ class MainActivity : AppCompatActivity() {
 
         (adContainer.parent as? ViewGroup)?.removeView(adContainer)
         decor.addView(adContainer, 0)
+        windowRoot = decor
     }
 
     /**
@@ -284,18 +290,23 @@ class MainActivity : AppCompatActivity() {
      * inset below is zero.
      *
      * The bars are not all held off the same way. Left, right and top are padding on the root, so
-     * nothing at all is drawn behind a cutout or the status bar. The bottom is not: the document is
-     * meant to run under the gesture bar - a page that stops short of it, with a strip of window
-     * background below, looks like a rendering fault rather than a decision - so only the things
-     * that would be *hidden* under it are lifted. The landing screen, whose list ends in a button,
-     * and [DocumentActions], whose buttons sit in that very corner.
+     * nothing at all is drawn behind a cutout or the status bar. That root is the decor's stack,
+     * not this layout: the banner and the bar an action mode raises sit above the content view, so
+     * padding the content view leaves both of them under the status bar and pads twice below.
+     *
+     * The bottom is not padding: the document is meant to run under the gesture bar - a page that
+     * stops short of it, with a strip of window background below, looks like a rendering fault
+     * rather than a decision - so only the things that would be *hidden* under it are lifted. The
+     * landing screen, whose list ends in a button, and [DocumentActions], whose buttons sit in that
+     * very corner.
      *
      * The keyboard is the exception, and gets the document container itself: it covers half the
      * screen, and while a document is being edited the caret has to stay above it.
      */
     private fun applyWindowInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_root)) { view, windowInsets
-            ->
+        val root: View = windowRoot ?: findViewById(R.id.main_root)
+
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, windowInsets ->
             val bars =
                 windowInsets.getInsets(
                     WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
