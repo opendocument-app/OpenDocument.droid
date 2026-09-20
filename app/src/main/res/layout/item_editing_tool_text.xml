@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- a tool that is a word rather than an icon: the font size, and the pro badge in lite -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="wrap_content"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_editing_tool"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
+        android:gravity="center"
+        android:minWidth="44dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="?attr/colorOnSurface" />

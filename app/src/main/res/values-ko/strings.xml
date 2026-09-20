@@ -75,4 +75,46 @@
     <string name="alert_unsaved_changes">저장하지 않은 변경 사항</string>
     <string name="alert_save_now">지금 저장하시겠습니까?</string>
     <string name="alert_discard_changes">저장 안 함</string>
+    <!-- the edit mode: the bar, the tools under it, and the offer of Pro -->
+    <string name="menu_annotate">PDF 표시하기</string>
+    <string name="action_annotate_banner">텍스트를 선택한 다음 도구를 선택해 표시하세요</string>
+    <string name="action_undo">실행 취소</string>
+    <string name="action_redo">다시 실행</string>
+    <string name="tool_bold">굵게</string>
+    <string name="tool_italic">기울임꼴</string>
+    <string name="tool_underline">밑줄</string>
+    <string name="tool_strikethrough">취소선</string>
+    <string name="tool_text_color">글자 색</string>
+    <string name="tool_highlight">강조 표시</string>
+    <string name="tool_font_size">글자 크기</string>
+    <string name="tool_color_of">%1$s 색상</string>
+    <string name="tool_font_size_points">%1$s pt</string>
+    <string name="tool_mark_highlight">강조 표시</string>
+    <string name="tool_mark_underline">밑줄</string>
+    <string name="tool_mark_strike_out">취소선</string>
+    <string name="tool_mark_squiggly">물결 밑줄</string>
+    <string name="tool_mark_draw">그리기</string>
+    <string name="color_black">검정</string>
+    <string name="color_red">빨강</string>
+    <string name="color_yellow">노랑</string>
+    <string name="color_green">초록</string>
+    <string name="color_blue">파랑</string>
+    <string name="color_pink">분홍</string>
+    <string name="color_none">강조 표시 없음</string>
+    <string name="tool_pro_badge">Pro</string>
+    <string name="pro_offer_title">Pro 기능</string>
+    <string name="pro_offer_formatting">텍스트 서식 지정과 단락 추가 또는 병합은 OpenDocument Reader Pro 기능입니다.</string>
+    <string name="pro_offer_markup">PDF 표시는 OpenDocument Reader Pro 기능입니다.</string>
+    <string name="not_now">나중에</string>
+    <string name="edit_refused_new_line">단락 안의 줄 바꿈은 저장할 수 없습니다. 새 단락을 만들려면 Enter를 누르세요.</string>
+    <string name="edit_refused_formula">이 셀에는 수식이 있어 그대로 유지됩니다.</string>
+    <string name="edit_refused_formula_input">수식 입력은 아직 지원되지 않습니다.</string>
+    <string name="edit_refused_rich">이 셀에는 일반 텍스트 이상의 내용이 있어 그대로 유지됩니다.</string>
+    <string name="edit_refused_shapes">이 셀에는 그림이 있어 그대로 유지됩니다.</string>
+    <string name="edit_refused_read_only">이 문서는 편집할 수 없습니다.</string>
+    <string name="edit_refused_range">편집 범위에 그림이나 표를 포함할 수 없습니다.</string>
+    <string name="edit_refused_unsupported">여기서는 그렇게 편집할 수 없습니다.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="other">수식 셀 %d개에 편집으로 인해 오래된 결과가 표시됩니다. 저장된 파일에는 수식이 유지되며, 스프레드시트 앱에서 다시 계산합니다.</item>
+    </plurals>
 </resources>

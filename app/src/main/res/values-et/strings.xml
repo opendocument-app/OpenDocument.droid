@@ -75,4 +75,47 @@
     <string name="alert_unsaved_changes">Salvestamata muudatused</string>
     <string name="alert_save_now">Kas soovid need nüüd salvestada?</string>
     <string name="alert_discard_changes">Loobu</string>
+    <!-- the edit mode: the bar, the tools under it, and the offer of Pro -->
+    <string name="menu_annotate">Märgista PDF</string>
+    <string name="action_annotate_banner">Vali tekst ja siis tööriist, et see märgistada</string>
+    <string name="action_undo">Võta tagasi</string>
+    <string name="action_redo">Tee uuesti</string>
+    <string name="tool_bold">Paks</string>
+    <string name="tool_italic">Kaldkiri</string>
+    <string name="tool_underline">Allajoonitud</string>
+    <string name="tool_strikethrough">Läbikriipsutatud</string>
+    <string name="tool_text_color">Teksti värv</string>
+    <string name="tool_highlight">Esiletõst</string>
+    <string name="tool_font_size">Teksti suurus</string>
+    <string name="tool_color_of">%1$s: värv</string>
+    <string name="tool_font_size_points">%1$s pt</string>
+    <string name="tool_mark_highlight">Esiletõst</string>
+    <string name="tool_mark_underline">Allajoonimine</string>
+    <string name="tool_mark_strike_out">Läbikriipsutus</string>
+    <string name="tool_mark_squiggly">Lainjas allajoonimine</string>
+    <string name="tool_mark_draw">Joonista</string>
+    <string name="color_black">Must</string>
+    <string name="color_red">Punane</string>
+    <string name="color_yellow">Kollane</string>
+    <string name="color_green">Roheline</string>
+    <string name="color_blue">Sinine</string>
+    <string name="color_pink">Roosa</string>
+    <string name="color_none">Esiletõstuta</string>
+    <string name="tool_pro_badge">Pro</string>
+    <string name="pro_offer_title">Osa Pro-versioonist</string>
+    <string name="pro_offer_formatting">Teksti vormindamine ning lõikude lisamine või ühendamine on osa rakendusest OpenDocument Reader Pro.</string>
+    <string name="pro_offer_markup">PDF-i märgistamine on osa rakendusest OpenDocument Reader Pro.</string>
+    <string name="not_now">Mitte praegu</string>
+    <string name="edit_refused_new_line">Reavahetust lõigu sees ei saa salvestada. Uue lõigu jaoks vajuta Enter.</string>
+    <string name="edit_refused_formula">Selles lahtris on valem ja see jääb nii, nagu on.</string>
+    <string name="edit_refused_formula_input">Valemite sisestamist veel ei toetata.</string>
+    <string name="edit_refused_rich">Selles lahtris on rohkem kui lihttekst ja see jääb nii, nagu on.</string>
+    <string name="edit_refused_shapes">Selles lahtris on joonis ja see jääb nii, nagu on.</string>
+    <string name="edit_refused_read_only">Seda dokumenti ei saa muuta.</string>
+    <string name="edit_refused_range">Muudatus ei saa ulatuda üle pildi ega tabeli.</string>
+    <string name="edit_refused_unsupported">See muudatus pole siin võimalik.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d valemiga lahter näitab tulemust, mille sinu muudatus aegunuks muutis. Salvestatud fail säilitab valemi ja arvutustabelirakendus arvutab selle uuesti.</item>
+        <item quantity="other">%d valemiga lahtrit näitavad tulemusi, mille sinu muudatus aegunuks muutis. Salvestatud fail säilitab valemid ja arvutustabelirakendus arvutab need uuesti.</item>
+    </plurals>
 </resources>

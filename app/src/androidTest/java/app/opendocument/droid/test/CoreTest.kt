@@ -6,6 +6,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import app.opendocument.core.FileType
 import app.opendocument.core.OdrException
 import app.opendocument.droid.background.CoreLoader
+import app.opendocument.droid.background.EditingKind
 import app.opendocument.droid.background.SpreadsheetBudget
 import app.opendocument.droid.nonfree.CrashManager
 import java.io.File
@@ -25,44 +26,100 @@ class CoreTest {
         get() = checkNotNull(sharedLoader) { "the core loader was not started" }
 
     @Test
-    fun test() {
-        val views =
-            coreLoader.host(
-                prefix = "test",
-                inputPath = testFile.absolutePath,
-                cachePath = File(cacheDir(), "core_cache").path,
-                editable = true,
-                keepDocument = true,
-            )
-        Assert.assertFalse("hosting the ODT file should produce a view", views.isEmpty())
-
-        val htmlDiff =
-            "{\"modifiedText\":{\"/child:1/child:0\":\"This is a simple testoooo document to" +
-                " demonstrate the DocumentLoader example!\",\"/child:3/child:0\":\"This is a" +
-                " simple testaaaa document to demonstrate the DocumentLoader example!\"}}"
-
-        val result = coreLoader.edit(htmlDiff, File(cacheDir(), "result").path)
-        Assert.assertTrue("the edited document should have been saved", result.isFile)
+    fun testOdtEdit() {
+        assertEditRoundTrips("odt-edit", testFile)
     }
 
     @Test
     fun testDocxEdit() {
-        val views =
-            coreLoader.host(
-                prefix = "docx-edit",
-                inputPath = docxTestFile.absolutePath,
-                cachePath = File(cacheDir(), "core_cache").path,
-                editable = true,
-                keepDocument = true,
+        assertEditRoundTrips("docx-edit", docxTestFile)
+    }
+
+    @Test
+    fun testPptxEdit() {
+        assertEditRoundTrips("pptx-edit", pptxTestFile)
+    }
+
+    /** Writes one run of [file] as the page's editor does, and reads the saved file back. */
+    private fun assertEditRoundTrips(prefix: String, file: File) {
+        val html =
+            URL(coreLoader.host(prefix, file.absolutePath, askEditing = true)[0].url).readText()
+
+        val id =
+            checkNotNull(RUN_ID.find(html)) { "the editable render of ${file.name} names no run" }
+                .groupValues[1]
+
+        val payload = """{"version":2,"ops":[{"op":"setText","id":$id,"text":"$EDITED"}]}"""
+
+        val result =
+            coreLoader.writeEdits(
+                file.absolutePath,
+                null,
+                null,
+                coreLoader.editing,
+                payload,
+                File(cacheDir(), "$prefix-result").path,
             )
-        Assert.assertFalse("hosting the DOCX file should produce a view", views.isEmpty())
-
-        val htmlDiff =
-            "{\"modifiedText\":{\"/child:16/child:0/child:0\":\"Outasdfsdafdline\",\"/child:24/child:0/child:0\":\"Colorasdfasdfasdfed" +
-                " Line\",\"/child:6/child:0/child:0\":\"Text hello world!\"}}"
-
-        val result = coreLoader.edit(htmlDiff, File(cacheDir(), "result_docx").path)
         Assert.assertTrue("the edited document should have been saved", result.isFile)
+
+        val saved = URL(coreLoader.host("$prefix-saved", result.absolutePath)[0].url).readText()
+        Assert.assertTrue("the saved ${file.name} should carry the edit", saved.contains(EDITED))
+
+        result.delete()
+    }
+
+    /** A pdf takes marks, which the core appends to a copy of it as annotations. */
+    @Test
+    fun testPdfAnnotation() {
+        val payload =
+            """{"version":1,"annotations":[{"page":0,"type":"highlight",""" +
+                """"quads":[[72,720,200,720,72,700,200,700]],"color":[1,0.9,0.2]}]}"""
+
+        val result =
+            coreLoader.writeEdits(
+                pdfTestFile.absolutePath,
+                null,
+                null,
+                EditingKind.ANNOTATION,
+                payload,
+                File(cacheDir(), "pdf-annotate-result").path,
+            )
+
+        Assert.assertTrue(
+            "the annotated pdf should hold more than the original",
+            result.length() > pdfTestFile.length(),
+        )
+        Assert.assertTrue(
+            "the annotation should have been appended",
+            String(result.readBytes(), Charsets.ISO_8859_1).contains("/Highlight"),
+        )
+
+        result.delete()
+    }
+
+    /** A plain text file is edited whole, and saved as utf-8. */
+    @Test
+    fun testTextEdit() {
+        val text = File(cacheDir(), "plain.txt")
+        text.writeText("before\n")
+        extracted += text
+
+        coreLoader.host("text-edit", text.absolutePath, askEditing = true)
+        Assert.assertEquals(EditingKind.TEXT, coreLoader.editing)
+
+        val result =
+            coreLoader.writeEdits(
+                text.absolutePath,
+                null,
+                null,
+                EditingKind.TEXT,
+                """{"version":2,"ops":[{"op":"setContent","text":"$EDITED"}]}""",
+                File(cacheDir(), "text-edit-result").path,
+            )
+
+        Assert.assertEquals(EDITED, result.readText())
+
+        result.delete()
     }
 
     /**
@@ -75,7 +132,6 @@ class CoreTest {
             coreLoader.host(
                 prefix = "pptx-test",
                 inputPath = pptxTestFile.absolutePath,
-                cachePath = File(cacheDir(), "pptx_cache").path,
             )
         Assert.assertFalse("hosting the PPTX file should produce a view", views.isEmpty())
     }
@@ -86,7 +142,6 @@ class CoreTest {
             coreLoader.host(
                 prefix = "doc-test",
                 inputPath = docTestFile.absolutePath,
-                cachePath = File(cacheDir(), "doc_cache").path,
             )
         Assert.assertFalse("hosting the DOC file should produce a view", views.isEmpty())
     }
@@ -97,7 +152,6 @@ class CoreTest {
             coreLoader.host(
                 prefix = "ppt-test",
                 inputPath = pptTestFile.absolutePath,
-                cachePath = File(cacheDir(), "ppt_cache").path,
             )
         Assert.assertFalse("hosting the PPT file should produce a view", views.isEmpty())
     }
@@ -108,42 +162,35 @@ class CoreTest {
             coreLoader.host(
                 prefix = "xls-test",
                 inputPath = xlsTestFile.absolutePath,
-                cachePath = File(cacheDir(), "xls_cache").path,
             )
         Assert.assertFalse("hosting the XLS file should produce a view", views.isEmpty())
     }
 
     /**
-     * Which of the formats the core renders it can also write back again - the answer
-     * `DocumentFragment` puts the Edit button up by.
+     * What the core lets the user change in each of the formats it renders - the answer
+     * `DocumentFragment` puts the Edit button up by, and picks the tools with.
      */
     @Test
     fun testEditableFormats() {
-        assertEditable("odt-editable", testFile, true)
-        assertEditable("docx-editable", docxTestFile, true)
+        assertEditing("odt-editable", testFile, EditingKind.DOCUMENT)
+        assertEditing("docx-editable", docxTestFile, EditingKind.DOCUMENT)
+        assertEditing("pptx-editable", pptxTestFile, EditingKind.DOCUMENT)
+        assertEditing("ods-editable", spreadsheetTestFile, EditingKind.SHEET)
+        assertEditing("pdf-editable", pdfTestFile, EditingKind.ANNOTATION)
 
-        // the core declares these read only: the three legacy binary formats, ooxml presentations
-        // and every spreadsheet - the last being issue #442, which the core has its own TODO for
-        assertEditable("doc-editable", docTestFile, false)
-        assertEditable("ppt-editable", pptTestFile, false)
-        assertEditable("xls-editable", xlsTestFile, false)
-        assertEditable("pptx-editable", pptxTestFile, false)
-        assertEditable("ods-editable", spreadsheetTestFile, false)
+        // the core declares the three legacy binary formats read only
+        assertEditing("doc-editable", docTestFile, EditingKind.NONE)
+        assertEditing("ppt-editable", pptTestFile, EditingKind.NONE)
+        assertEditing("xls-editable", xlsTestFile, EditingKind.NONE)
     }
 
-    private fun assertEditable(prefix: String, file: File, expected: Boolean) {
-        coreLoader.host(
-            prefix = prefix,
-            inputPath = file.absolutePath,
-            cachePath = File(cacheDir(), prefix).path,
-            editable = true,
-            keepDocument = true,
-        )
+    private fun assertEditing(prefix: String, file: File, expected: EditingKind) {
+        coreLoader.host(prefix = prefix, inputPath = file.absolutePath, askEditing = true)
 
         Assert.assertEquals(
-            "the core should report ${file.name} as ${if (expected) "editable" else "read only"}",
+            "what the core lets the user change in ${file.name}",
             expected,
-            coreLoader.isDocumentEditable,
+            coreLoader.editing,
         )
     }
 
@@ -153,7 +200,6 @@ class CoreTest {
             coreLoader.host(
                 prefix = "password-test-no-pw",
                 inputPath = passwordTestFile.absolutePath,
-                cachePath = File(cacheDir(), "core_cache").path,
             )
         }
     }
@@ -164,7 +210,6 @@ class CoreTest {
             coreLoader.host(
                 prefix = "password-test-wrong-pw",
                 inputPath = passwordTestFile.absolutePath,
-                cachePath = File(cacheDir(), "core_cache").path,
                 password = "wrongpassword",
             )
         }
@@ -176,7 +221,6 @@ class CoreTest {
             coreLoader.host(
                 prefix = "password-test-correct-pw",
                 inputPath = passwordTestFile.absolutePath,
-                cachePath = File(cacheDir(), "core_cache").path,
                 password = "passwort",
             )
         Assert.assertFalse("the decrypted document should produce a view", views.isEmpty())
@@ -192,15 +236,14 @@ class CoreTest {
         coreLoader.host(
             prefix = "password-test-editable",
             inputPath = passwordTestFile.absolutePath,
-            cachePath = File(cacheDir(), "password_editable").path,
             password = "passwort",
-            editable = true,
-            keepDocument = true,
+            askEditing = true,
         )
 
-        Assert.assertFalse(
+        Assert.assertEquals(
             "a decrypted document should not be editable",
-            coreLoader.isDocumentEditable,
+            EditingKind.NONE,
+            coreLoader.editing,
         )
     }
 
@@ -214,7 +257,6 @@ class CoreTest {
             coreLoader.host(
                 prefix = "encrypted-doc",
                 inputPath = encryptedDocTestFile.absolutePath,
-                cachePath = File(cacheDir(), "encrypted_doc_cache").path,
             )
         }
 
@@ -223,7 +265,6 @@ class CoreTest {
             coreLoader.host(
                 prefix = "encrypted-doc-pw",
                 inputPath = encryptedDocTestFile.absolutePath,
-                cachePath = File(cacheDir(), "encrypted_doc_cache").path,
                 password = "passwort",
             )
         }
@@ -236,7 +277,6 @@ class CoreTest {
             coreLoader.host(
                 prefix = "encrypted-odt-prompts",
                 inputPath = passwordTestFile.absolutePath,
-                cachePath = File(cacheDir(), "core_cache").path,
             )
         }
     }
@@ -267,7 +307,6 @@ class CoreTest {
             coreLoader.host(
                 prefix = "odt-called-pdf",
                 inputPath = testFile.absolutePath,
-                cachePath = File(cacheDir(), "odt_called_pdf").path,
                 declaredType = FileType.PORTABLE_DOCUMENT_FORMAT,
             )
 
@@ -280,7 +319,6 @@ class CoreTest {
             coreLoader.host(
                 prefix = prefix,
                 inputPath = file.absolutePath,
-                cachePath = File(cacheDir(), prefix).path,
                 declaredType = declaredType,
             )
 
@@ -304,7 +342,6 @@ class CoreTest {
             coreLoader.host(
                 prefix = "big-sheet",
                 inputPath = generateCsv(rows, columns).absolutePath,
-                cachePath = File(cacheDir(), "big_sheet_cache").path,
             )
 
         val cut =
@@ -323,7 +360,6 @@ class CoreTest {
             coreLoader.host(
                 prefix = "whole-sheet",
                 inputPath = spreadsheetTestFile.absolutePath,
-                cachePath = File(cacheDir(), "whole_sheet_cache").path,
             )
 
         views.forEach { Assert.assertNull("nothing was cut from " + it.name, it.sheetCut) }
@@ -335,7 +371,6 @@ class CoreTest {
             coreLoader.host(
                 prefix = "spreadsheet-test",
                 inputPath = spreadsheetTestFile.absolutePath,
-                cachePath = File(cacheDir(), "spreadsheet_cache").path,
             )
 
         Assert.assertEquals("ODS file should contain 3 sheets", 3, views.size)
@@ -362,6 +397,11 @@ class CoreTest {
         private lateinit var xlsTestFile: File
         private lateinit var encryptedDocTestFile: File
         private lateinit var pdfTestFile: File
+
+        /** The address the editable render puts on a run of text. */
+        private val RUN_ID = Regex("""<x-s[^>]*data-odr-id="(\d+)"""")
+
+        private const val EDITED = "Edited by CoreTest"
 
         /** What a document saved straight out of a browser carries in front of itself. */
         private const val HTTP_PREAMBLE =

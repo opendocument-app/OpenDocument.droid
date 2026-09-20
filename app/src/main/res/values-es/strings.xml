@@ -75,4 +75,47 @@
     <string name="alert_unsaved_changes">Cambios sin guardar</string>
     <string name="alert_save_now">¿Quiere guardarlos ahora?</string>
     <string name="alert_discard_changes">Descartar</string>
+    <!-- the edit mode: the bar, the tools under it, and the offer of Pro -->
+    <string name="menu_annotate">Marcar PDF</string>
+    <string name="action_annotate_banner">Seleccione texto y luego una herramienta para marcarlo</string>
+    <string name="action_undo">Deshacer</string>
+    <string name="action_redo">Rehacer</string>
+    <string name="tool_bold">Negrita</string>
+    <string name="tool_italic">Cursiva</string>
+    <string name="tool_underline">Subrayado</string>
+    <string name="tool_strikethrough">Tachado</string>
+    <string name="tool_text_color">Color del texto</string>
+    <string name="tool_highlight">Resaltar</string>
+    <string name="tool_font_size">Tamaño del texto</string>
+    <string name="tool_color_of">Color de %1$s</string>
+    <string name="tool_font_size_points">%1$s pt</string>
+    <string name="tool_mark_highlight">Resaltar</string>
+    <string name="tool_mark_underline">Subrayar</string>
+    <string name="tool_mark_strike_out">Tachar</string>
+    <string name="tool_mark_squiggly">Subrayado ondulado</string>
+    <string name="tool_mark_draw">Dibujar</string>
+    <string name="color_black">Negro</string>
+    <string name="color_red">Rojo</string>
+    <string name="color_yellow">Amarillo</string>
+    <string name="color_green">Verde</string>
+    <string name="color_blue">Azul</string>
+    <string name="color_pink">Rosa</string>
+    <string name="color_none">Sin resaltado</string>
+    <string name="tool_pro_badge">Pro</string>
+    <string name="pro_offer_title">Parte de Pro</string>
+    <string name="pro_offer_formatting">Dar formato al texto, así como añadir o unir párrafos, forma parte de OpenDocument Reader Pro.</string>
+    <string name="pro_offer_markup">Marcar un PDF forma parte de OpenDocument Reader Pro.</string>
+    <string name="not_now">Ahora no</string>
+    <string name="edit_refused_new_line">Un salto de línea dentro de un párrafo no se puede guardar. Pulse Intro para crear un párrafo nuevo.</string>
+    <string name="edit_refused_formula">Esa celda contiene una fórmula y se queda como está.</string>
+    <string name="edit_refused_formula_input">Todavía no se admite escribir fórmulas.</string>
+    <string name="edit_refused_rich">Esa celda contiene más que texto sin formato y se queda como está.</string>
+    <string name="edit_refused_shapes">Esa celda contiene un dibujo y se queda como está.</string>
+    <string name="edit_refused_read_only">Este documento no se puede editar.</string>
+    <string name="edit_refused_range">Una edición no puede abarcar una imagen o una tabla.</string>
+    <string name="edit_refused_unsupported">Esa edición no es posible aquí.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d celda con fórmula muestra un resultado que su edición dejó desactualizado. El archivo guardado conserva la fórmula y una aplicación de hojas de cálculo la vuelve a calcular.</item>
+        <item quantity="other">%d celdas con fórmula muestran resultados que su edición dejó desactualizados. El archivo guardado conserva las fórmulas y una aplicación de hojas de cálculo las vuelve a calcular.</item>
+    </plurals>
 </resources>

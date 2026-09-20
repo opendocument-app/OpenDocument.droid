@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- one colour of a palette; the fill is set in code, the ring keeps white visible on white -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="@android:color/white" />
+    <stroke android:width="1dp" android:color="?attr/colorOutlineVariant" />
+    <size android:width="28dp" android:height="28dp" />
+</shape>

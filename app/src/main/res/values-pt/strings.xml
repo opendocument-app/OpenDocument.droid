@@ -75,4 +75,47 @@
     <string name="alert_unsaved_changes">Alterações não salvas</string>
     <string name="alert_save_now">Deseja salvá-las agora?</string>
     <string name="alert_discard_changes">Descartar</string>
+    <!-- the edit mode: the bar, the tools under it, and the offer of Pro -->
+    <string name="menu_annotate">Marcar PDF</string>
+    <string name="action_annotate_banner">Selecione o texto e depois uma ferramenta para marcá-lo</string>
+    <string name="action_undo">Desfazer</string>
+    <string name="action_redo">Refazer</string>
+    <string name="tool_bold">Negrito</string>
+    <string name="tool_italic">Itálico</string>
+    <string name="tool_underline">Sublinhado</string>
+    <string name="tool_strikethrough">Tachado</string>
+    <string name="tool_text_color">Cor do texto</string>
+    <string name="tool_highlight">Realçar</string>
+    <string name="tool_font_size">Tamanho do texto</string>
+    <string name="tool_color_of">Cor de %1$s</string>
+    <string name="tool_font_size_points">%1$s pt</string>
+    <string name="tool_mark_highlight">Realçar</string>
+    <string name="tool_mark_underline">Sublinhar</string>
+    <string name="tool_mark_strike_out">Tachar</string>
+    <string name="tool_mark_squiggly">Sublinhado ondulado</string>
+    <string name="tool_mark_draw">Desenhar</string>
+    <string name="color_black">Preto</string>
+    <string name="color_red">Vermelho</string>
+    <string name="color_yellow">Amarelo</string>
+    <string name="color_green">Verde</string>
+    <string name="color_blue">Azul</string>
+    <string name="color_pink">Rosa</string>
+    <string name="color_none">Sem realce</string>
+    <string name="tool_pro_badge">Pro</string>
+    <string name="pro_offer_title">Parte do Pro</string>
+    <string name="pro_offer_formatting">Formatar texto e adicionar ou juntar parágrafos faz parte do OpenDocument Reader Pro.</string>
+    <string name="pro_offer_markup">Marcar um PDF faz parte do OpenDocument Reader Pro.</string>
+    <string name="not_now">Agora não</string>
+    <string name="edit_refused_new_line">Uma quebra de linha dentro de um parágrafo não pode ser salva. Pressione Enter para um novo parágrafo.</string>
+    <string name="edit_refused_formula">Essa célula contém uma fórmula e fica como está.</string>
+    <string name="edit_refused_formula_input">Digitar fórmulas ainda não é suportado.</string>
+    <string name="edit_refused_rich">Essa célula contém mais do que texto simples e fica como está.</string>
+    <string name="edit_refused_shapes">Essa célula contém um desenho e fica como está.</string>
+    <string name="edit_refused_read_only">Este documento não pode ser editado.</string>
+    <string name="edit_refused_range">Uma edição não pode abranger uma imagem ou uma tabela.</string>
+    <string name="edit_refused_unsupported">Essa edição não é possível aqui.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d célula com fórmula mostra um resultado que sua edição desatualizou. O arquivo salvo mantém a fórmula, e um aplicativo de planilhas a calcula de novo.</item>
+        <item quantity="other">%d células com fórmula mostram resultados que sua edição desatualizou. O arquivo salvo mantém as fórmulas, e um aplicativo de planilhas as calcula de novo.</item>
+    </plurals>
 </resources>

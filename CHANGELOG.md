@@ -17,6 +17,13 @@ takes 500 characters, so not everything here reaches the store.
 
 ## Unreleased
 
+- Editing reaches PowerPoint files, spreadsheet cells and plain text files, has undo and
+  redo, and no longer loads the document again, so the page stays where it was.
+- Pro also formats text, starts and joins paragraphs, and marks up PDFs: highlight,
+  underline, strike out, squiggly underline, and drawing.
+- Leaving the edit mode with unsaved changes asks whether to save or discard them.
+- Word files show a text's shading, and text that is both underlined and struck through
+  shows both lines.
 - A spreadsheet too big to show in full says so, and names how many of its rows
   and columns are on screen. It used to stop without a word.
 - How much of a sheet is shown follows the device's memory now, rather than one

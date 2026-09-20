@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- the bar under a tool that says which colour it applies; the fill is set in code -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@android:color/black" />
+    <stroke android:width="0.5dp" android:color="?attr/colorOutlineVariant" />
+    <corners android:radius="1dp" />
+</shape>

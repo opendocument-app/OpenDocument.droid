@@ -75,4 +75,47 @@
     <string name="alert_unsaved_changes">Modifications non enregistrées</string>
     <string name="alert_save_now">Voulez-vous les enregistrer maintenant ?</string>
     <string name="alert_discard_changes">Ne pas enregistrer</string>
+    <!-- the edit mode: the bar, the tools under it, and the offer of Pro -->
+    <string name="menu_annotate">Annoter le PDF</string>
+    <string name="action_annotate_banner">Sélectionnez du texte, puis un outil, pour le marquer</string>
+    <string name="action_undo">Annuler</string>
+    <string name="action_redo">Rétablir</string>
+    <string name="tool_bold">Gras</string>
+    <string name="tool_italic">Italique</string>
+    <string name="tool_underline">Souligné</string>
+    <string name="tool_strikethrough">Barré</string>
+    <string name="tool_text_color">Couleur du texte</string>
+    <string name="tool_highlight">Surligner</string>
+    <string name="tool_font_size">Taille du texte</string>
+    <string name="tool_color_of">Couleur : %1$s</string>
+    <string name="tool_font_size_points">%1$s pt</string>
+    <string name="tool_mark_highlight">Surligner</string>
+    <string name="tool_mark_underline">Souligner</string>
+    <string name="tool_mark_strike_out">Barrer</string>
+    <string name="tool_mark_squiggly">Soulignement ondulé</string>
+    <string name="tool_mark_draw">Dessiner</string>
+    <string name="color_black">Noir</string>
+    <string name="color_red">Rouge</string>
+    <string name="color_yellow">Jaune</string>
+    <string name="color_green">Vert</string>
+    <string name="color_blue">Bleu</string>
+    <string name="color_pink">Rose</string>
+    <string name="color_none">Aucun surlignage</string>
+    <string name="tool_pro_badge">Pro</string>
+    <string name="pro_offer_title">Inclus dans Pro</string>
+    <string name="pro_offer_formatting">La mise en forme du texte, ainsi que l\'ajout ou la fusion de paragraphes, fait partie d\'OpenDocument Reader Pro.</string>
+    <string name="pro_offer_markup">L\'annotation des PDF fait partie d\'OpenDocument Reader Pro.</string>
+    <string name="not_now">Pas maintenant</string>
+    <string name="edit_refused_new_line">Un saut de ligne à l\'intérieur d\'un paragraphe ne peut pas être enregistré. Appuyez sur Entrée pour créer un nouveau paragraphe.</string>
+    <string name="edit_refused_formula">Cette cellule contient une formule et reste telle quelle.</string>
+    <string name="edit_refused_formula_input">La saisie de formules n\'est pas encore prise en charge.</string>
+    <string name="edit_refused_rich">Cette cellule contient plus que du texte brut et reste telle quelle.</string>
+    <string name="edit_refused_shapes">Cette cellule contient un dessin et reste telle quelle.</string>
+    <string name="edit_refused_read_only">Ce document ne peut pas être modifié.</string>
+    <string name="edit_refused_range">Une modification ne peut pas s\'étendre sur une image ou un tableau.</string>
+    <string name="edit_refused_unsupported">Cette modification n\'est pas possible ici.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d cellule de formule affiche un résultat que votre modification a rendu obsolète. Le fichier enregistré conserve la formule, et un tableur la recalcule.</item>
+        <item quantity="other">%d cellules de formule affichent des résultats que votre modification a rendus obsolètes. Le fichier enregistré conserve les formules, et un tableur les recalcule.</item>
+    </plurals>
 </resources>

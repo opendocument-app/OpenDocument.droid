@@ -31,6 +31,16 @@ a sideload carrying an older one neither updates nor complains: install the new 
 uninstall the old one. Nothing carries over - a recent documents list whose uri permissions
 die with the old package anyway.
 
+## Editions
+
+Play carries two apps: OpenDocument Reader, free with ads, and OpenDocument Reader Pro,
+paid. Both open everything, and both edit: the text of a document inside one paragraph, the
+cells of a spreadsheet, and plain text files. Pro also starts and joins paragraphs, formats
+text, and marks up PDFs.
+
+The F-Droid build and the apk on the release page are Pro without Play's review sheet: no
+ads, and every edit.
+
 ## Translations
 
 The app speaks nineteen languages and the Play listing fifteen, and both are written

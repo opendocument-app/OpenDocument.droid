@@ -115,13 +115,20 @@ and `src/review`, with a no-op of the same shape in `src/noAds` and `src/noRevie
 nothing proprietary and stays in `src/main`. A method added to one copy has to be added
 to the other, which `assembleDebug` catches - it builds all three.
 
-Code that has to *ask* reads `Features`, never the flavor name: `Features.withAds` is the
-one question anything asks today, and `LINKS_ADS` behind it sits in `src/ads` and
-`src/noAds` next to the classes it stands for, so the flag cannot end up in a build whose
-code says otherwise. Do not add a `BuildConfig.FLAVOR` comparison back - it was what made
-`BillingManager` miss foss - and do not name a flag after a behaviour it only implies. The
-resource bool `DISABLE_TRACKING` was both mistakes at once: there is no tracking to
-disable, `AnalyticsManager` and `CrashManager` write to logcat and nowhere else.
+Code that has to *ask* reads `Features`, never the flavor name. `Features.withAds` comes
+from `LINKS_ADS`, which sits in `src/ads` and `src/noAds` next to the classes it stands for,
+so the flag cannot end up in a build whose code says otherwise. `Features.advancedEditing`,
+from `ADVANCED_EDITING` in the same two files, is what pro is sold on: new and joined
+paragraphs, formatting, and marks on a pdf. Every other edit the core takes - inside one
+paragraph, a sheet cell, a plain text file - is in every build. `Features.offersEditing` is the
+one list of it; the Edit button still stands on the core's answer, so over a pdf in lite it
+offers pro instead. `OpenDocument.ios` draws the same line with the same flag, beside its own
+`LINKS_ADS`.
+
+Do not add a `BuildConfig.FLAVOR` comparison back - it was what made `BillingManager` miss
+foss - and do not name a flag after a behaviour it only implies. The resource bool
+`DISABLE_TRACKING` was both mistakes at once: there is no tracking to disable,
+`AnalyticsManager` and `CrashManager` write to logcat and nowhere else.
 
 Those two take no switch at all, which is why `DocumentLoader` just constructs them. Ads
 and billing are what `MainActivity.initializeManagers` gates, on `Features.withAds` *and*
@@ -296,18 +303,33 @@ deck opened in portrait keeps a portrait-sized slide in a landscape screen. `ini
 
 ### Editability comes from the core, never from a mime type
 
-`Document.isEditable()`/`isSavable()` decides whether `DocumentFragment` offers the Edit
-button, carried on `LoadedDocument.isEditable`. `CoreLoader.host()` only holds a document
-open when the core says yes, so having one *is* the answer. Do not reintroduce a list of
-editable formats in the UI.
+`CoreLoader.editingOf` asks the opened file what the user can change, and the answer rides on
+`LoadedDocument.editing` as an `EditingKind`: `DOCUMENT` for a text document or a
+presentation, `SHEET`, `TEXT` for a plain file, `ANNOTATION` for a pdf, `NONE`. It is the
+file's own answer - `Document.isEditable()`/`isSavable()`, `TextFile.isSavable()`,
+`PdfFile.isAnnotatable()` - so a decrypted document or a repaired pdf says no. Do not
+reintroduce a list of editable formats in the UI.
 
 `DecodedFile.capabilities()` is asked first, as a shortcut: opening a document costs a
 second parse, so a format declaring no `edit`/`save` is never opened to be told no. It is an
-upper bound - the document still answers.
+upper bound - the file still answers.
 
 Decryption is the same shape. `capabilities().decrypt` says whether a password is worth asking
 for, and `CoreLoader.host` refuses an encrypted `.doc`, `.ppt` or `.xls` on it rather than
 raising a dialog no password can close. The app must not learn that list for itself.
+
+**The editor is in the page, and it is always there.** A document the core can write back is
+rendered with `HtmlConfig.editable`, and the edit button only calls `odr.editing.enable()` -
+no second render, so the reader stays where they were. The page owns the operation log, undo
+and the refusals; `editing-bridge.js` (injected by `PageView` on every page load) forwards its
+callbacks. Lite narrows `HtmlConfig.editingScope` to `PARAGRAPH`, and the page refuses the
+rest with `outOfScope`, which `DocumentFragment` answers with the offer of pro, once an edit.
+A pdf needs no scaffolding: every pdf page carries `odr.annotation`.
+
+**Nothing is held open between the render and the save.** `CoreLoader.writeEdits` opens the
+cached copy again and applies the page's payload with the call its kind takes -
+`Document.edit` and `save`, `TextFile.edit` and `save`, `PdfFile.annotate`. An edit that throws
+halfway leaves the document it was applied to half changed, so a retry must not start from it.
 
 ### Storage access
 

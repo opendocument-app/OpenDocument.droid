@@ -12,7 +12,7 @@ import android.os.Parcelable
  */
 class DocumentRequest(val uri: Uri, val persistentUri: Boolean) : Parcelable {
 
-    /** Whether the html is rendered for editing, and the document held open to be written back. */
+    /** Whether the edit mode is on. The render does not depend on it. */
     var editable: Boolean = false
 
     var password: String? = null
