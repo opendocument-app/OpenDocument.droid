@@ -27,9 +27,9 @@
     bridge.marksChanged(event.count);
   };
 
-  if (odr.annotation) {
-    // an armed tool marks a selection as it is made, which is what a touch screen needs: with a
-    // selection standing, the selection's own toolbar is over the page
-    odr.annotation.setOptions({ markOnSelection: true });
+  if (odr.editing && odr.editing.setSheetOptions) {
+    // a phone has no double click to spare, and the pointer is not asked: a
+    // WebView on an emulator answers that one as a mouse
+    odr.editing.setSheetOptions({ editOnClick: true });
   }
 })();

@@ -43,7 +43,6 @@
     <string name="action_tts_previous">पिछला</string>
     <string name="action_edit_save">सहेजें</string>
     <string name="action_contact">संपर्क</string>
-    <string name="action_edit_banner">नीचे अपना दस्तावेज़ संपादित करें, फिर सहेजें दबाएँ</string>
     <string name="landing_intro_open_all">डिफ़ॉल्ट रूप से यह ऐप सिर्फ़ दस्तावेज़ फ़ाइलें खोलने के लिए ही दिखाई देता है। अगर Samsung My Files जैसा कोई दूसरा ऐप आपको यहाँ दस्तावेज़ नहीं खोलने देता, तो इसे चालू करें ताकि यह ऐप हर तरह की फ़ाइल के लिए दिखे।</string>
     <string name="landing_intro_view">OpenDocument Reader से आप OpenDocument प्रारूप (.odt, .ods, .odp और .odg) में सहेजे गए दस्तावेज़ कहीं भी देख सकते हैं।</string>
     <string name="landing_intro_search">OpenDocument Reader से आप अपने दस्तावेज़ आसानी से पढ़ सकते हैं और उनमें खोज सकते हैं।</string>
@@ -103,8 +102,6 @@
     <string name="color_none">कोई हाइलाइट नहीं</string>
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Pro का हिस्सा</string>
-    <string name="pro_offer_formatting">टेक्स्ट को फ़ॉर्मैट करना और अनुच्छेद जोड़ना या मिलाना OpenDocument Reader Pro का हिस्सा है।</string>
-    <string name="pro_offer_markup">PDF चिह्नित करना OpenDocument Reader Pro का हिस्सा है।</string>
     <string name="not_now">अभी नहीं</string>
     <string name="edit_refused_new_line">अनुच्छेद के भीतर लाइन ब्रेक सहेजा नहीं जा सकता। नए अनुच्छेद के लिए Enter दबाएँ।</string>
     <string name="edit_refused_formula">इस सेल में एक सूत्र है, इसलिए यह जैसा है वैसा ही रहेगा।</string>

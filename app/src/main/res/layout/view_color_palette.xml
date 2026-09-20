@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- what a split tool's arrow opens: one row of colours -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/color_palette_row"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="6dp" />

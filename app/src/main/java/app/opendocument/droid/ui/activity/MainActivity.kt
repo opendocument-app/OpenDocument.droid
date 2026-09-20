@@ -103,8 +103,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-    // kept because onPause has to stop it; the edit mode needs no such handle
+    // kept because onPause has to stop it
     private var ttsActionMode: TtsActionModeCallback? = null
+
+    /** Kept because the page's undo state is reported to the bar this owns. */
+    var editActionMode: EditActionModeCallback? = null
+        private set
 
     /** The action mode on screen, so [closeDocument] and [onDestroy] can take it down with them. */
     private var currentActionMode: SupportActionMode? = null
@@ -621,17 +625,18 @@ class MainActivity : AppCompatActivity() {
             DocumentActions.ACTION_EDIT -> {
                 analyticsManager.report("menu_edit")
 
-                // the button follows the core, so lite shows it over a pdf and offers pro
+                // the button stands on the core's answer, and every edition opens what it
+                // names: what lite does not sell is the tool, which says so in the strip
                 val kind = documentFragment?.editingKind ?: return
                 if (!Features.offersEditing(kind)) {
-                    offerPro(ProFeature.PDF)
-
                     return
                 }
 
                 documentFragment?.let { fragment ->
-                    currentActionMode =
-                        startSupportActionMode(EditActionModeCallback(this, fragment))
+                    val editActionMode = EditActionModeCallback(this, fragment)
+                    this.editActionMode = editActionMode
+
+                    currentActionMode = startSupportActionMode(editActionMode)
                 }
             }
         }
@@ -687,6 +692,7 @@ class MainActivity : AppCompatActivity() {
 
         currentActionMode = null
         ttsActionMode = null
+        editActionMode = null
     }
 
     // and the framework ones, which is what selecting text in the page raises
@@ -761,10 +767,10 @@ class MainActivity : AppCompatActivity() {
 
     /** What pro adds, as the reader runs into it. */
     enum class ProFeature(@param:StringRes val message: Int) {
-        /** Formatting text, and starting or joining a paragraph. */
+        /** Formatting text past the highlighter, and starting or joining a paragraph. */
         FORMATTING(R.string.pro_offer_formatting),
 
-        /** Marking up a pdf. */
+        /** Marking up a pdf past the highlighter. */
         PDF(R.string.pro_offer_markup),
     }
 

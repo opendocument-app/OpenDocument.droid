@@ -43,7 +43,6 @@
     <string name="action_tts_previous">Poprzedni</string>
     <string name="action_edit_save">Zapisz</string>
     <string name="action_contact">Kontakt</string>
-    <string name="action_edit_banner">Edytuj dokument poniżej i naciśnij Zapisz</string>
     <string name="landing_intro_open_all">Domyślnie aplikacja proponuje otwieranie tylko plików dokumentów. Jeśli inna aplikacja, na przykład „Samsung My Files”, nie pozwala otworzyć tutaj dokumentu, włącz tę opcję, aby aplikacja obsługiwała wszystkie typy plików.</string>
     <string name="landing_intro_view">Dzięki czytnikowi OpenDocument Reader możesz w dowolnym miejscu wyświetlać dokumenty zapisane w formacie OpenDocument (.odt, .ods, .odp i .odg).</string>
     <string name="landing_intro_search">W OpenDocument Reader możesz czytać i błyskawicznie przeszukiwać swoje dokumenty.</string>
@@ -103,8 +102,6 @@
     <string name="color_none">Bez wyróżnienia</string>
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Część wersji Pro</string>
-    <string name="pro_offer_formatting">Formatowanie tekstu oraz dodawanie i łączenie akapitów to część OpenDocument Reader Pro.</string>
-    <string name="pro_offer_markup">Oznaczanie plików PDF to część OpenDocument Reader Pro.</string>
     <string name="not_now">Nie teraz</string>
     <string name="edit_refused_new_line">Podziału wiersza wewnątrz akapitu nie można zapisać. Naciśnij Enter, aby utworzyć nowy akapit.</string>
     <string name="edit_refused_formula">Ta komórka zawiera formułę i pozostaje bez zmian.</string>

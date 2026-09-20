@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- one tool of EditingTools: its icon, and under it a bar in the colour it applies, if any -->
+<!--
+     one tool of EditingTools, a square so that a row of them reads as a row. The slot under the
+     icon is the same height on every tool, whether it holds anything or not, so that the icons of
+     a row sit on one line.
+
+     The slot is deep, and the bar sits at the foot of it: an icon's ink ends where its own shape
+     says - a squiggle dips, a strikethrough stops high - and with the bar close under it that
+     difference reads as bars at different heights. Away from the ink, the eye lines them up
+     against each other instead.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:background="@drawable/bg_editing_tool"
         android:clickable="true"
         android:focusable="true"
@@ -18,11 +27,30 @@
             android:importantForAccessibility="no"
             app:tint="?attr/colorOnSurface" />
 
-    <View
-            android:id="@+id/editing_tool_bar"
-            android:layout_width="18dp"
-            android:layout_height="4dp"
-            android:layout_marginTop="2dp"
-            android:background="@drawable/bg_color_bar"
-            android:visibility="gone" />
+    <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="17dp">
+
+        <!-- the colour the tool applies, which is what a tap uses -->
+        <View
+                android:id="@+id/editing_tool_bar"
+                android:layout_width="20dp"
+                android:layout_height="4dp"
+                android:layout_gravity="center_horizontal|bottom"
+                android:layout_marginBottom="1dp"
+                android:background="@drawable/bg_color_bar"
+                android:visibility="gone" />
+
+        <!-- what the tool reads on the selection: the size the text is in -->
+        <TextView
+                android:id="@+id/editing_tool_caption"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:importantForAccessibility="no"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="10sp"
+                android:visibility="gone" />
+    </FrameLayout>
 </LinearLayout>

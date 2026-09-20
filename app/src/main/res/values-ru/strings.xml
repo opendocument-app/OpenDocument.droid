@@ -43,7 +43,6 @@
     <string name="action_tts_previous">Предыдущий</string>
     <string name="action_edit_save">Сохранить</string>
     <string name="action_contact">Связаться</string>
-    <string name="action_edit_banner">Отредактируйте документ ниже и нажмите «Сохранить»</string>
     <string name="landing_intro_open_all">По умолчанию приложение предлагает открывать только документы. Если другое приложение, например «Samsung My Files», не даёт открыть документ здесь, включите этот параметр — тогда приложение будет открывать файлы любых типов.</string>
     <string name="landing_intro_view">OpenDocument Reader позволяет просматривать документы в формате OpenDocument (.odt, .ods, .odp и .odg), где бы вы ни находились.</string>
     <string name="landing_intro_search">С OpenDocument Reader вы можете легко читать документы и искать в них нужное.</string>
@@ -103,8 +102,6 @@
     <string name="color_none">Без выделения</string>
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Входит в Pro</string>
-    <string name="pro_offer_formatting">Форматирование текста, а также добавление и объединение абзацев входят в OpenDocument Reader Pro.</string>
-    <string name="pro_offer_markup">Разметка PDF входит в OpenDocument Reader Pro.</string>
     <string name="not_now">Не сейчас</string>
     <string name="edit_refused_new_line">Разрыв строки внутри абзаца нельзя сохранить. Нажмите Enter, чтобы начать новый абзац.</string>
     <string name="edit_refused_formula">В этой ячейке формула, и она останется без изменений.</string>

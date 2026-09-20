@@ -18,7 +18,10 @@ object Features {
     /** Formatting, new and joined paragraphs, and pdf marks: pro and foss. */
     val advancedEditing = ADVANCED_EDITING
 
-    /** Whether this build opens the edit mode for [kind], which the core decided. */
-    fun offersEditing(kind: EditingKind): Boolean =
-        kind.isEditable && (kind != EditingKind.ANNOTATION || advancedEditing)
+    /**
+     * Whether this build opens the edit mode for [kind], which the core decided. Every edition
+     * opens every kind it can: what lite does not sell is the individual tool, which carries pro's
+     * badge in the strip, and one of each kind is free so that the mode is worth opening.
+     */
+    fun offersEditing(kind: EditingKind): Boolean = kind.isEditable
 }

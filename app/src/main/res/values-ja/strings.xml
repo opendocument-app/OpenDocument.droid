@@ -43,7 +43,6 @@
     <string name="action_tts_previous">前へ</string>
     <string name="action_edit_save">保存</string>
     <string name="action_contact">お問い合わせ</string>
-    <string name="action_edit_banner">下のドキュメントを編集して、「保存」を押してください</string>
     <string name="landing_intro_open_all">このアプリは通常、ドキュメントファイルだけを開く対象にしています。「Samsung My Files」などの他のアプリから、このアプリでドキュメントを開けないときは、これをオンにするとすべての種類のファイルを開けるようになります。</string>
     <string name="landing_intro_view">OpenDocument Reader なら、OpenDocument 形式（.odt、.ods、.odp、.odg）のドキュメントを、どこにいても表示できます。</string>
     <string name="landing_intro_search">OpenDocument Reader なら、ドキュメントを読むのも、中を検索するのも簡単です。</string>
@@ -103,8 +102,6 @@
     <string name="color_none">ハイライトなし</string>
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Pro の機能</string>
-    <string name="pro_offer_formatting">テキストの書式設定と段落の追加・結合は OpenDocument Reader Pro の機能です。</string>
-    <string name="pro_offer_markup">PDF への書き込みは OpenDocument Reader Pro の機能です。</string>
     <string name="not_now">今はしない</string>
     <string name="edit_refused_new_line">段落内の改行は保存できません。新しい段落にするには Enter を押してください。</string>
     <string name="edit_refused_formula">このセルには数式があるため、そのままになります。</string>

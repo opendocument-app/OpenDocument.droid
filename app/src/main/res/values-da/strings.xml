@@ -43,7 +43,6 @@
     <string name="action_tts_previous">Forrige</string>
     <string name="action_edit_save">Gem</string>
     <string name="action_contact">Kontakt</string>
-    <string name="action_edit_banner">Rediger dit dokument herunder og tryk på Gem</string>
     <string name="landing_intro_open_all">Som standard tilbyder appen kun at åbne dokumentfiler. Hvis en anden app – for eksempel Samsung My Files – ikke lader dig åbne et dokument her, så slå dette til, så appen tilbyder at åbne alle filtyper.</string>
     <string name="landing_intro_view">Med OpenDocument Reader kan du se dokumenter, der er gemt i OpenDocument-format (.odt, .ods, .odp og .odg), uanset hvor du er.</string>
     <string name="landing_intro_search">Med OpenDocument Reader kan du læse og søge i dine dokumenter hurtigt og nemt.</string>
@@ -103,8 +102,6 @@
     <string name="color_none">Ingen fremhævning</string>
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">En del af Pro</string>
-    <string name="pro_offer_formatting">Formatering af tekst og tilføjelse eller sammenlægning af afsnit er en del af OpenDocument Reader Pro.</string>
-    <string name="pro_offer_markup">Markering af PDF-filer er en del af OpenDocument Reader Pro.</string>
     <string name="not_now">Ikke nu</string>
     <string name="edit_refused_new_line">Et linjeskift inde i et afsnit kan ikke gemmes. Tryk på Enter for et nyt afsnit.</string>
     <string name="edit_refused_formula">Cellen indeholder en formel og forbliver, som den er.</string>

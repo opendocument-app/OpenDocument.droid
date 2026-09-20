@@ -43,7 +43,6 @@
     <string name="action_tts_previous">Föregående</string>
     <string name="action_edit_save">Spara</string>
     <string name="action_contact">Kontakt</string>
-    <string name="action_edit_banner">Redigera dokumentet nedan och tryck på Spara</string>
     <string name="landing_intro_open_all">Som standard erbjuder appen bara att öppna dokumentfiler. Om en annan app, till exempel Samsung My Files, inte låter dig öppna ett dokument här, slå på det här så registreras appen för alla filtyper.</string>
     <string name="landing_intro_view">Med OpenDocument Reader kan du öppna dokument som är sparade i OpenDocument-format (.odt, .ods, .odp och .odg) var du än är.</string>
     <string name="landing_intro_search">Med OpenDocument Reader läser du dina dokument och söker i dem på nolltid.</string>
@@ -103,8 +102,6 @@
     <string name="color_none">Ingen överstrykning</string>
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">En del av Pro</string>
-    <string name="pro_offer_formatting">Att formatera text och lägga till eller slå ihop stycken ingår i OpenDocument Reader Pro.</string>
-    <string name="pro_offer_markup">Att markera en PDF ingår i OpenDocument Reader Pro.</string>
     <string name="not_now">Inte nu</string>
     <string name="edit_refused_new_line">En radbrytning inuti ett stycke kan inte sparas. Tryck på Enter för ett nytt stycke.</string>
     <string name="edit_refused_formula">Cellen innehåller en formel och förblir som den är.</string>

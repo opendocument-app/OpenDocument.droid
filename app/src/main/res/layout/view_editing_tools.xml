@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- the inside of EditingTools: one row of tools, which scrolls where the screen is too narrow -->
+<!--
+     the inside of EditingTools: one row of tools. fillViewport widens the row to the screen where
+     the tools leave room, so that gravity can centre them; where they do not fit, the row keeps
+     its own width and scrolls.
+-->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         tools:parentTag="android.widget.HorizontalScrollView">
@@ -8,7 +12,7 @@
             android:id="@+id/editing_tools_row"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
+            android:gravity="center"
             android:orientation="horizontal"
             android:paddingStart="8dp"
             android:paddingTop="4dp"

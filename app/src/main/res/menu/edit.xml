@@ -1,7 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- the edit mode's bar: save. Undo and redo sit with the tools under it, see EditingTools -->
+<!--
+     the edit mode's bar: what is done to the document, rather than to the text in it. The
+     formatting tools sit in the strip under it, see EditingTools
+-->
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+            android:id="@+id/edit_undo"
+            android:icon="@drawable/ic_undo"
+            app:showAsAction="always"
+            android:title="@string/action_undo" />
+
+    <!-- hidden over a pdf: a mark is taken back one at a time and never put back -->
+    <item
+            android:id="@+id/edit_redo"
+            android:icon="@drawable/ic_redo"
+            app:showAsAction="always"
+            android:title="@string/action_redo" />
 
     <item
             android:id="@+id/edit_save"

@@ -43,7 +43,6 @@
     <string name="action_tts_previous">Anterior</string>
     <string name="action_edit_save">Desa</string>
     <string name="action_contact">Contacta</string>
-    <string name="action_edit_banner">Editeu el document a sota i premeu Desa</string>
     <string name="landing_intro_open_all">De manera predeterminada, aquesta aplicació només s\'ofereix per obrir documents. Si una altra aplicació, com ara «Samsung My Files», no us deixa obrir un document aquí, activeu aquesta opció perquè s\'ofereixi per a qualsevol tipus de fitxer.</string>
     <string name="landing_intro_view">OpenDocument Reader us permet veure documents desats en format OpenDocument (.odt, .ods, .odp i .odg) allà on sigueu.</string>
     <string name="landing_intro_search">Amb OpenDocument Reader podeu llegir i cercar dins dels vostres documents en un tres i no res.</string>
@@ -103,8 +102,6 @@
     <string name="color_none">Sense ressaltat</string>
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Part de Pro</string>
-    <string name="pro_offer_formatting">Donar format al text, i afegir o unir paràgrafs, forma part d\'OpenDocument Reader Pro.</string>
-    <string name="pro_offer_markup">Marcar un PDF forma part d\'OpenDocument Reader Pro.</string>
     <string name="not_now">Ara no</string>
     <string name="edit_refused_new_line">Un salt de línia dins d\'un paràgraf no es pot desar. Premeu Retorn per a un paràgraf nou.</string>
     <string name="edit_refused_formula">Aquesta cel·la conté una fórmula i es queda tal com està.</string>

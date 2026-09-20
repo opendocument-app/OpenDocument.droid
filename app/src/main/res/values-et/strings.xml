@@ -43,7 +43,6 @@
     <string name="action_tts_previous">Eelmine</string>
     <string name="action_edit_save">Salvesta</string>
     <string name="action_contact">Võta ühendust</string>
-    <string name="action_edit_banner">Muuda allpool olevat dokumenti ja vajuta Salvesta</string>
     <string name="landing_intro_open_all">Vaikimisi pakub see rakendus avamist ainult dokumendifailidele. Kui mõni teine rakendus, näiteks „Samsung My Files“, ei lase dokumenti siin avada, lülita see sisse, et rakendus pakuks avamist kõigi failitüüpide puhul.</string>
     <string name="landing_intro_view">OpenDocument Reader võimaldab sul vaadata OpenDocumenti vormingus (.odt, .ods, .odp ja .odg) salvestatud dokumente kõikjal, kus sa parasjagu oled.</string>
     <string name="landing_intro_search">OpenDocument Readeriga loed oma dokumente ja otsid neist mängleva kergusega.</string>
@@ -103,8 +102,6 @@
     <string name="color_none">Esiletõstuta</string>
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Osa Pro-versioonist</string>
-    <string name="pro_offer_formatting">Teksti vormindamine ning lõikude lisamine või ühendamine on osa rakendusest OpenDocument Reader Pro.</string>
-    <string name="pro_offer_markup">PDF-i märgistamine on osa rakendusest OpenDocument Reader Pro.</string>
     <string name="not_now">Mitte praegu</string>
     <string name="edit_refused_new_line">Reavahetust lõigu sees ei saa salvestada. Uue lõigu jaoks vajuta Enter.</string>
     <string name="edit_refused_formula">Selles lahtris on valem ja see jääb nii, nagu on.</string>
