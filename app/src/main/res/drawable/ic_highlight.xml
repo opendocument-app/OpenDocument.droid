@@ -1,0 +1,17 @@
+<!-- a highlighter's stroke across a line of text, drawn flat like the marks beside it -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+  <path
+      android:fillColor="@android:color/white"
+      android:pathData="M4,4.5h16a0.75,0.75 0,0 1,0 1.5h-16a0.75,0.75 0,0 1,0 -1.5z"/>
+  <path
+      android:fillColor="@android:color/white"
+      android:pathData="M4.5,9h15a1.5,1.5 0,0 1,1.5 1.5v3a1.5,1.5 0,0 1,-1.5 1.5h-15a1.5,1.5 0,0 1,-1.5 -1.5v-3a1.5,1.5 0,0 1,1.5 -1.5z"/>
+  <path
+      android:fillColor="@android:color/white"
+      android:pathData="M4,18h11a0.75,0.75 0,0 1,0 1.5h-11a0.75,0.75 0,0 1,0 -1.5z"/>
+</vector>
