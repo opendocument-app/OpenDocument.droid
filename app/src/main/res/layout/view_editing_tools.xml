@@ -15,7 +15,7 @@
             android:gravity="center"
             android:orientation="horizontal"
             android:paddingStart="8dp"
-            android:paddingTop="4dp"
+            android:paddingTop="3dp"
             android:paddingEnd="8dp"
-            android:paddingBottom="4dp" />
+            android:paddingBottom="3dp" />
 </merge>
