@@ -1,13 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-     one tool of EditingTools, a square so that a row of them reads as a row. The slot under the
-     icon is the same height on every tool, whether it holds anything or not, so that the icons of
-     a row sit on one line.
-
-     The slot is deep, and the bar sits at the foot of it: an icon's ink ends where its own shape
-     says - a squiggle dips, a strikethrough stops high - and with the bar close under it that
-     difference reads as bars at different heights. Away from the ink, the eye lines them up
-     against each other instead.
+     one tool of EditingTools, a square so that a row of them reads as a row. The slot is there on
+     every tool, holding something or not, so the icons sit on one line - and it is deep, because
+     a bar close under the ink reads as uneven where a glyph dips.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
