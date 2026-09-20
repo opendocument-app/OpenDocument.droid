@@ -27,9 +27,10 @@
     bridge.marksChanged(event.count);
   };
 
+  // only a sheet carries the sheet editor, so this is asked of the page rather than taken for
+  // granted. A phone has no double click to spare, and the pointer is not asked either: a
+  // WebView answers that one as a mouse on an emulator
   if (odr.editing && odr.editing.setSheetOptions) {
-    // a phone has no double click to spare, and the pointer is not asked: a
-    // WebView on an emulator answers that one as a mouse
     odr.editing.setSheetOptions({ editOnClick: true });
   }
 

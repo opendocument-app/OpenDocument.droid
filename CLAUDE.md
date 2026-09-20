@@ -301,11 +301,19 @@ already had one and both write the same preference; the other two never get one.
 `PageView` sets `useWideViewPort` and `loadWithOverviewMode`, so a page wider than the screen
 opens scaled down to fit and is scaled again every time the phone is turned.
 
+How far it may scale down is the page's to say, not ours. A browser floors the page scale at
+0.25, which cannot fit content more than four screens wide, so an A0 pdf page used to scroll
+sideways and refuse to zoom out - measured in the WebView at 3232 css px on a 412 px screen,
+pinned at 0.25. Since core 7.2.0 the meta states the floor such a page needs, and narrower
+content carries none.
+
 odrcore's `HtmlConfig.viewportWidth` writes the same fit into the page's css, for an embedder
 rendering into a frame where the viewport meta tag is inert. Do not set it here: it is decided
 while translating, so it freezes the fit at the width the document was opened at - measured, a
 deck opened in portrait keeps a portrait-sized slide in a landscape screen. `initialZoom` and
 `odr.setZoom` are for a host with a zoom control of its own; here the pinch is the WebView's.
+`viewportContent` hands the whole question over, which would take the floor above with it and
+give a spreadsheet a fit it does not want.
 
 ### Editability comes from the core, never from a mime type
 
