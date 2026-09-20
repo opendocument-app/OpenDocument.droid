@@ -9,6 +9,7 @@ import android.app.Instrumentation
 import android.content.Intent
 import android.net.Uri
 import android.os.SystemClock
+import android.view.View
 import androidx.core.content.FileProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
@@ -16,6 +17,7 @@ import androidx.test.espresso.IdlingResource
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.replaceText
+import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
@@ -162,12 +164,17 @@ class MainActivityTests {
         // is free so that the mode is worth opening
         onView(withContentDescription(R.string.menu_annotate)).perform(click())
 
-        onView(withContentDescription(R.string.tool_mark_draw)).check(matches(isDisplayed()))
+        // the strip is waited for rather than asserted on the next line: a slow device lays it
+        // out after the click returns, and api 26 read it as missing
+        Assert.assertTrue("the marking strip should come up", awaitEditingTools())
+
+        // the highlighter, which every edition offers and a narrow screen shows without
+        // scrolling the strip
         onView(withContentDescription(R.string.tool_mark_highlight)).check(matches(isDisplayed()))
 
         if (!Features.advancedEditing) {
             // the pen is pro's, and says so rather than arming itself
-            onView(withContentDescription(R.string.tool_mark_draw)).perform(click())
+            onView(withContentDescription(R.string.tool_mark_draw)).perform(scrollTo(), click())
 
             awaitViewWithText(R.string.pro_offer_title)
             onView(withText(R.string.pro_offer_title)).check(matches(isDisplayed()))
@@ -767,6 +774,23 @@ class MainActivityTests {
         }
         return false
     }
+
+    /** Whether the strip of editing tools reaches the screen, which a slow device delays. */
+    private fun awaitEditingTools(): Boolean =
+        waitFor(EDIT_MODE_TIMEOUT_MS) {
+            // the activity is looked up first: resumedMainActivity syncs with the main thread
+            // itself, and nesting that inside another sync throws
+            val activity = resumedMainActivity()
+            val shown = AtomicReference(false)
+            if (activity != null) {
+                InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                    shown.set(
+                        activity.findViewById<View>(R.id.editing_tools)?.visibility == View.VISIBLE
+                    )
+                }
+            }
+            shown.get()
+        }
 
     private fun enterEditMode(activity: MainActivity, documentFragment: DocumentFragment) {
         val started = AtomicReference(false)
