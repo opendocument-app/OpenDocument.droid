@@ -1,8 +1,4 @@
-<!--
-     A highlighter: the wedge nib at the tip, the barrel, and the cap at the back. Not a pencil -
-     this icon stands beside ic_draw and ic_edit, which are pencils, and the three have to be told
-     apart at 22dp. The colour it lays down is the bar under it, see item_editing_tool.xml.
--->
+<!-- a highlighter - wedge nib, barrel, cap - and not a pencil: it stands beside ic_draw's pen -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"

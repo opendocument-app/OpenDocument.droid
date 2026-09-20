@@ -723,11 +723,12 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         val edit =
             when (document.editing) {
                 EditingKind.NONE -> null
+                // the same icon as below: one button, and the label is what separates them
                 EditingKind.ANNOTATION ->
                     DocumentActions.Action(
                         DocumentActions.ACTION_EDIT,
                         R.string.menu_annotate,
-                        R.drawable.ic_marker,
+                        R.drawable.ic_edit,
                     )
                 else ->
                     DocumentActions.Action(
