@@ -19,16 +19,14 @@
             android:visibility="gone" />
 
     <!--
-         owned by AdManager, which casts it to a LinearLayout and drives its visibility
-         itself. the landing and the document sit below it, so the banner pushes them down
-         rather than covering them.
+         owned by AdManager, which casts it to a LinearLayout and drives its visibility itself.
+         MainActivity.liftBanner moves it out of here and above the action modes' bar, so nothing
+         in this layout may sit below it.
     -->
     <LinearLayout
             android:id="@+id/ad_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/editing_tools"
-            android:layout_gravity="center_horizontal"
             android:orientation="horizontal"
             android:visibility="gone" />
 
@@ -37,13 +35,13 @@
             android:id="@+id/landing_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/ad_container" />
+            android:layout_below="@id/editing_tools" />
 
     <FrameLayout
             android:id="@+id/document_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/ad_container"
+            android:layout_below="@id/editing_tools"
             android:background="@color/document_background"
             android:visibility="gone" />
 </RelativeLayout>

@@ -10,6 +10,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.ActionMode
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -181,14 +182,6 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.main)
 
-        // nothing lives in the toolbar any more - the landing screen has its own header and the
-        // document its buttons - so the bar would just be an empty strip of colour. Hiding it
-        // rather than moving to a .NoActionBar theme keeps it as the host the action modes are
-        // raised in: appcompat shows the container again for as long as one is up, and takes it
-        // back down afterwards, so find, tts and edit still get their bar without the app
-        // having to put one on screen itself.
-        supportActionBar?.hide()
-
         onBackPressedDispatcher.addCallback(this, backCallback)
 
         // before the fragments below: a restored DocumentFragment reaches for it in onViewCreated
@@ -197,6 +190,7 @@ class MainActivity : AppCompatActivity() {
         handler = Handler(Looper.getMainLooper())
 
         adContainer = findViewById(R.id.ad_container)
+        liftBanner()
         landingContainer = findViewById(R.id.landing_container)
         documentContainer = findViewById(R.id.document_container)
 
@@ -269,6 +263,19 @@ class MainActivity : AppCompatActivity() {
 
             analyticsManager.setCurrentScreen(this, "screen_main")
         }
+    }
+
+    /**
+     * Puts the banner above everything the window shows, the bar an action mode raises included.
+     * That bar is the decor's, not this layout's, so the banner leaves the content view for the
+     * decor's own stack, in front of `action_mode_bar_stub`.
+     */
+    private fun liftBanner() {
+        val content: View = findViewById(android.R.id.content)
+        val decor = content.parent as? ViewGroup ?: return
+
+        (adContainer.parent as? ViewGroup)?.removeView(adContainer)
+        decor.addView(adContainer, 0)
     }
 
     /**
