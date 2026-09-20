@@ -109,7 +109,7 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         row.addView(textColor)
 
         // a tap flips the highlight on the selection, in the colour the long press picked
-        val highlight = newTool(R.drawable.ic_marker, R.string.tool_highlight, HIGHLIGHT_COLOR)
+        val highlight = newTool(R.drawable.ic_highlight, R.string.tool_highlight, HIGHLIGHT_COLOR)
         paintBar(highlight, HIGHLIGHT_COLOR)
         highlight.setOnClickListener {
             ifOffered(HIGHLIGHT_COLOR) {
@@ -515,7 +515,7 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         /** The marks a pdf takes, in the annotator's names. */
         private val MARKS =
             listOf(
-                Mark("highlight", R.drawable.ic_marker, R.string.tool_mark_highlight),
+                Mark("highlight", R.drawable.ic_highlight, R.string.tool_mark_highlight),
                 Mark("underline", R.drawable.ic_format_underlined, R.string.tool_mark_underline),
                 Mark(
                     "strikeOut",
