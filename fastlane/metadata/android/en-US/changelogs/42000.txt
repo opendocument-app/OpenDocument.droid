@@ -1,0 +1,7 @@
+You can now edit PowerPoint files, spreadsheet cells and plain text, with undo and redo. The page stays where it was.
+
+Highlighting is free, in documents and in PDFs. Hold an editing button to see the colours it uses.
+
+Marking text in a PDF no longer hides it, and a mark covers the whole passage.
+
+A wide PDF page zooms out until it fits the screen.

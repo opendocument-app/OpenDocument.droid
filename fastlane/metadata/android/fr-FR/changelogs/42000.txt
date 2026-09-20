@@ -1,0 +1,7 @@
+Vous pouvez désormais modifier les fichiers PowerPoint, les cellules d'une feuille de calcul et les fichiers texte, avec annulation et rétablissement. La page reste où elle était.
+
+Le surlignage est gratuit, dans les documents comme dans les PDF. Appuyez longuement sur un outil d'édition pour voir ses couleurs.
+
+Marquer du texte dans un PDF ne le masque plus, et une marque couvre tout le passage.
+
+Une page PDF large se réduit jusqu'à tenir à l'écran.

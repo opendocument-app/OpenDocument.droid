@@ -1,0 +1,7 @@
+Agora você pode editar arquivos do PowerPoint, células de planilha e texto simples, com desfazer e refazer. A página continua onde estava.
+
+Destacar texto é grátis, em documentos e em PDFs. Mantenha pressionado um botão de edição para ver as cores que ele usa.
+
+Marcar texto em um PDF não o esconde mais, e a marca cobre todo o trecho.
+
+Uma página de PDF larga diminui o zoom até caber na tela.

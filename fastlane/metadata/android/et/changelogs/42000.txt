@@ -1,0 +1,7 @@
+Nüüd saad muuta PowerPointi faile, arvutustabeli lahtreid ja lihtteksti ning tehtu tagasi võtta või uuesti teha. Leht jääb sinna, kus oli.
+
+Esiletõstmine on tasuta, nii dokumentides kui ka PDF-failides. Hoia muutmisnuppu all, et näha selle värve.
+
+PDF-failis märgitud tekst ei kao enam ära ja märge katab kogu valitud teksti.
+
+Lai PDF-leht avaneb vähendatult, nii et see mahub ekraanile.

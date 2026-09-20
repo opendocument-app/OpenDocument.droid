@@ -1,0 +1,7 @@
+Ya puedes editar archivos de PowerPoint, celdas de hojas de cálculo y texto sin formato, con deshacer y rehacer. La página se queda donde estaba.
+
+El resaltado es gratis, tanto en documentos como en PDF. Mantén pulsado un botón de edición para ver los colores que usa.
+
+Marcar texto en un PDF ya no lo oculta, y la marca cubre todo el fragmento.
+
+Una página de PDF ancha se reduce hasta caber en la pantalla.
