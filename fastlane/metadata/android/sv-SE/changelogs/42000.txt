@@ -1,0 +1,7 @@
+Du kan nu redigera PowerPoint-filer, celler i kalkylblad och vanlig text, med ångra och gör om. Sidan stannar kvar där den var.
+
+Överstrykning är gratis, både i dokument och i PDF. Håll ned en redigeringsknapp för att se färgerna den använder.
+
+En markering i en PDF döljer inte längre texten, och den sträcker sig över hela stycket.
+
+En bred PDF-sida zoomas ut tills den får plats på skärmen.

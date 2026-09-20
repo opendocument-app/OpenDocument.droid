@@ -1,0 +1,7 @@
+Możesz teraz edytować pliki PowerPoint, komórki arkuszy kalkulacyjnych i zwykły tekst, z cofaniem i ponawianiem. Strona zostaje tam, gdzie była.
+
+Podświetlanie jest bezpłatne w dokumentach i w plikach PDF. Przytrzymaj dowolny przycisk edycji, aby zobaczyć jego kolory.
+
+Oznaczanie tekstu w pliku PDF już go nie zasłania, a oznaczenie obejmuje cały fragment.
+
+Szeroka strona PDF pomniejsza się, aż zmieści się na ekranie.

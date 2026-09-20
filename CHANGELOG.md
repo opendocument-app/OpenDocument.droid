@@ -17,10 +17,24 @@ takes 500 characters, so not everything here reaches the store.
 
 ## Unreleased
 
+## 4.20.0
+
 - Editing reaches PowerPoint files, spreadsheet cells and plain text files, has undo and
   redo, and no longer loads the document again, so the page stays where it was.
-- Pro also formats text, starts and joins paragraphs, and marks up PDFs: highlight,
-  underline, strike out, squiggly underline, and drawing.
+- The editing tools are one row of buttons. A tap does the one thing the tool is for,
+  and holding a tool opens the colours it applies.
+- Highlighting is free, in documents and in PDFs alike. Pro adds the rest: bold, italic,
+  colours and text size, starting and joining paragraphs, and a PDF's underline, strike
+  out, squiggly underline and drawing.
+- A PDF's marking tool stays on when it is tapped with nothing selected, so marking one
+  passage after another takes a single drag each.
+- Selecting text in a PDF no longer hides the words it selects, and the selection can be
+  adjusted from both of its ends.
+- A PDF's underline and squiggle hang below the text rather than crossing it, and a mark
+  covers the whole of what was selected rather than breaking apart at every word.
+- A PDF page far wider than the screen can be zoomed out until it fits. It used to stop
+  part of the way and scroll sideways.
+- A spreadsheet cell takes one tap to edit.
 - Leaving the edit mode with unsaved changes asks whether to save or discard them.
 - Word files show a text's shading, and text that is both underlined and struck through
   shows both lines.

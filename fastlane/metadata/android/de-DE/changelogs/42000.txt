@@ -1,0 +1,7 @@
+Sie können jetzt PowerPoint-Dateien, Zellen in Tabellenkalkulationen und Textdateien bearbeiten – mit Rückgängig und Wiederherstellen. Die Seite bleibt, wo sie war.
+
+Hervorheben ist kostenlos, in Dokumenten und in PDFs. Halten Sie ein Bearbeiten-Werkzeug gedrückt, um seine Farben zu sehen.
+
+Markierter Text im PDF wird nicht mehr verdeckt, und eine Markierung erstreckt sich über die ganze Textstelle.
+
+Eine breite PDF-Seite wird verkleinert, bis sie auf den Bildschirm passt.
