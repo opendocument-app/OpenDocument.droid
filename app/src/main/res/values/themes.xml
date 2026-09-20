@@ -6,15 +6,12 @@
         have to add what is specific to them. Copying the whole theme per qualifier is what let
         the colours drift apart before.
 
-        Not a .NoActionBar variant, even though no screen puts anything in the bar any more:
-        the ActionBar's container is what startSupportActionMode() raises find, tts and edit
-        in, and appcompat only shows it for as long as one of them is up. MainActivity hides
-        the bar itself on start, so the container is off screen the rest of the time and the
-        window inset math stays the one ActionBarOverlayLayout does - which a NoActionBar
-        theme would swap for a decor that pads itself, on top of the padding MainActivity
-        applies.
+        NoActionBar, and no screen puts anything in a bar: find, tts and edit raise their own
+        through startSupportActionMode, which appcompat inflates into the decor's
+        action_mode_bar_stub. That stub is what the ad banner has to sit above, and it can
+        only be reached in a decor that stacks its children - see MainActivity.liftBanner.
     -->
-    <style name="Base.MainTheme" parent="Theme.Material3.DayNight">
+    <style name="Base.MainTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/md_primary</item>
         <item name="colorOnPrimary">@color/md_on_primary</item>
         <item name="colorPrimaryContainer">@color/md_primary_container</item>
