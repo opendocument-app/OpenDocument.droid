@@ -437,14 +437,18 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         reload(requireLastRequest(), requireLastFile())
     }
 
-    /** The strip under the bar: what the kind of document takes, and undo and redo. */
+    /**
+     * The strip under the bar: what the kind of document takes. A sheet or a plain text file takes
+     * nothing, so there is no strip over it at all - undo, redo and save are the bar's.
+     */
     private fun showEditingTools(document: LoadedDocument, editing: Boolean) {
         when {
             !editing || !document.editing.isEditable -> editingTools.hide()
             document.editing == EditingKind.DOCUMENT ->
                 editingTools.showFormatting(locked = !Features.advancedEditing)
-            document.editing == EditingKind.ANNOTATION -> editingTools.showMarking()
-            else -> editingTools.showPlain()
+            document.editing == EditingKind.ANNOTATION ->
+                editingTools.showMarking(locked = !Features.advancedEditing)
+            else -> editingTools.hide()
         }
     }
 
@@ -511,27 +515,40 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             override fun onMarkTool(tool: String, color: Int, recolor: Boolean) {
                 analyticsManager.report("edit_mark_$tool")
 
-                pageView?.pressMarkTool(tool, color, EditingTools.INK_WIDTH, recolor) { armed ->
+                pageView?.pressMarkTool(tool, color, EditingTools.INK_WIDTH, recolor) {
+                    armed,
+                    marked ->
                     editingTools.setArmedTool(armed)
+
+                    // the pen needs no selection, and a colour picked over nothing is not a miss
+                    if (!marked && !recolor && tool != INK_TOOL) {
+                        sayHowToMark()
+                    }
                 }
             }
 
             override fun onLocked() {
-                (requireActivity() as MainActivity).offerPro(MainActivity.ProFeature.FORMATTING)
-            }
-
-            override fun onUndo() {
-                analyticsManager.report("menu_edit_undo")
-
-                undo()
-            }
-
-            override fun onRedo() {
-                analyticsManager.report("menu_edit_redo")
-
-                redo()
+                (requireActivity() as MainActivity).offerPro(
+                    if (editingKind == EditingKind.ANNOTATION) MainActivity.ProFeature.PDF
+                    else MainActivity.ProFeature.FORMATTING
+                )
             }
         }
+
+    /** Says what a mark wants, where a tool was pressed with nothing selected. */
+    private fun sayHowToMark() {
+        if (!isAdded) {
+            return
+        }
+
+        SnackbarHelper.show(
+            requireActivity(),
+            R.string.action_annotate_banner,
+            null,
+            isIndefinite = false,
+            isError = false,
+        )
+    }
 
     private fun setEditState(dirty: Boolean, canUndo: Boolean, canRedo: Boolean) {
         if (!::state.isInitialized) {
@@ -540,9 +557,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         state.editsDirty = dirty
 
-        if (::editingTools.isInitialized) {
-            editingTools.setUndoState(canUndo, canRedo)
-        }
+        (activity as? MainActivity)?.editActionMode?.setUndoState(canUndo, canRedo)
     }
 
     /** Says why the page refused an edit, in our words rather than the page's. */
@@ -1491,5 +1506,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         /** What the analytics screen name is when nothing could name the bytes. */
         const val UNKNOWN_FILE_TYPE = "N/A"
+
+        /** The one marking tool that stays armed, in the annotator's name for it. */
+        const val INK_TOOL = "ink"
     }
 }

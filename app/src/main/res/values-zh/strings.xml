@@ -43,7 +43,6 @@
     <string name="action_tts_previous">上一个</string>
     <string name="action_edit_save">保存</string>
     <string name="action_contact">联系我们</string>
-    <string name="action_edit_banner">编辑您的文档，然后点击保存</string>
     <string name="landing_intro_open_all">本应用默认只在打开文档文件时出现。如果“三星我的文件”之类的应用不让您在这里打开文档，请开启此项，让本应用接受所有文件类型。</string>
     <string name="landing_intro_view">无论身在何处，OpenDocument Reader 都能让您查看以 OpenDocument 格式（.odt、.ods、.odp 和 .odg）保存的文档。</string>
     <string name="landing_intro_search">有了 OpenDocument Reader，阅读和搜索文档都轻而易举。</string>
@@ -103,8 +102,6 @@
     <string name="color_none">无突出显示</string>
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Pro 功能</string>
-    <string name="pro_offer_formatting">设置文本格式以及添加或合并段落是 OpenDocument Reader Pro 的功能。</string>
-    <string name="pro_offer_markup">标注 PDF 是 OpenDocument Reader Pro 的功能。</string>
     <string name="not_now">以后再说</string>
     <string name="edit_refused_new_line">段落内的换行无法保存。按 Enter 键可新建段落。</string>
     <string name="edit_refused_formula">该单元格包含公式，将保持不变。</string>

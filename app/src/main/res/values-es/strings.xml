@@ -43,7 +43,6 @@
     <string name="action_tts_previous">Anterior</string>
     <string name="action_edit_save">Guardar</string>
     <string name="action_contact">Contacto</string>
-    <string name="action_edit_banner">Edite el documento a continuación y pulse Guardar</string>
     <string name="landing_intro_open_all">De forma predeterminada, esta aplicación solo aparece como opción para abrir documentos. Si otra aplicación, como «Mis archivos» de Samsung, no le deja abrir aquí un documento, active esta opción para que aparezca con todos los tipos de archivo.</string>
     <string name="landing_intro_view">OpenDocument Reader le permite ver documentos almacenados en formato OpenDocument (.odt, .ods, .odp y .odg) dondequiera que se encuentre.</string>
     <string name="landing_intro_search">Con OpenDocument Reader puede leer sus documentos y buscar en ellos en un abrir y cerrar de ojos.</string>
@@ -103,8 +102,6 @@
     <string name="color_none">Sin resaltado</string>
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Parte de Pro</string>
-    <string name="pro_offer_formatting">Dar formato al texto, así como añadir o unir párrafos, forma parte de OpenDocument Reader Pro.</string>
-    <string name="pro_offer_markup">Marcar un PDF forma parte de OpenDocument Reader Pro.</string>
     <string name="not_now">Ahora no</string>
     <string name="edit_refused_new_line">Un salto de línea dentro de un párrafo no se puede guardar. Pulse Intro para crear un párrafo nuevo.</string>
     <string name="edit_refused_formula">Esa celda contiene una fórmula y se queda como está.</string>

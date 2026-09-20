@@ -14,14 +14,26 @@ import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.TooltipCompat
+import androidx.core.view.AccessibilityDelegateCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import app.opendocument.droid.R
 import org.json.JSONObject
 
 /**
- * The tools under the edit mode's bar, with undo and redo at the end. It only reports taps; which
- * tool is on comes back from the page through [setSelectionStyle] and [setArmedTool].
+ * The strip of tools under the edit mode's bar: what changes the text, and nothing else. Undo, redo
+ * and save are the bar's, see `EditActionModeCallback`.
+ *
+ * Every tool is one square button, and a tap does the one thing the tool is for. A tool that
+ * applies a colour shows it in the bar under its icon, and a **long press** opens the colours -
+ * there is no second button beside it. Which tool is on comes back from the page, through
+ * [setSelectionStyle] and [setArmedTool].
+ *
+ * In a build without [app.opendocument.droid.nonfree.Features.advancedEditing] the strip is
+ * `locked`: the highlighter still works, every other tool is dimmed and offers pro, and pro's badge
+ * stands in front of the row. One free tool of each kind is what makes the mode worth opening - see
+ * [FREE_TOOL].
  */
 class EditingTools(context: Context, attributeSet: AttributeSet?) :
     HorizontalScrollView(context, attributeSet) {
@@ -39,10 +51,6 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
 
         /** A tool of pro's was tapped in a build without it. */
         fun onLocked()
-
-        fun onUndo()
-
-        fun onRedo()
     }
 
     var listener: Listener? = null
@@ -54,29 +62,22 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
 
     private val toggles = mutableMapOf<String, View>()
     private val markTools = mutableMapOf<String, View>()
-    private val markColors = mutableMapOf<String, Int>()
 
-    private var textColor = TEXT_COLORS.first().color
-    private var highlightColor = HIGHLIGHT_COLORS.first().color
+    /** What each tool applies, which is what its bar shows. Kept as the document is edited. */
+    private val toolColors = STARTING_COLORS.toMutableMap()
 
-    /** What the selection shows, as the page last reported it. */
-    private var selectionStyle = JSONObject()
-
-    private var textColorBar: View? = null
     private var highlightTool: View? = null
-    private var highlightBar: View? = null
-    private var sizeTool: TextView? = null
-    private var undoTool: View? = null
-    private var redoTool: View? = null
+    private var sizeTool: View? = null
 
-    private var canUndo = false
-    private var canRedo = false
+    /** The size the selection is in, in points, or null where the runs disagree. */
+    private var selectionSize: String? = null
 
     init {
         LayoutInflater.from(context).inflate(R.layout.view_editing_tools, this, true)
 
         row = findViewById(R.id.editing_tools_row)
 
+        isFillViewport = true
         isHorizontalScrollBarEnabled = false
         visibility = View.GONE
     }
@@ -85,53 +86,44 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         visibility = View.GONE
     }
 
-    /** The formatting tools. [locked] adds pro's badge, and makes each tool offer pro. */
+    /**
+     * The formatting tools. [locked] adds pro's badge, and makes every tool but the free one offer
+     * pro.
+     */
     fun showFormatting(locked: Boolean) {
         reset(locked)
 
-        if (locked) {
-            val badge = newText(R.string.tool_pro_badge)
-            badge.isSelected = true
-            row.addView(badge)
-        }
+        addBadge()
 
         addToggle("bold", R.drawable.ic_format_bold, R.string.tool_bold)
         addToggle("italic", R.drawable.ic_format_italic, R.string.tool_italic)
         addToggle("underline", R.drawable.ic_format_underlined, R.string.tool_underline)
-        addToggle(
-            "strikethrough",
-            R.drawable.ic_format_strikethrough,
-            R.string.tool_strikethrough,
-        )
+        addToggle("strikethrough", R.drawable.ic_format_strikethrough, R.string.tool_strikethrough)
 
-        // one control: the colors open under it, and the bar shows the selection's own
-        val textColorTool = newTool(R.drawable.ic_text_color, R.string.tool_text_color)
-        textColorBar = barOf(textColorTool).also { paintBar(it, textColor) }
-        textColorTool.setOnClickListener { anchor ->
-            ifUnlocked {
-                showPalette(anchor, TEXT_COLORS) { color ->
-                    listener?.onFormat(JSONObject().put("color", hex(color)))
-                }
-            }
-        }
-        row.addView(textColorTool)
+        // the tool has nothing to turn off, so a tap is the colours themselves; the long press
+        // opens them too, because that is where every other tool keeps its colours
+        val textColor = newTool(R.drawable.ic_text_color, R.string.tool_text_color, TEXT_COLOR)
+        paintBar(textColor, TEXT_COLOR)
+        textColor.setOnClickListener { ifOffered(TEXT_COLOR) { pickTextColor(it) } }
+        addColorPress(textColor, TEXT_COLOR, R.string.tool_text_color) { pickTextColor(it) }
+        row.addView(textColor)
 
-        // a split button: the tool turns the highlight on and off, the arrow picks its colour
-        val highlight = newTool(R.drawable.ic_marker, R.string.tool_highlight)
-        highlightBar = barOf(highlight).also { paintBar(it, highlightColor) }
+        // a tap flips the highlight on the selection, in the colour the long press picked
+        val highlight = newTool(R.drawable.ic_marker, R.string.tool_highlight, HIGHLIGHT_COLOR)
+        paintBar(highlight, HIGHLIGHT_COLOR)
         highlight.setOnClickListener {
-            ifUnlocked {
-                // isNull is also true of a key the page left out, where the runs disagree
-                val on = !selectionStyle.isNull("highlight")
-
+            ifOffered(HIGHLIGHT_COLOR) {
                 listener?.onFormat(
-                    JSONObject().put("highlight", if (on) JSONObject.NULL else hex(highlightColor))
+                    JSONObject()
+                        .put(
+                            "highlight",
+                            if (highlight.isSelected) JSONObject.NULL
+                            else hex(colorOf(HIGHLIGHT_COLOR)),
+                        )
                 )
             }
         }
-        highlightTool = highlight
-        row.addView(highlight)
-        addChevron(R.string.tool_highlight) { anchor ->
+        addColorPress(highlight, HIGHLIGHT_COLOR, R.string.tool_highlight) { anchor ->
             showPalette(anchor, HIGHLIGHT_COLORS) { color ->
                 if (color == Color.TRANSPARENT) {
                     listener?.onFormat(JSONObject().put("highlight", JSONObject.NULL))
@@ -139,135 +131,92 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
                     return@showPalette
                 }
 
-                highlightColor = color
-                highlightBar?.let { paintBar(it, color) }
+                setToolColor(HIGHLIGHT_COLOR, highlight, color)
 
                 listener?.onFormat(JSONObject().put("highlight", hex(color)))
             }
         }
+        highlightTool = highlight
+        row.addView(highlight)
 
-        val size = newText(R.string.tool_font_size)
-        size.contentDescription = context.getString(R.string.tool_font_size)
-        TooltipCompat.setTooltipText(size, context.getString(R.string.tool_font_size))
-        size.setOnClickListener { ifUnlocked { showSizes(size) } }
+        val size = newTool(R.drawable.ic_format_size, R.string.tool_font_size, SIZE_TOOL)
+        size.setOnClickListener { ifOffered(SIZE_TOOL) { showSizes(it) } }
         sizeTool = size
         row.addView(size)
 
-        addUndoRedo(redo = true)
-
-        setSelectionStyle(selectionStyle)
-
-        visibility = View.VISIBLE
-    }
-
-    /** A sheet or a plain text file: nothing to format, so only the way back. */
-    fun showPlain() {
-        reset(false)
-
-        addUndoRedo(redo = true)
+        setSelectionStyle(JSONObject())
 
         visibility = View.VISIBLE
     }
 
     /** The five marking tools of a pdf, each with a colour of its own. */
-    fun showMarking() {
-        reset(false)
+    fun showMarking(locked: Boolean) {
+        reset(locked)
+
+        addBadge()
 
         for (mark in MARKS) {
-            val color = markColors.getOrPut(mark.tool) { mark.color }
-
-            val tool = newTool(mark.icon, mark.label)
-            paintBar(barOf(tool), color)
+            val tool = newTool(mark.icon, mark.label, mark.tool)
+            paintBar(tool, mark.tool)
             tool.setOnClickListener {
-                listener?.onMarkTool(mark.tool, markColors.getValue(mark.tool), false)
+                ifOffered(mark.tool) {
+                    listener?.onMarkTool(mark.tool, colorOf(mark.tool), false)
+                }
             }
-            markTools[mark.tool] = tool
-            row.addView(tool)
-
-            addChevron(mark.label) { anchor ->
+            addColorPress(tool, mark.tool, mark.label) { anchor ->
                 showPalette(anchor, MARK_COLORS) { picked ->
-                    markColors[mark.tool] = picked
-                    paintBar(barOf(tool), picked)
+                    setToolColor(mark.tool, tool, picked)
 
                     listener?.onMarkTool(mark.tool, picked, true)
                 }
             }
-        }
 
-        // a mark is taken back one at a time and never put back
-        addUndoRedo(redo = false)
+            markTools[mark.tool] = tool
+            row.addView(tool)
+        }
 
         visibility = View.VISIBLE
     }
 
-    /** What the page says can be taken back and put back. */
-    fun setUndoState(canUndo: Boolean, canRedo: Boolean) {
-        this.canUndo = canUndo
-        this.canRedo = canRedo
-
-        undoTool?.let { setUsable(it, canUndo) }
-        redoTool?.let { setUsable(it, canRedo) }
-    }
-
-    /** Undo and redo are the page's in every edition, so they are never locked. */
-    private fun addUndoRedo(redo: Boolean) {
-        val undo = newTool(R.drawable.ic_undo, R.string.action_undo)
-        undo.setOnClickListener { listener?.onUndo() }
-        undoTool = undo
-        row.addView(undo)
-
-        if (redo) {
-            val tool = newTool(R.drawable.ic_redo, R.string.action_redo)
-            tool.setOnClickListener { listener?.onRedo() }
-            redoTool = tool
-            row.addView(tool)
+    /** Pro's badge, in front of a locked row, saying whose the dimmed tools are. */
+    private fun addBadge() {
+        if (!locked) {
+            return
         }
 
-        setUndoState(canUndo, canRedo)
-    }
-
-    private fun setUsable(tool: View, usable: Boolean) {
-        tool.isEnabled = usable
-        tool.alpha = if (usable) 1f else DISABLED_ALPHA
+        val badge =
+            LayoutInflater.from(context).inflate(R.layout.item_editing_tool_badge, row, false)
+                as TextView
+        badge.setText(R.string.tool_pro_badge)
+        badge.isSelected = true
+        badge.setOnClickListener { listener?.onLocked() }
+        row.addView(badge)
     }
 
     /** Shows which of the toggles the selection has on, and the size it is set in. */
     fun setSelectionStyle(style: JSONObject) {
-        selectionStyle = style
-
         for ((property, view) in toggles) {
             view.isSelected = !locked && style.optBoolean(property, false)
         }
 
+        // isNull is also true of a key the page left out, where the runs disagree
         highlightTool?.isSelected = !locked && !style.isNull("highlight")
 
-        // where the runs disagree, the bars keep what they showed
-        style
-            .optString("color")
-            .takeIf { !style.isNull("color") }
-            ?.let { parseColor(it) }
-            ?.let { color ->
-                textColorBar?.let { paintBar(it, color) }
-            }
-        style
-            .optString("highlight")
-            .takeIf { !style.isNull("highlight") }
-            ?.let { parseColor(it) }
-            ?.let { color ->
-                highlightColor = color
-                highlightBar?.let { paintBar(it, color) }
+        // the caption is the size the text is in; the icon alone means the runs disagree
+        selectionSize =
+            style.optString("size", "").removeSuffix("pt").takeIf {
+                it.isNotEmpty() && !style.isNull("size")
             }
 
-        sizeTool?.text =
-            style
-                .optString("size", "")
-                .removeSuffix("pt")
-                .takeIf { it.isNotEmpty() && !style.isNull("size") }
-                ?.let { context.getString(R.string.tool_font_size_points, it) }
-                ?: context.getString(R.string.tool_font_size)
+        sizeTool?.let { tool ->
+            captionOf(
+                tool,
+                selectionSize?.let { context.getString(R.string.tool_font_size_points, it) },
+            )
+        }
     }
 
-    /** Shows which marking tool is armed, or none. */
+    /** Shows which marking tool is armed, or none. Only the pen ever is. */
     fun setArmedTool(tool: String?) {
         for ((name, view) in markTools) {
             view.isSelected = name == tool
@@ -280,104 +229,202 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         row.removeAllViews()
         toggles.clear()
         markTools.clear()
-        textColorBar = null
         highlightTool = null
-        highlightBar = null
         sizeTool = null
-        undoTool = null
-        redoTool = null
-        selectionStyle = JSONObject()
 
         scrollTo(0, 0)
     }
 
-    private fun ifUnlocked(action: () -> Unit) {
-        if (locked) {
+    /** Whether [tool] only offers pro in this build, rather than doing its work. */
+    private fun isPro(tool: String) = locked && tool != FREE_TOOL
+
+    private fun ifOffered(tool: String, action: () -> Unit) {
+        if (isPro(tool)) {
             listener?.onLocked()
         } else {
             action()
         }
     }
 
+    private fun pickTextColor(anchor: View) {
+        showPalette(anchor, TEXT_COLORS) { color ->
+            setToolColor(TEXT_COLOR, anchor, color)
+
+            listener?.onFormat(JSONObject().put("color", hex(color)))
+        }
+    }
+
     private fun addToggle(property: String, @DrawableRes icon: Int, @StringRes label: Int) {
-        val tool = newTool(icon, label)
-        tool.setOnClickListener { ifUnlocked { listener?.onToggleStyle(property) } }
+        val tool = newTool(icon, label, property)
+        tool.setOnClickListener { ifOffered(property) { listener?.onToggleStyle(property) } }
 
         toggles[property] = tool
         row.addView(tool)
     }
 
-    private fun addChevron(@StringRes label: Int, open: (View) -> Unit) {
-        val chevron =
-            LayoutInflater.from(context).inflate(R.layout.item_editing_tool_chevron, row, false)
-
+    /**
+     * Puts the colours of [tool] on its long press. That is where the name of a tool is otherwise
+     * read out, so the screen reader is told what the press does instead.
+     */
+    private fun addColorPress(
+        tool: View,
+        name: String,
+        @StringRes label: Int,
+        open: (View) -> Unit,
+    ) {
         val description = context.getString(R.string.tool_color_of, context.getString(label))
-        chevron.contentDescription = description
-        TooltipCompat.setTooltipText(chevron, description)
 
-        chevron.setOnClickListener { ifUnlocked { open(it) } }
+        tool.setOnLongClickListener {
+            ifOffered(name) { open(tool) }
 
-        row.addView(chevron)
+            true
+        }
+
+        ViewCompat.setAccessibilityDelegate(
+            tool,
+            object : AccessibilityDelegateCompat() {
+                override fun onInitializeAccessibilityNodeInfo(
+                    host: View,
+                    info: AccessibilityNodeInfoCompat,
+                ) {
+                    super.onInitializeAccessibilityNodeInfo(host, info)
+
+                    info.addAction(
+                        AccessibilityNodeInfoCompat.AccessibilityActionCompat(
+                            AccessibilityNodeInfoCompat.ACTION_LONG_CLICK,
+                            description,
+                        )
+                    )
+                }
+            },
+        )
     }
 
-    private fun newTool(@DrawableRes icon: Int, @StringRes label: Int): View {
+    private fun newTool(@DrawableRes icon: Int, @StringRes label: Int, name: String): View {
         val tool = LayoutInflater.from(context).inflate(R.layout.item_editing_tool, row, false)
 
         tool.findViewById<ImageView>(R.id.editing_tool_icon).setImageResource(icon)
         tool.contentDescription = context.getString(label)
 
-        // no label beside it, so the name is what a long press turns up
+        // a tool that only offers pro is dimmed, so the free one is the one that stands out
+        if (isPro(name)) {
+            tool.alpha = PRO_ALPHA
+        }
+
+        // no label beside it, so the name is what a long press turns up - on the tools whose long
+        // press is not the colours, see addColorPress
         TooltipCompat.setTooltipText(tool, context.getString(label))
 
         return tool
     }
 
-    private fun newText(@StringRes text: Int): TextView {
-        val view =
-            LayoutInflater.from(context).inflate(R.layout.item_editing_tool_text, row, false)
-                as TextView
-        view.setText(text)
+    /** Shows [text] under the tool's icon, or nothing where it is null. */
+    private fun captionOf(tool: View, text: String?) {
+        val caption = tool.findViewById<TextView>(R.id.editing_tool_caption)
 
-        if (text == R.string.tool_pro_badge) {
-            view.setOnClickListener { listener?.onLocked() }
-        }
-
-        return view
+        caption.text = text.orEmpty()
+        caption.visibility = if (text == null) View.GONE else View.VISIBLE
     }
 
-    private fun barOf(tool: View): View =
-        tool.findViewById<View>(R.id.editing_tool_bar).also { it.visibility = View.VISIBLE }
+    /** What [name] applies, which starts at the first colour its palette offers. */
+    @ColorInt private fun colorOf(name: String): Int = toolColors.getValue(name)
 
-    private fun paintBar(bar: View, @ColorInt color: Int) {
-        (bar.background.mutate() as GradientDrawable).setColor(color)
+    private fun setToolColor(name: String, tool: View, @ColorInt color: Int) {
+        toolColors[name] = color
+
+        paintBar(tool, name)
     }
 
+    /** Shows under [tool]'s icon what it applies, so that the bar is what a tap uses. */
+    private fun paintBar(tool: View, name: String) {
+        val bar = tool.findViewById<View>(R.id.editing_tool_bar)
+        bar.visibility = View.VISIBLE
+
+        (bar.background.mutate() as GradientDrawable).setColor(colorOf(name))
+    }
+
+    /**
+     * The sizes, in one row under the strip rather than a menu down the screen: fourteen of them
+     * would otherwise cover the document they are about.
+     */
     private fun showSizes(anchor: View) {
-        val popup = PopupMenu(context, anchor)
-        for ((index, size) in FONT_SIZES.withIndex()) {
-            popup.menu.add(
-                0,
-                index,
-                index,
-                context.getString(R.string.tool_font_size_points, "$size"),
-            )
-        }
-        popup.setOnMenuItemClickListener { item ->
-            listener?.onFormat(JSONObject().put("size", "${FONT_SIZES[item.itemId]}pt"))
+        showRow(anchor, fill = true) { row, popup ->
+            var current: View? = null
 
-            true
+            for (size in FONT_SIZES) {
+                val chip =
+                    LayoutInflater.from(context)
+                        .inflate(R.layout.item_editing_tool_size, row, false) as TextView
+                chip.text = context.getString(R.string.tool_font_size_points, "$size")
+                chip.isSelected = "$size" == selectionSize
+                chip.setOnClickListener {
+                    popup.dismiss()
+
+                    listener?.onFormat(JSONObject().put("size", "${size}pt"))
+                }
+
+                if (chip.isSelected) {
+                    current = chip
+                }
+
+                row.addView(chip)
+            }
+
+            // the size the text is in is what the reader is looking for, so start there - one
+            // chip short of it, so that the smaller sizes before it are not hidden
+            current?.let { chip ->
+                row.post {
+                    (row.parent as HorizontalScrollView).scrollTo(
+                        (chip.left - chip.width).coerceAtLeast(0),
+                        0,
+                    )
+                }
+            }
         }
-        popup.show()
     }
 
     private fun showPalette(anchor: View, colors: List<NamedColor>, picked: (Int) -> Unit) {
-        val content = LayoutInflater.from(context).inflate(R.layout.view_color_palette, null)
-        val paletteRow: LinearLayout = content.findViewById(R.id.color_palette_row)
+        showRow(anchor, fill = false) { row, popup ->
+            val size = (44 * resources.displayMetrics.density).toInt()
+            val margin = (2 * resources.displayMetrics.density).toInt()
+
+            for (named in colors) {
+                val swatch = View(context)
+                swatch.layoutParams =
+                    LinearLayout.LayoutParams(size, size).apply { setMargins(margin, 0, margin, 0) }
+                swatch.background =
+                    context.getDrawable(R.drawable.bg_color_swatch)!!.mutate().also {
+                        // no fill at all is the swatch for no highlight
+                        (it as GradientDrawable).setColor(named.color)
+                    }
+                swatch.contentDescription = context.getString(named.name)
+                TooltipCompat.setTooltipText(swatch, context.getString(named.name))
+                swatch.isClickable = true
+                swatch.isFocusable = true
+                swatch.setOnClickListener {
+                    popup.dismiss()
+
+                    picked(named.color)
+                }
+
+                row.addView(swatch)
+            }
+        }
+    }
+
+    /**
+     * What a tool opens: a row of choices under it. [fill] takes the width of the screen, for a row
+     * that is too long to stand under one tool.
+     */
+    private fun showRow(anchor: View, fill: Boolean, build: (LinearLayout, PopupWindow) -> Unit) {
+        val content = LayoutInflater.from(context).inflate(R.layout.view_editing_tool_popup, null)
+        val row: LinearLayout = content.findViewById(R.id.editing_tool_popup_row)
 
         val popup =
             PopupWindow(
                 content,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
+                if (fill) LinearLayout.LayoutParams.MATCH_PARENT
+                else LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 true,
             )
@@ -389,32 +436,10 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
             }
         )
 
-        val size = (36 * resources.displayMetrics.density).toInt()
-        val margin = (4 * resources.displayMetrics.density).toInt()
+        build(row, popup)
 
-        for (named in colors) {
-            val swatch = View(context)
-            swatch.layoutParams =
-                LinearLayout.LayoutParams(size, size).apply { setMargins(margin, 0, margin, 0) }
-            swatch.background =
-                context.getDrawable(R.drawable.bg_color_swatch)!!.mutate().also {
-                    // no fill at all is the swatch for no highlight
-                    (it as GradientDrawable).setColor(named.color)
-                }
-            swatch.contentDescription = context.getString(named.name)
-            TooltipCompat.setTooltipText(swatch, context.getString(named.name))
-            swatch.isClickable = true
-            swatch.isFocusable = true
-            swatch.setOnClickListener {
-                popup.dismiss()
-
-                picked(named.color)
-            }
-
-            paletteRow.addView(swatch)
-        }
-
-        popup.showAsDropDown(anchor)
+        // a row that fills the screen hangs under the strip, not under the tool that opened it
+        popup.showAsDropDown(if (fill) this else anchor)
     }
 
     @ColorInt
@@ -431,7 +456,6 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         val tool: String,
         @param:DrawableRes val icon: Int,
         @param:StringRes val label: Int,
-        @param:ColorInt val color: Int,
     )
 
     companion object {
@@ -439,18 +463,25 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         /** The width of a line the Draw tool makes, in pdf points. */
         const val INK_WIDTH = 2f
 
+        /** The two formatting tools that carry a colour, named as [toolColors] keys. */
+        private const val TEXT_COLOR = "color"
+        private const val HIGHLIGHT_COLOR = "highlight"
+
+        /** The size tool, which carries no colour and so is only ever a name here. */
+        private const val SIZE_TOOL = "size"
+
+        /**
+         * The one tool a locked strip still does the work of. The highlighter, under both names it
+         * has: `highlight` is the formatting style and the pdf's marking tool alike, so a reader of
+         * either kind of document has the same free tool.
+         */
+        private const val FREE_TOOL = "highlight"
+
+        /** What a tool that only offers pro is drawn at, against the free one beside it. */
+        private const val PRO_ALPHA = 0.45f
+
         /** `#rrggbb`, the one spelling `odr.editing.format` takes. */
         private fun hex(@ColorInt color: Int) = String.format("#%06x", color and 0xffffff)
-
-        private fun parseColor(hex: String): Int? =
-            try {
-                Color.parseColor(hex)
-            } catch (e: IllegalArgumentException) {
-                null
-            }
-
-        /** Material's opacity for a disabled icon, 38%. */
-        private const val DISABLED_ALPHA = 0.38f
 
         /** Point sizes a document commonly uses. */
         private val FONT_SIZES = listOf(8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48)
@@ -481,34 +512,30 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
                 NamedColor(0xff43a047.toInt(), R.string.color_green),
             )
 
-        /** The marks a pdf takes, in the annotator's names, each with its starting colour. */
+        /** The marks a pdf takes, in the annotator's names. */
         private val MARKS =
             listOf(
-                Mark(
-                    "highlight",
-                    R.drawable.ic_marker,
-                    R.string.tool_mark_highlight,
-                    0xffffe633.toInt(),
-                ),
-                Mark(
-                    "underline",
-                    R.drawable.ic_format_underlined,
-                    R.string.tool_mark_underline,
-                    0xffe53935.toInt(),
-                ),
+                Mark("highlight", R.drawable.ic_marker, R.string.tool_mark_highlight),
+                Mark("underline", R.drawable.ic_format_underlined, R.string.tool_mark_underline),
                 Mark(
                     "strikeOut",
                     R.drawable.ic_format_strikethrough,
                     R.string.tool_mark_strike_out,
-                    0xffe53935.toInt(),
                 ),
-                Mark(
-                    "squiggly",
-                    R.drawable.ic_format_squiggly,
-                    R.string.tool_mark_squiggly,
-                    0xffe53935.toInt(),
-                ),
-                Mark("ink", R.drawable.ic_draw, R.string.tool_mark_draw, 0xff1e88e5.toInt()),
+                Mark("squiggly", R.drawable.ic_format_squiggly, R.string.tool_mark_squiggly),
+                Mark("ink", R.drawable.ic_draw, R.string.tool_mark_draw),
+            )
+
+        /** The colour each tool starts with. */
+        private val STARTING_COLORS =
+            mapOf(
+                TEXT_COLOR to TEXT_COLORS.first().color,
+                HIGHLIGHT_COLOR to HIGHLIGHT_COLORS.first().color,
+                "highlight" to 0xffffe633.toInt(),
+                "underline" to 0xffe53935.toInt(),
+                "strikeOut" to 0xffe53935.toInt(),
+                "squiggly" to 0xffe53935.toInt(),
+                "ink" to 0xff1e88e5.toInt(),
             )
     }
 }

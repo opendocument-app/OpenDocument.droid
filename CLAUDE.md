@@ -119,10 +119,16 @@ Code that has to *ask* reads `Features`, never the flavor name. `Features.withAd
 from `LINKS_ADS`, which sits in `src/ads` and `src/noAds` next to the classes it stands for,
 so the flag cannot end up in a build whose code says otherwise. `Features.advancedEditing`,
 from `ADVANCED_EDITING` in the same two files, is what pro is sold on: new and joined
-paragraphs, formatting, and marks on a pdf. Every other edit the core takes - inside one
-paragraph, a sheet cell, a plain text file - is in every build. `Features.offersEditing` is the
-one list of it; the Edit button still stands on the core's answer, so over a pdf in lite it
-offers pro instead. `OpenDocument.ios` draws the same line with the same flag, beside its own
+paragraphs, formatting past the highlighter, and a pdf's marks past the highlighter. Every
+other edit the core takes - inside one paragraph, a sheet cell, a plain text file - is in every
+build.
+
+**The gate is on the tool, not on the mode.** Every edition opens every kind the core names
+editable, so `Features.offersEditing` is the core's answer alone; a locked `EditingTools` dims
+what only offers pro and leaves the **highlighter** working, under both the names it has
+(`highlight` is the formatting style and the pdf's marking tool alike). A mode nobody can do
+anything in is not worth opening, and a reader who has highlighted a paragraph knows what the
+rest would do. Do not put the whole-mode gate back. `OpenDocument.ios` draws the same line with the same flag, beside its own
 `LINKS_ADS`.
 
 Do not add a `BuildConfig.FLAVOR` comparison back - it was what made `BillingManager` miss
@@ -325,6 +331,22 @@ and the refusals; `editing-bridge.js` (injected by `PageView` on every page load
 callbacks. Lite narrows `HtmlConfig.editingScope` to `PARAGRAPH`, and the page refuses the
 rest with `outOfScope`, which `DocumentFragment` answers with the offer of pro, once an edit.
 A pdf needs no scaffolding: every pdf page carries `odr.annotation`.
+
+**The bar holds what is done to the document, the strip what is done to the text.** Undo, redo
+and save are `menu/edit.xml`, so they do not scroll away, and `EditActionModeCallback` dims them
+on what the page reports. `EditingTools` under the bar is the formatting alone, which is why a
+sheet or a plain text file shows no strip at all. Every tool is one 48dp square: a tap does the
+tool's one job, and a **long press** opens the colours it applies - there is no second button
+beside a tool, and the bar under its icon is what the next tap uses, not what the selection is.
+The text colour is the exception, and opens its colours on a tap too, because it has no state to
+turn off. Do not put the chevrons back, and do not move the sizes into a menu: fourteen of them
+covered the document they are about.
+
+**A pdf's tools mark what is selected; only the pen is a mode.** `odr.annotation.press` marks a
+standing selection and arms only what it could not mark, so `PageView.pressMarkTool` puts every
+tool but `ink` back down and reports what happened. With nothing selected the answer is the
+`action_annotate_banner` snackbar, not a tool left armed. The page's own `markOnSelection` is
+therefore off: it marked as the selection was *made*, which is the opposite order.
 
 **Nothing is held open between the render and the save.** `CoreLoader.writeEdits` opens the
 cached copy again and applies the page's payload with the call its kind takes -

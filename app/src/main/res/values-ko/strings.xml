@@ -43,7 +43,6 @@
     <string name="action_tts_previous">이전</string>
     <string name="action_edit_save">저장</string>
     <string name="action_contact">문의</string>
-    <string name="action_edit_banner">아래에서 문서를 수정한 뒤 저장을 누르세요.</string>
     <string name="landing_intro_open_all">이 앱은 기본적으로 문서 파일만 열도록 등록되어 있습니다. 삼성 ‘내 파일’ 같은 다른 앱에서 이 앱으로 문서를 열 수 없다면, 이 설정을 켜서 모든 파일 형식에 등록하세요.</string>
     <string name="landing_intro_view">OpenDocument Reader를 사용하면 어디서든 OpenDocument 형식(.odt, .ods, .odp, .odg) 문서를 볼 수 있습니다.</string>
     <string name="landing_intro_search">OpenDocument Reader로 문서를 손쉽게 읽고 검색할 수 있습니다.</string>
@@ -103,8 +102,6 @@
     <string name="color_none">강조 표시 없음</string>
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Pro 기능</string>
-    <string name="pro_offer_formatting">텍스트 서식 지정과 단락 추가 또는 병합은 OpenDocument Reader Pro 기능입니다.</string>
-    <string name="pro_offer_markup">PDF 표시는 OpenDocument Reader Pro 기능입니다.</string>
     <string name="not_now">나중에</string>
     <string name="edit_refused_new_line">단락 안의 줄 바꿈은 저장할 수 없습니다. 새 단락을 만들려면 Enter를 누르세요.</string>
     <string name="edit_refused_formula">이 셀에는 수식이 있어 그대로 유지됩니다.</string>

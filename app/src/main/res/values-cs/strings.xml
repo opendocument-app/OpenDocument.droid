@@ -43,7 +43,6 @@
     <string name="action_tts_previous">Předchozí</string>
     <string name="action_edit_save">Uložit</string>
     <string name="action_contact">Kontakt</string>
-    <string name="action_edit_banner">Upravte dokument níže a stiskněte Uložit</string>
     <string name="landing_intro_open_all">Ve výchozím nastavení tato aplikace nabízí otevírání pouze dokumentů. Pokud vám jiná aplikace, například „Samsung My Files“, nedovolí zde dokument otevřít, zapněte tuto možnost a aplikace se bude nabízet u všech typů souborů.</string>
     <string name="landing_intro_view">OpenDocument Reader vám umožní prohlížet dokumenty uložené ve formátu OpenDocument (.odt, .ods, .odp a .odg), ať jste kdekoli.</string>
     <string name="landing_intro_search">S aplikací OpenDocument Reader můžete své dokumenty číst a bleskově v nich vyhledávat.</string>
@@ -103,8 +102,6 @@
     <string name="color_none">Bez zvýraznění</string>
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Součást verze Pro</string>
-    <string name="pro_offer_formatting">Formátování textu a přidávání nebo spojování odstavců je součástí OpenDocument Reader Pro.</string>
-    <string name="pro_offer_markup">Označování PDF je součástí OpenDocument Reader Pro.</string>
     <string name="not_now">Teď ne</string>
     <string name="edit_refused_new_line">Zalomení řádku uvnitř odstavce nelze uložit. Pro nový odstavec stiskněte Enter.</string>
     <string name="edit_refused_formula">Tato buňka obsahuje vzorec a zůstane beze změny.</string>

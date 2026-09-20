@@ -43,7 +43,6 @@
     <string name="action_tts_previous">Roimhe seo</string>
     <string name="action_edit_save">Sábháil</string>
     <string name="action_contact">Teagmháil</string>
-    <string name="action_edit_banner">Cuir do cháipéis in eagar thíos agus brúigh Sábháil</string>
     <string name="landing_intro_open_all">De réir réamhshocraithe, ní thairgeann an aip seo ach comhaid cháipéise a oscailt. Mura ligeann aip eile, ar nós Samsung My Files, duit cáipéis a oscailt anseo, cuir seo ar siúl le clárú do gach cineál comhaid.</string>
     <string name="landing_intro_view">Le hOpenDocument Reader, tá tú in ann breathnú ar cháipéisí atá i bhformáid OpenDocument (.odt, .ods, .odp, agus .odg) cibé áit a bhfuil tú.</string>
     <string name="landing_intro_search">Le hOpenDocument Reader, is féidir leat do chuid cáipéisí a léamh agus a chuardach go héasca.</string>
@@ -103,8 +102,6 @@
     <string name="color_none">Gan aibhsiú</string>
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Cuid de Pro</string>
-    <string name="pro_offer_formatting">Is cuid de OpenDocument Reader Pro é téacs a fhormáidiú, agus míreanna a chur leis nó a chumasc.</string>
-    <string name="pro_offer_markup">Is cuid de OpenDocument Reader Pro é PDF a mharcáil.</string>
     <string name="not_now">Ní anois</string>
     <string name="edit_refused_new_line">Ní féidir briseadh líne laistigh de mhír a shábháil. Brúigh Enter le haghaidh míre nua.</string>
     <string name="edit_refused_formula">Tá foirmle sa chill sin agus fanfaidh sí mar atá.</string>

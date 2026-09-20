@@ -64,7 +64,6 @@
     <string name="action_tts_previous">Previous</string>
     <string name="action_edit_save">Save</string>
     <string name="action_contact">Contact</string>
-    <string name="action_edit_banner">Edit your document below and press Save</string>
     <string name="landing_intro_open_all">By default this app only offers to open document files. If another app like \"Samsung My Files\" won\'t let you open a document here, turn this on to register for all file types.</string>
     <string name="landing_intro_view">OpenDocument Reader allows you to view documents that are stored in OpenDocument format (.odt, .ods, .odp and .odg) wherever you are.</string>
     <string name="landing_intro_search">With OpenDocument Reader you can read and search through your documents in a breeze.</string>
@@ -99,6 +98,7 @@
 
     <!-- the edit mode: the bar on top, and the strip of tools under it -->
     <string name="menu_annotate">Mark up PDF</string>
+    <!-- said as marking starts, and again where a tool is pressed with nothing selected -->
     <string name="action_annotate_banner">Select text, then a tool, to mark it</string>
     <string name="action_undo">Undo</string>
     <string name="action_redo">Redo</string>
@@ -109,9 +109,9 @@
     <string name="tool_text_color">Text color</string>
     <string name="tool_highlight">Highlight</string>
     <string name="tool_font_size">Text size</string>
-    <!-- the arrow beside a tool, which picks the color it uses: "Highlight color" -->
+    <!-- what a long press on a tool opens, which picks the color it uses: "Highlight color" -->
     <string name="tool_color_of">%1$s color</string>
-    <!-- "12 pt", the size of the selected text -->
+    <!-- "12 pt", the size of the selected text; the number alone captions the size tool -->
     <string name="tool_font_size_points">%1$s pt</string>
     <string name="tool_mark_highlight">Highlight</string>
     <string name="tool_mark_underline">Underline</string>
@@ -127,10 +127,11 @@
     <string name="color_none">No highlight</string>
     <!-- a badge in front of the tools in the free app; the tools behind it are Pro's -->
     <string name="tool_pro_badge">Pro</string>
-    <!-- the free app's one gate: what Pro adds, as the reader runs into it -->
+    <!-- the free app's gate: what Pro adds, as the reader runs into it. The highlighter is
+         free of it in both kinds of document, so that the mode is worth opening -->
     <string name="pro_offer_title">Part of Pro</string>
-    <string name="pro_offer_formatting">Formatting text, and adding or joining paragraphs, is part of OpenDocument Reader Pro.</string>
-    <string name="pro_offer_markup">Marking up a PDF is part of OpenDocument Reader Pro.</string>
+    <string name="pro_offer_formatting">Bold, italic, colors and text size, and adding or joining paragraphs, are part of OpenDocument Reader Pro. The highlighter is in every edition.</string>
+    <string name="pro_offer_markup">Underlining, striking out and drawing on a PDF are part of OpenDocument Reader Pro. The highlighter is in every edition.</string>
     <string name="not_now">Not now</string>
     <!-- what the document says when an edit is not taken, by the reason the page gives -->
     <string name="edit_refused_new_line">A line break inside a paragraph cannot be saved. Press Enter for a new paragraph.</string>

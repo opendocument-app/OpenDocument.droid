@@ -158,16 +158,98 @@ class MainActivityTests {
         // hierarchy whether the column is open or not, and doesNotExist walks all of it
         onView(withContentDescription(R.string.menu_edit)).check(doesNotExist())
 
-        // the button is there in every edition: pro marks, lite says what pro would do
+        // every edition marks up a pdf; what lite does not sell is the tool, and one of them
+        // is free so that the mode is worth opening
         onView(withContentDescription(R.string.menu_annotate)).perform(click())
 
-        if (Features.advancedEditing) {
-            onView(withContentDescription(R.string.tool_mark_draw)).check(matches(isDisplayed()))
-        } else {
+        onView(withContentDescription(R.string.tool_mark_draw)).check(matches(isDisplayed()))
+        onView(withContentDescription(R.string.tool_mark_highlight)).check(matches(isDisplayed()))
+
+        if (!Features.advancedEditing) {
+            // the pen is pro's, and says so rather than arming itself
+            onView(withContentDescription(R.string.tool_mark_draw)).perform(click())
+
             awaitViewWithText(R.string.pro_offer_title)
             onView(withText(R.string.pro_offer_title)).check(matches(isDisplayed()))
         }
     }
+
+    /**
+     * A pdf's tools mark the text that is selected and are then put down again. Only the pen stays
+     * armed, because a stroke has no selection to go on - and only where this edition sells it: the
+     * highlighter is the free one, and marks in lite too.
+     */
+    @Test
+    fun onlyThePenStaysArmed() {
+        val activity = mainActivityActivityTestRule.activity
+        val documentFragment = loadDocument(activity, requireTestFile("dummy.pdf"))
+        val pageView = requireNotNull(documentFragment.pageView)
+
+        enterEditMode(activity, documentFragment)
+
+        Assert.assertTrue(
+            "the page should carry the annotator",
+            waitFor(EDIT_MODE_TIMEOUT_MS) { pageAnswers(pageView, "odr.annotation") },
+        )
+
+        val selected = AtomicReference("")
+        Assert.assertTrue(
+            "the page should have text to select, and answered '${'$'}{selected.get()}'",
+            waitFor(EDIT_MODE_TIMEOUT_MS) {
+                selected.set(selectPageText(pageView))
+
+                selected.get().isNotEmpty()
+            },
+        )
+
+        onView(withContentDescription(R.string.tool_mark_highlight)).perform(click())
+
+        Assert.assertTrue(
+            "the selection should be marked",
+            waitFor(EDIT_MODE_TIMEOUT_MS) {
+                pageAnswers(pageView, "odr.annotation.list().length === 1")
+            },
+        )
+        Assert.assertTrue(
+            "the tool should not stay armed",
+            pageAnswers(pageView, "odr.annotation.getTool() === null"),
+        )
+
+        // the pen is the one that does, and it marks nothing by being pressed. In lite it is
+        // pro's and says so instead, the highlighter above being the free one
+        if (!Features.advancedEditing) {
+            return
+        }
+
+        onView(withContentDescription(R.string.tool_mark_draw)).perform(click())
+
+        Assert.assertTrue(
+            "the pen should stay armed",
+            waitFor(EDIT_MODE_TIMEOUT_MS) {
+                pageAnswers(pageView, "odr.annotation.getTool() === 'ink'")
+            },
+        )
+        Assert.assertTrue(
+            "the pen should have marked nothing",
+            pageAnswers(pageView, "odr.annotation.list().length === 1"),
+        )
+    }
+
+    /** Selects everything the page holds, and answers what that turned out to be. */
+    private fun selectPageText(pageView: PageView): String =
+        evaluateJavascript(
+                pageView,
+                "(function(){" +
+                    "var range = document.createRange();" +
+                    "range.selectNodeContents(document.body);" +
+                    "var selection = window.getSelection();" +
+                    "selection.removeAllRanges();" +
+                    "selection.addRange(range);" +
+                    "return selection.toString().trim();" +
+                    "})()",
+            )
+            ?.replace("\"", "")
+            .orEmpty()
 
     /** A sheet takes cell edits in every edition. */
     @Test
