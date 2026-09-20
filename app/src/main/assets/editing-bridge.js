@@ -32,4 +32,9 @@
     // WebView on an emulator answers that one as a mouse
     odr.editing.setSheetOptions({ editOnClick: true });
   }
+
+  if (odr.annotation) {
+    // an armed tool marks each selection as it is made: a tap elsewhere would lose it
+    odr.annotation.setOptions({ markOnSelection: true });
+  }
 })();

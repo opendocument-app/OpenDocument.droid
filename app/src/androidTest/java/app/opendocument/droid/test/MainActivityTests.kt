@@ -175,12 +175,11 @@ class MainActivityTests {
     }
 
     /**
-     * A pdf's tools mark the text that is selected and are then put down again. Only the pen stays
-     * armed, because a stroke has no selection to go on - and only where this edition sells it: the
-     * highlighter is the free one, and marks in lite too.
+     * A pdf's tool marks a standing selection and stays down. Over nothing it arms, so the next
+     * selection is marked as it is made, and pressing it again puts it away.
      */
     @Test
-    fun onlyThePenStaysArmed() {
+    fun aMarkingToolMarksASelectionAndArmsWithoutOne() {
         val activity = mainActivityActivityTestRule.activity
         val documentFragment = loadDocument(activity, requireTestFile("dummy.pdf"))
         val pageView = requireNotNull(documentFragment.pageView)
@@ -202,6 +201,7 @@ class MainActivityTests {
             },
         )
 
+        // the highlighter, because it is the one tool every edition offers
         onView(withContentDescription(R.string.tool_mark_highlight)).perform(click())
 
         Assert.assertTrue(
@@ -211,27 +211,31 @@ class MainActivityTests {
             },
         )
         Assert.assertTrue(
-            "the tool should not stay armed",
+            "and the tool put down again",
             pageAnswers(pageView, "odr.annotation.getTool() === null"),
         )
 
-        // the pen is the one that does, and it marks nothing by being pressed. In lite it is
-        // pro's and says so instead, the highlighter above being the free one
-        if (!Features.advancedEditing) {
-            return
-        }
-
-        onView(withContentDescription(R.string.tool_mark_draw)).perform(click())
+        // nothing is selected now: the same press arms it instead
+        onView(withContentDescription(R.string.tool_mark_highlight)).perform(click())
 
         Assert.assertTrue(
-            "the pen should stay armed",
+            "pressing it over nothing should arm it",
             waitFor(EDIT_MODE_TIMEOUT_MS) {
-                pageAnswers(pageView, "odr.annotation.getTool() === 'ink'")
+                pageAnswers(pageView, "odr.annotation.getTool() === 'highlight'")
             },
         )
         Assert.assertTrue(
-            "the pen should have marked nothing",
+            "without marking anything",
             pageAnswers(pageView, "odr.annotation.list().length === 1"),
+        )
+
+        onView(withContentDescription(R.string.tool_mark_highlight)).perform(click())
+
+        Assert.assertTrue(
+            "and pressing it again should put it away",
+            waitFor(EDIT_MODE_TIMEOUT_MS) {
+                pageAnswers(pageView, "odr.annotation.getTool() === null")
+            },
         )
     }
 

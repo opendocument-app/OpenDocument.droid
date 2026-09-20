@@ -342,11 +342,10 @@ The text colour is the exception, and opens its colours on a tap too, because it
 turn off. Do not put the chevrons back, and do not move the sizes into a menu: fourteen of them
 covered the document they are about.
 
-**A pdf's tools mark what is selected; only the pen is a mode.** `odr.annotation.press` marks a
-standing selection and arms only what it could not mark, so `PageView.pressMarkTool` puts every
-tool but `ink` back down and reports what happened. With nothing selected the answer is the
-`action_annotate_banner` snackbar, not a tool left armed. The page's own `markOnSelection` is
-therefore off: it marked as the selection was *made*, which is the opposite order.
+**A pdf's tools are the page's to arm.** `odr.annotation.press` marks a standing selection, and
+arms where there is none - so a tap is one mark where the reader has chosen the text already, and
+a mode where they have not. `markOnSelection` then marks each selection as it is made. Do not
+disarm on the app's side: a tool the reader turned on is theirs to turn off.
 
 **Nothing is held open between the render and the save.** `CoreLoader.writeEdits` opens the
 cached copy again and applies the page's payload with the call its kind takes -
