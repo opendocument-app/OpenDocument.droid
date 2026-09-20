@@ -515,15 +515,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             override fun onMarkTool(tool: String, color: Int, recolor: Boolean) {
                 analyticsManager.report("edit_mark_$tool")
 
-                pageView?.pressMarkTool(tool, color, EditingTools.INK_WIDTH, recolor) {
-                    armed,
-                    marked ->
+                pageView?.pressMarkTool(tool, color, EditingTools.INK_WIDTH, recolor) { armed ->
                     editingTools.setArmedTool(armed)
-
-                    // the pen needs no selection, and a colour picked over nothing is not a miss
-                    if (!marked && !recolor && tool != INK_TOOL) {
-                        sayHowToMark()
-                    }
                 }
             }
 
@@ -534,21 +527,6 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                 )
             }
         }
-
-    /** Says what a mark wants, where a tool was pressed with nothing selected. */
-    private fun sayHowToMark() {
-        if (!isAdded) {
-            return
-        }
-
-        SnackbarHelper.show(
-            requireActivity(),
-            R.string.action_annotate_banner,
-            null,
-            isIndefinite = false,
-            isError = false,
-        )
-    }
 
     private fun setEditState(dirty: Boolean, canUndo: Boolean, canRedo: Boolean) {
         if (!::state.isInitialized) {
@@ -1506,8 +1484,5 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         /** What the analytics screen name is when nothing could name the bytes. */
         const val UNKNOWN_FILE_TYPE = "N/A"
-
-        /** The one marking tool that stays armed, in the annotator's name for it. */
-        const val INK_TOOL = "ink"
     }
 }

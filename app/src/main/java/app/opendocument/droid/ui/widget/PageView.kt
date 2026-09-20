@@ -502,19 +502,15 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     }
 
     /**
-     * A marking tool pressed, or given a new colour. [callback] gets the tool left armed and
-     * whether a mark was made.
-     *
-     * Only the pen stays armed. Every other tool marks the text that is selected and is then put
-     * down again, so that a tap is one mark rather than a mode the reader has to leave. The page
-     * arms what it cannot mark, which is how a press with nothing selected is told apart.
+     * A marking tool pressed, or given a new colour; [callback] gets the tool left armed. The page
+     * marks a standing selection, and arms where there is none.
      */
     fun pressMarkTool(
         tool: String,
         color: Int,
         width: Float,
         recolor: Boolean,
-        callback: (armed: String?, marked: Boolean) -> Unit,
+        callback: (armed: String?) -> Unit,
     ) {
         val rgb =
             "[${android.graphics.Color.red(color) / 255f}," +
@@ -523,22 +519,10 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         val method = if (recolor) "recolor" else "press"
 
         evaluateJavascript(
-            "(function(){" +
-                "if (!window.odr || !odr.annotation) { return null; }" +
-                "var before = odr.annotation.list().length;" +
-                "var armed = odr.annotation.$method(${JSONObject.quote(tool)}, " +
-                "{color: $rgb, width: $width});" +
-                "if (armed && armed !== 'ink') { odr.annotation.setTool(null); armed = null; }" +
-                "var marked = odr.annotation.list().length > before;" +
-                "return JSON.stringify({armed: armed, marked: marked});" +
-                "})()"
-        ) { result ->
-            val answer = decodeObject(result)
-
-            callback(
-                answer?.optString("armed")?.ifEmpty { null },
-                answer?.optBoolean("marked") == true,
-            )
+            "window.odr && odr.annotation ? odr.annotation.$method(" +
+                "${JSONObject.quote(tool)}, {color: $rgb, width: $width}) : null"
+        ) {
+            callback(decodeString(it))
         }
     }
 

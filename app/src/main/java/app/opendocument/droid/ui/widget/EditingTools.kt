@@ -216,7 +216,7 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         }
     }
 
-    /** Shows which marking tool is armed, or none. Only the pen ever is. */
+    /** Shows which marking tool is armed, or none. */
     fun setArmedTool(tool: String?) {
         for ((name, view) in markTools) {
             view.isSelected = name == tool
