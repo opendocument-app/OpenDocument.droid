@@ -1,0 +1,1 @@
+Pro sürümü ayrıca yeni paragraflar, kalın yazı, renkler ve boyutlar gibi metin biçimlendirme ve PDF'leri işaretlemenin diğer yollarını sunar: altını çizme, üstünü çizme ve çizim.

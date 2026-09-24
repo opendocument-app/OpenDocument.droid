@@ -82,6 +82,7 @@ Write the same release for the people who use the app:
 - plain words. No jargon, no version numbers, no names of internals, nothing that reads like marketing
 - say what is different for them, not what was implemented
 - no bullets, no dashes at the start of a line
+- the same text goes to both editions: the free OpenDocument Reader and the paid OpenDocument Reader Pro, which also adds new paragraphs, text formatting and more ways to mark PDFs. So say what changed, not who gets it - no "free", "Pro", "paid" or "upgrade". Where a change reaches only Pro, describe the part both editions have, or leave it out
 
 **The whole text must be under {budget} characters.** Play refuses 500, and this is translated into fifteen languages that are all longer than English. Count as you write and cut the least interesting paragraph rather than run over.
 

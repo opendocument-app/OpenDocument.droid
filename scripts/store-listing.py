@@ -12,7 +12,7 @@
 #   scripts/store-listing.py --version v4.15.0 --stage DIR           notes alone
 #   scripts/store-listing.py --version v4.15.0 --stage DIR --app pro the whole listing
 #
-# The two apps share one listing and differ in two places, so what is staged is
+# The two apps share one listing and differ in a few places, so what is staged is
 # read in three passes - `fastlane/metadata/android/<locale>/`, then the app's own
 # `all/`, then its `<locale>/` - and the last one to hold a file wins. A `${name}`
 # left in any of that text is filled in the same way, from the app's own file, or
@@ -111,7 +111,7 @@ ENTITY = re.compile(r"&(#[0-9]+|#[xX][0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]*);")
 
 # The names a `${...}` may have. Declared, so that a misspelt one is an error
 # rather than a sentence that quietly disappears from the store.
-FILL_INS = ("ads",)
+FILL_INS = ("ads", "editing")
 
 # the space in front comes with it, so a fill-in the app leaves empty does not
 # leave a double space in the middle of a sentence

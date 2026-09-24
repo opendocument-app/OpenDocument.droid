@@ -1,0 +1,1 @@
+Wersja Pro dodaje też nowe akapity, formatowanie tekstu, takie jak pogrubienie, kolory i rozmiary, oraz więcej sposobów oznaczania plików PDF: podkreślanie, przekreślanie i rysowanie.
