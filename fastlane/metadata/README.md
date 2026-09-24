@@ -9,15 +9,17 @@ uploads it, so this is where the listing is written - not the console.
 fastlane/metadata/android/<locale>/     what both apps say
     title.txt                           - not here; a title belongs to an app
     short_description.txt               80 characters
-    full_description.txt                4000 characters, holds ${ads}
+    full_description.txt                4000 characters, holds ${ads} and ${editing}
     video.txt                           a promo video, de-DE only
     changelogs/<version code>.txt       500 characters, one per release
     images/                             en-US only, and not uploaded - see below
 fastlane/metadata-pro/android/
     all/title.txt                       OpenDocument Reader Pro
+    <locale>/editing.txt                what pro edits that lite does not
 fastlane/metadata-lite/android/
     all/title.txt                       OpenDocument Reader
     <locale>/ads.txt                    the sentences ${ads} stands for
+    <locale>/editing.txt                that the same edits come with pro
 ```
 
 `scripts/store-listing.py` reads it in three passes - the shared locale
@@ -34,7 +36,7 @@ handed and leaves the rest of the console alone, so the missing one is not a bla
 listing but the old one still standing. Adding or dropping a language is a line
 changed in `LOCALES`.
 
-## The two things the apps do not share
+## The three things the apps do not share
 
 **The title.** Pro is `OpenDocument Reader Pro`, lite `OpenDocument Reader - view
 ODT`. Neither is translated: OpenDocument is the format's own name, and one name is
@@ -56,6 +58,12 @@ locale and let them drift, the shared one holds `${ads}` and each app fills it i
 from its own `ads.txt` - lite has fifteen, pro has none, and a fill-in nobody
 answers leaves nothing behind, the space in front of it included.
 
+**Editing.** Since 4.20.0, pro alone adds new paragraphs, formats text past the
+highlighter and marks a pdf past it. The shared description says only what both
+apps do - fix a typo, edit a cell, highlight - and `${editing}` says the rest:
+lite's `editing.txt` names it as pro's, pro's names it as its own. Both apps fill
+it in, because each listing has something true to say there.
+
 `FILL_INS` in `scripts/store-listing.py` lists the names a `${...}` may have, so a
 misspelt `${adds}` is an error rather than a sentence that quietly vanishes from
 the store.
@@ -73,6 +81,11 @@ of what the App Store allows, and every language here is longer than English -
 measured over 4.15.0, French came back a quarter longer and German a fifth. So the
 English is written under 400 rather than at 500; at 497, as 4.15.0 first was,
 there is no translation of it that fits at all.
+
+**The notes are the same in both apps**, with no fill-in and no override, so they
+say what changed and not who gets it: no "free", no "pro". 4.20.0 told the people
+who had paid for pro that highlighting was now free. `scripts/store-copy.py` asks
+for this when it writes the English.
 
 `CHANGELOG.md` at the root is the other record of the same release, written for
 this repository rather than for the store.

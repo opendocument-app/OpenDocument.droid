@@ -1,0 +1,1 @@
+Pro-versionen lägger också till nya stycken, textformatering som fetstil, färger och storlekar, och fler sätt att markera i PDF-filer: understrykning, genomstrykning och ritning.

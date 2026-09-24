@@ -1,0 +1,1 @@
+Verze Pro navíc přidává nové odstavce, formátování textu jako tučné písmo, barvy a velikosti a další způsoby označování PDF: podtržení, přeškrtnutí a kreslení.

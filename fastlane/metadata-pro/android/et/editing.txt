@@ -1,0 +1,1 @@
+Pro-versioon lisab ka uued lõigud, teksti vormindamise, nagu paks kiri, värvid ja suurused, ning PDF-ide märgistamise lisavõimalused: allajoonimine, läbikriipsutamine ja joonistamine.
