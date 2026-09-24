@@ -1,0 +1,7 @@
+You can now edit PowerPoint files, spreadsheet cells and plain text, with undo and redo. The page stays where it was.
+
+Hold an editing button to see the colours it uses.
+
+Selecting and marking text in a PDF no longer hides it, and covers the whole passage, spaces included.
+
+More PDFs open, scanned pages show where they were blank, and a wide page zooms out until it fits the screen.

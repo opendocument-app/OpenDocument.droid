@@ -1,0 +1,7 @@
+Artık PowerPoint dosyalarını, hesap tablosu hücrelerini ve düz metni düzenleyebilirsiniz; geri alma ve yineleme de var. Sayfa bulunduğu yerde kalıyor.
+
+Bir düzenleme düğmesini basılı tutarsanız kullandığı renkleri görürsünüz.
+
+PDF'te metni seçmek ve işaretlemek artık onu gizlemiyor ve boşluklar dahil bölümün tamamını kaplıyor.
+
+Daha fazla PDF açılıyor, taranmış sayfalar eskiden boş görünen yerleri de gösteriyor ve geniş bir sayfa ekrana sığana kadar küçültülüyor.

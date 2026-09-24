@@ -1,0 +1,7 @@
+Możesz teraz edytować pliki PowerPoint, komórki arkuszy kalkulacyjnych i zwykły tekst, z cofaniem i ponawianiem. Strona zostaje tam, gdzie była.
+
+Przytrzymaj przycisk edycji, aby zobaczyć, jakich kolorów używa.
+
+Zaznaczanie i wyróżnianie tekstu w pliku PDF już go nie zasłania i obejmuje cały fragment, łącznie ze spacjami.
+
+Otwiera się więcej plików PDF, zeskanowane strony nie są już puste, a szeroka strona pomniejsza się, aż zmieści się na ekranie.

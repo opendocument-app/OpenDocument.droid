@@ -1,0 +1,7 @@
+Nüüd saad muuta PowerPointi faile, arvutustabeli lahtreid ja lihtteksti ning tehtu tagasi võtta või uuesti teha. Leht jääb sinna, kus oli.
+
+Hoia mõnda muutmisnuppu all, et näha värve, mida see kasutab.
+
+PDF-is valitud ja esile tõstetud tekst ei jää enam varju ning valik ja esiletõstmine katavad kogu teksti koos tühikutega.
+
+Nüüd avaneb rohkem PDF-faile, skannitud lehtedel on näha see, mis varem tühjaks jäi, ning laia lehte vähendatakse, kuni see mahub ekraanile.

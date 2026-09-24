@@ -1,0 +1,7 @@
+Agora você pode editar arquivos do PowerPoint, células de planilha e texto simples, com opção de desfazer e refazer. A página continua onde estava.
+
+Mantenha pressionado um botão de edição para ver as cores que ele usa.
+
+Selecionar e destacar texto em um PDF não o esconde mais, e o destaque cobre todo o trecho, incluindo os espaços.
+
+Mais PDFs podem ser abertos, páginas digitalizadas que ficavam em branco agora aparecem e uma página larga diminui o zoom até caber na tela.

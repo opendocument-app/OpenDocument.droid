@@ -17,6 +17,8 @@ takes 500 characters, so not everything here reaches the store.
 
 ## Unreleased
 
+## 4.20.1
+
 - A selection in a PDF covers the spaces between words, and no longer drifts to the
   right along a line.
 - Dragging a selection in a PDF over blank space or a link no longer jumps to the
@@ -27,6 +29,7 @@ takes 500 characters, so not everything here reaches the store.
   shows.
 - A scanned PDF opens faster.
 - A Markdown file keeps side margins, like other documents, when the margins are on.
+- 4.20.0 was held before it reached the store, so its changes reach the store here.
 
 ## 4.20.0
 
