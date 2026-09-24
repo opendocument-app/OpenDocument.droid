@@ -1,0 +1,7 @@
+Ora puoi modificare i file PowerPoint, le celle dei fogli di calcolo e i file di testo, con annulla e ripeti. La pagina resta dov'era.
+
+Tieni premuto un pulsante di modifica per vedere i colori che usa.
+
+In un PDF, la selezione e l'evidenziazione non nascondono più il testo e coprono l'intero brano, spazi compresi.
+
+Si aprono più PDF, alcune pagine scansionate non appaiono più vuote e una pagina larga si rimpicciolisce fino a entrare nello schermo.

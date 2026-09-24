@@ -1,0 +1,7 @@
+Du kan nu redigera PowerPoint-filer, celler i kalkylblad och vanlig text, med ångra och gör om. Sidan stannar kvar där den var.
+
+Håll ned en redigeringsknapp för att se färgerna den använder.
+
+När du markerar eller färgmarkerar text i en PDF döljs den inte längre, och markeringen täcker hela avsnittet, även mellanrummen.
+
+Fler PDF-filer går att öppna, vissa skannade sidor som tidigare visades tomma syns nu, och en bred sida zoomas ut tills den får plats på skärmen.

@@ -1,0 +1,7 @@
+Ya puedes editar archivos de PowerPoint, celdas de hojas de cálculo y texto sin formato, y deshacer y rehacer los cambios. La página se queda donde estaba.
+
+Mantén pulsado un botón de edición para ver los colores que usa.
+
+Seleccionar y marcar texto en un PDF ya no lo oculta, y abarca todo el fragmento, espacios incluidos.
+
+Se abren más PDF, algunas páginas escaneadas que salían en blanco ya se ven y una página ancha se reduce hasta caber en la pantalla.

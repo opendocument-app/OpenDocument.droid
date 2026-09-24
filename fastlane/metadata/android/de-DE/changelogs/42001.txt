@@ -1,0 +1,7 @@
+Sie können jetzt PowerPoint-Dateien, Tabellenzellen und Textdateien bearbeiten – mit Rückgängig und Wiederherstellen. Die Seite bleibt, wo sie war.
+
+Halten Sie ein Bearbeitungswerkzeug gedrückt, um seine Farben zu sehen.
+
+Beim Auswählen und Markieren in PDFs bleibt der Text sichtbar, und die ganze Textstelle wird erfasst, samt Leerzeichen.
+
+Mehr PDFs lassen sich öffnen, einige gescannte Seiten sind nicht mehr leer, und eine breite Seite wird verkleinert, bis sie auf den Bildschirm passt.
