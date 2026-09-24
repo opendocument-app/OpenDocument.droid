@@ -17,6 +17,17 @@ takes 500 characters, so not everything here reaches the store.
 
 ## Unreleased
 
+- A selection in a PDF covers the spaces between words, and no longer drifts to the
+  right along a line.
+- Dragging a selection in a PDF over blank space or a link no longer jumps to the
+  start or the end of the page.
+- A drawing on a PDF lands where the finger went when the page is zoomed to fit.
+- More PDFs open: some that failed before now open, a scanned page stored as a fax
+  shows where it used to be blank, and the text of a PDF made by an old Ghostscript
+  shows.
+- A scanned PDF opens faster.
+- A Markdown file keeps side margins, like other documents, when the margins are on.
+
 ## 4.20.0
 
 - Editing reaches PowerPoint files, spreadsheet cells and plain text files, has undo and
