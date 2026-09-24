@@ -14,6 +14,8 @@ import androidx.core.content.FileProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.IdlingResource
+import androidx.test.espresso.UiController
+import androidx.test.espresso.ViewAction
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.replaceText
@@ -24,6 +26,7 @@ import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.VerificationModes.times
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.isEnabled
 import androidx.test.espresso.matcher.ViewMatchers.withClassName
 import androidx.test.espresso.matcher.ViewMatchers.withContentDescription
 import androidx.test.espresso.matcher.ViewMatchers.withId
@@ -55,6 +58,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
+import org.hamcrest.Matcher
 import org.hamcrest.Matchers.equalTo
 import org.junit.After
 import org.junit.AfterClass
@@ -134,7 +138,7 @@ class MainActivityTests {
 
         // and pressing it edits the document, which is the whole of why it stands on its own:
         // the listener on the standing button reaches MainActivity and the page turns editable
-        onView(withContentDescription(R.string.menu_edit)).perform(click())
+        onView(withContentDescription(R.string.menu_edit)).perform(clickThroughLongPress())
 
         val activity = mainActivityActivityTestRule.activity
         val documentFragment = waitForDocumentFragment(activity, 10000)
@@ -162,7 +166,7 @@ class MainActivityTests {
 
         // every edition marks up a pdf; what lite does not sell is the tool, and one of them
         // is free so that the mode is worth opening
-        onView(withContentDescription(R.string.menu_annotate)).perform(click())
+        onView(withContentDescription(R.string.menu_annotate)).perform(clickThroughLongPress())
 
         // the strip is waited for rather than asserted on the next line: a slow device lays it
         // out after the click returns, and api 26 read it as missing
@@ -270,7 +274,7 @@ class MainActivityTests {
         openDocumentThroughPicker()
         waitForDocumentActions()
 
-        onView(withContentDescription(R.string.menu_edit)).perform(click())
+        onView(withContentDescription(R.string.menu_edit)).perform(clickThroughLongPress())
 
         val activity = mainActivityActivityTestRule.activity
         val pageView = requireNotNull(waitForDocumentFragment(activity, 10000)?.pageView)
@@ -791,6 +795,22 @@ class MainActivityTests {
             }
             shown.get()
         }
+
+    /**
+     * A click that taps again when a slow emulator stretches it into a long press, which api 26
+     * does. On a [DocumentActions] button that long press only raises the tooltip, so nothing is
+     * undone before the second tap.
+     */
+    private fun clickThroughLongPress(): ViewAction =
+        click(
+            object : ViewAction {
+                override fun getConstraints(): Matcher<View> = isEnabled()
+
+                override fun getDescription() = "leave the tooltip of a long press"
+
+                override fun perform(uiController: UiController, view: View) = Unit
+            }
+        )
 
     private fun enterEditMode(activity: MainActivity, documentFragment: DocumentFragment) {
         val started = AtomicReference(false)
