@@ -5,6 +5,7 @@ package app.opendocument.droid.test
 
 import android.net.Uri
 import android.os.SystemClock
+import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -62,10 +63,22 @@ class LargeTextTests {
             waitFor(TIMEOUT_MS) { needlesInDom(pageView).also { needles = it } == lines },
         )
 
-        val matches = findAll(pageView, NEEDLE)
+        // webview 69 and 83 sometimes report a finished count of 0 for a page whose dom holds
+        // every line, and the same search a moment later finds them all. so a short count is
+        // searched again, and the counts go into the failure if it never comes right
+        val counts = mutableListOf<Int>()
+        waitFor(SEARCH_TIMEOUT_MS) { findAll(pageView, NEEDLE).also { counts += it } == lines }
         val elapsed = SystemClock.elapsedRealtime() - start
 
-        Assert.assertEquals("the search did not find every line", lines, matches)
+        if (counts.size > 1) {
+            Log.w(TAG, "the search needed ${counts.size} tries: $counts")
+        }
+
+        Assert.assertEquals(
+            "the search did not find every line - counts $counts, ${viewState(pageView)}",
+            lines,
+            counts.last(),
+        )
         Assert.assertTrue(
             "opening and searching $lines lines took ${elapsed}ms, over the ${BUDGET_MS}ms budget",
             elapsed < BUDGET_MS,
@@ -106,6 +119,18 @@ class LargeTextTests {
                 "(document.body.textContent.match(/$NEEDLE/g) || []).length",
             )
             ?.toIntOrNull() ?: -1
+
+    private fun viewState(pageView: PageView): String {
+        val state = AtomicReference<String>()
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            state.set(
+                "shown=${pageView.isShown} size=${pageView.width}x${pageView.height} " +
+                    "attached=${pageView.isAttachedToWindow}"
+            )
+        }
+        val visibility = evaluateJavascript(pageView, "document.visibilityState")
+        return "${state.get()} visibilityState=$visibility"
+    }
 
     private fun elementCount(pageView: PageView): Int =
         evaluateJavascript(pageView, "document.getElementsByTagName('*').length")?.toIntOrNull()
@@ -204,6 +229,11 @@ class LargeTextTests {
         const val BUDGET_MS = 15000L
 
         const val TIMEOUT_MS = 120000L
+
+        /** Inside [BUDGET_MS], so a search that has to be repeated still counts against it. */
+        const val SEARCH_TIMEOUT_MS = 5000L
+
+        const val TAG = "LargeTextTests"
 
         /**
          * Generated rather than checked in: a megabyte of filler is not worth a git object, and
