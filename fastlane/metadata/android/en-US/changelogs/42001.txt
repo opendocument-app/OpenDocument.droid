@@ -4,4 +4,4 @@ Hold an editing button to see the colours it uses.
 
 Selecting and marking text in a PDF no longer hides it, and covers the whole passage, spaces included.
 
-More PDFs open, scanned pages show where they were blank, and a wide page zooms out until it fits the screen.
+More PDFs open, some scanned pages show where they were blank, and a wide page zooms out until it fits the screen.

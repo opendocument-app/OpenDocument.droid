@@ -1,7 +1,7 @@
 Nyní můžete upravovat soubory PowerPoint, buňky tabulek i prostý text. Změny lze vrátit zpět i znovu provést a stránka zůstane tam, kde byla.
 
-Když podržíte některé z tlačítek úprav, zobrazí se barvy, které používá.
+Podržením tlačítka úprav zobrazíte barvy, které používá.
 
-Označení a zvýraznění textu v PDF už text neskryje a zahrne celou pasáž včetně mezer.
+Označení a zvýraznění textu v PDF ho už nezakryje a pokryje celou pasáž včetně mezer.
 
-Otevře se více PDF, naskenované stránky už nejsou prázdné a široká stránka se oddálí tak, aby se vešla na obrazovku.
+Nově se otevřou i další PDF, některé naskenované stránky už nezůstanou prázdné a široká stránka se oddálí tak, aby se vešla na obrazovku.

@@ -2,6 +2,6 @@ Du kan nu redigera PowerPoint-filer, celler i kalkylblad och vanlig text, med å
 
 Håll ned en redigeringsknapp för att se färgerna den använder.
 
-När du markerar eller färgmarkerar text i en PDF döljs den inte längre, och markeringen täcker hela textavsnittet, även mellanrummen.
+När du markerar eller färgmarkerar text i en PDF döljs den inte längre, och markeringen täcker hela avsnittet, även mellanrummen.
 
-Fler PDF-filer går att öppna, skannade sidor som förut var tomma visas nu, och en bred sida zoomas ut tills den får plats på skärmen.
+Fler PDF-filer går att öppna, vissa skannade sidor som tidigare visades tomma syns nu, och en bred sida zoomas ut tills den får plats på skärmen.

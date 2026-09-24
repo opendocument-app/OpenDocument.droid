@@ -2,6 +2,6 @@ Ora puoi modificare i file PowerPoint, le celle dei fogli di calcolo e i file di
 
 Tieni premuto un pulsante di modifica per vedere i colori che usa.
 
-Nei PDF, la selezione e l'evidenziazione non nascondono più il testo e coprono l'intero passaggio, spazi compresi.
+In un PDF, la selezione e l'evidenziazione non nascondono più il testo e coprono l'intero brano, spazi compresi.
 
-Si aprono più PDF, le pagine scansionate mostrano ciò che prima restava vuoto e una pagina larga si rimpicciolisce fino a entrare nello schermo.
+Si aprono più PDF, alcune pagine scansionate non appaiono più vuote e una pagina larga si rimpicciolisce fino a entrare nello schermo.

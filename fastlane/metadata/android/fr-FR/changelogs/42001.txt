@@ -1,7 +1,7 @@
-Vous pouvez désormais modifier les fichiers PowerPoint, les cellules d'une feuille de calcul et les fichiers texte, avec annulation et rétablissement. La page reste où elle était.
+Vous pouvez désormais modifier les fichiers PowerPoint, les cellules de tableur et le texte brut, avec annulation et rétablissement. La page reste où elle était.
 
 Appuyez longuement sur un outil d'édition pour voir ses couleurs.
 
-Dans un PDF, la sélection et le surlignage ne masquent plus le texte et couvrent tout le passage, espaces compris.
+Sélectionner et surligner du texte dans un PDF ne le masque plus, et couvre tout le passage, espaces compris.
 
-Davantage de PDF s'ouvrent, les pages numérisées ne restent plus blanches et une page large se réduit jusqu'à tenir à l'écran.
+Davantage de PDF s'ouvrent, certaines pages numérisées ne restent plus blanches, et une page large se réduit jusqu'à tenir à l'écran.
