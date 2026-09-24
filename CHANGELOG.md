@@ -1,19 +1,11 @@
 # Changelog
 
-User-facing changes since 4.6. Rendering and format support come from the
-OpenDocument core engine the app is built on, so changes absorbed from it are
-listed here too.
+User-facing changes since 4.6, including what the app takes from the OpenDocument core.
 
-Entries go under `Unreleased` as the change lands, in the same pull request. That
-heading is cut to the version when the version is dispatched to the release
-workflow, which refuses a version without a section and makes it the body of the
-GitHub release.
-
-It is not the store copy, but it is what the store copy is written from: Play's
-"What's new" is this section said for the people using the app, one file per
-version code per locale under `fastlane/metadata/android/<locale>/changelogs/`,
-written by `scripts/store-copy.py` before the release and uploaded by it. Play
-takes 500 characters, so not everything here reaches the store.
+Add an entry under `Unreleased` in the pull request that makes the change. The release
+run cuts that heading to the version and makes the section the body of the GitHub
+release; it refuses a version without one. `scripts/store-copy.py` writes Play's
+"What's new" from the same section, under 500 characters per locale.
 
 ## Unreleased
 

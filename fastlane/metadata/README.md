@@ -1,125 +1,62 @@
-# The play listing
+# The Play listing
 
-What the two apps say on the Play Store, in fifteen locales. The release run
-uploads it, so this is where the listing is written - not the console.
+What the two apps say on the Play Store, in fifteen locales. The release run uploads it and
+overwrites the console, so this tree is the source.
 
-## The layout
+## Layout
 
 ```
-fastlane/metadata/android/<locale>/     what both apps say
-    title.txt                           - not here; a title belongs to an app
+fastlane/metadata/android/<locale>/     shared by both apps
     short_description.txt               80 characters
     full_description.txt                4000 characters, holds ${ads} and ${editing}
-    video.txt                           a promo video, de-DE only
+    video.txt                           a promo video
     changelogs/<version code>.txt       500 characters, one per release
-    images/                             en-US only, and not uploaded - see below
+    images/icon.png                     en-US only, not uploaded
 fastlane/metadata-pro/android/
     all/title.txt                       OpenDocument Reader Pro
     <locale>/editing.txt                what pro edits that lite does not
 fastlane/metadata-lite/android/
-    all/title.txt                       OpenDocument Reader
+    all/title.txt                       OpenDocument Reader - view ODT
     <locale>/ads.txt                    the sentences ${ads} stands for
     <locale>/editing.txt                that the same edits come with pro
 ```
 
-`scripts/store-listing.py` reads it in three passes - the shared locale
-directory, then the app's `all/`, then the app's own `<locale>/` - and the last
-one to hold a file wins. So a title that is the same in every language is one
-file, and a sentence that has to be translated is fifteen.
+`scripts/store-listing.py` reads three passes per app: the shared locale directory, the
+app's `all/`, then the app's own `<locale>/`. The last pass that holds a file wins. `LOCALES`
+there names the fifteen locales and their languages. The release fails on a locale directory
+missing or unlisted, and on a locale with no title, short or full description.
 
-The fifteen locales are named in `LOCALES` there, with the language each is
-written in, and the release checks the tree against that list: a directory gone
-missing fails it rather than quietly shrinking it, and so does one beside them the
-list does not name. A locale left with no title, short description or full
-description in any of the three passes fails it too - supply uploads what it is
-handed and leaves the rest of the console alone, so the missing one is not a blank
-listing but the old one still standing. Adding or dropping a language is a line
-changed in `LOCALES`.
+## What the apps do not share
 
-## The three things the apps do not share
+- **Title.** Not translated. Play refuses a title over 30 characters, and lite's is exactly
+  30, so `... Pro - view ODT` does not fit. Search terms such as `LibreOffice` go in the
+  short description, which Play indexes too.
+- **Ads.** The shared description holds `${ads}`. Lite fills it from `ads.txt`; pro has no
+  file, and an unfilled placeholder leaves nothing behind, not even its leading space.
+- **Editing.** `${editing}` says what pro adds. Lite's file names it as pro's; pro's names it
+  as its own.
 
-**The title.** Pro is `OpenDocument Reader Pro`, lite `OpenDocument Reader - view
-ODT`. Neither is translated: OpenDocument is the format's own name, and one name is
-one app people can pass to each other - lite says what it opens after the name, not
-instead of it.
-
-**Play refuses a title over 30 characters, and lite's is exactly 30.** So a word
-added to it has to take one out, and pro has no room for the same tail at all:
-`OpenDocument Reader Pro - view ODT` is 34. `scripts/store-listing.py` measures
-both before an upload rather than letting Play refuse the release.
-
-The rest of what a search should find goes in the short description, which play
-indexes just as it does the title: `LibreOffice`, and each language's own words for
-a document, live there, where there is room for them.
-
-**Advertising.** Pro links no ad SDK and shows none, but every description said
-ads were shown, in all fifteen languages. Rather than keep two descriptions per
-locale and let them drift, the shared one holds `${ads}` and each app fills it in
-from its own `ads.txt` - lite has fifteen, pro has none, and a fill-in nobody
-answers leaves nothing behind, the space in front of it included.
-
-**Editing.** Since 4.20.0, pro alone adds new paragraphs, formats text past the
-highlighter and marks a pdf past it. The shared description says only what both
-apps do - fix a typo, edit a cell, highlight - and `${editing}` says the rest:
-lite's `editing.txt` names it as pro's, pro's names it as its own. Both apps fill
-it in, because each listing has something true to say there.
-
-`FILL_INS` in `scripts/store-listing.py` lists the names a `${...}` may have, so a
-misspelt `${adds}` is an error rather than a sentence that quietly vanishes from
-the store.
+`FILL_INS` in `scripts/store-listing.py` lists the allowed placeholder names, so a misspelt
+`${adds}` is an error.
 
 ## Release notes
 
-One file per locale per version code, `<locale>/changelogs/41500.txt`, which is
-the name supply reads and what `app/build.gradle` derives from the version name.
-They are written before the release by `scripts/store-copy.py`, from the
-`CHANGELOG.md` section of that version, and the release run refuses to build a
-version any locale is missing.
+One file per locale per version code, `<locale>/changelogs/41500.txt`. `scripts/store-copy.py`
+writes them from the version's `CHANGELOG.md` section, and the release refuses a version any
+locale lacks.
 
-**Play allows 500 characters and refuses the release over it.** That is an eighth
-of what the App Store allows, and every language here is longer than English -
-measured over 4.15.0, French came back a quarter longer and German a fifth. So the
-English is written under 400 rather than at 500; at 497, as 4.15.0 first was,
-there is no translation of it that fits at all.
-
-**The notes are the same in both apps**, with no fill-in and no override, so they
-say what changed and not who gets it: no "free", no "pro". 4.20.0 told the people
-who had paid for pro that highlighting was now free. `scripts/store-copy.py` asks
-for this when it writes the English.
-
-`CHANGELOG.md` at the root is the other record of the same release, written for
-this repository rather than for the store.
+- Play allows 500 characters. Translations run up to a quarter longer than English, so keep
+  the English under 400.
+- The notes are the same in both apps. Say what changed, not who gets it: no "free", no
+  "pro".
 
 ## Screenshots and the feature graphic
 
-Not here, and not committed anywhere: they are taken during the release run, from
-the build going out, and staged into this tree beside the text - one directory to
-supply, one edit to Play. `scripts/store_screenshots.py` puts the screenshots under
-`<locale>/images/phoneScreenshots/`, `.../tenInchScreenshots/` and
-`.../sevenInchScreenshots/`, and the feature graphic at
-`<locale>/images/featureGraphic.png`, which is where supply reads a locale's
-pictures from.
+Not committed. The release run takes them from the build it ships, and
+`scripts/store_screenshots.py` stages them under `<locale>/images/phoneScreenshots/`,
+`tenInchScreenshots/`, `sevenInchScreenshots/` and `featureGraphic.png`. The tablet set fills
+both tablet slots, because Play falls back to the phone set only where a slot is empty. See
+the README's Screenshots section to take them by hand.
 
-The tablet's pictures go into both tablet slots. Play falls back to the phone set
-only where a slot is *empty*, and the 7" one was not - it held five pictures of the
-pre-4.14 app, and went on showing them through every release that rewrote the rest.
-
-The feature graphic is the one Play shows above the listing. It is drawn from the
-first screenshot's capture, by `scripts/frame-screenshots.py`, and says what that
-screenshot says in the same fifteen languages - so it cannot be a picture of an app
-that no longer looks like that, which is exactly what the committed one had become.
-
-The copy is written; a picture is taken. A picture of the app is worth what the
-build it came off is worth, so it is not a file that sits in git going quietly out
-of date. See the README's "Screenshots" section for how to take them by hand.
-
-## What is not uploaded
-
-`images/` holds an icon that predates the 4.14 redesign. Nothing stages it, and
-what supply does not find in the staged tree it leaves alone, so it stays where it
-is - the app's own launcher icon is a job of its own and a release is a poor moment
-for it.
-
-The feature graphic and the four phone screenshots that used to sit beside it are
-gone: the release now draws and uploads its own, from the build it is shipping, so
-a stale copy in the tree could only ever disagree with the store.
+`images/icon.png` predates the 4.14 redesign. Nothing stages it, and supply leaves alone what
+it is not handed, so the store keeps its current icon.

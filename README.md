@@ -1,6 +1,7 @@
-# It's Android's first OpenOffice Document Reader! ![](https://github.com/opendocument-app/OpenDocument.droid/actions/workflows/build_test.yml/badge.svg)
+# OpenDocument Reader for Android ![](https://github.com/opendocument-app/OpenDocument.droid/actions/workflows/build_test.yml/badge.svg)
 
-This is an Android frontend for our C++ OpenDocument.core library. Feel free to use it in your own project too, but please don't forget to tell us about it!
+The Android app of [OpenDocument.core](https://github.com/opendocument-app/OpenDocument.core).
+More at https://opendocument.app/.
 
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
      alt="Get it on F-Droid"
@@ -12,214 +13,111 @@ This is an Android frontend for our C++ OpenDocument.core library. Feel free to 
      alt="Get it on Obtainium"
      height="80">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22at.tomtasche.reader.foss%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fopendocument-app%2FOpenDocument.droid%22%2C%22author%22%3A%22opendocument-app%22%2C%22name%22%3A%22OpenDocument%20Reader%22%7D)
 
-More information at https://opendocument.app/ and in the app itself.
-
-## Installing
-
-F-Droid and Play are the two stores. Sideloaders take `app-foss-release.apk` from the
-[latest release](https://github.com/opendocument-app/OpenDocument.droid/releases/latest),
-which is what Obtainium tracks. The badge above hands it the whole configuration in one
-tap; pasting this repository's url into it by hand arrives at the same app. Neither needs
-a filter or a setting off its default - one apk is all a release carries, its name has not
-changed, and the tag is the version.
-
-That is a promise the release run keeps rather than a coincidence, so
-`.github/workflows/release.yml` says so where it uploads.
-
-That apk is `at.tomtasche.reader.foss`. A different application id is a different app, so
-a sideload carrying an older one neither updates nor complains: install the new one and
-uninstall the old one. Nothing carries over - a recent documents list whose uri permissions
-die with the old package anyway.
-
 ## Editions
 
-Play carries two apps: OpenDocument Reader, free with ads, and OpenDocument Reader Pro,
-paid. Both open everything, and both edit: the text of a document inside one paragraph, the
-cells of a spreadsheet, and plain text files. Pro also starts and joins paragraphs, formats
-text, and marks up PDFs.
+| edition | where | ads | edits |
+|---|---|---|---|
+| Lite | Play, free | yes | inside one paragraph, sheet cells, plain text, highlighter |
+| Pro | Play, paid | no | all of Lite, plus new and joined paragraphs, formatting, PDF marks |
+| Foss | F-Droid, GitHub release | no | the same as Pro |
 
-The F-Droid build and the apk on the release page are Pro without Play's review sheet: no
-ads, and every edit.
+Every edition opens every format. Foss is `at.tomtasche.reader.foss`, a different app id, so it
+installs beside a Play install and does not update one. Each GitHub release carries one apk,
+`app-foss-release.apk`, which Obtainium tracks with no settings changed.
+
+## Building
+
+You need a JDK and the Android SDK. Nothing else: no NDK, no python, no conan. The core arrives
+as the maven central artifact `app.opendocument:odr-core-android`, java classes and
+`libodr_jni.so` per ABI.
+
+```sh
+./gradlew assembleProDebug          # also assembleLiteDebug, assembleFossDebug
+./gradlew testProDebugUnitTest      # jvm tests
+./gradlew connectedAndroidTest      # device tests
+./gradlew spotlessApply lintProDebug
+```
+
+### Release signing
+
+Release variants build unsigned unless these are set, as gradle properties in
+`~/.gradle/gradle.properties` or as environment variables:
+
+| gradle property        | environment variable     | meaning                         |
+|------------------------|--------------------------|---------------------------------|
+| `odr.keystore`         | `ODR_KEYSTORE`           | path to the keystore            |
+| `odr.keystorePassword` | `ODR_KEYSTORE_PASSWORD`  | store password                  |
+| `odr.keyPasswordPro`   | `ODR_KEY_PASSWORD_PRO`   | key password, defaults to store |
+| `odr.keyPasswordLite`  | `ODR_KEY_PASSWORD_LITE`  | key password, defaults to store |
+
+### Versioning
+
+No version number is checked in. The release run passes its `version` input to gradle as
+`-Podr.version`, and `app/build.gradle` derives `versionName` and `versionCode` from it:
+`v4.8.0` becomes `4.8.0` and `40800`. All three parts are required, and each must be below
+100. Builds with no version are `0.0.0`. To build a real one locally:
+
+```sh
+./gradlew assembleProRelease -Podr.version=v4.8.0
+```
 
 ## Translations
 
-The app speaks nineteen languages and the Play listing fifteen, and both are written
-in this repository.
+English plus 19 translations of the app, and 15 locales of the Play listing, all in this
+repository.
 
-| | source | written by |
+| | source | translated by |
 |---|---|---|
 | the app | `app/src/main/res/values/strings.xml` | `scripts/translate-app.py` |
-| the listing | `fastlane/metadata/android/en-US/` | by hand, then translated |
+| the listing | `fastlane/metadata/android/en-US/` | by hand |
 | the release notes | `CHANGELOG.md` | `scripts/store-copy.py` |
 
-Both scripts run one `claude -p` per language and a second one of the same language
-reading the draft back, and both refuse an answer that has lost something - a key, a
-paragraph, an address the English kept. Neither uploads: `scripts/store-listing.py`
-checks and stages what they write, and the release run sends it. See
-`fastlane/metadata/README.md` for how the two apps share one listing.
+Both scripts run `claude -p` once per language, then a second pass reads the draft back and
+rejects an answer that lost a key, a paragraph or an address. Neither script uploads.
 
 ```sh
-scripts/translate-app.py                 # fill in whatever strings are missing
-scripts/store-copy.py v4.15.0            # write the release notes of a version
+scripts/translate-app.py                     # fill in the missing strings
+scripts/store-copy.py v4.15.0                # write the release notes of a version
 scripts/store-listing.py --version v4.15.0   # check every locale has them
 ```
 
-There is one directory per language and no region qualifier: `values-de` answers for
-every German-speaking region and nothing here differs by one. A pull request adding a
-language adds it to `LANGUAGES` in `scripts/translate-app.py` too, or the next run
-refuses to guess what it should be written in. A language the *store* is sold in goes
-in `LOCALES` in `scripts/store-listing.py`, which the release checks its directories
-against, so a listing that loses one fails rather than ships without it.
+Resource directories carry no region: `values-de` serves every German region. A new app
+language is added to `LANGUAGES` in `scripts/translate-app.py`. A new store locale is added
+to `LOCALES` in `scripts/store-listing.py`, and the release checks the directories against
+that list. See `fastlane/metadata/README.md` for the listing layout.
 
-Corrections in a pull request are very welcome; a translated string is a translated
-string wherever it comes from.
-
-## Setup
-
-A JDK and the android SDK, and that is the whole list - `./gradlew assembleProDebug`
-works on a fresh checkout. There is no NDK to install, no python, and no conan: the
-app compiles no native code of its own, and odrcore arrives as an ordinary maven
-dependency (`app.opendocument:odr-core-android`) carrying both halves of its JNI
-bindings, the java classes and a `libodr_jni.so` per ABI.
-
-It resolves from maven central rather than github packages on purpose - github
-packages demands authentication even for a public artifact, which no clean source
-builder such as f-droid can supply. No credentials are involved anywhere in the
-build.
-
-## Release signing
-
-Debug builds need no setup. Release variants are signed only if the credentials are
-supplied from outside the repository, as gradle properties in `~/.gradle/gradle.properties`
-or as environment variables:
-
-| gradle property        | environment variable     | meaning                          |
-|------------------------|--------------------------|----------------------------------|
-| `odr.keystore`         | `ODR_KEYSTORE`           | path to the keystore             |
-| `odr.keystorePassword` | `ODR_KEYSTORE_PASSWORD`  | store password                   |
-| `odr.keyPasswordPro`   | `ODR_KEY_PASSWORD_PRO`   | key password, defaults to store  |
-| `odr.keyPasswordLite`  | `ODR_KEY_PASSWORD_LITE`  | key password, defaults to store  |
-
-Without them `bundleProRelease` and friends still build, just unsigned.
+Corrections in a pull request are welcome.
 
 ## Releasing
 
-The `release` workflow builds both signed bundles and uploads them to the Play Store
-internal track. It is dispatched by hand, with the version it should build:
+The `release` workflow is dispatched by hand with the version to build. No tag triggers it.
 
 ```sh
 gh workflow run release.yml -f version=v4.14.0
 ```
 
-Nothing triggers it on a tag. It runs as six jobs:
+Before the build it refuses a version that already shipped, a version with no `CHANGELOG.md`
+section, and a version with release notes missing in any locale. Then it runs these jobs:
 
 | job | what it does |
 |---|---|
-| `build` | one gradle run producing all three signed flavors, archived on the run |
-| `screenshots` | beside the build: one emulator per device, photographing six screens in fifteen locales |
-| `screenshot-set` | the two devices put back together, and checked as one set |
-| `upload` | one job per play flavor, handing its bundle to fastlane |
-| `listing` | behind both: the copy and the screenshots, per flavor |
-| `record` | once the bundles landed: tag the commit, draft the GitHub release |
+| `build` | one gradle run, all three signed flavors |
+| `screenshots` | one emulator per device, six screens in fifteen locales |
+| `screenshot-set` | joins the two devices' pictures and checks the set |
+| `upload` | one job per Play flavor, bundle to the internal track |
+| `listing` | after the upload: title, descriptions, release notes, screenshots, per flavor |
+| `record` | tags `build/<version>` and drafts the GitHub release |
 
-Lite and Pro always go out together, and nothing chooses one: they are the same app with
-ads and tracking switched off. Foss is built in the same run but uploaded nowhere - it is
-the APK on the GitHub release. That is what keeps a version on a single commit - the one
-the `v*` tag names and F-Droid builds.
+Lite and Pro always ship together. Foss is built in the same run and attached to the GitHub
+release. The `listing` job overwrites the Play Console listing; the console is not the source.
+A failed screenshot run costs the release its pictures and nothing else: the listing still
+uploads with the text alone. `dry_run` builds and signs without a version and uploads nothing.
 
-Internal is the only track it uploads to. Anything wider - closed, open, production -
-is a promotion, which moves the same bundle and version code that was tested onto the
-wider track instead of uploading a second one. A version code is spent the moment it
-goes up, so there is one upload per release and every track after it is an assignment
-of what is already there.
+**If one flavor's upload fails, press "Re-run failed jobs".** Play refuses a version code it
+has already accepted, so re-running all jobs fails on the flavor that made it. After GitHub
+stops offering re-runs, ship a new patch version.
 
-`fastlane android openTestingPro` and `openTestingLite` promote to open testing, given
-the version whose code should move:
-
-```sh
-fastlane android openTestingLite version:v4.17.0
-```
-
-Closed testing and production are still the Play Console. Play reviews a promotion like
-any other release - only the internal track is immediate - so neither the workflow
-finishing nor the promotion running is the same as the release being out.
-
-The listing goes up in its own job, behind the bundle: the title, both descriptions, the
-release notes of that version, the screenshots and the feature graphic, in all fifteen
-locales, for each app. **This overwrites what the Play Console says**, which is the point
-- the copy is written here, not there. The launcher icon is the one listing asset left where
-it is; see `fastlane/metadata/README.md`.
-
-Separate from the bundle upload on purpose: a bundle cannot go up twice, while the listing
-stays editable for as long as the release sits on the internal track - and the listing is
-the half that waits on the emulators. A screenshot run that wedges costs the release its
-pictures and nothing else: the listing still goes up, with its text and this version's
-release notes, over the screenshots the store already has. The run says so as a warning.
-
-`fastlane android listingPro` and `listingLite` send the listing without a bundle, which
-is how a typo is fixed: Play refuses a version code twice, so repairing the words should
-not need a version to carry them. With nothing under `fastlane/framed` they send the text
-alone, so a word can be corrected without a quarter hour of emulators.
-
-**If one flavor's upload fails, press "Re-run failed jobs".** Only that upload runs again,
-against the bundle already built and signed, and `record` runs behind it. Re-running *all*
-jobs is the wrong button: Play refuses a version code it has already accepted, so the half
-that made it cannot go up twice. Past the roughly 30 days GitHub offers re-runs for, the
-way out is a new patch version for both flavors.
-
-### Screenshots
-
-The store copy is written down here; the pictures of the app are not. A picture is worth
-what the build it came off is worth, so they are taken during the release run, from the
-build going out, framed there, and handed to supply from there. Nothing is committed.
-
-Six screens - the recently opened list, a text document with a search running, a
-spreadsheet, an edit under way, a PDF and a Word file - on a phone and on a tablet, in the
-fifteen locales the listing is written in. That is 180 pictures a release. The tablet's go
-into both of Play's tablet slots: it falls back to the phone set only where a slot is
-*empty*.
-
-The feature graphic, the one picture above the listing, is drawn beside them - the same
-frame laid out across a 1024x500 canvas, off the first screenshot's capture and carrying
-its headline in each of the fifteen languages. One per locale.
-
-Taking them by hand needs one emulator on adb running **Android 15 or newer**, and Pillow:
-
-```sh
-python3 -m pip install Pillow
-bundle exec fastlane android screenshots                       # every locale, phone
-ODR_SCREENSHOT_DEVICE=tablet bundle exec fastlane android screenshots
-ODR_SCREENSHOT_LANGUAGES=en-US,de-DE bundle exec fastlane android screenshots
-```
-
-With more than one device attached, `ANDROID_SERIAL` picks which. The raw captures land in
-`fastlane/screenshots/`, the framed set and the feature graphics in `fastlane/framed/`, and
-only the second is what the store is given. Re-running `scripts/frame-screenshots.py` alone re-frames what is
-already captured, so changing a headline in `fastlane/frames/frames.json` costs a second of
-Pillow rather than a quarter hour of emulators.
-
-Android 15 is the floor because the app only tells the system bars to follow a light theme
-from API 35 on; below that every picture has a white clock on a white bar.
-`ScreenshotTests` refuses to run there rather than photograph it, and skips itself entirely
-unless a run names a device - `connectedCheck` is not the job for this.
-
-`hi-IN`, `ja-JP` and `zh-CN` are set in a system font, since Nunito has neither Devanagari
-nor CJK and one that does is ten to sixteen megabytes per language. On Debian that is
-`fonts-noto-core` and `fonts-noto-cjk`; without them the framing stops and says so rather
-than drawing a row of squares.
-
-`dry_run` builds and signs both flavors without uploading either. It is the only run
-allowed to go without a version, and the only one leaving neither tag nor draft.
-
-In its first seconds the run also refuses a version that has already gone out, one with
-no `CHANGELOG.md` section - which is what the release body is made of - and one whose
-release notes have not been written in every locale, which `scripts/store-copy.py`
-writes. All three are checked before the build, so they cost seconds rather than a
-version. `.github/scripts/resolve-version.py`, `changelog-section.py` and
-`scripts/store-listing.py` decide them; run any of the three by hand to see what a
-dispatch would do.
-
-It needs these repository secrets:
+Secrets the workflow needs:
 
 | secret | contents |
 |---|---|
@@ -227,78 +125,73 @@ It needs these repository secrets:
 | `ODR_KEYSTORE_PASSWORD` | store password |
 | `ODR_KEY_PASSWORD_PRO` | key password for the `reader-pro` alias |
 | `ODR_KEY_PASSWORD_LITE` | key password for the `reader` alias |
-| `GOOGLE_PLAY_SERVICE_ACCOUNT` | play console service account json key |
+| `GOOGLE_PLAY_SERVICE_ACCOUNT` | the Play Console service account json, whole; base64 is accepted too |
 
-The service account key goes in as the json file the Play Console hands out, whole and
-unedited - base64 of it is accepted too, but nothing else is: the workflow checks it is
-a `service_account` key before the build starts rather than letting fastlane trip over
-it once the build is done.
+### After the upload
 
-Releasing from a laptop still works: `fastlane android deployPro version:v4.8.0` builds
-and uploads the bundle *and* its listing - the split into two jobs is the workflow's, not
-the lane's - and takes an optional `track:` (`... track:beta`). The version can come from
-`ODR_VERSION` instead, but it cannot be left out - see below. That reads the key from
-`fastlane_google_play.json` in the repository root, as the `Appfile` says.
+The workflow uploads to the internal track only. Wider tracks are promotions of the same
+bundle, because a version code can only go up once:
+
+```sh
+fastlane android openTestingPro version:v4.17.0    # or openTestingLite
+```
+
+Closed testing and production are promoted in the Play Console, and Play reviews them.
 
 ### Tags
 
-No tag triggers a build, and none is pushed before one: a tag written up front is a
-promise the run can fail to keep. Tags are written afterwards instead, in two kinds:
+No tag is written before a run, and none triggers one. `record` writes `build/<version>`
+once both flavors are up; a half-uploaded release gets no tag.
 
-| tag | who writes it | what it means |
-|---|---|---|
-| `build/<version>` | the release workflow, once both flavors are up | this commit went to the internal track |
-| `v<version>` | publishing the drafted release | this is what shipped |
-
-One build tag, not one per flavor: a single run builds both from a single checkout. A
-half uploaded release gets no tag at all, which is the honest answer - nothing yet could
-be published from it. A lane run from a laptop leaves none either.
-
-**The `v*` tag is written neither by hand nor by the workflow.** `record` drafts a GitHub
-release named `v<version>` at the built commit, carrying the Foss APK - the flavor that
-links nothing proprietary - a `version.json` naming the version and its code, and the
-version's `CHANGELOG.md` section above GitHub's generated list of pull requests. A draft
-creates no tag; publishing it does, at exactly that commit:
+Publishing the drafted GitHub release creates the `v<version>` tag, which F-Droid builds
+from. Publish it only after Play released the version to production:
 
 ```sh
 gh release edit v4.14.0 --draft=false
 ```
 
-That is the whole manual step, and it waits because internal is not released: promotion to
-production, and the review it needs, happen in the Play Console days later. F-Droid tracks
-this repository through that release, so publishing any earlier would push a version to
-F-Droid users that Google may never release. `version.json` is what it reads: the version
-is nowhere in the tree, so `releases/latest/download/version.json` is the only place
-F-Droid can learn a version code from.
+The draft carries the Foss apk, the version's `CHANGELOG.md` section, and `version.json`,
+which is where F-Droid reads the version code from.
 
-## Versioning
+### Fixing the listing
 
-The version is the release run's `version` input, and no version number is checked in
-anywhere. The workflow hands it to gradle as `-Podr.version`, and `app/build.gradle`
-derives both halves of it: `v4.8.0` becomes version name `4.8.0` and version code
-`40800`, two digits per part. Every part therefore has to stay below 100, which the
-build refuses rather than folding `4.100.0` onto the same code as `5.0.0`. Nobody bumps
-it anywhere: a commit on `main` is not a release, and no number on `main` can describe
-one that already went out.
+`fastlane android listingPro` and `listingLite` upload the listing without a bundle. With
+nothing under `fastlane/framed` they send the text alone, so a typo needs no new version and
+no emulator.
 
-All three parts have to be spelled out: a two-part `v4.7` is refused rather than padded,
-so one build cannot be tagged under two names.
+### Lanes from a laptop
 
-Builds handed no version - local ones, PR builds, `assembleProDebug` - are `0.0.0`.
-Nothing reads it: no code in the app looks at its own version, and only what the release
-workflow builds ever leaves the machine. Any build can be given a real one anyway, with
-`./gradlew assembleProRelease -Podr.version=v4.8.0`.
+`fastlane android deployPro version:v4.8.0` (or `deployLite`) builds and uploads the bundle
+and its listing, and takes an optional `track:`. It reads the service account key from
+`fastlane_google_play.json` in the repository root. The version can also come from
+`ODR_VERSION`, but it cannot be left out. A lane writes no tag.
 
-Version codes only ever go up: the Play Store accepts a code only above the last one it
-saw, so a version number cannot be reused or walked backwards.
+### Screenshots
+
+The release run takes the store screenshots from the build it ships. Nothing is committed.
+Six screens on a phone and a tablet in fifteen locales, plus a feature graphic per locale
+drawn from the first screenshot. The tablet set fills both tablet slots.
+
+To take them by hand you need one emulator on adb running **Android 15 or newer** and Pillow:
+
+```sh
+python3 -m pip install Pillow
+bundle exec fastlane android screenshots                         # every locale, phone
+ODR_SCREENSHOT_DEVICE=tablet bundle exec fastlane android screenshots
+ODR_SCREENSHOT_LANGUAGES=en-US,de-DE bundle exec fastlane android screenshots
+```
+
+`ANDROID_SERIAL` picks the device when several are attached. Raw captures land in
+`fastlane/screenshots/`, the framed set and feature graphics in `fastlane/framed/`. Running
+`scripts/frame-screenshots.py` alone re-frames the captures, so a changed headline in
+`fastlane/frames/frames.json` costs seconds. Below API 35 the status bar has a white clock on
+a white bar, so `ScreenshotTests` refuses to run there.
+
+`hi-IN`, `ja-JP` and `zh-CN` are set in a system font. On Debian install `fonts-noto-core`
+and `fonts-noto-cjk`, or the framing stops and says so.
 
 ## License
 
-Mozilla Public License 2.0, in `LICENSE`. MPL is copyleft per *file*: a changed file goes
-back under MPL, and a larger work that merely links this can stay under whatever license
-it likes.
-
-The notice sits in `LICENSE` rather than atop every source file, which Exhibit A of the
-license itself allows. Two things keep their own headers because they came from elsewhere
-under Apache-2.0 and stay that way: `com/commonsware/android/print` and
+Mozilla Public License 2.0, in `LICENSE`. MPL is copyleft per file. Two parts came from
+elsewhere under Apache-2.0 and keep their own headers: `com/commonsware/android/print`, and
 `FindActionModeCallback` with the two `webview_find` resources.
