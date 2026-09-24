@@ -15,6 +15,12 @@ set -u
 # some system images (api 26 among them) and must not abort the run.
 adb logcat -c || true
 
+# a system app that stops responding puts its dialog over the screen, and the
+# dark mode tests read the middle of the screen: "Pixel Launcher isn't
+# responding" failed them on api 34 over a page that was dark. with this set,
+# the system stops a stuck app in the background and shows nothing
+adb shell settings put global hide_error_dialogs 1 || true
+
 status=0
 # the test run takes about 4 minutes; anything past 20 is hung, and a hang has to
 # end as an ordinary failure so the logcat below still gets dumped and uploaded -
