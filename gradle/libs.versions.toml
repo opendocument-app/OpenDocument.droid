@@ -15,7 +15,7 @@ androidxRecyclerview = "1.4.0"
 androidxLifecycle = "2.9.4"
 material = "1.14.0"
 
-playServicesAds = "25.4.0"
+playServicesAds = "25.5.0"
 playReview = "2.0.2"
 userMessagingPlatform = "4.0.0"
 
