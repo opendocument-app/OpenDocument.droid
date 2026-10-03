@@ -12,8 +12,16 @@ import com.google.android.play.core.review.ReviewManagerFactory
  */
 object InAppReview {
 
-    /** [onAsked] runs when the sheet is handed to play - see `ReviewInvitation.recordAsk`. */
-    fun request(activity: Activity, analyticsManager: AnalyticsManager, onAsked: () -> Unit) {
+    /**
+     * [onAsked] runs when the sheet is handed to play - see `ReviewInvitation.recordAsk`. [onDone]
+     * runs once the sheet is gone, or at once when there is none to show.
+     */
+    fun request(
+        activity: Activity,
+        analyticsManager: AnalyticsManager,
+        onAsked: () -> Unit,
+        onDone: () -> Unit,
+    ) {
         analyticsManager.report("in_app_review_eligible")
 
         val manager = ReviewManagerFactory.create(activity)
@@ -21,6 +29,7 @@ object InAppReview {
             if (!reviewInfoTask.isSuccessful) {
                 // usually an install that did not come from play, so there is no store to ask
                 analyticsManager.report("in_app_review_error")
+                onDone()
 
                 return@addOnCompleteListener
             }
@@ -31,6 +40,7 @@ object InAppReview {
 
             manager.launchReviewFlow(activity, reviewInfoTask.result).addOnCompleteListener {
                 analyticsManager.report("in_app_review_done")
+                onDone()
             }
         }
     }

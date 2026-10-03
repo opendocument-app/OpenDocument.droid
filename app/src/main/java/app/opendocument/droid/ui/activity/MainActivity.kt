@@ -102,13 +102,26 @@ class MainActivity : AppCompatActivity() {
                 // an externally opened document leaves the app rather than the document, and
                 // carries unsaved edits out just the same
                 confirmLeavingEdits {
-                    // fall through to the default behavior (close the activity)
-                    isEnabled = false
-                    onBackPressedDispatcher.onBackPressed()
-                    isEnabled = true
+                    // the only moment a document opened from another app is put down again
+                    if (documentFragment == null) {
+                        leaveApp()
+                    } else {
+                        askForReviewIfEarned { leaveApp() }
+                    }
                 }
             }
         }
+
+    /** Falls through to the default back behavior, which closes the activity. */
+    private fun leaveApp() {
+        if (isFinishing) {
+            return
+        }
+
+        backCallback.isEnabled = false
+        onBackPressedDispatcher.onBackPressed()
+        backCallback.isEnabled = true
+    }
 
     // kept because onPause has to stop it
     private var ttsActionMode: TtsActionModeCallback? = null
@@ -870,14 +883,24 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    /** Deliberately not from [closeFailedDocument], the last moment on earth to ask for stars. */
-    private fun askForReviewIfEarned() {
+    /**
+     * Deliberately not from [closeFailedDocument], the last moment on earth to ask for stars.
+     * [then] runs after the sheet, or at once when there is no ask.
+     */
+    private fun askForReviewIfEarned(then: () -> Unit = {}) {
         if (reviewRequested || !ReviewInvitation.isEarned(this)) {
+            then()
+
             return
         }
 
         reviewRequested = true
-        InAppReview.request(this, analyticsManager) { ReviewInvitation.recordAsk(this) }
+        InAppReview.request(
+            this,
+            analyticsManager,
+            onAsked = { ReviewInvitation.recordAsk(this) },
+            onDone = then,
+        )
     }
 
     private fun closeDocument(keepMessage: Boolean = false) {
