@@ -1,0 +1,5 @@
+Spreadsheet cells can now be formatted: fill, bold, italic, colours, size and alignment. The fill is free in every edition.
+
+Paragraphs can be aligned left, center, right or justified.
+
+Spaces you type now show and save as spaces. Cell colours show as they really are, in night mode too. Documents no longer load pictures from the internet.

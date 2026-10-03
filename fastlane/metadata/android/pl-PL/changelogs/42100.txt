@@ -1,0 +1,5 @@
+Komórki arkuszy można teraz formatować: wypełnienie, pogrubienie, kursywa, kolory, rozmiar i wyrównanie. Wypełnienie jest bezpłatne w każdej wersji.
+
+Akapity można wyrównać do lewej, do środka, do prawej lub do obu krawędzi.
+
+Wpisane spacje są teraz widoczne i zapisywane jako spacje. Kolory komórek są wyświetlane wiernie, także w trybie nocnym. Dokumenty nie wczytują już obrazów z internetu.

@@ -1,0 +1,5 @@
+Hesap tablosu hücreleri artık biçimlendirilebiliyor: dolgu, kalın, italik, renkler, boyut ve hizalama. Dolgu her sürümde ücretsiz.
+
+Paragraflar sola, ortaya veya sağa hizalanabilir ya da iki yana yaslanabilir.
+
+Yazdığınız boşluklar artık boşluk olarak görünüyor ve öyle kaydediliyor. Hücre renkleri gece modunda da gerçekte oldukları gibi görünüyor. Belgeler artık internetten görsel yüklemiyor.

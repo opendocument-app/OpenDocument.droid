@@ -1,0 +1,5 @@
+Agora você pode formatar células de planilha: preenchimento, negrito, itálico, cores, tamanho e alinhamento. O preenchimento é grátis em todas as versões.
+
+Os parágrafos podem ser alinhados à esquerda, ao centro, à direita ou justificados.
+
+Os espaços que você digita agora aparecem e são salvos como espaços. As cores das células aparecem como realmente são, inclusive no modo noturno. Os documentos não carregam mais imagens da internet.

@@ -1,0 +1,5 @@
+Celler i kalkylblad kan nu formateras: fyllnadsfärg, fetstil, kursiv stil, färger, storlek och justering. Fyllnadsfärgen är gratis i alla versioner.
+
+Stycken kan vänsterjusteras, centreras, högerjusteras eller marginaljusteras.
+
+Mellanslag du skriver visas och sparas nu som mellanslag. Cellfärger visas som de faktiskt är, även i nattläge. Dokument hämtar inte längre bilder från internet.

@@ -525,8 +525,11 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
             override fun onLocked() {
                 (requireActivity() as MainActivity).offerPro(
-                    if (editingKind == EditingKind.ANNOTATION) MainActivity.ProFeature.PDF
-                    else MainActivity.ProFeature.FORMATTING
+                    when (editingKind) {
+                        EditingKind.ANNOTATION -> MainActivity.ProFeature.PDF
+                        EditingKind.SHEET -> MainActivity.ProFeature.SHEET
+                        else -> MainActivity.ProFeature.FORMATTING
+                    }
                 )
             }
         }

@@ -142,6 +142,7 @@
          free of it in both kinds of document, so that the mode is worth opening -->
     <string name="pro_offer_title">Part of Pro</string>
     <string name="pro_offer_formatting">Bold, italic, colors and text size, and adding or joining paragraphs, are part of OpenDocument Reader Pro. The highlighter is in every edition.</string>
+    <string name="pro_offer_sheet">Bold, italic, colors, text size and alignment of cells are part of OpenDocument Reader Pro. The fill is in every edition.</string>
     <string name="pro_offer_markup">Underlining, striking out and drawing on a PDF are part of OpenDocument Reader Pro. The highlighter is in every edition.</string>
     <string name="not_now">Not now</string>
     <!-- what the document says when an edit is not taken, by the reason the page gives -->

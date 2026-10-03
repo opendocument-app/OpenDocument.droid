@@ -1,0 +1,5 @@
+Buňky tabulek nyní můžete formátovat: výplň, tučné písmo, kurzíva, barvy, velikost a zarovnání. Výplň je zdarma ve všech verzích.
+
+Odstavce lze zarovnat doleva, na střed, doprava nebo do bloku.
+
+Napsané mezery se nyní zobrazí i uloží jako mezery. Barvy buněk se zobrazují tak, jak skutečně jsou, i v nočním režimu. Dokumenty už nenačítají obrázky z internetu.

@@ -1,0 +1,5 @@
+Les cellules de tableur peuvent désormais être mises en forme : remplissage, gras, italique, couleurs, taille et alignement. Le remplissage est gratuit dans toutes les versions.
+
+Les paragraphes peuvent être alignés à gauche, centrés, à droite ou justifiés.
+
+Les espaces saisis s'affichent et s'enregistrent désormais tels quels. Les couleurs des cellules s'affichent fidèlement, y compris en mode nuit. Les documents ne chargent plus d'images depuis Internet.

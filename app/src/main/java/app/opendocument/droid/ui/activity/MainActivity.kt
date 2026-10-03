@@ -789,6 +789,9 @@ class MainActivity : AppCompatActivity() {
         /** Formatting text past the highlighter, and starting or joining a paragraph. */
         FORMATTING(R.string.pro_offer_formatting),
 
+        /** Formatting cells past the fill. */
+        SHEET(R.string.pro_offer_sheet),
+
         /** Marking up a pdf past the highlighter. */
         PDF(R.string.pro_offer_markup),
     }

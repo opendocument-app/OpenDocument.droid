@@ -1,0 +1,5 @@
+Arvutustabeli lahtreid saab nüüd vormindada: taustavärv, paks- ja kaldkiri, värvid, suurus ja joondus. Taustavärv on tasuta kõigis versioonides.
+
+Lõike saab joondada vasakule, keskele, paremale või rööpselt.
+
+Sinu sisestatud tühikud on nüüd näha ja salvestatakse tühikutena. Lahtrite värvid paistavad nii, nagu need tegelikult on, ka öörežiimis. Dokumendid ei laadi enam pilte internetist.

@@ -1,0 +1,5 @@
+Ya puedes dar formato a las celdas de hojas de cálculo: relleno, negrita, cursiva, colores, tamaño y alineación. El relleno es gratis en todas las ediciones.
+
+Ya puedes alinear los párrafos a la izquierda, al centro, a la derecha o justificarlos.
+
+Los espacios que escribes ahora se ven y se guardan como espacios. Los colores de las celdas se ven como son realmente, también en modo nocturno. Los documentos ya no cargan imágenes de Internet.
