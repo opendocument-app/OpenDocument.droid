@@ -124,16 +124,23 @@ end
 # captured has to have all of it: half a set is worse in the store than the set
 # already up there, which is what the script checks before it copies anything.
 #
+# Each flavor gets its own set: lite's edit shows pro's tools locked.
+#
 # @return whether there were any, which is also what tells supply to replace what
 #   the store has rather than leave it alone.
-def stage_screenshots(staged)
+def stage_screenshots(staged, flavor)
   captured = !Dir.glob(File.join(FRAMED_DIR, "*", "*.png")).empty?
   unless captured
     UI.important("no screenshots under #{FRAMED_DIR} - writing the listing text only")
     return false
   end
 
-  ok = system("python3", STORE_SCREENSHOTS, "--screenshots", FRAMED_DIR, "--stage", staged)
+  ok = system(
+    "python3", STORE_SCREENSHOTS,
+    "--screenshots", FRAMED_DIR,
+    "--stage", staged,
+    "--app", flavor.downcase
+  )
   UI.user_error!("the screenshots could not be staged - see above") unless ok
 
   true
@@ -246,7 +253,7 @@ platform :android do
     version = require_version(options[:version])
 
     staged = stage_listing(flavor, version)
-    captured = stage_screenshots(staged)
+    captured = stage_screenshots(staged, flavor)
 
     upload_to_play_store(
       track: options[:track] || DEFAULT_TRACK,
@@ -321,9 +328,9 @@ platform :android do
     FileUtils.rm_rf(ADDITIONAL_OUTPUT)
 
     # The Pro flavor: it links no ad sdk, so no consent form can come up in front
-    # of a picture. The two apps are the same app, and what differs - the banner
-    # Lite carries - is not in a screenshot either way, so one set of pictures
-    # goes to both listings.
+    # of a picture. The banner Lite carries is in no screenshot. The edit is the
+    # one screen that differs, so the test takes it a second time with the tools
+    # locked, and each listing gets its own set.
     gradle(
       task: "connectedProDebugAndroidTest",
       properties: {

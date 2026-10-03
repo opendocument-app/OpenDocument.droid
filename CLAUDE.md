@@ -219,6 +219,8 @@ back door to the app. Details:
   which locale reads which language's documents. Do not copy that table into the test.
 - The tablet set goes into both tablet slots, because Play falls back to the phone set only
   where a slot is empty.
+- The edit is taken twice. `04-edit-lite` locks the strip from the test, because the run is
+  a pro build, and `store_screenshots.py --app lite` stages it in place of `04-edit`.
 - In `release.yml` the listing is not gated on the screenshots. Do not put them back into
   a plain `needs:`, or a wedged emulator takes the listing text down with it.
 
