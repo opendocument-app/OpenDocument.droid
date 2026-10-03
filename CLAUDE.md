@@ -140,14 +140,15 @@ says whether a password is worth asking for.
 
 **The gate is on the tool, not on the mode.** Every edition opens every editable kind, so
 `Features.offersEditing` is the core's answer alone. A locked `EditingTools` dims what is
-pro and leaves the highlighter working, in documents and in pdfs. Do not put the whole-mode
-gate back.
+pro and leaves the highlighter working, in documents and in pdfs, and the fill in sheets. Do
+not put the whole-mode gate back.
 
 **The editor is in the page.** An editable document is rendered with `HtmlConfig.editable`,
 and the edit button only calls `odr.editing.enable()`, with no second render. The page owns
-the operation log, undo and the refusals; `editing-bridge.js`, injected by `PageView`,
-forwards its callbacks. Lite narrows `HtmlConfig.editingScope` to `PARAGRAPH`, and the page
-answers the rest with `outOfScope`, which `DocumentFragment` turns into the offer of pro.
+the operation log, undo and the refusals. `HtmlConfig.hostMessageHandler` sends its callbacks
+to `PageView.postMessage`; do not inject a script for them. Lite narrows
+`HtmlConfig.editingScope` to `PARAGRAPH`, and the page answers the rest with `outOfScope`,
+which `DocumentFragment` turns into the offer of pro.
 
 **The bar holds what is done to the document, the strip what is done to the text.** Undo,
 redo and save are `menu/edit.xml`, dimmed by `EditActionModeCallback`. `EditingTools` under

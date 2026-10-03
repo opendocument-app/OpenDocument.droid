@@ -33,7 +33,7 @@ import org.json.JSONObject
  * In a build without [app.opendocument.droid.nonfree.Features.advancedEditing] the strip is
  * `locked`: the highlighter still works, every other tool is dimmed and offers pro, and pro's badge
  * stands in front of the row. One free tool of each kind is what makes the mode worth opening - see
- * [FREE_TOOL].
+ * [FREE_TOOLS].
  */
 class EditingTools(context: Context, attributeSet: AttributeSet?) :
     HorizontalScrollView(context, attributeSet) {
@@ -66,11 +66,20 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
     /** What each tool applies, which is what its bar shows. Kept as the document is edited. */
     private val toolColors = STARTING_COLORS.toMutableMap()
 
-    private var highlightTool: View? = null
+    /** The highlighter of a document, or the fill of a sheet, named by [groundKey]. */
+    private var groundTool: View? = null
+    private var groundKey = HIGHLIGHT_COLOR
     private var sizeTool: View? = null
+    private var alignTool: View? = null
+
+    /** The alignments [alignTool] offers: a cell has no `justify`. */
+    private var alignments = ALIGNMENTS
 
     /** The size the selection is in, in points, or null where the runs disagree. */
     private var selectionSize: String? = null
+
+    /** How the selection is aligned, or null where the paragraphs or cells disagree. */
+    private var selectionAlign: String? = null
 
     init {
         LayoutInflater.from(context).inflate(R.layout.view_editing_tools, this, true)
@@ -87,10 +96,10 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
     }
 
     /**
-     * The formatting tools. [locked] adds pro's badge, and makes every tool but the free one offer
-     * pro.
+     * The formatting tools. A [sheet] takes a fill where a document takes a highlight, and no
+     * `justify`. [locked] adds pro's badge, and makes every tool but the free one offer pro.
      */
-    fun showFormatting(locked: Boolean) {
+    fun showFormatting(sheet: Boolean, locked: Boolean) {
         reset(locked)
 
         addBadge()
@@ -108,41 +117,54 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         addColorPress(textColor, TEXT_COLOR, R.string.tool_text_color) { pickTextColor(it) }
         row.addView(textColor)
 
-        // a tap flips the highlight on the selection, in the colour the long press picked
-        val highlight = newTool(R.drawable.ic_highlight, R.string.tool_highlight, HIGHLIGHT_COLOR)
-        paintBar(highlight, HIGHLIGHT_COLOR)
-        highlight.setOnClickListener {
-            ifOffered(HIGHLIGHT_COLOR) {
+        // a tap flips the highlight or the fill on the selection, in the colour the long press
+        // picked
+        groundKey = if (sheet) FILL_COLOR else HIGHLIGHT_COLOR
+        val groundLabel = if (sheet) R.string.tool_fill else R.string.tool_highlight
+        val ground =
+            newTool(
+                if (sheet) R.drawable.ic_format_color_fill else R.drawable.ic_highlight,
+                groundLabel,
+                groundKey,
+            )
+        paintBar(ground, groundKey)
+        ground.setOnClickListener {
+            ifOffered(groundKey) {
                 listener?.onFormat(
                     JSONObject()
                         .put(
-                            "highlight",
-                            if (highlight.isSelected) JSONObject.NULL
-                            else hex(colorOf(HIGHLIGHT_COLOR)),
+                            groundKey,
+                            if (ground.isSelected) JSONObject.NULL else hex(colorOf(groundKey)),
                         )
                 )
             }
         }
-        addColorPress(highlight, HIGHLIGHT_COLOR, R.string.tool_highlight) { anchor ->
-            showPalette(anchor, HIGHLIGHT_COLORS) { color ->
+        addColorPress(ground, groundKey, groundLabel) { anchor ->
+            showPalette(anchor, if (sheet) FILL_COLORS else HIGHLIGHT_COLORS) { color ->
                 if (color == Color.TRANSPARENT) {
-                    listener?.onFormat(JSONObject().put("highlight", JSONObject.NULL))
+                    listener?.onFormat(JSONObject().put(groundKey, JSONObject.NULL))
 
                     return@showPalette
                 }
 
-                setToolColor(HIGHLIGHT_COLOR, highlight, color)
+                setToolColor(groundKey, ground, color)
 
-                listener?.onFormat(JSONObject().put("highlight", hex(color)))
+                listener?.onFormat(JSONObject().put(groundKey, hex(color)))
             }
         }
-        highlightTool = highlight
-        row.addView(highlight)
+        groundTool = ground
+        row.addView(ground)
 
         val size = newTool(R.drawable.ic_format_size, R.string.tool_font_size, SIZE_TOOL)
         size.setOnClickListener { ifOffered(SIZE_TOOL) { showSizes(it) } }
         sizeTool = size
         row.addView(size)
+
+        alignments = if (sheet) ALIGNMENTS.filter { it.value != "justify" } else ALIGNMENTS
+        val align = newTool(R.drawable.ic_format_align_left, R.string.tool_align, ALIGN_TOOL)
+        align.setOnClickListener { ifOffered(ALIGN_TOOL) { showAlignments(it) } }
+        alignTool = align
+        row.addView(align)
 
         setSelectionStyle(JSONObject())
 
@@ -200,7 +222,7 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         }
 
         // isNull is also true of a key the page left out, where the runs disagree
-        highlightTool?.isSelected = !locked && !style.isNull("highlight")
+        groundTool?.isSelected = !locked && !style.isNull(groundKey)
 
         // the caption is the size the text is in; the icon alone means the runs disagree
         selectionSize =
@@ -214,6 +236,14 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
                 selectionSize?.let { context.getString(R.string.tool_font_size_points, it) },
             )
         }
+
+        // the icon is the alignment the selection is in; left where they disagree
+        selectionAlign = style.optString("align", "").takeIf { !style.isNull("align") }
+        alignTool
+            ?.findViewById<ImageView>(R.id.editing_tool_icon)
+            ?.setImageResource(
+                (alignments.find { it.value == selectionAlign } ?: alignments.first()).icon
+            )
     }
 
     /** Shows which marking tool is armed, or none. */
@@ -229,14 +259,15 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         row.removeAllViews()
         toggles.clear()
         markTools.clear()
-        highlightTool = null
+        groundTool = null
         sizeTool = null
+        alignTool = null
 
         scrollTo(0, 0)
     }
 
     /** Whether [tool] only offers pro in this build, rather than doing its work. */
-    private fun isPro(tool: String) = locked && tool != FREE_TOOL
+    private fun isPro(tool: String) = locked && tool !in FREE_TOOLS
 
     private fun ifOffered(tool: String, action: () -> Unit) {
         if (isPro(tool)) {
@@ -383,6 +414,23 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         }
     }
 
+    /** The alignments, as a row of tools under the one that opened them. */
+    private fun showAlignments(anchor: View) {
+        showRow(anchor, fill = false) { row, popup ->
+            for (alignment in alignments) {
+                val choice = newTool(alignment.icon, alignment.label, ALIGN_TOOL)
+                choice.isSelected = alignment.value == selectionAlign
+                choice.setOnClickListener {
+                    popup.dismiss()
+
+                    listener?.onFormat(JSONObject().put("align", alignment.value))
+                }
+
+                row.addView(choice)
+            }
+        }
+    }
+
     private fun showPalette(anchor: View, colors: List<NamedColor>, picked: (Int) -> Unit) {
         showRow(anchor, fill = false) { row, popup ->
             val size = (44 * resources.displayMetrics.density).toInt()
@@ -452,6 +500,12 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
 
     private class NamedColor(@param:ColorInt val color: Int, @param:StringRes val name: Int)
 
+    private class Alignment(
+        val value: String,
+        @param:DrawableRes val icon: Int,
+        @param:StringRes val label: Int,
+    )
+
     private class Mark(
         val tool: String,
         @param:DrawableRes val icon: Int,
@@ -467,15 +521,19 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         private const val TEXT_COLOR = "color"
         private const val HIGHLIGHT_COLOR = "highlight"
 
-        /** The size tool, which carries no colour and so is only ever a name here. */
+        /** The colour behind a cell, which a sheet takes in place of a highlight. */
+        private const val FILL_COLOR = "fill"
+
+        /** The size and the alignment tools, which carry no colour and so are only names here. */
         private const val SIZE_TOOL = "size"
+        private const val ALIGN_TOOL = "align"
 
         /**
-         * The one tool a locked strip still does the work of. The highlighter, under both names it
+         * The tools a locked strip still does the work of. The highlighter, under both names it
          * has: `highlight` is the formatting style and the pdf's marking tool alike, so a reader of
-         * either kind of document has the same free tool.
+         * either kind of document has the same free tool. A sheet's fill stands in for it.
          */
-        private const val FREE_TOOL = "highlight"
+        private val FREE_TOOLS = setOf(HIGHLIGHT_COLOR, FILL_COLOR)
 
         /** What a tool that only offers pro is drawn at, against the free one beside it. */
         private const val PRO_ALPHA = 0.45f
@@ -502,6 +560,22 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
                 NamedColor(0xfff8bbd0.toInt(), R.string.color_pink),
                 NamedColor(0xffb3e5fc.toInt(), R.string.color_blue),
                 NamedColor(Color.TRANSPARENT, R.string.color_none),
+            )
+
+        private val FILL_COLORS =
+            HIGHLIGHT_COLORS.dropLast(1) + NamedColor(Color.TRANSPARENT, R.string.color_no_fill)
+
+        /** In the values `odr.editing.format` takes for `align`. */
+        private val ALIGNMENTS =
+            listOf(
+                Alignment("left", R.drawable.ic_format_align_left, R.string.tool_align_left),
+                Alignment("center", R.drawable.ic_format_align_center, R.string.tool_align_center),
+                Alignment("right", R.drawable.ic_format_align_right, R.string.tool_align_right),
+                Alignment(
+                    "justify",
+                    R.drawable.ic_format_align_justify,
+                    R.string.tool_align_justify,
+                ),
             )
 
         private val MARK_COLORS =
@@ -531,6 +605,7 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
             mapOf(
                 TEXT_COLOR to TEXT_COLORS.first().color,
                 HIGHLIGHT_COLOR to HIGHLIGHT_COLORS.first().color,
+                FILL_COLOR to FILL_COLORS.first().color,
                 "highlight" to 0xffffe633.toInt(),
                 "underline" to 0xffe53935.toInt(),
                 "strikeOut" to 0xffe53935.toInt(),

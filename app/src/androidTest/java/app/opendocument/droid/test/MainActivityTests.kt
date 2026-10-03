@@ -286,6 +286,48 @@ class MainActivityTests {
         onView(withText(R.string.pro_offer_title)).check(doesNotExist())
     }
 
+    /**
+     * A sheet's strip fills a cell in every edition, the fill being its free tool. The page reports
+     * the edit through `HtmlConfig.hostMessageHandler`, with no script of the app's in between.
+     */
+    @Test
+    fun aSheetCellTakesAFill() {
+        respondToOpenDocumentWith(requireTestFile("spreadsheet-test.ods"))
+
+        openDocumentThroughPicker()
+        waitForDocumentActions()
+
+        onView(withContentDescription(R.string.menu_edit)).perform(clickThroughLongPress())
+
+        val activity = mainActivityActivityTestRule.activity
+        val documentFragment = requireNotNull(waitForDocumentFragment(activity, 10000))
+        val pageView = requireNotNull(documentFragment.pageView)
+
+        Assert.assertTrue(
+            "the sheet should turn editable",
+            waitFor(EDIT_MODE_TIMEOUT_MS) { pageAnswers(pageView, "odr.editing.isEnabled()") },
+        )
+        Assert.assertTrue("the formatting strip should come up", awaitEditingTools())
+        Assert.assertTrue(
+            "the first cell should take the pin",
+            pageAnswers(pageView, "odr.sheet.pin({column: 0, row: 0})"),
+        )
+
+        onView(withContentDescription(R.string.tool_fill)).perform(click())
+
+        Assert.assertTrue(
+            "the cell should be filled",
+            waitFor(EDIT_MODE_TIMEOUT_MS) {
+                pageAnswers(pageView, "odr.editing.getOperations().indexOf('setCellStyle') >= 0")
+            },
+        )
+        Assert.assertTrue(
+            "and the page should say so to the app",
+            waitFor(EDIT_MODE_TIMEOUT_MS) { documentFragment.hasUnsavedEdits() },
+        )
+        onView(withText(R.string.pro_offer_title)).check(doesNotExist())
+    }
+
     /** Lite edits a text document inside one paragraph, and the page itself holds it to that. */
     @Test
     fun theEditionDecidesHowFarAnEditReaches() {

@@ -22,6 +22,7 @@ import app.opendocument.core.TextEncoding
 import app.opendocument.core.TextFile
 import app.opendocument.droid.nonfree.CrashManager
 import app.opendocument.droid.nonfree.Features
+import app.opendocument.droid.ui.widget.PageView
 import java.io.File
 import java.io.IOException
 
@@ -143,6 +144,16 @@ class CoreLoader(private val context: Context) {
         // lite: the page refuses the rest with outOfScope, and DocumentFragment offers pro
         htmlConfig.editingScope =
             if (Features.advancedEditing) HtmlEditingScope.DOCUMENT else HtmlEditingScope.PARAGRAPH
+
+        // every odr.on* callback, as one json string to PageView.postMessage
+        htmlConfig.hostMessageHandler = PageView.HOST_MESSAGE_HANDLER
+
+        // a phone has no double click to spare, and the pointer is not asked: a WebView answers
+        // that one as a mouse on an emulator
+        htmlConfig.sheetEditOnClick = true
+
+        // an armed tool marks each selection as it is made: a tap elsewhere would lose it
+        htmlConfig.pdfAnnotationMarkOnSelection = true
 
         // both schemes, each behind prefers-color-scheme, rather than the one it is being read in
         // now: this is decided while translating, and darkening is turned on and off over the open

@@ -9,6 +9,14 @@ release; it refuses a version without one. `scripts/store-copy.py` writes Play's
 
 ## Unreleased
 
+- Spreadsheet cells can be formatted: fill, bold, italic, underline, strikethrough,
+  text color, size and alignment. The fill is in every edition.
+- Paragraphs in a document can be aligned left, center, right or justified.
+- A space typed into a document or a cell shows, and saving no longer turns spaces
+  into no-break spaces.
+- Spreadsheet fills show their real colors, and keep them in night mode.
+- A document no longer loads images from the internet, and only a web link leaves it.
+
 ## 4.20.1
 
 - A selection in a PDF covers the spaces between words, and no longer drifts to the
