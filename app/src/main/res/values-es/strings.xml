@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">Eliminado de recientes</string>
     <string name="landing_undo">Deshacer</string>
     <string name="landing_open_file">Abrir un archivo</string>
+    <string name="landing_open_hint">¿No encuentra su archivo? Pulse ☰ en el selector o ábralo desde su gestor de archivos.</string>
     <string name="document_actions_more">Más acciones</string>
     <string name="document_actions_close">Cerrar acciones</string>
     <string name="tts_status_reading">Leyendo…</string>

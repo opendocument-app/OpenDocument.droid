@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">Retiré des récents</string>
     <string name="landing_undo">Annuler</string>
     <string name="landing_open_file">Ouvrir un fichier</string>
+    <string name="landing_open_hint">Vous ne trouvez pas votre fichier ? Appuyez sur ☰ dans le sélecteur, ou ouvrez-le depuis votre gestionnaire de fichiers.</string>
     <string name="document_actions_more">Plus d\'actions</string>
     <string name="document_actions_close">Fermer les actions</string>
     <string name="tts_status_reading">Lecture en cours…</string>

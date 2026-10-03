@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">最近使用したファイルから削除しました</string>
     <string name="landing_undo">元に戻す</string>
     <string name="landing_open_file">ファイルを開く</string>
+    <string name="landing_open_hint">ファイルが見つかりませんか？ ファイル選択画面で ☰ をタップするか、ファイル管理アプリから開いてください。</string>
     <string name="document_actions_more">その他の操作</string>
     <string name="document_actions_close">操作を閉じる</string>
     <string name="tts_status_reading">読み上げ中…</string>

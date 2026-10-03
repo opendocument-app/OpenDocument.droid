@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">Eemaldatud hiljutiste hulgast</string>
     <string name="landing_undo">Võta tagasi</string>
     <string name="landing_open_file">Ava fail</string>
+    <string name="landing_open_hint">Ei leia oma faili? Puuduta failivalijas ☰ või ava fail oma failihaldurist.</string>
     <string name="document_actions_more">Rohkem toiminguid</string>
     <string name="document_actions_close">Sulge toimingud</string>
     <string name="tts_status_reading">Loeb ette…</string>

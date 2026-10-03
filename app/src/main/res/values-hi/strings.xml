@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">हाल की सूची से हटाया गया</string>
     <string name="landing_undo">पूर्ववत करें</string>
     <string name="landing_open_file">फ़ाइल खोलें</string>
+    <string name="landing_open_hint">आपकी फ़ाइल नहीं मिल रही? फ़ाइल चुनने वाली स्क्रीन में ☰ पर टैप करें, या इसे अपने फ़ाइल मैनेजर से खोलें।</string>
     <string name="document_actions_more">और विकल्प</string>
     <string name="document_actions_close">विकल्प बंद करें</string>
     <string name="tts_status_reading">पढ़ा जा रहा है…</string>

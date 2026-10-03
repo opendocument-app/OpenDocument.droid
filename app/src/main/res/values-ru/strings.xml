@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">Удалено из недавних</string>
     <string name="landing_undo">Отменить</string>
     <string name="landing_open_file">Открыть файл</string>
+    <string name="landing_open_hint">Не можете найти файл? Нажмите ☰ в окне выбора файлов или откройте его из файлового менеджера.</string>
     <string name="document_actions_more">Ещё действия</string>
     <string name="document_actions_close">Скрыть действия</string>
     <string name="tts_status_reading">Чтение…</string>

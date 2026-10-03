@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">S\'ha suprimit dels recents</string>
     <string name="landing_undo">Desfés</string>
     <string name="landing_open_file">Obre un fitxer</string>
+    <string name="landing_open_hint">No trobeu el fitxer? Toqueu ☰ al selector o obriu-lo des del gestor de fitxers.</string>
     <string name="document_actions_more">Més accions</string>
     <string name="document_actions_close">Tanca les accions</string>
     <string name="tts_status_reading">S\'està llegint…</string>

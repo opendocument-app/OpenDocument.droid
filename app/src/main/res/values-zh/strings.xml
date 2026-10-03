@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">已从最近列表中移除</string>
     <string name="landing_undo">撤销</string>
     <string name="landing_open_file">打开文件</string>
+    <string name="landing_open_hint">找不到文件？请在文件选择器中点按 ☰，或从文件管理器中打开。</string>
     <string name="document_actions_more">更多操作</string>
     <string name="document_actions_close">收起操作</string>
     <string name="tts_status_reading">正在朗读…</string>

@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">Odebráno z nedávných</string>
     <string name="landing_undo">Zpět</string>
     <string name="landing_open_file">Otevřít soubor</string>
+    <string name="landing_open_hint">Nemůžete soubor najít? Ve výběru souborů klepněte na ☰, nebo jej otevřete ze správce souborů.</string>
     <string name="document_actions_more">Další akce</string>
     <string name="document_actions_close">Skrýt akce</string>
     <string name="tts_status_reading">Předčítání…</string>

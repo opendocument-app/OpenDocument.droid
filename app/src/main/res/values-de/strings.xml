@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">Aus „Zuletzt verwendet“ entfernt</string>
     <string name="landing_undo">Rückgängig</string>
     <string name="landing_open_file">Datei öffnen</string>
+    <string name="landing_open_hint">Datei nicht gefunden? Tippen Sie in der Dateiauswahl auf ☰ oder öffnen Sie die Datei über Ihren Dateimanager.</string>
     <string name="document_actions_more">Weitere Aktionen</string>
     <string name="document_actions_close">Aktionen schließen</string>
     <string name="tts_status_reading">Wird vorgelesen…</string>
