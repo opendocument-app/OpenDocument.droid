@@ -438,14 +438,17 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     }
 
     /**
-     * The strip under the bar: what the kind of document takes. A sheet or a plain text file takes
-     * nothing, so there is no strip over it at all - undo, redo and save are the bar's.
+     * The strip under the bar: what the kind of document takes. A plain text file takes nothing, so
+     * there is no strip over it at all - undo, redo and save are the bar's.
      */
     private fun showEditingTools(document: LoadedDocument, editing: Boolean) {
         when {
             !editing || !document.editing.isEditable -> editingTools.hide()
-            document.editing == EditingKind.DOCUMENT ->
-                editingTools.showFormatting(locked = !Features.advancedEditing)
+            document.editing == EditingKind.DOCUMENT || document.editing == EditingKind.SHEET ->
+                editingTools.showFormatting(
+                    sheet = document.editing == EditingKind.SHEET,
+                    locked = !Features.advancedEditing,
+                )
             document.editing == EditingKind.ANNOTATION ->
                 editingTools.showMarking(locked = !Features.advancedEditing)
             else -> editingTools.hide()

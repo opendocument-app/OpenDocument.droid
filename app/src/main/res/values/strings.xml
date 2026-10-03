@@ -111,6 +111,14 @@
     <string name="tool_text_color">Text color</string>
     <string name="tool_highlight">Highlight</string>
     <string name="tool_font_size">Text size</string>
+    <!-- the color behind a cell of a spreadsheet -->
+    <string name="tool_fill">Fill</string>
+    <!-- the tool that opens the four alignments; each name below is one of them -->
+    <string name="tool_align">Alignment</string>
+    <string name="tool_align_left">Align left</string>
+    <string name="tool_align_center">Center</string>
+    <string name="tool_align_right">Align right</string>
+    <string name="tool_align_justify">Justify</string>
     <!-- what a long press on a tool opens, which picks the color it uses: "Highlight color" -->
     <string name="tool_color_of">%1$s color</string>
     <!-- "12 pt", the size of the selected text; the number alone captions the size tool -->
@@ -127,6 +135,7 @@
     <string name="color_blue">Blue</string>
     <string name="color_pink">Pink</string>
     <string name="color_none">No highlight</string>
+    <string name="color_no_fill">No fill</string>
     <!-- a badge in front of the tools in the free app; the tools behind it are Pro's -->
     <string name="tool_pro_badge">Pro</string>
     <!-- the free app's gate: what Pro adds, as the reader runs into it. The highlighter is

@@ -45,16 +45,12 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     private lateinit var documentFragment: DocumentFragment
     private lateinit var crashManager: CrashManager
 
-    /** Told what the page's editor reports, on the main thread - see `editing-bridge.js`. */
+    /** Told what the page's editor reports, on the main thread - see [postMessage]. */
     var editingListener: EditingListener? = null
 
     /** What [setEditing] was last told, applied again to every page that loads. */
     private var editingKind = EditingKind.NONE
     private var isEditing = false
-
-    private val editingBridgeScript: String by lazy {
-        context.assets.open(EDITING_BRIDGE_ASSET).bufferedReader().use { it.readText() }
-    }
 
     /**
      * Progress 100 reported before the page commits leaves it blank
@@ -105,12 +101,8 @@ constructor(context: Context, attributeSet: AttributeSet?) :
                     restorePendingScroll(0)
 
                     // a sheet loads a page per tab, and each one is a page of its own to wire up
-                    if (isOwnContent(url)) {
-                        evaluateJavascript(editingBridgeScript, null)
-
-                        if (isEditing) {
-                            applyEditing()
-                        }
+                    if (isOwnContent(url) && isEditing) {
+                        applyEditing()
                     }
 
                     buggyWebViewHandler.postDelayed(
@@ -558,45 +550,40 @@ constructor(context: Context, attributeSet: AttributeSet?) :
             null
         }
 
-    // called by editing-bridge.js on the javabridge thread, so each posts to the main one
-
+    /**
+     * Every `odr.on*` callback of the page, as `{type, detail}` - see
+     * `HtmlConfig.hostMessageHandler` in `CoreLoader`. Called on the javabridge thread, so it posts
+     * to the main one.
+     */
     @JavascriptInterface
     @Keep
-    fun editChanged(dirty: Boolean, canUndo: Boolean, canRedo: Boolean) {
-        post { editingListener?.onEditChanged(dirty, canUndo, canRedo) }
-    }
-
-    @JavascriptInterface
-    @Keep
-    fun editRefused(reason: String) {
-        post { editingListener?.onEditRefused(reason) }
-    }
-
-    @JavascriptInterface
-    @Keep
-    fun selectionChanged(style: String) {
-        val parsed =
+    fun postMessage(json: String) {
+        val message =
             try {
-                JSONObject(style)
+                JSONObject(json)
             } catch (e: Exception) {
                 crashManager.log(e)
 
                 return
             }
+        val detail = message.optJSONObject("detail") ?: JSONObject()
 
-        post { editingListener?.onSelectionChanged(parsed) }
-    }
+        post {
+            val listener = editingListener ?: return@post
 
-    @JavascriptInterface
-    @Keep
-    fun marksChanged(count: Int) {
-        post { editingListener?.onMarksChanged(count) }
-    }
-
-    @JavascriptInterface
-    @Keep
-    fun cellsStale(count: Int) {
-        post { editingListener?.onCellsStale(count) }
+            when (message.optString("type")) {
+                "editChange" ->
+                    listener.onEditChanged(
+                        detail.optBoolean("dirty"),
+                        detail.optBoolean("canUndo"),
+                        detail.optBoolean("canRedo"),
+                    )
+                "editRefused" -> listener.onEditRefused(detail.optString("reason"))
+                "selectionChange" -> listener.onSelectionChanged(detail)
+                "annotationChange" -> listener.onMarksChanged(detail.optInt("count"))
+                "cellsStale" -> listener.onCellsStale(detail.optJSONArray("cells")?.length() ?: 0)
+            }
+        }
     }
 
     @JavascriptInterface
@@ -658,20 +645,21 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         fun onCellsStale(count: Int)
     }
 
-    private companion object {
+    companion object {
 
-        const val BRIDGE_NAME = "paragraphListener"
+        private const val BRIDGE_NAME = "paragraphListener"
 
-        const val EDITING_BRIDGE_ASSET = "editing-bridge.js"
+        /** [postMessage], as the page finds it from `window`. */
+        const val HOST_MESSAGE_HANDLER = "$BRIDGE_NAME.postMessage"
 
-        const val JAVASCRIPT_SCHEME = "javascript:"
+        private const val JAVASCRIPT_SCHEME = "javascript:"
 
         /** Where CoreLoader publishes a translated document. */
-        const val LOCAL_SERVER_URL_PREFIX = "http://localhost:"
+        private const val LOCAL_SERVER_URL_PREFIX = "http://localhost:"
 
         /** Two seconds of them, which a megabyte of text lays out well inside of. */
-        const val SCROLL_RESTORE_ATTEMPTS = 20
+        private const val SCROLL_RESTORE_ATTEMPTS = 20
 
-        const val SCROLL_RESTORE_INTERVAL_MS = 100L
+        private const val SCROLL_RESTORE_INTERVAL_MS = 100L
     }
 }
