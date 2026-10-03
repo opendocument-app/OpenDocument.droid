@@ -1,4 +1,4 @@
-Spreadsheet cells can now be formatted: fill, bold, italic, colours, size and alignment. The fill is free in every edition.
+Spreadsheet cells can now be formatted: fill, bold, italic, colours, size and alignment.
 
 Paragraphs can be aligned left, center, right or justified.
 

@@ -1,4 +1,4 @@
-Celler i kalkylblad kan nu formateras: fyllnadsfärg, fetstil, kursiv stil, färger, storlek och justering. Fyllnadsfärgen är gratis i alla versioner.
+Celler i kalkylblad kan nu formateras: fyllnadsfärg, fetstil, kursiv stil, färger, storlek och justering.
 
 Stycken kan vänsterjusteras, centreras, högerjusteras eller marginaljusteras.
 

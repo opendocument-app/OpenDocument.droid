@@ -1,4 +1,4 @@
-Tabellenzellen lassen sich jetzt formatieren: Füllfarbe, fett, kursiv, Farben, Größe und Ausrichtung. Die Füllfarbe ist in jeder Edition kostenlos.
+Tabellenzellen lassen sich jetzt formatieren: Füllfarbe, fett, kursiv, Farben, Größe und Ausrichtung.
 
 Absätze lassen sich linksbündig, zentriert, rechtsbündig oder im Blocksatz ausrichten.
 

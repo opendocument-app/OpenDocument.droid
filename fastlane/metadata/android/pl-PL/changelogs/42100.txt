@@ -1,4 +1,4 @@
-Komórki arkuszy można teraz formatować: wypełnienie, pogrubienie, kursywa, kolory, rozmiar i wyrównanie. Wypełnienie jest bezpłatne w każdej wersji.
+Komórki arkuszy można teraz formatować: wypełnienie, pogrubienie, kursywa, kolory, rozmiar i wyrównanie.
 
 Akapity można wyrównać do lewej, do środka, do prawej lub do obu krawędzi.
 

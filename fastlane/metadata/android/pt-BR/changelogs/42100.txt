@@ -1,4 +1,4 @@
-Agora você pode formatar células de planilha: preenchimento, negrito, itálico, cores, tamanho e alinhamento. O preenchimento é grátis em todas as versões.
+Agora você pode formatar células de planilha: preenchimento, negrito, itálico, cores, tamanho e alinhamento.
 
 Os parágrafos podem ser alinhados à esquerda, ao centro, à direita ou justificados.
 
