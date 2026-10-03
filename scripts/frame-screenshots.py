@@ -868,6 +868,9 @@ def main(argv=None):
             # the capture run writes the device into the name, being the only
             # thing that knows which emulator it was driving
             device, name = store.named(path.stem)
+            # lite's edit is framed as the screen it stands in for: the same
+            # headline, and the same place on the line that crosses the set
+            name = next((pro for pro, lite in store.LITE.items() if lite == name), name)
             if device is None or name not in screens:
                 print(f"{locale}: skipping {path.name}, which no screen is named after",
                       file=sys.stderr)

@@ -43,6 +43,7 @@ import app.opendocument.droid.ui.OpenFileIdling
 import app.opendocument.droid.ui.activity.DocumentFragment
 import app.opendocument.droid.ui.activity.MainActivity
 import app.opendocument.droid.ui.widget.DocumentActions
+import app.opendocument.droid.ui.widget.EditingTools
 import app.opendocument.droid.ui.widget.PageView
 import java.io.File
 import java.io.FileOutputStream
@@ -62,9 +63,10 @@ import org.junit.runner.RunWith
  * The pictures the play store shows.
  *
  * Six screens, in every locale the listing is written in, on whichever device the runner is
- * driving. `scripts/frame-screenshots.py` then frames what this writes and
- * `scripts/store_screenshots.py` checks the set and stages it for supply - the names below are the
- * names those expect, and their order is the order the store shows them in.
+ * driving. The edit is taken twice, the second time as lite shows it - see [editing].
+ * `scripts/frame-screenshots.py` then frames what this writes and `scripts/store_screenshots.py`
+ * checks the set and stages it for supply - the names below are the names those expect, and their
+ * order is the order the store shows them in.
  *
  * Which locales those are, and which language's documents each of them reads, comes out of
  * `screenshot-names.json` beside the samples: `scripts/store_screenshots.py` holds that table and
@@ -165,7 +167,8 @@ class ScreenshotTests {
 
             landing(locale)
             searching(locale, folder.getValue("text"), words.getString("search"))
-            editing(locale, folder.getValue("text"))
+            editing(locale, folder.getValue("text"), Shot.EDIT)
+            editing(locale, folder.getValue("text"), Shot.EDIT_LITE)
             document(locale, Shot.SHEET, folder.getValue("sheet"))
             document(locale, Shot.PDF, folder.getValue("paper"))
             document(locale, Shot.OFFICE, folder.getValue("word"))
@@ -201,12 +204,16 @@ class ScreenshotTests {
     /**
      * The same text document, being edited, with the keyboard up.
      *
+     * [Shot.EDIT_LITE] is the edit as lite shows it: pro's tools dimmed behind its badge. The run
+     * is a pro build, so the test locks the strip itself, before the tap - the selection the tap
+     * makes then reaches the locked strip as it does in lite. Nothing in the app knows about it.
+     *
      * The keyboard needs a real tap: WebKit raises it for a gesture it saw, so an edit staged
      * entirely in code sets a caret and nothing else. Where the text is depends on the page, so
      * this works down the page rather than betting the run on one offset - the sample is a page of
      * A4 and a tap into its margin reaches nothing.
      */
-    private fun editing(locale: String, uri: Uri) {
+    private fun editing(locale: String, uri: Uri, shot: Shot) {
         val activity = launchWith(uri)
         val fragment = documentFragment(activity)
 
@@ -224,6 +231,16 @@ class ScreenshotTests {
             waitFor(EDIT_TIMEOUT_MS) { isEditable(pageView) },
         )
 
+        // after the page turned editable, so nothing of the edit mode's own start lays the
+        // strip out again over it
+        if (shot == Shot.EDIT_LITE) {
+            instrumentation.runOnMainSync {
+                activity
+                    .findViewById<EditingTools>(R.id.editing_tools)
+                    .showFormatting(sheet = false, locked = true)
+            }
+        }
+
         Assert.assertTrue(
             "no tap down the page set a caret, so the keyboard never came up",
             KEYBOARD_OFFSETS.any { offset ->
@@ -239,7 +256,7 @@ class ScreenshotTests {
         // keyboard halfway up
         settle()
 
-        shoot(locale, Shot.EDIT)
+        shoot(locale, shot)
         finish()
     }
 
@@ -653,6 +670,9 @@ class ScreenshotTests {
         TEXT("02-text"),
         SHEET("03-sheet"),
         EDIT("04-edit"),
+
+        /** Lite's in place of [EDIT]; `store_screenshots.py` stages it for the lite listing. */
+        EDIT_LITE("04-edit-lite"),
         PDF("05-pdf"),
         OFFICE("06-office"),
     }

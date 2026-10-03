@@ -10,7 +10,7 @@
 #
 #   scripts/store_screenshots.py --languages          what to capture
 #   scripts/store_screenshots.py                      check what was captured
-#   scripts/store_screenshots.py --stage DIR          check it and stage it
+#   scripts/store_screenshots.py --stage DIR --app A  check it and stage A's set
 #
 # An underscore in the name, where every other script here has a dash:
 # `frame-screenshots.py` imports this one, and a dash cannot be imported.
@@ -67,6 +67,19 @@ SCREENS = (
     "05-pdf",
     "06-office",
 )
+
+# What lite shows in place of a screen of pro's. The edit is the one screen where
+# the two apps differ: lite dims pro's tools behind a badge. The run is a pro
+# build, and `ScreenshotTests.kt` takes the edit a second time with the tools
+# locked.
+LITE = {
+    "04-edit": "04-edit-lite",
+}
+
+APPS = ("pro", "lite")
+
+# Every picture a run takes.
+CAPTURED = SCREENS + tuple(LITE.values())
 
 # The devices photographed, and the directories supply uploads each one to. Play
 # keeps a set per form factor and shows the phone one everywhere it has nothing
@@ -140,7 +153,7 @@ def named(stem):
     picture is the size of its canvas, and two devices could share one.
     """
     for device in DIRECTORIES:
-        for screen in SCREENS:
+        for screen in CAPTURED:
             if stem == f"{device}-{screen}":
                 return device, screen
 
@@ -187,7 +200,7 @@ def collect(directory):
             if device is None:
                 problems.append(
                     f"{locale}: {path.name} is not one of "
-                    + ", ".join([f"{d}-{s}" for d in DIRECTORIES for s in SCREENS] + [FEATURE])
+                    + ", ".join([f"{d}-{s}" for d in DIRECTORIES for s in CAPTURED] + [FEATURE])
                 )
                 continue
 
@@ -205,7 +218,7 @@ def collect(directory):
             pictures.setdefault(device, {})[screen] = path
 
         for device in DIRECTORIES:
-            missing = [screen for screen in SCREENS if screen not in pictures.get(device, {})]
+            missing = [screen for screen in CAPTURED if screen not in pictures.get(device, {})]
             if missing:
                 problems.append(f"{locale}: no {device} {', '.join(missing)}")
 
@@ -217,8 +230,8 @@ def collect(directory):
     return found, features, problems
 
 
-def stage(found, features, directory):
-    """Write the pictures into the metadata tree supply uploads.
+def stage(found, features, directory, app):
+    """Write `app`'s pictures into the metadata tree supply uploads.
 
     Into the same directory `scripts/store-listing.py` stages the text in, under
     the `images/` subdirectory supply reads a locale's pictures from - so one
@@ -227,7 +240,8 @@ def stage(found, features, directory):
 
     The borrowed locales are copied from the English rather than left out: what
     supply does not upload for a locale, play keeps - which would be whatever was
-    there before this release.
+    there before this release. Lite's pictures go under the name of the screen
+    they stand in for, so they keep its place in the store.
     """
     directory = Path(directory)
 
@@ -241,8 +255,9 @@ def stage(found, features, directory):
             for name in DIRECTORIES[device]:
                 folder = directory / locale / "images" / name
                 folder.mkdir(parents=True, exist_ok=True)
-                for screen, path in screens.items():
-                    shutil.copyfile(path, folder / f"{screen}.png")
+                for screen in SCREENS:
+                    picture = LITE.get(screen, screen) if app == "lite" else screen
+                    shutil.copyfile(screens[picture], folder / f"{screen}.png")
 
     for locale in borrowed():
         source = directory / FALLBACK / "images"
@@ -282,11 +297,19 @@ def main(argv=None):
         metavar="DIR",
         help="also write the screenshots into the supply metadata tree in DIR",
     )
+    parser.add_argument(
+        "--app",
+        choices=APPS,
+        help="whose set --stage writes: lite's edit is not pro's",
+    )
     args = parser.parse_args(argv)
 
     if args.languages:
         print("\n".join(languages()))
         return 0
+
+    if args.stage and not args.app:
+        return fail("--stage needs --app, because the two listings differ in the edit")
 
     if not LEAST <= len(SCREENS) <= MOST:
         return fail(f"play takes {LEAST} to {MOST} screenshots per device, not {len(SCREENS)}")
@@ -302,11 +325,11 @@ def main(argv=None):
 
     if args.stage:
         try:
-            stage(found, features, args.stage)
+            stage(found, features, args.stage, args.app)
         except OSError as reason:
             return fail(str(reason))
         print(
-            f"staged {len(SCREENS)} screenshots per device and a feature graphic for "
+            f"staged {args.app}'s {len(SCREENS)} screenshots per device and a feature graphic for "
             f"{len(found) + len(borrowed())} locales in {args.stage}"
         )
     else:
