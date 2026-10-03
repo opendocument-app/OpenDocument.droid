@@ -942,6 +942,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             freshOpenPending = false
 
             ReviewInvitation.recordDocumentOpen(activity)
+            (activity as? MainActivity)?.onDocumentShown()
         }
     }
 

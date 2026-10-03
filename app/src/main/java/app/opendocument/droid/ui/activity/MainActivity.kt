@@ -103,10 +103,16 @@ class MainActivity : AppCompatActivity() {
                 // carries unsaved edits out just the same
                 confirmLeavingEdits {
                     // the only moment a document opened from another app is put down again
-                    if (documentFragment == null) {
+                    val asked =
+                        documentFragment != null &&
+                            preparedReview?.showIfReady(
+                                onAsked = { ReviewInvitation.recordAsk(this@MainActivity) },
+                                onDone = { leaveApp() },
+                            ) == true
+                    preparedReview = null
+
+                    if (!asked) {
                         leaveApp()
-                    } else {
-                        askForReviewIfEarned { leaveApp() }
                     }
                 }
             }
@@ -114,7 +120,7 @@ class MainActivity : AppCompatActivity() {
 
     /** Falls through to the default back behavior, which closes the activity. */
     private fun leaveApp() {
-        if (isFinishing) {
+        if (isFinishing || isDestroyed) {
             return
         }
 
@@ -157,6 +163,9 @@ class MainActivity : AppCompatActivity() {
     // requestReviewFlow answers asynchronously, so a second qualifying moment before recordAsk
     // lands would pass isEarned again. never reset: one hand-off per activity is plenty
     private var reviewRequested = false
+
+    // fetched while an externally opened document is read: back must not wait on the network
+    private var preparedReview: InAppReview.Prepared? = null
 
     /**
      * Loads and saves the open document. Scoped to the activity, so it survives a configuration
@@ -883,24 +892,24 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    /**
-     * Deliberately not from [closeFailedDocument], the last moment on earth to ask for stars.
-     * [then] runs after the sheet, or at once when there is no ask.
-     */
-    private fun askForReviewIfEarned(then: () -> Unit = {}) {
-        if (reviewRequested || !ReviewInvitation.isEarned(this)) {
-            then()
-
+    /** Called once a fresh open has rendered. */
+    fun onDocumentShown() {
+        if (!documentOpenedExternally || reviewRequested || !ReviewInvitation.isEarned(this)) {
             return
         }
 
         reviewRequested = true
-        InAppReview.request(
-            this,
-            analyticsManager,
-            onAsked = { ReviewInvitation.recordAsk(this) },
-            onDone = then,
-        )
+        preparedReview = InAppReview.prepare(this, analyticsManager)
+    }
+
+    /** Deliberately not from [closeFailedDocument], the last moment on earth to ask for stars. */
+    private fun askForReviewIfEarned() {
+        if (reviewRequested || !ReviewInvitation.isEarned(this)) {
+            return
+        }
+
+        reviewRequested = true
+        InAppReview.request(this, analyticsManager) { ReviewInvitation.recordAsk(this) }
     }
 
     private fun closeDocument(keepMessage: Boolean = false) {
