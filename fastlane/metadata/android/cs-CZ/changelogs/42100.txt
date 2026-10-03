@@ -1,4 +1,4 @@
-Buňky tabulek nyní můžete formátovat: výplň, tučné písmo, kurzíva, barvy, velikost a zarovnání. Výplň je zdarma ve všech verzích.
+Buňky tabulek nyní můžete formátovat: výplň, tučné písmo, kurzíva, barvy, velikost a zarovnání.
 
 Odstavce lze zarovnat doleva, na střed, doprava nebo do bloku.
 

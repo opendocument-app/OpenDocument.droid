@@ -2,15 +2,17 @@
 
 User-facing changes since 4.6, including what the app takes from the OpenDocument core.
 
-Add an entry under `Unreleased` in the pull request that makes the change. The release
-run cuts that heading to the version and makes the section the body of the GitHub
-release; it refuses a version without one. `scripts/store-copy.py` writes Play's
+Add an entry under `Unreleased` in the pull request that makes the change. Before a
+release, a pull request cuts that heading to the version. The release run makes the
+section the body of the GitHub release, and refuses a version without one. `scripts/store-copy.py` writes Play's
 "What's new" from the same section, under 500 characters per locale.
 
 ## Unreleased
 
+## 4.21.0
+
 - Spreadsheet cells can be formatted: fill, bold, italic, underline, strikethrough,
-  text color, size and alignment. The fill is in every edition.
+  text color, size and alignment.
 - Paragraphs in a document can be aligned left, center, right or justified.
 - A space typed into a document or a cell shows, and saving no longer turns spaces
   into no-break spaces.

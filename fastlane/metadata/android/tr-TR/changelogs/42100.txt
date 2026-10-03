@@ -1,4 +1,4 @@
-Hesap tablosu hücreleri artık biçimlendirilebiliyor: dolgu, kalın, italik, renkler, boyut ve hizalama. Dolgu her sürümde ücretsiz.
+Hesap tablosu hücreleri artık biçimlendirilebiliyor: dolgu, kalın, italik, renkler, boyut ve hizalama.
 
 Paragraflar sola, ortaya veya sağa hizalanabilir ya da iki yana yaslanabilir.
 

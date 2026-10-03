@@ -1,4 +1,4 @@
-Les cellules de tableur peuvent désormais être mises en forme : remplissage, gras, italique, couleurs, taille et alignement. Le remplissage est gratuit dans toutes les versions.
+Les cellules de tableur peuvent désormais être mises en forme : remplissage, gras, italique, couleurs, taille et alignement.
 
 Les paragraphes peuvent être alignés à gauche, centrés, à droite ou justifiés.
 
