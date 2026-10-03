@@ -6,4 +6,11 @@ import android.app.Activity
 object InAppReview {
 
     fun request(activity: Activity, analyticsManager: AnalyticsManager, onAsked: () -> Unit) {}
+
+    fun prepare(activity: Activity, analyticsManager: AnalyticsManager): Prepared = Prepared()
+
+    class Prepared {
+
+        fun showIfReady(onAsked: () -> Unit, onDone: () -> Unit): Boolean = false
+    }
 }

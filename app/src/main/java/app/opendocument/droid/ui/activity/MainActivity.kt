@@ -102,13 +102,32 @@ class MainActivity : AppCompatActivity() {
                 // an externally opened document leaves the app rather than the document, and
                 // carries unsaved edits out just the same
                 confirmLeavingEdits {
-                    // fall through to the default behavior (close the activity)
-                    isEnabled = false
-                    onBackPressedDispatcher.onBackPressed()
-                    isEnabled = true
+                    // the only moment a document opened from another app is put down again
+                    val asked =
+                        documentFragment != null &&
+                            preparedReview?.showIfReady(
+                                onAsked = { ReviewInvitation.recordAsk(this@MainActivity) },
+                                onDone = { leaveApp() },
+                            ) == true
+                    preparedReview = null
+
+                    if (!asked) {
+                        leaveApp()
+                    }
                 }
             }
         }
+
+    /** Falls through to the default back behavior, which closes the activity. */
+    private fun leaveApp() {
+        if (isFinishing || isDestroyed) {
+            return
+        }
+
+        backCallback.isEnabled = false
+        onBackPressedDispatcher.onBackPressed()
+        backCallback.isEnabled = true
+    }
 
     // kept because onPause has to stop it
     private var ttsActionMode: TtsActionModeCallback? = null
@@ -144,6 +163,9 @@ class MainActivity : AppCompatActivity() {
     // requestReviewFlow answers asynchronously, so a second qualifying moment before recordAsk
     // lands would pass isEarned again. never reset: one hand-off per activity is plenty
     private var reviewRequested = false
+
+    // fetched while an externally opened document is read: back must not wait on the network
+    private var preparedReview: InAppReview.Prepared? = null
 
     /**
      * Loads and saves the open document. Scoped to the activity, so it survives a configuration
@@ -868,6 +890,16 @@ class MainActivity : AppCompatActivity() {
             }
             .setNeutralButton(android.R.string.cancel, null)
             .show()
+    }
+
+    /** Called once a fresh open has rendered. */
+    fun onDocumentShown() {
+        if (!documentOpenedExternally || reviewRequested || !ReviewInvitation.isEarned(this)) {
+            return
+        }
+
+        reviewRequested = true
+        preparedReview = InAppReview.prepare(this, analyticsManager)
     }
 
     /** Deliberately not from [closeFailedDocument], the last moment on earth to ask for stars. */
