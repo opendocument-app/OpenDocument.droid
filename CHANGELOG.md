@@ -9,6 +9,9 @@ section the body of the GitHub release, and refuses a version without one. `scri
 
 ## Unreleased
 
+- Word, Excel and PowerPoint files that a mail or file app labels the old way offer to open
+  in the app again.
+
 ## 4.21.0
 
 - Spreadsheet cells can be formatted: fill, bold, italic, underline, strikethrough,

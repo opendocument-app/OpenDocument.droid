@@ -59,8 +59,30 @@ object SupportedDocumentTypes {
     /** Every mime type spelling odrcore accepts for a format [CoreLoader] renders. */
     private val CORE_MIME_TYPES: Set<String> by lazy { mimeTypesOf(CORE_FILE_TYPES) }
 
+    /**
+     * Spellings of the binary office formats that mail and file apps send and odrcore does not
+     * name, each mapped to one it does. The manifest claims them as well; the bytes decide once the
+     * file is cached.
+     */
+    internal val MIME_ALIASES =
+        mapOf(
+            "application/x-msword" to "application/msword",
+            "application/doc" to "application/msword",
+            "application/x-doc" to "application/msword",
+            "application/vnd.msword" to "application/msword",
+            "application/word" to "application/msword",
+            "application/x-msexcel" to "application/vnd.ms-excel",
+            "application/x-ms-excel" to "application/vnd.ms-excel",
+            "application/x-excel" to "application/vnd.ms-excel",
+            "application/excel" to "application/vnd.ms-excel",
+            "application/vnd.msexcel" to "application/vnd.ms-excel",
+            "application/x-mspowerpoint" to "application/vnd.ms-powerpoint",
+            "application/powerpoint" to "application/vnd.ms-powerpoint",
+            "application/x-powerpoint" to "application/vnd.ms-powerpoint",
+        )
+
     /** The same for everything the app offers itself for. */
-    val MIME_TYPES: Set<String> by lazy { mimeTypesOf(CLAIMED_FILE_TYPES) }
+    val MIME_TYPES: Set<String> by lazy { mimeTypesOf(CLAIMED_FILE_TYPES) + MIME_ALIASES.keys }
 
     /**
      * The extension fallback, for the `application/octet-stream` providers regularly volunteer and
@@ -83,12 +105,14 @@ object SupportedDocumentTypes {
             return null
         }
 
-        val fileType = Odr.fileTypeByMimetype(mimeType) ?: return mimeType
+        val named = MIME_ALIASES[mimeType.lowercase()] ?: mimeType
+
+        val fileType = Odr.fileTypeByMimetype(named) ?: return named
         if (fileType == FileType.UNKNOWN) {
-            return mimeType
+            return named
         }
 
-        return Odr.mimetypeByFileType(fileType) ?: mimeType
+        return Odr.mimetypeByFileType(fileType) ?: named
     }
 
     /** Whether [CoreLoader] is expected to render this - see [CORE_FILE_TYPES]. */

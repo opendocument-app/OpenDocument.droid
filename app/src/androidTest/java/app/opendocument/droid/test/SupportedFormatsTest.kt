@@ -141,6 +141,28 @@ class SupportedFormatsTest {
         }
     }
 
+    /**
+     * A spelling the core does not name, but a mail or file app sends, reaches us on both sides.
+     */
+    @Test
+    fun anAliasSpellingReachesUs() {
+        for ((alias, named) in SupportedDocumentTypes.MIME_ALIASES) {
+            Assert.assertTrue(
+                "the app does not offer for $alias",
+                SupportedDocumentTypes.isSupported(alias, null),
+            )
+            Assert.assertTrue(
+                "the manifest does not offer for $alias",
+                resolvesToUs(alias, "document"),
+            )
+            Assert.assertEquals(
+                "$alias is not read as $named",
+                SupportedDocumentTypes.canonicalMimeType(named),
+                SupportedDocumentTypes.canonicalMimeType(alias),
+            )
+        }
+    }
+
     /** And the same route stays shut for what the app does not claim. */
     @Test
     fun aFileWithNoMimeTypeAndAnUnrelatedExtensionReachesNobody() {

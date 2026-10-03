@@ -283,6 +283,23 @@
                 <data android:mimeType="application/vnd.apple.keynote" />
                 <data android:mimeType="application/x-iwork-keynote-sffkey" />
                 <!--
+                     spellings odrcore does not name, which SupportedDocumentTypes.MIME_ALIASES
+                     maps to ones it does. the two lists have to match.
+                -->
+                <data android:mimeType="application/x-msword" />
+                <data android:mimeType="application/doc" />
+                <data android:mimeType="application/x-doc" />
+                <data android:mimeType="application/vnd.msword" />
+                <data android:mimeType="application/word" />
+                <data android:mimeType="application/x-msexcel" />
+                <data android:mimeType="application/x-ms-excel" />
+                <data android:mimeType="application/x-excel" />
+                <data android:mimeType="application/excel" />
+                <data android:mimeType="application/vnd.msexcel" />
+                <data android:mimeType="application/x-mspowerpoint" />
+                <data android:mimeType="application/powerpoint" />
+                <data android:mimeType="application/x-powerpoint" />
+                <!--
                      the octet-stream a provider volunteers when it knows nothing better.
                      only the filename can answer for it - the pathPattern filter below.
                 -->
