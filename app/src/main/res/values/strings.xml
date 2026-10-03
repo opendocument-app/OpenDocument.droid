@@ -78,6 +78,8 @@
     <string name="landing_recent_removed">Removed from recent</string>
     <string name="landing_undo">Undo</string>
     <string name="landing_open_file">Open a file</string>
+    <!-- under the Open button. ☰ is the menu button at the top left of Android's file picker -->
+    <string name="landing_open_hint">Can\'t find your file? Tap ☰ in the picker, or open it from your file manager.</string>
     <string name="document_actions_more">More actions</string>
     <string name="document_actions_close">Close actions</string>
     <string name="tts_status_reading">Reading…</string>

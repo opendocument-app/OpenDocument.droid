@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">Borttagen från listan</string>
     <string name="landing_undo">Ångra</string>
     <string name="landing_open_file">Öppna en fil</string>
+    <string name="landing_open_hint">Hittar du inte filen? Tryck på ☰ i filväljaren, eller öppna den från filhanteraren.</string>
     <string name="document_actions_more">Fler åtgärder</string>
     <string name="document_actions_close">Stäng åtgärderna</string>
     <string name="tts_status_reading">Läser upp…</string>

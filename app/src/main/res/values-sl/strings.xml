@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">Odstranjeno iz nedavnih</string>
     <string name="landing_undo">Razveljavi</string>
     <string name="landing_open_file">Odpri datoteko</string>
+    <string name="landing_open_hint">Ne najdete datoteke? V izbirniku pritisnite ☰ ali jo odprite v upravitelju datotek.</string>
     <string name="document_actions_more">Več dejanj</string>
     <string name="document_actions_close">Zapri dejanja</string>
     <string name="tts_status_reading">Branje …</string>

@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">Rimosso dai recenti</string>
     <string name="landing_undo">Annulla</string>
     <string name="landing_open_file">Apri un file</string>
+    <string name="landing_open_hint">Non trovi il tuo file? Tocca ☰ nel selettore di file oppure aprilo dal tuo file manager.</string>
     <string name="document_actions_more">Altre azioni</string>
     <string name="document_actions_close">Chiudi le azioni</string>
     <string name="tts_status_reading">Lettura in corso…</string>

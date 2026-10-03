@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">Son kullanılanlardan kaldırıldı</string>
     <string name="landing_undo">Geri al</string>
     <string name="landing_open_file">Dosya aç</string>
+    <string name="landing_open_hint">Dosyanızı bulamıyor musunuz? Dosya seçicide ☰ simgesine dokunun veya dosyayı dosya yöneticinizden açın.</string>
     <string name="document_actions_more">Diğer işlemler</string>
     <string name="document_actions_close">İşlemleri kapat</string>
     <string name="tts_status_reading">Okunuyor…</string>

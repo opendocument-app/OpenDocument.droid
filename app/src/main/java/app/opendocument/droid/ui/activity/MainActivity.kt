@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.DocumentsContract
 import android.view.ActionMode
 import android.view.View
 import android.view.ViewGroup
@@ -30,8 +31,8 @@ import app.opendocument.droid.background.NightModeSetting
 import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.background.PersistedUriPermissions
 import app.opendocument.droid.background.PrintingManager
+import app.opendocument.droid.background.RecentDocumentsUtil
 import app.opendocument.droid.background.ReviewInvitation
-import app.opendocument.droid.background.SupportedDocumentTypes
 import app.opendocument.droid.nonfree.AdManager
 import app.opendocument.droid.nonfree.AnalyticsConstants
 import app.opendocument.droid.nonfree.AnalyticsManager
@@ -906,34 +907,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * What the picker is told to offer: everything the app can open, plus the type that means
-     * nothing at all.
-     *
-     * This is what makes it a document picker rather than a file picker - with it the image, audio
-     * and video filters come off the screen, and a phone full of photos does not have to be walked
-     * past to reach a document. Setting a starting folder was the other way of doing this and is
-     * the wrong one: documents are wherever the user put them, mostly Downloads, and sending
-     * everyone to Documents is only right for the people who use that folder.
-     *
-     * [GENERIC_MIME_TYPE] is in the list because a filter is worse than no filter when it hides a
-     * file the app could open. Providers regularly volunteer nothing better than
-     * application/octet-stream for a real document - the same reason [SupportedDocumentTypes] keeps
-     * an extension fallback - and a filtered picker does not grey those out, it leaves them out
-     * altogether. The price is that other unnamed binaries stay listed too, which is the harmless
-     * half of the trade.
-     *
-     * Images are not here, though [CoreLoader] shows them: this is a document reader's file picker,
-     * and an image reaches it by being shared or opened from a gallery.
+     * The newest recent document the picker can be pointed at, so it opens in that folder rather
+     * than in Recent. Only a document uri works; one handed over by ACTION_VIEW does not.
      */
-    private fun pickableMimeTypes(): Array<String> =
-        (SupportedDocumentTypes.MIME_TYPES + GENERIC_MIME_TYPE).toTypedArray()
+    private fun lastPickedDocument(): Uri? =
+        RecentDocumentsUtil.getRecentDocuments(this)
+            .map { Uri.parse(it.uri) }
+            .firstOrNull { DocumentsContract.isDocumentUri(this, it) }
 
     fun findDocument() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         intent.addCategory(Intent.CATEGORY_OPENABLE)
+        // no EXTRA_MIME_TYPES: the picker leaves out what fails the filter rather than greying it,
+        // and providers report types the core's table does not spell, so documents went missing
         intent.type = "*/*"
 
-        intent.putExtra(Intent.EXTRA_MIME_TYPES, pickableMimeTypes())
+        lastPickedDocument()?.let { intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, it) }
 
         intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -1009,10 +998,6 @@ class MainActivity : AppCompatActivity() {
         const val SAVED_KEY_LEFT_FOR_OWN_ACTIVITY = "LEFT_FOR_OWN_ACTIVITY"
         const val GOOGLE_REQUEST_CODE = 1993
         const val DOCUMENT_FRAGMENT_TAG = "document_fragment"
-
-        // what a provider volunteers when it has nothing better to say. included in the picker's
-        // filter on purpose - see pickableMimeTypes
-        const val GENERIC_MIME_TYPE = "application/octet-stream"
 
         // taken from: https://stackoverflow.com/a/36829889/198996
         private fun isTesting(): Boolean =

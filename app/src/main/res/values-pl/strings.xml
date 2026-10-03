@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">Usunięto z ostatnio otwieranych</string>
     <string name="landing_undo">Cofnij</string>
     <string name="landing_open_file">Otwórz plik</string>
+    <string name="landing_open_hint">Nie możesz znaleźć pliku? Naciśnij ☰ w oknie wyboru plików lub otwórz plik w menedżerze plików.</string>
     <string name="document_actions_more">Więcej opcji</string>
     <string name="document_actions_close">Ukryj opcje</string>
     <string name="tts_status_reading">Czytanie…</string>

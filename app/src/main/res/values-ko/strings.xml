@@ -57,6 +57,7 @@
     <string name="landing_recent_removed">최근 목록에서 삭제됨</string>
     <string name="landing_undo">실행 취소</string>
     <string name="landing_open_file">파일 열기</string>
+    <string name="landing_open_hint">파일을 찾을 수 없나요? 파일 선택 화면에서 ☰을 누르거나 파일 관리자 앱에서 열어 보세요.</string>
     <string name="document_actions_more">작업 더 보기</string>
     <string name="document_actions_close">작업 닫기</string>
     <string name="tts_status_reading">읽는 중...</string>
