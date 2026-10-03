@@ -1,0 +1,5 @@
+Tabellenzellen lassen sich jetzt formatieren: Füllfarbe, fett, kursiv, Farben, Größe und Ausrichtung. Die Füllfarbe ist in jeder Edition kostenlos.
+
+Absätze lassen sich linksbündig, zentriert, rechtsbündig oder im Blocksatz ausrichten.
+
+Eingegebene Leerzeichen werden jetzt als Leerzeichen angezeigt und gespeichert. Zellfarben erscheinen so, wie sie wirklich sind, auch im Nachtmodus. Dokumente laden keine Bilder mehr aus dem Internet.

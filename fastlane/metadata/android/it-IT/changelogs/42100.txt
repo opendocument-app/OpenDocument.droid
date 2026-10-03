@@ -1,0 +1,5 @@
+Ora puoi formattare le celle dei fogli di calcolo: riempimento, grassetto, corsivo, colori, dimensione e allineamento. Il riempimento è gratuito in tutte le versioni.
+
+Puoi allineare i paragrafi a sinistra, al centro, a destra o giustificarli.
+
+Gli spazi che digiti ora si vedono e si salvano come spazi. I colori delle celle appaiono come sono davvero, anche in modalità notturna. I documenti non caricano più immagini da Internet.

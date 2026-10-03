@@ -326,6 +326,14 @@ class MainActivityTests {
             waitFor(EDIT_MODE_TIMEOUT_MS) { documentFragment.hasUnsavedEdits() },
         )
         onView(withText(R.string.pro_offer_title)).check(doesNotExist())
+
+        if (!Features.advancedEditing) {
+            // bold is pro's, and says so in a sheet's words
+            onView(withContentDescription(R.string.tool_bold)).perform(scrollTo(), click())
+
+            awaitViewWithText(R.string.pro_offer_sheet)
+            onView(withText(R.string.pro_offer_sheet)).check(matches(isDisplayed()))
+        }
     }
 
     /** Lite edits a text document inside one paragraph, and the page itself holds it to that. */

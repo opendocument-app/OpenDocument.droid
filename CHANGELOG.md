@@ -16,6 +16,8 @@ release; it refuses a version without one. `scripts/store-copy.py` writes Play's
   into no-break spaces.
 - Spreadsheet fills show their real colors, and keep them in night mode.
 - A document no longer loads images from the internet, and only a web link leaves it.
+- In the free edition, the free tool comes first in the editing tools, so a small screen
+  shows it.
 
 ## 4.20.1
 

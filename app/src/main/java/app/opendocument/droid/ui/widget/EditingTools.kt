@@ -104,6 +104,8 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
 
         addBadge()
 
+        val firstTool = row.childCount
+
         addToggle("bold", R.drawable.ic_format_bold, R.string.tool_bold)
         addToggle("italic", R.drawable.ic_format_italic, R.string.tool_italic)
         addToggle("underline", R.drawable.ic_format_underlined, R.string.tool_underline)
@@ -153,7 +155,8 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
             }
         }
         groundTool = ground
-        row.addView(ground)
+        // a locked strip leads with its free tool, so a narrow screen shows it without scrolling
+        row.addView(ground, if (locked) firstTool else row.childCount)
 
         val size = newTool(R.drawable.ic_format_size, R.string.tool_font_size, SIZE_TOOL)
         size.setOnClickListener { ifOffered(SIZE_TOOL) { showSizes(it) } }
@@ -222,7 +225,8 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         }
 
         // isNull is also true of a key the page left out, where the runs disagree
-        groundTool?.isSelected = !locked && !style.isNull(groundKey)
+        // the free tool works when locked, so it shows what it would take off
+        groundTool?.isSelected = !isPro(groundKey) && !style.isNull(groundKey)
 
         // the caption is the size the text is in; the icon alone means the runs disagree
         selectionSize =
@@ -419,6 +423,10 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         showRow(anchor, fill = false) { row, popup ->
             for (alignment in alignments) {
                 val choice = newTool(alignment.icon, alignment.label, ALIGN_TOOL)
+                // a choice carries no colour and no caption, so its icon is centred without the
+                // slot
+                (choice.findViewById<View>(R.id.editing_tool_caption).parent as View).visibility =
+                    View.GONE
                 choice.isSelected = alignment.value == selectionAlign
                 choice.setOnClickListener {
                     popup.dismiss()

@@ -146,12 +146,22 @@ def escape(value):
     return value.replace("\\", "\\\\").replace("'", r"\'").replace('"', r"\"")
 
 
+# A <plurals> block. Nothing here translates one, so a file keeps the blocks it has.
+PLURALS = re.compile(r'[ \t]*<plurals name="([^"]+)"[^>]*>.*?</plurals>', re.S)
+
+
 def write(language, order, values):
     path = RES / f"values-{language}" / "strings.xml"
+    text = path.read_text(encoding="utf-8") if path.is_file() else ""
+    kept = {match.group(1): match.group(0).strip() for match in PLURALS.finditer(text)}
+    # the strings and the plurals of the source, in the order the source has them
+    names = re.findall(r'<(?:string|plurals) name="([^"]+)"', SOURCE.read_text(encoding="utf-8"))
     lines = ['<?xml version="1.0" encoding="utf-8"?>', "<resources>"]
-    for key in order:
-        if key in values:
+    for key in names:
+        if key in order and key in values:
             lines.append(f'    <string name="{key}">{escape(values[key])}</string>')
+        elif key in kept:
+            lines.append("    " + kept[key])
     lines.append("</resources>")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
