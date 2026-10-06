@@ -85,7 +85,7 @@
 
         <activity-alias
             android:name="at.tomtasche.reader.ui.activity.MainActivity.CATCH_ALL"
-            android:enabled="false"
+            android:enabled="true"
             android:exported="true"
             android:label="@string/app_title"
             android:targetActivity="app.opendocument.droid.ui.activity.MainActivity"
@@ -209,7 +209,7 @@
         </activity-alias>
         <activity-alias
             android:name="at.tomtasche.reader.ui.activity.MainActivity.STRICT_CATCH"
-            android:enabled="true"
+            android:enabled="false"
             android:exported="true"
             android:label="@string/app_title"
             android:targetActivity="app.opendocument.droid.ui.activity.MainActivity"

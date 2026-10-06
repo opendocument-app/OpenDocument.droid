@@ -262,8 +262,8 @@ class LandingTests {
     }
 
     /**
-     * The settings start folded whatever the list holds - one switch, for the few users whose file
-     * manager will not hand a document over - so reaching them is a tap on the section.
+     * The settings start folded whatever the list holds - one switch, for the users who want the
+     * app out of "Open with" - so reaching them is a tap on the section.
      */
     @Test
     fun theCatchAllSettingIsFoldedAway() {
