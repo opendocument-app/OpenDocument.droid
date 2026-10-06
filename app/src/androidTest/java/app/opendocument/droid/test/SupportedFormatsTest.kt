@@ -174,7 +174,7 @@ class SupportedFormatsTest {
         }
     }
 
-    /** What the app deliberately stays out of - the reason the catch-all filter defaults to off. */
+    /** What STRICT_CATCH deliberately stays out of, for the users who turn the catch-all off. */
     @Test
     fun unrelatedTypesReachNeither() {
         for (mimeType in listOf("text/vcard", "text/calendar", "audio/mpeg", "video/mp4")) {
@@ -224,7 +224,7 @@ class SupportedFormatsTest {
 
             // STRICT_CATCH is what this test is about, and the component states survive a test run
             // - a previous one that flipped the switch would otherwise leave CATCH_ALL answering
-            // for everything. False is the shipped default, so nothing has to be put back.
+            // for everything. No other test asks which alias answers, so it is not put back.
             CatchAllSetting.setEnabled(context, false)
         }
     }

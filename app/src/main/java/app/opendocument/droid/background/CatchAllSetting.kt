@@ -35,8 +35,8 @@ object CatchAllSetting {
     }
 
     fun isEnabled(context: Context): Boolean =
-        // opt-in: the default is STRICT_CATCH, so the app does not volunteer for contacts (#477)
-        AppPreferences.of(context).getBoolean(PREF_CATCH_ALL_ENABLED, false)
+        // on unless the user turned it off - the switch on the landing screen is how they do
+        AppPreferences.of(context).getBoolean(PREF_CATCH_ALL_ENABLED, true)
 
     fun setEnabled(context: Context, enabled: Boolean) {
         AppPreferences.of(context).edit().putBoolean(PREF_CATCH_ALL_ENABLED, enabled).apply()

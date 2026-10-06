@@ -9,6 +9,7 @@ section the body of the GitHub release, and refuses a version without one. `scri
 
 ## Unreleased
 
+- The app offers to open any file again. Turn this off under Settings.
 - Word, Excel and PowerPoint files that a mail or file app labels the old way offer to open
   in the app again.
 
