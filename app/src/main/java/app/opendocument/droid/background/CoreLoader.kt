@@ -396,6 +396,12 @@ class CoreLoader(private val context: Context) {
 
         private var sharedServerPort = PREFERRED_SERVER_PORT
 
+        /** Only the active core server may receive the document bridge. */
+        fun isHostedUri(uri: Uri): Boolean =
+            uri.scheme == "http" &&
+                uri.authority == "$SERVER_URL_HOST:$sharedServerPort" &&
+                uri.path?.startsWith("/file/") == true
+
         /**
          * Binds [server] to the preferred port, falling back to a free port when another edition
          * occupies it.

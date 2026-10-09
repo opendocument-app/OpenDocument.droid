@@ -11,7 +11,9 @@ import android.os.Looper
 import android.util.AttributeSet
 import android.util.Base64
 import android.util.Base64InputStream
+import android.view.ViewGroup
 import android.webkit.JavascriptInterface
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -20,6 +22,7 @@ import android.webkit.WebViewClient
 import androidx.annotation.Keep
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
+import app.opendocument.droid.background.CoreLoader
 import app.opendocument.droid.background.EditingKind
 import app.opendocument.droid.background.FileCache
 import app.opendocument.droid.background.StreamUtil
@@ -68,6 +71,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     private var isAwaitingNewPage = false
 
     private var isBridgeAttached = false
+    private var destroyed = false
 
     init {
         settings.builtInZoomControls = true
@@ -77,7 +81,8 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         settings.javaScriptEnabled = true
         settings.loadWithOverviewMode = true
         settings.useWideViewPort = true
-        settings.allowFileAccess = true
+        settings.allowFileAccess = false
+        settings.allowContentAccess = false
 
         // Allow small document text without WebView enlarging it and overlapping adjacent content.
         settings.minimumFontSize = 1
@@ -95,6 +100,9 @@ constructor(context: Context, attributeSet: AttributeSet?) :
                 override fun onPageFinished(view: WebView, url: String) {
                     super.onPageFinished(view, url)
 
+                    if (destroyed || isAwaitingNewPage || (loadedUrl != null && url != loadedUrl)) {
+                        return
+                    }
                     restorePendingScroll(0)
 
                     // a sheet loads a page per tab, and each one is a page of its own to wire up
@@ -116,7 +124,9 @@ constructor(context: Context, attributeSet: AttributeSet?) :
                 }
 
                 override fun onPageCommitVisible(view: WebView, url: String) {
-                    wasCommitCalled = true
+                    if (url == loadedUrl) {
+                        wasCommitCalled = true
+                    }
                 }
 
                 // a failed load otherwise leaves chrome's error page on screen and tells nobody
@@ -160,29 +170,43 @@ constructor(context: Context, attributeSet: AttributeSet?) :
                     )
                 }
 
-                @Suppress("DEPRECATION") // the request based overload needs API 24 semantics
-                override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
-                    // everything shown here is served from localhost, so any link leaves the app
-                    return try {
-                        getContext().startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-
-                        true
-                    } catch (e: Exception) {
-                        crashManager.log(e)
-
-                        false
-                    }
+                override fun onRenderProcessGone(
+                    view: WebView,
+                    detail: RenderProcessGoneDetail,
+                ): Boolean {
+                    crashManager.log("WebView renderer exited; crashed=${detail.didCrash()}")
+                    (parent as? ViewGroup)?.removeView(this@PageView)
+                    destroy()
+                    documentFragment.onPageFailed()
+                    return true
                 }
+
+                override fun shouldOverrideUrlLoading(
+                    view: WebView,
+                    request: WebResourceRequest,
+                ): Boolean = !request.isForMainFrame || openExternal(request.url)
+
+                @Suppress("DEPRECATION")
+                override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean =
+                    openExternal(Uri.parse(url))
             }
 
-        // taken from: https://stackoverflow.com/a/10069265/198996
-        setDownloadListener { url, _, _, _, _ ->
-            try {
-                getContext().startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-            } catch (e: Exception) {
-                crashManager.log(e)
-            }
+        setDownloadListener { url, _, _, _, _ -> openExternal(Uri.parse(url)) }
+    }
+
+    private fun openExternal(uri: Uri): Boolean {
+        if (uri.scheme in setOf("file", "content", "javascript")) {
+            return true
         }
+        try {
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, uri).addCategory(Intent.CATEGORY_BROWSABLE)
+            )
+        } catch (e: Exception) {
+            crashManager.log(e)
+        }
+        // Never load external content with the document's JavaScript bridge.
+        return true
     }
 
     /**
@@ -216,6 +240,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
      * Not applied here: the page is still being laid out when the load reports itself finished.
      */
     fun restoreScrollFraction(fraction: Float) {
+        scrollRestoreHandler.removeCallbacksAndMessages(null)
         scrollFractionToRestore = fraction.takeIf { it > 0f }
         lastScrollableHeight = -1
     }
@@ -338,11 +363,9 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     }
 
     override fun loadUrl(url: String) {
-        wasCommitCalled = false
-
-        // sendFile writes into the cache and opens what it wrote, so the bridge must not reach
-        // the third party viewers an ONLINE result loads here. takes effect on the next load
+        // Bridge changes take effect on the next page load.
         if (!url.startsWith(JAVASCRIPT_SCHEME)) {
+            wasCommitCalled = false
             attachBridge(isOwnContent(url))
 
             // Cancel retries for the previous page before loading its replacement.
@@ -356,10 +379,16 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     }
 
     override fun destroy() {
+        if (destroyed) return
         // the reload is scheduled 2.5s out, and this also runs when a second document
         // replaces the view - so it must not land on a WebView that is gone
         buggyWebViewHandler.removeCallbacksAndMessages(null)
 
+        scrollRestoreHandler.removeCallbacksAndMessages(null)
+        scrollFractionToRestore = null
+        paragraphListener = null
+        editingListener = null
+        destroyed = true
         super.destroy()
     }
 
@@ -367,8 +396,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     private fun failPage(url: Uri, description: String) {
         crashManager.log(RuntimeException(description))
 
-        // only the document is the app's to give up on. a link shouldOverrideUrlLoading could not
-        // hand to another app is left to the webview, and fails here as a main frame load too
+        // Ignore failures outside the core's document server.
         if (!isOwnContent(url.toString())) {
             return
         }
@@ -388,9 +416,8 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         documentFragment.onPageFailed()
     }
 
-    /** Whether [url] is a document we produced: a cached file, or the core's own http server. */
-    private fun isOwnContent(url: String): Boolean =
-        url.startsWith("file://") || url.startsWith(LOCAL_SERVER_URL_PREFIX)
+    /** Whether [url] belongs to the active core server. */
+    private fun isOwnContent(url: String): Boolean = CoreLoader.isHostedUri(Uri.parse(url))
 
     private fun attachBridge(attach: Boolean) {
         if (attach == isBridgeAttached) {
@@ -411,7 +438,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         this.crashManager = documentFragment.crashManager
     }
 
-    fun setParagraphListener(paragraphListener: ParagraphListener) {
+    fun setParagraphListener(paragraphListener: ParagraphListener?) {
         this.paragraphListener = paragraphListener
     }
 
@@ -511,17 +538,6 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         evaluateJavascript("(function(){return $expression;})()") { callback(decodeString(it)) }
     }
 
-    /** A string evaluateJavascript answered with, which arrives as a json literal. */
-    /** The object a page answered with, which arrives as a json string holding json. */
-    private fun decodeObject(result: String?): JSONObject? =
-        try {
-            decodeString(result)?.let { JSONObject(it) }
-        } catch (e: Exception) {
-            crashManager.log(e)
-
-            null
-        }
-
     private fun decodeString(result: String?): String? =
         try {
             JSONTokener(result ?: "null").nextValue() as? String
@@ -579,7 +595,10 @@ constructor(context: Context, attributeSet: AttributeSet?) :
             }
 
             post {
-                // the user is mid-read, not opening something
+                if (destroyed) {
+                    FileCache.deleteCacheFile(tmpFile)
+                    return@post
+                }
                 documentFragment.loadUri(
                     FileCache.getCacheFileUri(context, tmpFile),
                     false,
@@ -594,19 +613,19 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     @Keep
     @JavascriptInterface
     override fun paragraph(text: String?) {
-        paragraphListener?.paragraph(text)
+        post { paragraphListener?.paragraph(text) }
     }
 
     @Keep
     @JavascriptInterface
     override fun increaseIndex() {
-        paragraphListener?.increaseIndex()
+        post { paragraphListener?.increaseIndex() }
     }
 
     @Keep
     @JavascriptInterface
     override fun end() {
-        paragraphListener?.end()
+        post { paragraphListener?.end() }
     }
 
     interface EditingListener {
@@ -634,9 +653,6 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         const val HOST_MESSAGE_HANDLER = "$BRIDGE_NAME.postMessage"
 
         private const val JAVASCRIPT_SCHEME = "javascript:"
-
-        /** Where CoreLoader publishes a translated document. */
-        private const val LOCAL_SERVER_URL_PREFIX = "http://localhost:"
 
         /** Two seconds of them, which a megabyte of text lays out well inside of. */
         private const val SCROLL_RESTORE_ATTEMPTS = 20
