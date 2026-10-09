@@ -59,31 +59,33 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
     }
 
     private fun publish(dropUnreachable: Boolean) {
-        executor.execute {
-            val context = getApplication<Application>()
+        executor.execute { publishSync(dropUnreachable) }
+    }
 
-            val stored = RecentDocumentsUtil.getRecentDocuments(context)
-            val pagination = PaginationSetting.isEnabled(context)
-            val catchAll = CatchAllSetting.isEnabled(context)
+    private fun publishSync(dropUnreachable: Boolean) {
+        val context = getApplication<Application>()
 
-            mutableState.postValue(stateOf(stored, pagination, catchAll))
+        val stored = RecentDocumentsUtil.getRecentDocuments(context)
+        val pagination = PaginationSetting.isEnabled(context)
+        val catchAll = CatchAllSetting.isEnabled(context)
 
-            if (!dropUnreachable) {
-                return@execute
-            }
+        mutableState.postValue(stateOf(stored, pagination, catchAll))
 
-            val alive = stored.filter { isReadable(context, Uri.parse(it.uri)) }
-            if (alive.size == stored.size) {
-                return@execute
-            }
-
-            for (entry in stored - alive.toSet()) {
-                RecentDocumentsUtil.removeRecentDocument(context, Uri.parse(entry.uri))
-            }
-            PersistedUriPermissions.prune(context)
-
-            mutableState.postValue(stateOf(alive, pagination, catchAll))
+        if (!dropUnreachable) {
+            return
         }
+
+        val alive = stored.filter { isReadable(context, Uri.parse(it.uri)) }
+        if (alive.size == stored.size) {
+            return
+        }
+
+        for (entry in stored - alive.toSet()) {
+            RecentDocumentsUtil.removeRecentDocument(context, Uri.parse(entry.uri))
+        }
+        PersistedUriPermissions.prune(context)
+
+        mutableState.postValue(stateOf(alive, pagination, catchAll))
     }
 
     private fun stateOf(
@@ -166,7 +168,7 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
                 PersistedUriPermissions.prune(context)
             }
 
-            refresh()
+            publishSync(dropUnreachable = false)
         }
     }
 
@@ -178,7 +180,7 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
         executor.execute {
             RecentDocumentsUtil.removeRecentDocument(getApplication(), uri)
 
-            refresh()
+            publishSync(dropUnreachable = false)
         }
     }
 

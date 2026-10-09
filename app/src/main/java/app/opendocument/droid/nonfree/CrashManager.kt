@@ -10,18 +10,7 @@ import java.util.concurrent.TimeoutException
  */
 class CrashManager {
 
-    fun initialize() {
-        // mitigate TimeoutException on finalize
-        // https://stackoverflow.com/a/55999687/198996
-        val defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
-        Thread.setDefaultUncaughtExceptionHandler { thread, error ->
-            if (thread.name == "FinalizerWatchdogDaemon" && error is TimeoutException) {
-                log(error)
-            } else {
-                defaultUncaughtExceptionHandler?.uncaughtException(thread, error)
-            }
-        }
-    }
+    fun initialize() = installHandler()
 
     fun log(message: String) {
         Log.d(TAG, message)
@@ -38,5 +27,21 @@ class CrashManager {
 
     private companion object {
         const val TAG = "ODR"
+        private var handlerInstalled = false
+
+        @Synchronized
+        fun installHandler() {
+            if (handlerInstalled) return
+
+            val previous = Thread.getDefaultUncaughtExceptionHandler()
+            Thread.setDefaultUncaughtExceptionHandler { thread, error ->
+                if (thread.name == "FinalizerWatchdogDaemon" && error is TimeoutException) {
+                    Log.e(TAG, "Error reported", error)
+                } else {
+                    previous?.uncaughtException(thread, error)
+                }
+            }
+            handlerInstalled = true
+        }
     }
 }
