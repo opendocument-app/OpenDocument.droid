@@ -1,232 +1,127 @@
-# CLAUDE.md
+# Repository guidance
 
-Guidance for Claude Code working in this repository. The README covers building, releasing
-and translating; this file covers how the code is shaped and which decisions not to undo.
+See README.md for build, release, signing, and translation commands.
 
-## Commands
+## Checks
 
-- `./gradlew assembleProDebug` (also `assembleLiteDebug`, `assembleFossDebug`,
-  `bundleProRelease`, `bundleLiteRelease`). `./build-test.sh` adds the test apk.
-- `./gradlew testProDebugUnitTest` (jvm), `./gradlew connectedAndroidTest` (device).
-- `./gradlew spotlessApply` / `spotlessCheck` (google-java-format AOSP, ktfmt kotlinlang) and
-  `./gradlew lintProDebug`. Lint errors fail the build.
-- `fastlane android deployPro version:v4.8.0` / `deployLite`. The version is required.
-- `fastlane android screenshots` takes the store set off one emulator (README, Screenshots).
+- `./gradlew assembleDebug` builds Lite, Pro, and Foss.
+- `./gradlew testProDebugUnitTest connectedAndroidTest` runs JVM and device tests.
+- `./gradlew spotlessApply spotlessCheck lintProDebug lintLiteDebug` formats and checks code.
+- Keep vendored Java under `com/commonsware/android/print` and its license headers.
 
 ## Architecture
 
-Source is `app/src/main/java/app/opendocument/droid/`: `background/` for the loaders and
-stored state, `ui/` for the screens, `nonfree/` for analytics, billing and ads.
+Source: `app/src/main/java/app/opendocument/droid/`.
 
-`DocumentLoader` is a `ViewModel` scoped to `MainActivity`. It opens a document on its own
-thread and reports on the main one: `FileCache` stores the bytes, `FileIdentifier` names and
-types the copy, `CoreLoader` renders it and serves the html from a local server, and
-`DocumentSaver` writes edits back. A `DocumentRequest` is what the user asked for, an
-`IdentifiedFile` the cached copy, and a `LoadedDocument` the two plus the parts to show.
+- `background/`: document loading, saving, cache, preferences, and recents.
+- `ui/`: activities, fragments, action modes, and widgets.
+- `nonfree/`: logging, billing, ads, and edition capabilities.
 
-There is one loader. Do not add a loader base class or a loader-type enum: a format the app
-cannot open is a format odrcore should learn. Nothing after `CoreLoader` opens a file, and no
-document leaves the device. The only answer to an unsupported file is `onUnsupported`, the
-reopen bar and the contact dialog.
+`MainActivity` owns an activity-scoped `DocumentLoader`. Its worker thread runs
+`FileCache` → `FileIdentifier` → `CoreLoader`; results return on the main thread.
+`DocumentSaver` writes edits. Keep one loader and one rendering backend. Unsupported
+formats belong in OpenDocument.core; documents stay on the device.
 
-`MainActivity` owns the loader and the action modes (find, tts, edit). It swaps between
-`LandingFragment` (recent documents and settings) and `DocumentFragment`, which shows the
-page in `PageView`, a WebView, with `DocumentActions` over it. There is no options menu and
-the action bar is hidden. An action on the open document is a `DocumentActions` button.
-Anything else (ad removal, the consent form) is a row in the landing screen's settings.
+`DocumentRequest` describes the open request; `IdentifiedFile` describes the cached
+copy; `LoadedDocument` adds rendered parts and core capabilities.
 
-### Tools
+`LandingFragment` shows recents and settings. `DocumentFragment` displays documents
+in `PageView`, with `DocumentActions` above the page. Document actions belong there;
+app settings, ad removal, and consent belong on the landing screen.
 
-`tools/render-sweep` opens a corpus of documents and records a screenshot, the WebView text
-and logcat for each. `tools/screen-tour` walks a build through six screens and lays two
-builds side by side as a PDF. Both only look; nothing asserts. Use screen-tour before
-`adb shell input tap`, and add to its lookup lists rather than forking it.
+## Build and editions
 
-## Build
+Minimum SDK 26, target 36, compile 37. Compile and target differ intentionally.
+AGP supplies Kotlin support; do not add a Kotlin plugin. Versions live in
+`gradle/libs.versions.toml`. Keep R8, resource shrinking, and configuration caching.
+The release version comes from `-Podr.version`; do not duplicate it in the manifest.
 
-Minimum SDK 26, target 36, compile 37 on purpose. AGP 9 and Gradle 9, no kotlin plugin
-applied. Versions in `gradle/libs.versions.toml`. R8, resource shrinking and the
-configuration cache are on. The version comes from `-Podr.version` (README, Versioning); do
-not put `versionCode` or `versionName` back into `AndroidManifest.xml`.
-
-### Flavors
-
-| | ads + consent sdk | play in-app review | goes to |
+| Edition | Ads and consent | Play review | Advanced editing |
 |---|---|---|---|
-| lite | yes | yes | play, free |
-| pro | no | yes | play, paid |
-| foss | no | no | github release, f-droid |
+| Lite | yes | yes | no |
+| Pro | no | yes | yes |
+| Foss | no | no | yes |
 
-The classes that call those libraries live outside `src/main`: `src/ads` and `src/review`,
-with a no-op of the same shape in `src/noAds` and `src/noReview`. `app/build.gradle` names
-two of the four per flavor. A method added to one copy has to be added to the other;
-`assembleDebug` builds all three and catches it.
+`src/ads` and `src/noAds`, and `src/review` and `src/noReview`, provide matching APIs.
+Add methods to both implementations. Use `Features`, never `BuildConfig.FLAVOR`.
+`MainActivity.initializeManagers` may run again after Play Services resolution.
+Analytics and crash reporting only log locally.
 
-Code that has to ask reads `Features`, never the flavor name. `Features.withAds` comes from
-`LINKS_ADS` and `Features.advancedEditing` from `ADVANCED_EDITING`, both in `Linked.kt` in
-`src/ads` and `src/noAds`, next to the classes they stand for. Do not add a
-`BuildConfig.FLAVOR` comparison: one made `BillingManager` miss foss. Do not name a flag
-after a behaviour it only implies. `AnalyticsManager` and `CrashManager` write to logcat
-only, so there is no tracking and no switch for it. `MainActivity.initializeManagers` gates
-ads and billing on `Features.withAds` and on `PlayServices`, and can run twice.
+The app compiles no native code. Use the single `odr-core-android` AAR for matching
+Java bindings and JNI libraries. Keep bindings compatible with API 26.
+`CoreLoader.initializeCore` sets `TMPDIR` before the first native call.
 
-foss carries `applicationIdSuffix .foss` so a sideload sits beside a play install. F-Droid
-strips it, since its listing is `at.tomtasche.reader`.
+## Stable identities
 
-### Native side
+- Namespace: `app.opendocument.droid`.
+- Application IDs: `at.tomtasche.reader`, `.pro`, and `.foss`. Never rename them.
+- Keep historical `at.tomtasche.reader.*` activity aliases for launcher pins and defaults.
+- FileProvider authorities and default preference filenames follow the application ID.
+- Foss installs beside Play editions; F-Droid strips its suffix for its existing listing.
 
-The app compiles no native code. Both halves of the JNI interface come from the one
-`app.opendocument:odr-core-android` AAR on maven central: the `app.opendocument.core` java
-classes and a prebuilt `libodr_jni.so` per ABI. Keep them in one artifact, because handles
-cross as raw longs and enums as ordinals with no version negotiation. `CoreLoader` is the
-only wrapper. Anything the bindings use must exist on API 26; a newer API fails only at
-runtime. Nothing is unpacked at runtime; `initializeCore` only sets `TMPDIR`.
+## Formats and rendering
 
-## Rules
+`SupportedDocumentTypes` derives renderable formats from the core's `translateHtml`
+capability. Claimed formats are documents plus text, CSV, Markdown, ZIP, and images.
+The manifest and `SupportedFormatsTest` must match these claims.
 
-### Package names differ on purpose
+Use `Odr.mimetype` after caching and canonicalize aliases. Do not lowercase MIME types
+before core lookups: some core spellings contain capitals such as `macroEnabled`.
 
-`namespace` is `app.opendocument.droid`, `applicationId` is `at.tomtasche.reader` (plus
-`.pro` or `.foss`). Do not align them.
+Core text detection without a known charset is a fallback, not identification.
+Both `FileIdentifier` and `CoreLoader.host` reject that fallback. Filename hints may
+override text detection for documents and types without content detection.
 
-- `namespace` only names the kotlin package and `R`/`BuildConfig`.
-- `applicationId` is the identity on Play and F-Droid and can never change.
-- `MainActivity`, `CATCH_ALL` and `STRICT_CATCH` keep their `at.tomtasche.reader.*` component
-  names as `activity-alias` entries, because the OS persists them for pinned icons and
-  default-app choices. The `ComponentName` strings in `MainActivity` must match.
-- The FileProvider authority in `FileCache` and the preferences file in `AppPreferences`
-  follow `getPackageName()`, so upgrading users keep their settings.
+Use core capabilities to determine editability and decryption. Carry the result as
+`EditingKind`; do not duplicate editable-format lists in the UI. Unreadable formats
+use the unsupported callback, reopen offer, and contact dialog.
 
-### Supported file types come from odrcore
+## Editing
 
-`SupportedDocumentTypes` derives two sets, never a list of mime prefixes:
+- Render with editor support once. Entering edit mode calls `odr.editing.enable()`.
+- Use `HtmlConfig.hostMessageHandler` for page callbacks; do not inject replacements.
+- Lite uses paragraph scope. `outOfScope` offers Pro.
+- Gate individual tools, not the entire edit mode. Highlighting and sheet fill remain free.
+- Undo, redo, and save belong to the action bar; formatting belongs to `EditingTools`.
+- Let the page arm PDF tools through `odr.annotation.press` and `markOnSelection`.
+- Reopen the cached original for each save attempt; partially applied edits cannot be retried.
 
-- `CORE_FILE_TYPES`: `Odr.allFileTypes()` filtered by `capabilitiesByFileType(...).translateHtml`.
-- `CLAIMED_FILE_TYPES`: that, narrowed to `fileCategoryByFileType(...) == DOCUMENT`, plus
-  text, csv and zip. Keep it narrow: the app plays an mp3 handed to it but must not sit in
-  the share sheet for one.
+## Display and storage
 
-The `STRICT_CATCH` intent-filters are generated from the same table, every mime spelling and
-extension written out. `SupportedFormatsTest` asserts that `SupportedDocumentTypes` and the
-package manager agree, so a format added upstream and forgotten fails CI. A prefix list once
-claimed `.xlsb` and failed to open it.
+Night mode uses AppCompat's local mode. Clear the override when it matches the system.
+Document darkening defaults to the core's color-scheme capability, with overrides per kind.
+Translate both schemes with `HtmlColorScheme.SYSTEM`; toggle darkening without re-rendering.
 
-The tables live in `libodr_jni`, so `RenderedByCoreTest` and `SupportedDocumentTypesTest`
-are instrumented. After caching, `Odr.mimetype` decides, canonicalized through
-`canonicalMimeType`. `isDocument` reads the core's table and must not `lowercase()` first,
-because the core spells some types with capitals (`macroEnabled`). Our own sets lowercase
-what they store.
+Margins use `textDocumentMargin` and affect text documents only. Re-render while retaining
+the selected tab and scroll fraction. Keep the existing landing-screen margins setting.
 
-### `text/plain` from the core is a guess unless a charset came with it
+WebView owns fit and zoom through `useWideViewPort` and `loadWithOverviewMode`.
+Do not fix `HtmlConfig.viewportWidth` to the opening screen width.
 
-Text is the core's fallback for bytes nothing else claims, and it throws only once a page is
-rendered, on the server thread. So `FileIdentifier` drops a `text/plain` with no charset
-(`hasKnownCharset`) and `CoreLoader.host()` refuses the same file up front. Both are needed:
-the first keeps `isRenderedByCore` off a `.bin`, the second stops a success bar over a page
-that cannot draw. `LandingTests.aDocumentThatFailsToOpenComesBackToTheList` holds this.
+Declare no storage permission. Open one read-only file through SAF.
+`PersistedUriPermissions` retains grants for recents and pending loads. Do not release
+one immediately after `loadUri`, which only queues the read.
 
-For the same reason the file name can outrank the content: a pdf with an http response in
-front reads as text. `CoreLoader.openFile` opens it again as the filename's type, but only
-where the core files that type as a `DOCUMENT`.
+## Review invitations
 
-### Editability comes from the core, never from a mime type
+Count fresh document opens, excluding reloads and app launches. Ask on the landing screen
+or when a document is closed, never while opening it or after a failed load. Space asks by
+5, 10, 20, 50, and 100 additional documents, at least two weeks apart, with five asks total.
+Record an ask when handed to Play, even if Play's quota prevents display.
 
-`CoreLoader.editingOf` asks the opened file, and the answer rides on `LoadedDocument.editing`
-as an `EditingKind`: `DOCUMENT`, `SHEET`, `TEXT`, `ANNOTATION`, `NONE`. It comes from
-`Document.isEditable()`/`isSavable()`, `TextFile.isSavable()`, `PdfFile.isAnnotatable()`.
-`DecodedFile.capabilities()` is asked first as an upper bound, to save a second parse. Do not
-put a list of editable formats in the UI. Decryption is the same shape: `capabilities().decrypt`
-says whether a password is worth asking for.
+## Tests and screenshots
 
-**The gate is on the tool, not on the mode.** Every edition opens every editable kind, so
-`Features.offersEditing` is the core's answer alone. A locked `EditingTools` dims what is
-pro and leaves the highlighter working, in documents and in pdfs, and the fill in sheets. Do
-not put the whole-mode gate back.
+`tools/render-sweep` records corpus renders, text, and logs. `tools/screen-tour` walks the
+UI and compares builds. These are inspection tools, not assertions. Extend screen-tour's
+lookup lists before using raw coordinate taps.
 
-**The editor is in the page.** An editable document is rendered with `HtmlConfig.editable`,
-and the edit button only calls `odr.editing.enable()`, with no second render. The page owns
-the operation log, undo and the refusals. `HtmlConfig.hostMessageHandler` sends its callbacks
-to `PageView.postMessage`; do not inject a script for them. Lite narrows
-`HtmlConfig.editingScope` to `PARAGRAPH`, and the page answers the rest with `outOfScope`,
-which `DocumentFragment` turns into the offer of pro.
+`ScreenshotTests` runs only with a named device and requires API 35+. It writes to
+`additionalTestOutputDir`, which survives test APK cleanup. Generate fixtures with
+`scripts/make-screenshot-documents.py`; keep the locale mapping in `store_screenshots.py`.
 
-**The bar holds what is done to the document, the strip what is done to the text.** Undo,
-redo and save are `menu/edit.xml`, dimmed by `EditActionModeCallback`. `EditingTools` under
-the bar is formatting only, one 48dp square per tool: a tap does the tool's job, a long press
-opens its colours. The text colour opens on a tap too. No chevrons, no size menu.
+Capture phone and tablet sets, with the tablet filling both Play tablet slots. Capture
+both `04-edit` and `04-edit-lite`; staging selects the edition's image. Screenshot failure
+must not block listing text uploads. Do not add screenshot hooks to production code.
 
-**A pdf's tools are the page's to arm.** `odr.annotation.press` marks a standing selection
-and arms where there is none; `markOnSelection` then marks each selection. Do not disarm on
-the app's side.
-
-**Nothing is held open between the render and the save.** `CoreLoader.writeEdits` opens the
-cached copy again and applies the page's payload. An edit that throws halfway leaves that
-copy half changed, so a retry must not start from it.
-
-### The review sheet is asked for where the user is waiting for nothing
-
-`ReviewInvitation` decides, `MainActivity.askForReviewIfEarned` asks, and `InAppReview`
-hands the sheet to play. Two moments qualify: a document closed back to the list, and the
-landing screen at app start. Not `onLoadSuccess`, and not `closeFailedDocument`. Only fresh
-document opens count (`DocumentFragment.freshOpenPending` excludes reloads), and app opens do
-not. Spacing is ours, because Play's quota is undocumented: after 5, 10, 20, 50, 100 more
-documents, at least two weeks apart, five asks in total. The ask is recorded when handed to
-play, not when it returns.
-
-### How the document looks is answered over the document, not in the settings
-
-Three `DocumentActions` buttons remember their last choice:
-
-- **Night mode** is the app's own, through `AppCompatDelegate.setLocalNightMode`.
-  `NightModeSetting` stores no override once the choice agrees with the system again.
-- **Darkening** defaults to `capabilitiesByFileType(...).colorScheme` and is overridden per
-  kind of document. `CoreLoader` translates with `HtmlColorScheme.SYSTEM`, and
-  `PageView.setDarkeningAllowed` picks at display time, so the button renders nothing again.
-  Do not put a list of formats back.
-- **Margins** are odrcore's `textDocumentMargin`, so the button re-renders through
-  `DocumentLoader.reload`. `PaginationSetting.affects` limits it to text documents.
-  `DocumentFragment` carries the tab and the scroll fraction over.
-
-Do not move these into a settings screen. `PaginationSetting` keeps its landing row only
-because it already had one.
-
-### Fitting the page to the screen is the WebView's job
-
-`PageView` sets `useWideViewPort` and `loadWithOverviewMode`. Since core 7.2.0 the page's
-meta states the zoom floor it needs, so an A0 pdf can zoom out to fit. Do not set
-`HtmlConfig.viewportWidth`: it freezes the fit at the width the document was opened at.
-`initialZoom`, `odr.setZoom` and `viewportContent` are for hosts with their own zoom control.
-
-### Storage access
-
-The app declares no storage permission, only `INTERNET`. Everything goes through SAF:
-`ACTION_OPEN_DOCUMENT`, read only, one file at a time. `PersistedUriPermissions` persists the
-grants and reclaims them against the recent list. Do not release a grant next to
-`documentFragment.loadUri()`: that call only queues the load.
-
-### Store screenshots
-
-`ScreenshotTests` is the whole of it: an instrumented test lays out the samples, fills the
-recent list and switches the language from inside the app's process. Do not add a screenshot
-back door to the app. Details:
-
-- It skips itself unless a run names a device, and refuses anything below API 35.
-- It writes into gradle's `additionalTestOutputDir`, which is copied back before the apks
-  are uninstalled. `getExternalFilesDir` goes with the uninstall.
-- `scripts/make-screenshot-documents.py` writes the documents into the test apk's assets.
-  `frame-screenshots.py` draws the frame, and the feature graphic from the first capture.
-  `store_screenshots.py` says what a full set is and stages it, and holds the one table of
-  which locale reads which language's documents. Do not copy that table into the test.
-- The tablet set goes into both tablet slots, because Play falls back to the phone set only
-  where a slot is empty.
-- The edit is taken twice. `04-edit-lite` locks the strip from the test, because the run is
-  a pro build, and `store_screenshots.py --app lite` stages it in place of `04-edit`.
-- In `release.yml` the listing is not gated on the screenshots. Do not put them back into
-  a plain `needs:`, or a wedged emulator takes the listing text down with it.
-
-### Kotlin
-
-The only java is `com/commonsware/android/print`, vendored to diff against upstream. No
-java-to-kotlin call exists, so `@JvmStatic`, `@JvmField`, `@JvmOverloads` and `@Throws` are
-only for runtimes that reflect: `@JvmField` on the parcelable `CREATOR`s, and `@JvmStatic` on
-`@BeforeClass`/`@AfterClass` in instrumented tests.
+Use JVM annotations only where reflection requires them: Parcelable `CREATOR` fields
+and instrumented JUnit `@BeforeClass`/`@AfterClass` methods.

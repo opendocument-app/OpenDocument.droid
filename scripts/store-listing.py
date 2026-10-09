@@ -1,30 +1,6 @@
 #!/usr/bin/env python3
-#
-# The play listing: where it is kept, and the supply tree built out of it.
-#
-# Play keeps the release notes of every release it has taken, but only behind the
-# console - nothing reads them back, and until now they were typed into the box at
-# promotion. They are kept here instead, one file per locale per version code,
-# `fastlane/metadata/android/<locale>/changelogs/41500.txt`, which is the name
-# supply reads and what `app/build.gradle` derives from the version name.
-#
-#   scripts/store-listing.py --version v4.15.0                       check the notes
-#   scripts/store-listing.py --version v4.15.0 --stage DIR           notes alone
-#   scripts/store-listing.py --version v4.15.0 --stage DIR --app pro the whole listing
-#
-# The two apps share one listing and differ in a few places, so what is staged is
-# read in three passes - `fastlane/metadata/android/<locale>/`, then the app's own
-# `all/`, then its `<locale>/` - and the last one to hold a file wins. A `${name}`
-# left in any of that text is filled in the same way, from the app's own file, or
-# with nothing where the app has none.
-#
-# A release run checks before it builds, so a version missing a translation fails
-# in seconds rather than once both bundles are up - as does a locale that is no
-# longer in the tree, or a listing with no title or description to put in it, both
-# of which would otherwise leave that storefront saying what it says today.
-# `scripts/store-copy.py` writes the release notes this reads.
-#
-# OpenDocument.ios has the same script against App Store Connect's shape.
+# Validate and stage Play listings and release notes. Read shared, app-wide, then locale-
+# specific text; later nonempty values override earlier ones.
 
 import argparse
 import os

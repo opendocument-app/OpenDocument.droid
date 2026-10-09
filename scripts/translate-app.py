@@ -1,27 +1,5 @@
 #!/usr/bin/env python3
-#
-# Translates the app's own strings, one agent per language.
-#
-#   scripts/translate-app.py                   fill in what is missing
-#   scripts/translate-app.py --languages de,fr only these
-#   scripts/translate-app.py --all             translate everything again
-#   scripts/translate-app.py --dry-run         print it, write nothing
-#
-# `values/strings.xml` is the source. Every other `values-<language>/strings.xml`
-# is written from it: the keys it has, in the order it has them, and nothing else.
-# A key that leaves the source leaves every translation with it, which is what the
-# `toast_error_generic` left behind in fifteen languages was.
-#
-# One `claude -p` per language, given the whole English file rather than the lines
-# being translated - the comments in it say what a string is for, and "Support us"
-# is a different sentence on a button than in a sentence. A second agent of the
-# same language then reads the whole file back against the English.
-#
-# There is no region qualifier: `values-de` answers for every German-speaking
-# region and nothing here differs by one.
-#
-# The values arrive as plain text and the escaping is put on here, so an agent
-# cannot write an apostrophe that stops the resource compiling.
+# Fill missing app translations and review them against English. Does not upload.
 
 import argparse
 import concurrent.futures

@@ -1,13 +1,5 @@
 #!/usr/bin/env bash
-#
-# Kills the emulator's crash reporter once the emulator it belonged to is gone.
-#
-# crashpad_handler inherits the emulator step's stdout, and a step cannot finish while
-# anything still holds that pipe open. On api 26 and 29 the emulator regularly exits
-# without taking it along, and the runner then sits there until the job times out.
-#
-# Detached from any step, because the action can fail before run-instrumented-tests.sh
-# (which cleans up after itself) ever runs - an "input keyevent 82" killed during boot.
+# Kill orphaned emulator crash reporters so inherited output pipes cannot hang CI.
 
 set -u
 

@@ -308,23 +308,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Edge-to-edge is enforced from targetSdk 35 on, so the window extends under the system bars
-     * and something has to keep the content clear of them. On older devices it does not, and every
-     * inset below is zero.
-     *
-     * The bars are not all held off the same way. Left, right and top are padding on the root, so
-     * nothing at all is drawn behind a cutout or the status bar. That root is the decor's stack,
-     * not this layout: the banner and the bar an action mode raises sit above the content view, so
-     * padding the content view leaves both of them under the status bar and pads twice below.
-     *
-     * The bottom is not padding: the document is meant to run under the gesture bar - a page that
-     * stops short of it, with a strip of window background below, looks like a rendering fault
-     * rather than a decision - so only the things that would be *hidden* under it are lifted. The
-     * landing screen, whose list ends in a button, and [DocumentActions], whose buttons sit in that
-     * very corner.
-     *
-     * The keyboard is the exception, and gets the document container itself: it covers half the
-     * screen, and while a document is being edited the caret has to stay above it.
+     * Insets the decor above system bars and cutouts. The document draws under the gesture bar;
+     * controls stay above it. The keyboard insets the document container.
      */
     private fun applyWindowInsets() {
         val root: View = windowRoot ?: findViewById(R.id.main_root)
@@ -363,10 +348,7 @@ class MainActivity : AppCompatActivity() {
 
         crashManager.log("onStart")
 
-        // the landing screen with nothing on its way to it. the only moment left for someone who
-        // arrives with a document from another app: back takes them out of the app, not to the
-        // list.
-        // not in onCreate: a launcher tap onto a live task resumes rather than creates
+        // Ask only on an idle landing screen. onStart also handles returning to an existing task.
         if (documentFragment == null && loadOnStart == null) {
             if (leftForOwnActivity) {
                 leftForOwnActivity = false
@@ -527,10 +509,7 @@ class MainActivity : AppCompatActivity() {
             uri.toString(),
         )
 
-        // the grant has to outlive this call: the load is only queued, so the stream is opened
-        // long after we return. releasing it here also dropped the persisted grant, leaving the
-        // recent documents unreadable - prune() reclaims instead. isRetained covers a uri that
-        // did not arrive on an intent of ours, such as one tapped in the recently opened list
+        // Keep grants through asynchronous loads. isRetained covers documents opened from recents.
         val isPersistentUri =
             PersistedUriPermissions.takeRead(this, uri) ||
                 PersistedUriPermissions.isRetained(this, uri)
@@ -640,10 +619,8 @@ class MainActivity : AppCompatActivity() {
                 analyticsManager.report("menu_print")
 
                 documentFragment?.pageView?.let { pageView ->
-                    // printing a dark page wastes ink, so the page is held light for as long as
-                    // the framework is reading it - which is long after print() returns. what it
-                    // is given back to is looked up again: a document closed meanwhile took its
-                    // WebView with it, and the one that replaced it was never suspended
+                    // Keep the page light until the print adapter finishes; the document may close
+                    // meanwhile.
                     pageView.suspendDarkening()
 
                     printingManager.print(this, pageView) {
@@ -703,11 +680,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * The buttons of the document are only up while nothing else is using the screen: an action
-     * mode has taken the toolbar over and brought its own controls, and fullscreen is for reading.
-     *
-     * Counted rather than a flag, because the two kinds of action mode overlap - selecting text in
-     * the page starts a framework one on top of the appcompat one that edit mode is.
+     * Hides document actions during fullscreen or action modes. Counts overlapping framework and
+     * AppCompat modes.
      */
     private var actionModes = 0
 
@@ -754,12 +728,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Whether the ad removal is still worth offering: never in pro, where the purchase is implied,
-     * and not once it has been bought.
-     *
-     * The landing screen asks rather than being told, because billing is set up by
-     * [initializeManagers] - which can run a second time, after the play services dialog - and it
-     * is not something the ViewModel could read off disk itself.
+     * Whether billing offers ad removal. Queried after manager initialization and Play Services
+     * retries.
      */
     fun offersAdRemoval(): Boolean =
         ::billingManager.isInitialized && !billingManager.hasPurchased()
@@ -842,14 +812,7 @@ class MainActivity : AppCompatActivity() {
         analyticsManager.report("fullscreen_end")
     }
 
-    /**
-     * A load failed and the app has nothing left to try with the file - go back to the list rather
-     * than leave an empty page on the screen with a bar over it.
-     *
-     * The bar is raised before this and deliberately survives it: with the document gone, it is the
-     * only thing left saying why. Its action - handing the file to another app - needs no document,
-     * which is exactly the case this is called in.
-     */
+    /** Returns to the landing screen while retaining the failure snackbar and its reopen action. */
     fun closeFailedDocument() {
         if (documentFragment == null) {
             return
@@ -962,10 +925,7 @@ class MainActivity : AppCompatActivity() {
         intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
-        // straight to the system picker. this used to put an "Open document via:" dialog of our
-        // own in front of it, listing every app that answers ACTION_OPEN_DOCUMENT - an extra tap
-        // that duplicated what the picker itself already offers, since it can browse Drive,
-        // Downloads, a usb stick and every installed file manager on its own.
+        // Use the system picker for installed document providers.
         try {
             OpenFileIdling.increment()
 

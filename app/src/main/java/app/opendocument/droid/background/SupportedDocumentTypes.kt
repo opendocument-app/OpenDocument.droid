@@ -5,18 +5,8 @@ import app.opendocument.core.FileType
 import app.opendocument.core.Odr
 
 /**
- * What the app claims to open and which loader gets it, derived from odrcore's format table rather
- * than kept here - so the app cannot claim a format the core does not have, or miss one it does.
- *
- * Two separate questions: what the app offers itself for ([CLAIMED_FILE_TYPES], mirrored by the
- * STRICT_CATCH `activity-alias`) and what [CoreLoader] renders once it has a file
- * ([CORE_FILE_TYPES]). The second is wider on purpose - the app does not offer for an mp3, but it
- * plays one handed to it. `SupportedFormatsTest` holds the manifest, which cannot read any of this,
- * against the first.
- *
- * All of it is a guess from a name and whatever mime type a provider volunteered. What decides once
- * the file is in the cache is [FileIdentifier], which asks `Odr.mimetype` about the copy, and
- * [CoreLoader.isDocumentEditable], which asks the opened document.
+ * Derives rendered and claimed formats from the core. Claimed types match the manifest and are
+ * checked by SupportedFormatsTest; actual files are identified by [FileIdentifier].
  */
 object SupportedDocumentTypes {
 

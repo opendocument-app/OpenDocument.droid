@@ -8,23 +8,10 @@ import java.nio.charset.StandardCharsets
 import org.json.JSONArray
 import org.json.JSONObject
 
-/**
- * A list of objects in an app private json file, read and written whole.
- *
- * Open the file or treat a missing one as an empty list, walk the array, skip what does not parse,
- * write the whole thing back - none of which is about what [RecentDocumentsUtil] stores, so none of
- * it is in there. The list is not long enough to be worth a database, and is only ever replaced
- * entirely.
- */
+/** Reads and replaces lists of JSON objects in app-private storage. */
 internal object JsonFileStore {
 
-    /**
-     * Everything in [filename] that [parse] makes sense of, in the order the file has it.
-     *
-     * A missing file is an empty list rather than the [java.io.FileNotFoundException] every caller
-     * would otherwise have to catch, and so is a truncated one - there is no history to recover,
-     * and nothing the list holds is worth failing a launch over.
-     */
+    /** Parses entries in file order. Missing or malformed files return an empty list. */
     fun <T> read(context: Context, filename: String, parse: (JSONObject) -> T?): List<T> {
         val jsonArray =
             try {

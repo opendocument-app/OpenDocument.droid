@@ -1,13 +1,6 @@
 #!/usr/bin/env bash
-#
-# Runs the instrumented tests inside reactivecircus/android-emulator-runner.
-#
-# The action executes its "script:" input line by line, each line in its own
-# "sh -c" - so a multi-line if or loop is a syntax error there, and a variable
-# does not survive to the next line. That is not cosmetic: "|| status=$?" on one
-# line and "exit $status" on another meant gradle's exit code was swallowed and
-# an empty "exit" reported a failed test run as a green step. Everything that
-# needs shell state lives here instead, behind a one-line invocation.
+# Run device tests, collect diagnostics, and stop the CI emulator. Keep shell state here because
+# the emulator action runs each input line separately.
 
 set -u
 

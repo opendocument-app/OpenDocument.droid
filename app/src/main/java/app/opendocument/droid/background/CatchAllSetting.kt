@@ -4,13 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 
-/**
- * Whether the app offers itself for every file type, or only for the document types it actually
- * supports.
- *
- * Backed by the two activity aliases in the manifest: exactly one of them is enabled at a time, and
- * which one decides how broad the intent filter the system sees is.
- */
+/** Enables exactly one manifest alias: all file types or supported document types. */
 object CatchAllSetting {
 
     private const val PREF_CATCH_ALL_ENABLED = "catch_all_enabled"

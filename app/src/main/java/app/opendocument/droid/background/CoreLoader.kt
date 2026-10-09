@@ -61,13 +61,8 @@ class CoreLoader(private val context: Context) {
     }
 
     /**
-     * Renders [file] and publishes it, replacing whatever was published before.
-     *
-     * Under a prefix of its own, so a request the page it replaces still had in flight cannot be
-     * mistaken for one for the new page - `PageView.failPage` tells them apart by url.
-     *
-     * Throws what odrcore threw: which failure it is decides which bar the user gets, so
-     * [DocumentLoader] needs the exception itself.
+     * Renders [file] under a unique URL prefix, replacing the previous translation. Core exceptions
+     * propagate to [DocumentLoader].
      */
     fun render(request: DocumentRequest, file: IdentifiedFile): LoadedDocument {
         val cachedFile =
@@ -97,11 +92,8 @@ class CoreLoader(private val context: Context) {
     }
 
     /**
-     * Opens [inputPath], translates it to html and publishes it on the shared http server under
-     * [prefix], replacing whatever was published before.
-     *
-     * [askEditing] sets [editing], and renders an editable document with its editor. [declaredType]
-     * is what the document is called - see [openFile].
+     * Publishes [inputPath] under [prefix]. [askEditing] enables editor support; [declaredType]
+     * provides the filename type hint.
      */
     fun host(
         prefix: String,
@@ -187,11 +179,8 @@ class CoreLoader(private val context: Context) {
     }
 
     /**
-     * What the document is *called*. Not [IdentifiedFile.mimeType]: `FileIdentifier` takes that
-     * from `Odr.mimetype` wherever it answered, so it would be the same reading again.
-     *
-     * Only a name the core has a decoder for: html is named by the table and not opened by it, so
-     * calling a file `.html` answers nothing [openAs] could act on.
+     * Returns a decodable type inferred from the filename, independently of content-based MIME
+     * detection.
      */
     private fun declaredType(file: IdentifiedFile): FileType? {
         val extension = MimeTypeResolver.parseExtension(file.filename)?.lowercase() ?: return null
@@ -232,11 +221,8 @@ class CoreLoader(private val context: Context) {
     }
 
     /**
-     * Whether what the file is called beats a text reading: a document, or a format the core says
-     * it cannot recognise from its bytes.
-     *
-     * Csv is neither - the core decides it from plain text itself - and markdown is the case it
-     * says it cannot, so the name is all there is.
+     * The filename overrides text detection for documents and formats without content detection,
+     * such as Markdown.
      */
     private fun nameOutranksText(declaredType: FileType): Boolean =
         Odr.fileCategoryByFileType(declaredType) == FileCategory.DOCUMENT ||
@@ -403,22 +389,16 @@ class CoreLoader(private val context: Context) {
         private const val TAG = "CoreLoader"
 
         /**
-         * The one http server of the process, started on the first [initialize] and never stopped.
-         *
-         * There is nobody to stop it for: the server is process wide, so no single loader's
-         * teardown is the end of it. [close] drops what it published with [HttpServer.clear] and
-         * leaves the socket listening; the process exit reclaims it.
+         * Process-wide server. [close] clears its published content; process exit releases the
+         * socket.
          */
         private var sharedServer: HttpServer? = null
 
         private var sharedServerPort = PREFERRED_SERVER_PORT
 
         /**
-         * Binds [server], preferring [PREFERRED_SERVER_PORT], and returns the port it got.
-         *
-         * The preferred port is hardcoded in both flavors, so lite and pro collide whenever they
-         * run on one device - the instrumented tests do exactly that. A failed bind used to be
-         * silent, leaving every document at ERR_CONNECTION_REFUSED.
+         * Binds [server] to the preferred port, falling back to a free port when another edition
+         * occupies it.
          */
         private fun bind(server: HttpServer, crashManager: CrashManager): Int {
             try {

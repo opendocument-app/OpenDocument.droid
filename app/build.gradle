@@ -2,12 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-// Release signing credentials come from gradle properties or the environment; see the
-// README's "Release signing" section for the names. Absent, the release variants build
-// unsigned rather than failing.
-// empty counts as absent: an unset github actions secret still arrives as an empty
-// environment variable, which would otherwise be used as the key password instead of
-// falling back to the store one
+// Release signing is optional. Empty credentials count as absent; see README.
 def signingSetting = { String property, String environmentVariable ->
     providers.gradleProperty(property)
             .orElse(providers.environmentVariable(environmentVariable))
@@ -19,30 +14,19 @@ def releaseKeyPasswordPro = signingSetting('odr.keyPasswordPro', 'ODR_KEY_PASSWO
 def releaseKeyPasswordLite = signingSetting('odr.keyPasswordLite', 'ODR_KEY_PASSWORD_LITE')
 def hasReleaseSigning = releaseKeystore.isPresent() && releaseKeystorePassword.isPresent()
 
-// The version lives nowhere in the tree: it is the release run's `version` input, handed
-// over as -Podr.version (or ODR_VERSION), and the tags are written afterwards. A number
-// checked in on main would describe either a release that already went out or a guess at
-// the next one, walked forward by hand in two places.
-//
-// Everything else - a local build, a PR build, a dry run - is 0.0.0, which nothing reads:
-// no code looks at its own version, and only the release workflow uploads anything.
+// Release versions come from odr.version or ODR_VERSION; other builds use 0.0.0.
 def parseVersion = { String version ->
     // split rather than tokenize, which would swallow the empty part in '4..8'
     def parts = (version - ~/^v/).split('\\.', -1) as List
-    // all three parts, spelled out. a missing one used to be padded with a zero, so
-    // 'v4.7' and 'v4.7.0' were the same build under two names - which is how the tags
-    // ended up in two formats. the padding is gone rather than the spelling made a
-    // convention, because a convention cannot fail the build
+    // Require all three components; never pad missing version parts.
     if (parts.size() != 3 || !parts.every { it ==~ /\d+/ }) {
         throw new GradleException(
                 "odr.version must look like 4.8.0 or v4.8.0, not '${version}'")
     }
     def numbers = parts*.toInteger()
-    // two digits per component: v4.8.0 is 40800, a one way step past the hand counted
-    // codes (204 and below), since play never accepts a lower code than it has seen
+    // Encode each component in two digits: 4.8.0 becomes 40800.
     if (numbers.any { it > 99 }) {
-        // silently carrying would make 4.100.0 and 5.0.0 the same code, and a collision
-        // is only discoverable once the store rejects the upload
+        // Reject components that would collide in the version code.
         throw new GradleException("every part of '${version}' has to be below 100 for the " +
                 "two-digits-per-part version code to stay unambiguous")
     }
@@ -62,9 +46,7 @@ def appVersion = requestedVersion.isPresent()
 
 android {
     defaultConfig {
-        // NOT the java package (see namespace below) but the identity on play and
-        // f-droid, which can never change: a new one is a new listing that existing
-        // installs never update to. Rebranding goes through the listing title instead.
+        // Published application ID; changing it breaks upgrades.
         applicationId = "at.tomtasche.reader"
         minSdk = 26
         targetSdk = 36
@@ -126,10 +108,8 @@ android {
         }
     }
 
-    // The nonfree/ classes that call a play library, or a no-op of the same shape - two
-    // pairs, because the flavors disagree on both halves. What a flavor links is a flag in
-    // these directories too, read through Features, rather than a second list here.
-    // kotlin.srcDirs and not java.srcDirs: a directory added to the latter reaches javac only.
+    // Each flavor links ads/review implementations or matching no-ops. Kotlin sources require
+    // kotlin.srcDirs.
     sourceSets {
         getByName('lite') { kotlin.srcDirs += ['src/ads/java', 'src/review/java'] }
         getByName('pro') { kotlin.srcDirs += ['src/noAds/java', 'src/review/java'] }
@@ -157,9 +137,7 @@ android {
     }
 
     lint {
-        // lint errors are build failures. NewApi in particular is the check that
-        // would have caught the java.nio.file usage below minSdk that shipped for
-        // years while this was switched off.
+        // Fail builds on lint errors, including APIs unavailable at minSdk.
         abortOnError = true
 
         // warnings stay warnings for now - there is a backlog of them (unused
@@ -173,8 +151,7 @@ android {
     buildFeatures {
         buildConfig = true
     }
-    // the java/kotlin package, R and BuildConfig - internal and free to rename, unlike
-    // the applicationId above. testNamespace defaults to this + ".test".
+    // Internal package for Kotlin, R, and BuildConfig; independent of applicationId.
     namespace = 'app.opendocument.droid'
     // ahead of targetSdk on purpose: compiling against newer APIs is independent of
     // opting in to their runtime behavior. androidx.core 1.19.0 requires 37.
@@ -185,8 +162,7 @@ dependencies {
     // odrcore's JNI bindings, java and native in one AAR (see settings.gradle)
     implementation libs.odr.core.android
 
-    // per flavor: pro carried the ad and consent sdks only to switch them off at
-    // runtime, and foss links none of the three, which is what f-droid needs.
+    // Only Lite links the ad and consent SDKs; Foss links no Play SDKs.
     liteImplementation libs.play.services.ads
     liteImplementation libs.user.messaging.platform
     liteImplementation libs.play.review

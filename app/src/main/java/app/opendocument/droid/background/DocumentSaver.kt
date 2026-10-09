@@ -5,15 +5,7 @@ import android.net.Uri
 import app.opendocument.droid.nonfree.CrashManager
 import java.io.File
 
-/**
- * Writes a document back to the file the user picked.
- *
- * The write goes straight into their own document, so what is there is kept until the new content
- * has landed whole - and if the rollback does not get it back in, the copy is left in the cache
- * rather than the job being finished.
- *
- * Does file and provider work, so it belongs on the same background thread the loads run on.
- */
+/** Saves on the loader thread with a backup of the target. Keeps the backup if rollback fails. */
 class DocumentSaver(
     private val context: Context,
     private val coreLoader: CoreLoader,

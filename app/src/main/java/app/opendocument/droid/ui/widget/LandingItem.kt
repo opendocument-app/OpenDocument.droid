@@ -9,13 +9,7 @@ sealed class LandingItem {
     /** The identity a row keeps across refreshes, so DiffUtil can tell a move from a change. */
     abstract val id: String
 
-    /**
-     * A section title.
-     *
-     * [section] is what folding it reports, and null for a section that does not fold - the
-     * recently opened documents are the screen, and hiding them behind a chevron would leave a
-     * screen of chevrons. [expanded] only means anything when [section] does not.
-     */
+    /** A section header. A non-null [section] enables folding and makes [expanded] relevant. */
     class Header(
         @param:StringRes val title: Int,
         val section: Int? = null,

@@ -1,17 +1,6 @@
 #!/usr/bin/env bash
-#
-# Checks that every release bundle and apk a build produced is signed.
-#
-# A release that silently produced an unsigned bundle would be rejected by the
-# play store with a much less obvious error, and an unsigned apk on the github
-# release would not install at all. Release variants build unsigned rather than
-# failing when the credentials are absent (see app/build.gradle), which is what
-# makes this worth checking rather than assuming.
-#
-# Takes the directory to look under, app/build/outputs by default:
-#
-#   .github/scripts/verify-signed.sh
-#
+# Check release bundle and APK signatures under app/build/outputs, or the given directory.
+
 set -uo pipefail
 shopt -s nullglob
 

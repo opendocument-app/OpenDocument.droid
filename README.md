@@ -155,7 +155,7 @@ which is where F-Droid reads the version code from.
 
 ### Fixing the listing
 
-`fastlane android listingPro` and `listingLite` upload the listing without a bundle. With
+`fastlane android listingPro version:v4.21.0` and `listingLite version:v4.21.0` upload the listing without a bundle. With
 nothing under `fastlane/framed` they send the text alone, so a typo needs no new version and
 no emulator.
 
