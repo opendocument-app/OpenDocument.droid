@@ -33,6 +33,9 @@ jobs:
     - name: checkout
       uses: actions/checkout@v7
 
+    - name: test CI result validation
+      run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
+
     - name: setup java
       uses: actions/setup-java@v6.0.1
       with:
