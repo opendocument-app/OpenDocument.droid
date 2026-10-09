@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.core.content.FileProvider
 import java.io.File
+import java.nio.file.Files
 
 /**
  * The working copy of the document being read.
@@ -39,15 +40,20 @@ object FileCache {
      *   document that cannot be read has nothing further to be done with it.
      */
     fun store(context: Context, uri: Uri): File {
-        cleanup(context)
-
         if (isCached(context, uri)) {
             return checkNotNull(getCacheFile(context, uri))
         }
 
-        return createCacheFile(context).also { cacheFile ->
+        cleanup(context)
+
+        val cacheFile = createCacheFile(context)
+        try {
             val stream = context.contentResolver.openInputStream(uri)
             StreamUtil.copy(checkNotNull(stream) { "cannot open $uri" }, cacheFile)
+            return cacheFile
+        } catch (e: Throwable) {
+            deleteCacheFile(cacheFile)
+            throw e
         }
     }
 
@@ -61,36 +67,42 @@ object FileCache {
         return parentDirectory
     }
 
-    private fun parseCacheFileName(path: String): String {
-        return path.substring(path.indexOf(CACHE_DIRECTORY_PREFIX))
-    }
-
     fun getCacheFileUri(context: Context, file: File): Uri {
         return FileProvider.getUriForFile(context, getProviderAuthority(context), file)
     }
 
-    fun isCached(context: Context, uri: Uri): Boolean {
-        return uri.host == getProviderAuthority(context) &&
-            uri.toString().contains(CACHE_DIRECTORY_PREFIX)
-    }
+    fun isCached(context: Context, uri: Uri): Boolean = getCacheFile(context, uri) != null
 
     fun getCacheFile(context: Context, uri: Uri): File? {
-        if (!isCached(context, uri)) {
+        if (uri.scheme != "content" || uri.authority != getProviderAuthority(context)) {
             return null
         }
 
-        val cacheFileString = parseCacheFileName(uri.toString())
+        val segments = uri.pathSegments
+        if (segments.size < 4 || segments.take(2) != listOf("cache", "cache")) {
+            return null
+        }
+        if (!segments[2].startsWith(CACHE_DIRECTORY_PREFIX) || "/" in segments[2]) {
+            return null
+        }
 
-        return File(getRootCacheDirectory(context), cacheFileString)
+        val root = getRootCacheDirectory(context).canonicalFile
+        val directory = File(root, segments[2]).canonicalFile
+        val file = File(root, segments.drop(2).joinToString("/")).canonicalFile
+        return file.takeIf {
+            directory.parentFile == root &&
+                file.toPath().startsWith(directory.toPath()) &&
+                file != directory
+        }
     }
 
     fun createCacheFile(context: Context): File {
-        val cacheRoot = getRootCacheDirectory(context)
-        val cacheDirectory = File(cacheRoot, CACHE_DIRECTORY_PREFIX + System.currentTimeMillis())
-
-        cacheDirectory.mkdirs()
-
-        return File(cacheDirectory, "cached-file.tmp")
+        val directory =
+            Files.createTempDirectory(
+                getRootCacheDirectory(context).toPath(),
+                CACHE_DIRECTORY_PREFIX + System.currentTimeMillis() + ".",
+            )
+        return directory.resolve("cached-file.tmp").toFile()
     }
 
     /**

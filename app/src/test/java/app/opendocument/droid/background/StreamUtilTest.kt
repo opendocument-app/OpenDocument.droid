@@ -80,6 +80,24 @@ class StreamUtilTest {
     }
 
     @Test
+    fun copyClosesInputWhenDestinationCannotBeOpened() {
+        var closed = false
+        val input =
+            object : ByteArrayInputStream(byteArrayOf(1)) {
+                override fun close() {
+                    closed = true
+                    super.close()
+                }
+            }
+
+        Assert.assertThrows(IOException::class.java) {
+            StreamUtil.copy(input, temporaryFolder.newFolder())
+        }
+
+        Assert.assertTrue(closed)
+    }
+
+    @Test
     fun copyClosesInputStream() {
         val source = temporaryFolder.newFile()
         Files.write(source.toPath(), "x".toByteArray(StandardCharsets.UTF_8))
