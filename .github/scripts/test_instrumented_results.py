@@ -50,6 +50,15 @@ class InstrumentedResultsTest(unittest.TestCase):
                            '</testsuite><testsuite><testcase/></testsuite></testsuites>')
         self.assertEqual({"pro": 2}, results.verify(self.root, ["pro"]))
 
+    def test_agp_assumption_failures_count_as_skips(self):
+        assumption = ('<testcase><failure>org.junit.AssumptionViolatedException: '
+                      'not a screenshot run</failure></testcase>')
+        self.report("pro", '<testsuite failures="1"><testcase/>' + assumption + '</testsuite>')
+        self.assertEqual({"pro": 1}, results.verify(self.root, ["pro"]))
+        self.report("pro", '<testsuite failures="1">' + assumption + '</testsuite>')
+        with self.assertRaisesRegex(ValueError, "no tests executed"):
+            results.verify(self.root, ["pro"])
+
     def test_rejects_malformed_reports(self):
         self.report("pro", '<testsuite>')
         with self.assertRaises(results.ET.ParseError):

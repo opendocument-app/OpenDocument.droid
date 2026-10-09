@@ -7,6 +7,17 @@ import sys
 import xml.etree.ElementTree as ET
 
 
+def assumption_skipped(case):
+    # AGP can encode JUnit assumptions as <failure> instead of <skipped>.
+    failure = case.find("failure")
+    if failure is None:
+        return False
+    kinds = ("org.junit.AssumptionViolatedException", "org.junit.internal.AssumptionViolatedException")
+    return failure.get("type") in kinds or (failure.text or "").startswith(
+        tuple(kind + ":" for kind in kinds)
+    )
+
+
 def verify(results, flavors):
     counts = {}
     for flavor in flavors:
@@ -17,9 +28,12 @@ def verify(results, flavors):
         for report in reports:
             root = ET.parse(report).getroot()
             for suite in root.iter("testsuite"):
-                if int(suite.get("failures", 0)) or int(suite.get("errors", 0)):
+                assumptions = sum(assumption_skipped(case) for case in suite.iter("testcase"))
+                if int(suite.get("failures", 0)) > assumptions or int(suite.get("errors", 0)):
                     raise ValueError(f"{flavor}: failed tests in {report.name}")
             for case in root.iter("testcase"):
+                if assumption_skipped(case) and case.find("error") is None:
+                    continue
                 if case.find("failure") is not None or case.find("error") is not None:
                     raise ValueError(f"{flavor}: failed test {case.get('name')}")
                 executed += case.find("skipped") is None
