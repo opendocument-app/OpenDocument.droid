@@ -134,4 +134,19 @@
     <string name="edit_refused_read_only">Этот документ нельзя редактировать.</string>
     <string name="edit_refused_range">Правка не может охватывать изображение или таблицу.</string>
     <string name="edit_refused_unsupported">Такая правка здесь невозможна.</string>
+    <string name="tool_rows_columns">Строки и столбцы</string>
+    <string name="tool_insert_rows_above">Вставить строки выше</string>
+    <string name="tool_insert_rows_below">Вставить строки ниже</string>
+    <string name="tool_delete_rows">Удалить строки</string>
+    <string name="tool_insert_columns_left">Вставить столбцы слева</string>
+    <string name="tool_insert_columns_right">Вставить столбцы справа</string>
+    <string name="tool_delete_columns">Удалить столбцы</string>
+    <string name="pro_offer_sheet">Полужирный шрифт, курсив, цвета, размер текста и выравнивание в ячейках, а также вставка и удаление строк и столбцов входят в OpenDocument Reader Pro. Заливка доступна во всех версиях.</string>
+    <string name="edit_refused_sheet_cut">Показана только часть листа, поэтому здесь его нельзя редактировать.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d ячейка с формулой показывает результат, который устарел после вашего изменения. При сохранении он по возможности пересчитывается.</item>
+        <item quantity="few">%d ячейки с формулами показывают результаты, которые устарели после вашего изменения. При сохранении они по возможности пересчитываются.</item>
+        <item quantity="many">%d ячеек с формулами показывают результаты, которые устарели после вашего изменения. При сохранении они по возможности пересчитываются.</item>
+        <item quantity="other">%d ячейки с формулами показывают результаты, которые устарели после вашего изменения. При сохранении они по возможности пересчитываются.</item>
+    </plurals>
 </resources>

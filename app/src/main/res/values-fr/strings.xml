@@ -134,4 +134,18 @@
     <string name="edit_refused_read_only">Ce document ne peut pas être modifié.</string>
     <string name="edit_refused_range">Une modification ne peut pas s\'étendre sur une image ou un tableau.</string>
     <string name="edit_refused_unsupported">Cette modification n\'est pas possible ici.</string>
+    <string name="tool_rows_columns">Lignes et colonnes</string>
+    <string name="tool_insert_rows_above">Insérer des lignes au-dessus</string>
+    <string name="tool_insert_rows_below">Insérer des lignes en dessous</string>
+    <string name="tool_delete_rows">Supprimer les lignes</string>
+    <string name="tool_insert_columns_left">Insérer des colonnes à gauche</string>
+    <string name="tool_insert_columns_right">Insérer des colonnes à droite</string>
+    <string name="tool_delete_columns">Supprimer les colonnes</string>
+    <string name="pro_offer_sheet">Le gras, l\'italique, les couleurs, la taille du texte et l\'alignement des cellules, ainsi que l\'insertion ou la suppression de lignes et de colonnes, sont inclus dans OpenDocument Reader Pro. Le remplissage est disponible dans toutes les éditions.</string>
+    <string name="edit_refused_sheet_cut">Seule une partie de cette feuille est affichée, elle ne peut donc pas être modifiée ici.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d cellule de formule affiche un résultat que votre modification a rendu obsolète. L\'enregistrement le recalcule si possible.</item>
+        <item quantity="many">%d cellules de formule affichent des résultats que votre modification a rendus obsolètes. L\'enregistrement les recalcule si possible.</item>
+        <item quantity="other">%d cellules de formule affichent des résultats que votre modification a rendus obsolètes. L\'enregistrement les recalcule si possible.</item>
+    </plurals>
 </resources>

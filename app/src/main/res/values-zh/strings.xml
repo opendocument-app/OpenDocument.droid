@@ -134,4 +134,16 @@
     <string name="edit_refused_read_only">此文档无法编辑。</string>
     <string name="edit_refused_range">编辑不能跨越图片或表格。</string>
     <string name="edit_refused_unsupported">此处无法进行该编辑。</string>
+    <string name="tool_rows_columns">行和列</string>
+    <string name="tool_insert_rows_above">在上方插入行</string>
+    <string name="tool_insert_rows_below">在下方插入行</string>
+    <string name="tool_delete_rows">删除行</string>
+    <string name="tool_insert_columns_left">在左侧插入列</string>
+    <string name="tool_insert_columns_right">在右侧插入列</string>
+    <string name="tool_delete_columns">删除列</string>
+    <string name="pro_offer_sheet">单元格的粗体、斜体、颜色、文字大小和对齐方式，以及插入或删除行和列，均为 OpenDocument Reader Pro 的功能。填充在所有版本中均可使用。</string>
+    <string name="edit_refused_sheet_cut">此工作表仅显示了一部分，因此无法在此编辑。</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="other">%d 个公式单元格显示的结果因您的编辑而过时。保存时会尽可能重新计算。</item>
+    </plurals>
 </resources>

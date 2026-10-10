@@ -1,0 +1,7 @@
+Agora é possível inserir e excluir linhas e colunas de planilhas, além de editar e salvar arquivos CSV. Ao salvar, as fórmulas que uma edição deixou desatualizadas são recalculadas.
+
+A impressão usa o papel e a orientação do documento, uma página por folha. Um PDF é impresso a partir do próprio arquivo.
+
+Alguns arquivos do Word, Excel e PowerPoint vindos de aplicativos de e-mail e de arquivos voltaram a abrir no aplicativo.
+
+A leitura em voz alta usa o idioma do documento.

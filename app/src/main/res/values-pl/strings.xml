@@ -134,4 +134,19 @@
     <string name="edit_refused_read_only">Tego dokumentu nie można edytować.</string>
     <string name="edit_refused_range">Edycja nie może obejmować obrazu ani tabeli.</string>
     <string name="edit_refused_unsupported">Ta edycja nie jest tu możliwa.</string>
+    <string name="tool_rows_columns">Wiersze i kolumny</string>
+    <string name="tool_insert_rows_above">Wstaw wiersze powyżej</string>
+    <string name="tool_insert_rows_below">Wstaw wiersze poniżej</string>
+    <string name="tool_delete_rows">Usuń wiersze</string>
+    <string name="tool_insert_columns_left">Wstaw kolumny z lewej</string>
+    <string name="tool_insert_columns_right">Wstaw kolumny z prawej</string>
+    <string name="tool_delete_columns">Usuń kolumny</string>
+    <string name="pro_offer_sheet">Pogrubienie, kursywa, kolory, rozmiar tekstu i wyrównanie komórek oraz wstawianie i usuwanie wierszy i kolumn są dostępne w OpenDocument Reader Pro. Wypełnienie jest dostępne w każdej wersji.</string>
+    <string name="edit_refused_sheet_cut">Wyświetlana jest tylko część tego arkusza, więc nie można go tu edytować.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d komórka z formułą pokazuje wynik, który Twoja zmiana zdezaktualizowała. Zapisanie przelicza go ponownie tam, gdzie to możliwe.</item>
+        <item quantity="few">%d komórki z formułą pokazują wyniki, które Twoja zmiana zdezaktualizowała. Zapisanie przelicza je ponownie tam, gdzie to możliwe.</item>
+        <item quantity="many">%d komórek z formułą pokazuje wyniki, które Twoja zmiana zdezaktualizowała. Zapisanie przelicza je ponownie tam, gdzie to możliwe.</item>
+        <item quantity="other">%d komórki z formułą pokazuje wyniki, które Twoja zmiana zdezaktualizowała. Zapisanie przelicza je ponownie tam, gdzie to możliwe.</item>
+    </plurals>
 </resources>

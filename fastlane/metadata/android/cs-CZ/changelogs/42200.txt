@@ -1,0 +1,7 @@
+V tabulkách nyní můžete vkládat a odstraňovat řádky a sloupce. Soubory CSV lze upravovat a ukládat. Při ukládání se aktualizují vzorce, které po úpravě už neodpovídají.
+
+Tisk použije formát papíru a orientaci dokumentu, jednu stránku na list. PDF se vytiskne přímo ze souboru.
+
+Některé soubory Word, Excel a PowerPoint z e-mailových aplikací a správců souborů se v aplikaci opět otevřou.
+
+Předčítání nahlas používá jazyk dokumentu.

@@ -1,0 +1,7 @@
+Tabellenzeilen und -spalten lassen sich jetzt einfügen und löschen, CSV-Dateien bearbeiten und speichern. Beim Speichern werden Formeln aktualisiert, die durch eine Änderung veraltet sind.
+
+Gedruckt wird im Papierformat und in der Ausrichtung des Dokuments, eine Seite pro Blatt. Ein PDF wird direkt aus der Datei gedruckt.
+
+Einige Word-, Excel- und PowerPoint-Dateien aus Mail- und Datei-Apps lassen sich wieder in der App öffnen.
+
+Vorgelesen wird in der Sprache des Dokuments.

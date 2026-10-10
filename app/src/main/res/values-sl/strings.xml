@@ -134,4 +134,19 @@
     <string name="edit_refused_read_only">Tega dokumenta ni mogoče urejati.</string>
     <string name="edit_refused_range">Urejanje ne more segati prek slike ali tabele.</string>
     <string name="edit_refused_unsupported">To urejanje tukaj ni mogoče.</string>
+    <string name="tool_rows_columns">Vrstice in stolpci</string>
+    <string name="tool_insert_rows_above">Vstavi vrstice zgoraj</string>
+    <string name="tool_insert_rows_below">Vstavi vrstice spodaj</string>
+    <string name="tool_delete_rows">Izbriši vrstice</string>
+    <string name="tool_insert_columns_left">Vstavi stolpce levo</string>
+    <string name="tool_insert_columns_right">Vstavi stolpce desno</string>
+    <string name="tool_delete_columns">Izbriši stolpce</string>
+    <string name="pro_offer_sheet">Krepka in ležeča pisava, barve, velikost besedila in poravnava celic ter vstavljanje ali brisanje vrstic in stolpcev so del različice OpenDocument Reader Pro. Polnilo je na voljo v vseh različicah.</string>
+    <string name="edit_refused_sheet_cut">Prikazan je le del tega lista, zato ga tukaj ni mogoče urejati.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d celica s formulo prikazuje rezultat, ki ga je vaše urejanje naredilo zastarelega. Ob shranjevanju se, kjer je mogoče, znova izračuna.</item>
+        <item quantity="two">%d celici s formulo prikazujeta rezultata, ki ju je vaše urejanje naredilo zastarela. Ob shranjevanju se, kjer je mogoče, znova izračunata.</item>
+        <item quantity="few">%d celice s formulo prikazujejo rezultate, ki jih je vaše urejanje naredilo zastarele. Ob shranjevanju se, kjer je mogoče, znova izračunajo.</item>
+        <item quantity="other">%d celic s formulo prikazuje rezultate, ki jih je vaše urejanje naredilo zastarele. Ob shranjevanju se, kjer je mogoče, znova izračunajo.</item>
+    </plurals>
 </resources>

@@ -134,4 +134,18 @@
     <string name="edit_refused_read_only">Aquest document no es pot editar.</string>
     <string name="edit_refused_range">Una edició no pot abastar una imatge o una taula.</string>
     <string name="edit_refused_unsupported">Aquesta edició no és possible aquí.</string>
+    <string name="tool_rows_columns">Files i columnes</string>
+    <string name="tool_insert_rows_above">Insereix files a sobre</string>
+    <string name="tool_insert_rows_below">Insereix files a sota</string>
+    <string name="tool_delete_rows">Suprimeix les files</string>
+    <string name="tool_insert_columns_left">Insereix columnes a l\'esquerra</string>
+    <string name="tool_insert_columns_right">Insereix columnes a la dreta</string>
+    <string name="tool_delete_columns">Suprimeix les columnes</string>
+    <string name="pro_offer_sheet">La negreta, la cursiva, els colors, la mida del text i l\'alineació de les cel·les, així com inserir o suprimir files i columnes, formen part d\'OpenDocument Reader Pro. L\'emplenament està disponible a totes les edicions.</string>
+    <string name="edit_refused_sheet_cut">Només es mostra una part d\'aquest full, per això no es pot editar aquí.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d cel·la amb fórmula mostra un resultat que la vostra edició ha deixat desfasat. En desar, es torna a calcular on es pot.</item>
+        <item quantity="many">%d cel·les amb fórmula mostren resultats que la vostra edició ha deixat desfasats. En desar, es tornen a calcular on es pot.</item>
+        <item quantity="other">%d cel·les amb fórmula mostren resultats que la vostra edició ha deixat desfasats. En desar, es tornen a calcular on es pot.</item>
+    </plurals>
 </resources>

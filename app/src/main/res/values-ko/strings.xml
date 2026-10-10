@@ -134,4 +134,16 @@
     <string name="edit_refused_read_only">이 문서는 편집할 수 없습니다.</string>
     <string name="edit_refused_range">편집 범위에 그림이나 표를 포함할 수 없습니다.</string>
     <string name="edit_refused_unsupported">여기서는 그렇게 편집할 수 없습니다.</string>
+    <string name="tool_rows_columns">행 및 열</string>
+    <string name="tool_insert_rows_above">위에 행 삽입</string>
+    <string name="tool_insert_rows_below">아래에 행 삽입</string>
+    <string name="tool_delete_rows">행 삭제</string>
+    <string name="tool_insert_columns_left">왼쪽에 열 삽입</string>
+    <string name="tool_insert_columns_right">오른쪽에 열 삽입</string>
+    <string name="tool_delete_columns">열 삭제</string>
+    <string name="pro_offer_sheet">셀의 굵게, 기울임꼴, 색상, 글자 크기, 맞춤 기능과 행 및 열 삽입·삭제 기능은 OpenDocument Reader Pro에 포함되어 있습니다. 채우기는 모든 버전에서 사용할 수 있습니다.</string>
+    <string name="edit_refused_sheet_cut">이 시트는 일부만 표시되어 있어 여기서 편집할 수 없습니다.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="other">수식 셀 %d개에 편집으로 인해 오래된 결과가 표시됩니다. 저장하면 가능한 경우 다시 계산됩니다.</item>
+    </plurals>
 </resources>

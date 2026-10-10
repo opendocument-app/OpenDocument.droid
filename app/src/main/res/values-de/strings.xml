@@ -134,4 +134,17 @@
     <string name="edit_refused_read_only">Dieses Dokument kann nicht bearbeitet werden.</string>
     <string name="edit_refused_range">Eine Änderung kann nicht über ein Bild oder eine Tabelle hinausreichen.</string>
     <string name="edit_refused_unsupported">Diese Änderung ist hier nicht möglich.</string>
+    <string name="tool_rows_columns">Zeilen und Spalten</string>
+    <string name="tool_insert_rows_above">Zeilen oberhalb einfügen</string>
+    <string name="tool_insert_rows_below">Zeilen unterhalb einfügen</string>
+    <string name="tool_delete_rows">Zeilen löschen</string>
+    <string name="tool_insert_columns_left">Spalten links einfügen</string>
+    <string name="tool_insert_columns_right">Spalten rechts einfügen</string>
+    <string name="tool_delete_columns">Spalten löschen</string>
+    <string name="pro_offer_sheet">Fett, kursiv, Farben, Textgröße und Ausrichtung von Zellen sowie das Einfügen oder Löschen von Zeilen und Spalten sind Teil von OpenDocument Reader Pro. Die Füllfarbe ist in jeder Version enthalten.</string>
+    <string name="edit_refused_sheet_cut">Von dieser Tabelle wird nur ein Teil angezeigt, daher kann sie hier nicht bearbeitet werden.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d Formelzelle zeigt ein Ergebnis, das durch Ihre Änderung veraltet ist. Beim Speichern wird es, wo möglich, neu berechnet.</item>
+        <item quantity="other">%d Formelzellen zeigen Ergebnisse, die durch Ihre Änderung veraltet sind. Beim Speichern werden sie, wo möglich, neu berechnet.</item>
+    </plurals>
 </resources>

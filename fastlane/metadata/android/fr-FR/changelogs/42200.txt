@@ -1,0 +1,7 @@
+Vous pouvez insérer et supprimer des lignes et colonnes de tableur, et modifier et enregistrer des fichiers CSV. L'enregistrement actualise les formules rendues obsolètes par une modification.
+
+L'impression reprend le format et l'orientation du document, une page par feuille. Un PDF s'imprime tel quel.
+
+L'application ouvre à nouveau certains fichiers Word, Excel et PowerPoint issus de messageries ou de gestionnaires de fichiers.
+
+La lecture à voix haute utilise la langue du document.

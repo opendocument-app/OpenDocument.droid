@@ -1,0 +1,7 @@
+Ora puoi inserire ed eliminare righe e colonne nei fogli di calcolo, e modificare e salvare i file CSV. Al salvataggio si aggiornano le formule rese obsolete da una modifica.
+
+La stampa usa il formato carta e l'orientamento del documento, una pagina per foglio. I PDF si stampano dal file originale.
+
+Alcuni file Word, Excel e PowerPoint provenienti da app di posta e di gestione file si aprono di nuovo nell'app.
+
+La lettura ad alta voce usa la lingua del documento.

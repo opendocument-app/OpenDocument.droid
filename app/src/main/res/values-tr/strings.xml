@@ -134,4 +134,17 @@
     <string name="edit_refused_read_only">Bu belge düzenlenemez.</string>
     <string name="edit_refused_range">Bir düzenleme bir resmin veya tablonun üzerinden geçemez.</string>
     <string name="edit_refused_unsupported">Bu düzenleme burada mümkün değil.</string>
+    <string name="tool_rows_columns">Satırlar ve sütunlar</string>
+    <string name="tool_insert_rows_above">Üste satır ekle</string>
+    <string name="tool_insert_rows_below">Alta satır ekle</string>
+    <string name="tool_delete_rows">Satırları sil</string>
+    <string name="tool_insert_columns_left">Sola sütun ekle</string>
+    <string name="tool_insert_columns_right">Sağa sütun ekle</string>
+    <string name="tool_delete_columns">Sütunları sil</string>
+    <string name="pro_offer_sheet">Hücrelerde kalın, italik, renkler, metin boyutu ve hizalama ile satır ve sütun ekleme veya silme OpenDocument Reader Pro\'ya özeldir. Dolgu her sürümde kullanılabilir.</string>
+    <string name="edit_refused_sheet_cut">Bu çalışma sayfasının yalnızca bir kısmı gösteriliyor, bu yüzden burada düzenlenemez.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d formül hücresi, düzenlemenizin eskittiği bir sonuç gösteriyor. Kaydetme, mümkün olan yerlerde onu yeniden hesaplar.</item>
+        <item quantity="other">%d formül hücresi, düzenlemenizin eskittiği sonuçlar gösteriyor. Kaydetme, mümkün olan yerlerde bunları yeniden hesaplar.</item>
+    </plurals>
 </resources>
