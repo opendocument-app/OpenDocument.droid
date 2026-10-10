@@ -132,7 +132,14 @@ class PrintingManager {
         }
     }
 
-    private companion object {
-        const val JOB_NAME = "OpenDocument Reader - Document"
+    companion object {
+        private const val JOB_NAME = "OpenDocument Reader - Document"
+
+        /**
+         * Whether the file itself prints rather than the page: a pdf whose page shows no more than
+         * the file, and which the print framework can open without a password.
+         */
+        fun printsOriginal(mimeType: String?, encrypted: Boolean, unsavedEdits: Boolean): Boolean =
+            mimeType == "application/pdf" && !encrypted && !unsavedEdits
     }
 }

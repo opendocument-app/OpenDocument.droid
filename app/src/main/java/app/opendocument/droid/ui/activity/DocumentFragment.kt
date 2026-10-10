@@ -31,11 +31,13 @@ import app.opendocument.droid.background.DocumentDarkening
 import app.opendocument.droid.background.DocumentLoader
 import app.opendocument.droid.background.DocumentRequest
 import app.opendocument.droid.background.EditingKind
+import app.opendocument.droid.background.FileCache
 import app.opendocument.droid.background.IdentifiedFile
 import app.opendocument.droid.background.LoadedDocument
 import app.opendocument.droid.background.NightModeSetting
 import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.background.PersistedUriPermissions
+import app.opendocument.droid.background.PrintingManager
 import app.opendocument.droid.background.ReviewInvitation
 import app.opendocument.droid.background.SheetCut
 import app.opendocument.droid.nonfree.AnalyticsConstants
@@ -49,6 +51,7 @@ import app.opendocument.droid.ui.widget.EditingTools
 import app.opendocument.droid.ui.widget.PageView
 import app.opendocument.droid.ui.widget.ProgressDialogFragment
 import com.google.android.material.tabs.TabLayout
+import java.io.File
 import java.io.FileNotFoundException
 import java.text.NumberFormat
 import org.json.JSONObject
@@ -1436,6 +1439,21 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
     /** Whether the page holds edits or marks no save has written. */
     fun hasUnsavedEdits(): Boolean = ::state.isInitialized && state.editsDirty
+
+    /** Our copy of the document, where it prints itself - see [PrintingManager.printsOriginal]. */
+    fun printableOriginal(): File? {
+        val document = (if (::state.isInitialized) state.lastDocument else null) ?: return null
+        if (
+            !PrintingManager.printsOriginal(
+                document.file.mimeType,
+                document.request.password != null,
+                hasUnsavedEdits(),
+            )
+        ) {
+            return null
+        }
+        return FileCache.getCacheFile(requireContext(), document.file.cacheUri)
+    }
 
     val editingKind: EditingKind
         get() = state.lastDocument?.editing ?: EditingKind.NONE
