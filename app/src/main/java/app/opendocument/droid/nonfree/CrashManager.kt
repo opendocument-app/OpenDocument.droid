@@ -27,7 +27,7 @@ class CrashManager {
 
     private companion object {
         const val TAG = "ODR"
-        private var handlerInstalled = false
+        var handlerInstalled = false
 
         @Synchronized
         fun installHandler() {

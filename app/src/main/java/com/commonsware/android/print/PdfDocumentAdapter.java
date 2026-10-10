@@ -119,7 +119,6 @@ public class PdfDocumentAdapter extends ThreadedPrintDocumentAdapter {
                 while ((size = in.read(buf)) >= 0 && !cancellationSignal.isCanceled()) {
                     out.write(buf, 0, size);
                 }
-
             } catch (Exception e) {
                 callback.onWriteFailed(e.getMessage());
                 Log.e(getClass().getSimpleName(), "Exception printing PDF", e);
