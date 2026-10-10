@@ -533,11 +533,17 @@ class MainActivityTests {
     @Test
     fun testSaveOpensOneCreateDocumentPicker() {
         val activity = mainActivityActivityTestRule.activity
-        loadDocument(activity, requireTestFile("test.odt"))
+        val document = loadDocument(activity, requireTestFile("test.odt"))
+        val original = document.lastDocument
 
         // cancelled: how many pickers were opened is the whole question, not what came back
         Intents.intending(hasAction(Intent.ACTION_CREATE_DOCUMENT))
-            .respondWith(Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null))
+            .respondWith(
+                Instrumentation.ActivityResult(
+                    Activity.RESULT_CANCELED,
+                    Intent().setData(uriOf(requireTestFile("test.odt"))),
+                )
+            )
 
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             activity.onDocumentAction(DocumentActions.ACTION_SAVE)
@@ -549,6 +555,11 @@ class MainActivityTests {
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
 
         Intents.intended(hasAction(Intent.ACTION_CREATE_DOCUMENT), times(1))
+        Assert.assertSame(
+            "a cancelled picker must not save or reload",
+            original,
+            document.lastDocument,
+        )
     }
 
     /**

@@ -25,7 +25,6 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -112,35 +111,24 @@ public class PdfDocumentAdapter extends ThreadedPrintDocumentAdapter {
 
         @Override
         public void run() {
-            InputStream in = null;
-            OutputStream out = null;
-
-            try {
-                in = new FileInputStream(file);
-                out = new FileOutputStream(destination.getFileDescriptor());
-
+            try (InputStream in = new FileInputStream(file);
+                    OutputStream out = new FileOutputStream(destination.getFileDescriptor())) {
                 byte[] buf = new byte[16384];
                 int size;
 
                 while ((size = in.read(buf)) >= 0 && !cancellationSignal.isCanceled()) {
                     out.write(buf, 0, size);
                 }
-
-                if (cancellationSignal.isCanceled()) {
-                    callback.onWriteCancelled();
-                } else {
-                    callback.onWriteFinished(new PageRange[] {PageRange.ALL_PAGES});
-                }
             } catch (Exception e) {
                 callback.onWriteFailed(e.getMessage());
                 Log.e(getClass().getSimpleName(), "Exception printing PDF", e);
-            } finally {
-                try {
-                    in.close();
-                    out.close();
-                } catch (IOException e) {
-                    Log.e(getClass().getSimpleName(), "Exception cleaning up from printing PDF", e);
-                }
+                return;
+            }
+
+            if (cancellationSignal.isCanceled()) {
+                callback.onWriteCancelled();
+            } else {
+                callback.onWriteFinished(new PageRange[] {PageRange.ALL_PAGES});
             }
         }
     }

@@ -194,8 +194,11 @@ class MainActivity : AppCompatActivity() {
     // ACTION_CREATE_DOCUMENT, the target the current document is saved to
     private val createDocumentLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode != Activity.RESULT_OK) return@registerForActivityResult
+
             val outFile = result.data?.data ?: return@registerForActivityResult
 
+            PersistedUriPermissions.takeRead(this, outFile)
             lastSaveUri = outFile
 
             documentFragment?.save(outFile)

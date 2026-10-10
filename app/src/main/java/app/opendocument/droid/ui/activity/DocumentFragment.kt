@@ -35,6 +35,7 @@ import app.opendocument.droid.background.IdentifiedFile
 import app.opendocument.droid.background.LoadedDocument
 import app.opendocument.droid.background.NightModeSetting
 import app.opendocument.droid.background.PaginationSetting
+import app.opendocument.droid.background.PersistedUriPermissions
 import app.opendocument.droid.background.ReviewInvitation
 import app.opendocument.droid.background.SheetCut
 import app.opendocument.droid.nonfree.AnalyticsConstants
@@ -1066,7 +1067,12 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         )
 
         // the written document, in the mode the user left the old one in
-        loadUri(target, true, requireLastRequest().editable)
+        loadUri(
+            target,
+            PersistedUriPermissions.isRetained(requireContext(), target),
+            requireLastRequest().editable,
+            freshOpen = false,
+        )
     }
 
     override fun onSaveError() {
