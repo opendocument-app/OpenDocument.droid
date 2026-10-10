@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Pro の機能</string>
     <string name="pro_offer_formatting">太字、斜体、色、文字サイズ、段落の追加や結合は OpenDocument Reader Pro の機能です。ハイライトはすべてのエディションで使えます。</string>
-    <string name="pro_offer_sheet">セルの太字、斜体、色、文字サイズ、配置は OpenDocument Reader Pro の機能です。塗りつぶしはすべてのエディションで使えます。</string>
     <string name="pro_offer_markup">PDF への下線、取り消し線、描画は OpenDocument Reader Pro の機能です。ハイライトはすべてのエディションで使えます。</string>
     <string name="not_now">今はしない</string>
     <string name="edit_refused_new_line">段落内の改行は保存できません。新しい段落にするには Enter を押してください。</string>
@@ -135,7 +134,4 @@
     <string name="edit_refused_read_only">このドキュメントは編集できません。</string>
     <string name="edit_refused_range">画像や表をまたいで編集することはできません。</string>
     <string name="edit_refused_unsupported">ここではその編集はできません。</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="other">%d 個の数式セルに、編集によって古くなった結果が表示されています。保存したファイルには数式が残り、表計算アプリで再計算されます。</item>
-    </plurals>
 </resources>

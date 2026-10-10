@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Parte do Pro</string>
     <string name="pro_offer_formatting">Negrito, itálico, cores e tamanho do texto, além de adicionar ou juntar parágrafos, fazem parte do OpenDocument Reader Pro. O marca-texto está disponível em todas as edições.</string>
-    <string name="pro_offer_sheet">Negrito, itálico, cores, tamanho do texto e alinhamento de células fazem parte do OpenDocument Reader Pro. O preenchimento está disponível em todas as edições.</string>
     <string name="pro_offer_markup">Sublinhar, tachar e desenhar em um PDF fazem parte do OpenDocument Reader Pro. O marca-texto está disponível em todas as edições.</string>
     <string name="not_now">Agora não</string>
     <string name="edit_refused_new_line">Uma quebra de linha dentro de um parágrafo não pode ser salva. Pressione Enter para um novo parágrafo.</string>
@@ -135,8 +134,4 @@
     <string name="edit_refused_read_only">Este documento não pode ser editado.</string>
     <string name="edit_refused_range">Uma edição não pode abranger uma imagem ou uma tabela.</string>
     <string name="edit_refused_unsupported">Essa edição não é possível aqui.</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="one">%d célula com fórmula mostra um resultado que sua edição desatualizou. O arquivo salvo mantém a fórmula, e um aplicativo de planilhas a calcula de novo.</item>
-        <item quantity="other">%d células com fórmula mostram resultados que sua edição desatualizou. O arquivo salvo mantém as fórmulas, e um aplicativo de planilhas as calcula de novo.</item>
-    </plurals>
 </resources>

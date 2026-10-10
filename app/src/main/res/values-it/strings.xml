@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Parte di Pro</string>
     <string name="pro_offer_formatting">Grassetto, corsivo, colori e dimensione del testo, oltre all\'aggiunta o all\'unione di paragrafi, fanno parte di OpenDocument Reader Pro. L\'evidenziatore è disponibile in tutte le edizioni.</string>
-    <string name="pro_offer_sheet">Grassetto, corsivo, colori, dimensione del testo e allineamento delle celle fanno parte di OpenDocument Reader Pro. Il riempimento è disponibile in tutte le edizioni.</string>
     <string name="pro_offer_markup">Sottolineare, barrare e disegnare su un PDF fanno parte di OpenDocument Reader Pro. L\'evidenziatore è disponibile in tutte le edizioni.</string>
     <string name="not_now">Non ora</string>
     <string name="edit_refused_new_line">Un\'interruzione di riga all\'interno di un paragrafo non può essere salvata. Premi Invio per un nuovo paragrafo.</string>
@@ -135,8 +134,4 @@
     <string name="edit_refused_read_only">Questo documento non può essere modificato.</string>
     <string name="edit_refused_range">Una modifica non può estendersi su un\'immagine o una tabella.</string>
     <string name="edit_refused_unsupported">Questa modifica non è possibile qui.</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="one">%d cella con formula mostra un risultato reso obsoleto dalla tua modifica. Il file salvato mantiene la formula e un\'app per fogli di calcolo la ricalcola.</item>
-        <item quantity="other">%d celle con formula mostrano risultati resi obsoleti dalla tua modifica. Il file salvato mantiene le formule e un\'app per fogli di calcolo le ricalcola.</item>
-    </plurals>
 </resources>

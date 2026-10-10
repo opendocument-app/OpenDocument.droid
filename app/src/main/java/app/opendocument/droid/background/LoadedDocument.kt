@@ -5,8 +5,8 @@ import android.os.Parcel
 import android.os.Parcelable
 
 /**
- * A rendered document with one URI per part. [partCuts] identifies truncated sheets; [editing] and
- * [readsAsDocument] come from the core.
+ * A rendered document with one URI per part. [partCuts] identifies truncated sheets; [editing],
+ * [readsAsDocument], [pageSize] and [locale] come from the core.
  */
 class LoadedDocument(
     val request: DocumentRequest,
@@ -17,6 +17,7 @@ class LoadedDocument(
     val editing: EditingKind,
     val readsAsDocument: Boolean,
     val pageSize: PageSize?,
+    val locale: String?,
 ) : Parcelable {
 
     override fun describeContents(): Int = 0
@@ -32,6 +33,7 @@ class LoadedDocument(
         // 0 for none, which no page measures
         parcel.writeInt(pageSize?.widthMils ?: 0)
         parcel.writeInt(pageSize?.heightMils ?: 0)
+        parcel.writeString(locale)
     }
 
     companion object {
@@ -60,6 +62,7 @@ class LoadedDocument(
                     val readsAsDocument = ParcelUtil.readBoolean(parcel)
                     val widthMils = parcel.readInt()
                     val heightMils = parcel.readInt()
+                    val locale = parcel.readString()
 
                     return LoadedDocument(
                         request,
@@ -71,6 +74,7 @@ class LoadedDocument(
                         readsAsDocument,
                         if (widthMils > 0 && heightMils > 0) PageSize(widthMils, heightMils)
                         else null,
+                        locale,
                     )
                 }
 

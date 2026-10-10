@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">En del af Pro</string>
     <string name="pro_offer_formatting">Fed, kursiv, farver og tekststørrelse samt tilføjelse og sammenlægning af afsnit er en del af OpenDocument Reader Pro. Fremhævning er med i alle udgaver.</string>
-    <string name="pro_offer_sheet">Fed, kursiv, farver, tekststørrelse og justering af celler er en del af OpenDocument Reader Pro. Fyld er med i alle udgaver.</string>
     <string name="pro_offer_markup">Understregning, gennemstregning og tegning på en PDF er en del af OpenDocument Reader Pro. Fremhævning er med i alle udgaver.</string>
     <string name="not_now">Ikke nu</string>
     <string name="edit_refused_new_line">Et linjeskift inde i et afsnit kan ikke gemmes. Tryk på Enter for et nyt afsnit.</string>
@@ -135,8 +134,4 @@
     <string name="edit_refused_read_only">Dette dokument kan ikke redigeres.</string>
     <string name="edit_refused_range">En redigering kan ikke strække sig over et billede eller en tabel.</string>
     <string name="edit_refused_unsupported">Den redigering er ikke mulig her.</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="one">%d formelcelle viser et resultat, som din redigering har gjort forældet. Den gemte fil beholder formlen, og et regnearksprogram beregner den igen.</item>
-        <item quantity="other">%d formelceller viser resultater, som din redigering har gjort forældede. Den gemte fil beholder formlerne, og et regnearksprogram beregner dem igen.</item>
-    </plurals>
 </resources>

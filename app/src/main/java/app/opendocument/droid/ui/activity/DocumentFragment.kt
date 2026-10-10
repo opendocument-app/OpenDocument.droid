@@ -513,6 +513,12 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                 pageView?.formatStyle(style)
             }
 
+            override fun onEditStructure(function: String, where: String?) {
+                analyticsManager.report("edit_$function")
+
+                pageView?.editStructure(function, where)
+            }
+
             override fun onMarkTool(tool: String, color: Int, recolor: Boolean) {
                 analyticsManager.report("edit_mark_$tool")
 
@@ -568,6 +574,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                 "shapes" -> R.string.edit_refused_shapes
                 "readOnly" -> R.string.edit_refused_read_only
                 "range" -> R.string.edit_refused_range
+                "sheetCut" -> R.string.edit_refused_sheet_cut
                 else -> R.string.edit_refused_unsupported
             }
 
@@ -1462,6 +1469,10 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     /** The paper the document is laid out for - see [CoreLoader.pageSize]. */
     val pageSize: PageSize?
         get() = if (::state.isInitialized) state.lastDocument?.pageSize else null
+
+    /** The language the document states - see [CoreLoader.locale]. */
+    val locale: String?
+        get() = if (::state.isInitialized) state.lastDocument?.locale else null
 
     val lastFileType: String?
         get() = state.lastFile?.mimeType

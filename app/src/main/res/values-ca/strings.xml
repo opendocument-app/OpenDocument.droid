@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Part de Pro</string>
     <string name="pro_offer_formatting">La negreta, la cursiva, els colors i la mida del text, així com afegir o unir paràgrafs, formen part d\'OpenDocument Reader Pro. El ressaltador està disponible a totes les edicions.</string>
-    <string name="pro_offer_sheet">La negreta, la cursiva, els colors, la mida del text i l\'alineació de les cel·les formen part d\'OpenDocument Reader Pro. L\'emplenament està disponible a totes les edicions.</string>
     <string name="pro_offer_markup">Subratllar, ratllar i dibuixar en un PDF formen part d\'OpenDocument Reader Pro. El ressaltador està disponible a totes les edicions.</string>
     <string name="not_now">Ara no</string>
     <string name="edit_refused_new_line">Un salt de línia dins d\'un paràgraf no es pot desar. Premeu Retorn per a un paràgraf nou.</string>
@@ -135,8 +134,4 @@
     <string name="edit_refused_read_only">Aquest document no es pot editar.</string>
     <string name="edit_refused_range">Una edició no pot abastar una imatge o una taula.</string>
     <string name="edit_refused_unsupported">Aquesta edició no és possible aquí.</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="one">%d cel·la amb fórmula mostra un resultat que la vostra edició ha deixat desactualitzat. El fitxer desat conserva la fórmula, i una aplicació de fulls de càlcul la torna a calcular.</item>
-        <item quantity="other">%d cel·les amb fórmula mostren resultats que la vostra edició ha deixat desactualitzats. El fitxer desat conserva les fórmules, i una aplicació de fulls de càlcul les torna a calcular.</item>
-    </plurals>
 </resources>

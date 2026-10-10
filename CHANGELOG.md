@@ -16,6 +16,14 @@ section the body of the GitHub release, and refuses a version without one. `scri
   unsaved marks prints from the screen as before.
 - Printing starts on the paper and orientation of the document, for example A4 or a
   landscape slide.
+- Rows and columns of a spreadsheet can be inserted and deleted.
+- A CSV file can be edited and saved.
+- Saving a spreadsheet computes again the formulas that an edit made out of date.
+- Read aloud uses the language of the document, where a voice for it is installed.
+- A printed document has one page on each sheet, without the grey background, and a dark
+  document prints in light colors.
+- PDF images with transparency show correctly, and PDF text in small capitals can be
+  found and copied.
 
 ## 4.21.0
 

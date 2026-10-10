@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Parte de Pro</string>
     <string name="pro_offer_formatting">La negrita, la cursiva, los colores y el tamaño del texto, así como añadir o unir párrafos, forman parte de OpenDocument Reader Pro. El resaltador está disponible en todas las versiones.</string>
-    <string name="pro_offer_sheet">La negrita, la cursiva, los colores, el tamaño del texto y la alineación de las celdas forman parte de OpenDocument Reader Pro. El relleno está disponible en todas las versiones.</string>
     <string name="pro_offer_markup">Subrayar, tachar y dibujar en un PDF forman parte de OpenDocument Reader Pro. El resaltador está disponible en todas las versiones.</string>
     <string name="not_now">Ahora no</string>
     <string name="edit_refused_new_line">Un salto de línea dentro de un párrafo no se puede guardar. Pulse Intro para crear un párrafo nuevo.</string>
@@ -135,8 +134,4 @@
     <string name="edit_refused_read_only">Este documento no se puede editar.</string>
     <string name="edit_refused_range">Una edición no puede abarcar una imagen o una tabla.</string>
     <string name="edit_refused_unsupported">Esa edición no es posible aquí.</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="one">%d celda con fórmula muestra un resultado que su edición dejó desactualizado. El archivo guardado conserva la fórmula y una aplicación de hojas de cálculo la vuelve a calcular.</item>
-        <item quantity="other">%d celdas con fórmula muestran resultados que su edición dejó desactualizados. El archivo guardado conserva las fórmulas y una aplicación de hojas de cálculo las vuelve a calcular.</item>
-    </plurals>
 </resources>

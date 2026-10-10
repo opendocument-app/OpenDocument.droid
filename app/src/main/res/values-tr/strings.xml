@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Pro\'nun bir parçası</string>
     <string name="pro_offer_formatting">Kalın, italik, renkler ve metin boyutu ile paragraf ekleme veya birleştirme OpenDocument Reader Pro\'ya özeldir. Vurgulayıcı her sürümde kullanılabilir.</string>
-    <string name="pro_offer_sheet">Hücrelerde kalın, italik, renkler, metin boyutu ve hizalama OpenDocument Reader Pro\'ya özeldir. Dolgu her sürümde kullanılabilir.</string>
     <string name="pro_offer_markup">PDF\'de altını çizme, üstünü çizme ve çizim yapma OpenDocument Reader Pro\'ya özeldir. Vurgulayıcı her sürümde kullanılabilir.</string>
     <string name="not_now">Şimdi değil</string>
     <string name="edit_refused_new_line">Paragraf içindeki bir satır sonu kaydedilemez. Yeni paragraf için Enter tuşuna basın.</string>
@@ -135,8 +134,4 @@
     <string name="edit_refused_read_only">Bu belge düzenlenemez.</string>
     <string name="edit_refused_range">Bir düzenleme bir resmin veya tablonun üzerinden geçemez.</string>
     <string name="edit_refused_unsupported">Bu düzenleme burada mümkün değil.</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="one">%d formül hücresi, düzenlemenizin eskittiği bir sonuç gösteriyor. Kaydedilen dosya formülü korur ve bir hesap tablosu uygulaması onu yeniden hesaplar.</item>
-        <item quantity="other">%d formül hücresi, düzenlemenizin eskittiği sonuçlar gösteriyor. Kaydedilen dosya formülleri korur ve bir hesap tablosu uygulaması onları yeniden hesaplar.</item>
-    </plurals>
 </resources>

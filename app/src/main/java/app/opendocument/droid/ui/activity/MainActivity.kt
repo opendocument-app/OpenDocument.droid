@@ -642,7 +642,8 @@ class MainActivity : AppCompatActivity() {
                 analyticsManager.report("menu_tts")
 
                 documentFragment?.pageView?.let { pageView ->
-                    val ttsActionMode = TtsActionModeCallback(this, pageView)
+                    val ttsActionMode =
+                        TtsActionModeCallback(this, pageView, documentFragment.locale)
                     this.ttsActionMode = ttsActionMode
 
                     currentActionMode = startSupportActionMode(ttsActionMode)

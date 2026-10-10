@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Część wersji Pro</string>
     <string name="pro_offer_formatting">Pogrubienie, kursywa, kolory i rozmiar tekstu oraz dodawanie i łączenie akapitów są dostępne w OpenDocument Reader Pro. Zakreślacz jest dostępny w każdej wersji.</string>
-    <string name="pro_offer_sheet">Pogrubienie, kursywa, kolory, rozmiar tekstu i wyrównanie komórek są dostępne w OpenDocument Reader Pro. Wypełnienie jest dostępne w każdej wersji.</string>
     <string name="pro_offer_markup">Podkreślanie, przekreślanie i rysowanie w plikach PDF są dostępne w OpenDocument Reader Pro. Zakreślacz jest dostępny w każdej wersji.</string>
     <string name="not_now">Nie teraz</string>
     <string name="edit_refused_new_line">Podziału wiersza wewnątrz akapitu nie można zapisać. Naciśnij Enter, aby utworzyć nowy akapit.</string>
@@ -135,10 +134,4 @@
     <string name="edit_refused_read_only">Tego dokumentu nie można edytować.</string>
     <string name="edit_refused_range">Edycja nie może obejmować obrazu ani tabeli.</string>
     <string name="edit_refused_unsupported">Ta edycja nie jest tu możliwa.</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="one">%d komórka z formułą pokazuje wynik, który Twoja edycja zdezaktualizowała. Zapisany plik zachowuje formułę, a arkusz kalkulacyjny przeliczy ją ponownie.</item>
-        <item quantity="few">%d komórki z formułami pokazują wyniki, które Twoja edycja zdezaktualizowała. Zapisany plik zachowuje formuły, a arkusz kalkulacyjny przeliczy je ponownie.</item>
-        <item quantity="many">%d komórek z formułami pokazuje wyniki, które Twoja edycja zdezaktualizowała. Zapisany plik zachowuje formuły, a arkusz kalkulacyjny przeliczy je ponownie.</item>
-        <item quantity="other">%d komórki z formułami pokazuje wyniki, które Twoja edycja zdezaktualizowała. Zapisany plik zachowuje formuły, a arkusz kalkulacyjny przeliczy je ponownie.</item>
-    </plurals>
 </resources>

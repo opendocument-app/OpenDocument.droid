@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Teil von Pro</string>
     <string name="pro_offer_formatting">Fett, kursiv, Farben und Textgröße sowie das Hinzufügen oder Zusammenführen von Absätzen sind Teil von OpenDocument Reader Pro. Das Hervorheben ist in jeder Version enthalten.</string>
-    <string name="pro_offer_sheet">Fett, kursiv, Farben, Textgröße und die Ausrichtung von Zellen sind Teil von OpenDocument Reader Pro. Die Füllfarbe ist in jeder Version enthalten.</string>
     <string name="pro_offer_markup">Unterstreichen, Durchstreichen und Zeichnen in einem PDF sind Teil von OpenDocument Reader Pro. Das Hervorheben ist in jeder Version enthalten.</string>
     <string name="not_now">Nicht jetzt</string>
     <string name="edit_refused_new_line">Ein Zeilenumbruch innerhalb eines Absatzes kann nicht gespeichert werden. Drücken Sie die Eingabetaste für einen neuen Absatz.</string>
@@ -135,8 +134,4 @@
     <string name="edit_refused_read_only">Dieses Dokument kann nicht bearbeitet werden.</string>
     <string name="edit_refused_range">Eine Änderung kann nicht über ein Bild oder eine Tabelle hinausreichen.</string>
     <string name="edit_refused_unsupported">Diese Änderung ist hier nicht möglich.</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="one">%d Formelzelle zeigt ein Ergebnis, das durch Ihre Änderung veraltet ist. Die gespeicherte Datei behält die Formel, und eine Tabellenkalkulation berechnet sie neu.</item>
-        <item quantity="other">%d Formelzellen zeigen Ergebnisse, die durch Ihre Änderung veraltet sind. Die gespeicherte Datei behält die Formeln, und eine Tabellenkalkulation berechnet sie neu.</item>
-    </plurals>
 </resources>

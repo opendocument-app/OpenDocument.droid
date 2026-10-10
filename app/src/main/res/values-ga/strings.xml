@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Cuid de Pro</string>
     <string name="pro_offer_formatting">Is cuid d\'OpenDocument Reader Pro iad trom, iodálach, dathanna agus méid an téacs, chomh maith le míreanna a chur leis nó a cheangal le chéile. Tá an t-aibhsitheoir i ngach eagrán.</string>
-    <string name="pro_offer_sheet">Is cuid d\'OpenDocument Reader Pro iad trom, iodálach, dathanna, méid an téacs agus ailíniú na gceall. Tá an líonadh i ngach eagrán.</string>
     <string name="pro_offer_markup">Is cuid d\'OpenDocument Reader Pro é líne a chur faoi théacs nó tríd, agus tarraingt ar PDF. Tá an t-aibhsitheoir i ngach eagrán.</string>
     <string name="not_now">Ní anois</string>
     <string name="edit_refused_new_line">Ní féidir briseadh líne laistigh de mhír a shábháil. Brúigh Enter le haghaidh míre nua.</string>
@@ -135,11 +134,4 @@
     <string name="edit_refused_read_only">Ní féidir an cháipéis seo a chur in eagar.</string>
     <string name="edit_refused_range">Ní féidir le heagarthóireacht dul thar phictiúr ná thar tábla.</string>
     <string name="edit_refused_unsupported">Níl an eagarthóireacht sin indéanta anseo.</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="one">Taispeánann %d chill fhoirmle toradh atá as dáta de bharr d\'eagarthóireachta. Coinníonn an comhad sábháilte an fhoirmle, agus ríomhann aip scarbhileog arís í.</item>
-        <item quantity="two">Taispeánann %d cill fhoirmle torthaí atá as dáta de bharr d\'eagarthóireachta. Coinníonn an comhad sábháilte na foirmlí, agus ríomhann aip scarbhileog arís iad.</item>
-        <item quantity="few">Taispeánann %d cill fhoirmle torthaí atá as dáta de bharr d\'eagarthóireachta. Coinníonn an comhad sábháilte na foirmlí, agus ríomhann aip scarbhileog arís iad.</item>
-        <item quantity="many">Taispeánann %d cill fhoirmle torthaí atá as dáta de bharr d\'eagarthóireachta. Coinníonn an comhad sábháilte na foirmlí, agus ríomhann aip scarbhileog arís iad.</item>
-        <item quantity="other">Taispeánann %d cill fhoirmle torthaí atá as dáta de bharr d\'eagarthóireachta. Coinníonn an comhad sábháilte na foirmlí, agus ríomhann aip scarbhileog arís iad.</item>
-    </plurals>
 </resources>
