@@ -1,0 +1,1 @@
+L'application est de nouveau légère. La version 4.22.0 était plus de dix fois plus volumineuse que nécessaire. Rien d'autre ne change.

@@ -1,0 +1,1 @@
+Aplikace je opět malá. Verze 4.22.0 byla více než desetkrát větší, než bylo potřeba. Nic jiného se nemění.

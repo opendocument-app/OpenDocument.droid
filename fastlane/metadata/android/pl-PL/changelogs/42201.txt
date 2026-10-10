@@ -1,0 +1,1 @@
+Aplikacja znów jest mała. Wersja 4.22.0 była ponad dziesięć razy większa, niż powinna. Poza tym nic się nie zmienia.

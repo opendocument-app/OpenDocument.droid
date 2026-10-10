@@ -41,9 +41,6 @@ def appVersion = requestedVersion.isPresent()
         ? parseVersion(requestedVersion.get())
         : [name: '0.0.0', code: 1]
 
-// No NDK here, and no ndkVersion: the app compiles no native code of its own, and
-// libodr_jni.so arrives prebuilt for every ABI inside the odr-core-android AAR.
-
 android {
     defaultConfig {
         // Published application ID; changing it breaks upgrades.
@@ -153,6 +150,9 @@ android {
     }
     // Internal package for Kotlin, R, and BuildConfig; independent of applicationId.
     namespace = 'app.opendocument.droid'
+    // The app compiles no native code, but the core AAR ships libraries with debug info.
+    // This NDK strips them and extracts their symbols. Without it, AGP only warns.
+    ndkVersion = libs.versions.ndk.get()
     // ahead of targetSdk on purpose: compiling against newer APIs is independent of
     // opting in to their runtime behavior. androidx.core 1.19.0 requires 37.
     compileSdk = 37

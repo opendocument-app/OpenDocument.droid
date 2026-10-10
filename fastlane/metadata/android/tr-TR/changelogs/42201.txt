@@ -1,0 +1,1 @@
+Uygulama yeniden küçüldü. 4.22.0 sürümü, gerekenden on kattan fazla büyüktü. Başka hiçbir şey değişmedi.
