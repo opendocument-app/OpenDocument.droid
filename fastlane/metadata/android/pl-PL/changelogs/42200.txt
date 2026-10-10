@@ -1,0 +1,7 @@
+W arkuszach można teraz wstawiać i usuwać wiersze oraz kolumny, a pliki CSV można edytować i zapisywać. Przy zapisie aktualizowane są formuły, które edycja zdezaktualizowała.
+
+Wydruk zachowuje format papieru i orientację dokumentu, po jednej stronie na kartce. PDF jest drukowany bezpośrednio z pliku.
+
+Niektóre pliki Word, Excel i PowerPoint z poczty i menedżerów plików znów otwierają się w aplikacji.
+
+Czytanie na głos odbywa się w języku dokumentu.

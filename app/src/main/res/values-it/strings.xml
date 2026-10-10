@@ -134,4 +134,18 @@
     <string name="edit_refused_read_only">Questo documento non può essere modificato.</string>
     <string name="edit_refused_range">Una modifica non può estendersi su un\'immagine o una tabella.</string>
     <string name="edit_refused_unsupported">Questa modifica non è possibile qui.</string>
+    <string name="tool_rows_columns">Righe e colonne</string>
+    <string name="tool_insert_rows_above">Inserisci righe sopra</string>
+    <string name="tool_insert_rows_below">Inserisci righe sotto</string>
+    <string name="tool_delete_rows">Elimina righe</string>
+    <string name="tool_insert_columns_left">Inserisci colonne a sinistra</string>
+    <string name="tool_insert_columns_right">Inserisci colonne a destra</string>
+    <string name="tool_delete_columns">Elimina colonne</string>
+    <string name="pro_offer_sheet">Grassetto, corsivo, colori, dimensione del testo e allineamento delle celle, oltre all\'inserimento o all\'eliminazione di righe e colonne, fanno parte di OpenDocument Reader Pro. Il riempimento è disponibile in tutte le edizioni.</string>
+    <string name="edit_refused_sheet_cut">Viene mostrata solo una parte di questo foglio, quindi non può essere modificato qui.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d cella con formula mostra un risultato che la tua modifica ha reso obsoleto. Al salvataggio viene ricalcolato dove possibile.</item>
+        <item quantity="many">%d celle con formula mostrano risultati che la tua modifica ha reso obsoleti. Al salvataggio vengono ricalcolati dove possibile.</item>
+        <item quantity="other">%d celle con formula mostrano risultati che la tua modifica ha reso obsoleti. Al salvataggio vengono ricalcolati dove possibile.</item>
+    </plurals>
 </resources>

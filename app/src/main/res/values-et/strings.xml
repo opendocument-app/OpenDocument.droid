@@ -134,4 +134,17 @@
     <string name="edit_refused_read_only">Seda dokumenti ei saa muuta.</string>
     <string name="edit_refused_range">Muudatus ei saa ulatuda üle pildi ega tabeli.</string>
     <string name="edit_refused_unsupported">See muudatus pole siin võimalik.</string>
+    <string name="tool_rows_columns">Read ja veerud</string>
+    <string name="tool_insert_rows_above">Lisa read ülespoole</string>
+    <string name="tool_insert_rows_below">Lisa read allapoole</string>
+    <string name="tool_delete_rows">Kustuta read</string>
+    <string name="tool_insert_columns_left">Lisa veerud vasakule</string>
+    <string name="tool_insert_columns_right">Lisa veerud paremale</string>
+    <string name="tool_delete_columns">Kustuta veerud</string>
+    <string name="pro_offer_sheet">Paks kiri, kaldkiri, värvid, teksti suurus ja lahtrite joondus ning ridade või veergude lisamine ja kustutamine on OpenDocument Reader Pro osa. Täide on saadaval kõigis versioonides.</string>
+    <string name="edit_refused_sheet_cut">Sellest töölehest kuvatakse ainult osa, seega ei saa seda siin muuta.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d valemiga lahter näitab tulemust, mille sinu muudatus aegunuks muutis. Salvestamisel arvutatakse see võimaluse korral uuesti.</item>
+        <item quantity="other">%d valemiga lahtrit näitavad tulemusi, mille sinu muudatus aegunuks muutis. Salvestamisel arvutatakse need võimaluse korral uuesti.</item>
+    </plurals>
 </resources>

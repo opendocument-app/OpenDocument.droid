@@ -7,7 +7,7 @@ release, a pull request cuts that heading to the version. The release run makes 
 section the body of the GitHub release, and refuses a version without one. `scripts/store-copy.py` writes Play's
 "What's new" from the same section, under 500 characters per locale.
 
-## Unreleased
+## 4.22.0
 
 - The app offers to open any file again. Turn this off under Settings.
 - Word, Excel and PowerPoint files that a mail or file app labels the old way offer to open

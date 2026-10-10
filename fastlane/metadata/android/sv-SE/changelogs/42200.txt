@@ -1,0 +1,7 @@
+Rader och kolumner i kalkylblad kan nu infogas och tas bort, och CSV-filer kan redigeras och sparas. När du sparar uppdateras formler som en ändring har gjort inaktuella.
+
+Vid utskrift används dokumentets pappersformat och sidorientering, en sida per ark. PDF-filer skrivs ut direkt från filen.
+
+Vissa Word-, Excel- och PowerPoint-filer från e-post- och filappar öppnas i appen igen.
+
+Uppläsningen sker på dokumentets språk.

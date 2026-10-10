@@ -1,0 +1,7 @@
+Ya puedes insertar y eliminar filas y columnas en hojas de cálculo, y editar y guardar archivos CSV. Al guardar se actualizan las fórmulas que una edición dejó desfasadas.
+
+Al imprimir se usan el papel y la orientación del documento, una página por hoja. Los PDF se imprimen desde el propio archivo.
+
+Vuelven a abrirse algunos archivos de Word, Excel y PowerPoint procedentes de aplicaciones de correo y de archivos.
+
+La lectura en voz alta usa el idioma del documento.

@@ -134,4 +134,18 @@
     <string name="edit_refused_read_only">Este documento no se puede editar.</string>
     <string name="edit_refused_range">Una edición no puede abarcar una imagen o una tabla.</string>
     <string name="edit_refused_unsupported">Esa edición no es posible aquí.</string>
+    <string name="tool_rows_columns">Filas y columnas</string>
+    <string name="tool_insert_rows_above">Insertar filas encima</string>
+    <string name="tool_insert_rows_below">Insertar filas debajo</string>
+    <string name="tool_delete_rows">Eliminar filas</string>
+    <string name="tool_insert_columns_left">Insertar columnas a la izquierda</string>
+    <string name="tool_insert_columns_right">Insertar columnas a la derecha</string>
+    <string name="tool_delete_columns">Eliminar columnas</string>
+    <string name="pro_offer_sheet">La negrita, la cursiva, los colores, el tamaño del texto y la alineación de las celdas, así como insertar o eliminar filas y columnas, forman parte de OpenDocument Reader Pro. El relleno está disponible en todas las versiones.</string>
+    <string name="edit_refused_sheet_cut">Solo se muestra una parte de esta hoja, por lo que no se puede editar aquí.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d celda con fórmula muestra un resultado que su edición dejó desactualizado. Al guardar, se vuelve a calcular donde sea posible.</item>
+        <item quantity="many">%d celdas con fórmula muestran resultados que su edición dejó desactualizados. Al guardar, se vuelven a calcular donde sea posible.</item>
+        <item quantity="other">%d celdas con fórmula muestran resultados que su edición dejó desactualizados. Al guardar, se vuelven a calcular donde sea posible.</item>
+    </plurals>
 </resources>

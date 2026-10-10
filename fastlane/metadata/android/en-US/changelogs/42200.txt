@@ -1,0 +1,7 @@
+Spreadsheet rows and columns can be inserted and deleted, and CSV files can be edited and saved. Saving updates formulas that an edit made out of date.
+
+Printing uses the paper and orientation of the document, one page per sheet. A PDF prints as the file itself.
+
+Some Word, Excel and PowerPoint files from mail and file apps open in the app again.
+
+Read aloud uses the language of the document.

@@ -134,4 +134,17 @@
     <string name="edit_refused_read_only">Dette dokument kan ikke redigeres.</string>
     <string name="edit_refused_range">En redigering kan ikke strække sig over et billede eller en tabel.</string>
     <string name="edit_refused_unsupported">Den redigering er ikke mulig her.</string>
+    <string name="tool_rows_columns">Rækker og kolonner</string>
+    <string name="tool_insert_rows_above">Indsæt rækker over</string>
+    <string name="tool_insert_rows_below">Indsæt rækker under</string>
+    <string name="tool_delete_rows">Slet rækker</string>
+    <string name="tool_insert_columns_left">Indsæt kolonner til venstre</string>
+    <string name="tool_insert_columns_right">Indsæt kolonner til højre</string>
+    <string name="tool_delete_columns">Slet kolonner</string>
+    <string name="pro_offer_sheet">Fed, kursiv, farver, tekststørrelse og justering af celler samt indsættelse og sletning af rækker og kolonner er en del af OpenDocument Reader Pro. Fyld er med i alle udgaver.</string>
+    <string name="edit_refused_sheet_cut">Kun en del af arket vises, så det kan ikke redigeres her.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d formelcelle viser et resultat, som din ændring har gjort forældet. Når du gemmer, beregnes det igen, hvor det er muligt.</item>
+        <item quantity="other">%d formelceller viser resultater, som din ændring har gjort forældede. Når du gemmer, beregnes de igen, hvor det er muligt.</item>
+    </plurals>
 </resources>

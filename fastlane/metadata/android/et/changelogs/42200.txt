@@ -1,0 +1,7 @@
+Arvutustabelis saab nüüd ridu ja veerge lisada ja kustutada ning CSV-faile muuta ja salvestada. Salvestamine värskendab valemeid, mis muudatuse tõttu aegusid.
+
+Printimisel kasutatakse dokumendi paberi suurust ja suunda, üks lehekülg paberilehel. PDF prinditakse algse failina.
+
+Mõned e-posti- ja failirakendustest saadud Wordi, Exceli ja PowerPointi failid avanevad rakenduses taas.
+
+Ettelugemisel kasutatakse dokumendi keelt.

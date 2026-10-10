@@ -134,4 +134,19 @@
     <string name="edit_refused_read_only">Tento dokument nelze upravit.</string>
     <string name="edit_refused_range">Úprava nemůže zasahovat přes obrázek nebo tabulku.</string>
     <string name="edit_refused_unsupported">Tato úprava zde není možná.</string>
+    <string name="tool_rows_columns">Řádky a sloupce</string>
+    <string name="tool_insert_rows_above">Vložit řádky nad</string>
+    <string name="tool_insert_rows_below">Vložit řádky pod</string>
+    <string name="tool_delete_rows">Odstranit řádky</string>
+    <string name="tool_insert_columns_left">Vložit sloupce vlevo</string>
+    <string name="tool_insert_columns_right">Vložit sloupce vpravo</string>
+    <string name="tool_delete_columns">Odstranit sloupce</string>
+    <string name="pro_offer_sheet">Tučné písmo, kurzíva, barvy, velikost textu a zarovnání buněk a také vkládání a odstraňování řádků a sloupců jsou součástí aplikace OpenDocument Reader Pro. Výplň je k dispozici ve všech verzích.</string>
+    <string name="edit_refused_sheet_cut">Zobrazuje se jen část tohoto listu, a proto ho zde nelze upravit.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d buňka se vzorcem ukazuje výsledek, který vaše úprava zastarala. Při uložení se tam, kde to jde, přepočítá.</item>
+        <item quantity="few">%d buňky se vzorcem ukazují výsledky, které vaše úprava zastarala. Při uložení se tam, kde to jde, přepočítají.</item>
+        <item quantity="many">%d buňky se vzorcem ukazuje výsledky, které vaše úprava zastarala. Při uložení se tam, kde to jde, přepočítají.</item>
+        <item quantity="other">%d buněk se vzorcem ukazuje výsledky, které vaše úprava zastarala. Při uložení se tam, kde to jde, přepočítají.</item>
+    </plurals>
 </resources>

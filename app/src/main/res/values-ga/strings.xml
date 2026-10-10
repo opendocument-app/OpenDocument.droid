@@ -134,4 +134,20 @@
     <string name="edit_refused_read_only">Ní féidir an cháipéis seo a chur in eagar.</string>
     <string name="edit_refused_range">Ní féidir le heagarthóireacht dul thar phictiúr ná thar tábla.</string>
     <string name="edit_refused_unsupported">Níl an eagarthóireacht sin indéanta anseo.</string>
+    <string name="tool_rows_columns">Rónna agus colúin</string>
+    <string name="tool_insert_rows_above">Ionsáigh rónna thuas</string>
+    <string name="tool_insert_rows_below">Ionsáigh rónna thíos</string>
+    <string name="tool_delete_rows">Scrios rónna</string>
+    <string name="tool_insert_columns_left">Ionsáigh colúin ar chlé</string>
+    <string name="tool_insert_columns_right">Ionsáigh colúin ar dheis</string>
+    <string name="tool_delete_columns">Scrios colúin</string>
+    <string name="pro_offer_sheet">Is cuid d\'OpenDocument Reader Pro iad trom, iodálach, dathanna, méid an téacs agus ailíniú na gceall, chomh maith le rónna agus colúin a ionsá nó a scriosadh. Tá an líonadh i ngach eagrán.</string>
+    <string name="edit_refused_sheet_cut">Níl ach cuid den bhileog seo á taispeáint, mar sin ní féidir í a chur in eagar anseo.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">Taispeánann %d chill foirmle toradh atá as dáta de bharr d\'eagarthóireachta. Ríomhtar arís é nuair a shábhálann tú, más féidir.</item>
+        <item quantity="two">Taispeánann %d chill foirmle torthaí atá as dáta de bharr d\'eagarthóireachta. Ríomhtar arís iad nuair a shábhálann tú, más féidir.</item>
+        <item quantity="few">Taispeánann %d chill foirmle torthaí atá as dáta de bharr d\'eagarthóireachta. Ríomhtar arís iad nuair a shábhálann tú, más féidir.</item>
+        <item quantity="many">Taispeánann %d gcill foirmle torthaí atá as dáta de bharr d\'eagarthóireachta. Ríomhtar arís iad nuair a shábhálann tú, más féidir.</item>
+        <item quantity="other">Taispeánann %d cill foirmle torthaí atá as dáta de bharr d\'eagarthóireachta. Ríomhtar arís iad nuair a shábhálann tú, más féidir.</item>
+    </plurals>
 </resources>

@@ -134,4 +134,18 @@
     <string name="edit_refused_read_only">Este documento não pode ser editado.</string>
     <string name="edit_refused_range">Uma edição não pode abranger uma imagem ou uma tabela.</string>
     <string name="edit_refused_unsupported">Essa edição não é possível aqui.</string>
+    <string name="tool_rows_columns">Linhas e colunas</string>
+    <string name="tool_insert_rows_above">Inserir linhas acima</string>
+    <string name="tool_insert_rows_below">Inserir linhas abaixo</string>
+    <string name="tool_delete_rows">Excluir linhas</string>
+    <string name="tool_insert_columns_left">Inserir colunas à esquerda</string>
+    <string name="tool_insert_columns_right">Inserir colunas à direita</string>
+    <string name="tool_delete_columns">Excluir colunas</string>
+    <string name="pro_offer_sheet">Negrito, itálico, cores, tamanho do texto e alinhamento das células, além de inserir ou excluir linhas e colunas, fazem parte do OpenDocument Reader Pro. O preenchimento está disponível em todas as edições.</string>
+    <string name="edit_refused_sheet_cut">Apenas parte desta planilha é exibida, então ela não pode ser editada aqui.</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="one">%d célula com fórmula mostra um resultado que a sua edição deixou desatualizado. Ao salvar, ele é recalculado onde for possível.</item>
+        <item quantity="many">%d células com fórmula mostram resultados que a sua edição deixou desatualizados. Ao salvar, eles são recalculados onde for possível.</item>
+        <item quantity="other">%d células com fórmula mostram resultados que a sua edição deixou desatualizados. Ao salvar, eles são recalculados onde for possível.</item>
+    </plurals>
 </resources>

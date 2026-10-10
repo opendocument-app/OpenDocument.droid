@@ -1,0 +1,7 @@
+Hesap tablolarında satır ve sütun eklenip silinebiliyor; CSV dosyaları da düzenlenip kaydedilebiliyor. Kaydederken, düzenlemeyle güncelliğini yitiren formüller de güncelleniyor.
+
+Yazdırırken belgenin kâğıt boyutu ve yönü kullanılıyor; her kâğıda bir sayfa basılıyor. PDF dosyaları olduğu gibi yazdırılıyor.
+
+E-posta ve dosya uygulamalarından gelen bazı Word, Excel ve PowerPoint dosyaları uygulamada yine açılabiliyor.
+
+Sesli okuma belgenin dilinde yapılıyor.

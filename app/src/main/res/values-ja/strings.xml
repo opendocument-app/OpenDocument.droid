@@ -134,4 +134,16 @@
     <string name="edit_refused_read_only">このドキュメントは編集できません。</string>
     <string name="edit_refused_range">画像や表をまたいで編集することはできません。</string>
     <string name="edit_refused_unsupported">ここではその編集はできません。</string>
+    <string name="tool_rows_columns">行と列</string>
+    <string name="tool_insert_rows_above">上に行を挿入</string>
+    <string name="tool_insert_rows_below">下に行を挿入</string>
+    <string name="tool_delete_rows">行を削除</string>
+    <string name="tool_insert_columns_left">左に列を挿入</string>
+    <string name="tool_insert_columns_right">右に列を挿入</string>
+    <string name="tool_delete_columns">列を削除</string>
+    <string name="pro_offer_sheet">セルの太字、斜体、色、文字サイズ、配置、行や列の挿入や削除は OpenDocument Reader Pro の機能です。塗りつぶしはすべてのエディションで使えます。</string>
+    <string name="edit_refused_sheet_cut">このシートは一部だけが表示されているため、ここでは編集できません。</string>
+    <plurals name="edit_cells_stale">
+        <item quantity="other">%d 個の数式セルに、編集によって古くなった結果が表示されています。保存すると、可能な範囲で再計算されます。</item>
+    </plurals>
 </resources>
