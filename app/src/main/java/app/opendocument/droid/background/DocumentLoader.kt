@@ -57,8 +57,8 @@ class DocumentLoader(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Re-renders the cached file after a password or layout change, without reading the provider or
-     * updating recents.
+     * Re-renders the cached file after a password, a margin change, or discarded edits. It does not
+     * read the provider again or update recents.
      */
     fun reload(request: DocumentRequest, file: IdentifiedFile) {
         backgroundHandler.post { renderSync(request, file) }

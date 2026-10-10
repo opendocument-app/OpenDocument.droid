@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Fill missing app translations and review them against English. Does not upload.
+# Fill missing app translations and review them against English.
 
 import argparse
 import concurrent.futures

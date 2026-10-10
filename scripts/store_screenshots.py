@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# Validate and stage the phone and tablet screenshot sets for Play.
+# Validate and stage the phone and tablet screenshot sets for Play. The underscore in the
+# filename lets frame-screenshots.py import this module.
 
 import argparse
 import os

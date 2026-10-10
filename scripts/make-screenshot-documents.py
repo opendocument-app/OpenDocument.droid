@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# Generate localized document fixtures for store screenshot tests.
-
 """Builds the documents the play store screenshots are taken of.
 
 A reader's screenshots are mostly the document it is reading, so these are
