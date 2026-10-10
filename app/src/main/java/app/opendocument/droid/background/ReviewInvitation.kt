@@ -8,21 +8,16 @@ import android.content.Context
  */
 object ReviewInvitation {
 
-    /**
-     * Documents to read before each ask, counted from the one before it. Escalating, because
-     * someone who did not answer the first ask has to have come a good deal further before it is
-     * worth spending another interruption on them - and after the fifth they have answered.
-     */
-    private val DOCUMENTS_BEFORE_ASK = intArrayOf(5, 10, 20, 50, 100)
+    /** Documents to read before each ask, counted from the one before it. */
+    private const val DOCUMENTS_BEFORE_ASK = 3
 
     /**
-     * The rail under [DOCUMENTS_BEFORE_ASK]: a folder walked through in one afternoon crosses two
-     * of those, and one sitting must never carry two asks.
+     * The rail between asks. There is no last ask: play's own quota decides whether the sheet
+     * shows, and an ask it swallows still counts here.
      */
     private const val DAYS_BETWEEN_ASKS = 14
 
     private const val KEY_DOCUMENT_OPENS = "usage_document_opens"
-    private const val KEY_ASKS = "usage_review_asks"
     private const val KEY_ASKED_AT = "usage_review_asked_at"
     private const val KEY_ASKED_AFTER = "usage_review_asked_after"
 
@@ -41,7 +36,6 @@ object ReviewInvitation {
 
         return isEarned(
             documentOpens = preferences.getInt(KEY_DOCUMENT_OPENS, 0),
-            asks = preferences.getInt(KEY_ASKS, 0),
             askedAfterOpens = preferences.getInt(KEY_ASKED_AFTER, 0),
             askedAtMillis = preferences.getLong(KEY_ASKED_AT, 0),
             nowMillis = System.currentTimeMillis(),
@@ -51,16 +45,11 @@ object ReviewInvitation {
     /** The decision alone, so the jvm test can reach every branch. */
     internal fun isEarned(
         documentOpens: Int,
-        asks: Int,
         askedAfterOpens: Int,
         askedAtMillis: Long,
         nowMillis: Long,
     ): Boolean {
-        if (asks >= DOCUMENTS_BEFORE_ASK.size) {
-            return false
-        }
-
-        if (documentOpens - askedAfterOpens < DOCUMENTS_BEFORE_ASK[asks]) {
+        if (documentOpens - askedAfterOpens < DOCUMENTS_BEFORE_ASK) {
             return false
         }
 
@@ -82,7 +71,6 @@ object ReviewInvitation {
 
         preferences
             .edit()
-            .putInt(KEY_ASKS, preferences.getInt(KEY_ASKS, 0) + 1)
             .putLong(KEY_ASKED_AT, System.currentTimeMillis())
             .putInt(KEY_ASKED_AFTER, preferences.getInt(KEY_DOCUMENT_OPENS, 0))
             .apply()
