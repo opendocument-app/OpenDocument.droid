@@ -119,6 +119,15 @@
     <string name="tool_align_center">Center</string>
     <string name="tool_align_right">Align right</string>
     <string name="tool_align_justify">Justify</string>
+    <!-- the spreadsheet tool that opens the six edits below; each acts on the rows or the
+         columns that the selection spans -->
+    <string name="tool_rows_columns">Rows and columns</string>
+    <string name="tool_insert_rows_above">Insert rows above</string>
+    <string name="tool_insert_rows_below">Insert rows below</string>
+    <string name="tool_delete_rows">Delete rows</string>
+    <string name="tool_insert_columns_left">Insert columns left</string>
+    <string name="tool_insert_columns_right">Insert columns right</string>
+    <string name="tool_delete_columns">Delete columns</string>
     <!-- what a long press on a tool opens, which picks the color it uses: "Highlight color" -->
     <string name="tool_color_of">%1$s color</string>
     <!-- "12 pt", the size of the selected text; the number alone captions the size tool -->
@@ -142,7 +151,7 @@
          free of it in both kinds of document, so that the mode is worth opening -->
     <string name="pro_offer_title">Part of Pro</string>
     <string name="pro_offer_formatting">Bold, italic, colors and text size, and adding or joining paragraphs, are part of OpenDocument Reader Pro. The highlighter is in every edition.</string>
-    <string name="pro_offer_sheet">Bold, italic, colors, text size and alignment of cells are part of OpenDocument Reader Pro. The fill is in every edition.</string>
+    <string name="pro_offer_sheet">Bold, italic, colors, text size and alignment of cells, and inserting or deleting rows and columns, are part of OpenDocument Reader Pro. The fill is in every edition.</string>
     <string name="pro_offer_markup">Underlining, striking out and drawing on a PDF are part of OpenDocument Reader Pro. The highlighter is in every edition.</string>
     <string name="not_now">Not now</string>
     <!-- what the document says when an edit is not taken, by the reason the page gives -->
@@ -154,9 +163,10 @@
     <string name="edit_refused_read_only">This document cannot be edited.</string>
     <string name="edit_refused_range">An edit cannot reach over a picture or a table.</string>
     <string name="edit_refused_unsupported">That edit is not possible here.</string>
+    <string name="edit_refused_sheet_cut">Only part of this sheet is shown, so it cannot be edited here.</string>
     <plurals name="edit_cells_stale">
-        <item quantity="one">%d formula cell shows a result your edit made out of date. The saved file keeps the formula, and a spreadsheet app computes it again.</item>
-        <item quantity="other">%d formula cells show results your edit made out of date. The saved file keeps the formulas, and a spreadsheet app computes them again.</item>
+        <item quantity="one">%d formula cell shows a result your edit made out of date. Saving computes it again where it can.</item>
+        <item quantity="other">%d formula cells show results your edit made out of date. Saving computes them again where it can.</item>
     </plurals>
 
     <!--  iOS -->

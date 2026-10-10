@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Del različice Pro</string>
     <string name="pro_offer_formatting">Krepka in ležeča pisava, barve in velikost besedila ter dodajanje ali združevanje odstavkov so del različice OpenDocument Reader Pro. Označevalnik je na voljo v vseh izdajah.</string>
-    <string name="pro_offer_sheet">Krepka in ležeča pisava, barve, velikost besedila in poravnava celic so del različice OpenDocument Reader Pro. Polnilo je na voljo v vseh izdajah.</string>
     <string name="pro_offer_markup">Podčrtovanje, prečrtovanje in risanje po PDF-ju so del različice OpenDocument Reader Pro. Označevalnik je na voljo v vseh izdajah.</string>
     <string name="not_now">Ne zdaj</string>
     <string name="edit_refused_new_line">Preloma vrstice znotraj odstavka ni mogoče shraniti. Za nov odstavek pritisnite Enter.</string>
@@ -135,10 +134,4 @@
     <string name="edit_refused_read_only">Tega dokumenta ni mogoče urejati.</string>
     <string name="edit_refused_range">Urejanje ne more segati prek slike ali tabele.</string>
     <string name="edit_refused_unsupported">To urejanje tukaj ni mogoče.</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="one">%d celica s formulo prikazuje rezultat, ki ga je vaše urejanje naredilo zastarelega. Shranjena datoteka ohrani formulo, program za preglednice pa jo znova izračuna.</item>
-        <item quantity="two">%d celici s formulo prikazujeta rezultata, ki ju je vaše urejanje naredilo zastarela. Shranjena datoteka ohrani formuli, program za preglednice pa ju znova izračuna.</item>
-        <item quantity="few">%d celice s formulo prikazujejo rezultate, ki jih je vaše urejanje naredilo zastarele. Shranjena datoteka ohrani formule, program za preglednice pa jih znova izračuna.</item>
-        <item quantity="other">%d celic s formulo prikazuje rezultate, ki jih je vaše urejanje naredilo zastarele. Shranjena datoteka ohrani formule, program za preglednice pa jih znova izračuna.</item>
-    </plurals>
 </resources>

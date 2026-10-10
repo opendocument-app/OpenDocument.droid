@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">En del av Pro</string>
     <string name="pro_offer_formatting">Fet, kursiv, färger och textstorlek, samt att lägga till eller slå ihop stycken, ingår i OpenDocument Reader Pro. Överstrykningen finns i alla versioner.</string>
-    <string name="pro_offer_sheet">Fet, kursiv, färger, textstorlek och justering av celler ingår i OpenDocument Reader Pro. Fyllningen finns i alla versioner.</string>
     <string name="pro_offer_markup">Understrykning, genomstrykning och att rita i en PDF ingår i OpenDocument Reader Pro. Överstrykningen finns i alla versioner.</string>
     <string name="not_now">Inte nu</string>
     <string name="edit_refused_new_line">En radbrytning inuti ett stycke kan inte sparas. Tryck på Enter för ett nytt stycke.</string>
@@ -135,8 +134,4 @@
     <string name="edit_refused_read_only">Det här dokumentet kan inte redigeras.</string>
     <string name="edit_refused_range">En redigering kan inte sträcka sig över en bild eller en tabell.</string>
     <string name="edit_refused_unsupported">Den redigeringen är inte möjlig här.</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="one">%d formelcell visar ett resultat som din redigering har gjort inaktuellt. Den sparade filen behåller formeln, och ett kalkylprogram räknar ut den igen.</item>
-        <item quantity="other">%d formelceller visar resultat som din redigering har gjort inaktuella. Den sparade filen behåller formlerna, och ett kalkylprogram räknar ut dem igen.</item>
-    </plurals>
 </resources>

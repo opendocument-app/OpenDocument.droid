@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Pro 기능</string>
     <string name="pro_offer_formatting">굵게, 기울임꼴, 색상, 글자 크기, 단락 추가 및 합치기 기능은 OpenDocument Reader Pro에 포함되어 있습니다. 강조 표시는 모든 버전에서 사용할 수 있습니다.</string>
-    <string name="pro_offer_sheet">셀의 굵게, 기울임꼴, 색상, 글자 크기, 맞춤 기능은 OpenDocument Reader Pro에 포함되어 있습니다. 채우기는 모든 버전에서 사용할 수 있습니다.</string>
     <string name="pro_offer_markup">PDF의 밑줄, 취소선, 그리기 기능은 OpenDocument Reader Pro에 포함되어 있습니다. 강조 표시는 모든 버전에서 사용할 수 있습니다.</string>
     <string name="not_now">나중에</string>
     <string name="edit_refused_new_line">단락 안의 줄 바꿈은 저장할 수 없습니다. 새 단락을 만들려면 Enter를 누르세요.</string>
@@ -135,7 +134,4 @@
     <string name="edit_refused_read_only">이 문서는 편집할 수 없습니다.</string>
     <string name="edit_refused_range">편집 범위에 그림이나 표를 포함할 수 없습니다.</string>
     <string name="edit_refused_unsupported">여기서는 그렇게 편집할 수 없습니다.</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="other">수식 셀 %d개에 편집으로 인해 오래된 결과가 표시됩니다. 저장된 파일에는 수식이 유지되며, 스프레드시트 앱에서 다시 계산합니다.</item>
-    </plurals>
 </resources>

@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Pro का हिस्सा</string>
     <string name="pro_offer_formatting">बोल्ड, इटैलिक, रंग और टेक्स्ट का आकार, और नए अनुच्छेद जोड़ना या अनुच्छेदों को मिलाना OpenDocument Reader Pro में शामिल हैं। हाइलाइटर हर वर्शन में मिलता है।</string>
-    <string name="pro_offer_sheet">सेल के लिए बोल्ड, इटैलिक, रंग, टेक्स्ट का साइज़ और अलाइनमेंट OpenDocument Reader Pro में शामिल हैं। रंग भरने की सुविधा हर वर्शन में मिलती है।</string>
     <string name="pro_offer_markup">PDF पर रेखांकन, काटना और ड्रॉ करना OpenDocument Reader Pro में शामिल हैं। हाइलाइटर हर वर्शन में मिलता है।</string>
     <string name="not_now">अभी नहीं</string>
     <string name="edit_refused_new_line">अनुच्छेद के भीतर लाइन ब्रेक सहेजा नहीं जा सकता। नए अनुच्छेद के लिए Enter दबाएँ।</string>
@@ -135,8 +134,4 @@
     <string name="edit_refused_read_only">यह दस्तावेज़ संपादित नहीं किया जा सकता।</string>
     <string name="edit_refused_range">कोई संपादन किसी चित्र या तालिका के पार नहीं जा सकता।</string>
     <string name="edit_refused_unsupported">यह संपादन यहाँ संभव नहीं है।</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="one">%d सूत्र वाला सेल ऐसा परिणाम दिखा रहा है जो आपके संपादन से पुराना हो गया है। सहेजी गई फ़ाइल सूत्र को रखती है, और स्प्रेडशीट ऐप उसे फिर से गणना करता है।</item>
-        <item quantity="other">%d सूत्र वाले सेल ऐसे परिणाम दिखा रहे हैं जो आपके संपादन से पुराने हो गए हैं। सहेजी गई फ़ाइल सूत्रों को रखती है, और स्प्रेडशीट ऐप उन्हें फिर से गणना करता है।</item>
-    </plurals>
 </resources>

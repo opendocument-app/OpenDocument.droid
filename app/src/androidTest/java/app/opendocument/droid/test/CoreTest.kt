@@ -122,6 +122,37 @@ class CoreTest {
         result.delete()
     }
 
+    /** A csv is edited as a one-sheet spreadsheet, rows included, and saved as a csv. */
+    @Test
+    fun testCsvEdit() {
+        val csv = File(cacheDir(), "rows.csv")
+        csv.writeText("a,b\nc,d\n")
+        extracted += csv
+
+        coreLoader.host("csv-edit", csv.absolutePath, askEditing = true)
+        Assert.assertEquals(EditingKind.SHEET, coreLoader.editing)
+
+        val result =
+            coreLoader.writeEdits(
+                csv.absolutePath,
+                null,
+                null,
+                EditingKind.SHEET,
+                """{"version":2,"ops":[{"op":"insertRows","sheet":0,"row":0,"count":1},""" +
+                    """{"op":"setCell","sheet":0,"column":0,"row":0,""" +
+                    """"value":{"type":"string","text":"$EDITED"}}]}""",
+                File(cacheDir(), "csv-edit-result").path,
+            )
+
+        // the core may write a byte order mark
+        Assert.assertEquals(
+            listOf("$EDITED,", "a,b", "c,d"),
+            result.readText().removePrefix("\uFEFF").lines().filter { it.isNotEmpty() },
+        )
+
+        result.delete()
+    }
+
     /**
      * The formats that used to be sent off for conversion instead: presentations, and the legacy
      * binary microsoft ones. The core renders all four, so the app hands them to it.

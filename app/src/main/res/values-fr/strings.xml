@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Inclus dans Pro</string>
     <string name="pro_offer_formatting">Le gras, l\'italique, les couleurs et la taille du texte, ainsi que l\'ajout ou la fusion de paragraphes, sont inclus dans OpenDocument Reader Pro. Le surligneur est disponible dans toutes les éditions.</string>
-    <string name="pro_offer_sheet">Le gras, l\'italique, les couleurs, la taille du texte et l\'alignement des cellules sont inclus dans OpenDocument Reader Pro. Le remplissage est disponible dans toutes les éditions.</string>
     <string name="pro_offer_markup">Le soulignement, le barré et le dessin sur un PDF sont inclus dans OpenDocument Reader Pro. Le surligneur est disponible dans toutes les éditions.</string>
     <string name="not_now">Pas maintenant</string>
     <string name="edit_refused_new_line">Un saut de ligne à l\'intérieur d\'un paragraphe ne peut pas être enregistré. Appuyez sur Entrée pour créer un nouveau paragraphe.</string>
@@ -135,8 +134,4 @@
     <string name="edit_refused_read_only">Ce document ne peut pas être modifié.</string>
     <string name="edit_refused_range">Une modification ne peut pas s\'étendre sur une image ou un tableau.</string>
     <string name="edit_refused_unsupported">Cette modification n\'est pas possible ici.</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="one">%d cellule de formule affiche un résultat que votre modification a rendu obsolète. Le fichier enregistré conserve la formule, et un tableur la recalcule.</item>
-        <item quantity="other">%d cellules de formule affichent des résultats que votre modification a rendus obsolètes. Le fichier enregistré conserve les formules, et un tableur les recalcule.</item>
-    </plurals>
 </resources>

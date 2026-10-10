@@ -36,6 +36,9 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         /** State [style] on the selection, in the keys `odr.editing.format` takes. */
         fun onFormat(style: JSONObject)
 
+        /** Call [function] of `odr.editing` on the selected rows or columns, with [where]. */
+        fun onEditStructure(function: String, where: String?)
+
         /** A marking tool was pressed, or given a new [color] where [recolor]. */
         fun onMarkTool(tool: String, @ColorInt color: Int, recolor: Boolean)
 
@@ -86,8 +89,9 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
     }
 
     /**
-     * The formatting tools. A [sheet] takes a fill where a document takes a highlight, and no
-     * `justify`. [locked] adds pro's badge, and makes every tool but the free one offer pro.
+     * The formatting tools. A [sheet] takes a fill where a document takes a highlight, no
+     * `justify`, and the rows and columns tool. [locked] adds pro's badge, and makes every tool but
+     * the free one offer pro.
      */
     fun showFormatting(sheet: Boolean, locked: Boolean) {
         reset(locked)
@@ -158,6 +162,13 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         align.setOnClickListener { ifOffered(ALIGN_TOOL) { showAlignments(it) } }
         alignTool = align
         row.addView(align)
+
+        if (sheet) {
+            val structure =
+                newTool(R.drawable.ic_table_edit, R.string.tool_rows_columns, STRUCTURE_TOOL)
+            structure.setOnClickListener { ifOffered(STRUCTURE_TOOL) { showStructureEdits(it) } }
+            row.addView(structure)
+        }
 
         setSelectionStyle(JSONObject())
 
@@ -412,11 +423,7 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
     private fun showAlignments(anchor: View) {
         showRow(anchor, fill = false) { row, popup ->
             for (alignment in alignments) {
-                val choice = newTool(alignment.icon, alignment.label, ALIGN_TOOL)
-                // a choice carries no colour and no caption, so its icon is centred without the
-                // slot
-                (choice.findViewById<View>(R.id.editing_tool_caption).parent as View).visibility =
-                    View.GONE
+                val choice = newChoice(alignment.icon, alignment.label, ALIGN_TOOL)
                 choice.isSelected = alignment.value == selectionAlign
                 choice.setOnClickListener {
                     popup.dismiss()
@@ -427,6 +434,31 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
                 row.addView(choice)
             }
         }
+    }
+
+    /** The row and column edits, as a row of tools under the one that opened them. */
+    private fun showStructureEdits(anchor: View) {
+        showRow(anchor, fill = false) { row, popup ->
+            for (edit in STRUCTURE_EDITS) {
+                val choice = newChoice(edit.icon, edit.label, STRUCTURE_TOOL)
+                choice.setOnClickListener {
+                    popup.dismiss()
+
+                    listener?.onEditStructure(edit.function, edit.where)
+                }
+
+                row.addView(choice)
+            }
+        }
+    }
+
+    /** A tool in a row that a tool opened. */
+    private fun newChoice(@DrawableRes icon: Int, @StringRes label: Int, name: String): View {
+        val choice = newTool(icon, label, name)
+        // a choice carries no colour and no caption, so its icon is centred without the slot
+        (choice.findViewById<View>(R.id.editing_tool_caption).parent as View).visibility = View.GONE
+
+        return choice
     }
 
     private fun showPalette(anchor: View, colors: List<NamedColor>, picked: (Int) -> Unit) {
@@ -504,6 +536,14 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         @param:StringRes val label: Int,
     )
 
+    /** A call of `odr.editing` on the rows or columns that the selection spans. */
+    private class StructureEdit(
+        val function: String,
+        val where: String?,
+        @param:DrawableRes val icon: Int,
+        @param:StringRes val label: Int,
+    )
+
     private class Mark(
         val tool: String,
         @param:DrawableRes val icon: Int,
@@ -522,9 +562,10 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         /** The colour behind a cell, which a sheet takes in place of a highlight. */
         private const val FILL_COLOR = "fill"
 
-        /** The size and the alignment tools, which carry no colour and so are only names here. */
+        /** The tools that carry no colour, and so are only names here. */
         private const val SIZE_TOOL = "size"
         private const val ALIGN_TOOL = "align"
+        private const val STRUCTURE_TOOL = "structure"
 
         /**
          * The tools a locked strip still does the work of. The highlighter, under both names it
@@ -573,6 +614,46 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
                     "justify",
                     R.drawable.ic_format_align_justify,
                     R.string.tool_align_justify,
+                ),
+            )
+
+        private val STRUCTURE_EDITS =
+            listOf(
+                StructureEdit(
+                    "insertRows",
+                    "above",
+                    R.drawable.ic_add_row_above,
+                    R.string.tool_insert_rows_above,
+                ),
+                StructureEdit(
+                    "insertRows",
+                    "below",
+                    R.drawable.ic_add_row_below,
+                    R.string.tool_insert_rows_below,
+                ),
+                StructureEdit(
+                    "deleteRows",
+                    null,
+                    R.drawable.ic_delete_rows,
+                    R.string.tool_delete_rows,
+                ),
+                StructureEdit(
+                    "insertColumns",
+                    "left",
+                    R.drawable.ic_add_column_left,
+                    R.string.tool_insert_columns_left,
+                ),
+                StructureEdit(
+                    "insertColumns",
+                    "right",
+                    R.drawable.ic_add_column_right,
+                    R.string.tool_insert_columns_right,
+                ),
+                StructureEdit(
+                    "deleteColumns",
+                    null,
+                    R.drawable.ic_delete_columns,
+                    R.string.tool_delete_columns,
                 ),
             )
 

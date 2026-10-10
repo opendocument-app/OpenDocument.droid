@@ -49,6 +49,10 @@ class CoreLoader(private val context: Context) {
     var pageSize: PageSize? = null
         private set
 
+    /** The language the document [host] last opened states, as a BCP 47 tag. */
+    var locale: String? = null
+        private set
+
     /**
      * Whether the core reads what [host] last opened as a document rather than only showing it -
      * true of csv and markdown as well as the document formats, false of an image or an archive.
@@ -94,6 +98,7 @@ class CoreLoader(private val context: Context) {
             editing,
             readsAsDocument,
             pageSize,
+            locale,
         )
     }
 
@@ -128,14 +133,13 @@ class CoreLoader(private val context: Context) {
             throw OdrException.UnsupportedFileType("no charset could be detected: $inputPath")
         }
 
-        // one decode for both questions
+        // one decode for every question
         val paged = lastDocumentType in PAGED_DOCUMENT_TYPES
-        val document =
-            if (file.isDocumentFile && (askEditing || paged)) file.asDocumentFile().document()
-            else null
+        val document = if (askEditing || paged) documentOf(file) else null
         document.use {
             editing = if (askEditing) editingOf(file, it) else EditingKind.NONE
             pageSize = if (paged && it != null) pageSizeOf(it) else null
+            locale = it?.locale()
         }
 
         val htmlConfig = HtmlConfig()
@@ -333,10 +337,11 @@ class CoreLoader(private val context: Context) {
                     }
                 EditingKind.DOCUMENT,
                 EditingKind.SHEET ->
-                    file.asDocumentFile().document().use { document ->
-                        document.edit(payload)
-                        document.save(outputFile.path)
-                    }
+                    checkNotNull(documentOf(file)) { "not a document: $inputPath" }
+                        .use { document ->
+                            document.edit(payload)
+                            document.save(outputFile.path)
+                        }
             }
 
             return outputFile
@@ -373,6 +378,14 @@ class CoreLoader(private val context: Context) {
         return if (document.documentType() == DocumentType.SPREADSHEET) EditingKind.SHEET
         else EditingKind.DOCUMENT
     }
+
+    /** The document [file] holds: a document file's, or the one sheet of a csv. */
+    private fun documentOf(file: DecodedFile): Document? =
+        when {
+            file.isDocumentFile -> file.asDocumentFile().document()
+            file.isCsvFile -> file.asCsvFile().document()
+            else -> null
+        }
 
     /** The first page's: a presentation has one size, and a drawing seldom more. */
     private fun pageSizeOf(document: Document): PageSize? {

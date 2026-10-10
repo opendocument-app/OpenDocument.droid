@@ -11,7 +11,7 @@ enum class EditingKind {
     /** A text document or a presentation. */
     DOCUMENT,
 
-    /** A spreadsheet: one cell at a time. */
+    /** A spreadsheet or a csv: its cells, rows and columns. */
     SHEET,
 
     /** A pdf, which takes marks rather than edits. */

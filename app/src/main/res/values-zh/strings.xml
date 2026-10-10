@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Pro 功能</string>
     <string name="pro_offer_formatting">粗体、斜体、颜色和文字大小，以及添加或合并段落，均为 OpenDocument Reader Pro 的功能。突出显示在所有版本中均可使用。</string>
-    <string name="pro_offer_sheet">单元格的粗体、斜体、颜色、文字大小和对齐方式均为 OpenDocument Reader Pro 的功能。填充在所有版本中均可使用。</string>
     <string name="pro_offer_markup">在 PDF 上添加下划线、删除线和绘图均为 OpenDocument Reader Pro 的功能。突出显示在所有版本中均可使用。</string>
     <string name="not_now">以后再说</string>
     <string name="edit_refused_new_line">段落内的换行无法保存。按 Enter 键可新建段落。</string>
@@ -135,7 +134,4 @@
     <string name="edit_refused_read_only">此文档无法编辑。</string>
     <string name="edit_refused_range">编辑不能跨越图片或表格。</string>
     <string name="edit_refused_unsupported">此处无法进行该编辑。</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="other">%d 个公式单元格显示的结果因您的编辑而过时。保存的文件会保留公式，电子表格应用会重新计算。</item>
-    </plurals>
 </resources>

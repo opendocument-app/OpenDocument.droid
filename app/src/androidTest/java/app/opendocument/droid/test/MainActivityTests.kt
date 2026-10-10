@@ -27,6 +27,7 @@ import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.VerificationModes.times
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
+import androidx.test.espresso.matcher.RootMatchers.isPlatformPopup
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.isEnabled
 import androidx.test.espresso.matcher.ViewMatchers.withClassName
@@ -387,6 +388,55 @@ class MainActivityTests {
             awaitViewWithText(R.string.pro_offer_sheet)
             onView(withText(R.string.pro_offer_sheet)).check(matches(isDisplayed()))
         }
+    }
+
+    /** The rows and columns tool inserts a row over the pin in pro, and offers pro in lite. */
+    @Test
+    fun aSheetRowIsInsertedFromTheStrip() {
+        respondToOpenDocumentWith(requireTestFile("spreadsheet-test.ods"))
+
+        openDocumentThroughPicker()
+        waitForDocumentActions()
+
+        onView(withContentDescription(R.string.menu_edit)).perform(clickThroughLongPress())
+
+        val activity = mainActivityActivityTestRule.activity
+        val documentFragment = requireNotNull(waitForDocumentFragment(activity, 10000))
+        val pageView = requireNotNull(documentFragment.pageView)
+
+        Assert.assertTrue(
+            "the sheet should turn editable",
+            waitFor(EDIT_MODE_TIMEOUT_MS) { pageAnswers(pageView, "odr.editing.isEnabled()") },
+        )
+        Assert.assertTrue("the formatting strip should come up", awaitEditingTools())
+        Assert.assertTrue(
+            "the first cell should take the pin",
+            pageAnswers(pageView, "odr.sheet.pin({column: 0, row: 0})"),
+        )
+
+        onView(withContentDescription(R.string.tool_rows_columns)).perform(scrollTo(), click())
+
+        if (!Features.advancedEditing) {
+            awaitViewWithText(R.string.pro_offer_sheet)
+            onView(withText(R.string.pro_offer_sheet)).check(matches(isDisplayed()))
+
+            return
+        }
+
+        onView(withContentDescription(R.string.tool_insert_rows_above))
+            .inRoot(isPlatformPopup())
+            .perform(click())
+
+        Assert.assertTrue(
+            "a row should be inserted",
+            waitFor(EDIT_MODE_TIMEOUT_MS) {
+                pageAnswers(pageView, "odr.editing.getOperations().indexOf('insertRows') >= 0")
+            },
+        )
+        Assert.assertTrue(
+            "and the page should say so to the app",
+            waitFor(EDIT_MODE_TIMEOUT_MS) { documentFragment.hasUnsavedEdits() },
+        )
     }
 
     /** Lite edits a text document inside one paragraph, and the page itself holds it to that. */

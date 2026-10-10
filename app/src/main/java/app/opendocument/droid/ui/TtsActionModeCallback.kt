@@ -11,17 +11,21 @@ import android.widget.TextView
 import androidx.appcompat.view.ActionMode
 import app.opendocument.droid.R
 import app.opendocument.droid.ui.widget.PageView
+import java.util.Locale
 
 /**
  * Reads the document out loud, one paragraph at a time: [PageView] hands the text of the paragraph
  * at [lastParagraphIndex] back through [ParagraphListener], and every finished utterance asks for
- * the next one.
+ * the next one. [locale] is the document's language as a BCP 47 tag, read in where a voice has it.
  */
 // the replacements for the deprecated utterance callback and parameter map need the utterance
 // queued with an id, which is a behaviour change rather than a rename
 @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
-class TtsActionModeCallback(private val context: Context, private val pageView: PageView) :
-    ActionMode.Callback, OnInitListener, ParagraphListener, OnUtteranceCompletedListener {
+class TtsActionModeCallback(
+    private val context: Context,
+    private val pageView: PageView,
+    private val locale: String?,
+) : ActionMode.Callback, OnInitListener, ParagraphListener, OnUtteranceCompletedListener {
 
     private lateinit var textToSpeech: TextToSpeech
     private lateinit var menu: Menu
@@ -52,6 +56,12 @@ class TtsActionModeCallback(private val context: Context, private val pageView: 
             statusView.setText(R.string.tts_status_ready)
 
             textToSpeech.setOnUtteranceCompletedListener(this)
+
+            // otherwise the engine's own language, which is the phone's rather than the document's
+            locale
+                ?.let { Locale.forLanguageTag(it) }
+                ?.takeIf { textToSpeech.isLanguageAvailable(it) >= TextToSpeech.LANG_AVAILABLE }
+                ?.let { textToSpeech.setLanguage(it) }
 
             menu.findItem(R.id.tts_play).isEnabled = true
             menu.findItem(R.id.tts_pause).isEnabled = true

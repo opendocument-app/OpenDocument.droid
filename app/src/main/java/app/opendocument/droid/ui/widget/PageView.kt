@@ -498,6 +498,12 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         evaluateJavascript("odr.editing.format($style)", null)
     }
 
+    /** Calls [function] of `odr.editing`, such as `insertRows`, on the selected rows or columns. */
+    fun editStructure(function: String, where: String?) {
+        val argument = where?.let { JSONObject.quote(it) } ?: ""
+        evaluateJavascript("odr.editing.$function($argument)", null)
+    }
+
     /**
      * A marking tool pressed, or given a new colour; [callback] gets the tool left armed. The page
      * marks a standing selection, and arms where there is none.

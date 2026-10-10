@@ -124,7 +124,6 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Osa Pro-versioonist</string>
     <string name="pro_offer_formatting">Paks kiri, kaldkiri, värvid ja teksti suurus ning lõikude lisamine või ühendamine on OpenDocument Reader Pro osa. Esiletõst on saadaval kõigis versioonides.</string>
-    <string name="pro_offer_sheet">Paks kiri, kaldkiri, värvid, teksti suurus ja lahtrite joondus on OpenDocument Reader Pro osa. Täide on saadaval kõigis versioonides.</string>
     <string name="pro_offer_markup">Allajoonimine, läbikriipsutamine ja joonistamine PDF-il on OpenDocument Reader Pro osa. Esiletõst on saadaval kõigis versioonides.</string>
     <string name="not_now">Mitte praegu</string>
     <string name="edit_refused_new_line">Reavahetust lõigu sees ei saa salvestada. Uue lõigu jaoks vajuta Enter.</string>
@@ -135,8 +134,4 @@
     <string name="edit_refused_read_only">Seda dokumenti ei saa muuta.</string>
     <string name="edit_refused_range">Muudatus ei saa ulatuda üle pildi ega tabeli.</string>
     <string name="edit_refused_unsupported">See muudatus pole siin võimalik.</string>
-    <plurals name="edit_cells_stale">
-        <item quantity="one">%d valemiga lahter näitab tulemust, mille sinu muudatus aegunuks muutis. Salvestatud fail säilitab valemi ja arvutustabelirakendus arvutab selle uuesti.</item>
-        <item quantity="other">%d valemiga lahtrit näitavad tulemusi, mille sinu muudatus aegunuks muutis. Salvestatud fail säilitab valemid ja arvutustabelirakendus arvutab need uuesti.</item>
-    </plurals>
 </resources>
