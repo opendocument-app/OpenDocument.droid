@@ -7,15 +7,18 @@ import sys
 import xml.etree.ElementTree as ET
 
 
+ASSUMPTIONS = (
+    "org.junit.AssumptionViolatedException",
+    "org.junit.internal.AssumptionViolatedException",
+)
+
+
 def assumption_skipped(case):
     # AGP can encode JUnit assumptions as <failure> instead of <skipped>.
     failure = case.find("failure")
-    if failure is None:
-        return False
-    kinds = ("org.junit.AssumptionViolatedException", "org.junit.internal.AssumptionViolatedException")
-    return failure.get("type") in kinds or (failure.text or "").startswith(
-        tuple(kind + ":" for kind in kinds)
-    )
+    return failure is not None and (
+        failure.get("type") or (failure.text or "").split(":", 1)[0]
+    ) in ASSUMPTIONS
 
 
 def verify(results, flavors):
