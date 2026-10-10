@@ -11,33 +11,42 @@ import org.junit.Test
 class ReviewInvitationTest {
 
     @Test
-    fun theFirstAskWaitsForFiveDocuments() {
-        assertFalse(earned(documentOpens = 4))
-        assertTrue(earned(documentOpens = 5))
+    fun theFirstAskWaitsForThreeDocuments() {
+        assertFalse(earned(documentOpens = 2))
+        assertTrue(earned(documentOpens = 3))
     }
 
     @Test
     fun documentsAreCountedFromTheAskBefore() {
-        // ten more after the ask, not ten in all
-        assertFalse(earned(documentOpens = 14, asks = 1, askedAfterOpens = 5))
-        assertTrue(earned(documentOpens = 15, asks = 1, askedAfterOpens = 5))
+        // three more after the ask, not three in all
+        assertFalse(
+            earned(
+                documentOpens = 5,
+                askedAfterOpens = 3,
+                askedAtMillis = ASKED_AT,
+                nowMillis = LATER,
+            )
+        )
+        assertTrue(
+            earned(
+                documentOpens = 6,
+                askedAfterOpens = 3,
+                askedAtMillis = ASKED_AT,
+                nowMillis = LATER,
+            )
+        )
     }
 
     @Test
-    fun theLadderEscalates() {
-        // 5, then 10, 20, 50, 100 more
-        assertFalse(earned(documentOpens = 19, asks = 2, askedAfterOpens = 0))
-        assertTrue(earned(documentOpens = 20, asks = 2, askedAfterOpens = 0))
-        assertFalse(earned(documentOpens = 49, asks = 3, askedAfterOpens = 0))
-        assertTrue(earned(documentOpens = 50, asks = 3, askedAfterOpens = 0))
-        assertFalse(earned(documentOpens = 99, asks = 4, askedAfterOpens = 0))
-        assertTrue(earned(documentOpens = 100, asks = 4, askedAfterOpens = 0))
-    }
-
-    @Test
-    fun theFifthAskIsTheLast() {
-        assertFalse(earned(documentOpens = 1000, asks = 5))
-        assertFalse(earned(documentOpens = 1000, asks = 6))
+    fun thereIsNoLastAsk() {
+        assertTrue(
+            earned(
+                documentOpens = 1003,
+                askedAfterOpens = 1000,
+                askedAtMillis = ASKED_AT,
+                nowMillis = LATER,
+            )
+        )
     }
 
     @Test
@@ -45,7 +54,6 @@ class ReviewInvitationTest {
         assertFalse(
             earned(
                 documentOpens = 15,
-                asks = 1,
                 askedAfterOpens = 5,
                 askedAtMillis = ASKED_AT,
                 nowMillis = ASKED_AT + TWO_WEEKS - 1,
@@ -54,7 +62,6 @@ class ReviewInvitationTest {
         assertTrue(
             earned(
                 documentOpens = 15,
-                asks = 1,
                 askedAfterOpens = 5,
                 askedAtMillis = ASKED_AT,
                 nowMillis = ASKED_AT + TWO_WEEKS,
@@ -67,7 +74,6 @@ class ReviewInvitationTest {
         assertFalse(
             earned(
                 documentOpens = 15,
-                asks = 1,
                 askedAfterOpens = 5,
                 askedAtMillis = ASKED_AT,
                 nowMillis = ASKED_AT - TWO_WEEKS,
@@ -78,7 +84,7 @@ class ReviewInvitationTest {
     @Test
     fun anInstallThatWasNeverAskedHasNoRail() {
         // zero is "never asked", not 1970
-        assertTrue(earned(documentOpens = 5, askedAtMillis = 0, nowMillis = ASKED_AT))
+        assertTrue(earned(documentOpens = 3, askedAtMillis = 0, nowMillis = ASKED_AT))
     }
 
     @Test
@@ -89,15 +95,14 @@ class ReviewInvitationTest {
 
     private fun earned(
         documentOpens: Int = 0,
-        asks: Int = 0,
         askedAfterOpens: Int = 0,
         askedAtMillis: Long = 0,
         nowMillis: Long = 0,
-    ): Boolean =
-        ReviewInvitation.isEarned(documentOpens, asks, askedAfterOpens, askedAtMillis, nowMillis)
+    ): Boolean = ReviewInvitation.isEarned(documentOpens, askedAfterOpens, askedAtMillis, nowMillis)
 
     private companion object {
         const val ASKED_AT = 1_700_000_000_000L
         const val TWO_WEEKS = 14L * 24 * 60 * 60 * 1000
+        const val LATER = ASKED_AT + TWO_WEEKS
     }
 }

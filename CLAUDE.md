@@ -107,8 +107,8 @@ one immediately after `loadUri`, which only queues the read.
 ## Review invitations
 
 Count fresh document opens, excluding reloads and app launches. Ask on the landing screen
-or when a document is closed, never while opening it or after a failed load. Space asks by
-5, 10, 20, 50, and 100 additional documents, at least two weeks apart, with five asks total.
+or when a document is closed, never while opening it or after a failed load. Ask after every
+3 additional documents, at least two weeks apart, with no limit on the number of asks.
 Record an ask when handed to Play, even if Play's quota prevents display.
 
 ## Tests and screenshots
