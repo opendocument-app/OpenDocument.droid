@@ -367,7 +367,7 @@ class MainActivityTests {
             pageAnswers(pageView, "odr.sheet.pin({column: 0, row: 0})"),
         )
 
-        onView(withContentDescription(R.string.tool_fill)).perform(click())
+        onView(withContentDescription(R.string.tool_fill)).perform(tapWithoutTouch())
 
         Assert.assertTrue(
             "the cell should be filled",
@@ -738,11 +738,16 @@ class MainActivityTests {
 
         // a long way down, but not the end: the last screenful is one position however far the page
         // is scrolled past it, so it would pass with nothing restored at all
-        val before = scrollToFraction(pageView, READING_POSITION)
-        Assert.assertTrue(
-            "the page did not scroll - it read back at $before",
-            before > READING_POSITION / 2,
-        )
+        // the webview can lay the page out again after the first height and drop the scroll, so it
+        // scrolls until the position holds
+        var before = 0f
+        val scrolled =
+            waitFor(EDIT_MODE_TIMEOUT_MS) {
+                before = scrollToFraction(pageView, READING_POSITION)
+                SystemClock.sleep(SCROLL_SETTLE_MS)
+                before > READING_POSITION / 2 && scrollFraction(pageView) == before
+            }
+        Assert.assertTrue("the page did not scroll - it read back at $before", scrolled)
 
         val document = documentFragment.lastDocument
         val margins = PaginationSetting.isEnabled(activity)
@@ -976,6 +981,22 @@ class MainActivityTests {
             }
         )
 
+    /**
+     * Runs a tool's tap without a touch. A slow emulator stretches a touch into a long press, and
+     * the long press of a colour tool opens its palette instead.
+     */
+    private fun tapWithoutTouch(): ViewAction =
+        object : ViewAction {
+            override fun getConstraints(): Matcher<View> = isEnabled()
+
+            override fun getDescription() = "run the tap of the tool"
+
+            override fun perform(uiController: UiController, view: View) {
+                view.performClick()
+                uiController.loopMainThreadUntilIdle()
+            }
+        }
+
     private fun enterEditMode(activity: MainActivity, documentFragment: DocumentFragment) {
         val started = AtomicReference(false)
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
@@ -1150,6 +1171,9 @@ class MainActivityTests {
 
         /** Well down the document, and well clear of the last screenful - see the test. */
         private const val READING_POSITION = 0.5f
+
+        // how long a scroll has to hold before the test counts it as the reading position
+        private const val SCROLL_SETTLE_MS = 500L
 
         /**
          * The page is laid out again, so the same place in the text is near, not at, the offset.
