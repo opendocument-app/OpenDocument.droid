@@ -108,6 +108,7 @@ class DocumentParcelTest {
                 listOf(null, SheetCut(80000, 12, 8333, 12), null),
                 editing = EditingKind.DOCUMENT,
                 readsAsDocument = true,
+                pageSize = null,
             )
 
         val restored = roundTrip(document, LoadedDocument.CREATOR)
@@ -118,6 +119,7 @@ class DocumentParcelTest {
         assertEquals(document.partUris, restored.partUris)
         assertEquals(EditingKind.DOCUMENT, restored.editing)
         assertTrue(restored.readsAsDocument)
+        assertNull(restored.pageSize)
 
         assertNull(restored.partCuts[0])
         assertNull(restored.partCuts[2])
@@ -149,6 +151,7 @@ class DocumentParcelTest {
                     listOf(null),
                     editing = EditingKind.NONE,
                     readsAsDocument = true,
+                    pageSize = PageSize(8268, 11693),
                 ),
                 LoadedDocument.CREATOR,
             )
@@ -158,6 +161,8 @@ class DocumentParcelTest {
         assertNull(restored.partCuts[0])
         assertEquals(EditingKind.NONE, restored.editing)
         assertTrue(restored.readsAsDocument)
+        assertEquals(8268, restored.pageSize?.widthMils)
+        assertEquals(11693, restored.pageSize?.heightMils)
     }
 
     private fun <T> roundTrip(value: T, creator: Parcelable.Creator<T>): T {

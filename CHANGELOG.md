@@ -14,6 +14,8 @@ section the body of the GitHub release, and refuses a version without one. `scri
   in the app again.
 - A PDF prints as the file itself, one page to a sheet. A PDF with a password or with
   unsaved marks prints from the screen as before.
+- Printing starts on the paper and orientation of the document, for example A4 or a
+  landscape slide.
 
 ## 4.21.0
 
