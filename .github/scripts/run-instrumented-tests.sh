@@ -21,11 +21,16 @@ adb logcat -c || true
 # the system stops a stuck app in the background and shows nothing
 adb shell settings put global hide_error_dialogs 1 || true
 
+# Old reports must not hide an installation or runner failure.
+rm -rf app/build/outputs/androidTest-results/connected
 status=0
 # the test run takes about 4 minutes; anything past 20 is hung, and a hang has to
 # end as an ordinary failure so the logcat below still gets dumped and uploaded -
 # that is the only view into what the guest was doing
 timeout --kill-after=1m 20m ./gradlew connectedCheck || status=$?
+if [ "$status" = 0 ]; then
+  python3 .github/scripts/verify-instrumented-tests.py || status=$?
+fi
 
 # Dump logcat after the tests. This used to sit after a bare gradle call, so the
 # only runs whose logs were worth uploading were exactly the ones that never got
