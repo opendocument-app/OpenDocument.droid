@@ -20,7 +20,9 @@ object StreamUtil {
     }
 
     fun copy(input: InputStream, dst: File) {
-        FileOutputStream(dst).use { out -> copy(input, out) }
+        input.use { source ->
+            FileOutputStream(dst).use { out -> source.copyTo(out) }
+        }
     }
 
     fun readFully(input: InputStream): String {

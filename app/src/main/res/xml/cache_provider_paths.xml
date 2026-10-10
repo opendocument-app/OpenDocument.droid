@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <!-- the whole app directory, for uris handed to us from outside the cache -->
-    <root-path
-            name="root"
-            path="." />
-
     <!-- for odr -->
     <cache-path
             name="cache"

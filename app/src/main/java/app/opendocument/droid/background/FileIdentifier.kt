@@ -118,7 +118,7 @@ class FileIdentifier(private val crashManager: CrashManager) {
     /** Whether the core can name the encoding of a file it decided is text. */
     private fun hasKnownCharset(file: File): Boolean =
         try {
-            CoreLoader.hasKnownEncoding(Odr.open(file.absolutePath))
+            Odr.open(file.absolutePath).use { CoreLoader.hasKnownEncoding(it) }
         } catch (e: Throwable) {
             crashManager.log(e)
 
