@@ -103,6 +103,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
                     if (destroyed || isAwaitingNewPage || (loadedUrl != null && url != loadedUrl)) {
                         return
                     }
+
                     restorePendingScroll(0)
 
                     // a sheet loads a page per tab, and each one is a page of its own to wire up
@@ -185,10 +186,6 @@ constructor(context: Context, attributeSet: AttributeSet?) :
                     view: WebView,
                     request: WebResourceRequest,
                 ): Boolean = !request.isForMainFrame || openExternal(request.url)
-
-                @Suppress("DEPRECATION")
-                override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean =
-                    openExternal(Uri.parse(url))
             }
 
         setDownloadListener { url, _, _, _, _ -> openExternal(Uri.parse(url)) }
@@ -538,6 +535,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         evaluateJavascript("(function(){return $expression;})()") { callback(decodeString(it)) }
     }
 
+    /** A string evaluateJavascript answered with, which arrives as a json literal. */
     private fun decodeString(result: String?): String? =
         try {
             JSONTokener(result ?: "null").nextValue() as? String

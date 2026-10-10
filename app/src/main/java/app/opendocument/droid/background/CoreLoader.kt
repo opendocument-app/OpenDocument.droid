@@ -394,7 +394,8 @@ class CoreLoader(private val context: Context) {
          */
         private var sharedServer: HttpServer? = null
 
-        private var sharedServerPort = PREFERRED_SERVER_PORT
+        // written on the loader thread, read by PageView on the main thread
+        @Volatile private var sharedServerPort = PREFERRED_SERVER_PORT
 
         /** Only the active core server may receive the document bridge. */
         fun isHostedUri(uri: Uri): Boolean =

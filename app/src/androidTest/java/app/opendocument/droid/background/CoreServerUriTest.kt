@@ -3,6 +3,7 @@ package app.opendocument.droid.background
 import android.net.Uri
 import androidx.test.platform.app.InstrumentationRegistry
 import app.opendocument.droid.nonfree.CrashManager
+import java.io.File
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -13,7 +14,7 @@ class CoreServerUriTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val loader = CoreLoader(context)
         loader.initialize(CrashManager())
-        val file = java.io.File.createTempFile("origin", ".txt", context.cacheDir)
+        val file = File.createTempFile("origin", ".txt", context.cacheDir)
         val uri =
             try {
                 file.writeText("document")

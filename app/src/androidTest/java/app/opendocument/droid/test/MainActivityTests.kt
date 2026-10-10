@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.SystemClock
 import android.view.View
 import android.webkit.RenderProcessGoneDetail
+import android.webkit.WebResourceRequest
 import androidx.core.content.FileProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
@@ -135,9 +136,21 @@ class MainActivityTests {
             val page = fragment.pageView!!
             Assert.assertFalse(page.settings.allowFileAccess)
             Assert.assertFalse(page.settings.allowContentAccess)
-            Assert.assertTrue(
-                page.webViewClient.shouldOverrideUrlLoading(page, "odr-no-handler://document")
-            )
+            val link =
+                object : WebResourceRequest {
+                    override fun getUrl() = Uri.parse("odr-no-handler://document")
+
+                    override fun isForMainFrame() = true
+
+                    override fun isRedirect() = false
+
+                    override fun hasGesture() = true
+
+                    override fun getMethod() = "GET"
+
+                    override fun getRequestHeaders() = emptyMap<String, String>()
+                }
+            Assert.assertTrue(page.webViewClient.shouldOverrideUrlLoading(page, link))
         }
     }
 
