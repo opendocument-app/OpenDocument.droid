@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
-#
-# Prints the CHANGELOG.md section for one version, and fails when there is none.
-#
-# The release run reads it before building, so missing release copy costs seconds
-# rather than a version, and again in the record job, where it becomes the body of
-# the drafted github release. Being read is what stops the changelog rotting.
-#
-# OpenDocument.ios has the same script against `## [1.37] - 2026-08-02` headings.
+# Print one CHANGELOG.md release section; fail if it is missing or empty.
 
 import argparse
 import os

@@ -1,21 +1,6 @@
 #!/usr/bin/env python3
-#
-# The play store pictures - the screenshots and the feature graphic: which ones
-# there are, and the supply tree built out of what a capture run wrote.
-#
-# Unlike the store copy, these are not committed. A picture of the app is only
-# worth as much as the app it was taken from, so they are taken during the
-# release run, from the build going out, and handed to supply from there.
-# `fastlane android screenshots` takes them; this says what a full set is.
-#
-#   scripts/store_screenshots.py --languages          what to capture
-#   scripts/store_screenshots.py                      check what was captured
-#   scripts/store_screenshots.py --stage DIR --app A  check it and stage A's set
-#
-# An underscore in the name, where every other script here has a dash:
-# `frame-screenshots.py` imports this one, and a dash cannot be imported.
-#
-# OpenDocument.ios has the same script against App Store Connect's shape.
+# Validate and stage the phone and tablet screenshot sets for Play. The underscore in the
+# filename lets frame-screenshots.py import this module.
 
 import argparse
 import os

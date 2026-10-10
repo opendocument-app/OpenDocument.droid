@@ -3,13 +3,8 @@ package app.opendocument.droid.background
 import android.content.Context
 
 /**
- * Whether the user has earned being asked for a review, and whether we have already asked.
- *
- * Only documents count. Opening the app and putting it down again says nothing about the app, and
- * counting it would only bring the ask forward for the people who do read something.
- *
- * A counter rather than the length of the recently opened list: that list is capped, pruned and
- * deletable, so it undercounts exactly the returning users this is meant to find.
+ * Schedules review invitations from cumulative document opens, independent of the capped recent
+ * list.
  */
 object ReviewInvitation {
 

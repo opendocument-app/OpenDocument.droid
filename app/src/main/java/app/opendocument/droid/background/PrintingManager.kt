@@ -46,10 +46,7 @@ class PrintingManager {
     ) {
         val printManager = activity.getSystemService(Context.PRINT_SERVICE) as PrintManager
 
-        // the adapter is done well before the job is: a printer that is off leaves the job queued
-        // or blocked for as long as it takes the user to notice, and the page is free either way.
-        // the job is still watched as the backstop, for the adapter that is dropped without a
-        // last call - whichever comes first wins, which is why this only runs once
+        // Restore the page once the adapter finishes or the job terminates.
         val finishedOnce = AtomicBoolean(false)
         val finish = {
             if (finishedOnce.compareAndSet(false, true)) {

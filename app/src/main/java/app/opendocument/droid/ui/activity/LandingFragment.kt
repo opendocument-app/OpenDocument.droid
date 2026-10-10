@@ -78,11 +78,8 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
     }
 
     /**
-     * Called by MainActivity when it swaps between the landing screen and a document.
-     *
-     * The fragment is only hidden, never stopped - so nothing in the lifecycle fires when a
-     * document is closed, and the list would keep showing what it held before the document was
-     * opened, missing the document that was just added to it.
+     * Refreshes recents when MainActivity reveals this fragment; hiding it does not stop its
+     * lifecycle.
      */
     fun setLandingVisible(visible: Boolean) {
         // MainActivity can swap the containers before the view exists, on a launch that goes
@@ -216,16 +213,7 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         adapter.submitList(items)
     }
 
-    /**
-     * Swiping a row away removes it, with an undo that puts it back at the same place.
-     *
-     * The one gesture, and deliberately: a long press did the same for a while, and a press that
-     * has to be held to find out it does anything is not something anyone finds. Swiping a row out
-     * of a list is what the rest of the platform does, and the undo says what happened either way.
-     *
-     * Only a recently opened document can go: that list is the app's own memory of it, and nothing
-     * else on the screen is the app's to forget.
-     */
+    /** Allows recent-document rows to be swiped away and restored with undo. */
     private fun attachSwipeToRemove() {
         val callback =
             object :

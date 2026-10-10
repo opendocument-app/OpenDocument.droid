@@ -1,28 +1,5 @@
 #!/usr/bin/env python3
-#
-# Puts the captured screenshots into the pictures the store shows: the app on a
-# phone, on a coloured ground, under a line of copy in that locale's language.
-# The feature graphic, which play shows above the listing rather than in the
-# gallery, is the same parts laid out across instead of down - drawn here too, off
-# the first screenshot's capture, so it cannot be a picture of an older app.
-#
-#   scripts/frame-screenshots.py                    frame the whole capture
-#   scripts/frame-screenshots.py --locale en-US     one locale, for a look
-#
-# `fastlane android screenshots` takes the raw captures into fastlane/screenshots;
-# this reads them and writes the framed set to fastlane/framed, which is what
-# `scripts/store_screenshots.py` then checks and stages. The raw set is left
-# alone, so a framing change costs a rerun of this and not of the emulators.
-#
-# Nothing here is drawn from an image file. Every part of the design is a
-# rounded rectangle, a plain rectangle or a line of text, so it is all in
-# `fastlane/frames/frames.json` and in the numbers below - which is also what
-# lets one canvas size become another. The only asset is the font.
-#
-# Needs Pillow, which is the one thing in this repository's scripts that is not
-# in the standard library:
-#
-#   python3 -m pip install Pillow
+# Frame app captures and generate localized Play feature graphics.
 
 import argparse
 import bisect

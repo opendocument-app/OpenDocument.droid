@@ -13,11 +13,8 @@ import java.io.InputStream
 import java.net.URLConnection
 
 /**
- * Names and types the cached copy of a document, in that order: the filename comes from the
- * provider, the mime type from the bytes.
- *
- * It never refuses a file - what nothing can name simply gets a null mime type, and the ui shows
- * "N/A" for it. The one exception is an empty file, which is a document that is not there.
+ * Reads the provider filename and detects the cached file type. Unknown types are allowed; empty
+ * files are rejected.
  */
 class FileIdentifier(private val crashManager: CrashManager) {
 

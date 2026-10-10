@@ -5,14 +5,7 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import androidx.appcompat.app.AppCompatDelegate
 
-/**
- * Whether the app is in night mode when the system says otherwise, which is also the switch for
- * reading at night on a phone that stays light all day: a webview darkens a page only while the app
- * theme reports itself dark.
- *
- * Handed to [AppCompatDelegate.setLocalNightMode] rather than the default mode - `MainActivity` is
- * the only screen there is, and a local mode leaves the default where anything else set it.
- */
+/** Stores a local AppCompat night-mode override without changing the process-wide default. */
 object NightModeSetting {
 
     private const val PREF_NIGHT_MODE = "night_mode"

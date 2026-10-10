@@ -37,15 +37,7 @@ object RecentDocumentList {
     /** Drops every entry for [uri]. Returns [current] unchanged if there is none. */
     fun remove(current: List<Entry>, uri: String): List<Entry> = current.filter { it.uri != uri }
 
-    /**
-     * Puts [entry] back at [index], for undoing a removal.
-     *
-     * Unlike [add] this does not move it to the front - the point of an undo is that the list ends
-     * up looking like it did before. An index past the end lands at the end.
-     *
-     * [max] still applies: the list can have filled up again while the undo was on offer - another
-     * document opened over the top of the snackbar - and an undo is no reason to grow past the cap.
-     */
+    /** Restores [entry] at the clamped [index], removes duplicates, and enforces [max]. */
     fun insert(current: List<Entry>, entry: Entry, index: Int, max: Int = MAX_ENTRIES): Update {
         val entries = ArrayList<Entry>(current.size + 1)
         current.filterTo(entries) { it.uri != entry.uri }

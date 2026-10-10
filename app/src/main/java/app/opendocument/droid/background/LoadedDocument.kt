@@ -5,14 +5,8 @@ import android.os.Parcel
 import android.os.Parcelable
 
 /**
- * A document that was rendered and published: the request it came from, the file it turned out to
- * be, and one uri per part (spreadsheets have one per sheet, everything else a single one with a
- * null title).
- *
- * [partCuts] runs alongside them, null for every part but a sheet that was cut.
- *
- * [editing] and [readsAsDocument] are the core's own answers about this document, never a guess
- * from its mime type - see `CoreLoader.editing` and `CoreLoader.readsAsDocument`.
+ * A rendered document with one URI per part. [partCuts] identifies truncated sheets; [editing] and
+ * [readsAsDocument] come from the core.
  */
 class LoadedDocument(
     val request: DocumentRequest,

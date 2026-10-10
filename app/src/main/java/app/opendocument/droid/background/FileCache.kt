@@ -33,11 +33,8 @@ object FileCache {
     }
 
     /**
-     * Copies what [uri] points at into a fresh cache directory and returns the file, making room
-     * first. A uri that already names a file of ours is handed straight back.
-     *
-     * @throws java.io.FileNotFoundException and the rest of what opening the stream can throw - a
-     *   document that cannot be read has nothing further to be done with it.
+     * Copies [uri] into a fresh cache directory, or reuses an existing cached file. Read failures
+     * propagate to the caller.
      */
     fun store(context: Context, uri: Uri): File {
         if (isCached(context, uri)) {

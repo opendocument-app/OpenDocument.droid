@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
-#
-# Works out which version a release run is building, from the run's `version` input,
-# and refuses the runs that cannot sensibly build one. Only a dry run may go without
-# one, on gradle's unversioned fallback - uploading that means a code the store refuses.
-#
-# gradle checks the shape again and is the one that counts; checking it here as well
-# only saves a typo the six minutes of a build. The version code is left to gradle -
-# one derivation of it is enough. OpenDocument.ios has the same script.
-#
-# Prints the resolved version and writes it to GITHUB_OUTPUT as `version`, empty
-# when there is none. Run it by hand to see what a dispatch would build.
+# Validate and resolve the workflow version input; write it to GITHUB_OUTPUT.
 
 import argparse
 import os

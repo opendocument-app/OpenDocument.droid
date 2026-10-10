@@ -276,15 +276,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     }
 
     /**
-     * Reads back what [onSaveInstanceState] wrote. The view model already survives a rotation; the
-     * bundle also survives process death.
-     *
-     * Guarded because it outlives an app update too: a bundle written by an older version can name
-     * classes this one no longer has, and [android.os.Bundle] reads its whole map on the first
-     * access, so one stale entry takes the rest with it. Losing the reopened document beats
-     * throwing on launch.
-     *
-     * Answers whether the page view got a page back out of it.
+     * Restores saved state and reports whether WebView history was restored. Invalid bundles from
+     * older app versions are ignored.
      */
     private fun restore(savedInstanceState: Bundle): Boolean {
         try {
@@ -693,13 +686,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         state.lastSelectedTab = -1
     }
 
-    /**
-     * Puts the buttons of the loaded document up, in the order they are worth reaching for.
-     *
-     * Called for every result rather than from a menu callback, which is what the toolbar version
-     * relied on: the menu was only rebuilt when something happened to invalidate it, and a document
-     * that finished loading is not one of those things.
-     */
+    /** Rebuilds document actions whenever a document loads or its display settings change. */
     private fun prepareActions(document: LoadedDocument) {
         // whether editing is on offer is the core's answer, not a list of formats kept here: it
         // knows which of the documents it renders it can also write back, which is why neither the
@@ -823,11 +810,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     }
 
     /**
-     * How far the gesture bar reaches into the window. The page itself runs under it - see
-     * MainActivity.applyWindowInsets - but the buttons in that corner have to stay above it.
-     *
-     * Remembered rather than applied straight away: MainActivity creates this fragment inside its
-     * own onCreate, long before there is a view to put it on.
+     * Stores the bottom inset until the action buttons exist. The document itself draws under the
+     * gesture bar.
      */
     fun setBottomInset(inset: Int) {
         bottomInset = inset
@@ -980,11 +964,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     }
 
     /**
-     * The page [PageView] was given cannot be shown after all, so this ends where a document that
-     * would not open ends: back on the landing screen, offering to tell us about it.
-     *
-     * It arrives after [onLoadSuccess] rather than instead of it, which is why it undoes it instead
-     * of going through [isActivityReadyForOutcome].
+     * Handles rendering failures reported after [onLoadSuccess], returning to the landing screen
+     * with a contact offer.
      */
     fun onPageFailed() {
         // already given up on, or a second view of the same failure
@@ -1101,11 +1082,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     }
 
     /**
-     * Nothing left to try with this document, so stop showing it: the landing screen is a better
-     * answer than a blank page, and the bar raised just before this says what happened.
-     *
-     * Not every failure ends here. The password prompt is the app still having something to do with
-     * the file, and it needs the document on screen to do it.
+     * Closes a failed document while retaining its error message. Password prompts keep the
+     * document open.
      */
     private fun giveUp(activity: Activity) {
         (activity as MainActivity).closeFailedDocument()

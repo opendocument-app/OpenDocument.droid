@@ -16,14 +16,8 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 /**
- * What the landing screen shows.
- *
- * Reading the recently opened documents touches a file, and checking whether a document still
- * resolves talks to its provider - so all of it happens on [executor] and is published through
- * [LiveData], which, unlike posting to a handler, drops the result when the fragment is gone.
- *
- * There are no coroutines anywhere in this project, so this follows the executor plus handler shape
- * the loaders already use.
+ * Loads recent documents and checks provider access on [executor], publishing lifecycle-aware
+ * [LiveData].
  */
 class LandingViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -41,17 +35,8 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
     val state: LiveData<State> = mutableState
 
     /**
-     * Whether what the app is for is unfolded. Null while it follows the list - worth reading when
-     * there is nothing else on the screen, in the way once there is - and set once the user says
-     * otherwise.
-     *
-     * What they said is forgotten again when the list crosses between empty and not: an empty list
-     * is the screen the intro was written for, and it should be open on arrival there however it
-     * was left when there were documents. See [rememberEmptiness].
-     *
-     * Both of these live here rather than on disk. A fold is about the screen in front of you, not
-     * a preference, and a settings section that stayed open because it was opened last week is one
-     * more thing to have gone wrong.
+     * Session-only intro expansion override. Null follows list emptiness; crossing between empty
+     * and nonempty resets it.
      */
     @Volatile private var introExpanded: Boolean? = null
 
@@ -66,13 +51,8 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
     }
 
     /**
-     * Publishes what is on disk right away, then re-publishes once the documents that no longer
-     * resolve have been dropped. Rendering does not wait on the provider round trip that way.
-     *
-     * For coming back to the screen, not for what it does to itself: proving a document still
-     * resolves is a query per entry, up to [RecentDocumentList.MAX_ENTRIES] of them, and nothing
-     * this screen does can revoke a grant, unmount a card or delete a file. Only being away can, so
-     * only coming back has to look.
+     * Publishes stored entries immediately, then checks provider access. Call when returning to the
+     * landing screen.
      */
     fun reload() {
         publish(dropUnreachable = true)
@@ -124,14 +104,7 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
         )
     }
 
-    /**
-     * Drops what the user said about the intro when the list crosses between empty and not.
-     *
-     * The two crossings are the two moments the answer changes: the first document opened is when
-     * the intro has been read and is in the way, and swiping the last one away leaves a screen with
-     * nothing on it but the intro, which is what the intro is for. A fold from either side of that
-     * is about a screen that no longer exists.
-     */
+    /** Resets the intro override when the recent list changes between empty and nonempty. */
     private fun rememberEmptiness(isEmpty: Boolean) {
         if (listWasEmpty == isEmpty) {
             return
@@ -198,11 +171,8 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
     }
 
     /**
-     * Forgets a document without releasing its grant, so an undo can still put it back.
-     *
-     * Nothing here releases it later either: [PersistedUriPermissions.prune] reclaims it on the
-     * next launch, which is exactly what reconciling against the stored list - rather than
-     * bookkeeping every removal - is for.
+     * Removes a recent entry while retaining its grant for undo. Unused grants are pruned on the
+     * next launch.
      */
     fun removeRecentDocument(uri: Uri) {
         executor.execute {

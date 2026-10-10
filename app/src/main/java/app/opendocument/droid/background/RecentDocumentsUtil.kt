@@ -5,13 +5,8 @@ import android.net.Uri
 import org.json.JSONObject
 
 /**
- * Stores the recently opened documents in an app private json file.
- *
- * Only the fields live here: [JsonFileStore] does the file and json handling, and the ordering and
- * capping rules are in [RecentDocumentList], which is android free and unit tested.
- *
- * Every method is synchronized: [DocumentLoader] writes from its background thread while the
- * landing screen reads from its own executor.
+ * Stores recent documents through [JsonFileStore] and [RecentDocumentList]. Synchronization
+ * protects concurrent loader and landing-screen access.
  */
 object RecentDocumentsUtil {
 
@@ -61,11 +56,7 @@ object RecentDocumentsUtil {
     }
 
     /**
-     * Puts a removed document back where it was, for undoing a swipe.
-     *
-     * @return the entries that fell out of the list, so [PersistedUriPermissions] can release the
-     *   uri permissions they were holding - the list can have filled up again while the undo was
-     *   still on offer.
+     * Restores a swiped document at its previous index. Returns entries evicted by the list limit.
      */
     @Synchronized
     fun restoreRecentDocument(

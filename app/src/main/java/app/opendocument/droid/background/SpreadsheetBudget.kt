@@ -5,11 +5,8 @@ import android.content.Context
 import androidx.core.content.getSystemService
 
 /**
- * How much of a sheet is translated to html.
- *
- * The budget is the *WebView's*, not the core's: a rendered cell costs 10-20 KB in the renderer
- * process against some 226 bytes of html, so a budget too high shows none of the document rather
- * than more of it - the page fails to load and the file is reported as one that cannot be opened.
+ * Limits rendered spreadsheet cells to the WebView memory budget; each cell costs roughly 10–20 KB
+ * in the renderer.
  */
 object SpreadsheetBudget {
 

@@ -22,18 +22,8 @@ import app.opendocument.droid.R
 import org.json.JSONObject
 
 /**
- * The strip of tools under the edit mode's bar: what changes the text, and nothing else. Undo, redo
- * and save are the bar's, see `EditActionModeCallback`.
- *
- * Every tool is one square button, and a tap does the one thing the tool is for. A tool that
- * applies a colour shows it in the bar under its icon, and a **long press** opens the colours -
- * there is no second button beside it. Which tool is on comes back from the page, through
- * [setSelectionStyle] and [setArmedTool].
- *
- * In a build without [app.opendocument.droid.nonfree.Features.advancedEditing] the strip is
- * `locked`: the highlighter still works, every other tool is dimmed and offers pro, and pro's badge
- * stands in front of the row. One free tool of each kind is what makes the mode worth opening - see
- * [FREE_TOOLS].
+ * Formatting and annotation tools below the edit bar. Long-press opens colors; page callbacks
+ * update selection. Locked editions offer only [FREE_TOOLS].
  */
 class EditingTools(context: Context, attributeSet: AttributeSet?) :
     HorizontalScrollView(context, attributeSet) {

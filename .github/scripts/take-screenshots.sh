@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
-#
-# Takes the store screenshots inside reactivecircus/android-emulator-runner.
-#
-# The action executes its "script:" input line by line, each line in its own
-# "sh -c" - so a multi-line if or loop is a syntax error there, and a variable
-# does not survive to the next line. Everything that needs shell state lives
-# here instead, behind a one-line invocation. Same arrangement, and the same
-# reason, as run-instrumented-tests.sh next to it.
+# Capture store screenshots, collect diagnostics, and stop the CI emulator.
 
 set -u
 

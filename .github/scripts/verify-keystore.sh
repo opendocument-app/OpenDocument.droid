@@ -1,20 +1,7 @@
 #!/usr/bin/env bash
-#
-# Checks that the release keystore can be opened and that both signing keys can
-# actually be used with the passwords supplied for them.
-#
-# Signing is the very last thing a release build does, so a wrong password
-# otherwise surfaces as a signProReleaseBundle failure six minutes in - and
-# gradle wraps both failures in the same "Failed to read key <alias> from store",
-# which does not say which of the two it was. keytool tells them apart in a
-# second: -list proves the store password, and -certreq proves a key password,
-# because it needs the private key itself. Neither writes to the keystore.
-#
-# Takes the same environment variables the build takes (see the "Release signing"
-# section in the README), so it can be run against a keystore by hand:
-#
-#   ODR_KEYSTORE=google_play.keystore ODR_KEYSTORE_PASSWORD=... verify-keystore.sh
-#
+# Check store and key passwords without modifying the keystore. Accepts the build signing
+# environment variables; see README.
+
 set -uo pipefail
 
 keystore="${1:-${ODR_KEYSTORE:-}}"

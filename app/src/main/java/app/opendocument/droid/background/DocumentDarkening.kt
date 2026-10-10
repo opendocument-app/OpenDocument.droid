@@ -5,13 +5,7 @@ import app.opendocument.core.FileCategory
 import app.opendocument.core.FileType
 import app.opendocument.core.Odr
 
-/**
- * Whether a document follows the app into night mode, which is not one answer for everything the
- * app opens: a text document reads dark, a scanned page inverted is something nobody wrote.
- *
- * The core answers it - see [darkensByDefault] - and the button over the document overrides that,
- * for the [Kind] rather than the file: it is never *this* pdf that inverts badly, it is pdfs.
- */
+/** Uses the core color-scheme capability as the default, with a user override per document kind. */
 object DocumentDarkening {
 
     /** What an override is remembered for, each named the way the button over the document says. */

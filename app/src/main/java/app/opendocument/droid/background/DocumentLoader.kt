@@ -15,15 +15,8 @@ import java.io.File
 import java.io.IOException
 
 /**
- * Opens a document: caches it, names it, renders it, and reports back on the main thread. Owns the
- * background thread all of that runs on, and the components that do it.
- *
- * Scoped to `MainActivity`, so it outlives a configuration change and is there before anything asks
- * it for a document.
- *
- * There is nothing after [CoreLoader]. A file it cannot open is reported as unsupported and that is
- * the end of it: a format the app should open is a format odrcore should learn, and no document
- * leaves the device.
+ * Activity-scoped loader. Caches and renders documents on a worker thread, then delivers results on
+ * the main thread.
  */
 class DocumentLoader(application: Application) : AndroidViewModel(application) {
 
@@ -64,11 +57,8 @@ class DocumentLoader(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Renders a file that has already been read again, after [DocumentRequest.editable] or
-     * [DocumentRequest.password] changed.
-     *
-     * Not a [load]: the copy in the cache is the document, so caching and naming it a second time
-     * would only cost another pass over the bytes and move it up the recent list again.
+     * Re-renders the cached file after a password, a margin change, or discarded edits. It does not
+     * read the provider again or update recents.
      */
     fun reload(request: DocumentRequest, file: IdentifiedFile) {
         backgroundHandler.post { renderSync(request, file) }
@@ -223,13 +213,7 @@ class DocumentLoader(application: Application) : AndroidViewModel(application) {
         crashManager.log(error, request.uri)
     }
 
-    /**
-     * Hands [outcome] to the listener on the main thread.
-     *
-     * Dropped when there is none: the load it belongs to was abandoned, and replaying it later
-     * would land it in whatever fragment is showing by then. Worth a crash report all the same,
-     * since the document the user asked for is gone with it.
-     */
+    /** Delivers [outcome] on the main thread. Drops results when no listener remains. */
     private fun deliver(outcome: (Listener) -> Unit) {
         mainHandler.post {
             val listener = this.listener

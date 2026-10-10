@@ -14,19 +14,7 @@ import androidx.appcompat.widget.TooltipCompat
 import app.opendocument.droid.R
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-/**
- * What can be done with the open document, as buttons over the bottom right corner of it: one for
- * each action worth its own button, and one that unfolds the rest.
- *
- * This is what the toolbar menu used to be. A document is read with the phone in one hand, and the
- * top right corner of a modern screen is the one place a thumb cannot reach - so the actions sit
- * where the thumb already is, and the ones that were hidden behind "More options" now say what they
- * are.
- *
- * Material ships no speed dial component (the one it had was never brought over to Material 3), so
- * the buttons are built here, from [R.layout.item_document_action_standing] and
- * [R.layout.item_document_action].
- */
+/** Document actions at the bottom-right: persistent buttons and an expandable list. */
 class DocumentActions(context: Context, attributeSet: AttributeSet?) :
     FrameLayout(context, attributeSet) {
 
@@ -77,13 +65,7 @@ class DocumentActions(context: Context, attributeSet: AttributeSet?) :
         setActions(emptyList(), emptyList())
     }
 
-    /**
-     * Lifts the buttons over the gesture bar, which the document itself is drawn under.
-     *
-     * Only the column of buttons moves. The scrim stays where it is, covering the page to the very
-     * bottom of the window - it is what the page is dimmed with, and a dimming that stopped short
-     * of the edge would show as a bright band.
-     */
+    /** Insets the buttons above the gesture bar while keeping the scrim full-height. */
     fun setBottomInset(inset: Int) {
         buttons.setPadding(
             buttons.paddingLeft,
@@ -94,13 +76,8 @@ class DocumentActions(context: Context, attributeSet: AttributeSet?) :
     }
 
     /**
-     * What the document can do right now. Each of [standing] keeps a button of its own whether the
-     * rest are folded up or not, read top to bottom, so its last entry is the one closest to the
-     * thumb; [unfolding] comes out of the button below them and reads outward from it, its first
-     * entry closest.
-     *
-     * Two empty lists take the buttons away entirely, which is what a document that failed to load
-     * leaves behind.
+     * [standing] is ordered top-to-bottom; [unfolding] starts nearest the expand button. Empty
+     * lists hide all actions.
      */
     fun setActions(standing: List<Action>, unfolding: List<Action>) {
         collapse()

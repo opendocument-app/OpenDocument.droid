@@ -6,24 +6,15 @@ import android.content.UriPermission
 import android.net.Uri
 
 /**
- * The persisted uri permissions the app holds on to.
- *
- * A document picked through the storage access framework is only readable for as long as we hold a
- * grant for it. Since the recently opened documents list hands those uris back on a later launch,
- * the grants have to outlive the process - they are reclaimed by [prune] once nothing refers to
- * them any more, rather than being released when the document is closed.
+ * Retains SAF read grants for recent documents and pending loads. [prune] releases unused grants.
  */
 object PersistedUriPermissions {
 
     private const val READ_FLAG = Intent.FLAG_GRANT_READ_URI_PERMISSION
 
     /**
-     * The grants taken during this process that nothing on disk names yet.
-     *
-     * A document only reaches the list once [DocumentLoader] has read it, long after [takeRead]
-     * ran; a [prune] in that window would find nothing referring to the fresh grant and hand it
-     * straight back. Empty on a fresh process, so a grant whose document never made the list is
-     * reclaimed on the next launch rather than leaking for good.
+     * Grants protected from pruning until their documents enter the recent list. Unfinished loads
+     * are reclaimed on the next process start.
      */
     private val pendingGrants = HashSet<String>()
 
@@ -49,11 +40,8 @@ object PersistedUriPermissions {
     }
 
     /**
-     * Whether [uri] is already readable through a grant that survives a restart.
-     *
-     * What [takeRead] cannot answer on its own: a uri that did not arrive on an intent of ours -
-     * one tapped in the recently opened list, say - cannot be persisted again, and the grant an
-     * earlier session took for it is exactly the one that makes it readable now.
+     * Whether an existing read grant for [uri] survives process restart, including grants from
+     * earlier sessions.
      */
     fun isRetained(context: Context, uri: Uri): Boolean {
         val value = uri.toString()
@@ -63,14 +51,7 @@ object PersistedUriPermissions {
         }
     }
 
-    /**
-     * Releases every persisted grant nothing refers to any more.
-     *
-     * Reconciling against the stored list rather than releasing on eviction keeps this idempotent,
-     * so grants leaked by earlier versions - the directory trees the folder browser used to hold
-     * among them - get mopped up too. Does file and binder work, so it must not run on the main
-     * thread.
-     */
+    /** Releases grants absent from the recent list and pending loads. Run off the main thread. */
     fun prune(context: Context) {
         // this order on purpose: a grant taken while this runs is either missing from the snapshot
         // or still pending when the pending set is read, so it cannot fall through both

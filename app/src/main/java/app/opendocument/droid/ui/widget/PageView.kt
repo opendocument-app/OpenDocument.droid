@@ -79,10 +79,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         settings.useWideViewPort = true
         settings.allowFileAccess = true
 
-        // the webview refuses to draw text below 8px - 6pt - which is a size a document is
-        // entitled to ask for: a footnote, a table's fine print, or a pdf page whose text is
-        // positioned absolutely and overlaps once it is enlarged. 1 is as close to none as
-        // the setting goes, 0 being pinned back up to it
+        // Allow small document text without WebView enlarging it and overlapping adjacent content.
         settings.minimumFontSize = 1
         // the same floor again, for the sizes the page leaves to the browser - keywords,
         // percentages, anything inherited - which the first of the two does not cover
@@ -107,11 +104,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
                     buggyWebViewHandler.postDelayed(
                         {
-                            // [url] and not whatever is loaded now: this callback can arrive after
-                            // another page was asked for, which cancels the retries queued until
-                            // then but not the one queued here. wasCommitCalled is about the page
-                            // being waited on, so on its own it would answer for that other page
-                            // and put this one back over it
+                            // Retry only this URL; callbacks from a replaced page may arrive late.
                             if (!wasCommitCalled && url == loadedUrl) {
                                 crashManager.log(RuntimeException("commit was not called"))
 
@@ -270,11 +263,8 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     private var darkeningSuspensions = 0
 
     /**
-     * Whether the document follows the app into night mode, which is only ever a question while the
-     * app is in it: the webview darkens a page algorithmically, and at targetSdk 33 and up only
-     * once the app theme reports itself as dark.
-     *
-     * [DocumentFragment] decides which documents get it, from `DocumentDarkening`.
+     * Allows document darkening when the app theme is dark. [DocumentFragment] selects the document
+     * policy.
      */
     fun setDarkeningAllowed(allowed: Boolean) {
         isDarkeningAllowed = allowed
@@ -337,13 +327,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
             Configuration.UI_MODE_NIGHT_YES
 
-    /**
-     * Stops answering for the page until the one replacing it is asked for.
-     *
-     * `CoreLoader` clears the server before connecting the new translation, so a request the page
-     * still has in flight is answered with a 404 in between - which is not the document failing.
-     * After [loadUrl] the url tells the two apart, each render having a prefix of its own.
-     */
+    /** Ignores failures from the old page while the core replaces its translation. */
     fun expectNewPage() {
         isAwaitingNewPage = true
 
@@ -361,10 +345,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         if (!url.startsWith(JAVASCRIPT_SCHEME)) {
             attachBridge(isOwnContent(url))
 
-            // a page that never committed left a retry waiting in onPageFinished. Now that another
-            // page has been asked for, that retry would load the old one back over it - and the
-            // document it belonged to has taken its server with it, so what it would find there is
-            // a 404 this page is then given up on for
+            // Cancel retries for the previous page before loading its replacement.
             buggyWebViewHandler.removeCallbacksAndMessages(null)
 
             loadedUrl = url

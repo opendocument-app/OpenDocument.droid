@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
-#
-# Reads the play console service account key out of the environment and writes a
-# normalised copy of it to the given path.
-#
-# fastlane's own "doesn't seem to be a JSON file" comes at the upload, the one step
-# of a release that cannot be re-run - play refuses a code it has already accepted.
-# So the key is checked here, up front, and with an error that names the problem.
-#
-# Base64 (how the keystore secret is stored, so an easy mistake), a BOM or clipboard
-# whitespace, and hand-unescaped private_key line breaks are all repaired rather than
-# reported. The key comes in through the environment and is never printed.
+# Validate and write Play credentials from JSON or base64-encoded JSON.
 
 import argparse
 import base64
