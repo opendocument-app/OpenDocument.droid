@@ -621,13 +621,18 @@ class MainActivity : AppCompatActivity() {
             DocumentActions.ACTION_PRINT -> {
                 analyticsManager.report("menu_print")
 
-                documentFragment?.pageView?.let { pageView ->
-                    // Keep the page light until the print adapter finishes; the document may close
-                    // meanwhile.
-                    pageView.suspendDarkening()
+                val original = documentFragment?.printableOriginal()
+                if (original != null) {
+                    printingManager.print(this, original)
+                } else {
+                    documentFragment?.pageView?.let { pageView ->
+                        // Keep the page light until the print adapter finishes; the document may
+                        // close meanwhile.
+                        pageView.suspendDarkening()
 
-                    printingManager.print(this, pageView) {
-                        documentFragment?.pageView?.resumeDarkening()
+                        printingManager.print(this, pageView) {
+                            documentFragment?.pageView?.resumeDarkening()
+                        }
                     }
                 }
             }
