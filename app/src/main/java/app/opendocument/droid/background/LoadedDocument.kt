@@ -16,6 +16,7 @@ class LoadedDocument(
     val partCuts: List<SheetCut?>,
     val editing: EditingKind,
     val readsAsDocument: Boolean,
+    val pageSize: PageSize?,
 ) : Parcelable {
 
     override fun describeContents(): Int = 0
@@ -28,6 +29,9 @@ class LoadedDocument(
         parcel.writeList(partCuts)
         parcel.writeInt(editing.ordinal)
         ParcelUtil.writeBoolean(parcel, readsAsDocument)
+        // 0 for none, which no page measures
+        parcel.writeInt(pageSize?.widthMils ?: 0)
+        parcel.writeInt(pageSize?.heightMils ?: 0)
     }
 
     companion object {
@@ -52,14 +56,21 @@ class LoadedDocument(
                     val partCuts = ArrayList<SheetCut?>()
                     parcel.readList(partCuts, classLoader)
 
+                    val editing = EditingKind.entries[parcel.readInt()]
+                    val readsAsDocument = ParcelUtil.readBoolean(parcel)
+                    val widthMils = parcel.readInt()
+                    val heightMils = parcel.readInt()
+
                     return LoadedDocument(
                         request,
                         file,
                         partTitles,
                         partUris,
                         partCuts,
-                        EditingKind.entries[parcel.readInt()],
-                        ParcelUtil.readBoolean(parcel),
+                        editing,
+                        readsAsDocument,
+                        if (widthMils > 0 && heightMils > 0) PageSize(widthMils, heightMils)
+                        else null,
                     )
                 }
 

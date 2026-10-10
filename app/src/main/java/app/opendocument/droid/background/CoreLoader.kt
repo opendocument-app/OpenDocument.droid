@@ -6,6 +6,7 @@ import android.system.Os
 import android.util.Log
 import app.opendocument.core.DecodeOptions
 import app.opendocument.core.DecodedFile
+import app.opendocument.core.Document
 import app.opendocument.core.DocumentType
 import app.opendocument.core.FileCategory
 import app.opendocument.core.FileType
@@ -42,6 +43,10 @@ class CoreLoader(private val context: Context) {
 
     /** What the user can change in the document [host] last opened with `askEditing`. */
     var editing: EditingKind = EditingKind.NONE
+        private set
+
+    /** The page size of the document [host] last opened, where it has one. */
+    var pageSize: PageSize? = null
         private set
 
     /**
@@ -88,6 +93,7 @@ class CoreLoader(private val context: Context) {
             views.map { it.sheetCut },
             editing,
             readsAsDocument,
+            pageSize,
         )
     }
 
@@ -122,7 +128,15 @@ class CoreLoader(private val context: Context) {
             throw OdrException.UnsupportedFileType("no charset could be detected: $inputPath")
         }
 
-        editing = if (askEditing) editingOf(file) else EditingKind.NONE
+        // one decode for both questions
+        val paged = lastDocumentType in PAGED_DOCUMENT_TYPES
+        val document =
+            if (file.isDocumentFile && (askEditing || paged)) file.asDocumentFile().document()
+            else null
+        document.use {
+            editing = if (askEditing) editingOf(file, it) else EditingKind.NONE
+            pageSize = if (paged && it != null) pageSizeOf(it) else null
+        }
 
         val htmlConfig = HtmlConfig()
         htmlConfig.embedImages = false
@@ -333,7 +347,7 @@ class CoreLoader(private val context: Context) {
      * What the user can change in [file]. The capabilities are asked first, because they need no
      * decode; the file itself has the final answer.
      */
-    private fun editingOf(file: DecodedFile): EditingKind {
+    private fun editingOf(file: DecodedFile, document: Document?): EditingKind {
         val capabilities = file.capabilities()
 
         if (file.isPdfFile) {
@@ -352,18 +366,30 @@ class CoreLoader(private val context: Context) {
             return if (file.asTextFile().isSavable) EditingKind.TEXT else EditingKind.NONE
         }
 
-        if (!file.isDocumentFile) {
+        if (document == null || !document.isEditable || !document.isSavable) {
             return EditingKind.NONE
         }
 
-        file.asDocumentFile().document().use { document ->
-            if (!document.isEditable || !document.isSavable) {
-                return EditingKind.NONE
-            }
+        return if (document.documentType() == DocumentType.SPREADSHEET) EditingKind.SHEET
+        else EditingKind.DOCUMENT
+    }
 
-            return if (document.documentType() == DocumentType.SPREADSHEET) EditingKind.SHEET
-            else EditingKind.DOCUMENT
-        }
+    /** The first page's: a presentation has one size, and a drawing seldom more. */
+    private fun pageSizeOf(document: Document): PageSize? {
+        val root = document.rootElement() ?: return null
+        val layout =
+            when (document.documentType()) {
+                DocumentType.TEXT -> root.asTextRoot()?.pageLayout()
+                DocumentType.PRESENTATION -> root.firstChild()?.asSlide()?.pageLayout()
+                DocumentType.DRAWING -> root.firstChild()?.asPage()?.pageLayout()
+                else -> null
+            } ?: return null
+        return PageSize.of(
+            layout.width?.magnitude,
+            layout.width?.unit,
+            layout.height?.magnitude,
+            layout.height?.unit,
+        )
     }
 
     /**
@@ -387,6 +413,10 @@ class CoreLoader(private val context: Context) {
 
     companion object {
         private const val TAG = "CoreLoader"
+
+        /** The types the page box of [HtmlConfig] sizes, and so the ones laid out for paper. */
+        private val PAGED_DOCUMENT_TYPES =
+            setOf(DocumentType.TEXT, DocumentType.PRESENTATION, DocumentType.DRAWING)
 
         /**
          * Process-wide server. [close] clears its published content; process exit releases the

@@ -1,6 +1,7 @@
 package app.opendocument.droid.background
 
 import android.content.Context
+import android.graphics.pdf.PdfRenderer
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.Handler
@@ -8,6 +9,7 @@ import android.os.HandlerThread
 import android.os.ParcelFileDescriptor
 import android.print.PageRange
 import android.print.PrintAttributes
+import android.print.PrintAttributes.MediaSize
 import android.print.PrintDocumentAdapter
 import android.print.PrintManager
 import android.webkit.WebView
@@ -31,17 +33,23 @@ class PrintingManager {
      * be put into for printing can only be undone from there.
      */
     @Suppress("DEPRECATION")
-    fun print(activity: MainActivity, webView: WebView, onFinished: () -> Unit) {
-        print(activity, webView.createPrintDocumentAdapter(), onFinished)
+    fun print(
+        activity: MainActivity,
+        webView: WebView,
+        pageSize: PageSize?,
+        onFinished: () -> Unit,
+    ) {
+        print(activity, webView.createPrintDocumentAdapter(), pageSize, onFinished)
     }
 
     fun print(activity: MainActivity, pdfFile: File) {
-        print(activity, PdfDocumentAdapter(activity, JOB_NAME, pdfFile)) {}
+        print(activity, PdfDocumentAdapter(activity, JOB_NAME, pdfFile), firstPageSize(pdfFile)) {}
     }
 
     private fun print(
         activity: MainActivity,
         printAdapter: PrintDocumentAdapter,
+        pageSize: PageSize?,
         onFinished: () -> Unit,
     ) {
         val printManager = activity.getSystemService(Context.PRINT_SERVICE) as PrintManager
@@ -64,7 +72,7 @@ class PrintingManager {
             printManager.print(
                 JOB_NAME,
                 FinishReportingAdapter(printAdapter, finish),
-                PrintAttributes.Builder().build(),
+                attributesFor(pageSize),
             )
 
         val checkPrintJob =
@@ -101,6 +109,50 @@ class PrintingManager {
     fun close() {
         backgroundThread.quit()
     }
+
+    /** The paper the dialog starts on: the document's own, where the printer has it. */
+    private fun attributesFor(pageSize: PageSize?): PrintAttributes {
+        val builder = PrintAttributes.Builder()
+        if (pageSize != null) {
+            builder.setMediaSize(mediaSizeFor(pageSize))
+        }
+        return builder.build()
+    }
+
+    private fun mediaSizeFor(pageSize: PageSize): MediaSize {
+        val media =
+            when (pageSize.paper()) {
+                Paper.ISO_A3 -> MediaSize.ISO_A3
+                Paper.ISO_A4 -> MediaSize.ISO_A4
+                Paper.ISO_A5 -> MediaSize.ISO_A5
+                Paper.NA_LETTER -> MediaSize.NA_LETTER
+                Paper.NA_LEGAL -> MediaSize.NA_LEGAL
+                Paper.NA_TABLOID -> MediaSize.NA_TABLOID
+                // only the orientation, for a size no printer names
+                null ->
+                    return if (pageSize.isLandscape) MediaSize.UNKNOWN_LANDSCAPE
+                    else MediaSize.UNKNOWN_PORTRAIT
+            }
+        return if (pageSize.isLandscape) media.asLandscape() else media.asPortrait()
+    }
+
+    /** Null where the framework cannot read the file. */
+    private fun firstPageSize(pdfFile: File): PageSize? =
+        try {
+            ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_ONLY).use { fd ->
+                PdfRenderer(fd).use { renderer ->
+                    if (renderer.pageCount == 0) {
+                        return null
+                    }
+                    renderer.openPage(0).use { page ->
+                        // points, 1/72 in
+                        PageSize(page.width * 1000 / 72, page.height * 1000 / 72)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            null
+        }
 
     /** [delegate] with a note taken of [PrintDocumentAdapter.onFinish], the framework's goodbye. */
     private class FinishReportingAdapter(

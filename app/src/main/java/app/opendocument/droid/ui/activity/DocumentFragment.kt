@@ -35,6 +35,7 @@ import app.opendocument.droid.background.FileCache
 import app.opendocument.droid.background.IdentifiedFile
 import app.opendocument.droid.background.LoadedDocument
 import app.opendocument.droid.background.NightModeSetting
+import app.opendocument.droid.background.PageSize
 import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.background.PersistedUriPermissions
 import app.opendocument.droid.background.PrintingManager
@@ -1457,6 +1458,10 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
     val editingKind: EditingKind
         get() = state.lastDocument?.editing ?: EditingKind.NONE
+
+    /** The paper the document is laid out for - see [CoreLoader.pageSize]. */
+    val pageSize: PageSize?
+        get() = if (::state.isInitialized) state.lastDocument?.pageSize else null
 
     val lastFileType: String?
         get() = state.lastFile?.mimeType
