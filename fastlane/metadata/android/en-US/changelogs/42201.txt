@@ -1,0 +1,1 @@
+The app is small again. Version 4.22.0 was more than ten times larger than needed. Nothing else changes.

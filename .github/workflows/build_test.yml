@@ -42,6 +42,10 @@ jobs:
         distribution: 'zulu'
         java-version: 21
 
+    # the image may not have the pinned NDK, and AGP needs it to strip native libraries
+    - name: install the NDK
+      run: .github/scripts/install-ndk.sh
+
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v6
 
@@ -110,6 +114,10 @@ jobs:
       with:
         distribution: 'zulu'
         java-version: 21
+
+    # the image may not have the pinned NDK, and AGP needs it to strip native libraries
+    - name: install the NDK
+      run: .github/scripts/install-ndk.sh
 
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v6

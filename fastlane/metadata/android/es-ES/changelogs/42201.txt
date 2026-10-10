@@ -1,0 +1,1 @@
+La aplicación vuelve a ocupar poco. La versión 4.22.0 ocupaba más de diez veces lo necesario. No hay más cambios.

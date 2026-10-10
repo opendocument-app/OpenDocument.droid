@@ -1,0 +1,1 @@
+Rakendus on taas väike. Versioon 4.22.0 oli vajalikust üle kümne korra suurem. Muud ei muutu.

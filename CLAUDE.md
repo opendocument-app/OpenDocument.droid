@@ -50,6 +50,8 @@ Analytics and crash reporting only log locally.
 The app compiles no native code. Use the single `odr-core-android` AAR for matching
 Java bindings and JNI libraries. Keep bindings compatible with API 26.
 `CoreLoader.initializeCore` sets `TMPDIR` before the first native call.
+The core AAR keeps debug info in its libraries. AGP strips them with the NDK that
+`libs.versions.toml` pins; CI installs that NDK and `verify-stripped.sh` checks releases.
 
 ## Stable identities
 

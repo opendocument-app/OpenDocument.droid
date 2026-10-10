@@ -113,6 +113,10 @@ jobs:
         ODR_KEY_PASSWORD_LITE: ${{ secrets.ODR_KEY_PASSWORD_LITE }}
       run: .github/scripts/verify-keystore.sh "${RUNNER_TEMP}/google_play.keystore"
 
+    # the image may not have the pinned NDK, and AGP needs it to strip native libraries
+    - name: install the NDK
+      run: .github/scripts/install-ndk.sh
+
     - name: Gradle cache
       uses: gradle/actions/setup-gradle@v6
 
@@ -134,6 +138,10 @@ jobs:
     # release variants build unsigned rather than failing, so this is worth asking
     - name: verify bundles and apks are signed
       run: .github/scripts/verify-signed.sh
+
+    # 4.22.0 shipped 500 MB apks when the runner image lost AGP's NDK
+    - name: verify native libraries are stripped
+      run: .github/scripts/verify-stripped.sh
 
     - name: drop the keystore
       if: always()

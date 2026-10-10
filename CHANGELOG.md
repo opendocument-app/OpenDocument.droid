@@ -7,6 +7,11 @@ release, a pull request cuts that heading to the version. The release run makes 
 section the body of the GitHub release, and refuses a version without one. `scripts/store-copy.py` writes Play's
 "What's new" from the same section, under 500 characters per locale.
 
+## 4.22.1
+
+- The app is small again. 4.22.0 was more than ten times larger, because its build left
+  debug data in the native libraries.
+
 ## 4.22.0
 
 - The app offers to open any file again. Turn this off under Settings.
