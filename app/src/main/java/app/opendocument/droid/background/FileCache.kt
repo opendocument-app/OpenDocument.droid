@@ -79,10 +79,11 @@ object FileCache {
         }
 
         val segments = uri.pathSegments
-        if (segments.size < 4 || segments.take(2) != listOf("cache", "cache")) {
-            return null
-        }
-        if (!segments[2].startsWith(CACHE_DIRECTORY_PREFIX) || "/" in segments[2]) {
+        if (
+            segments.size < 4 ||
+                segments.take(2) != listOf("cache", "cache") ||
+                !segments[2].startsWith(CACHE_DIRECTORY_PREFIX)
+        ) {
             return null
         }
 
@@ -90,9 +91,7 @@ object FileCache {
         val directory = File(root, segments[2]).canonicalFile
         val file = File(root, segments.drop(2).joinToString("/")).canonicalFile
         return file.takeIf {
-            directory.parentFile == root &&
-                file.toPath().startsWith(directory.toPath()) &&
-                file != directory
+            directory.parentFile == root && file.startsWith(directory) && file != directory
         }
     }
 
