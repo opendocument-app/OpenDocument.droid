@@ -10,6 +10,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.SystemClock
 import android.view.View
+import android.webkit.RenderProcessGoneDetail
+import android.webkit.WebResourceRequest
 import androidx.core.content.FileProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
@@ -120,6 +122,57 @@ class MainActivityTests {
         if (mainActivityActivityTestRule.activity != null) {
             mainActivityActivityTestRule.finishActivity()
             InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+        }
+    }
+
+    @Test
+    fun unhandledLinksStayOutsideTheDocumentWebView() {
+        respondToOpenDocumentWith(requireTestFile("test.odt"))
+        openDocumentThroughPicker()
+        waitForDocumentActions()
+
+        val fragment = waitForDocumentFragment(mainActivityActivityTestRule.activity, 10000)!!
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val page = fragment.pageView!!
+            Assert.assertFalse(page.settings.allowFileAccess)
+            Assert.assertFalse(page.settings.allowContentAccess)
+            val link =
+                object : WebResourceRequest {
+                    override fun getUrl() = Uri.parse("odr-no-handler://document")
+
+                    override fun isForMainFrame() = true
+
+                    override fun isRedirect() = false
+
+                    override fun hasGesture() = true
+
+                    override fun getMethod() = "GET"
+
+                    override fun getRequestHeaders() = emptyMap<String, String>()
+                }
+            Assert.assertTrue(page.webViewClient.shouldOverrideUrlLoading(page, link))
+        }
+    }
+
+    @Test
+    fun rendererFailureReturnsToTheLandingScreen() {
+        respondToOpenDocumentWith(requireTestFile("test.odt"))
+        openDocumentThroughPicker()
+        waitForDocumentActions()
+
+        val fragment = waitForDocumentFragment(mainActivityActivityTestRule.activity, 10000)!!
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val page = fragment.pageView!!
+            val detail =
+                object : RenderProcessGoneDetail() {
+                    override fun didCrash() = true
+
+                    override fun rendererPriorityAtExit() =
+                        android.webkit.WebView.RENDERER_PRIORITY_IMPORTANT
+                }
+            Assert.assertTrue(page.webViewClient.onRenderProcessGone(page, detail))
+            Assert.assertNull(page.parent)
+            Assert.assertFalse(fragment.isAdded)
         }
     }
 

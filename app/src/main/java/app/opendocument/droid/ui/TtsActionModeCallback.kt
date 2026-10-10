@@ -151,6 +151,7 @@ class TtsActionModeCallback(private val context: Context, private val pageView: 
 
     override fun onDestroyActionMode(mode: ActionMode) {
         paused = true
+        pageView.setParagraphListener(null)
 
         textToSpeech.stop()
         textToSpeech.shutdown()
