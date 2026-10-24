@@ -440,7 +440,9 @@ class MainActivity : AppCompatActivity() {
 
         billingManager = BillingManager()
         billingManager.setEnabled(adsAvailable)
-        billingManager.initialize(this, adManager)
+        // the remove ads row goes once play has restored a purchase
+        billingManager.setRestoreListener { landingFragment?.refresh() }
+        billingManager.initialize(this, adManager, crashManager)
     }
 
     override fun onNewIntent(intent: Intent) {
