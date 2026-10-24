@@ -441,14 +441,21 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
     fun getParagraph(index: Int) {
         post {
+            // a pdf is one wrapper below the body, with every glyph in an aria-hidden layer and
+            // again in the selection layer; read that layer one page at a time. Its pages skip
+            // rendering off screen, which empties their innerText, so join the lines instead
             loadUrl(
-                "javascript:var children = document.body.childNodes; " +
+                "javascript:var pages = document.querySelectorAll('.p > .sel'); " +
+                    "var children = pages.length ? pages : document.body.childNodes; " +
                     "if (children.length <= $index) { " +
                     "paragraphListener.end();" +
                     "} else {" +
                     "var child = children[$index]; " +
-                    "if (child && child.nodeName.toLowerCase() != 'script' && child.innerText) {" +
-                    " paragraphListener.paragraph(child.innerText); } else {" +
+                    "var text = !child ? null : pages.length ? " +
+                    "Array.from(child.children, function (l) { return l.textContent; }).join('\\n') : " +
+                    "child.nodeName.toLowerCase() != 'script' ? child.innerText : null; " +
+                    "if (text) {" +
+                    " paragraphListener.paragraph(text); } else {" +
                     " paragraphListener.increaseIndex(); } }"
             )
         }

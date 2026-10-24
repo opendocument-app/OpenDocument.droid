@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.appcompat.view.ActionMode
 import app.opendocument.droid.R
 import app.opendocument.droid.ui.widget.PageView
+import java.text.BreakIterator
 import java.util.Locale
 
 /**
@@ -32,8 +33,12 @@ class TtsActionModeCallback(
     private lateinit var statusView: TextView
 
     private var lastParagraphIndex = 0
-    private val ttsParams = hashMapOf(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID to "odr")
+    private var paragraphCount = 0
     private var paused = false
+
+    // the id of the paragraph's last part. Stopping reports the utterance as completed too, later
+    // and from another thread, so this is cleared first and a stopped paragraph does not advance
+    @Volatile private var awaitedUtteranceId: String? = null
 
     override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
         statusView = TextView(context)
@@ -81,7 +86,7 @@ class TtsActionModeCallback(
             R.id.tts_previous -> {
                 statusView.setText(R.string.tts_status_reading)
 
-                textToSpeech.stop()
+                silence()
 
                 lastParagraphIndex -= 2
 
@@ -103,7 +108,7 @@ class TtsActionModeCallback(
 
                 paused = true
 
-                textToSpeech.stop()
+                silence()
 
                 lastParagraphIndex--
             }
@@ -111,7 +116,7 @@ class TtsActionModeCallback(
             R.id.tts_next -> {
                 statusView.setText(R.string.tts_status_reading)
 
-                textToSpeech.stop()
+                silence()
 
                 nextParagraph()
             }
@@ -124,8 +129,16 @@ class TtsActionModeCallback(
 
     @JavascriptInterface
     override fun paragraph(text: String?) {
-        if (!text.isNullOrEmpty()) {
-            textToSpeech.speak(text, TextToSpeech.QUEUE_ADD, ttsParams)
+        if (!text.isNullOrBlank()) {
+            // the engine rejects longer text, and a rejection completes like a spoken utterance
+            val parts = split(text, TextToSpeech.getMaxSpeechInputLength())
+            val lastId = "odr-${++paragraphCount}"
+            awaitedUtteranceId = lastId
+            parts.forEachIndexed { i, part ->
+                val id = if (i == parts.lastIndex) lastId else "$lastId-$i"
+                val params = hashMapOf(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID to id)
+                textToSpeech.speak(part, TextToSpeech.QUEUE_ADD, params)
+            }
         } else {
             nextParagraph()
         }
@@ -146,16 +159,22 @@ class TtsActionModeCallback(
     }
 
     override fun onUtteranceCompleted(utteranceId: String?) {
-        if (paused) {
+        if (paused || utteranceId != awaitedUtteranceId) {
             return
         }
 
+        awaitedUtteranceId = null
         nextParagraph()
     }
 
     fun stop() {
         paused = true
 
+        silence()
+    }
+
+    private fun silence() {
+        awaitedUtteranceId = null
         textToSpeech.stop()
     }
 
@@ -163,7 +182,28 @@ class TtsActionModeCallback(
         paused = true
         pageView.setParagraphListener(null)
 
-        textToSpeech.stop()
+        silence()
         textToSpeech.shutdown()
     }
+
+    /** Splits [text] into parts of at most [limit] characters, at sentences or words if it can. */
+    private fun split(text: String, limit: Int): List<String> {
+        val parts = mutableListOf<String>()
+        val sentences = BreakIterator.getSentenceInstance(language())
+        sentences.setText(text)
+        var start = 0
+        while (text.length - start > limit) {
+            var end = sentences.preceding(start + limit + 1)
+            if (end <= start) {
+                end = text.lastIndexOf(' ', start + limit).takeIf { it > start } ?: (start + limit)
+            }
+            parts += text.substring(start, end)
+            start = end
+        }
+        parts += text.substring(start)
+        return parts
+    }
+
+    private fun language(): Locale =
+        locale?.let { Locale.forLanguageTag(it) } ?: Locale.getDefault()
 }
