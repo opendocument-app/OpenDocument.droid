@@ -162,9 +162,10 @@ dependencies {
     // odrcore's JNI bindings, java and native in one AAR (see settings.gradle)
     implementation libs.odr.core.android
 
-    // Only Lite links the ad and consent SDKs; Foss links no Play SDKs.
+    // Only Lite links the ad, consent, and billing SDKs; Foss links no Play SDKs.
     liteImplementation libs.play.services.ads
     liteImplementation libs.user.messaging.platform
+    liteImplementation libs.play.billing
     liteImplementation libs.play.review
     proImplementation libs.play.review
 

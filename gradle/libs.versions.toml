@@ -18,6 +18,7 @@ androidxRecyclerview = "1.4.0"
 androidxLifecycle = "2.9.4"
 material = "1.14.0"
 
+playBilling = "9.1.0"
 playServicesAds = "25.5.0"
 playReview = "2.0.2"
 userMessagingPlatform = "4.0.0"
@@ -42,6 +43,7 @@ androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmode
 androidx-lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata", version.ref = "androidxLifecycle" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 
+play-billing = { module = "com.android.billingclient:billing", version.ref = "playBilling" }
 play-services-ads = { module = "com.google.android.gms:play-services-ads", version.ref = "playServicesAds" }
 play-review = { module = "com.google.android.play:review", version.ref = "playReview" }
 user-messaging-platform = { module = "com.google.android.ump:user-messaging-platform", version.ref = "userMessagingPlatform" }
