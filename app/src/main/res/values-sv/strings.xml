@@ -19,7 +19,6 @@
     <string name="menu_open_with">Öppna med...</string>
     <string name="menu_share">Dela dokumentet</string>
     <string name="menu_edit">Redigera dokumentet</string>
-    <string name="menu_remove_ads">Ta bort annonser</string>
     <string name="menu_privacy_options">Integritetsinställningar för annonser</string>
     <string name="house_ad_support_headline">Stöd OpenDocument Reader</string>
     <string name="house_ad_support_headline_short">Stöd oss</string>
@@ -82,7 +81,6 @@
     <string name="tts_status_finished">Klart.</string>
     <string name="toast_edit_status_saved">Dokumentet har sparats.</string>
     <string name="crouton_printing">Skriver ut…</string>
-    <string name="crouton_remove_ads">Behöver du mer plats att läsa på? Tryck på OK så tar vi bort annonserna gratis.</string>
     <string name="reopen_chooser_title">Öppna med en annan app på enheten:</string>
     <string name="ok">OK</string>
     <string name="cancel">Avbryt</string>

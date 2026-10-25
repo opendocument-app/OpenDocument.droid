@@ -19,7 +19,6 @@
     <string name="menu_open_with">Ava rakendusega...</string>
     <string name="menu_share">Jaga dokumenti</string>
     <string name="menu_edit">Muuda dokumenti</string>
-    <string name="menu_remove_ads">Eemalda reklaamid</string>
     <string name="menu_privacy_options">Reklaamide privaatsusseaded</string>
     <string name="house_ad_support_headline">Toeta OpenDocument Readerit</string>
     <string name="house_ad_support_headline_short">Toeta meid</string>
@@ -82,7 +81,6 @@
     <string name="tts_status_finished">Lõpetatud.</string>
     <string name="toast_edit_status_saved">Dokument salvestatud.</string>
     <string name="crouton_printing">Printimine…</string>
-    <string name="crouton_remove_ads">Vajad lugemiseks rohkem ruumi? Vajuta OK, et reklaamid tasuta eemaldada.</string>
     <string name="reopen_chooser_title">Ava mõne teise rakendusega, mis on seadmesse paigaldatud:</string>
     <string name="ok">OK</string>
     <string name="cancel">Tühista</string>

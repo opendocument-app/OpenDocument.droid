@@ -78,6 +78,9 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     /** Whether lite offered pro during this edit - see [showRefusal]. */
     private var proOfferedThisEdit = false
 
+    /** The pass came while the edit mode was on, and the page still has lite's editing scope. */
+    private var renderWhenEditEnds = false
+
     /** How many formula cells the page last said were out of date - see `onCellsStale`. */
     private var staleCells = 0
 
@@ -97,8 +100,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     private var freshOpenPending = false
 
     /**
-     * Where the reader was, held from [reloadForMargins] until the document comes back. Null at
-     * every other load: opening a document belongs at its top.
+     * Where the reader was, held from [renderAgain] until the document comes back. Null at every
+     * other load: opening a document belongs at its top.
      */
     private var positionToRestore: ReadingPosition? = null
 
@@ -363,6 +366,9 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     }
 
     private fun beforeLoad() {
+        // whatever comes next is rendered with the editing scope there is now
+        renderWhenEditEnds = false
+
         // the page on screen is about to be published over - see expectNewPage
         pageView?.expectNewPage()
 
@@ -420,7 +426,31 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             // a keyboard left up over a document that no longer takes typing
             val imm = requireContext().getSystemService(InputMethodManager::class.java)
             imm?.hideSoftInputFromWindow(requireView().windowToken, 0)
+
+            // with edits left on the page, whatever is done with them renders it again anyway
+            if (renderWhenEditEnds && !hasUnsavedEdits()) {
+                renderAgain()
+            }
         }
+    }
+
+    /**
+     * The pro features were just bought. The editing scope is decided while translating, so the
+     * document is rendered again: at once while it is read, and after the edit mode otherwise, so
+     * that no edit is lost.
+     */
+    fun onUnlocked() {
+        if (!isAdded || state.lastDocument == null) {
+            return
+        }
+
+        if (isEditing()) {
+            renderWhenEditEnds = true
+
+            return
+        }
+
+        renderAgain()
     }
 
     /** Drops the page's edits by rendering the cached copy again. */
@@ -528,7 +558,14 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             }
 
             override fun onLocked() {
-                (requireActivity() as MainActivity).offerPro(
+                // bought during this edit: the tools unlock once the page is rendered again
+                if (Features.advancedEditing) {
+                    showUnlockedEditing()
+
+                    return
+                }
+
+                (requireActivity() as MainActivity).offerPass(
                     when (editingKind) {
                         EditingKind.ANNOTATION -> MainActivity.ProFeature.PDF
                         EditingKind.SHEET -> MainActivity.ProFeature.SHEET
@@ -554,13 +591,19 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             return
         }
 
-        if (reason == "outOfScope" && !Features.advancedEditing) {
+        if (reason == "outOfScope" && Features.advancedEditing) {
+            showUnlockedEditing()
+
+            return
+        }
+
+        if (reason == "outOfScope") {
             // once per edit, not once per refused keystroke
             if (!proOfferedThisEdit) {
                 proOfferedThisEdit = true
 
                 // a sheet takes nothing past the paragraph scope but a typed formula
-                (requireActivity() as MainActivity).offerPro(
+                (requireActivity() as MainActivity).offerPass(
                     if (editingKind == EditingKind.SHEET) MainActivity.ProFeature.SHEET
                     else MainActivity.ProFeature.FORMATTING
                 )
@@ -585,6 +628,22 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             }
 
         SnackbarHelper.show(requireActivity(), message, null, isIndefinite = false, isError = false)
+    }
+
+    /**
+     * The pass is held, but the page still has lite's editing scope: it came during this edit, or
+     * while the page was translated.
+     */
+    private fun showUnlockedEditing() {
+        renderWhenEditEnds = true
+
+        SnackbarHelper.show(
+            requireActivity(),
+            R.string.pass_on_editing,
+            null,
+            isIndefinite = false,
+            isError = false,
+        )
     }
 
     /** Tells the page whether it may follow the app into night mode - see [DocumentDarkening]. */
@@ -613,10 +672,10 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
     }
 
     /**
-     * The document again with the margins [PaginationSetting] now says, which is decided while
-     * translating - so it has to be rendered a second time to be seen.
+     * The document again, for what is decided while translating: the margins [PaginationSetting]
+     * now says, or the editing scope that the pass brings.
      */
-    fun reloadForMargins() {
+    fun renderAgain() {
         if (!isAdded) {
             return
         }
@@ -773,6 +832,16 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                     R.drawable.ic_menu_book,
                 )
 
+        // last, so the furthest from the thumb: lite's pass and foss's sponsors. pro has paid
+        val support =
+            if (!(requireActivity() as MainActivity).offersSupport()) null
+            else
+                DocumentActions.Action(
+                    DocumentActions.ACTION_SUPPORT,
+                    R.string.menu_support,
+                    R.drawable.ic_favorite,
+                )
+
         // the order they unfold in, most wanted first - and what a reader reaches for mid-document
         // is how it is displayed, not what else can be done to it
         val unfolding =
@@ -810,6 +879,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                     R.string.action_edit_save,
                     R.drawable.ic_save,
                 ),
+                support,
             )
 
         // Edit above Search, not below it: Search is offered for every document and Edit is not,
@@ -901,7 +971,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         analyticsManager.setCurrentScreen(activity, file.mimeType ?: UNKNOWN_FILE_TYPE)
 
-        // clears lastSelectedTab, so what reloadForMargins put aside is read after it
+        // clears lastSelectedTab, so what renderAgain put aside is read after it
         resetTabs()
 
         val restored = positionToRestore

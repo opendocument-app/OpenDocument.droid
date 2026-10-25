@@ -19,7 +19,6 @@
     <string name="menu_open_with">他のアプリで開く…</string>
     <string name="menu_share">ドキュメントを共有</string>
     <string name="menu_edit">ドキュメントを編集</string>
-    <string name="menu_remove_ads">広告を削除</string>
     <string name="menu_privacy_options">広告のプライバシー設定</string>
     <string name="house_ad_support_headline">OpenDocument Reader を応援する</string>
     <string name="house_ad_support_headline_short">応援する</string>
@@ -82,7 +81,6 @@
     <string name="tts_status_finished">完了しました。</string>
     <string name="toast_edit_status_saved">ドキュメントを保存しました。</string>
     <string name="crouton_printing">印刷中…</string>
-    <string name="crouton_remove_ads">読むスペースがもっと必要ですか？ OK をタップすると、広告を無料で削除できます。</string>
     <string name="reopen_chooser_title">デバイスにインストールされている別のアプリで開く：</string>
     <string name="ok">OK</string>
     <string name="cancel">キャンセル</string>

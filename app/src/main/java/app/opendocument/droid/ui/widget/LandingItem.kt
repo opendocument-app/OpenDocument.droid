@@ -32,7 +32,7 @@ sealed class LandingItem {
         override val id: String = "document:$uri"
     }
 
-    /** A tappable row that is not a document, such as the ad removal. */
+    /** A tappable row that is not a document, such as "Support the app". */
     class Action(val action: Int, @param:StringRes val label: Int, val icon: Int) : LandingItem() {
         override val id: String = "action:$action"
     }
@@ -53,7 +53,7 @@ sealed class LandingItem {
     }
 
     companion object {
-        const val ACTION_REMOVE_ADS: Int = 1
+        const val ACTION_SUPPORT: Int = 1
         const val ACTION_PRIVACY_OPTIONS: Int = 2
         const val ACTION_SPONSOR: Int = 3
 

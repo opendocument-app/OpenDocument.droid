@@ -25,7 +25,6 @@
     <string name="menu_open_with">Open with...</string>
     <string name="menu_share">Share document</string>
     <string name="menu_edit">Edit document</string>
-    <string name="menu_remove_ads">Remove advertisements</string>
     <string name="menu_privacy_options">Ad privacy settings</string>
 
     <!-- the house ad, shown when a request does not fill. three angles at the same offer;
@@ -94,7 +93,7 @@
     <string name="crouton_printing">Printing…</string>
     <!-- a snackbar whose OK button starts the purchase, so it says what OK will do.
          There has been no menu to remove ads from since the options menu went -->
-    <string name="crouton_remove_ads">Need more space to read? Tap OK to remove the ads for free.</string>
+    <string name="crouton_pass">Need more space to read? Tap OK to see how to remove the ads.</string>
     <string name="reopen_chooser_title">Open using another app installed on your device:</string>
 
     <!-- spelled out in the messages above too, where translators need it in context -->
@@ -156,6 +155,22 @@
     <string name="pro_offer_sheet">Bold, italic, colors, text size and alignment of cells, typing formulas, and inserting or deleting rows and columns, are part of OpenDocument Reader Pro. The fill is in every edition.</string>
     <string name="pro_offer_markup">Underlining, striking out and drawing on a PDF are part of OpenDocument Reader Pro. The highlighter is in every edition.</string>
     <string name="not_now">Not now</string>
+    <!-- the free app's purchase sheet, from the gate above or from "Support the app". The
+         pass is a subscription, and Play requires the renewal terms next to the price -->
+    <string name="pass_title">Support OpenDocument Reader</string>
+    <string name="pass_why">OpenDocument Reader is made by a small team, without tracking, and your documents stay on your device. Your purchase pays for updates, support for new Android versions, and new features.</string>
+    <string name="pass_buy">1 year without ads, with all Pro features: %1$s</string>
+    <string name="pass_terms">Renews every year. Cancel at any time in Google Play.</string>
+    <string name="pass_get_pro">Prefer to pay once? Get OpenDocument Reader Pro</string>
+    <string name="pass_unlocked">Thank you! The Pro features are now on.</string>
+    <string name="pass_unlocked_editing">Thank you! Leave the edit mode to use every Pro tool.</string>
+    <!-- when Play gives back an earlier purchase, for example after a reinstall -->
+    <string name="pass_restored">Your purchase is restored. The Pro features are on.</string>
+    <string name="pass_restored_editing">Your purchase is restored. Leave the edit mode to use every Pro tool.</string>
+    <!-- a locked tool, tapped while the Pro features are on but the page has not been rendered again -->
+    <string name="pass_on_editing">The Pro features are on. Leave the edit mode to use every Pro tool.</string>
+    <!-- the way to the free app's purchase sheet, or in Foss to GitHub Sponsors -->
+    <string name="menu_support">Support the app</string>
     <!-- what the document says when an edit is not taken, by the reason the page gives -->
     <string name="edit_refused_new_line">A line break inside a paragraph cannot be saved. Press Enter for a new paragraph.</string>
     <string name="edit_refused_formula">That cell holds a formula and stays as it is.</string>

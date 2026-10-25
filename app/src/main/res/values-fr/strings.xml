@@ -19,7 +19,6 @@
     <string name="menu_open_with">Ouvrir avec…</string>
     <string name="menu_share">Partager le document</string>
     <string name="menu_edit">Modifier</string>
-    <string name="menu_remove_ads">Supprimer les publicités</string>
     <string name="menu_privacy_options">Paramètres de confidentialité des publicités</string>
     <string name="house_ad_support_headline">Soutenez OpenDocument Reader</string>
     <string name="house_ad_support_headline_short">Soutenez-nous</string>
@@ -82,7 +81,6 @@
     <string name="tts_status_finished">Terminé.</string>
     <string name="toast_edit_status_saved">Document enregistré.</string>
     <string name="crouton_printing">Impression…</string>
-    <string name="crouton_remove_ads">Besoin de plus de place pour lire ? Appuyez sur OK pour supprimer les publicités gratuitement.</string>
     <string name="reopen_chooser_title">Ouvrir avec une autre application installée sur votre appareil :</string>
     <string name="ok">OK</string>
     <string name="cancel">Annuler</string>

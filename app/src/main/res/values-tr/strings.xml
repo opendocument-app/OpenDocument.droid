@@ -19,7 +19,6 @@
     <string name="menu_open_with">Şununla aç...</string>
     <string name="menu_share">Belgeyi paylaş</string>
     <string name="menu_edit">Belgeyi düzenle</string>
-    <string name="menu_remove_ads">Reklamları kaldır</string>
     <string name="menu_privacy_options">Reklam gizlilik ayarları</string>
     <string name="house_ad_support_headline">OpenDocument Reader\'a destek olun</string>
     <string name="house_ad_support_headline_short">Bize destek olun</string>
@@ -82,7 +81,6 @@
     <string name="tts_status_finished">Bitti.</string>
     <string name="toast_edit_status_saved">Belge kaydedildi.</string>
     <string name="crouton_printing">Yazdırılıyor…</string>
-    <string name="crouton_remove_ads">Okumak için daha fazla yer mi lazım? Reklamları ücretsiz kaldırmak için Tamam\'a dokunun.</string>
     <string name="reopen_chooser_title">Cihazınızda yüklü başka bir uygulamayla açın:</string>
     <string name="ok">Tamam</string>
     <string name="cancel">İptal</string>

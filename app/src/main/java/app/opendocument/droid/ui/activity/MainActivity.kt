@@ -12,7 +12,9 @@ import android.provider.DocumentsContract
 import android.view.ActionMode
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
@@ -413,9 +415,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeManagers() {
-        // the play services dialog can bring us back here; the first manager still owns a slot
+        // the play services dialog can bring us back here; the first manager still owns a slot,
+        // and the first billing manager a connection
         if (::adManager.isInitialized) {
             adManager.destroyAds()
+        }
+        if (::billingManager.isInitialized) {
+            billingManager.destroy()
         }
 
         // the ad and consent sdks are the only thing left that needs play services on the device,
@@ -435,13 +441,20 @@ class MainActivity : AppCompatActivity() {
         // the landing screen is drawn long before the consent update comes back, and the privacy
         // options row only exists once it has
         adManager.setConsentListener { landingFragment?.refresh() }
-        adManager.setPurchaseListener { buyAdRemoval() }
+        adManager.setPurchaseListener { offerPass(null) }
         adManager.initialize(this, analyticsManager, crashManager)
 
         billingManager = BillingManager()
         billingManager.setEnabled(adsAvailable)
-        // the remove ads row goes once play has restored a purchase
-        billingManager.setRestoreListener { landingFragment?.refresh() }
+        // the support row goes once play reports a purchase, and the open document is rendered
+        // again with the editing scope the pass brings
+        billingManager.setEntitlementListener { unlocked, purchased ->
+            landingFragment?.refresh()
+
+            if (unlocked) {
+                onUnlocked(purchased)
+            }
+        }
         billingManager.initialize(this, adManager, crashManager)
     }
 
@@ -531,6 +544,12 @@ class MainActivity : AppCompatActivity() {
         val documentFragment = this.documentFragment
 
         when (action) {
+            DocumentActions.ACTION_SUPPORT -> {
+                analyticsManager.report("menu_support")
+
+                offerSupport()
+            }
+
             DocumentActions.ACTION_SEARCH -> {
                 val findActionModeCallback = FindActionModeCallback(this)
                 documentFragment?.pageView?.let { findActionModeCallback.setWebView(it) }
@@ -617,7 +636,7 @@ class MainActivity : AppCompatActivity() {
 
                 PaginationSetting.setEnabled(this, margins)
 
-                documentFragment?.reloadForMargins()
+                documentFragment?.renderAgain()
             }
 
             DocumentActions.ACTION_PRINT -> {
@@ -675,18 +694,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun offerPurchase() {
-        if (billingManager.hasPurchased()) {
+        // an ended pass brings the ads back only at the next launch, and so does this offer
+        if (!billingManager.showsAds()) {
             return
         }
 
         analyticsManager.report("present_offer")
         SnackbarHelper.show(
             this,
-            R.string.crouton_remove_ads,
+            R.string.crouton_pass,
             {
                 analyticsManager.report("present_offer_clicked")
 
-                buyAdRemoval()
+                offerPass(null)
             },
             isIndefinite = true,
             isError = false,
@@ -742,15 +762,28 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Whether billing offers ad removal. Queried after manager initialization and Play Services
-     * retries.
+     * Whether "Support the app" is offered: in lite while the pass is for sale, and always in foss.
+     * Queried after manager initialization and Play Services retries.
      */
-    fun offersAdRemoval(): Boolean =
-        ::billingManager.isInitialized && !billingManager.hasPurchased()
+    fun offersSupport(): Boolean =
+        when {
+            !Features.promotesSupport -> false
+            Features.withAds -> ::billingManager.isInitialized && billingManager.offersPass()
+            else -> true
+        }
+
+    /** The pass in lite, the sponsors anywhere else. */
+    fun offerSupport() {
+        if (Features.withAds) {
+            offerPass(null)
+        } else {
+            openSponsorPage()
+        }
+    }
 
     /**
      * Whether the consent decision can still be withdrawn, which is when the ump sdk requires an
-     * app to offer a way back into the form. Asked the same way as [offersAdRemoval], and it stays
+     * app to offer a way back into the form. Asked the same way as [offersSupport], and it stays
      * true after an ad removal: withdrawal outlives the ads.
      */
     fun offersPrivacyOptions(): Boolean =
@@ -761,7 +794,8 @@ class MainActivity : AppCompatActivity() {
         adManager.showPrivacyOptions()
     }
 
-    fun buyAdRemoval() {
+    /** The pro app's listing: the way to pay once, and the edition without the ads sdk. */
+    fun openProListing() {
         analyticsManager.report(AnalyticsConstants.EVENT_ADD_TO_CART)
 
         // the play listing id is the applicationId, not the renamed java package
@@ -773,21 +807,96 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    /** Says that what was just tried is pro's, and leads to the pro listing. Lite only. */
-    fun offerPro(feature: ProFeature) {
-        // the names OpenDocument.ios reports the same gate under
-        analyticsManager.report("pro_gate_shown", "feature", feature.name.lowercase())
+    /**
+     * Offers the yearly pass, with a link to the pro app beside it. Lite only. From the gate,
+     * [feature] says what was just tried; null from every other way in.
+     */
+    fun offerPass(feature: ProFeature?) {
+        if (feature != null) {
+            // the names OpenDocument.ios reports the same gate under
+            analyticsManager.report("pro_gate_shown", "feature", feature.name.lowercase())
+        } else {
+            analyticsManager.report("pass_shown")
+        }
 
-        AlertDialog.Builder(this)
-            .setTitle(R.string.pro_offer_title)
-            .setMessage(feature.message)
-            .setPositiveButton(R.string.house_ad_cta_get_pro) { _, _ ->
-                analyticsManager.report("pro_gate_tapped", "feature", feature.name.lowercase())
+        val view = layoutInflater.inflate(R.layout.dialog_pass, null)
+        val featureView = view.findViewById<TextView>(R.id.pass_feature)
+        val buyButton = view.findViewById<Button>(R.id.pass_buy)
+        val terms = view.findViewById<View>(R.id.pass_terms)
+        val proButton = view.findViewById<View>(R.id.pass_get_pro)
 
-                buyAdRemoval()
+        if (feature != null) {
+            featureView.setText(feature.message)
+            featureView.visibility = View.VISIBLE
+        }
+
+        val dialog =
+            AlertDialog.Builder(this)
+                .setTitle(if (feature != null) R.string.pro_offer_title else R.string.pass_title)
+                .setView(view)
+                .setNegativeButton(R.string.not_now, null)
+                .show()
+
+        // no price, no button: without play, or before the product exists, the pro app is the one
+        // thing to offer
+        billingManager.queryPassPrice { price ->
+            if (price == null || !dialog.isShowing) {
+                return@queryPassPrice
             }
-            .setNegativeButton(R.string.not_now, null)
-            .show()
+
+            buyButton.text = getString(R.string.pass_buy, price)
+            buyButton.visibility = View.VISIBLE
+            terms.visibility = View.VISIBLE
+        }
+
+        buyButton.setOnClickListener {
+            analyticsManager.report("pass_tapped", "feature", feature?.name?.lowercase() ?: "none")
+            if (feature != null) {
+                // the gate's purchase, as OpenDocument.ios reports it
+                analyticsManager.report("pro_gate_tapped", "feature", feature.name.lowercase())
+            }
+
+            dialog.dismiss()
+
+            billingManager.buyPass(this)
+        }
+
+        proButton.setOnClickListener {
+            if (feature != null) {
+                analyticsManager.report("pro_gate_tapped", "feature", feature.name.lowercase())
+            }
+
+            dialog.dismiss()
+
+            openProListing()
+        }
+    }
+
+    /**
+     * Says thank you after a purchase, or that a purchase is restored, and gives the open document
+     * the editing scope that pro brings.
+     */
+    private fun onUnlocked(purchased: Boolean) {
+        analyticsManager.report(if (purchased) "pass_unlocked" else "pass_restored")
+
+        val documentFragment = documentFragment
+        val editing = documentFragment?.isEditing() == true
+
+        // first: rendering again dismisses whatever snackbar is up
+        documentFragment?.onUnlocked()
+
+        SnackbarHelper.show(
+            this,
+            when {
+                purchased && editing -> R.string.pass_unlocked_editing
+                purchased -> R.string.pass_unlocked
+                editing -> R.string.pass_restored_editing
+                else -> R.string.pass_restored
+            },
+            null,
+            isIndefinite = false,
+            isError = false,
+        )
     }
 
     /** What pro adds, as the reader runs into it. */
@@ -802,7 +911,7 @@ class MainActivity : AppCompatActivity() {
         PDF(R.string.pro_offer_markup),
     }
 
-    /** What [buyAdRemoval] is for a build with no ad removal to sell. */
+    /** What [offerPass] is for a build with nothing to sell. */
     fun openSponsorPage() {
         analyticsManager.report(AnalyticsConstants.EVENT_ADD_TO_CART)
 
@@ -998,6 +1107,8 @@ class MainActivity : AppCompatActivity() {
         printingManager.close()
 
         adManager.destroyAds()
+
+        billingManager.destroy()
 
         try {
             // has thrown out of the WebView's focus handling for some users
