@@ -1025,7 +1025,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         if (!canDecrypt) {
             // no password opens one of these; another app might, which is what the bar offers
-            offerReopen(activity, R.string.toast_error_password_protected, true)
+            offerReopen(activity, R.string.toast_error_cannot_decrypt, true)
             giveUp(activity)
 
             state.endLoadIdling()

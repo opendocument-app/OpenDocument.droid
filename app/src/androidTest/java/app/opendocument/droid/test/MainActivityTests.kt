@@ -488,6 +488,19 @@ class MainActivityTests {
         waitForDocumentActions()
     }
 
+    /** No password opens an encrypted `.doc`, so the bar says why it asks for none. */
+    @Test
+    fun testUndecryptableDocOffersAnotherApp() {
+        val activity = mainActivityActivityTestRule.activity
+
+        val testFileUri = uriOf(requireTestFile("encrypted.doc"))
+        InstrumentationRegistry.getInstrumentation().runOnMainSync { activity.loadUri(testFileUri) }
+
+        awaitViewWithText(R.string.toast_error_cannot_decrypt)
+
+        onView(withText(R.string.toast_error_cannot_decrypt)).check(matches(isDisplayed()))
+    }
+
     @Test
     fun testCorruptODTOffersContact() {
         val activity = mainActivityActivityTestRule.activity
@@ -1204,6 +1217,7 @@ class MainActivityTests {
                     "password-test.odt",
                     "style-various-1.docx",
                     "corrupt.odt",
+                    "encrypted.doc",
                     "spreadsheet-test.ods",
                 )) {
                 val targetFile = File(testDocumentsDir, filename)
