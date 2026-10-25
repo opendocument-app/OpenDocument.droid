@@ -56,7 +56,6 @@
     <string name="action_tts_previous">Roimhe seo</string>
     <string name="action_edit_save">Sábháil</string>
     <string name="action_contact">Teagmháil</string>
-    <string name="landing_intro_open_all">De réir réamhshocraithe, ní thairgeann an aip seo ach comhaid cháipéise a oscailt. Mura ligeann aip eile, ar nós Samsung My Files, duit cáipéis a oscailt anseo, cuir seo ar siúl le clárú do gach cineál comhaid.</string>
     <string name="landing_intro_view">Le hOpenDocument Reader, tá tú in ann breathnú ar cháipéisí atá i bhformáid OpenDocument (.odt, .ods, .odp, agus .odg) cibé áit a bhfuil tú.</string>
     <string name="landing_intro_search">Le hOpenDocument Reader, is féidir leat do chuid cáipéisí a léamh agus a chuardach go héasca.</string>
     <string name="landing_intro_edit">Ar aimsigh tú aon bhotún amháin eile atá le ceartú sula ndéanann tú do chur i láthair? Anois is féidir athruithe a dhéanamh freisin!</string>

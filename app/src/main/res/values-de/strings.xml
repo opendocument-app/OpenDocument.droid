@@ -56,7 +56,6 @@
     <string name="action_tts_previous">Zurück</string>
     <string name="action_edit_save">Speichern</string>
     <string name="action_contact">Kontakt</string>
-    <string name="landing_intro_open_all">Standardmäßig bietet diese App nur an, Dokumente zu öffnen. Wenn Sie mit einer anderen App wie „Samsung My Files“ ein Dokument nicht hier öffnen können, schalten Sie dies ein, damit die App für alle Dateitypen angeboten wird.</string>
     <string name="landing_intro_view">Mit OpenDocument Reader lesen Sie Dokumente im OpenDocument-Format (.odt, .ods, .odp und .odg) – wo immer Sie gerade sind.</string>
     <string name="landing_intro_search">Mit OpenDocument Reader können Sie Ihre Dokumente im Handumdrehen lesen und durchsuchen.</string>
     <string name="landing_intro_edit">Einen letzten Tippfehler kurz vor der großen Präsentation gefunden? Bearbeiten können Sie Ihre Dokumente jetzt auch!</string>

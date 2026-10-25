@@ -56,7 +56,6 @@
     <string name="action_tts_previous">Předchozí</string>
     <string name="action_edit_save">Uložit</string>
     <string name="action_contact">Kontakt</string>
-    <string name="landing_intro_open_all">Ve výchozím nastavení tato aplikace nabízí otevírání pouze dokumentů. Pokud vám jiná aplikace, například „Samsung My Files“, nedovolí zde dokument otevřít, zapněte tuto možnost a aplikace se bude nabízet u všech typů souborů.</string>
     <string name="landing_intro_view">OpenDocument Reader vám umožní prohlížet dokumenty uložené ve formátu OpenDocument (.odt, .ods, .odp a .odg), ať jste kdekoli.</string>
     <string name="landing_intro_search">S aplikací OpenDocument Reader můžete své dokumenty číst a bleskově v nich vyhledávat.</string>
     <string name="landing_intro_edit">Našli jste před velkou prezentací poslední překlep? Aplikace nyní podporuje i úpravy!</string>

@@ -56,7 +56,6 @@
     <string name="action_tts_previous">Eelmine</string>
     <string name="action_edit_save">Salvesta</string>
     <string name="action_contact">Võta ühendust</string>
-    <string name="landing_intro_open_all">Vaikimisi pakub see rakendus avamist ainult dokumendifailidele. Kui mõni teine rakendus, näiteks „Samsung My Files“, ei lase dokumenti siin avada, lülita see sisse, et rakendus pakuks avamist kõigi failitüüpide puhul.</string>
     <string name="landing_intro_view">OpenDocument Reader võimaldab sul vaadata OpenDocumenti vormingus (.odt, .ods, .odp ja .odg) salvestatud dokumente kõikjal, kus sa parasjagu oled.</string>
     <string name="landing_intro_search">OpenDocument Readeriga loed oma dokumente ja otsid neist mängleva kergusega.</string>
     <string name="landing_intro_edit">Leidsid vahetult enne suurt esitlust veel viimase kirjavea? Nüüd saab dokumente ka muuta!</string>

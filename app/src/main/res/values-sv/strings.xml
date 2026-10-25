@@ -56,7 +56,6 @@
     <string name="action_tts_previous">Föregående</string>
     <string name="action_edit_save">Spara</string>
     <string name="action_contact">Kontakt</string>
-    <string name="landing_intro_open_all">Som standard erbjuder appen bara att öppna dokumentfiler. Om en annan app, till exempel Samsung My Files, inte låter dig öppna ett dokument här, slå på det här så registreras appen för alla filtyper.</string>
     <string name="landing_intro_view">Med OpenDocument Reader kan du öppna dokument som är sparade i OpenDocument-format (.odt, .ods, .odp och .odg) var du än är.</string>
     <string name="landing_intro_search">Med OpenDocument Reader läser du dina dokument och söker i dem på nolltid.</string>
     <string name="landing_intro_edit">Hittade du ett sista stavfel inför den stora presentationen? Nu går det att ändra i dokumenten också!</string>

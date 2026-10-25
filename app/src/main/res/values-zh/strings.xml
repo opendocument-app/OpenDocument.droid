@@ -56,7 +56,6 @@
     <string name="action_tts_previous">上一个</string>
     <string name="action_edit_save">保存</string>
     <string name="action_contact">联系我们</string>
-    <string name="landing_intro_open_all">本应用默认只在打开文档文件时出现。如果“三星我的文件”之类的应用不让您在这里打开文档，请开启此项，让本应用接受所有文件类型。</string>
     <string name="landing_intro_view">无论身在何处，OpenDocument Reader 都能让您查看以 OpenDocument 格式（.odt、.ods、.odp 和 .odg）保存的文档。</string>
     <string name="landing_intro_search">有了 OpenDocument Reader，阅读和搜索文档都轻而易举。</string>
     <string name="landing_intro_edit">重要演示前发现还有个错别字要改？现在也支持编辑了！</string>
