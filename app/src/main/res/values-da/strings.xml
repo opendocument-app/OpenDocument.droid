@@ -12,6 +12,7 @@
     <string name="toast_error_save_failed">Filen kunne ikke gemmes. Kontakt venligst support@opendocument.app</string>
     <string name="toast_error_out_of_memory">Enheden har ikke mere plads i hukommelsen. Filen er enten for stor eller indeholder for mange billeder.</string>
     <string name="toast_error_password_protected">Dokumentet er låst med en adgangskode</string>
+    <string name="toast_error_cannot_decrypt">Dokumentet er beskyttet på en måde, som denne app ikke kan åbne. Prøv at åbne det i en anden app.</string>
     <string name="dialog_loading_title">Indlæser…</string>
     <string name="dialog_generic_loading_message">Vent venligst, det kan tage et par minutter.</string>
     <string name="menu_search">Søg i dokument</string>
@@ -56,6 +57,7 @@
     <string name="action_tts_previous">Forrige</string>
     <string name="action_edit_save">Gem</string>
     <string name="action_contact">Kontakt</string>
+    <string name="landing_intro_open_all">Denne indstilling er slået til som standard, så apps som \"Samsung My Files\" kan åbne dokumenter her. Hvis du slår den fra, tilbyder appen kun at åbne de dokumenttyper, den understøtter.</string>
     <string name="landing_intro_view">Med OpenDocument Reader kan du se dokumenter, der er gemt i OpenDocument-format (.odt, .ods, .odp og .odg), uanset hvor du er.</string>
     <string name="landing_intro_search">Med OpenDocument Reader kan du læse og søge i dine dokumenter hurtigt og nemt.</string>
     <string name="landing_intro_edit">Fandt du en sidste tastefejl lige inden din store præsentation? Nu kan du også rette i dokumentet!</string>
@@ -123,16 +125,19 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">En del af Pro</string>
     <string name="pro_offer_formatting">Fed, kursiv, farver og tekststørrelse samt tilføjelse og sammenlægning af afsnit er en del af OpenDocument Reader Pro. Fremhævning er med i alle udgaver.</string>
+    <string name="pro_offer_sheet">Fed, kursiv, farver, tekststørrelse og justering af celler, indtastning af formler samt indsættelse og sletning af rækker og kolonner er en del af OpenDocument Reader Pro. Fyld er med i alle udgaver.</string>
     <string name="pro_offer_markup">Understregning, gennemstregning og tegning på en PDF er en del af OpenDocument Reader Pro. Fremhævning er med i alle udgaver.</string>
     <string name="not_now">Ikke nu</string>
     <string name="edit_refused_new_line">Et linjeskift inde i et afsnit kan ikke gemmes. Tryk på Enter for et nyt afsnit.</string>
     <string name="edit_refused_formula">Cellen indeholder en formel og forbliver, som den er.</string>
     <string name="edit_refused_formula_input">Indtastning af formler understøttes endnu ikke.</string>
+    <string name="edit_refused_formula_invalid">Formlen kan ikke læses. Tjek den, og prøv igen.</string>
     <string name="edit_refused_rich">Cellen indeholder mere end almindelig tekst og forbliver, som den er.</string>
     <string name="edit_refused_shapes">Cellen indeholder en tegning og forbliver, som den er.</string>
     <string name="edit_refused_read_only">Dette dokument kan ikke redigeres.</string>
     <string name="edit_refused_range">En redigering kan ikke strække sig over et billede eller en tabel.</string>
     <string name="edit_refused_unsupported">Den redigering er ikke mulig her.</string>
+    <string name="edit_refused_array">Cellen er en del af en matrixformel og forbliver, som den er.</string>
     <string name="tool_rows_columns">Rækker og kolonner</string>
     <string name="tool_insert_rows_above">Indsæt rækker over</string>
     <string name="tool_insert_rows_below">Indsæt rækker under</string>

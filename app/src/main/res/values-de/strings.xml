@@ -12,6 +12,7 @@
     <string name="toast_error_save_failed">Datei konnte nicht gespeichert werden. Bitte schreiben Sie uns an support@opendocument.app</string>
     <string name="toast_error_out_of_memory">Nicht genug Speicher! Zu viele Bilder oder die Datei ist zu groß.</string>
     <string name="toast_error_password_protected">Dieses Dokument ist passwortgeschützt</string>
+    <string name="toast_error_cannot_decrypt">Dieses Dokument ist auf eine Weise geschützt, die diese App nicht öffnen kann. Versuchen Sie, es in einer anderen App zu öffnen.</string>
     <string name="dialog_loading_title">Wird geladen…</string>
     <string name="dialog_generic_loading_message">Bitte warten. Dies kann einige Minuten dauern.</string>
     <string name="menu_search">Im Dokument suchen</string>
@@ -56,6 +57,7 @@
     <string name="action_tts_previous">Zurück</string>
     <string name="action_edit_save">Speichern</string>
     <string name="action_contact">Kontakt</string>
+    <string name="landing_intro_open_all">Diese Option ist standardmäßig aktiviert, damit Apps wie „Samsung Eigene Dateien“ Dokumente hier öffnen können. Wenn Sie sie deaktivieren, bietet diese App nur noch das Öffnen der Dokumenttypen an, die sie unterstützt.</string>
     <string name="landing_intro_view">Mit OpenDocument Reader lesen Sie Dokumente im OpenDocument-Format (.odt, .ods, .odp und .odg) – wo immer Sie gerade sind.</string>
     <string name="landing_intro_search">Mit OpenDocument Reader können Sie Ihre Dokumente im Handumdrehen lesen und durchsuchen.</string>
     <string name="landing_intro_edit">Einen letzten Tippfehler kurz vor der großen Präsentation gefunden? Bearbeiten können Sie Ihre Dokumente jetzt auch!</string>
@@ -123,16 +125,19 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Teil von Pro</string>
     <string name="pro_offer_formatting">Fett, kursiv, Farben und Textgröße sowie das Hinzufügen oder Zusammenführen von Absätzen sind Teil von OpenDocument Reader Pro. Das Hervorheben ist in jeder Version enthalten.</string>
+    <string name="pro_offer_sheet">Fett, kursiv, Farben, Textgröße und Ausrichtung von Zellen, das Eingeben von Formeln sowie das Einfügen oder Löschen von Zeilen und Spalten sind Teil von OpenDocument Reader Pro. Die Füllfarbe ist in jeder Version enthalten.</string>
     <string name="pro_offer_markup">Unterstreichen, Durchstreichen und Zeichnen in einem PDF sind Teil von OpenDocument Reader Pro. Das Hervorheben ist in jeder Version enthalten.</string>
     <string name="not_now">Nicht jetzt</string>
     <string name="edit_refused_new_line">Ein Zeilenumbruch innerhalb eines Absatzes kann nicht gespeichert werden. Drücken Sie die Eingabetaste für einen neuen Absatz.</string>
     <string name="edit_refused_formula">Diese Zelle enthält eine Formel und bleibt, wie sie ist.</string>
     <string name="edit_refused_formula_input">Formeln eingeben wird noch nicht unterstützt.</string>
+    <string name="edit_refused_formula_invalid">Diese Formel kann nicht gelesen werden. Überprüfen Sie sie und versuchen Sie es erneut.</string>
     <string name="edit_refused_rich">Diese Zelle enthält mehr als reinen Text und bleibt, wie sie ist.</string>
     <string name="edit_refused_shapes">Diese Zelle enthält eine Zeichnung und bleibt, wie sie ist.</string>
     <string name="edit_refused_read_only">Dieses Dokument kann nicht bearbeitet werden.</string>
     <string name="edit_refused_range">Eine Änderung kann nicht über ein Bild oder eine Tabelle hinausreichen.</string>
     <string name="edit_refused_unsupported">Diese Änderung ist hier nicht möglich.</string>
+    <string name="edit_refused_array">Diese Zelle ist Teil einer Matrixformel und bleibt, wie sie ist.</string>
     <string name="tool_rows_columns">Zeilen und Spalten</string>
     <string name="tool_insert_rows_above">Zeilen oberhalb einfügen</string>
     <string name="tool_insert_rows_below">Zeilen unterhalb einfügen</string>

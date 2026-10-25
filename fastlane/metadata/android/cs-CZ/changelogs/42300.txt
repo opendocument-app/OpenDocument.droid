@@ -1,0 +1,9 @@
+Dlouhé dokumenty, PDF, tabulky a prezentace se otevírají mnohem rychleji.
+
+Vyhledávání najde každou shodu i v pozdějších částech dlouhého dokumentu a nerozlišuje velká a malá písmena ani diakritiku.
+
+Do buněk tabulek můžete psát vzorce a jejich výsledky se při úpravách průběžně aktualizují.
+
+Dokumenty Wordu zachovávají mezery mezi slovy a chybějící písma se nahrazují podobnými.
+
+Chráněný soubor, který nelze otevřít, to nyní oznámí a nabídne otevření v jiné aplikaci.

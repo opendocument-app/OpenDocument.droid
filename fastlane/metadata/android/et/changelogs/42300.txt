@@ -1,0 +1,9 @@
+Pikad dokumendid, PDF-id, arvutustabelid ja esitlused avanevad palju kiiremini.
+
+Otsing leiab kõik vasted ka pika dokumendi lõpuosas ega tee vahet suur- ja väiketähtedel ega diakriitilistel märkidel.
+
+Arvutustabeli lahtritesse saab sisestada valemeid, mille tulemused uuenevad muutmise ajal.
+
+Word-dokumentides säilivad sõnadevahelised tühikud ja puuduvad fondid asendatakse sarnastega.
+
+Kui kaitstud faili ei saa avada, teatatakse sellest nüüd ja pakutakse teist rakendust.

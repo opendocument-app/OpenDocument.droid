@@ -7,7 +7,7 @@ release, a pull request cuts that heading to the version. The release run makes 
 section the body of the GitHub release, and refuses a version without one. `scripts/store-copy.py` writes Play's
 "What's new" from the same section, under 500 characters per locale.
 
-## Unreleased
+## 4.23.0
 
 - Long text files, PDFs, spreadsheets and presentations open much faster, because the app
   lays out only the part near the screen, and renders a PDF page only when you scroll near it.

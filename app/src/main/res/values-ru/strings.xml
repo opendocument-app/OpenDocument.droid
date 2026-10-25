@@ -12,6 +12,7 @@
     <string name="toast_error_save_failed">Не удалось сохранить файл. Пожалуйста, напишите на support@opendocument.app</string>
     <string name="toast_error_out_of_memory">Недостаточно памяти на устройстве! Слишком много изображений или файл слишком большой.</string>
     <string name="toast_error_password_protected">Документ защищён паролем</string>
+    <string name="toast_error_cannot_decrypt">Это приложение не может открыть документ с такой защитой. Попробуйте открыть его в другом приложении.</string>
     <string name="dialog_loading_title">Загрузка…</string>
     <string name="dialog_generic_loading_message">Пожалуйста, подождите, это может занять несколько минут.</string>
     <string name="menu_search">Поиск в документе</string>
@@ -56,6 +57,7 @@
     <string name="action_tts_previous">Предыдущий</string>
     <string name="action_edit_save">Сохранить</string>
     <string name="action_contact">Связаться</string>
+    <string name="landing_intro_open_all">Эта функция включена по умолчанию, чтобы такие приложения, как «Мои файлы» от Samsung, могли открывать документы здесь. Если её отключить, приложение будет предлагать открывать только поддерживаемые типы документов.</string>
     <string name="landing_intro_view">OpenDocument Reader позволяет просматривать документы в формате OpenDocument (.odt, .ods, .odp и .odg), где бы вы ни находились.</string>
     <string name="landing_intro_search">С OpenDocument Reader вы можете легко читать документы и искать в них нужное.</string>
     <string name="landing_intro_edit">Нашли последнюю опечатку перед важной презентацией? Теперь документы можно и редактировать!</string>
@@ -123,16 +125,19 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Входит в Pro</string>
     <string name="pro_offer_formatting">Полужирный шрифт, курсив, цвета и размер текста, а также добавление и объединение абзацев входят в OpenDocument Reader Pro. Выделение цветом доступно во всех версиях.</string>
+    <string name="pro_offer_sheet">Полужирный шрифт, курсив, цвета, размер текста и выравнивание в ячейках, ввод формул, а также вставка и удаление строк и столбцов входят в OpenDocument Reader Pro. Заливка доступна во всех версиях.</string>
     <string name="pro_offer_markup">Подчёркивание, зачёркивание и рисование в PDF входят в OpenDocument Reader Pro. Выделение доступно во всех версиях.</string>
     <string name="not_now">Не сейчас</string>
     <string name="edit_refused_new_line">Разрыв строки внутри абзаца нельзя сохранить. Нажмите Enter, чтобы начать новый абзац.</string>
     <string name="edit_refused_formula">В этой ячейке формула, и она останется без изменений.</string>
     <string name="edit_refused_formula_input">Ввод формул пока не поддерживается.</string>
+    <string name="edit_refused_formula_invalid">Не удалось прочитать эту формулу. Проверьте её и попробуйте ещё раз.</string>
     <string name="edit_refused_rich">В этой ячейке больше чем простой текст, и она останется без изменений.</string>
     <string name="edit_refused_shapes">В этой ячейке рисунок, и она останется без изменений.</string>
     <string name="edit_refused_read_only">Этот документ нельзя редактировать.</string>
     <string name="edit_refused_range">Правка не может охватывать изображение или таблицу.</string>
     <string name="edit_refused_unsupported">Такая правка здесь невозможна.</string>
+    <string name="edit_refused_array">Эта ячейка входит в формулу массива и не будет изменена.</string>
     <string name="tool_rows_columns">Строки и столбцы</string>
     <string name="tool_insert_rows_above">Вставить строки выше</string>
     <string name="tool_insert_rows_below">Вставить строки ниже</string>

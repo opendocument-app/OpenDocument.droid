@@ -1,0 +1,9 @@
+Långa dokument, PDF-filer, kalkylblad och presentationer öppnas mycket snabbare.
+
+Sökningen hittar alla träffar, även långt in i långa dokument, och skiljer inte på stora och små bokstäver eller accenter.
+
+Du kan skriva formler i kalkylbladens celler, och resultaten uppdateras medan du redigerar.
+
+Word-dokument behåller mellanrummen mellan orden, och saknade teckensnitt ersätts av liknande.
+
+Om en skyddad fil inte går att öppna får du nu veta det och kan välja en annan app.

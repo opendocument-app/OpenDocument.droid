@@ -12,6 +12,7 @@
     <string name="toast_error_save_failed">Soubor se nepodařilo uložit. Kontaktujte prosím support@opendocument.app</string>
     <string name="toast_error_out_of_memory">Nedostatek paměti v zařízení! Soubor je příliš velký, nebo obsahuje příliš mnoho obrázků.</string>
     <string name="toast_error_password_protected">Dokument je chráněn heslem</string>
+    <string name="toast_error_cannot_decrypt">Tento dokument je chráněn způsobem, který tato aplikace neumí otevřít. Zkuste jej otevřít v jiné aplikaci.</string>
     <string name="dialog_loading_title">Načítání…</string>
     <string name="dialog_generic_loading_message">Čekejte prosím, může to trvat několik minut.</string>
     <string name="menu_search">Vyhledat v dokumentu</string>
@@ -56,6 +57,7 @@
     <string name="action_tts_previous">Předchozí</string>
     <string name="action_edit_save">Uložit</string>
     <string name="action_contact">Kontakt</string>
+    <string name="landing_intro_open_all">Ve výchozím nastavení je tato volba zapnutá, aby aplikace jako „Moje soubory“ od Samsungu mohly otevírat dokumenty v této aplikaci. Když ji vypnete, aplikace bude nabízet otevření jen těch typů dokumentů, které podporuje.</string>
     <string name="landing_intro_view">OpenDocument Reader vám umožní prohlížet dokumenty uložené ve formátu OpenDocument (.odt, .ods, .odp a .odg), ať jste kdekoli.</string>
     <string name="landing_intro_search">S aplikací OpenDocument Reader můžete své dokumenty číst a bleskově v nich vyhledávat.</string>
     <string name="landing_intro_edit">Našli jste před velkou prezentací poslední překlep? Aplikace nyní podporuje i úpravy!</string>
@@ -123,16 +125,19 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Součást verze Pro</string>
     <string name="pro_offer_formatting">Tučné písmo, kurzíva, barvy, velikost textu a také přidávání a spojování odstavců jsou součástí OpenDocument Reader Pro. Zvýrazňovač je k dispozici ve všech verzích.</string>
+    <string name="pro_offer_sheet">Tučné písmo, kurzíva, barvy, velikost textu a zarovnání buněk, psaní vzorců a také vkládání a odstraňování řádků a sloupců jsou součástí OpenDocument Reader Pro. Výplň je k dispozici ve všech verzích.</string>
     <string name="pro_offer_markup">Podtrhávání, přeškrtávání a kreslení v PDF jsou součástí OpenDocument Reader Pro. Zvýrazňovač je k dispozici ve všech verzích.</string>
     <string name="not_now">Teď ne</string>
     <string name="edit_refused_new_line">Zalomení řádku uvnitř odstavce nelze uložit. Pro nový odstavec stiskněte Enter.</string>
     <string name="edit_refused_formula">Tato buňka obsahuje vzorec a zůstane beze změny.</string>
     <string name="edit_refused_formula_input">Psaní vzorců zatím není podporováno.</string>
+    <string name="edit_refused_formula_invalid">Tento vzorec nelze přečíst. Zkontrolujte jej a zkuste to znovu.</string>
     <string name="edit_refused_rich">Tato buňka obsahuje víc než prostý text a zůstane beze změny.</string>
     <string name="edit_refused_shapes">Tato buňka obsahuje kresbu a zůstane beze změny.</string>
     <string name="edit_refused_read_only">Tento dokument nelze upravit.</string>
     <string name="edit_refused_range">Úprava nemůže zasahovat přes obrázek nebo tabulku.</string>
     <string name="edit_refused_unsupported">Tato úprava zde není možná.</string>
+    <string name="edit_refused_array">Tato buňka je součástí maticového vzorce a zůstane beze změny.</string>
     <string name="tool_rows_columns">Řádky a sloupce</string>
     <string name="tool_insert_rows_above">Vložit řádky nad</string>
     <string name="tool_insert_rows_below">Vložit řádky pod</string>

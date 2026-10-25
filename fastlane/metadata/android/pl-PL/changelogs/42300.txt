@@ -1,0 +1,9 @@
+Długie dokumenty, pliki PDF, arkusze kalkulacyjne i prezentacje otwierają się dużo szybciej.
+
+Wyszukiwanie znajduje każdy wynik, nawet daleko w długim dokumencie, bez względu na wielkość liter i znaki diakrytyczne.
+
+W komórkach arkuszy można wpisywać formuły, a ich wyniki aktualizują się na bieżąco.
+
+Dokumenty Word zachowują odstępy między wyrazami, a brakujące czcionki są zastępowane podobnymi.
+
+Gdy nie da się otworzyć chronionego pliku, aplikacja teraz o tym informuje i proponuje inną.

@@ -12,6 +12,7 @@
     <string name="toast_error_save_failed">파일을 저장하지 못했습니다. support@opendocument.app으로 문의해 주세요.</string>
     <string name="toast_error_out_of_memory">메모리가 부족합니다! 사진이 너무 많거나 파일이 너무 큽니다.</string>
     <string name="toast_error_password_protected">문서가 암호로 잠겨 있습니다.</string>
+    <string name="toast_error_cannot_decrypt">이 문서는 이 앱에서 열 수 없는 방식으로 보호되어 있습니다. 다른 앱에서 열어 보세요.</string>
     <string name="dialog_loading_title">불러오는 중...</string>
     <string name="dialog_generic_loading_message">잠시 기다려 주세요. 몇 분 정도 걸릴 수 있습니다.</string>
     <string name="menu_search">문서 검색</string>
@@ -56,6 +57,7 @@
     <string name="action_tts_previous">이전</string>
     <string name="action_edit_save">저장</string>
     <string name="action_contact">문의</string>
+    <string name="landing_intro_open_all">이 설정은 기본적으로 켜져 있어 \"삼성 내 파일\" 같은 앱에서 이 앱으로 문서를 열 수 있습니다. 설정을 끄면 이 앱이 지원하는 형식의 문서를 열 때만 이 앱이 목록에 나타납니다.</string>
     <string name="landing_intro_view">OpenDocument Reader를 사용하면 어디서든 OpenDocument 형식(.odt, .ods, .odp, .odg) 문서를 볼 수 있습니다.</string>
     <string name="landing_intro_search">OpenDocument Reader로 문서를 손쉽게 읽고 검색할 수 있습니다.</string>
     <string name="landing_intro_edit">중요한 발표를 앞두고 오타를 하나 발견했나요? 이제 수정도 할 수 있습니다!</string>
@@ -123,16 +125,19 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Pro 기능</string>
     <string name="pro_offer_formatting">굵게, 기울임꼴, 색상, 글자 크기, 단락 추가 및 합치기 기능은 OpenDocument Reader Pro에 포함되어 있습니다. 강조 표시는 모든 버전에서 사용할 수 있습니다.</string>
+    <string name="pro_offer_sheet">셀의 굵게, 기울임꼴, 색상, 글자 크기, 맞춤 기능과 수식 입력, 행 및 열 삽입과 삭제 기능은 OpenDocument Reader Pro에 포함되어 있습니다. 채우기는 모든 버전에서 사용할 수 있습니다.</string>
     <string name="pro_offer_markup">PDF의 밑줄, 취소선, 그리기 기능은 OpenDocument Reader Pro에 포함되어 있습니다. 강조 표시는 모든 버전에서 사용할 수 있습니다.</string>
     <string name="not_now">나중에</string>
     <string name="edit_refused_new_line">단락 안의 줄 바꿈은 저장할 수 없습니다. 새 단락을 만들려면 Enter를 누르세요.</string>
     <string name="edit_refused_formula">이 셀에는 수식이 있어 그대로 유지됩니다.</string>
     <string name="edit_refused_formula_input">수식 입력은 아직 지원되지 않습니다.</string>
+    <string name="edit_refused_formula_invalid">이 수식을 읽을 수 없습니다. 수식을 확인한 후 다시 시도하세요.</string>
     <string name="edit_refused_rich">이 셀에는 일반 텍스트 이상의 내용이 있어 그대로 유지됩니다.</string>
     <string name="edit_refused_shapes">이 셀에는 그림이 있어 그대로 유지됩니다.</string>
     <string name="edit_refused_read_only">이 문서는 편집할 수 없습니다.</string>
     <string name="edit_refused_range">편집 범위에 그림이나 표를 포함할 수 없습니다.</string>
     <string name="edit_refused_unsupported">여기서는 그렇게 편집할 수 없습니다.</string>
+    <string name="edit_refused_array">이 셀은 배열 수식의 일부이므로 그대로 유지됩니다.</string>
     <string name="tool_rows_columns">행 및 열</string>
     <string name="tool_insert_rows_above">위에 행 삽입</string>
     <string name="tool_insert_rows_below">아래에 행 삽입</string>

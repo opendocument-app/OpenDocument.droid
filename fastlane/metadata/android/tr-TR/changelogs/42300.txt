@@ -1,0 +1,9 @@
+Uzun belgeler, PDF'ler, hesap tabloları ve sunumlar çok daha hızlı açılıyor.
+
+Arama, uzun belgelerin sonundakiler dahil tüm eşleşmeleri buluyor; büyük/küçük harf ve aksan ayrımı yapmıyor.
+
+Hesap tablosu hücrelerine formül yazılabiliyor; sonuçlar siz düzenledikçe güncelleniyor.
+
+Word belgelerinde sözcük arası boşluklar korunuyor, eksik yazı tiplerinin yerine benzerleri kullanılıyor.
+
+Korumalı bir dosya açılamadığında artık bu bildiriliyor ve başka bir uygulama öneriliyor.

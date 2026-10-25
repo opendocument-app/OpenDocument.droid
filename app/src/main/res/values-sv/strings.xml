@@ -12,6 +12,7 @@
     <string name="toast_error_save_failed">Filen kunde inte sparas. Kontakta support@opendocument.app</string>
     <string name="toast_error_out_of_memory">Enheten har slut på minne! För många bilder, eller för stor fil.</string>
     <string name="toast_error_password_protected">Det här dokumentet är lösenordsskyddat</string>
+    <string name="toast_error_cannot_decrypt">Dokumentet är skyddat på ett sätt som den här appen inte kan öppna. Prova att öppna det i en annan app.</string>
     <string name="dialog_loading_title">Läser in…</string>
     <string name="dialog_generic_loading_message">Vänta, det här kan ta några minuter.</string>
     <string name="menu_search">Sök i dokumentet</string>
@@ -56,6 +57,7 @@
     <string name="action_tts_previous">Föregående</string>
     <string name="action_edit_save">Spara</string>
     <string name="action_contact">Kontakt</string>
+    <string name="landing_intro_open_all">Det här är på som standard, så att appar som \"Samsung Mina filer\" kan öppna dokument här. Om du stänger av det erbjuder appen bara att öppna de dokumenttyper som den stöder.</string>
     <string name="landing_intro_view">Med OpenDocument Reader kan du öppna dokument som är sparade i OpenDocument-format (.odt, .ods, .odp och .odg) var du än är.</string>
     <string name="landing_intro_search">Med OpenDocument Reader läser du dina dokument och söker i dem på nolltid.</string>
     <string name="landing_intro_edit">Hittade du ett sista stavfel inför den stora presentationen? Nu går det att ändra i dokumenten också!</string>
@@ -123,16 +125,19 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">En del av Pro</string>
     <string name="pro_offer_formatting">Fet, kursiv, färger och textstorlek, samt att lägga till eller slå ihop stycken, ingår i OpenDocument Reader Pro. Överstrykningen finns i alla versioner.</string>
+    <string name="pro_offer_sheet">Fet, kursiv, färger, textstorlek och justering av celler, att skriva formler samt att infoga eller ta bort rader och kolumner ingår i OpenDocument Reader Pro. Fyllningen finns i alla versioner.</string>
     <string name="pro_offer_markup">Understrykning, genomstrykning och att rita i en PDF ingår i OpenDocument Reader Pro. Överstrykningen finns i alla versioner.</string>
     <string name="not_now">Inte nu</string>
     <string name="edit_refused_new_line">En radbrytning inuti ett stycke kan inte sparas. Tryck på Enter för ett nytt stycke.</string>
     <string name="edit_refused_formula">Cellen innehåller en formel och förblir som den är.</string>
     <string name="edit_refused_formula_input">Att skriva formler stöds inte ännu.</string>
+    <string name="edit_refused_formula_invalid">Formeln kan inte läsas. Kontrollera den och försök igen.</string>
     <string name="edit_refused_rich">Cellen innehåller mer än vanlig text och förblir som den är.</string>
     <string name="edit_refused_shapes">Cellen innehåller en ritning och förblir som den är.</string>
     <string name="edit_refused_read_only">Det här dokumentet kan inte redigeras.</string>
     <string name="edit_refused_range">En redigering kan inte sträcka sig över en bild eller en tabell.</string>
     <string name="edit_refused_unsupported">Den redigeringen är inte möjlig här.</string>
+    <string name="edit_refused_array">Cellen är en del av en matrisformel och lämnas oförändrad.</string>
     <string name="tool_rows_columns">Rader och kolumner</string>
     <string name="tool_insert_rows_above">Infoga rader ovanför</string>
     <string name="tool_insert_rows_below">Infoga rader nedanför</string>
