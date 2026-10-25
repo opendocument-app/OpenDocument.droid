@@ -633,8 +633,10 @@ class MainActivity : AppCompatActivity() {
                         pageView.suspendDarkening()
 
                         val pageSize = documentFragment.pageSize
-                        printingManager.print(this, pageView, pageSize) {
-                            documentFragment?.pageView?.resumeDarkening()
+                        pageView.loadAllChunks {
+                            printingManager.print(this, pageView, pageSize) {
+                                documentFragment?.pageView?.resumeDarkening()
+                            }
                         }
                     }
                 }
