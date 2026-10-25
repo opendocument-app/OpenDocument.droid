@@ -56,7 +56,6 @@
     <string name="action_tts_previous">이전</string>
     <string name="action_edit_save">저장</string>
     <string name="action_contact">문의</string>
-    <string name="landing_intro_open_all">이 앱은 기본적으로 문서 파일만 열도록 등록되어 있습니다. 삼성 ‘내 파일’ 같은 다른 앱에서 이 앱으로 문서를 열 수 없다면, 이 설정을 켜서 모든 파일 형식에 등록하세요.</string>
     <string name="landing_intro_view">OpenDocument Reader를 사용하면 어디서든 OpenDocument 형식(.odt, .ods, .odp, .odg) 문서를 볼 수 있습니다.</string>
     <string name="landing_intro_search">OpenDocument Reader로 문서를 손쉽게 읽고 검색할 수 있습니다.</string>
     <string name="landing_intro_edit">중요한 발표를 앞두고 오타를 하나 발견했나요? 이제 수정도 할 수 있습니다!</string>

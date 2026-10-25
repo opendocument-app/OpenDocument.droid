@@ -56,7 +56,6 @@
     <string name="action_tts_previous">前へ</string>
     <string name="action_edit_save">保存</string>
     <string name="action_contact">お問い合わせ</string>
-    <string name="landing_intro_open_all">このアプリは通常、ドキュメントファイルだけを開く対象にしています。「Samsung My Files」などの他のアプリから、このアプリでドキュメントを開けないときは、これをオンにするとすべての種類のファイルを開けるようになります。</string>
     <string name="landing_intro_view">OpenDocument Reader なら、OpenDocument 形式（.odt、.ods、.odp、.odg）のドキュメントを、どこにいても表示できます。</string>
     <string name="landing_intro_search">OpenDocument Reader なら、ドキュメントを読むのも、中を検索するのも簡単です。</string>
     <string name="landing_intro_edit">大事なプレゼンの直前に、最後の誤字を見つけてしまいましたか？ 編集にも対応しました！</string>

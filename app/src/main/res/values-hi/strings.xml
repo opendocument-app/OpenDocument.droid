@@ -56,7 +56,6 @@
     <string name="action_tts_previous">पिछला</string>
     <string name="action_edit_save">सहेजें</string>
     <string name="action_contact">संपर्क</string>
-    <string name="landing_intro_open_all">डिफ़ॉल्ट रूप से यह ऐप सिर्फ़ दस्तावेज़ फ़ाइलें खोलने के लिए ही दिखाई देता है। अगर Samsung My Files जैसा कोई दूसरा ऐप आपको यहाँ दस्तावेज़ नहीं खोलने देता, तो इसे चालू करें ताकि यह ऐप हर तरह की फ़ाइल के लिए दिखे।</string>
     <string name="landing_intro_view">OpenDocument Reader से आप OpenDocument प्रारूप (.odt, .ods, .odp और .odg) में सहेजे गए दस्तावेज़ कहीं भी देख सकते हैं।</string>
     <string name="landing_intro_search">OpenDocument Reader से आप अपने दस्तावेज़ आसानी से पढ़ सकते हैं और उनमें खोज सकते हैं।</string>
     <string name="landing_intro_edit">अपनी बड़ी प्रस्तुति से पहले कोई आख़िरी गलती ठीक करनी रह गई है? अब इसमें बदलाव भी किए जा सकते हैं!</string>
