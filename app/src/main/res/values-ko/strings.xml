@@ -19,7 +19,6 @@
     <string name="menu_open_with">다른 앱으로 열기...</string>
     <string name="menu_share">문서 공유</string>
     <string name="menu_edit">문서 편집</string>
-    <string name="menu_remove_ads">광고 제거</string>
     <string name="menu_privacy_options">광고 개인정보 설정</string>
     <string name="house_ad_support_headline">OpenDocument Reader 후원하기</string>
     <string name="house_ad_support_headline_short">후원하기</string>

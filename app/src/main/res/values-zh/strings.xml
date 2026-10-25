@@ -19,7 +19,6 @@
     <string name="menu_open_with">打开方式...</string>
     <string name="menu_share">分享文档</string>
     <string name="menu_edit">编辑文档</string>
-    <string name="menu_remove_ads">移除广告</string>
     <string name="menu_privacy_options">广告隐私设置</string>
     <string name="house_ad_support_headline">支持 OpenDocument Reader</string>
     <string name="house_ad_support_headline_short">支持我们</string>

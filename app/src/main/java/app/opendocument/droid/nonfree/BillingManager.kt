@@ -1,5 +1,6 @@
 package app.opendocument.droid.nonfree
 
+import android.app.Activity
 import android.content.Context
 import app.opendocument.droid.background.BillingPreferences
 
@@ -9,12 +10,16 @@ class BillingManager {
 
     private var adManager: AdManager? = null
     private var billingPreferences: BillingPreferences? = null
+    private var playBilling: PlayBilling? = null
 
-    private var onPurchaseRestored: (() -> Unit)? = null
+    private var onEntitlementChanged: ((Boolean) -> Unit)? = null
 
-    /** Fires once play reports a purchase that the preferences did not know about. */
-    fun setRestoreListener(listener: () -> Unit) {
-        onPurchaseRestored = listener
+    /**
+     * Fires when play reports what the preferences did not know: a purchase, a restore, or an ended
+     * pass. The argument says whether the pro features have just been unlocked.
+     */
+    fun setEntitlementListener(listener: (unlocked: Boolean) -> Unit) {
+        onEntitlementChanged = listener
     }
 
     fun initialize(context: Context, adManager: AdManager, crashManager: CrashManager) {
@@ -33,22 +38,54 @@ class BillingManager {
             return
         }
 
-        if (hasPurchased()) {
+        Features.unlocked = isPro()
+
+        if (isAdFree()) {
             removeAds(adManager)
         } else {
             adManager.showGoogleAds()
+        }
 
-            // the flag lives only on this device, so a reinstall or a new device loses it. the
-            // ads show until play answers; a purchase is never revoked, as before
-            OwnedPurchases.query(context, crashManager) {
-                crashManager.log("purchase restored")
+        // asked at every launch, not only until something turns up: the flags live only on this
+        // device, and a pass ends. the ads show until play answers
+        playBilling =
+            PlayBilling(context, crashManager) { entitlement ->
+                crashManager.log("billing answered")
 
-                preferences.setPurchased(true)
-
-                removeAds(adManager)
-
-                onPurchaseRestored?.invoke()
+                apply(entitlement)
             }
+        playBilling?.queryOwned()
+    }
+
+    private fun apply(entitlement: Entitlement) {
+        val preferences = billingPreferences ?: return
+        val adManager = adManager ?: return
+
+        val wasAdFree = isAdFree()
+        val wasPro = isPro()
+
+        // an old purchase is never taken back, as before; a pass is play's to report
+        if (entitlement.adFree) {
+            preferences.setPurchased(true)
+        }
+        if (entitlement.lifetimePro) {
+            preferences.setLifetimePro(true)
+        }
+        preferences.setPass(entitlement.pass)
+
+        if (!wasAdFree && isAdFree()) {
+            removeAds(adManager)
+        }
+
+        // an ended pass takes effect at the next launch: the ads do not come back once removed,
+        // and the open document keeps the editing scope it was rendered with
+        val unlocked = !wasPro && isPro()
+        if (unlocked) {
+            Features.unlocked = true
+        }
+
+        if (wasAdFree != isAdFree() || wasPro != isPro()) {
+            onEntitlementChanged?.invoke(unlocked)
         }
     }
 
@@ -60,12 +97,48 @@ class BillingManager {
         adManager.updateConsentInfo()
     }
 
-    fun hasPurchased(): Boolean {
+    /** No ads: an old purchase, the pass, or a build that has none, or billing is not available. */
+    fun isAdFree(): Boolean {
         if (!enabled) {
             return true
         }
 
-        return billingPreferences?.hasPurchased() ?: false
+        val preferences = billingPreferences ?: return false
+
+        return preferences.hasPurchased() || isPro()
+    }
+
+    /** The pro features bought in lite: the pass, or an old purchase for life. */
+    fun isPro(): Boolean {
+        val preferences = billingPreferences ?: return false
+
+        return preferences.hasLifetimePro() || preferences.hasPass()
+    }
+
+    /** Whether lite can sell the pass here: play is available and the account does not hold it. */
+    fun offersPass(): Boolean = enabled && Features.withAds && !isPro()
+
+    /** See [PlayBilling.queryPassPrice]. Null without play. */
+    fun queryPassPrice(callback: (String?) -> Unit) {
+        val playBilling = playBilling
+        if (playBilling == null) {
+            callback(null)
+
+            return
+        }
+
+        playBilling.queryPassPrice(callback)
+    }
+
+    fun buyPass(activity: Activity) {
+        playBilling?.buyPass(activity)
+    }
+
+    fun destroy() {
+        playBilling?.end()
+        playBilling = null
+
+        onEntitlementChanged = null
     }
 
     fun setEnabled(enabled: Boolean) {

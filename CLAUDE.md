@@ -27,7 +27,7 @@ copy; `LoadedDocument` adds rendered parts and core capabilities.
 
 `LandingFragment` shows recents and settings. `DocumentFragment` displays documents
 in `PageView`, with `DocumentActions` above the page. Document actions belong there;
-app settings, ad removal, and consent belong on the landing screen.
+app settings and consent belong on the landing screen. "Support the app" is on both.
 
 ## Build and editions
 
@@ -46,6 +46,13 @@ The release version comes from `-Podr.version`; do not duplicate it in the manif
 Add methods to both implementations. Use `Features`, never `BuildConfig.FLAVOR`.
 `MainActivity.initializeManagers` may run again after Play Services resolution.
 Analytics and crash reporting only log locally.
+
+Lite sells one auto-renewing yearly pass (`Entitlement.PASS_PRODUCT`) that removes ads
+and unlocks Pro features. `MainActivity.offerPass` shows it with a link to Pro, also from
+the gate. Pro and Foss go to GitHub Sponsors; only Lite and Foss promote support.
+`BillingManager` asks Play at each launch. Old lifetime purchases give Pro; never revoke
+them. An ended pass takes effect at the next launch. `Features.advancedEditing` reads the
+entitlement, so a gain renders the open document again for the editing scope.
 
 The app compiles no native code. Use the single `odr-core-android` AAR for matching
 Java bindings and JNI libraries. Keep bindings compatible with API 26.
@@ -82,7 +89,7 @@ use the unsupported callback, reopen offer, and contact dialog.
 
 - Render with editor support once. Entering edit mode calls `odr.editing.enable()`.
 - Use `HtmlConfig.hostMessageHandler` for page callbacks; do not inject replacements.
-- Lite uses paragraph scope. `outOfScope` offers Pro.
+- Lite uses paragraph scope until it holds Pro. `outOfScope` offers the pass.
 - Gate individual tools, not the entire edit mode. Highlighting and sheet fill remain free.
 - Undo, redo, and save belong to the action bar; formatting belongs to `EditingTools`.
 - Let the page arm PDF tools through `odr.annotation.press` and `markOnSelection`.

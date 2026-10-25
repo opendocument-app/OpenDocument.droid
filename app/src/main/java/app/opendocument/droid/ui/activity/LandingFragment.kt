@@ -128,6 +128,19 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
             }
         }
 
+        // lite's pass, or foss's sponsors, where it is seen without unfolding anything. asked here
+        // rather than carried in the state: what billing knows lives on the activity, not in
+        // anything the ViewModel reads, and the activity refreshes this once play has answered
+        if (Features.promotesSupport && mainActivity.offersSupport()) {
+            items.add(
+                LandingItem.Action(
+                    LandingItem.ACTION_SUPPORT,
+                    R.string.menu_support,
+                    R.drawable.ic_favorite,
+                )
+            )
+        }
+
         // what the app is for, above the settings and folded away once there are documents to
         // read instead - by then the user has seen all three lines and wants the list back
         items.add(
@@ -171,22 +184,9 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
                 )
             )
 
-            // asked here rather than carried in the state: what billing knows lives on the
-            // activity, not in anything the ViewModel reads. it is only ever false in pro or after
-            // a purchase, both of which are settled long before the first refresh comes back
-            if (mainActivity.offersAdRemoval()) {
-                items.add(
-                    LandingItem.Action(
-                        LandingItem.ACTION_REMOVE_ADS,
-                        R.string.menu_remove_ads,
-                        R.drawable.ic_block,
-                    )
-                )
-            }
-
-            // the way to give something back where there is no pro left to sell. not offered in
-            // lite, whose one money row should stay the purchase that also drops the ads
-            if (!Features.withAds) {
+            // pro's way to give something back, kept out of the way: its users have paid already.
+            // lite and foss have theirs above the folds
+            if (!Features.promotesSupport) {
                 items.add(
                     LandingItem.Action(
                         LandingItem.ACTION_SPONSOR,
@@ -303,10 +303,10 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
 
     override fun onActionClicked(action: Int) {
         when (action) {
-            LandingItem.ACTION_REMOVE_ADS -> {
-                mainActivity.analyticsManager.report("settings_remove_ads")
+            LandingItem.ACTION_SUPPORT -> {
+                mainActivity.analyticsManager.report("landing_support")
 
-                mainActivity.buyAdRemoval()
+                mainActivity.offerSupport()
             }
 
             LandingItem.ACTION_SPONSOR -> {
