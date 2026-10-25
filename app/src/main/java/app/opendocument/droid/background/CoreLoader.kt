@@ -170,6 +170,11 @@ class CoreLoader(private val context: Context) {
         // document. PageView.setDarkeningAllowed picks between them
         htmlConfig.colorScheme = HtmlColorScheme.SYSTEM
 
+        // lay out only the lines, pages, rows and slides near the viewport, and load the parts of
+        // a view after the first as the reader comes near. An editable render stays whole
+        htmlConfig.lazyLayout = true
+        htmlConfig.lazyLoading = true
+
         // stated rather than inherited, and this device's answer - see SpreadsheetBudget
         htmlConfig.spreadsheetLimit =
             TableDimensions(SpreadsheetBudget.ROWS, SpreadsheetBudget.COLUMNS)

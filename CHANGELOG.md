@@ -10,7 +10,7 @@ section the body of the GitHub release, and refuses a version without one. `scri
 ## Unreleased
 
 - Long text files, PDFs, spreadsheets and presentations open much faster, because the app
-  lays out only the part near the screen.
+  lays out only the part near the screen, and renders a PDF page only when you scroll near it.
 - Images in long documents load when you scroll near them.
 - Search finds every match in a long document, also far from the screen. It ignores case
   and accents, so "cafe" finds "Café".

@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.AttributeSet
 import android.util.Base64
 import android.util.Base64InputStream
@@ -53,6 +54,9 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
     /** Told what the page's search reports, on the main thread - see [postMessage]. */
     var searchListener: SearchListener? = null
+
+    /** Whether [loadAllChunks] is waiting for the page. */
+    private var loadingChunks = false
 
     /** What [setEditing] was last told, applied again to every page that loads. */
     private var editingKind = EditingKind.NONE
@@ -445,24 +449,70 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
     fun getParagraph(index: Int) {
         post {
-            // a pdf is one wrapper below the body, with every glyph in an aria-hidden layer and
-            // again in the selection layer; read that layer one page at a time. Its pages skip
-            // rendering off screen, which empties their innerText, so join the lines instead
+            // a pdf is a page per chunk, with every glyph in an aria-hidden layer and again in the
+            // selection layer; read that layer one page at a time. Its pages skip rendering off
+            // screen, which empties their innerText, so join the lines instead. A page that has not
+            // loaded is read once it has, or skipped if its script never arrives
             loadUrl(
-                "javascript:var pages = document.querySelectorAll('.p > .sel'); " +
+                "javascript:var pages = document.querySelectorAll('.p[data-odr-page]'); " +
                     "var children = pages.length ? pages : document.body.childNodes; " +
                     "if (children.length <= $index) { " +
                     "paragraphListener.end();" +
                     "} else {" +
                     "var child = children[$index]; " +
-                    "var text = !child ? null : pages.length ? " +
-                    "Array.from(child.children, function (l) { return l.textContent; }).join('\\n') : " +
+                    "var done = false; " +
+                    "var read = function () { " +
+                    "if (done) { return; } done = true; " +
+                    "var layer = pages.length ? child.querySelector(':scope > .sel') : null; " +
+                    "var text = !child ? null : pages.length ? (layer ? " +
+                    "Array.from(layer.children, function (l) { return l.textContent; }).join('\\n') : null) : " +
                     "child.nodeName.toLowerCase() != 'script' ? child.innerText : null; " +
                     "if (text) {" +
                     " paragraphListener.paragraph(text); } else {" +
-                    " paragraphListener.increaseIndex(); } }"
+                    " paragraphListener.increaseIndex(); } }; " +
+                    "if (pages.length && child.hasAttribute('data-odr-chunk-src') && window.odr && odr.chunks) { " +
+                    "child.addEventListener('odr-chunk-filled', read, {once: true}); " +
+                    "setTimeout(read, $CHUNK_LOAD_TIMEOUT_MS); " +
+                    "odr.chunks.show(child); " +
+                    "} else { read(); } }"
             )
         }
+    }
+
+    /**
+     * Loads every part of the page that lazy loading left for later, then calls [then] on the main
+     * thread: a print shows a part that has not loaded as empty space. Gives up after
+     * [CHUNK_LOAD_TIMEOUT_MS] and calls [then] all the same. A call while one loads is ignored.
+     */
+    fun loadAllChunks(then: () -> Unit) {
+        if (loadingChunks) {
+            return
+        }
+        loadingChunks = true
+
+        val deadline = SystemClock.uptimeMillis() + CHUNK_LOAD_TIMEOUT_MS
+        val script =
+            "(function(){var c=document.querySelectorAll('[data-odr-chunk-src]');" +
+                "if(window.odr&&odr.chunks){c.forEach(function(e){" +
+                "if(!e.hasAttribute('data-odr-chunk-loading'))odr.chunks.show(e);});}" +
+                "return c.length;})()"
+
+        fun poll() {
+            evaluateJavascript(script) { pending ->
+                if (destroyed) {
+                    return@evaluateJavascript
+                }
+
+                if (pending == "0" || pending == "null" || SystemClock.uptimeMillis() > deadline) {
+                    loadingChunks = false
+                    then()
+                } else {
+                    postDelayed({ poll() }, CHUNK_LOAD_INTERVAL_MS)
+                }
+            }
+        }
+
+        poll()
     }
 
     /** Turns the page's edit mode on or off. A pdf has no mode, so leaving only disarms. */
@@ -712,5 +762,10 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         private const val SCROLL_RESTORE_ATTEMPTS = 20
 
         private const val SCROLL_RESTORE_INTERVAL_MS = 100L
+
+        /** How long a print waits for every part, and read aloud for one page. */
+        private const val CHUNK_LOAD_TIMEOUT_MS = 30000L
+
+        private const val CHUNK_LOAD_INTERVAL_MS = 200L
     }
 }
