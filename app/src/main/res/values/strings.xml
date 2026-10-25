@@ -93,7 +93,7 @@
     <string name="crouton_printing">Printing…</string>
     <!-- a snackbar whose OK button starts the purchase, so it says what OK will do.
          There has been no menu to remove ads from since the options menu went -->
-    <string name="crouton_remove_ads">Need more space to read? Tap OK to remove the ads for free.</string>
+    <string name="crouton_pass">Need more space to read? Tap OK to see how to remove the ads.</string>
     <string name="reopen_chooser_title">Open using another app installed on your device:</string>
 
     <!-- spelled out in the messages above too, where translators need it in context -->

@@ -701,7 +701,7 @@ class MainActivity : AppCompatActivity() {
         analyticsManager.report("present_offer")
         SnackbarHelper.show(
             this,
-            R.string.crouton_remove_ads,
+            R.string.crouton_pass,
             {
                 analyticsManager.report("present_offer_clicked")
 

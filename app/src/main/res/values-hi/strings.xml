@@ -81,7 +81,6 @@
     <string name="tts_status_finished">समाप्त।</string>
     <string name="toast_edit_status_saved">दस्तावेज़ सहेज लिया गया।</string>
     <string name="crouton_printing">छप रहा है…</string>
-    <string name="crouton_remove_ads">पढ़ने के लिए और जगह चाहिए? विज्ञापन मुफ़्त में हटाने के लिए ठीक है दबाएँ।</string>
     <string name="reopen_chooser_title">अपने डिवाइस में मौजूद किसी दूसरे ऐप से खोलें:</string>
     <string name="ok">ठीक है</string>
     <string name="cancel">रद्द करें</string>

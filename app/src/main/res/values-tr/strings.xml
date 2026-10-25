@@ -81,7 +81,6 @@
     <string name="tts_status_finished">Bitti.</string>
     <string name="toast_edit_status_saved">Belge kaydedildi.</string>
     <string name="crouton_printing">Yazdırılıyor…</string>
-    <string name="crouton_remove_ads">Okumak için daha fazla yer mi lazım? Reklamları ücretsiz kaldırmak için Tamam\'a dokunun.</string>
     <string name="reopen_chooser_title">Cihazınızda yüklü başka bir uygulamayla açın:</string>
     <string name="ok">Tamam</string>
     <string name="cancel">İptal</string>

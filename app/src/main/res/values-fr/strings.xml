@@ -81,7 +81,6 @@
     <string name="tts_status_finished">Terminé.</string>
     <string name="toast_edit_status_saved">Document enregistré.</string>
     <string name="crouton_printing">Impression…</string>
-    <string name="crouton_remove_ads">Besoin de plus de place pour lire ? Appuyez sur OK pour supprimer les publicités gratuitement.</string>
     <string name="reopen_chooser_title">Ouvrir avec une autre application installée sur votre appareil :</string>
     <string name="ok">OK</string>
     <string name="cancel">Annuler</string>

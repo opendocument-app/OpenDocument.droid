@@ -81,7 +81,6 @@
     <string name="tts_status_finished">完了しました。</string>
     <string name="toast_edit_status_saved">ドキュメントを保存しました。</string>
     <string name="crouton_printing">印刷中…</string>
-    <string name="crouton_remove_ads">読むスペースがもっと必要ですか？ OK をタップすると、広告を無料で削除できます。</string>
     <string name="reopen_chooser_title">デバイスにインストールされている別のアプリで開く：</string>
     <string name="ok">OK</string>
     <string name="cancel">キャンセル</string>

@@ -81,7 +81,6 @@
     <string name="tts_status_finished">다 읽었습니다.</string>
     <string name="toast_edit_status_saved">문서를 저장했습니다.</string>
     <string name="crouton_printing">인쇄 중...</string>
-    <string name="crouton_remove_ads">읽을 공간이 더 필요하신가요? 확인을 누르면 광고를 무료로 없애 드립니다.</string>
     <string name="reopen_chooser_title">기기에 설치된 다른 앱으로 열기:</string>
     <string name="ok">확인</string>
     <string name="cancel">취소</string>

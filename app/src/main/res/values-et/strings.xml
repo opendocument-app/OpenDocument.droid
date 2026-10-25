@@ -81,7 +81,6 @@
     <string name="tts_status_finished">Lõpetatud.</string>
     <string name="toast_edit_status_saved">Dokument salvestatud.</string>
     <string name="crouton_printing">Printimine…</string>
-    <string name="crouton_remove_ads">Vajad lugemiseks rohkem ruumi? Vajuta OK, et reklaamid tasuta eemaldada.</string>
     <string name="reopen_chooser_title">Ava mõne teise rakendusega, mis on seadmesse paigaldatud:</string>
     <string name="ok">OK</string>
     <string name="cancel">Tühista</string>

@@ -81,7 +81,6 @@
     <string name="tts_status_finished">Končano.</string>
     <string name="toast_edit_status_saved">Dokument je shranjen.</string>
     <string name="crouton_printing">Tiskanje …</string>
-    <string name="crouton_remove_ads">Potrebujete več prostora za branje? Pritisnite V redu in brezplačno odstranite oglase.</string>
     <string name="reopen_chooser_title">Odpri z drugo aplikacijo, nameščeno v napravi:</string>
     <string name="ok">V redu</string>
     <string name="cancel">Prekliči</string>

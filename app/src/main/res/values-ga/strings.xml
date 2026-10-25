@@ -81,7 +81,6 @@
     <string name="tts_status_finished">Críochnaithe.</string>
     <string name="toast_edit_status_saved">Sábháladh an cháipéis.</string>
     <string name="crouton_printing">Ag priontáil…</string>
-    <string name="crouton_remove_ads">An dteastaíonn níos mó spáis uait le léamh? Brúigh Tá go maith chun fáil réidh leis na fógraí saor in aisce.</string>
     <string name="reopen_chooser_title">Oscail le haip eile atá suiteáilte ar do ghléas:</string>
     <string name="ok">Tá go maith</string>
     <string name="cancel">Cealaigh</string>

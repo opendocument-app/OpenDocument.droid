@@ -81,7 +81,6 @@
     <string name="tts_status_finished">朗读结束。</string>
     <string name="toast_edit_status_saved">文档已保存。</string>
     <string name="crouton_printing">正在打印…</string>
-    <string name="crouton_remove_ads">想要更多阅读空间？点击“确定”即可免费移除广告。</string>
     <string name="reopen_chooser_title">使用设备上的其他应用打开：</string>
     <string name="ok">确定</string>
     <string name="cancel">取消</string>

@@ -81,7 +81,6 @@
     <string name="tts_status_finished">Ha acabat.</string>
     <string name="toast_edit_status_saved">S\'ha desat el document.</string>
     <string name="crouton_printing">S\'està imprimint…</string>
-    <string name="crouton_remove_ads">Necessiteu més espai per llegir? Toqueu D\'acord per suprimir els anuncis de franc.</string>
     <string name="reopen_chooser_title">Obriu-lo amb una altra aplicació instal·lada al dispositiu:</string>
     <string name="ok">D\'acord</string>
     <string name="cancel">Cancel·la</string>
