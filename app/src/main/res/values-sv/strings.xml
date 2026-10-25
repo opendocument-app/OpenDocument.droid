@@ -141,7 +141,6 @@
     <string name="tool_insert_columns_left">Infoga kolumner till vänster</string>
     <string name="tool_insert_columns_right">Infoga kolumner till höger</string>
     <string name="tool_delete_columns">Ta bort kolumner</string>
-    <string name="pro_offer_sheet">Fet, kursiv, färger, textstorlek och justering av celler, samt att infoga eller ta bort rader och kolumner, ingår i OpenDocument Reader Pro. Fyllningen finns i alla versioner.</string>
     <string name="edit_refused_sheet_cut">Bara en del av bladet visas, så det kan inte redigeras här.</string>
     <plurals name="edit_cells_stale">
         <item quantity="one">%d formelcell visar ett resultat som din ändring har gjort inaktuellt. När du sparar beräknas det om där det går.</item>

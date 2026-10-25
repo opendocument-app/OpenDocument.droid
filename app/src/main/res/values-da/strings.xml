@@ -141,7 +141,6 @@
     <string name="tool_insert_columns_left">Indsæt kolonner til venstre</string>
     <string name="tool_insert_columns_right">Indsæt kolonner til højre</string>
     <string name="tool_delete_columns">Slet kolonner</string>
-    <string name="pro_offer_sheet">Fed, kursiv, farver, tekststørrelse og justering af celler samt indsættelse og sletning af rækker og kolonner er en del af OpenDocument Reader Pro. Fyld er med i alle udgaver.</string>
     <string name="edit_refused_sheet_cut">Kun en del af arket vises, så det kan ikke redigeres her.</string>
     <plurals name="edit_cells_stale">
         <item quantity="one">%d formelcelle viser et resultat, som din ændring har gjort forældet. Når du gemmer, beregnes det igen, hvor det er muligt.</item>

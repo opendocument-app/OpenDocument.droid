@@ -141,7 +141,6 @@
     <string name="tool_insert_columns_left">Vstavi stolpce levo</string>
     <string name="tool_insert_columns_right">Vstavi stolpce desno</string>
     <string name="tool_delete_columns">Izbriši stolpce</string>
-    <string name="pro_offer_sheet">Krepka in ležeča pisava, barve, velikost besedila in poravnava celic ter vstavljanje ali brisanje vrstic in stolpcev so del različice OpenDocument Reader Pro. Polnilo je na voljo v vseh različicah.</string>
     <string name="edit_refused_sheet_cut">Prikazan je le del tega lista, zato ga tukaj ni mogoče urejati.</string>
     <plurals name="edit_cells_stale">
         <item quantity="one">%d celica s formulo prikazuje rezultat, ki ga je vaše urejanje naredilo zastarelega. Ob shranjevanju se, kjer je mogoče, znova izračuna.</item>

@@ -141,7 +141,6 @@
     <string name="tool_insert_columns_left">Vložit sloupce vlevo</string>
     <string name="tool_insert_columns_right">Vložit sloupce vpravo</string>
     <string name="tool_delete_columns">Odstranit sloupce</string>
-    <string name="pro_offer_sheet">Tučné písmo, kurzíva, barvy, velikost textu a zarovnání buněk a také vkládání a odstraňování řádků a sloupců jsou součástí aplikace OpenDocument Reader Pro. Výplň je k dispozici ve všech verzích.</string>
     <string name="edit_refused_sheet_cut">Zobrazuje se jen část tohoto listu, a proto ho zde nelze upravit.</string>
     <plurals name="edit_cells_stale">
         <item quantity="one">%d buňka se vzorcem ukazuje výsledek, který vaše úprava zastarala. Při uložení se tam, kde to jde, přepočítá.</item>

@@ -559,7 +559,11 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             if (!proOfferedThisEdit) {
                 proOfferedThisEdit = true
 
-                (requireActivity() as MainActivity).offerPro(MainActivity.ProFeature.FORMATTING)
+                // a sheet takes nothing past the paragraph scope but a typed formula
+                (requireActivity() as MainActivity).offerPro(
+                    if (editingKind == EditingKind.SHEET) MainActivity.ProFeature.SHEET
+                    else MainActivity.ProFeature.FORMATTING
+                )
             }
 
             return
@@ -570,10 +574,12 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                 "newLine" -> R.string.edit_refused_new_line
                 "formula" -> R.string.edit_refused_formula
                 "formulaInput" -> R.string.edit_refused_formula_input
+                "formulaInvalid" -> R.string.edit_refused_formula_invalid
                 "rich" -> R.string.edit_refused_rich
                 "shapes" -> R.string.edit_refused_shapes
                 "readOnly" -> R.string.edit_refused_read_only
                 "range" -> R.string.edit_refused_range
+                "array" -> R.string.edit_refused_array
                 "sheetCut" -> R.string.edit_refused_sheet_cut
                 else -> R.string.edit_refused_unsupported
             }
