@@ -841,6 +841,12 @@ class MainActivity : AppCompatActivity() {
      * come from.
      */
     fun confirmLeavingEdits(leave: () -> Unit) {
+        // onDestroy finishes the edit mode, which asks here: a dialog on a window that is going
+        // away throws BadTokenException. the edits go with the activity
+        if (isFinishing || isDestroyed) {
+            return
+        }
+
         val documentFragment = this.documentFragment
         if (documentFragment == null || !documentFragment.hasUnsavedEdits()) {
             leave()
