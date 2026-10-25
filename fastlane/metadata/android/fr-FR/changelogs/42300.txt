@@ -1,0 +1,9 @@
+Les longs documents, PDF, feuilles de calcul et présentations s'ouvrent bien plus vite.
+
+La recherche trouve chaque résultat, même loin dans un long document, et ignore majuscules et accents.
+
+Les cellules de tableur acceptent les formules, recalculées à chaque modification.
+
+Les documents Word gardent les espaces entre les mots, et les polices manquantes s'affichent avec des polices proches.
+
+Si un fichier protégé ne s'ouvre pas, l'application l'indique désormais et en propose une autre.

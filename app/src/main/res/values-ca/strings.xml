@@ -12,6 +12,7 @@
     <string name="toast_error_save_failed">No s\'ha pogut desar el fitxer. Contacteu amb support@opendocument.app</string>
     <string name="toast_error_out_of_memory">S\'ha esgotat la memòria del dispositiu. Massa imatges o fitxer massa gran.</string>
     <string name="toast_error_password_protected">Aquest document està protegit amb contrasenya</string>
+    <string name="toast_error_cannot_decrypt">Aquest document està protegit d\'una manera que aquesta aplicació no pot obrir. Proveu d\'obrir-lo amb una altra aplicació.</string>
     <string name="dialog_loading_title">S\'està carregant…</string>
     <string name="dialog_generic_loading_message">Espereu, això pot trigar uns quants minuts.</string>
     <string name="menu_search">Cerca al document</string>
@@ -56,6 +57,7 @@
     <string name="action_tts_previous">Anterior</string>
     <string name="action_edit_save">Desa</string>
     <string name="action_contact">Contacta</string>
+    <string name="landing_intro_open_all">Aquesta opció està activada per defecte perquè aplicacions com \"Samsung My Files\" puguin obrir documents aquí. Si la desactiveu, aquesta aplicació només s\'oferirà per obrir els tipus de document que admet.</string>
     <string name="landing_intro_view">OpenDocument Reader us permet veure documents desats en format OpenDocument (.odt, .ods, .odp i .odg) allà on sigueu.</string>
     <string name="landing_intro_search">Amb OpenDocument Reader podeu llegir i cercar dins dels vostres documents en un tres i no res.</string>
     <string name="landing_intro_edit">Us queda una última errada per corregir abans de la gran presentació? Ara també admet modificacions!</string>
@@ -123,16 +125,19 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Part de Pro</string>
     <string name="pro_offer_formatting">La negreta, la cursiva, els colors i la mida del text, així com afegir o unir paràgrafs, formen part d\'OpenDocument Reader Pro. El ressaltador està disponible a totes les edicions.</string>
+    <string name="pro_offer_sheet">La negreta, la cursiva, els colors, la mida del text i l\'alineació de les cel·les, així com escriure fórmules i inserir o suprimir files i columnes, formen part d\'OpenDocument Reader Pro. L\'emplenament està disponible a totes les edicions.</string>
     <string name="pro_offer_markup">Subratllar, ratllar i dibuixar en un PDF formen part d\'OpenDocument Reader Pro. El ressaltador està disponible a totes les edicions.</string>
     <string name="not_now">Ara no</string>
     <string name="edit_refused_new_line">Un salt de línia dins d\'un paràgraf no es pot desar. Premeu Retorn per a un paràgraf nou.</string>
     <string name="edit_refused_formula">Aquesta cel·la conté una fórmula i es queda tal com està.</string>
     <string name="edit_refused_formula_input">Encara no es pot escriure una fórmula.</string>
+    <string name="edit_refused_formula_invalid">No es pot llegir aquesta fórmula. Comproveu-la i torneu-ho a provar.</string>
     <string name="edit_refused_rich">Aquesta cel·la conté més que text pla i es queda tal com està.</string>
     <string name="edit_refused_shapes">Aquesta cel·la conté un dibuix i es queda tal com està.</string>
     <string name="edit_refused_read_only">Aquest document no es pot editar.</string>
     <string name="edit_refused_range">Una edició no pot abastar una imatge o una taula.</string>
     <string name="edit_refused_unsupported">Aquesta edició no és possible aquí.</string>
+    <string name="edit_refused_array">Aquesta cel·la forma part d\'una fórmula matricial i es queda tal com està.</string>
     <string name="tool_rows_columns">Files i columnes</string>
     <string name="tool_insert_rows_above">Insereix files a sobre</string>
     <string name="tool_insert_rows_below">Insereix files a sota</string>

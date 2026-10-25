@@ -12,6 +12,7 @@
     <string name="toast_error_save_failed">Faili ei õnnestunud salvestada. Võta ühendust aadressil support@opendocument.app</string>
     <string name="toast_error_out_of_memory">Seadme mälu sai otsa! Liiga palju pilte või liiga suur fail.</string>
     <string name="toast_error_password_protected">See dokument on parooliga kaitstud</string>
+    <string name="toast_error_cannot_decrypt">See dokument on kaitstud viisil, mida see rakendus avada ei suuda. Proovi see avada mõnes teises rakenduses.</string>
     <string name="dialog_loading_title">Laadimine…</string>
     <string name="dialog_generic_loading_message">Palun oota, see võib võtta mõne minuti.</string>
     <string name="menu_search">Otsi dokumendist</string>
@@ -56,6 +57,7 @@
     <string name="action_tts_previous">Eelmine</string>
     <string name="action_edit_save">Salvesta</string>
     <string name="action_contact">Võta ühendust</string>
+    <string name="landing_intro_open_all">See on vaikimisi sisse lülitatud, et rakendused nagu \"Samsung My Files\" saaksid dokumente siin avada. Kui lülitad selle välja, pakub see rakendus avamiseks ainult neid dokumenditüüpe, mida see toetab.</string>
     <string name="landing_intro_view">OpenDocument Reader võimaldab sul vaadata OpenDocumenti vormingus (.odt, .ods, .odp ja .odg) salvestatud dokumente kõikjal, kus sa parasjagu oled.</string>
     <string name="landing_intro_search">OpenDocument Readeriga loed oma dokumente ja otsid neist mängleva kergusega.</string>
     <string name="landing_intro_edit">Leidsid vahetult enne suurt esitlust veel viimase kirjavea? Nüüd saab dokumente ka muuta!</string>
@@ -123,16 +125,19 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Osa Pro-versioonist</string>
     <string name="pro_offer_formatting">Paks kiri, kaldkiri, värvid ja teksti suurus ning lõikude lisamine või ühendamine on OpenDocument Reader Pro osa. Esiletõst on saadaval kõigis versioonides.</string>
+    <string name="pro_offer_sheet">Paks kiri, kaldkiri, värvid, teksti suurus ja lahtrite joondus, valemite sisestamine ning ridade ja veergude lisamine või kustutamine on OpenDocument Reader Pro osa. Täide on saadaval kõigis versioonides.</string>
     <string name="pro_offer_markup">Allajoonimine, läbikriipsutamine ja joonistamine PDF-il on OpenDocument Reader Pro osa. Esiletõst on saadaval kõigis versioonides.</string>
     <string name="not_now">Mitte praegu</string>
     <string name="edit_refused_new_line">Reavahetust lõigu sees ei saa salvestada. Uue lõigu jaoks vajuta Enter.</string>
     <string name="edit_refused_formula">Selles lahtris on valem ja see jääb nii, nagu on.</string>
     <string name="edit_refused_formula_input">Valemite sisestamist veel ei toetata.</string>
+    <string name="edit_refused_formula_invalid">Seda valemit ei saa lugeda. Kontrolli seda ja proovi uuesti.</string>
     <string name="edit_refused_rich">Selles lahtris on rohkem kui lihttekst ja see jääb nii, nagu on.</string>
     <string name="edit_refused_shapes">Selles lahtris on joonis ja see jääb nii, nagu on.</string>
     <string name="edit_refused_read_only">Seda dokumenti ei saa muuta.</string>
     <string name="edit_refused_range">Muudatus ei saa ulatuda üle pildi ega tabeli.</string>
     <string name="edit_refused_unsupported">See muudatus pole siin võimalik.</string>
+    <string name="edit_refused_array">See lahter on osa massiivivalemist, seega jääb see muutmata.</string>
     <string name="tool_rows_columns">Read ja veerud</string>
     <string name="tool_insert_rows_above">Lisa read ülespoole</string>
     <string name="tool_insert_rows_below">Lisa read allapoole</string>

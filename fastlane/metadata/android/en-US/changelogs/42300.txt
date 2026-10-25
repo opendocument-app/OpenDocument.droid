@@ -1,0 +1,9 @@
+Long documents, PDFs, spreadsheets and presentations open much faster.
+
+Search finds every match, even far into a long document, and ignores case and accents.
+
+Formulas can be typed into spreadsheet cells, and their results update as you edit.
+
+Word documents keep the spaces between words, and missing fonts show as similar ones.
+
+A protected file that cannot be opened now says so and offers another app.

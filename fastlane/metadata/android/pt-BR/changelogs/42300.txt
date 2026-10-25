@@ -1,0 +1,9 @@
+Documentos longos, PDFs, planilhas e apresentações abrem muito mais rápido.
+
+A pesquisa encontra todas as ocorrências, mesmo bem adiante em documentos longos, e ignora maiúsculas e acentos.
+
+Fórmulas podem ser digitadas nas células das planilhas, e os resultados se atualizam enquanto você edita.
+
+Documentos do Word mantêm os espaços entre as palavras, e fontes ausentes são trocadas por outras parecidas.
+
+Um arquivo protegido que não pode ser aberto agora avisa e sugere outro aplicativo.

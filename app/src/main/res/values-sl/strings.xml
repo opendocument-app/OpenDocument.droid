@@ -12,6 +12,7 @@
     <string name="toast_error_save_failed">Datoteke ni bilo mogoče shraniti. Pišite nam na support@opendocument.app</string>
     <string name="toast_error_out_of_memory">Napravi je zmanjkalo pomnilnika! Preveč slik ali prevelika datoteka.</string>
     <string name="toast_error_password_protected">Dokument je zaščiten z geslom</string>
+    <string name="toast_error_cannot_decrypt">Ta dokument je zaščiten na način, ki ga ta aplikacija ne more odpreti. Poskusite ga odpreti v drugi aplikaciji.</string>
     <string name="dialog_loading_title">Nalaganje …</string>
     <string name="dialog_generic_loading_message">Počakajte, to lahko traja nekaj minut.</string>
     <string name="menu_search">Išči po dokumentu</string>
@@ -56,6 +57,7 @@
     <string name="action_tts_previous">Nazaj</string>
     <string name="action_edit_save">Shrani</string>
     <string name="action_contact">Stik z nami</string>
+    <string name="landing_intro_open_all">To je privzeto vklopljeno, da lahko aplikacije, kot je Samsungova »Moje datoteke«, tukaj odpirajo dokumente. Če to izklopite, aplikacija ponudi odpiranje le tistih vrst dokumentov, ki jih podpira.</string>
     <string name="landing_intro_view">OpenDocument Reader vam kjer koli omogoča ogled dokumentov, shranjenih v obliki OpenDocument (.odt, .ods, .odp in .odg).</string>
     <string name="landing_intro_search">Z aplikacijo OpenDocument Reader lahko berete in hitro iščete po dokumentih.</string>
     <string name="landing_intro_edit">Ste tik pred veliko predstavitvijo našli še zadnjo tipkarsko napako? Aplikacija zdaj omogoča tudi urejanje!</string>
@@ -123,16 +125,19 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Del različice Pro</string>
     <string name="pro_offer_formatting">Krepka in ležeča pisava, barve in velikost besedila ter dodajanje ali združevanje odstavkov so del različice OpenDocument Reader Pro. Označevalnik je na voljo v vseh izdajah.</string>
+    <string name="pro_offer_sheet">Krepka in ležeča pisava, barve, velikost besedila in poravnava celic, vnašanje formul ter vstavljanje ali brisanje vrstic in stolpcev so del različice OpenDocument Reader Pro. Polnilo je na voljo v vseh različicah.</string>
     <string name="pro_offer_markup">Podčrtovanje, prečrtovanje in risanje po PDF-ju so del različice OpenDocument Reader Pro. Označevalnik je na voljo v vseh izdajah.</string>
     <string name="not_now">Ne zdaj</string>
     <string name="edit_refused_new_line">Preloma vrstice znotraj odstavka ni mogoče shraniti. Za nov odstavek pritisnite Enter.</string>
     <string name="edit_refused_formula">Ta celica vsebuje formulo in ostane nespremenjena.</string>
     <string name="edit_refused_formula_input">Vnašanje formul še ni podprto.</string>
+    <string name="edit_refused_formula_invalid">Te formule ni mogoče prebrati. Preverite jo in poskusite znova.</string>
     <string name="edit_refused_rich">Ta celica vsebuje več kot navadno besedilo in ostane nespremenjena.</string>
     <string name="edit_refused_shapes">Ta celica vsebuje risbo in ostane nespremenjena.</string>
     <string name="edit_refused_read_only">Tega dokumenta ni mogoče urejati.</string>
     <string name="edit_refused_range">Urejanje ne more segati prek slike ali tabele.</string>
     <string name="edit_refused_unsupported">To urejanje tukaj ni mogoče.</string>
+    <string name="edit_refused_array">Ta celica je del matrične formule in ostane nespremenjena.</string>
     <string name="tool_rows_columns">Vrstice in stolpci</string>
     <string name="tool_insert_rows_above">Vstavi vrstice zgoraj</string>
     <string name="tool_insert_rows_below">Vstavi vrstice spodaj</string>

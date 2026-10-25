@@ -12,6 +12,7 @@
     <string name="toast_error_save_failed">ファイルを保存できませんでした。support@opendocument.app にお問い合わせください</string>
     <string name="toast_error_out_of_memory">デバイスのメモリが足りません！ 画像が多すぎるか、ファイルが大きすぎます。</string>
     <string name="toast_error_password_protected">このドキュメントはパスワードで保護されています</string>
+    <string name="toast_error_cannot_decrypt">このドキュメントは、このアプリでは開けない方法で保護されています。別のアプリで開いてみてください。</string>
     <string name="dialog_loading_title">読み込み中…</string>
     <string name="dialog_generic_loading_message">しばらくお待ちください。数分かかることがあります。</string>
     <string name="menu_search">ドキュメント内を検索</string>
@@ -56,6 +57,7 @@
     <string name="action_tts_previous">前へ</string>
     <string name="action_edit_save">保存</string>
     <string name="action_contact">お問い合わせ</string>
+    <string name="landing_intro_open_all">この設定は初期状態でオンになっているため、Samsung の「マイファイル」などのアプリからドキュメントをここで開けます。オフにすると、このアプリは対応している種類のドキュメントのときだけ、開くアプリの候補に表示されます。</string>
     <string name="landing_intro_view">OpenDocument Reader なら、OpenDocument 形式（.odt、.ods、.odp、.odg）のドキュメントを、どこにいても表示できます。</string>
     <string name="landing_intro_search">OpenDocument Reader なら、ドキュメントを読むのも、中を検索するのも簡単です。</string>
     <string name="landing_intro_edit">大事なプレゼンの直前に、最後の誤字を見つけてしまいましたか？ 編集にも対応しました！</string>
@@ -123,16 +125,19 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Pro の機能</string>
     <string name="pro_offer_formatting">太字、斜体、色、文字サイズ、段落の追加や結合は OpenDocument Reader Pro の機能です。ハイライトはすべてのエディションで使えます。</string>
+    <string name="pro_offer_sheet">セルの太字、斜体、色、文字サイズ、配置、数式の入力、行や列の挿入と削除は OpenDocument Reader Pro の機能です。塗りつぶしはすべてのエディションで使えます。</string>
     <string name="pro_offer_markup">PDF への下線、取り消し線、描画は OpenDocument Reader Pro の機能です。ハイライトはすべてのエディションで使えます。</string>
     <string name="not_now">今はしない</string>
     <string name="edit_refused_new_line">段落内の改行は保存できません。新しい段落にするには Enter を押してください。</string>
     <string name="edit_refused_formula">このセルには数式があるため、そのままになります。</string>
     <string name="edit_refused_formula_input">数式の入力にはまだ対応していません。</string>
+    <string name="edit_refused_formula_invalid">この数式を読み取れません。確認してもう一度お試しください。</string>
     <string name="edit_refused_rich">このセルにはプレーンテキスト以外の内容があるため、そのままになります。</string>
     <string name="edit_refused_shapes">このセルには図形があるため、そのままになります。</string>
     <string name="edit_refused_read_only">このドキュメントは編集できません。</string>
     <string name="edit_refused_range">画像や表をまたいで編集することはできません。</string>
     <string name="edit_refused_unsupported">ここではその編集はできません。</string>
+    <string name="edit_refused_array">このセルは配列数式の一部のため、変更されません。</string>
     <string name="tool_rows_columns">行と列</string>
     <string name="tool_insert_rows_above">上に行を挿入</string>
     <string name="tool_insert_rows_below">下に行を挿入</string>

@@ -12,6 +12,7 @@
     <string name="toast_error_save_failed">Níorbh fhéidir an comhad a shábháil. Déan teagmháil le support@opendocument.app</string>
     <string name="toast_error_out_of_memory">Níl cuimhne fágtha sa ghléas! Tá an iomarca pictiúr ann, nó tá an comhad rómhór.</string>
     <string name="toast_error_password_protected">Tá an cháipéis seo cosanta le focal faire</string>
+    <string name="toast_error_cannot_decrypt">Tá an cháipéis seo cosanta ar bhealach nach féidir leis an aip seo a oscailt. Bain triail as í a oscailt in aip eile.</string>
     <string name="dialog_loading_title">Á luchtú…</string>
     <string name="dialog_generic_loading_message">Fan go fóill, seans go dtógfaidh sé seo cúpla nóiméad.</string>
     <string name="menu_search">Cuardaigh sa cháipéis</string>
@@ -56,6 +57,7 @@
     <string name="action_tts_previous">Roimhe seo</string>
     <string name="action_edit_save">Sábháil</string>
     <string name="action_contact">Teagmháil</string>
+    <string name="landing_intro_open_all">Tá sé seo ar siúl de réir réamhshocraithe, ionas gur féidir le haipeanna ar nós \"Samsung My Files\" cáipéisí a oscailt anseo. Má mhúchann tú é, ní thairgeann an aip seo ach na cineálacha cáipéise a dtacaíonn sí leo a oscailt.</string>
     <string name="landing_intro_view">Le hOpenDocument Reader, tá tú in ann breathnú ar cháipéisí atá i bhformáid OpenDocument (.odt, .ods, .odp, agus .odg) cibé áit a bhfuil tú.</string>
     <string name="landing_intro_search">Le hOpenDocument Reader, is féidir leat do chuid cáipéisí a léamh agus a chuardach go héasca.</string>
     <string name="landing_intro_edit">Ar aimsigh tú aon bhotún amháin eile atá le ceartú sula ndéanann tú do chur i láthair? Anois is féidir athruithe a dhéanamh freisin!</string>
@@ -123,16 +125,19 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Cuid de Pro</string>
     <string name="pro_offer_formatting">Is cuid d\'OpenDocument Reader Pro iad trom, iodálach, dathanna agus méid an téacs, chomh maith le míreanna a chur leis nó a cheangal le chéile. Tá an t-aibhsitheoir i ngach eagrán.</string>
+    <string name="pro_offer_sheet">Is cuid d\'OpenDocument Reader Pro iad trom, iodálach, dathanna, méid an téacs agus ailíniú na gceall, foirmlí a chlóscríobh, agus rónna agus colúin a ionsá nó a scriosadh. Tá an líonadh i ngach eagrán.</string>
     <string name="pro_offer_markup">Is cuid d\'OpenDocument Reader Pro é líne a chur faoi théacs nó tríd, agus tarraingt ar PDF. Tá an t-aibhsitheoir i ngach eagrán.</string>
     <string name="not_now">Ní anois</string>
     <string name="edit_refused_new_line">Ní féidir briseadh líne laistigh de mhír a shábháil. Brúigh Enter le haghaidh míre nua.</string>
     <string name="edit_refused_formula">Tá foirmle sa chill sin agus fanfaidh sí mar atá.</string>
     <string name="edit_refused_formula_input">Ní thacaítear le foirmle a chlóscríobh fós.</string>
+    <string name="edit_refused_formula_invalid">Ní féidir an fhoirmle sin a léamh. Seiceáil í agus bain triail eile as.</string>
     <string name="edit_refused_rich">Tá níos mó ná gnáth-théacs sa chill sin agus fanfaidh sí mar atá.</string>
     <string name="edit_refused_shapes">Tá líníocht sa chill sin agus fanfaidh sí mar atá.</string>
     <string name="edit_refused_read_only">Ní féidir an cháipéis seo a chur in eagar.</string>
     <string name="edit_refused_range">Ní féidir le heagarthóireacht dul thar phictiúr ná thar tábla.</string>
     <string name="edit_refused_unsupported">Níl an eagarthóireacht sin indéanta anseo.</string>
+    <string name="edit_refused_array">Is cuid d\'fhoirmle eagair an chill sin agus fanfaidh sí mar atá.</string>
     <string name="tool_rows_columns">Rónna agus colúin</string>
     <string name="tool_insert_rows_above">Ionsáigh rónna thuas</string>
     <string name="tool_insert_rows_below">Ionsáigh rónna thíos</string>

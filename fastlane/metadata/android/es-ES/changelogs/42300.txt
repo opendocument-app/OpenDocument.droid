@@ -1,0 +1,9 @@
+Los documentos largos, PDF, hojas de cálculo y presentaciones se abren mucho más rápido.
+
+La búsqueda encuentra cada coincidencia, incluso al final de documentos largos, sin distinguir mayúsculas ni acentos.
+
+Ya puedes escribir fórmulas en hojas de cálculo y sus resultados se actualizan al editar.
+
+Los documentos de Word conservan los espacios entre palabras y las fuentes ausentes se sustituyen por similares.
+
+Si un archivo protegido no se abre, ahora se indica y se ofrece otra aplicación.

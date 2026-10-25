@@ -1,0 +1,9 @@
+Documenti lunghi, PDF, fogli di calcolo e presentazioni si aprono molto più velocemente.
+
+La ricerca trova tutte le corrispondenze, anche in fondo a un documento lungo, e ignora maiuscole e accenti.
+
+Puoi scrivere formule nelle celle dei fogli di calcolo e i risultati si aggiornano mentre modifichi.
+
+I documenti Word mantengono gli spazi tra le parole e i font mancanti sono sostituiti da font simili.
+
+Se un file protetto non si apre, ora l'app lo segnala e ne propone un'altra.

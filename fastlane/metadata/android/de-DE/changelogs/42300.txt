@@ -1,0 +1,9 @@
+Lange Dokumente, PDFs, Tabellen und Präsentationen öffnen sich viel schneller.
+
+Die Suche findet jeden Treffer, auch weit hinten in langen Dokumenten, und ignoriert Groß-/Kleinschreibung und Akzente.
+
+Formeln lassen sich in Tabellenzellen eingeben, ihre Ergebnisse aktualisieren sich beim Bearbeiten.
+
+Word-Dokumente behalten ihre Wortabstände, und fehlende Schriften werden durch ähnliche ersetzt.
+
+Eine geschützte Datei, die sich nicht öffnen lässt, meldet das und bietet eine andere App an.

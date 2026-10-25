@@ -12,6 +12,7 @@
     <string name="toast_error_save_failed">Dosya kaydedilemedi. Lütfen support@opendocument.app adresinden bizimle iletişime geçin</string>
     <string name="toast_error_out_of_memory">Cihazın belleği yetersiz! Çok fazla resim var veya dosya çok büyük.</string>
     <string name="toast_error_password_protected">Bu belge parola korumalı</string>
+    <string name="toast_error_cannot_decrypt">Bu belge, bu uygulamanın açamadığı bir yöntemle korunuyor. Başka bir uygulamada açmayı deneyin.</string>
     <string name="dialog_loading_title">Yükleniyor…</string>
     <string name="dialog_generic_loading_message">Lütfen bekleyin, bu birkaç dakika sürebilir.</string>
     <string name="menu_search">Belgede ara</string>
@@ -56,6 +57,7 @@
     <string name="action_tts_previous">Önceki</string>
     <string name="action_edit_save">Kaydet</string>
     <string name="action_contact">İletişim</string>
+    <string name="landing_intro_open_all">Bu ayar varsayılan olarak açıktır, böylece \"Samsung Dosyalarım\" gibi uygulamalar belgeleri burada açabilir. Kapatırsanız bu uygulama yalnızca desteklediği belge türlerini açmayı önerir.</string>
     <string name="landing_intro_view">OpenDocument Reader, nerede olursanız olun OpenDocument biçiminde (.odt, .ods, .odp ve .odg) kayıtlı belgeleri görüntülemenizi sağlar.</string>
     <string name="landing_intro_search">OpenDocument Reader ile belgelerinizi rahatça okuyabilir, içlerinde arama yapabilirsiniz.</string>
     <string name="landing_intro_edit">Büyük sunumunuzdan önce düzeltilecek son bir yazım hatası mı buldunuz? Artık düzenlemeyi de destekliyor!</string>
@@ -123,16 +125,19 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Pro\'nun bir parçası</string>
     <string name="pro_offer_formatting">Kalın, italik, renkler ve metin boyutu ile paragraf ekleme veya birleştirme OpenDocument Reader Pro\'ya özeldir. Vurgulayıcı her sürümde kullanılabilir.</string>
+    <string name="pro_offer_sheet">Hücrelerde kalın, italik, renkler, metin boyutu ve hizalama, formül yazma ile satır ve sütun ekleme veya silme OpenDocument Reader Pro\'ya özeldir. Dolgu her sürümde kullanılabilir.</string>
     <string name="pro_offer_markup">PDF\'de altını çizme, üstünü çizme ve çizim yapma OpenDocument Reader Pro\'ya özeldir. Vurgulayıcı her sürümde kullanılabilir.</string>
     <string name="not_now">Şimdi değil</string>
     <string name="edit_refused_new_line">Paragraf içindeki bir satır sonu kaydedilemez. Yeni paragraf için Enter tuşuna basın.</string>
     <string name="edit_refused_formula">Bu hücre bir formül içeriyor ve olduğu gibi kalıyor.</string>
     <string name="edit_refused_formula_input">Formül yazmak henüz desteklenmiyor.</string>
+    <string name="edit_refused_formula_invalid">Bu formül okunamıyor. Kontrol edip tekrar deneyin.</string>
     <string name="edit_refused_rich">Bu hücre düz metinden fazlasını içeriyor ve olduğu gibi kalıyor.</string>
     <string name="edit_refused_shapes">Bu hücre bir çizim içeriyor ve olduğu gibi kalıyor.</string>
     <string name="edit_refused_read_only">Bu belge düzenlenemez.</string>
     <string name="edit_refused_range">Bir düzenleme bir resmin veya tablonun üzerinden geçemez.</string>
     <string name="edit_refused_unsupported">Bu düzenleme burada mümkün değil.</string>
+    <string name="edit_refused_array">Bu hücre bir dizi formülünün parçası olduğu için değiştirilmez.</string>
     <string name="tool_rows_columns">Satırlar ve sütunlar</string>
     <string name="tool_insert_rows_above">Üste satır ekle</string>
     <string name="tool_insert_rows_below">Alta satır ekle</string>

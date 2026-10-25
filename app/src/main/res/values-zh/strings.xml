@@ -12,6 +12,7 @@
     <string name="toast_error_save_failed">无法保存文件。请联系 support@opendocument.app</string>
     <string name="toast_error_out_of_memory">设备内存不足！图片太多，或者文件太大。</string>
     <string name="toast_error_password_protected">此文档受密码保护。</string>
+    <string name="toast_error_cannot_decrypt">此文档采用了本应用无法打开的保护方式。请尝试用其他应用打开。</string>
     <string name="dialog_loading_title">正在加载…</string>
     <string name="dialog_generic_loading_message">请稍候，可能需要几分钟。</string>
     <string name="menu_search">在文档中搜索</string>
@@ -56,6 +57,7 @@
     <string name="action_tts_previous">上一个</string>
     <string name="action_edit_save">保存</string>
     <string name="action_contact">联系我们</string>
+    <string name="landing_intro_open_all">此选项默认开启，以便“三星我的文件”等应用可以在这里打开文档。关闭后，本应用只会为其支持的文档类型提供打开选项。</string>
     <string name="landing_intro_view">无论身在何处，OpenDocument Reader 都能让您查看以 OpenDocument 格式（.odt、.ods、.odp 和 .odg）保存的文档。</string>
     <string name="landing_intro_search">有了 OpenDocument Reader，阅读和搜索文档都轻而易举。</string>
     <string name="landing_intro_edit">重要演示前发现还有个错别字要改？现在也支持编辑了！</string>
@@ -123,16 +125,19 @@
     <string name="tool_pro_badge">Pro</string>
     <string name="pro_offer_title">Pro 功能</string>
     <string name="pro_offer_formatting">粗体、斜体、颜色和文字大小，以及添加或合并段落，均为 OpenDocument Reader Pro 的功能。突出显示在所有版本中均可使用。</string>
+    <string name="pro_offer_sheet">单元格的粗体、斜体、颜色、文字大小和对齐，输入公式，以及插入或删除行和列，均为 OpenDocument Reader Pro 的功能。填充在所有版本中均可使用。</string>
     <string name="pro_offer_markup">在 PDF 上添加下划线、删除线和绘图均为 OpenDocument Reader Pro 的功能。突出显示在所有版本中均可使用。</string>
     <string name="not_now">以后再说</string>
     <string name="edit_refused_new_line">段落内的换行无法保存。按 Enter 键可新建段落。</string>
     <string name="edit_refused_formula">该单元格包含公式，将保持不变。</string>
     <string name="edit_refused_formula_input">尚不支持输入公式。</string>
+    <string name="edit_refused_formula_invalid">无法读取该公式。请检查后重试。</string>
     <string name="edit_refused_rich">该单元格包含的不只是纯文本，将保持不变。</string>
     <string name="edit_refused_shapes">该单元格包含绘图，将保持不变。</string>
     <string name="edit_refused_read_only">此文档无法编辑。</string>
     <string name="edit_refused_range">编辑不能跨越图片或表格。</string>
     <string name="edit_refused_unsupported">此处无法进行该编辑。</string>
+    <string name="edit_refused_array">该单元格属于数组公式，将保持不变。</string>
     <string name="tool_rows_columns">行和列</string>
     <string name="tool_insert_rows_above">在上方插入行</string>
     <string name="tool_insert_rows_below">在下方插入行</string>
