@@ -51,6 +51,9 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     /** Told what the page's editor reports, on the main thread - see [postMessage]. */
     var editingListener: EditingListener? = null
 
+    /** Told what the page's search reports, on the main thread - see [postMessage]. */
+    var searchListener: SearchListener? = null
+
     /** What [setEditing] was last told, applied again to every page that loads. */
     private var editingKind = EditingKind.NONE
     private var isEditing = false
@@ -385,6 +388,7 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         scrollFractionToRestore = null
         paragraphListener = null
         editingListener = null
+        searchListener = null
         destroyed = true
         super.destroy()
     }
@@ -536,6 +540,27 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         }
     }
 
+    /** Marks every hit of [text] and selects the first; [searchListener] hears the count. */
+    fun search(text: String) {
+        evaluateJavascript(
+            "window.odr && odr.search && odr.search(${JSONObject.quote(text)})",
+            null,
+        )
+    }
+
+    /** Selects the hit after or before the current one; searches first if [text] is new. */
+    fun searchNext(text: String, forward: Boolean) {
+        val function = if (forward) "searchNext" else "searchPrevious"
+        evaluateJavascript(
+            "window.odr && odr.$function && odr.$function(${JSONObject.quote(text)})",
+            null,
+        )
+    }
+
+    fun resetSearch() {
+        evaluateJavascript("window.odr && odr.resetSearch && odr.resetSearch()", null)
+    }
+
     /** What a save hands the core: the page's operations, or a pdf's marks. Null if none. */
     fun requestEditPayload(kind: EditingKind, callback: (String?) -> Unit) {
         val expression =
@@ -577,6 +602,16 @@ constructor(context: Context, attributeSet: AttributeSet?) :
         val detail = message.optJSONObject("detail") ?: JSONObject()
 
         post {
+            if (message.optString("type") == "searchChange") {
+                searchListener?.onSearchChanged(
+                    detail.optInt("count"),
+                    detail.optInt("current", -1),
+                    detail.optBoolean("complete"),
+                )
+
+                return@post
+            }
+
             val listener = editingListener ?: return@post
 
             when (message.optString("type")) {
@@ -654,6 +689,14 @@ constructor(context: Context, attributeSet: AttributeSet?) :
 
         /** How many formula cells an edit left showing an old result. */
         fun onCellsStale(count: Int)
+    }
+
+    fun interface SearchListener {
+
+        /**
+         * [current] is the place of the selected hit, -1 if none; [complete] once all are counted.
+         */
+        fun onSearchChanged(count: Int, current: Int, complete: Boolean)
     }
 
     companion object {

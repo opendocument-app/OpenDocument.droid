@@ -12,6 +12,8 @@ section the body of the GitHub release, and refuses a version without one. `scri
 - Long text files, PDFs, spreadsheets and presentations open much faster, because the app
   lays out only the part near the screen.
 - Images in long documents load when you scroll near them.
+- Search finds every match in a long document, also far from the screen. It ignores case
+  and accents, so "cafe" finds "Café".
 - A font that the device does not have falls back to one of the same kind, for example a
   sans-serif font for Calibri.
 - Spaces between words in Word documents no longer go missing.
