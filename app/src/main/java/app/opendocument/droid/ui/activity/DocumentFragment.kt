@@ -554,6 +554,20 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
             return
         }
 
+        // the only thing a sheet takes past the paragraph scope is a typed formula, and no
+        // edition computes one: the core in the app carries no formula module
+        if (reason == "outOfScope" && editingKind == EditingKind.SHEET) {
+            SnackbarHelper.show(
+                requireActivity(),
+                R.string.edit_refused_formula_input,
+                null,
+                isIndefinite = false,
+                isError = false,
+            )
+
+            return
+        }
+
         if (reason == "outOfScope" && !Features.advancedEditing) {
             // once per edit, not once per refused keystroke
             if (!proOfferedThisEdit) {
@@ -574,6 +588,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                 "shapes" -> R.string.edit_refused_shapes
                 "readOnly" -> R.string.edit_refused_read_only
                 "range" -> R.string.edit_refused_range
+                "array" -> R.string.edit_refused_array
                 "sheetCut" -> R.string.edit_refused_sheet_cut
                 else -> R.string.edit_refused_unsupported
             }

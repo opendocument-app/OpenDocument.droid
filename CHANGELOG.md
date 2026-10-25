@@ -7,6 +7,18 @@ release, a pull request cuts that heading to the version. The release run makes 
 section the body of the GitHub release, and refuses a version without one. `scripts/store-copy.py` writes Play's
 "What's new" from the same section, under 500 characters per locale.
 
+## Unreleased
+
+- Long text files, PDFs, spreadsheets and presentations open much faster, because the app
+  lays out only the part near the screen.
+- Images in long documents load when you scroll near them.
+- A font that the device does not have falls back to one of the same kind, for example a
+  sans-serif font for Calibri.
+- Spaces between words in Word documents no longer go missing.
+- Saving a spreadsheet computes array formulas, `NOW`, `TODAY`, `OFFSET`, `INDIRECT`, and
+  formulas that refer to each other where the document allows it.
+- Excel dates in the short formats show as Excel shows them.
+
 ## 4.22.1
 
 - The app is small again. 4.22.0 was more than ten times larger, because its build left

@@ -5,7 +5,7 @@ googleJavaFormat = "1.35.0"
 ktfmt = "0.64"
 
 # odrcore's JNI bindings, java and native in one AAR, published from OpenDocument.core
-odrCore = "7.5.2"
+odrCore = "7.6.0"
 
 # Strips the core's native libraries and extracts their symbols. CI installs this version.
 ndk = "28.2.13676358"

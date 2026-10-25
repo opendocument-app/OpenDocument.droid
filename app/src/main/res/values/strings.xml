@@ -163,6 +163,7 @@
     <string name="edit_refused_read_only">This document cannot be edited.</string>
     <string name="edit_refused_range">An edit cannot reach over a picture or a table.</string>
     <string name="edit_refused_unsupported">That edit is not possible here.</string>
+    <string name="edit_refused_array">That cell is part of an array formula and stays as it is.</string>
     <string name="edit_refused_sheet_cut">Only part of this sheet is shown, so it cannot be edited here.</string>
     <plurals name="edit_cells_stale">
         <item quantity="one">%d formula cell shows a result your edit made out of date. Saving computes it again where it can.</item>
