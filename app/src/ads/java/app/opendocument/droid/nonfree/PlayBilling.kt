@@ -22,7 +22,7 @@ import com.android.billingclient.api.QueryPurchasesParams
 class PlayBilling(
     context: Context,
     private val crashManager: CrashManager,
-    private val onOwned: (Entitlement) -> Unit,
+    private val onOwned: (entitlement: Entitlement, purchased: Boolean) -> Unit,
 ) {
 
     private val mainThread = Handler(Looper.getMainLooper())
@@ -50,9 +50,10 @@ class PlayBilling(
     /**
      * Reports what the account owns through `onOwned`, and acknowledges what is not acknowledged
      * yet: play refunds a purchase that is not within three days. Says nothing if play did not
-     * answer, so a launch without a network takes nothing away.
+     * answer, so a launch without a network takes nothing away. [purchased] is passed on: true
+     * after the purchase sheet, false for what play restores.
      */
-    fun queryOwned() {
+    fun queryOwned(purchased: Boolean = false) {
         whenConnected { ok ->
             if (!ok) {
                 return@whenConnected
@@ -92,7 +93,8 @@ class PlayBilling(
                                     owned.getValue(BillingClient.ProductType.SUBS).flatMap {
                                         it.products
                                     },
-                                )
+                                ),
+                                purchased,
                             )
                         }
                     }
@@ -171,7 +173,8 @@ class PlayBilling(
     private fun onPurchasesUpdated(result: BillingResult) {
         when (result.responseCode) {
             // asked again rather than read from the update: one answer, whichever way it came
-            BillingClient.BillingResponseCode.OK,
+            BillingClient.BillingResponseCode.OK -> queryOwned(purchased = true)
+
             BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> queryOwned()
 
             BillingClient.BillingResponseCode.USER_CANCELED -> {}

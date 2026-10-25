@@ -639,7 +639,7 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
         SnackbarHelper.show(
             requireActivity(),
-            R.string.pass_unlocked_editing,
+            R.string.pass_on_editing,
             null,
             isIndefinite = false,
             isError = false,

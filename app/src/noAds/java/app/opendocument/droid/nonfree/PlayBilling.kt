@@ -7,10 +7,10 @@ import android.content.Context
 class PlayBilling(
     context: Context,
     crashManager: CrashManager,
-    onOwned: (Entitlement) -> Unit,
+    onOwned: (entitlement: Entitlement, purchased: Boolean) -> Unit,
 ) {
 
-    fun queryOwned() {}
+    fun queryOwned(purchased: Boolean = false) {}
 
     fun queryPassPrice(callback: (String?) -> Unit) {
         callback(null)

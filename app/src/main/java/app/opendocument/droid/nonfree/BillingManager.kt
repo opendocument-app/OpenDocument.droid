@@ -12,13 +12,17 @@ class BillingManager {
     private var billingPreferences: BillingPreferences? = null
     private var playBilling: PlayBilling? = null
 
-    private var onEntitlementChanged: ((Boolean) -> Unit)? = null
+    private var onEntitlementChanged: ((Boolean, Boolean) -> Unit)? = null
+
+    /** Whether removeAds ran in this session. The ads stay away until the next launch. */
+    private var adsRemoved = false
 
     /**
      * Fires when play reports what the preferences did not know: a purchase, a restore, or an ended
-     * pass. The argument says whether the pro features have just been unlocked.
+     * pass. [unlocked] says whether the pro features have just been unlocked, and [purchased]
+     * whether that came from the purchase sheet rather than a restore.
      */
-    fun setEntitlementListener(listener: (unlocked: Boolean) -> Unit) {
+    fun setEntitlementListener(listener: (unlocked: Boolean, purchased: Boolean) -> Unit) {
         onEntitlementChanged = listener
     }
 
@@ -50,15 +54,15 @@ class BillingManager {
         // asked at every launch, not only until something turns up: the flags live only on this
         // device, and a pass ends. the ads show until play answers
         playBilling =
-            PlayBilling(context, crashManager) { entitlement ->
+            PlayBilling(context, crashManager) { entitlement, purchased ->
                 crashManager.log("billing answered")
 
-                apply(entitlement)
+                apply(entitlement, purchased)
             }
         playBilling?.queryOwned()
     }
 
-    private fun apply(entitlement: Entitlement) {
+    private fun apply(entitlement: Entitlement, purchased: Boolean) {
         val preferences = billingPreferences ?: return
         val adManager = adManager ?: return
 
@@ -86,11 +90,13 @@ class BillingManager {
         }
 
         if (wasAdFree != isAdFree() || wasPro != isPro()) {
-            onEntitlementChanged?.invoke(unlocked)
+            onEntitlementChanged?.invoke(unlocked, purchased)
         }
     }
 
     private fun removeAds(adManager: AdManager) {
+        adsRemoved = true
+
         adManager.removeAds()
 
         // no banner to gate, but withdrawal has to survive the purchase, and only an
@@ -108,6 +114,9 @@ class BillingManager {
 
         return preferences.hasPurchased() || isPro()
     }
+
+    /** Whether ads are on screen, or about to be: not after [isAdFree] was true in this session. */
+    fun showsAds(): Boolean = !isAdFree() && !adsRemoved
 
     /** The pro features bought in lite: the pass, or an old purchase for life. */
     fun isPro(): Boolean {

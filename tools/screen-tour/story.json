@@ -114,7 +114,7 @@
       "columns": [
         {
           "set": "lite",
-          "caption": "The other pages were shot from the pro build, which offers no ad removal by design - the purchase is implied - so the row was never on screen to photograph. It has not gone anywhere.\n\nIn lite it is the last row of the settings section, under the catch-all switch, where the landing screen asks MainActivity.offersAdRemoval() for it. On main the same purchase was an item in the toolbar overflow, on a screen that had no settings of its own."
+          "caption": "The other pages were shot from the pro build, which offers no ad removal by design - the purchase is implied - so the row was never on screen to photograph. It has not gone anywhere.\n\nIn lite it is now \"Support the app\", a row above the folds that opens the yearly pass, where the landing screen asks MainActivity.offersSupport() for it. Foss shows the same row for GitHub Sponsors. On main the same purchase was an item in the toolbar overflow, on a screen that had no settings of its own."
         }
       ]
     }

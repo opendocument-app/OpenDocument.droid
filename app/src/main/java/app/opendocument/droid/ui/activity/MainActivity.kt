@@ -448,11 +448,11 @@ class MainActivity : AppCompatActivity() {
         billingManager.setEnabled(adsAvailable)
         // the support row goes once play reports a purchase, and the open document is rendered
         // again with the editing scope the pass brings
-        billingManager.setEntitlementListener { unlocked ->
+        billingManager.setEntitlementListener { unlocked, purchased ->
             landingFragment?.refresh()
 
             if (unlocked) {
-                onUnlocked()
+                onUnlocked(purchased)
             }
         }
         billingManager.initialize(this, adManager, crashManager)
@@ -694,7 +694,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun offerPurchase() {
-        if (billingManager.isAdFree()) {
+        // an ended pass brings the ads back only at the next launch, and so does this offer
+        if (!billingManager.showsAds()) {
             return
         }
 
@@ -850,6 +851,10 @@ class MainActivity : AppCompatActivity() {
 
         buyButton.setOnClickListener {
             analyticsManager.report("pass_tapped", "feature", feature?.name?.lowercase() ?: "none")
+            if (feature != null) {
+                // the gate's purchase, as OpenDocument.ios reports it
+                analyticsManager.report("pro_gate_tapped", "feature", feature.name.lowercase())
+            }
 
             dialog.dismiss()
 
@@ -867,9 +872,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Says thank you, and gives the open document the editing scope the pass brings. */
-    private fun onUnlocked() {
-        analyticsManager.report("pass_unlocked")
+    /**
+     * Says thank you after a purchase, or that a purchase is restored, and gives the open document
+     * the editing scope that pro brings.
+     */
+    private fun onUnlocked(purchased: Boolean) {
+        analyticsManager.report(if (purchased) "pass_unlocked" else "pass_restored")
 
         val documentFragment = documentFragment
         val editing = documentFragment?.isEditing() == true
@@ -879,7 +887,12 @@ class MainActivity : AppCompatActivity() {
 
         SnackbarHelper.show(
             this,
-            if (editing) R.string.pass_unlocked_editing else R.string.pass_unlocked,
+            when {
+                purchased && editing -> R.string.pass_unlocked_editing
+                purchased -> R.string.pass_unlocked
+                editing -> R.string.pass_restored_editing
+                else -> R.string.pass_restored
+            },
             null,
             isIndefinite = false,
             isError = false,

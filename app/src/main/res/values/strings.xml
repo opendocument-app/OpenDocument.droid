@@ -164,6 +164,11 @@
     <string name="pass_get_pro">Prefer to pay once? Get OpenDocument Reader Pro</string>
     <string name="pass_unlocked">Thank you! The Pro features are now on.</string>
     <string name="pass_unlocked_editing">Thank you! Leave the edit mode to use every Pro tool.</string>
+    <!-- when Play gives back an earlier purchase, for example after a reinstall -->
+    <string name="pass_restored">Your purchase is restored. The Pro features are on.</string>
+    <string name="pass_restored_editing">Your purchase is restored. Leave the edit mode to use every Pro tool.</string>
+    <!-- a locked tool, tapped while the Pro features are on but the page has not been rendered again -->
+    <string name="pass_on_editing">The Pro features are on. Leave the edit mode to use every Pro tool.</string>
     <!-- the way to the free app's purchase sheet, or in Foss to GitHub Sponsors -->
     <string name="menu_support">Support the app</string>
     <!-- what the document says when an edit is not taken, by the reason the page gives -->
