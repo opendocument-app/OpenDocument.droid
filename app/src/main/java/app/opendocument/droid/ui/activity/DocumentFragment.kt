@@ -630,7 +630,13 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         SnackbarHelper.show(requireActivity(), message, null, isIndefinite = false, isError = false)
     }
 
+    /**
+     * The pass is held, but the page still has lite's editing scope: it came during this edit, or
+     * while the page was translated.
+     */
     private fun showUnlockedEditing() {
+        renderWhenEditEnds = true
+
         SnackbarHelper.show(
             requireActivity(),
             R.string.pass_unlocked_editing,
@@ -827,9 +833,8 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                 )
 
         // last, so the furthest from the thumb: lite's pass and foss's sponsors. pro has paid
-        val mainActivity = requireActivity() as MainActivity
         val support =
-            if (!Features.promotesSupport || !mainActivity.offersSupport()) null
+            if (!(requireActivity() as MainActivity).offersSupport()) null
             else
                 DocumentActions.Action(
                     DocumentActions.ACTION_SUPPORT,

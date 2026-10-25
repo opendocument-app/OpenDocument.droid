@@ -694,7 +694,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun offerPurchase() {
-        if (billingManager.isAdFree() || !billingManager.offersPass()) {
+        if (billingManager.isAdFree()) {
             return
         }
 
@@ -761,16 +761,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Whether lite can sell the pass. Queried after manager initialization and Play Services
-     * retries.
+     * Whether "Support the app" is offered: in lite while the pass is for sale, and always in foss.
+     * Queried after manager initialization and Play Services retries.
      */
-    fun offersPass(): Boolean = ::billingManager.isInitialized && billingManager.offersPass()
-
-    /**
-     * Whether "Support the app" is offered: in lite while the pass is for sale, and always in pro
-     * and foss, which go to the sponsors.
-     */
-    fun offersSupport(): Boolean = if (Features.withAds) offersPass() else true
+    fun offersSupport(): Boolean =
+        when {
+            !Features.promotesSupport -> false
+            Features.withAds -> ::billingManager.isInitialized && billingManager.offersPass()
+            else -> true
+        }
 
     /** The pass in lite, the sponsors anywhere else. */
     fun offerSupport() {
@@ -783,8 +782,8 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Whether the consent decision can still be withdrawn, which is when the ump sdk requires an
-     * app to offer a way back into the form. Asked the same way as [offersPass], and it stays true
-     * after an ad removal: withdrawal outlives the ads.
+     * app to offer a way back into the form. Asked the same way as [offersSupport], and it stays
+     * true after an ad removal: withdrawal outlives the ads.
      */
     fun offersPrivacyOptions(): Boolean =
         ::adManager.isInitialized && adManager.isPrivacyOptionsRequired()

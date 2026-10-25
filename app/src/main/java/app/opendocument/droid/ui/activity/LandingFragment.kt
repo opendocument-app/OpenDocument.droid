@@ -131,7 +131,7 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
         // lite's pass, or foss's sponsors, where it is seen without unfolding anything. asked here
         // rather than carried in the state: what billing knows lives on the activity, not in
         // anything the ViewModel reads, and the activity refreshes this once play has answered
-        if (Features.promotesSupport && mainActivity.offersSupport()) {
+        if (mainActivity.offersSupport()) {
             items.add(
                 LandingItem.Action(
                     LandingItem.ACTION_SUPPORT,

@@ -17,6 +17,7 @@ data class Entitlement(
 
         /** The subscription lite sells. Its one base plan renews every year. */
         const val PASS_PRODUCT = "pro_pass"
+        const val PASS_BASE_PLAN = "yearly"
 
         // the old one-time products that were for life. remove_ads_for_1y was one-time too, but
         // bought one year, so it keeps the ad removal and gets nothing more

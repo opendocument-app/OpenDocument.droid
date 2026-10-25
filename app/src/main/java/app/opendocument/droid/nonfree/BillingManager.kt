@@ -33,12 +33,13 @@ class BillingManager {
             preferences.setPurchased(true)
         }
 
+        // also without play: the last answer stands until play gives a new one
+        Features.unlocked = isPro()
+
         if (!enabled) {
             adManager.showGoogleAds()
             return
         }
-
-        Features.unlocked = isPro()
 
         if (isAdFree()) {
             removeAds(adManager)
@@ -120,14 +121,7 @@ class BillingManager {
 
     /** See [PlayBilling.queryPassPrice]. Null without play. */
     fun queryPassPrice(callback: (String?) -> Unit) {
-        val playBilling = playBilling
-        if (playBilling == null) {
-            callback(null)
-
-            return
-        }
-
-        playBilling.queryPassPrice(callback)
+        playBilling?.queryPassPrice(callback) ?: callback(null)
     }
 
     fun buyPass(activity: Activity) {

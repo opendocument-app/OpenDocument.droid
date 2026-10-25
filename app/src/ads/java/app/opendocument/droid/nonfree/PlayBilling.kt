@@ -29,13 +29,16 @@ class PlayBilling(
 
     private val client =
         BillingClient.newBuilder(context.applicationContext)
-            .setListener { result, _ -> mainThread.post { onPurchasesUpdated(result) } }
+            .setListener { result, _ -> onMain { onPurchasesUpdated(result) } }
             .enablePendingPurchases(
                 PendingPurchasesParams.newBuilder().enableOneTimeProducts().build()
             )
             .build()
 
     private var connected = false
+
+    /** Set by [end]. Answers that arrive after it are dropped. */
+    private var ended = false
 
     /** What waits for the connection: each is told whether it came up. */
     private val waiting = ArrayList<(Boolean) -> Unit>()
@@ -64,7 +67,7 @@ class PlayBilling(
                 val params = QueryPurchasesParams.newBuilder().setProductType(type).build()
 
                 client.queryPurchasesAsync(params) { result, purchases ->
-                    mainThread.post {
+                    onMain {
                         if (result.responseCode == BillingClient.BillingResponseCode.OK) {
                             owned[type] = purchases.filter {
                                 it.purchaseState == Purchase.PurchaseState.PURCHASED
@@ -116,7 +119,7 @@ class PlayBilling(
                 QueryProductDetailsParams.newBuilder().setProductList(listOf(product)).build()
 
             client.queryProductDetailsAsync(params) { result, details ->
-                mainThread.post {
+                onMain {
                     if (result.responseCode != BillingClient.BillingResponseCode.OK) {
                         crashManager.log("pass details failed: " + result.responseCode)
                     }
@@ -124,7 +127,9 @@ class PlayBilling(
                     val pass = details.productDetailsList.firstOrNull()
                     // the base plan, not a promotion on top of it: that is the one with no offer id
                     val basePlan =
-                        pass?.subscriptionOfferDetails?.firstOrNull { it.offerId == null }
+                        pass?.subscriptionOfferDetails?.firstOrNull {
+                            it.basePlanId == Entitlement.PASS_BASE_PLAN && it.offerId == null
+                        }
 
                     passDetails = pass
                     passOfferToken = basePlan?.offerToken
@@ -157,6 +162,7 @@ class PlayBilling(
     }
 
     fun end() {
+        ended = true
         waiting.clear()
 
         client.endConnection()
@@ -171,6 +177,14 @@ class PlayBilling(
             BillingClient.BillingResponseCode.USER_CANCELED -> {}
 
             else -> crashManager.log("purchase failed: " + result.responseCode)
+        }
+    }
+
+    private fun onMain(action: () -> Unit) {
+        mainThread.post {
+            if (!ended) {
+                action()
+            }
         }
     }
 
@@ -207,7 +221,7 @@ class PlayBilling(
         client.startConnection(
             object : BillingClientStateListener {
                 override fun onBillingSetupFinished(result: BillingResult) {
-                    mainThread.post {
+                    onMain {
                         connected = result.responseCode == BillingClient.BillingResponseCode.OK
                         if (!connected) {
                             crashManager.log("billing setup failed: " + result.responseCode)
@@ -221,8 +235,16 @@ class PlayBilling(
                 }
 
                 override fun onBillingServiceDisconnected() {
-                    // the next call connects again
-                    mainThread.post { connected = false }
+                    // the next call connects again. a drop before the setup finished would
+                    // otherwise leave the waiting calls, and every later one, unanswered
+                    onMain {
+                        connected = false
+
+                        val actions = waiting.toList()
+                        waiting.clear()
+
+                        actions.forEach { it(false) }
+                    }
                 }
             }
         )
