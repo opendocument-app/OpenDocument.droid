@@ -23,6 +23,7 @@ section the body of the GitHub release, and refuses a version without one. `scri
   formulas that refer to each other where the document allows it.
 - Excel dates in the short formats show as Excel shows them.
 - The app no longer crashes when it closes while a document has unsaved edits.
+- A protected file that the app cannot open says so, and offers to open it in another app.
 
 ## 4.22.1
 

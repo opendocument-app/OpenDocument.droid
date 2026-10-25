@@ -17,6 +17,8 @@
     <string name="toast_error_save_failed">File could not be saved. Please contact support@opendocument.app</string>
     <string name="toast_error_out_of_memory">Device out of memory! Too many pictures, or file too big.</string>
     <string name="toast_error_password_protected">This document is password-protected</string>
+    <!-- an encryption that odrcore cannot decrypt: no password field, so say why there is none -->
+    <string name="toast_error_cannot_decrypt">This document is protected in a way that this app cannot open. Try opening it in another app.</string>
     <string name="dialog_loading_title">Loading…</string>
     <string name="dialog_generic_loading_message">Please wait, this could take a few minutes.</string>
     <string name="menu_search">Search in document</string>
