@@ -15,6 +15,8 @@ section the body of the GitHub release, and refuses a version without one. `scri
 - A font that the device does not have falls back to one of the same kind, for example a
   sans-serif font for Calibri.
 - Spaces between words in Word documents no longer go missing.
+- Pro: type formulas into spreadsheet cells. Formula results update as you edit, and
+  function names show in the language of the document, for example `SUMME` in German.
 - Saving a spreadsheet computes array formulas, `NOW`, `TODAY`, `OFFSET`, `INDIRECT`, and
   formulas that refer to each other where the document allows it.
 - Excel dates in the short formats show as Excel shows them.

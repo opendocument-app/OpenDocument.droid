@@ -151,13 +151,14 @@
          free of it in both kinds of document, so that the mode is worth opening -->
     <string name="pro_offer_title">Part of Pro</string>
     <string name="pro_offer_formatting">Bold, italic, colors and text size, and adding or joining paragraphs, are part of OpenDocument Reader Pro. The highlighter is in every edition.</string>
-    <string name="pro_offer_sheet">Bold, italic, colors, text size and alignment of cells, and inserting or deleting rows and columns, are part of OpenDocument Reader Pro. The fill is in every edition.</string>
+    <string name="pro_offer_sheet">Bold, italic, colors, text size and alignment of cells, typing formulas, and inserting or deleting rows and columns, are part of OpenDocument Reader Pro. The fill is in every edition.</string>
     <string name="pro_offer_markup">Underlining, striking out and drawing on a PDF are part of OpenDocument Reader Pro. The highlighter is in every edition.</string>
     <string name="not_now">Not now</string>
     <!-- what the document says when an edit is not taken, by the reason the page gives -->
     <string name="edit_refused_new_line">A line break inside a paragraph cannot be saved. Press Enter for a new paragraph.</string>
     <string name="edit_refused_formula">That cell holds a formula and stays as it is.</string>
     <string name="edit_refused_formula_input">Typing a formula is not supported yet.</string>
+    <string name="edit_refused_formula_invalid">That formula cannot be read. Check it and try again.</string>
     <string name="edit_refused_rich">That cell holds more than plain text and stays as it is.</string>
     <string name="edit_refused_shapes">That cell holds a drawing and stays as it is.</string>
     <string name="edit_refused_read_only">This document cannot be edited.</string>

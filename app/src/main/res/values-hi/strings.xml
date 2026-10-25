@@ -141,7 +141,6 @@
     <string name="tool_insert_columns_left">बाईं ओर कॉलम डालें</string>
     <string name="tool_insert_columns_right">दाईं ओर कॉलम डालें</string>
     <string name="tool_delete_columns">कॉलम हटाएँ</string>
-    <string name="pro_offer_sheet">सेल का बोल्ड, इटैलिक, रंग, टेक्स्ट का आकार और अलाइनमेंट, और पंक्तियाँ या कॉलम डालना या हटाना OpenDocument Reader Pro में शामिल हैं। रंग भरने का टूल हर वर्शन में मिलता है।</string>
     <string name="edit_refused_sheet_cut">इस शीट का केवल एक हिस्सा दिखाया गया है, इसलिए इसे यहाँ संपादित नहीं किया जा सकता।</string>
     <plurals name="edit_cells_stale">
         <item quantity="one">%d फ़ॉर्मूला सेल ऐसा परिणाम दिखाता है जो आपके बदलाव से पुराना हो गया है। सहेजने पर, जहाँ संभव हो, उसकी फिर से गणना होती है।</item>

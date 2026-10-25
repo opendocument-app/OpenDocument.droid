@@ -141,7 +141,6 @@
     <string name="tool_insert_columns_left">Ionsáigh colúin ar chlé</string>
     <string name="tool_insert_columns_right">Ionsáigh colúin ar dheis</string>
     <string name="tool_delete_columns">Scrios colúin</string>
-    <string name="pro_offer_sheet">Is cuid d\'OpenDocument Reader Pro iad trom, iodálach, dathanna, méid an téacs agus ailíniú na gceall, chomh maith le rónna agus colúin a ionsá nó a scriosadh. Tá an líonadh i ngach eagrán.</string>
     <string name="edit_refused_sheet_cut">Níl ach cuid den bhileog seo á taispeáint, mar sin ní féidir í a chur in eagar anseo.</string>
     <plurals name="edit_cells_stale">
         <item quantity="one">Taispeánann %d chill foirmle toradh atá as dáta de bharr d\'eagarthóireachta. Ríomhtar arís é nuair a shábhálann tú, más féidir.</item>
