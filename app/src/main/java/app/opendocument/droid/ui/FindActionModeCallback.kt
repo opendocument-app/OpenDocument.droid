@@ -26,22 +26,24 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.webkit.WebView
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.view.ActionMode
 import app.opendocument.droid.R
+import app.opendocument.droid.ui.widget.PageView
 
 // https://github.com/aosp-mirror/platform_frameworks_base/blob/a8b1b1a2e62bcca18f52ed31549c93d43728d152/core/java/android/webkit/FindActionModeCallback.java
+// drives the page's odr.search rather than the WebView's find, which skips what lazy layout keeps
+// off screen
 class FindActionModeCallback(context: Context) :
-    ActionMode.Callback, TextWatcher, View.OnClickListener, WebView.FindListener {
+    ActionMode.Callback, TextWatcher, View.OnClickListener, PageView.SearchListener {
 
     private val customView: View = LayoutInflater.from(context).inflate(R.layout.webview_find, null)
     private val editText: EditText = customView.findViewById(R.id.edit)
     private val matches: TextView
     private val input: InputMethodManager = context.getSystemService(InputMethodManager::class.java)
 
-    private var webView: WebView? = null
+    private var webView: PageView? = null
     private var matchesFound = false
     private var numberOfMatches = 0
     private var actionMode: ActionMode? = null
@@ -70,27 +72,23 @@ class FindActionModeCallback(context: Context) :
         matchesFound = false
     }
 
-    /**
-     * Set the WebView to search.
-     *
-     * @param webView an implementation of WebView
-     */
-    fun setWebView(webView: WebView) {
+    /** Set the page to search. */
+    fun setWebView(webView: PageView) {
         this.webView = webView
-        webView.setFindListener(this)
+        webView.searchListener = this
     }
 
-    private fun requireWebView(caller: String): WebView =
+    private fun requireWebView(caller: String): PageView =
         webView ?: throw AssertionError("No WebView for FindActionModeCallback::$caller")
 
-    override fun onFindResultReceived(
-        activeMatchOrdinal: Int,
-        numberOfMatches: Int,
-        isDoneCounting: Boolean,
-    ) {
-        if (isDoneCounting) {
-            updateMatchCount(activeMatchOrdinal, numberOfMatches, numberOfMatches == 0)
+    override fun onSearchChanged(count: Int, current: Int, complete: Boolean) {
+        // an empty field resets the search, which reports too. A later report brings the hits
+        // that the page has not counted yet
+        if (!matchesFound) {
+            return
         }
+
+        updateMatchCount(current, count, count == 0)
     }
 
     /**
@@ -110,7 +108,7 @@ class FindActionModeCallback(context: Context) :
             // anything.
             return
         }
-        webView.findNext(next)
+        webView.searchNext(editText.text.toString(), next)
     }
 
     /** Highlight all the instances of the string from [editText] in the WebView. */
@@ -118,14 +116,14 @@ class FindActionModeCallback(context: Context) :
         val webView = requireWebView("findAll")
         val find: CharSequence = editText.text
         if (0 == find.length) {
-            webView.clearMatches()
+            webView.resetSearch()
             matches.visibility = View.GONE
             matchesFound = false
         } else {
             matchesFound = true
             matches.visibility = View.INVISIBLE
             numberOfMatches = 0
-            webView.findAllAsync(find.toString())
+            webView.search(find.toString())
         }
     }
 
@@ -178,7 +176,8 @@ class FindActionModeCallback(context: Context) :
         // tolerant, unlike the paths that need a page to search: the mode is started before
         // setWebView and dismissing it must not throw out of the framework's own callback
         webView?.let {
-            it.setFindListener(null)
+            it.searchListener = null
+            it.resetSearch()
             input.hideSoftInputFromWindow(it.windowToken, 0)
         }
     }

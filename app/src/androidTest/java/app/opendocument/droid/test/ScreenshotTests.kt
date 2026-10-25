@@ -280,12 +280,10 @@ class ScreenshotTests {
         // a word letter by letter is a dozen searches of the whole document for nothing
         onView(withId(R.id.edit)).perform(replaceText(query), closeSoftKeyboard())
 
-        // and then the next-match button, as somebody searching would: the web view tints every
-        // match on findAllAsync but only picks one of them out, and a picture of a search with no
-        // match picked out is a picture of a search that has not been used yet
+        // and then the next-match button, as somebody searching would
         onView(withId(R.id.find_next)).perform(click())
 
-        // the highlights are drawn by the web view a beat after the field says the word
+        // the page marks the hits a beat after the field says the word
         settle()
 
         shoot(locale, Shot.TEXT)

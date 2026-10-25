@@ -63,9 +63,9 @@ class LargeTextTests {
             waitFor(TIMEOUT_MS) { needlesInDom(pageView).also { needles = it } == lines },
         )
 
-        // webview 69 and 83 sometimes report a finished count of 0 for a page whose dom holds
-        // every line, and the same search a moment later finds them all. so a short count is
-        // searched again, and the counts go into the failure if it never comes right
+        // the page's own search, as the find bar runs it: the WebView's find skips the lines that
+        // lazy layout keeps off screen. A short count is searched again, and the counts go into
+        // the failure if it never comes right
         val counts = mutableListOf<Int>()
         waitFor(SEARCH_TIMEOUT_MS) { findAll(pageView, NEEDLE).also { counts += it } == lines }
         val elapsed = SystemClock.elapsedRealtime() - start
@@ -141,16 +141,19 @@ class LargeTextTests {
         val found = AtomicInteger(-1)
 
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            pageView.setFindListener { _, numberOfMatches, isDoneCounting ->
-                if (isDoneCounting) {
-                    found.set(numberOfMatches)
+            pageView.searchListener = PageView.SearchListener { count, _, complete ->
+                if (complete) {
+                    found.set(count)
                     latch.countDown()
                 }
             }
-            pageView.findAllAsync(needle)
+            pageView.search(needle)
         }
 
         latch.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            pageView.searchListener = null
+        }
 
         return found.get()
     }
