@@ -163,7 +163,7 @@
     <string name="pass_buy">Subscribe for %1$s per year</string>
     <string name="pass_buy_no_price">Subscribe</string>
     <string name="pass_terms">No ads and all Pro features for 1 year. Renews every year. Cancel any time in Google Play.</string>
-    <string name="pass_get_pro">Pay once instead: get OpenDocument Reader Pro</string>
+    <string name="pass_get_pro">Pay once: get the Pro app</string>
     <!-- the subscribe button, tapped while Play has no pass to sell -->
     <string name="pass_unavailable">Google Play is not available. Sign in to Google Play and try again.</string>
     <string name="pass_unlocked">Thank you! The Pro features are now on.</string>
