@@ -7,6 +7,15 @@ release, a pull request cuts that heading to the version. The release run makes 
 section the body of the GitHub release, and refuses a version without one. `scripts/store-copy.py` writes Play's
 "What's new" from the same section, under 500 characters per locale.
 
+## Unreleased
+
+- Password-protected Word, Excel and PowerPoint files from Office 2010 and later open with
+  their password. So do password-protected doc, xls and ppt files, and Pages, Numbers and
+  Keynote files.
+- An xls sheet with a chart keeps its cell values and its size.
+- Search no longer breaks on a long document with many matches.
+- Pro: typed formulas work again on devices with an older WebView.
+
 ## 4.23.0
 
 - Long text files, PDFs, spreadsheets and presentations open much faster, because the app
