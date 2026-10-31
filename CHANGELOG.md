@@ -7,16 +7,17 @@ release, a pull request cuts that heading to the version. The release run makes 
 section the body of the GitHub release, and refuses a version without one. `scripts/store-copy.py` writes Play's
 "What's new" from the same section, under 500 characters per locale.
 
-## Unreleased
+## 4.24.0
 
+- Free edition: a yearly subscription removes the ads and turns on all Pro features. "Support
+  the app" on the home screen and in the document offers it, next to the Pro app for a single
+  payment. A Pro tool in the free edition offers it too.
 - Password-protected Word, Excel and PowerPoint files from Office 2010 and later open with
   their password. So do password-protected doc, xls and ppt files, and Pages, Numbers and
   Keynote files.
 - An xls sheet with a chart keeps its cell values and its size.
 - Search no longer breaks on a long document with many matches.
 - Pro: typed formulas work again on devices with an older WebView.
-- Free edition: the "Support the app" dialog and the Pro gate always show the yearly
-  subscription, with shorter texts. A tap without Google Play says so.
 
 ## 4.23.0
 

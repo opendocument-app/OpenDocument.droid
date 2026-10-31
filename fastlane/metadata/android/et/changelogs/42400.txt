@@ -1,0 +1,5 @@
+Parooliga kaitstud Wordi, Exceli, PowerPointi, Pagesi, Numbersi ja Keynote'i failid avanevad nüüd parooliga.
+
+Vanemad Exceli arvutustabelid, milles on diagramm, säilitavad nüüd oma väärtused ja suuruse.
+
+Otsing ei lakka enam töötamast pikkades dokumentides, kus on palju vasteid.

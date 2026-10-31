@@ -1,0 +1,5 @@
+Les fichiers Word, Excel, PowerPoint, Pages, Numbers et Keynote protégés par mot de passe s'ouvrent désormais avec leur mot de passe.
+
+Les anciennes feuilles de calcul Excel qui contiennent un graphique gardent désormais leurs valeurs et leur taille.
+
+La recherche ne cesse plus de fonctionner dans les longs documents qui comptent de nombreux résultats.

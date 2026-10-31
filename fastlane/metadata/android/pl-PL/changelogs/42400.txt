@@ -1,0 +1,5 @@
+Chronione hasłem pliki Word, Excel, PowerPoint, Pages, Numbers i Keynote można teraz otworzyć po podaniu hasła.
+
+Starsze arkusze Excela z wykresem zachowują teraz swoje wartości i rozmiar.
+
+Wyszukiwanie nie przestaje już działać w długich dokumentach z wieloma wynikami.

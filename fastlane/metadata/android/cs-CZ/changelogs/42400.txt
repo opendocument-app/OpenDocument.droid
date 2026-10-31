@@ -1,0 +1,5 @@
+Soubory Word, Excel, PowerPoint, Pages, Numbers a Keynote chráněné heslem se nyní otevřou po zadání hesla.
+
+Starší tabulky Excelu s grafem nyní zachovávají své hodnoty i velikost.
+
+Vyhledávání v dlouhých dokumentech s mnoha shodami už nepřestává fungovat.

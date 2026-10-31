@@ -1,0 +1,5 @@
+受密码保护的 Word、Excel、PowerPoint、Pages、Numbers 和 Keynote 文件现在可以输入密码打开。
+
+包含图表的旧版 Excel 电子表格现在会保留其数值和尺寸。
+
+在匹配项很多的长文档中，搜索不会再失效。
