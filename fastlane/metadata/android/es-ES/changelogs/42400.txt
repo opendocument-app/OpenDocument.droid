@@ -1,0 +1,5 @@
+Los archivos de Word, Excel, PowerPoint, Pages, Numbers y Keynote protegidos con contraseña ya se abren con su contraseña.
+
+Las hojas de cálculo antiguas de Excel con gráficos ahora conservan sus valores y su tamaño.
+
+La búsqueda ya no deja de funcionar en documentos largos con muchas coincidencias.

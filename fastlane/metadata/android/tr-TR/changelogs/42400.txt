@@ -1,0 +1,5 @@
+Parola korumalı Word, Excel, PowerPoint, Pages, Numbers ve Keynote dosyaları artık parolalarıyla açılıyor.
+
+Grafik içeren eski Excel hesap tabloları artık değerlerini ve boyutlarını koruyor.
+
+Arama, çok sayıda eşleşme içeren uzun belgelerde de artık çalışmaya devam ediyor.

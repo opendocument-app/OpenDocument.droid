@@ -1,0 +1,5 @@
+I file Word, Excel, PowerPoint, Pages, Numbers e Keynote protetti da password ora si aprono con la loro password.
+
+I fogli Excel meno recenti che contengono un grafico ora mantengono i valori e le dimensioni.
+
+La ricerca non smette più di funzionare nei documenti lunghi con molte corrispondenze.

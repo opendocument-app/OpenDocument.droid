@@ -1,0 +1,5 @@
+Passwortgeschützte Word-, Excel-, PowerPoint-, Pages-, Numbers- und Keynote-Dateien lassen sich jetzt mit ihrem Passwort öffnen.
+
+Ältere Excel-Tabellen mit einem Diagramm behalten jetzt ihre Werte und ihre Größe.
+
+Die Suche bricht in langen Dokumenten mit vielen Treffern nicht mehr ab.

@@ -1,0 +1,5 @@
+Password-protected Word, Excel, PowerPoint, Pages, Numbers and Keynote files now open with their password.
+
+Older Excel sheets that contain a chart now keep their values and their size.
+
+Search no longer stops working in long documents with many matches.

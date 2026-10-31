@@ -1,0 +1,5 @@
+Arquivos do Word, Excel, PowerPoint, Pages, Numbers e Keynote protegidos por senha agora podem ser abertos com a senha.
+
+Planilhas antigas do Excel com gráficos agora mantêm seus valores e seu tamanho.
+
+A pesquisa não para mais de funcionar em documentos longos com muitas ocorrências.

@@ -1,0 +1,5 @@
+Lösenordsskyddade filer från Word, Excel, PowerPoint, Pages, Numbers och Keynote kan nu öppnas med lösenordet.
+
+Äldre Excel-kalkylblad med diagram behåller nu sina värden och sin storlek.
+
+Sökningen slutar inte längre fungera i långa dokument med många träffar.
