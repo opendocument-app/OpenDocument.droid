@@ -159,7 +159,7 @@
          pass is a subscription, and Play requires the renewal terms next to the offer. The
          button carries the price when Play gives one -->
     <string name="pass_title">Support OpenDocument Reader</string>
-    <string name="pass_why">A small team makes OpenDocument Reader, without tracking. Your purchase pays for updates and new features.</string>
+    <string name="pass_why">A small team makes OpenDocument Reader. The app does not track you, but the ads in the free version can. Your purchase removes the ads and pays for updates and new features.</string>
     <string name="pass_buy">Subscribe for %1$s per year</string>
     <string name="pass_buy_no_price">Subscribe</string>
     <string name="pass_terms">No ads and all Pro features for 1 year. Renews every year. Cancel any time in Google Play.</string>
