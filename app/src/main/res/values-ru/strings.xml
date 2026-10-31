@@ -121,10 +121,6 @@
     <string name="color_none">Без выделения</string>
     <string name="color_no_fill">Без заливки</string>
     <string name="tool_pro_badge">Pro</string>
-    <string name="pro_offer_title">Входит в Pro</string>
-    <string name="pro_offer_formatting">Полужирный шрифт, курсив, цвета и размер текста, а также добавление и объединение абзацев входят в OpenDocument Reader Pro. Выделение цветом доступно во всех версиях.</string>
-    <string name="pro_offer_sheet">Полужирный шрифт, курсив, цвета, размер текста и выравнивание в ячейках, ввод формул, а также вставка и удаление строк и столбцов входят в OpenDocument Reader Pro. Заливка доступна во всех версиях.</string>
-    <string name="pro_offer_markup">Подчёркивание, зачёркивание и рисование в PDF входят в OpenDocument Reader Pro. Выделение доступно во всех версиях.</string>
     <string name="not_now">Не сейчас</string>
     <string name="edit_refused_new_line">Разрыв строки внутри абзаца нельзя сохранить. Нажмите Enter, чтобы начать новый абзац.</string>
     <string name="edit_refused_formula">В этой ячейке формула, и она останется без изменений.</string>

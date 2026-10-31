@@ -121,10 +121,6 @@
     <string name="color_none">Ingen överstrykning</string>
     <string name="color_no_fill">Ingen fyllning</string>
     <string name="tool_pro_badge">Pro</string>
-    <string name="pro_offer_title">En del av Pro</string>
-    <string name="pro_offer_formatting">Fet, kursiv, färger och textstorlek, samt att lägga till eller slå ihop stycken, ingår i OpenDocument Reader Pro. Överstrykningen finns i alla versioner.</string>
-    <string name="pro_offer_sheet">Fet, kursiv, färger, textstorlek och justering av celler, att skriva formler samt att infoga eller ta bort rader och kolumner ingår i OpenDocument Reader Pro. Fyllningen finns i alla versioner.</string>
-    <string name="pro_offer_markup">Understrykning, genomstrykning och att rita i en PDF ingår i OpenDocument Reader Pro. Överstrykningen finns i alla versioner.</string>
     <string name="not_now">Inte nu</string>
     <string name="edit_refused_new_line">En radbrytning inuti ett stycke kan inte sparas. Tryck på Enter för ett nytt stycke.</string>
     <string name="edit_refused_formula">Cellen innehåller en formel och förblir som den är.</string>

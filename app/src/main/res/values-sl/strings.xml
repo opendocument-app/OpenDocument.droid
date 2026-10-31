@@ -121,10 +121,6 @@
     <string name="color_none">Brez označevanja</string>
     <string name="color_no_fill">Brez polnila</string>
     <string name="tool_pro_badge">Pro</string>
-    <string name="pro_offer_title">Del različice Pro</string>
-    <string name="pro_offer_formatting">Krepka in ležeča pisava, barve in velikost besedila ter dodajanje ali združevanje odstavkov so del različice OpenDocument Reader Pro. Označevalnik je na voljo v vseh izdajah.</string>
-    <string name="pro_offer_sheet">Krepka in ležeča pisava, barve, velikost besedila in poravnava celic, vnašanje formul ter vstavljanje ali brisanje vrstic in stolpcev so del različice OpenDocument Reader Pro. Polnilo je na voljo v vseh različicah.</string>
-    <string name="pro_offer_markup">Podčrtovanje, prečrtovanje in risanje po PDF-ju so del različice OpenDocument Reader Pro. Označevalnik je na voljo v vseh izdajah.</string>
     <string name="not_now">Ne zdaj</string>
     <string name="edit_refused_new_line">Preloma vrstice znotraj odstavka ni mogoče shraniti. Za nov odstavek pritisnite Enter.</string>
     <string name="edit_refused_formula">Ta celica vsebuje formulo in ostane nespremenjena.</string>

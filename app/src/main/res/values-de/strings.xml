@@ -121,10 +121,6 @@
     <string name="color_none">Keine Hervorhebung</string>
     <string name="color_no_fill">Keine Füllfarbe</string>
     <string name="tool_pro_badge">Pro</string>
-    <string name="pro_offer_title">Teil von Pro</string>
-    <string name="pro_offer_formatting">Fett, kursiv, Farben und Textgröße sowie das Hinzufügen oder Zusammenführen von Absätzen sind Teil von OpenDocument Reader Pro. Das Hervorheben ist in jeder Version enthalten.</string>
-    <string name="pro_offer_sheet">Fett, kursiv, Farben, Textgröße und Ausrichtung von Zellen, das Eingeben von Formeln sowie das Einfügen oder Löschen von Zeilen und Spalten sind Teil von OpenDocument Reader Pro. Die Füllfarbe ist in jeder Version enthalten.</string>
-    <string name="pro_offer_markup">Unterstreichen, Durchstreichen und Zeichnen in einem PDF sind Teil von OpenDocument Reader Pro. Das Hervorheben ist in jeder Version enthalten.</string>
     <string name="not_now">Nicht jetzt</string>
     <string name="edit_refused_new_line">Ein Zeilenumbruch innerhalb eines Absatzes kann nicht gespeichert werden. Drücken Sie die Eingabetaste für einen neuen Absatz.</string>
     <string name="edit_refused_formula">Diese Zelle enthält eine Formel und bleibt, wie sie ist.</string>

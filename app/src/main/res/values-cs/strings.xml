@@ -121,10 +121,6 @@
     <string name="color_none">Bez zvýraznění</string>
     <string name="color_no_fill">Bez výplně</string>
     <string name="tool_pro_badge">Pro</string>
-    <string name="pro_offer_title">Součást verze Pro</string>
-    <string name="pro_offer_formatting">Tučné písmo, kurzíva, barvy, velikost textu a také přidávání a spojování odstavců jsou součástí OpenDocument Reader Pro. Zvýrazňovač je k dispozici ve všech verzích.</string>
-    <string name="pro_offer_sheet">Tučné písmo, kurzíva, barvy, velikost textu a zarovnání buněk, psaní vzorců a také vkládání a odstraňování řádků a sloupců jsou součástí OpenDocument Reader Pro. Výplň je k dispozici ve všech verzích.</string>
-    <string name="pro_offer_markup">Podtrhávání, přeškrtávání a kreslení v PDF jsou součástí OpenDocument Reader Pro. Zvýrazňovač je k dispozici ve všech verzích.</string>
     <string name="not_now">Teď ne</string>
     <string name="edit_refused_new_line">Zalomení řádku uvnitř odstavce nelze uložit. Pro nový odstavec stiskněte Enter.</string>
     <string name="edit_refused_formula">Tato buňka obsahuje vzorec a zůstane beze změny.</string>

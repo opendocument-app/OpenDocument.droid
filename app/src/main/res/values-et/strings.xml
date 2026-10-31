@@ -121,10 +121,6 @@
     <string name="color_none">Esiletõstuta</string>
     <string name="color_no_fill">Täiteta</string>
     <string name="tool_pro_badge">Pro</string>
-    <string name="pro_offer_title">Osa Pro-versioonist</string>
-    <string name="pro_offer_formatting">Paks kiri, kaldkiri, värvid ja teksti suurus ning lõikude lisamine või ühendamine on OpenDocument Reader Pro osa. Esiletõst on saadaval kõigis versioonides.</string>
-    <string name="pro_offer_sheet">Paks kiri, kaldkiri, värvid, teksti suurus ja lahtrite joondus, valemite sisestamine ning ridade ja veergude lisamine või kustutamine on OpenDocument Reader Pro osa. Täide on saadaval kõigis versioonides.</string>
-    <string name="pro_offer_markup">Allajoonimine, läbikriipsutamine ja joonistamine PDF-il on OpenDocument Reader Pro osa. Esiletõst on saadaval kõigis versioonides.</string>
     <string name="not_now">Mitte praegu</string>
     <string name="edit_refused_new_line">Reavahetust lõigu sees ei saa salvestada. Uue lõigu jaoks vajuta Enter.</string>
     <string name="edit_refused_formula">Selles lahtris on valem ja see jääb nii, nagu on.</string>

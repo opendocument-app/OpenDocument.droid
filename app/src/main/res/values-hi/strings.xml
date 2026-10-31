@@ -121,10 +121,6 @@
     <string name="color_none">कोई हाइलाइट नहीं</string>
     <string name="color_no_fill">कोई रंग नहीं</string>
     <string name="tool_pro_badge">Pro</string>
-    <string name="pro_offer_title">Pro का हिस्सा</string>
-    <string name="pro_offer_formatting">बोल्ड, इटैलिक, रंग और टेक्स्ट का आकार, और नए अनुच्छेद जोड़ना या अनुच्छेदों को मिलाना OpenDocument Reader Pro में शामिल हैं। हाइलाइटर हर वर्शन में मिलता है।</string>
-    <string name="pro_offer_sheet">सेल में बोल्ड, इटैलिक, रंग, टेक्स्ट का आकार और अलाइनमेंट, सूत्र टाइप करना, और पंक्तियाँ और कॉलम डालना या हटाना OpenDocument Reader Pro में शामिल हैं। रंग भरना हर वर्शन में मिलता है।</string>
-    <string name="pro_offer_markup">PDF पर रेखांकन, काटना और ड्रॉ करना OpenDocument Reader Pro में शामिल हैं। हाइलाइटर हर वर्शन में मिलता है।</string>
     <string name="not_now">अभी नहीं</string>
     <string name="edit_refused_new_line">अनुच्छेद के भीतर लाइन ब्रेक सहेजा नहीं जा सकता। नए अनुच्छेद के लिए Enter दबाएँ।</string>
     <string name="edit_refused_formula">इस सेल में एक सूत्र है, इसलिए यह जैसा है वैसा ही रहेगा।</string>

@@ -16,7 +16,9 @@ class PlayBilling(
         callback(null)
     }
 
-    fun buyPass(activity: Activity) {}
+    fun buyPass(activity: Activity, onUnavailable: () -> Unit) {
+        onUnavailable()
+    }
 
     fun end() {}
 }

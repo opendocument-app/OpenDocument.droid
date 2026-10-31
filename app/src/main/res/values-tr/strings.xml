@@ -121,10 +121,6 @@
     <string name="color_none">Vurgu yok</string>
     <string name="color_no_fill">Dolgu yok</string>
     <string name="tool_pro_badge">Pro</string>
-    <string name="pro_offer_title">Pro\'nun bir parçası</string>
-    <string name="pro_offer_formatting">Kalın, italik, renkler ve metin boyutu ile paragraf ekleme veya birleştirme OpenDocument Reader Pro\'ya özeldir. Vurgulayıcı her sürümde kullanılabilir.</string>
-    <string name="pro_offer_sheet">Hücrelerde kalın, italik, renkler, metin boyutu ve hizalama, formül yazma ile satır ve sütun ekleme veya silme OpenDocument Reader Pro\'ya özeldir. Dolgu her sürümde kullanılabilir.</string>
-    <string name="pro_offer_markup">PDF\'de altını çizme, üstünü çizme ve çizim yapma OpenDocument Reader Pro\'ya özeldir. Vurgulayıcı her sürümde kullanılabilir.</string>
     <string name="not_now">Şimdi değil</string>
     <string name="edit_refused_new_line">Paragraf içindeki bir satır sonu kaydedilemez. Yeni paragraf için Enter tuşuna basın.</string>
     <string name="edit_refused_formula">Bu hücre bir formül içeriyor ve olduğu gibi kalıyor.</string>

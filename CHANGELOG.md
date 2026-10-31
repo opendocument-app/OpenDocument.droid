@@ -15,6 +15,8 @@ section the body of the GitHub release, and refuses a version without one. `scri
 - An xls sheet with a chart keeps its cell values and its size.
 - Search no longer breaks on a long document with many matches.
 - Pro: typed formulas work again on devices with an older WebView.
+- Free edition: the "Support the app" dialog and the Pro gate always show the yearly
+  subscription, with shorter texts. A tap without Google Play says so.
 
 ## 4.23.0
 

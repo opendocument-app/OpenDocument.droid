@@ -133,8 +133,9 @@ class BillingManager {
         playBilling?.queryPassPrice(callback) ?: callback(null)
     }
 
-    fun buyPass(activity: Activity) {
-        playBilling?.buyPass(activity)
+    /** See [PlayBilling.buyPass]. Without play, [onUnavailable] runs at once. */
+    fun buyPass(activity: Activity, onUnavailable: () -> Unit) {
+        playBilling?.buyPass(activity, onUnavailable) ?: onUnavailable()
     }
 
     fun destroy() {
