@@ -144,11 +144,37 @@ class PlayBilling(
         }
     }
 
-    /** Starts play's purchase sheet. Only after [queryPassPrice] found a price. */
-    fun buyPass(activity: Activity) {
-        val details = passDetails ?: return
-        val offerToken = passOfferToken ?: return
+    /**
+     * Starts play's purchase sheet. Asks play for the pass first if [queryPassPrice] has not found
+     * it yet. Calls [onUnavailable] if play has no pass to sell, or does not open the sheet.
+     */
+    fun buyPass(activity: Activity, onUnavailable: () -> Unit) {
+        val details = passDetails
+        val offerToken = passOfferToken
+        if (details != null && offerToken != null) {
+            launchFlow(activity, details, offerToken, onUnavailable)
 
+            return
+        }
+
+        // the dialog asked before the tap, but play may have been down then: one more try
+        queryPassPrice {
+            val foundDetails = passDetails
+            val foundOfferToken = passOfferToken
+            if (foundDetails == null || foundOfferToken == null) {
+                onUnavailable()
+            } else {
+                launchFlow(activity, foundDetails, foundOfferToken, onUnavailable)
+            }
+        }
+    }
+
+    private fun launchFlow(
+        activity: Activity,
+        details: ProductDetails,
+        offerToken: String,
+        onUnavailable: () -> Unit,
+    ) {
         val product =
             BillingFlowParams.ProductDetailsParams.newBuilder()
                 .setProductDetails(details)
@@ -160,6 +186,8 @@ class PlayBilling(
         val result = client.launchBillingFlow(activity, params)
         if (result.responseCode != BillingClient.BillingResponseCode.OK) {
             crashManager.log("pass flow failed: " + result.responseCode)
+
+            onUnavailable()
         }
     }
 

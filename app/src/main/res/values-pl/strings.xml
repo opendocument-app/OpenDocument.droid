@@ -121,10 +121,6 @@
     <string name="color_none">Bez wyróżnienia</string>
     <string name="color_no_fill">Bez wypełnienia</string>
     <string name="tool_pro_badge">Pro</string>
-    <string name="pro_offer_title">Część wersji Pro</string>
-    <string name="pro_offer_formatting">Pogrubienie, kursywa, kolory i rozmiar tekstu oraz dodawanie i łączenie akapitów są dostępne w OpenDocument Reader Pro. Zakreślacz jest dostępny w każdej wersji.</string>
-    <string name="pro_offer_sheet">Pogrubienie, kursywa, kolory, rozmiar tekstu i wyrównanie komórek, wpisywanie formuł oraz wstawianie i usuwanie wierszy i kolumn są dostępne w OpenDocument Reader Pro. Wypełnienie jest dostępne w każdej wersji.</string>
-    <string name="pro_offer_markup">Podkreślanie, przekreślanie i rysowanie w plikach PDF są dostępne w OpenDocument Reader Pro. Zakreślacz jest dostępny w każdej wersji.</string>
     <string name="not_now">Nie teraz</string>
     <string name="edit_refused_new_line">Podziału wiersza wewnątrz akapitu nie można zapisać. Naciśnij Enter, aby utworzyć nowy akapit.</string>
     <string name="edit_refused_formula">Ta komórka zawiera formułę i pozostaje bez zmian.</string>

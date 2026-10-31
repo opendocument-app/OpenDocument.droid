@@ -121,10 +121,6 @@
     <string name="color_none">Sem realce</string>
     <string name="color_no_fill">Sem preenchimento</string>
     <string name="tool_pro_badge">Pro</string>
-    <string name="pro_offer_title">Parte do Pro</string>
-    <string name="pro_offer_formatting">Negrito, itálico, cores e tamanho do texto, além de adicionar ou juntar parágrafos, fazem parte do OpenDocument Reader Pro. O marca-texto está disponível em todas as edições.</string>
-    <string name="pro_offer_sheet">Negrito, itálico, cores, tamanho do texto e alinhamento de células, digitar fórmulas e inserir ou excluir linhas e colunas fazem parte do OpenDocument Reader Pro. O preenchimento está disponível em todas as edições.</string>
-    <string name="pro_offer_markup">Sublinhar, tachar e desenhar em um PDF fazem parte do OpenDocument Reader Pro. O marca-texto está disponível em todas as edições.</string>
     <string name="not_now">Agora não</string>
     <string name="edit_refused_new_line">Uma quebra de linha dentro de um parágrafo não pode ser salva. Pressione Enter para um novo parágrafo.</string>
     <string name="edit_refused_formula">Essa célula contém uma fórmula e fica como está.</string>

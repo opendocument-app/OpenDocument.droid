@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- the body of MainActivity.offerPass, between the dialog's own title and its "Not now". The
-     pass button and its terms stay hidden until Play has a price; without one, the Pro link is
-     all there is to offer -->
+     pass button starts without a price, and takes the one Play gives -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -31,7 +30,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:visibility="gone" />
+            android:text="@string/pass_buy_no_price" />
 
     <TextView
             android:id="@+id/pass_terms"
@@ -41,8 +40,7 @@
             android:gravity="center_horizontal"
             android:text="@string/pass_terms"
             android:textAppearance="?attr/textAppearanceBodySmall"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:visibility="gone" />
+            android:textColor="?attr/colorOnSurfaceVariant" />
 
     <com.google.android.material.button.MaterialButton
             android:id="@+id/pass_get_pro"

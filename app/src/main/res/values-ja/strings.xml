@@ -121,10 +121,6 @@
     <string name="color_none">ハイライトなし</string>
     <string name="color_no_fill">塗りつぶしなし</string>
     <string name="tool_pro_badge">Pro</string>
-    <string name="pro_offer_title">Pro の機能</string>
-    <string name="pro_offer_formatting">太字、斜体、色、文字サイズ、段落の追加や結合は OpenDocument Reader Pro の機能です。ハイライトはすべてのエディションで使えます。</string>
-    <string name="pro_offer_sheet">セルの太字、斜体、色、文字サイズ、配置、数式の入力、行や列の挿入と削除は OpenDocument Reader Pro の機能です。塗りつぶしはすべてのエディションで使えます。</string>
-    <string name="pro_offer_markup">PDF への下線、取り消し線、描画は OpenDocument Reader Pro の機能です。ハイライトはすべてのエディションで使えます。</string>
     <string name="not_now">今はしない</string>
     <string name="edit_refused_new_line">段落内の改行は保存できません。新しい段落にするには Enter を押してください。</string>
     <string name="edit_refused_formula">このセルには数式があるため、そのままになります。</string>

@@ -121,10 +121,6 @@
     <string name="color_none">Gan aibhsiú</string>
     <string name="color_no_fill">Gan líonadh</string>
     <string name="tool_pro_badge">Pro</string>
-    <string name="pro_offer_title">Cuid de Pro</string>
-    <string name="pro_offer_formatting">Is cuid d\'OpenDocument Reader Pro iad trom, iodálach, dathanna agus méid an téacs, chomh maith le míreanna a chur leis nó a cheangal le chéile. Tá an t-aibhsitheoir i ngach eagrán.</string>
-    <string name="pro_offer_sheet">Is cuid d\'OpenDocument Reader Pro iad trom, iodálach, dathanna, méid an téacs agus ailíniú na gceall, foirmlí a chlóscríobh, agus rónna agus colúin a ionsá nó a scriosadh. Tá an líonadh i ngach eagrán.</string>
-    <string name="pro_offer_markup">Is cuid d\'OpenDocument Reader Pro é líne a chur faoi théacs nó tríd, agus tarraingt ar PDF. Tá an t-aibhsitheoir i ngach eagrán.</string>
     <string name="not_now">Ní anois</string>
     <string name="edit_refused_new_line">Ní féidir briseadh líne laistigh de mhír a shábháil. Brúigh Enter le haghaidh míre nua.</string>
     <string name="edit_refused_formula">Tá foirmle sa chill sin agus fanfaidh sí mar atá.</string>

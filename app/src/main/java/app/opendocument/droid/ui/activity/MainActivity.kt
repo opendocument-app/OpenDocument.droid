@@ -822,7 +822,6 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.dialog_pass, null)
         val featureView = view.findViewById<TextView>(R.id.pass_feature)
         val buyButton = view.findViewById<Button>(R.id.pass_buy)
-        val terms = view.findViewById<View>(R.id.pass_terms)
         val proButton = view.findViewById<View>(R.id.pass_get_pro)
 
         if (feature != null) {
@@ -837,16 +836,14 @@ class MainActivity : AppCompatActivity() {
                 .setNegativeButton(R.string.not_now, null)
                 .show()
 
-        // no price, no button: without play, or before the product exists, the pro app is the one
-        // thing to offer
+        // the button is up from the start, and shows the price once play gives one. without play,
+        // a tap says so
         billingManager.queryPassPrice { price ->
             if (price == null || !dialog.isShowing) {
                 return@queryPassPrice
             }
 
             buyButton.text = getString(R.string.pass_buy, price)
-            buyButton.visibility = View.VISIBLE
-            terms.visibility = View.VISIBLE
         }
 
         buyButton.setOnClickListener {
@@ -858,7 +855,15 @@ class MainActivity : AppCompatActivity() {
 
             dialog.dismiss()
 
-            billingManager.buyPass(this)
+            billingManager.buyPass(this) {
+                SnackbarHelper.show(
+                    this,
+                    R.string.pass_unavailable,
+                    null,
+                    isIndefinite = false,
+                    isError = true,
+                )
+            }
         }
 
         proButton.setOnClickListener {

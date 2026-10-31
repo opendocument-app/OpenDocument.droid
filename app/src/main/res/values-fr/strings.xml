@@ -121,10 +121,6 @@
     <string name="color_none">Aucun surlignage</string>
     <string name="color_no_fill">Aucun remplissage</string>
     <string name="tool_pro_badge">Pro</string>
-    <string name="pro_offer_title">Inclus dans Pro</string>
-    <string name="pro_offer_formatting">Le gras, l\'italique, les couleurs et la taille du texte, ainsi que l\'ajout ou la fusion de paragraphes, sont inclus dans OpenDocument Reader Pro. Le surligneur est disponible dans toutes les éditions.</string>
-    <string name="pro_offer_sheet">Le gras, l\'italique, les couleurs, la taille du texte et l\'alignement des cellules, la saisie de formules, ainsi que l\'insertion ou la suppression de lignes et de colonnes, sont inclus dans OpenDocument Reader Pro. Le remplissage est disponible dans toutes les éditions.</string>
-    <string name="pro_offer_markup">Le soulignement, le barré et le dessin sur un PDF sont inclus dans OpenDocument Reader Pro. Le surligneur est disponible dans toutes les éditions.</string>
     <string name="not_now">Pas maintenant</string>
     <string name="edit_refused_new_line">Un saut de ligne à l\'intérieur d\'un paragraphe ne peut pas être enregistré. Appuyez sur Entrée pour créer un nouveau paragraphe.</string>
     <string name="edit_refused_formula">Cette cellule contient une formule et reste telle quelle.</string>

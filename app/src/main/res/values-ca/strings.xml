@@ -121,10 +121,6 @@
     <string name="color_none">Sense ressaltat</string>
     <string name="color_no_fill">Sense emplenament</string>
     <string name="tool_pro_badge">Pro</string>
-    <string name="pro_offer_title">Part de Pro</string>
-    <string name="pro_offer_formatting">La negreta, la cursiva, els colors i la mida del text, així com afegir o unir paràgrafs, formen part d\'OpenDocument Reader Pro. El ressaltador està disponible a totes les edicions.</string>
-    <string name="pro_offer_sheet">La negreta, la cursiva, els colors, la mida del text i l\'alineació de les cel·les, així com escriure fórmules i inserir o suprimir files i columnes, formen part d\'OpenDocument Reader Pro. L\'emplenament està disponible a totes les edicions.</string>
-    <string name="pro_offer_markup">Subratllar, ratllar i dibuixar en un PDF formen part d\'OpenDocument Reader Pro. El ressaltador està disponible a totes les edicions.</string>
     <string name="not_now">Ara no</string>
     <string name="edit_refused_new_line">Un salt de línia dins d\'un paràgraf no es pot desar. Premeu Retorn per a un paràgraf nou.</string>
     <string name="edit_refused_formula">Aquesta cel·la conté una fórmula i es queda tal com està.</string>
