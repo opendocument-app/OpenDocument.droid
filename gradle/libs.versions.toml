@@ -1,5 +1,5 @@
 [versions]
-agp = "9.5.0"
+agp = "9.5.1"
 spotless = "8.11.0"
 googleJavaFormat = "1.35.0"
 ktfmt = "0.64"
