@@ -126,7 +126,9 @@ lookup lists before using raw coordinate taps.
 
 `ScreenshotTests` runs only with a named device and requires API 35+. It writes to
 `additionalTestOutputDir`, which survives test APK cleanup. Generate fixtures with
-`scripts/make-screenshot-documents.py`; keep the locale mapping in `store_screenshots.py`.
+`scripts/make-screenshot-documents.py`, which wraps the `sampledoc` package pinned in
+`scripts/requirements.txt`; change document wording there, not here. Keep the locale mapping
+in `store_screenshots.py`.
 
 Capture phone and tablet sets, with the tablet filling both Play tablet slots. Capture
 both `04-edit` and `04-edit-lite`; staging selects the edition's image. Screenshot failure

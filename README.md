@@ -172,8 +172,9 @@ The release run takes the store screenshots from the build it ships. Nothing is 
 Six screens on a phone and a tablet in fifteen locales, plus a feature graphic per locale
 drawn from the first screenshot. The tablet set fills both tablet slots.
 
-To take them by hand you need one emulator on adb running **Android 15 or newer** and
-[storeframe](https://github.com/andiwand/storeframe):
+To take them by hand you need one emulator on adb running **Android 15 or newer**,
+[storeframe](https://github.com/andiwand/storeframe) for the frames and
+[sampledoc](https://github.com/opendocument-app/sampledoc) for the documents in the pictures:
 
 ```sh
 python3 -m pip install -r scripts/requirements.txt
