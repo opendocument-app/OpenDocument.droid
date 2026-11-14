@@ -13,9 +13,9 @@ ROOT = Path(__file__).resolve().parent.parent
 SCREENSHOTS = ROOT / "fastlane" / "screenshots"
 
 # Store locale -> the language its documents are written in. The one copy of
-# this: `make-screenshot-documents.py` checks its own languages against it and
-# writes it into the test apk's assets, which is where `ScreenshotTests` reads it
-# rather than holding a table that could disagree.
+# this: `make-screenshot-documents.py` writes documents for the languages it
+# names and copies it into the test apk's assets, which is where
+# `ScreenshotTests` reads it rather than holding a table that could disagree.
 #
 # `None` would mean the app has no such language, so that locale reads the
 # English pictures; nothing is None today. The keys are the locales
