@@ -143,6 +143,11 @@ class DocumentLoader(application: Application) : AndroidViewModel(application) {
             encrypted(request, file, e)
         } catch (e: OdrException.DecryptionFailed) {
             encrypted(request, file, e)
+        } catch (e: CoreLoader.NetworkDenied) {
+            // the user's setting, not a bug: reported, not logged as a crash
+            report("load_error_network_denied", file)
+
+            deliver { it.onError(request, file, e) }
         } catch (e: Throwable) {
             failed("load_odf_error", file, request, e)
 

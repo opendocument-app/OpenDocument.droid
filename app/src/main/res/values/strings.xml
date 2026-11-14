@@ -6,6 +6,9 @@
 
     <string name="dialog_broken_file_title">Couldn\'t open this file</string>
     <string name="dialog_broken_file">The file may be damaged, or something went wrong on our side. If you think the file is fine, tell us at support@opendocument.app</string>
+    <string name="dialog_network_denied_title">Network access is off</string>
+    <string name="dialog_network_denied">This app shows documents through a connection that stays on your device, so it needs the Network permission. It does not send your files anywhere. Turn on Network in the app\'s settings, then open the file again.</string>
+    <string name="dialog_network_denied_settings">Open settings</string>
     <string name="toast_error_find_file">Couldn\'t find file. Maybe it doesn\'t exist any longer?</string>
     <string name="toast_error_illegal_file_reopen">Unsupported file format. Try opening it in another app.</string>
     <!-- a sheet bigger than the device can lay out - see SpreadsheetBudget -->
