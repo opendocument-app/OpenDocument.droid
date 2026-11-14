@@ -2,6 +2,9 @@
 <resources>
     <string name="dialog_broken_file_title">无法打开此文件</string>
     <string name="dialog_broken_file">文件可能已损坏，也可能是我们这边出了问题。如果您认为文件没有问题，请通过 support@opendocument.app 告诉我们</string>
+    <string name="dialog_network_denied_title">网络访问已关闭</string>
+    <string name="dialog_network_denied">本应用通过仅在您设备上运行的连接来显示文档，因此需要“网络”权限。本应用不会将您的文件发送到任何地方。请在应用设置中开启“网络”权限，然后重新打开文件。</string>
+    <string name="dialog_network_denied_settings">打开设置</string>
     <string name="toast_error_find_file">找不到文件。可能已经不存在了？</string>
     <string name="toast_error_illegal_file_reopen">不支持的文件格式。请尝试用其他应用打开。</string>
     <string name="toast_hint_sheet_cut_rows">此工作表太大，无法完整显示。仅显示 %2$s 行中的前 %1$s 行。</string>

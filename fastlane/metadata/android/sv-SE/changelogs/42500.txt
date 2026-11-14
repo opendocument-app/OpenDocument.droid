@@ -1,0 +1,7 @@
+Textdokument visar sidhuvud och sidfot när sidvisningen är på, och numrerar rubriker och listor som LibreOffice gör.
+
+Former och presentationsbilder visar nu sina övertoningar, mönster, bakgrundsbilder, skuggor och Fontwork-text.
+
+Bilder visar inte längre platshållare som ”Klicka för att redigera”.
+
+Om telefonen blockerar appens nätverksåtkomst meddelar appen det nu och öppnar sina inställningar. Dokumenten stannar kvar på din enhet.

@@ -1,0 +1,7 @@
+I documenti di testo mostrano intestazioni e piè di pagina con la vista a pagine attiva, e numerano titoli ed elenchi come LibreOffice.
+
+Forme e diapositive ora mostrano sfumature, motivi, immagini di sfondo, ombre e testo Fontwork.
+
+Le diapositive non mostrano più i segnaposto «Fai clic per modificare».
+
+Se il telefono blocca l'accesso dell'app alla rete, ora l'app lo segnala e apre le sue impostazioni. I documenti restano sul tuo dispositivo.

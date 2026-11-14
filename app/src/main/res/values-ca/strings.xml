@@ -2,6 +2,9 @@
 <resources>
     <string name="dialog_broken_file_title">No s\'ha pogut obrir aquest fitxer</string>
     <string name="dialog_broken_file">És possible que el fitxer estigui malmès o que hi hagi hagut un problema per part nostra. Si creieu que el fitxer és correcte, escriviu-nos a support@opendocument.app</string>
+    <string name="dialog_network_denied_title">L\'accés a la xarxa està desactivat</string>
+    <string name="dialog_network_denied">Aquesta aplicació mostra els documents mitjançant una connexió que no surt del dispositiu, per això necessita el permís de Xarxa. No envia els vostres fitxers enlloc. Activeu Xarxa a la configuració de l\'aplicació i torneu a obrir el fitxer.</string>
+    <string name="dialog_network_denied_settings">Obre la configuració</string>
     <string name="toast_error_find_file">No s\'ha pogut trobar el fitxer. Potser ja no existeix?</string>
     <string name="toast_error_illegal_file_reopen">Format de fitxer no compatible. Proveu d\'obrir-lo amb una altra aplicació.</string>
     <string name="toast_hint_sheet_cut_rows">Aquest full és massa gran per mostrar-lo sencer. Es mostren les primeres %1$s de %2$s files.</string>

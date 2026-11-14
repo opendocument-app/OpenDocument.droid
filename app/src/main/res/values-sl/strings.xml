@@ -2,6 +2,9 @@
 <resources>
     <string name="dialog_broken_file_title">Te datoteke ni bilo mogoče odpreti</string>
     <string name="dialog_broken_file">Datoteka je morda poškodovana ali pa je šlo kaj narobe na naši strani. Če menite, da je datoteka v redu, nam pišite na support@opendocument.app</string>
+    <string name="dialog_network_denied_title">Dostop do omrežja je izklopljen</string>
+    <string name="dialog_network_denied">Ta aplikacija prikazuje dokumente prek povezave, ki ostane v vaši napravi, zato potrebuje dovoljenje Omrežje. Vaših datotek ne pošilja nikamor. V nastavitvah aplikacije vklopite Omrežje in nato znova odprite datoteko.</string>
+    <string name="dialog_network_denied_settings">Odpri nastavitve</string>
     <string name="toast_error_find_file">Datoteke ni bilo mogoče najti. Morda ne obstaja več?</string>
     <string name="toast_error_illegal_file_reopen">Nepodprta oblika datoteke. Poskusite jo odpreti v drugi aplikaciji.</string>
     <string name="toast_hint_sheet_cut_rows">Ta list je prevelik za prikaz v celoti. Prikazanih je prvih %1$s od skupno %2$s vrstic.</string>

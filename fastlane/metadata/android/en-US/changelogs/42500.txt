@@ -1,0 +1,7 @@
+Text documents show page headers and footers when pages are on, and number headings and lists as LibreOffice does.
+
+Shapes and slides now show their gradients, patterns, background pictures, shadows and Fontwork text.
+
+Slides no longer show "Click to edit" placeholders.
+
+If your phone blocks the app's network access, the app now says so and opens its settings. Documents stay on your device.

@@ -2,6 +2,9 @@
 <resources>
     <string name="dialog_broken_file_title">यह फ़ाइल नहीं खुल सकी</string>
     <string name="dialog_broken_file">फ़ाइल ख़राब हो सकती है, या हमारी ओर से कुछ गड़बड़ हुई है। अगर आपको लगता है कि फ़ाइल ठीक है, तो हमें support@opendocument.app पर बताएँ</string>
+    <string name="dialog_network_denied_title">नेटवर्क ऐक्सेस बंद है</string>
+    <string name="dialog_network_denied">यह ऐप दस्तावेज़ एक ऐसे कनेक्शन से दिखाता है जो आपके डिवाइस पर ही रहता है, इसलिए इसे नेटवर्क अनुमति की ज़रूरत है। यह आपकी फ़ाइलें कहीं नहीं भेजता। ऐप की सेटिंग में नेटवर्क चालू करें, फिर फ़ाइल दोबारा खोलें।</string>
+    <string name="dialog_network_denied_settings">सेटिंग खोलें</string>
     <string name="toast_error_find_file">फ़ाइल नहीं मिली। शायद यह अब मौजूद नहीं है?</string>
     <string name="toast_error_illegal_file_reopen">यह फ़ाइल प्रारूप समर्थित नहीं है। इसे किसी दूसरे ऐप में खोलकर देखें।</string>
     <string name="toast_hint_sheet_cut_rows">यह शीट पूरी दिखाने के लिए बहुत बड़ी है। %2$s में से पहली %1$s पंक्तियाँ दिखाई जा रही हैं।</string>

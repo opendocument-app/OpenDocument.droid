@@ -2,6 +2,9 @@
 <resources>
     <string name="dialog_broken_file_title">Impossible d\'ouvrir ce fichier</string>
     <string name="dialog_broken_file">Le fichier est peut-être endommagé, ou quelque chose s\'est mal passé de notre côté. Si vous pensez que le fichier est intact, écrivez-nous à support@opendocument.app</string>
+    <string name="dialog_network_denied_title">L\'accès au réseau est désactivé</string>
+    <string name="dialog_network_denied">Cette application affiche les documents grâce à une connexion qui reste sur votre appareil. Elle a donc besoin de l\'autorisation Réseau. Elle n\'envoie vos fichiers nulle part. Activez Réseau dans les paramètres de l\'application, puis ouvrez de nouveau le fichier.</string>
+    <string name="dialog_network_denied_settings">Ouvrir les paramètres</string>
     <string name="toast_error_find_file">Impossible de trouver le fichier. Il n\'existe peut-être plus ?</string>
     <string name="toast_error_illegal_file_reopen">Le format de ce fichier n\'est pas pris en charge. Essayez de l\'ouvrir avec une autre application.</string>
     <string name="toast_hint_sheet_cut_rows">Cette feuille est trop grande pour être affichée en entier. Affichage des %1$s premières lignes sur %2$s.</string>

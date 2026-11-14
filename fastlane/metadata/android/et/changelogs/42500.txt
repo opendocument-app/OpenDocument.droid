@@ -1,0 +1,7 @@
+Kui lehekülgede vaade on sees, näitavad tekstidokumendid päiseid ja jaluseid ning nummerdavad pealkirjad ja loendid nagu LibreOffice.
+
+Kujundid ja slaidid näitavad nüüd oma värviüleminekuid, mustreid, taustapilte, varje ja Fontwork-teksti.
+
+Slaididel ei kuvata enam kohatäiteteksti „Klõpsa muutmiseks”.
+
+Kui telefon blokeerib rakenduse võrguühenduse, annab rakendus sellest nüüd teada ja avab oma seaded. Dokumendid jäävad sinu seadmesse.

@@ -2,6 +2,9 @@
 <resources>
     <string name="dialog_broken_file_title">Soubor se nepodařilo otevřít</string>
     <string name="dialog_broken_file">Soubor může být poškozený, nebo se něco pokazilo na naší straně. Pokud si myslíte, že je soubor v pořádku, napište nám na support@opendocument.app</string>
+    <string name="dialog_network_denied_title">Přístup k síti je vypnutý</string>
+    <string name="dialog_network_denied">Tato aplikace zobrazuje dokumenty přes připojení, které zůstává ve vašem zařízení, a proto potřebuje oprávnění Síť. Vaše soubory nikam neodesílá. Zapněte oprávnění Síť v nastavení aplikace a pak soubor otevřete znovu.</string>
+    <string name="dialog_network_denied_settings">Otevřít nastavení</string>
     <string name="toast_error_find_file">Soubor se nepodařilo najít. Možná už neexistuje?</string>
     <string name="toast_error_illegal_file_reopen">Nepodporovaný formát souboru. Zkuste jej otevřít v jiné aplikaci.</string>
     <string name="toast_hint_sheet_cut_rows">List je příliš velký na to, aby se zobrazil celý. Zobrazuje se prvních %1$s z %2$s řádků.</string>

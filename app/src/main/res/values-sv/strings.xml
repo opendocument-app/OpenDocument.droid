@@ -2,6 +2,9 @@
 <resources>
     <string name="dialog_broken_file_title">Det gick inte att öppna filen</string>
     <string name="dialog_broken_file">Filen kan vara skadad, eller så gick något fel hos oss. Om du tror att det inte är något fel på filen, hör av dig till support@opendocument.app</string>
+    <string name="dialog_network_denied_title">Nätverksåtkomst är avstängd</string>
+    <string name="dialog_network_denied">Appen visar dokument via en anslutning som stannar på enheten, så den behöver behörigheten Nätverk. Den skickar inte dina filer någonstans. Aktivera Nätverk i appens inställningar och öppna sedan filen igen.</string>
+    <string name="dialog_network_denied_settings">Öppna inställningarna</string>
     <string name="toast_error_find_file">Filen hittades inte. Kanske finns den inte längre?</string>
     <string name="toast_error_illegal_file_reopen">Filformatet stöds inte. Prova att öppna filen i en annan app.</string>
     <string name="toast_hint_sheet_cut_rows">Bladet är för stort för att visas helt. De första %1$s av %2$s raderna visas.</string>

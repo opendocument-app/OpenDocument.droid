@@ -1,0 +1,7 @@
+Textdokumente zeigen in der Seitenansicht Kopf- und Fußzeilen und nummerieren Überschriften und Listen wie LibreOffice.
+
+Formen und Folien zeigen jetzt ihre Farbverläufe, Muster, Hintergrundbilder, Schatten und Fontwork-Text.
+
+Folien zeigen keine Platzhalter wie „Zum Bearbeiten klicken“ mehr.
+
+Blockiert Ihr Smartphone den Netzwerkzugriff der App, weist die App jetzt darauf hin und öffnet ihre Einstellungen. Ihre Dokumente bleiben auf Ihrem Gerät.

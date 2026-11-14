@@ -2,6 +2,9 @@
 <resources>
     <string name="dialog_broken_file_title">Bu dosya açılamadı</string>
     <string name="dialog_broken_file">Dosya bozuk olabilir veya bizim tarafımızda bir şeyler ters gitmiş olabilir. Dosyanın sorunsuz olduğunu düşünüyorsanız support@opendocument.app adresinden bize bildirin</string>
+    <string name="dialog_network_denied_title">Ağ erişimi kapalı</string>
+    <string name="dialog_network_denied">Bu uygulama belgeleri cihazınızdan dışarı çıkmayan bir bağlantı üzerinden gösterir, bu yüzden Ağ iznine ihtiyaç duyar. Dosyalarınızı hiçbir yere göndermez. Uygulamanın ayarlarında Ağ iznini açın, ardından dosyayı tekrar açın.</string>
+    <string name="dialog_network_denied_settings">Ayarları aç</string>
     <string name="toast_error_find_file">Dosya bulunamadı. Belki de artık yoktur?</string>
     <string name="toast_error_illegal_file_reopen">Desteklenmeyen dosya biçimi. Başka bir uygulamada açmayı deneyin.</string>
     <string name="toast_hint_sheet_cut_rows">Bu çalışma sayfası tamamı gösterilemeyecek kadar büyük. %2$s satırın ilk %1$s satırı gösteriliyor.</string>

@@ -1,0 +1,7 @@
+Sayfa görünümü açıkken metin belgeleri üst ve alt bilgileri gösteriyor; başlıkları ve listeleri LibreOffice gibi numaralandırıyor.
+
+Şekiller ve slaytlar artık renk geçişlerini, desenlerini, arka plan görsellerini, gölgelerini ve Fontwork metinlerini gösteriyor.
+
+Slaytlarda artık "Düzenlemek için tıklayın" yer tutucuları görünmüyor.
+
+Telefonunuz uygulamanın ağ erişimini engelliyorsa, uygulama artık bunu bildirip ayarlarını açıyor. Belgeleriniz cihazınızda kalır.

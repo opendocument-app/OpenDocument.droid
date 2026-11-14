@@ -2,6 +2,9 @@
 <resources>
     <string name="dialog_broken_file_title">Não foi possível abrir este arquivo</string>
     <string name="dialog_broken_file">O arquivo pode estar danificado ou algo deu errado do nosso lado. Se você acha que o arquivo está correto, avise-nos em support@opendocument.app</string>
+    <string name="dialog_network_denied_title">O acesso à rede está desativado</string>
+    <string name="dialog_network_denied">Este aplicativo exibe documentos por meio de uma conexão que não sai do seu dispositivo, por isso ele precisa da permissão Rede. Ele não envia seus arquivos para lugar nenhum. Ative a permissão Rede nas configurações do aplicativo e abra o arquivo novamente.</string>
+    <string name="dialog_network_denied_settings">Abrir configurações</string>
     <string name="toast_error_find_file">Não foi possível encontrar o arquivo. Será que ele não existe mais?</string>
     <string name="toast_error_illegal_file_reopen">Formato de arquivo não compatível. Tente abri-lo em outro aplicativo.</string>
     <string name="toast_hint_sheet_cut_rows">Esta planilha é grande demais para ser exibida por completo. Mostrando as primeiras %1$s de %2$s linhas.</string>

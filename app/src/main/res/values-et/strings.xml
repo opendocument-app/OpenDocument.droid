@@ -2,6 +2,9 @@
 <resources>
     <string name="dialog_broken_file_title">Faili ei õnnestunud avada</string>
     <string name="dialog_broken_file">Fail võib olla kahjustatud või läks midagi meie poolel valesti. Kui arvad, et fail on korras, anna meile teada aadressil support@opendocument.app</string>
+    <string name="dialog_network_denied_title">Võrgujuurdepääs on välja lülitatud</string>
+    <string name="dialog_network_denied">See rakendus kuvab dokumente ühenduse kaudu, mis jääb sinu seadmesse, seega vajab see luba \"Võrk\". Rakendus ei saada sinu faile kuhugi. Lülita rakenduse seadetes sisse \"Võrk\" ja ava fail uuesti.</string>
+    <string name="dialog_network_denied_settings">Ava seaded</string>
     <string name="toast_error_find_file">Faili ei leitud. Võib-olla seda enam ei ole?</string>
     <string name="toast_error_illegal_file_reopen">Seda failivormingut ei toetata. Proovi fail avada mõnes teises rakenduses.</string>
     <string name="toast_hint_sheet_cut_rows">See tööleht on liiga suur, et seda tervikuna kuvada. Kuvatakse %2$s reast esimesed %1$s.</string>

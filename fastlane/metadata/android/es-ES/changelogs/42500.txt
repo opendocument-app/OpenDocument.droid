@@ -1,0 +1,7 @@
+Los documentos de texto muestran encabezados y pies de página con las páginas activadas, y numeran títulos y listas como LibreOffice.
+
+Las formas y diapositivas ya muestran degradados, tramas, imágenes de fondo, sombras y texto Fontwork.
+
+Las diapositivas ya no muestran los textos «Haz clic para editar».
+
+Si tu teléfono bloquea el acceso de la aplicación a la red, la aplicación ahora lo indica y abre sus ajustes. Los documentos se quedan en tu dispositivo.
