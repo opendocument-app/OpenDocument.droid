@@ -172,10 +172,11 @@ The release run takes the store screenshots from the build it ships. Nothing is 
 Six screens on a phone and a tablet in fifteen locales, plus a feature graphic per locale
 drawn from the first screenshot. The tablet set fills both tablet slots.
 
-To take them by hand you need one emulator on adb running **Android 15 or newer** and Pillow:
+To take them by hand you need one emulator on adb running **Android 15 or newer** and
+[storeframe](https://github.com/andiwand/storeframe):
 
 ```sh
-python3 -m pip install Pillow
+python3 -m pip install -r scripts/requirements.txt
 bundle exec fastlane android screenshots                         # every locale, phone
 ODR_SCREENSHOT_DEVICE=tablet bundle exec fastlane android screenshots
 ODR_SCREENSHOT_LANGUAGES=en-US,de-DE bundle exec fastlane android screenshots
@@ -183,8 +184,9 @@ ODR_SCREENSHOT_LANGUAGES=en-US,de-DE bundle exec fastlane android screenshots
 
 `ANDROID_SERIAL` picks the device when several are attached. Raw captures land in
 `fastlane/screenshots/`, the framed set and feature graphics in `fastlane/framed/`. Running
-`scripts/frame-screenshots.py` alone re-frames the captures, so a changed headline in
-`fastlane/frames/frames.json` costs seconds. Below API 35 the status bar has a white clock on
+`python3 -m storeframe frame fastlane/frames/frames.json --platform android --captured
+fastlane/screenshots --out fastlane/framed --feature-graphic` alone re-frames the captures,
+so a changed headline in `fastlane/frames/frames.json` costs seconds. Below API 35 the status bar has a white clock on
 a white bar, so `ScreenshotTests` refuses to run there.
 
 `hi-IN`, `ja-JP` and `zh-CN` are set in a system font. On Debian install `fonts-noto-core`

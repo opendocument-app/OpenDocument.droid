@@ -64,7 +64,7 @@ import org.junit.runner.RunWith
  *
  * Six screens, in every locale the listing is written in, on whichever device the runner is
  * driving. The edit is taken twice, the second time as lite shows it - see [editing].
- * `scripts/frame-screenshots.py` then frames what this writes and `scripts/store_screenshots.py`
+ * storeframe (`scripts/requirements.txt`) then frames what this writes and `scripts/store_screenshots.py`
  * checks the set and stages it for supply - the names below are the names those expect, and their
  * order is the order the store shows them in.
  *

@@ -1,0 +1,5 @@
+# The store screenshots and feature graphics are framed by storeframe
+# (https://pypi.org/project/storeframe/). Pinned, so a release run frames the
+# same pictures as the last one.
+#   python3 -m pip install -r scripts/requirements.txt
+storeframe==0.1.0
