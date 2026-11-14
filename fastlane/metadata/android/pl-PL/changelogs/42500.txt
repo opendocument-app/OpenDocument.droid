@@ -1,0 +1,7 @@
+Dokumenty tekstowe przy włączonym podziale na strony pokazują nagłówki i stopki, a nagłówki rozdziałów i listy numerują tak jak LibreOffice.
+
+Kształty i slajdy pokazują teraz gradienty, desenie, obrazy tła, cienie i tekst Fontwork.
+
+Slajdy nie pokazują już symboli zastępczych „Kliknij, aby edytować”.
+
+Jeśli telefon blokuje aplikacji dostęp do sieci, aplikacja teraz o tym informuje i otwiera swoje ustawienia. Dokumenty pozostają na Twoim urządzeniu.

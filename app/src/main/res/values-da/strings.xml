@@ -2,6 +2,9 @@
 <resources>
     <string name="dialog_broken_file_title">Kunne ikke åbne filen</string>
     <string name="dialog_broken_file">Filen er måske beskadiget, eller noget gik galt hos os. Hvis du mener, at filen er i orden, så skriv til os på support@opendocument.app</string>
+    <string name="dialog_network_denied_title">Netværksadgang er slået fra</string>
+    <string name="dialog_network_denied">Appen viser dokumenter via en forbindelse, der bliver på din enhed, og har derfor brug for tilladelsen Netværk. Den sender ikke dine filer nogen steder hen. Slå Netværk til i appens indstillinger, og åbn derefter filen igen.</string>
+    <string name="dialog_network_denied_settings">Åbn indstillinger</string>
     <string name="toast_error_find_file">Kunne ikke finde filen. Måske findes den ikke længere?</string>
     <string name="toast_error_illegal_file_reopen">Filformatet understøttes ikke. Prøv at åbne filen i en anden app.</string>
     <string name="toast_hint_sheet_cut_rows">Arket er for stort til at blive vist helt. Viser de første %1$s af %2$s rækker.</string>

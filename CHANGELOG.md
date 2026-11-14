@@ -7,7 +7,7 @@ release, a pull request cuts that heading to the version. The release run makes 
 section the body of the GitHub release, and refuses a version without one. `scripts/store-copy.py` writes Play's
 "What's new" from the same section, under 500 characters per locale.
 
-## Unreleased
+## 4.25.0
 
 - Text documents show their page headers and footers when pages are on, and number headings
   and lists as LibreOffice does.

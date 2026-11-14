@@ -2,6 +2,9 @@
 <resources>
     <string name="dialog_broken_file_title">このファイルを開けませんでした</string>
     <string name="dialog_broken_file">ファイルが破損しているか、こちら側で問題が起きた可能性があります。ファイルに問題がないと思われる場合は support@opendocument.app までお知らせください</string>
+    <string name="dialog_network_denied_title">ネットワークへのアクセスがオフになっています</string>
+    <string name="dialog_network_denied">このアプリは、デバイス内だけで完結する接続を使ってドキュメントを表示するため、「ネットワーク」の権限が必要です。ファイルがどこかに送信されることはありません。アプリの設定で「ネットワーク」をオンにしてから、もう一度ファイルを開いてください。</string>
+    <string name="dialog_network_denied_settings">設定を開く</string>
     <string name="toast_error_find_file">ファイルが見つかりません。もう存在しないのかもしれません。</string>
     <string name="toast_error_illegal_file_reopen">対応していないファイル形式です。別のアプリで開いてみてください。</string>
     <string name="toast_hint_sheet_cut_rows">このシートは大きすぎるため、すべてを表示できません。%2$s 行のうち最初の %1$s 行を表示しています。</string>

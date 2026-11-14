@@ -1,0 +1,7 @@
+Documentos de texto mostram cabeçalhos e rodapés quando a exibição de páginas está ativada e numeram títulos e listas como o LibreOffice.
+
+Formas e slides agora mostram seus degradês, padrões, imagens de fundo, sombras e textos do Fontwork.
+
+Os slides não mostram mais os espaços reservados "Clique para editar".
+
+Se o seu celular bloquear o acesso do aplicativo à rede, o aplicativo agora avisa e abre as configurações dele. Os documentos continuam no seu dispositivo.

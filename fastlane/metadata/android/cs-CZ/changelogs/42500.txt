@@ -1,0 +1,7 @@
+Při zapnutém zobrazení stránek ukazují textové dokumenty záhlaví a zápatí a nadpisy i seznamy číslují stejně jako LibreOffice.
+
+Tvary a snímky nyní zobrazují přechody, vzorky, obrázky na pozadí, stíny a text Fontwork.
+
+Snímky už nezobrazují zástupné texty „Klepnutím upravíte“.
+
+Pokud telefon blokuje aplikaci přístup k síti, aplikace na to nyní upozorní a otevře své nastavení. Dokumenty zůstávají ve vašem zařízení.

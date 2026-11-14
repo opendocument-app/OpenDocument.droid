@@ -2,6 +2,9 @@
 <resources>
     <string name="dialog_broken_file_title">Níorbh fhéidir an comhad seo a oscailt</string>
     <string name="dialog_broken_file">B\'fhéidir go bhfuil an comhad damáistithe, nó gur chlis rud éigin orainne. Má cheapann tú go bhfuil an comhad ceart go leor, cuir scéala chugainn ag support@opendocument.app</string>
+    <string name="dialog_network_denied_title">Tá rochtain líonra múchta</string>
+    <string name="dialog_network_denied">Taispeánann an aip seo cáipéisí trí cheangal a fhanann ar do ghléas, mar sin teastaíonn an cead Líonra uaithi. Ní sheolann sí do chuid comhad áit ar bith. Cuir Líonra ar siúl i socruithe na haipe, ansin oscail an comhad arís.</string>
+    <string name="dialog_network_denied_settings">Oscail socruithe</string>
     <string name="toast_error_find_file">Níorbh fhéidir an comhad a fháil. B\'fhéidir nach ann dó a thuilleadh?</string>
     <string name="toast_error_illegal_file_reopen">Ní thacaítear leis an bhformáid chomhaid seo. Bain triail as an gcomhad a oscailt in aip eile.</string>
     <string name="toast_hint_sheet_cut_rows">Tá an bhileog seo rómhór le taispeáint ina hiomláine. Na chéad %1$s as %2$s ró á dtaispeáint.</string>

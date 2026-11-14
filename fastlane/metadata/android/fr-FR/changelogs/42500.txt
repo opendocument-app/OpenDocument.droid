@@ -1,0 +1,7 @@
+En mode page, les documents texte affichent en-têtes et pieds de page, et numérotent titres et listes comme LibreOffice.
+
+Les formes et diapositives affichent désormais dégradés, motifs, images d'arrière-plan, ombres et textes Fontwork.
+
+Les diapositives n'affichent plus les espaces réservés « Cliquez pour modifier ».
+
+Si votre téléphone bloque l'accès réseau de l'application, celle-ci le signale désormais et ouvre ses paramètres. Vos documents restent sur votre appareil.

@@ -2,6 +2,9 @@
 <resources>
     <string name="dialog_broken_file_title">Не удалось открыть этот файл</string>
     <string name="dialog_broken_file">Возможно, файл повреждён или что-то пошло не так с нашей стороны. Если вы считаете, что с файлом всё в порядке, напишите нам на support@opendocument.app</string>
+    <string name="dialog_network_denied_title">Доступ к сети отключён</string>
+    <string name="dialog_network_denied">Приложение показывает документы через соединение, которое не выходит за пределы вашего устройства, поэтому ему нужно разрешение «Сеть». Ваши файлы никуда не отправляются. Включите «Сеть» в настройках приложения, а затем снова откройте файл.</string>
+    <string name="dialog_network_denied_settings">Открыть настройки</string>
     <string name="toast_error_find_file">Не удалось найти файл. Возможно, его больше не существует?</string>
     <string name="toast_error_illegal_file_reopen">Формат файла не поддерживается. Попробуйте открыть его в другом приложении.</string>
     <string name="toast_hint_sheet_cut_rows">Лист слишком большой, чтобы показать его целиком. Показаны первые %1$s из %2$s строк.</string>

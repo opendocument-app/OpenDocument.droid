@@ -2,6 +2,9 @@
 <resources>
     <string name="dialog_broken_file_title">Datei konnte nicht geöffnet werden</string>
     <string name="dialog_broken_file">Die Datei ist möglicherweise beschädigt, oder bei uns ist etwas schiefgelaufen. Wenn Sie glauben, dass die Datei in Ordnung ist, schreiben Sie uns an support@opendocument.app</string>
+    <string name="dialog_network_denied_title">Netzwerkzugriff ist deaktiviert</string>
+    <string name="dialog_network_denied">Diese App zeigt Dokumente über eine Verbindung an, die auf Ihrem Gerät bleibt, und benötigt daher die Berechtigung „Netzwerk“. Sie sendet Ihre Dateien nirgendwohin. Aktivieren Sie „Netzwerk“ in den App-Einstellungen und öffnen Sie die Datei dann erneut.</string>
+    <string name="dialog_network_denied_settings">Einstellungen öffnen</string>
     <string name="toast_error_find_file">Datei konnte nicht gefunden werden. Vielleicht gibt es sie nicht mehr?</string>
     <string name="toast_error_illegal_file_reopen">Dateiformat wird nicht unterstützt. Versuchen Sie, die Datei in einer anderen App zu öffnen.</string>
     <string name="toast_hint_sheet_cut_rows">Diese Tabelle ist zu groß, um sie vollständig anzuzeigen. Angezeigt werden die ersten %1$s von %2$s Zeilen.</string>
