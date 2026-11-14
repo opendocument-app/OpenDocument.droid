@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.text.InputType
 import android.text.SpannableString
 import android.text.Spanned
@@ -27,6 +28,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import app.opendocument.droid.R
+import app.opendocument.droid.background.CoreLoader
 import app.opendocument.droid.background.DocumentDarkening
 import app.opendocument.droid.background.DocumentLoader
 import app.opendocument.droid.background.DocumentRequest
@@ -1033,6 +1035,14 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
                 offerReopen(activity, R.string.toast_error_find_file, true)
             error is OutOfMemoryError ->
                 offerReopen(activity, R.string.toast_error_out_of_memory, true)
+            error is CoreLoader.NetworkDenied -> {
+                state.endLoadIdling()
+                giveUp(activity)
+
+                offerNetworkPermission(activity)
+
+                return
+            }
             // unreadable, or named and still not openable
             else -> {
                 // nothing is ever going to be shown for this file, so drop back to the
@@ -1180,6 +1190,30 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
      */
     private fun giveUp(activity: Activity) {
         (activity as MainActivity).closeFailedDocument()
+    }
+
+    /**
+     * Explains that the app is denied a socket, as GrapheneOS does without the Network permission,
+     * and offers the app's settings to grant it.
+     */
+    private fun offerNetworkPermission(activity: Activity) {
+        analyticsManager.report("network_permission_offer")
+
+        // strings off the activity: giveUp() already detached this fragment
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.dialog_network_denied_title)
+            .setMessage(R.string.dialog_network_denied)
+            .setPositiveButton(R.string.dialog_network_denied_settings) { _, _ ->
+                val intent =
+                    Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", activity.packageName, null),
+                    )
+
+                activity.startActivity(intent)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun offerContact(activity: Activity) {

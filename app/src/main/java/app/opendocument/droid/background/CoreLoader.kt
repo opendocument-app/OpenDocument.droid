@@ -66,7 +66,12 @@ class CoreLoader(private val context: Context) {
         // loads the native library and points the core at a usable temporary directory
         initializeCore(context)
 
-        startSharedServer(crashManager)
+        try {
+            startSharedServer(crashManager)
+        } catch (e: NetworkDenied) {
+            // the first document asks again, and says so if it is still refused
+            Log.w(TAG, "core server denied a socket", e)
+        }
     }
 
     /**
@@ -114,7 +119,7 @@ class CoreLoader(private val context: Context) {
         askEditing: Boolean = false,
         declaredType: FileType? = null,
     ): List<HostedView> {
-        val server = checkNotNull(sharedServer) { "core server is not running" }
+        val server = startSharedServer(crashManager)
 
         Log.i(TAG, "host file")
 
@@ -429,6 +434,12 @@ class CoreLoader(private val context: Context) {
     /** An encrypted file whose format odrcore cannot decrypt, whatever the password. */
     class UndecryptableFile(path: String) : IOException("cannot be decrypted: $path")
 
+    /**
+     * The system refuses the app any socket, as GrapheneOS does to an app without the Network
+     * permission, so the core server cannot serve the document to the WebView.
+     */
+    class NetworkDenied(cause: Throwable) : IOException("core server denied a socket", cause)
+
     companion object {
         private const val TAG = "CoreLoader"
 
@@ -458,6 +469,18 @@ class CoreLoader(private val context: Context) {
         private fun bind(server: HttpServer, crashManager: CrashManager): Int {
             try {
                 return server.bind(SERVER_BIND_ADDRESS, PREFERRED_SERVER_PORT)
+            } catch (e: OdrException) {
+                // no other port is going to be granted either
+                if (e.code == SERVER_SOCKET_DENIED) {
+                    throw NetworkDenied(e)
+                }
+
+                crashManager.log(
+                    IOException(
+                        "core server cannot bind $SERVER_BIND_ADDRESS:$PREFERRED_SERVER_PORT",
+                        e,
+                    )
+                )
             } catch (e: Throwable) {
                 crashManager.log(
                     IOException(
@@ -478,17 +501,20 @@ class CoreLoader(private val context: Context) {
             return PREFERRED_SERVER_PORT
         }
 
-        /** Starts [sharedServer] if this is the first loader to ask. */
+        /**
+         * Starts [sharedServer] if this is the first loader to ask, or the last one was refused a
+         * socket. Throws [NetworkDenied] while the system refuses one.
+         */
         @Synchronized
-        private fun startSharedServer(crashManager: CrashManager) {
-            if (sharedServer != null) {
-                return
+        private fun startSharedServer(crashManager: CrashManager): HttpServer {
+            sharedServer?.let {
+                return it
             }
 
             val server = HttpServer()
 
-            sharedServer = server
             sharedServerPort = bind(server, crashManager)
+            sharedServer = server
 
             Thread {
                 try {
@@ -503,6 +529,8 @@ class CoreLoader(private val context: Context) {
                     it.name = "odr-http-server"
                     it.start()
                 }
+
+            return server
         }
 
         /** The loopback address the server binds to. */
@@ -514,6 +542,9 @@ class CoreLoader(private val context: Context) {
          * only, so a page loaded from "http://127.0.0.1:..." never reaches the WebView.
          */
         private const val SERVER_URL_HOST = "localhost"
+
+        /** `odr::ErrorCode::server_socket_denied`, which has no [OdrException] subclass. */
+        private const val SERVER_SOCKET_DENIED = 53
 
         /** What a bind asks for when any free port will do. */
         private const val ANY_PORT = 0

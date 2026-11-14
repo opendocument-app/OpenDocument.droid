@@ -7,6 +7,16 @@ release, a pull request cuts that heading to the version. The release run makes 
 section the body of the GitHub release, and refuses a version without one. `scripts/store-copy.py` writes Play's
 "What's new" from the same section, under 500 characters per locale.
 
+## Unreleased
+
+- Text documents show their page headers and footers when pages are on, and number headings
+  and lists as LibreOffice does.
+- Shapes and slides show their gradients, patterns, background pictures, shadows and Fontwork
+  text.
+- Slides no longer show "Click to edit" placeholders from their master.
+- When the system blocks the app's Network permission, as GrapheneOS can, the app says so and
+  opens its settings. Documents never leave the device.
+
 ## 4.24.0
 
 - Free edition: a yearly subscription removes the ads and turns on all Pro features. "Support
