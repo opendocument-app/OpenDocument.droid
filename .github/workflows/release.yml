@@ -220,12 +220,12 @@ jobs:
       with:
         python-version: "3.13"
 
-    # Pillow draws the frames. The fonts are for the three locales Nunito cannot
-    # set - hindi, japanese and chinese - which frame-screenshots.py refuses to
+    # storeframe draws the frames. The fonts are for the three locales Nunito cannot
+    # set - hindi, japanese and chinese - which storeframe refuses to
     # draw as tofu, so a runner without them fails rather than shipping squares.
     - name: python and fonts
       run: |
-        python3 -m pip install --quiet Pillow
+        python3 -m pip install --quiet -r scripts/requirements.txt
         sudo apt-get update -qq
         sudo apt-get install -y -qq fonts-noto-core fonts-noto-cjk
 

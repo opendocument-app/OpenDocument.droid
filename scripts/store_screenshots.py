@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Validate and stage the phone and tablet screenshot sets for Play. The underscore in the
-# filename lets frame-screenshots.py import this module.
+# filename lets make-screenshot-documents.py import this module.
 
 import argparse
 import os
@@ -83,7 +83,7 @@ DIRECTORIES = {
 # What the framed picture is, per device, in pixels. Not the size of the capture:
 # play refuses a screenshot whose long side is more than twice its short one, and
 # a Pixel 9 Pro XL is 1344x2992 - 2.23:1 - before anything is drawn around it. So
-# `frame-screenshots.py` draws onto a canvas of its own and the capture is a
+# storeframe draws onto a canvas of its own and the capture is a
 # picture inside it, which is what the frame is for anyway.
 #
 # 16:9 for the phone, 16:10 for the tablet, both the proportions of the device
@@ -99,7 +99,7 @@ LEAST, MOST = 2, 8
 
 # The feature graphic: the one picture play shows above the listing rather than in
 # the gallery, and the only listing asset that is not a screenshot. It is drawn
-# from a capture like they are - see `frame-screenshots.py` - because the one that
+# from a capture like they are - by storeframe - because the one that
 # was committed here instead was a mockup of the app as it looked before the 4.14
 # redesign, and nothing in a release would ever have told us so.
 #

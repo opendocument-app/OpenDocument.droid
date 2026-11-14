@@ -33,7 +33,8 @@ SCREENSHOT_DIR = File.join(ROOT, "fastlane", "screenshots").freeze
 FRAMED_DIR = File.join(ROOT, "fastlane", "framed").freeze
 
 MAKE_DOCUMENTS = File.join(ROOT, "scripts", "make-screenshot-documents.py").freeze
-FRAME_SCREENSHOTS = File.join(ROOT, "scripts", "frame-screenshots.py").freeze
+# The design storeframe frames the captures with (scripts/requirements.txt).
+FRAMES_DESIGN = File.join(ROOT, "fastlane", "frames", "frames.json").freeze
 STORE_SCREENSHOTS = File.join(ROOT, "scripts", "store_screenshots.py").freeze
 
 # The devices the store keeps a set for. The name is written into every file the
@@ -370,10 +371,11 @@ platform :android do
     UI.message("took #{taken.length} screenshots")
 
     # A raw capture is not what the store shows. The framing is separate from the
-    # photography so that changing a headline costs a second of Pillow rather than
-    # a quarter hour of emulators - rerun this script alone after an edit to
-    # fastlane/frames/frames.json.
-    sh("python3", FRAME_SCREENSHOTS)
+    # photography so that changing a headline costs seconds of storeframe rather
+    # than a quarter hour of emulators - rerun this step alone (see README.md)
+    # after an edit to fastlane/frames/frames.json.
+    sh("python3", "-m", "storeframe", "frame", FRAMES_DESIGN, "--platform", "android",
+       "--captured", SCREENSHOT_DIR, "--out", FRAMED_DIR, "--feature-graphic")
 
     # what came out is what the store would be given, so it is checked here rather
     # than at upload time on the other side of the run
