@@ -63,8 +63,8 @@ import org.junit.runner.RunWith
  * The pictures the play store shows.
  *
  * Six screens, in every locale the listing is written in, on whichever device the runner is
- * driving. The edit is taken twice, the second time as lite shows it - see [editing].
- * storeframe (`scripts/requirements.txt`) then frames what this writes and `scripts/store_screenshots.py`
+ * driving. The edit is taken twice, the second time as lite shows it - see [editing]. storeframe
+ * (`scripts/requirements.txt`) then frames what this writes and `scripts/store_screenshots.py`
  * checks the set and stages it for supply - the names below are the names those expect, and their
  * order is the order the store shows them in.
  *
