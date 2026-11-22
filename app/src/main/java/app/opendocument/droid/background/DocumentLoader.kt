@@ -58,7 +58,7 @@ class DocumentLoader(application: Application) : AndroidViewModel(application) {
 
     /**
      * Re-renders the cached file after a password, a margin change, or discarded edits. It does not
-     * read the provider again or update recents.
+     * read the provider again or change the ordering of recents.
      */
     fun reload(request: DocumentRequest, file: IdentifiedFile) {
         backgroundHandler.post { renderSync(request, file) }
@@ -131,6 +131,17 @@ class DocumentLoader(application: Application) : AndroidViewModel(application) {
     private fun renderSync(request: DocumentRequest, file: IdentifiedFile) {
         try {
             val document = coreLoader.render(request, file)
+            if (request.persistentUri) {
+                try {
+                    RecentDocumentsUtil.setFileType(
+                        context,
+                        readableUri(request.uri),
+                        coreLoader.fileType,
+                    )
+                } catch (e: IOException) {
+                    crashManager.log(e)
+                }
+            }
 
             report("load_success", file)
 

@@ -123,6 +123,7 @@ class LandingFragment : Fragment(), LandingAdapter.Listener {
                         document.filename,
                         Uri.parse(document.uri),
                         lastOpenedLabel(document.lastOpenedAt),
+                        document.fileType,
                     )
                 )
             }

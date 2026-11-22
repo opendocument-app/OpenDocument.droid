@@ -2,6 +2,7 @@ package app.opendocument.droid.background
 
 import android.content.Context
 import android.net.Uri
+import app.opendocument.core.FileType
 import org.json.JSONObject
 
 /**
@@ -14,6 +15,7 @@ object RecentDocumentsUtil {
 
     private const val KEY_URI = "uri"
     private const val KEY_FILENAME = "filename"
+    private const val KEY_FILE_TYPE = "fileType"
     private const val KEY_LAST_OPENED_AT = "lastOpenedAt"
 
     /**
@@ -47,12 +49,29 @@ object RecentDocumentsUtil {
             return emptyList()
         }
 
-        val entry = RecentDocumentList.Entry(title, uri.toString(), System.currentTimeMillis())
-        val update = RecentDocumentList.add(read(context), entry)
+        val current = read(context)
+        val entry =
+            RecentDocumentList.Entry(
+                title,
+                uri.toString(),
+                System.currentTimeMillis(),
+                current.firstOrNull { it.uri == uri.toString() }?.fileType,
+            )
+        val update = RecentDocumentList.add(current, entry)
 
         write(context, update.entries)
 
         return update.evicted
+    }
+
+    /** Record the type actually opened by core without reordering or reviving a removed entry. */
+    @Synchronized
+    fun setFileType(context: Context, uri: Uri, fileType: FileType) {
+        val current = read(context)
+        val updated = current.map {
+            if (it.uri == uri.toString()) it.copy(fileType = fileType) else it
+        }
+        if (updated != current) write(context, updated)
     }
 
     /**
@@ -90,7 +109,15 @@ object RecentDocumentsUtil {
 
                 if (filename.isEmpty() || uri.isEmpty()) null
                 else
-                    RecentDocumentList.Entry(filename, uri, document.optLong(KEY_LAST_OPENED_AT, 0))
+                    RecentDocumentList.Entry(
+                        filename,
+                        uri,
+                        document.optLong(KEY_LAST_OPENED_AT, 0),
+                        // Names survive enum reordering; absent or newer values remain optional.
+                        FileType.entries.firstOrNull {
+                            it.name == document.optString(KEY_FILE_TYPE)
+                        },
+                    )
             }
 
         // the file stays in the append order older versions wrote, so upgrading needs no
@@ -104,6 +131,7 @@ object RecentDocumentsUtil {
                 put(KEY_URI, entry.uri)
                 put(KEY_FILENAME, entry.filename)
                 put(KEY_LAST_OPENED_AT, entry.lastOpenedAt)
+                put(KEY_FILE_TYPE, entry.fileType?.name)
             }
         }
     }

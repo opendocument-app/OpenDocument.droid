@@ -1,5 +1,7 @@
 package app.opendocument.droid.background
 
+import app.opendocument.core.FileType
+
 /**
  * The ordering, de-duplication and capping rules of the recently opened documents list.
  *
@@ -14,7 +16,12 @@ object RecentDocumentList {
      */
     const val MAX_ENTRIES: Int = 32
 
-    data class Entry(val filename: String, val uri: String, val lastOpenedAt: Long)
+    data class Entry(
+        val filename: String,
+        val uri: String,
+        val lastOpenedAt: Long,
+        val fileType: FileType? = null,
+    )
 
     /**
      * The list after an [add] or an [insert], plus whatever fell off the end of it. The evicted
