@@ -24,6 +24,7 @@ import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.action.ViewActions.scrollTo
+import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
@@ -165,7 +166,9 @@ class MainActivityTests {
             waitForDocumentActions()
             onView(withContentDescription(R.string.menu_edit)).check(matches(isDisplayed()))
             onView(withContentDescription(R.string.menu_search)).perform(click())
-            onView(withId(R.id.edit)).perform(replaceText("simple"), closeSoftKeyboard())
+            // Type into the existing Editable: replaceText replaces the buffer and drops the
+            // TextWatcher span that the find bar uses to start a search.
+            onView(withId(R.id.edit)).perform(typeText("simple"), closeSoftKeyboard())
 
             // The fixture has seven occurrences. Actual taps must reach both controls while
             // floating edit/actions stay hidden, including after rotating an active search.
