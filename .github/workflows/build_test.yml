@@ -176,6 +176,10 @@ jobs:
         # own "sh -c", so anything with shell state has to be in the script itself
         script: bash .github/scripts/run-instrumented-tests.sh
 
+    - name: Summarize device tests
+      if: always()
+      run: python3 .github/scripts/verify-instrumented-tests.py --summary >> "$GITHUB_STEP_SUMMARY"
+
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v7

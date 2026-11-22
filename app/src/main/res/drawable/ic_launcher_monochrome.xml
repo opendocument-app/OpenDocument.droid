@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The stacked pages of the full-color icon, with cutouts that survive launcher tinting.
+     Keep the artwork within the central 66dp of the adaptive icon's 108dp viewport. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M34,36 L36,36 L36,74 Q36,77 39,77 L67,77 Q67,80 64,80 L36,80 Q33,80 33,77 L33,39 Q33,36 34,36 Z M38,32 L40,32 L40,70 Q40,73 43,73 L71,73 Q71,76 68,76 L40,76 Q37,76 37,73 L37,35 Q37,32 38,32 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M44,28 L61,28 L75,42 L75,69 Q75,72 72,72 L44,72 Q41,72 41,69 L41,31 Q41,28 44,28 Z M61,32 L61,42 L71,42 Z M47,49 L69,49 L69,52 L47,52 Z M47,57 L69,57 L69,60 L47,60 Z M47,65 L63,65 L63,68 L47,68 Z" />
+</vector>
