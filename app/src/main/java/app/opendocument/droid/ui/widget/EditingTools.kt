@@ -42,11 +42,16 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         /** A marking tool was pressed, or given a new [color] where [recolor]. */
         fun onMarkTool(tool: String, @ColorInt color: Int, recolor: Boolean)
 
+        /** Authored colours available on the displayed document page or sheet. */
+        fun requestDocumentColors(callback: (List<Int>) -> Unit)
+
         /** A tool of pro's was tapped in a build without it. */
         fun onLocked()
     }
 
     var listener: Listener? = null
+
+    private val colorPicker = EditingColorPicker(context)
 
     private val row: LinearLayout
 
@@ -84,7 +89,13 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         visibility = View.GONE
     }
 
+    override fun onDetachedFromWindow() {
+        colorPicker.dismiss()
+        super.onDetachedFromWindow()
+    }
+
     fun hide() {
+        colorPicker.dismiss()
         visibility = View.GONE
     }
 
@@ -136,11 +147,14 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
             }
         }
         addColorPress(ground, groundKey, groundLabel) { anchor ->
-            showPalette(anchor, if (sheet) FILL_COLORS else HIGHLIGHT_COLORS) { color ->
+            showFormattingPalette(
+                anchor,
+                if (sheet) R.string.color_no_fill else R.string.color_none,
+            ) { color ->
                 if (color == Color.TRANSPARENT) {
                     listener?.onFormat(JSONObject().put(groundKey, JSONObject.NULL))
 
-                    return@showPalette
+                    return@showFormattingPalette
                 }
 
                 setToolColor(groundKey, ground, color)
@@ -283,7 +297,7 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
     }
 
     private fun pickTextColor(anchor: View) {
-        showPalette(anchor, TEXT_COLORS) { color ->
+        showFormattingPalette(anchor) { color ->
             setToolColor(TEXT_COLOR, anchor, color)
 
             listener?.onFormat(JSONObject().put("color", hex(color)))
@@ -362,7 +376,7 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         caption.visibility = if (text == null) View.GONE else View.VISIBLE
     }
 
-    /** What [name] applies, which starts at the first colour its palette offers. */
+    /** What [name] applies, initially the colour in [STARTING_COLORS]. */
     @ColorInt private fun colorOf(name: String): Int = toolColors.getValue(name)
 
     private fun setToolColor(name: String, tool: View, @ColorInt color: Int) {
@@ -459,6 +473,21 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         (choice.findViewById<View>(R.id.editing_tool_caption).parent as View).visibility = View.GONE
 
         return choice
+    }
+
+    private fun showFormattingPalette(
+        anchor: View,
+        @StringRes clearLabel: Int? = null,
+        picked: (Int) -> Unit,
+    ) {
+        colorPicker.show(
+            title = anchor.contentDescription,
+            clearLabel = clearLabel,
+            documentColors = { callback ->
+                listener?.requestDocumentColors(callback) ?: callback(emptyList())
+            },
+            picked = picked,
+        )
     }
 
     private fun showPalette(anchor: View, colors: List<NamedColor>, picked: (Int) -> Unit) {
@@ -583,27 +612,6 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         /** Point sizes a document commonly uses. */
         private val FONT_SIZES = listOf(8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48)
 
-        // the same colors as OpenDocument.ios' EditToolBar; the first of each is the default
-        private val TEXT_COLORS =
-            listOf(
-                NamedColor(0xff191c1e.toInt(), R.string.color_black),
-                NamedColor(0xffe53935.toInt(), R.string.color_red),
-                NamedColor(0xff1e88e5.toInt(), R.string.color_blue),
-                NamedColor(0xff43a047.toInt(), R.string.color_green),
-            )
-
-        private val HIGHLIGHT_COLORS =
-            listOf(
-                NamedColor(0xfffff59d.toInt(), R.string.color_yellow),
-                NamedColor(0xffc5e1a5.toInt(), R.string.color_green),
-                NamedColor(0xfff8bbd0.toInt(), R.string.color_pink),
-                NamedColor(0xffb3e5fc.toInt(), R.string.color_blue),
-                NamedColor(Color.TRANSPARENT, R.string.color_none),
-            )
-
-        private val FILL_COLORS =
-            HIGHLIGHT_COLORS.dropLast(1) + NamedColor(Color.TRANSPARENT, R.string.color_no_fill)
-
         /** In the values `odr.editing.format` takes for `align`. */
         private val ALIGNMENTS =
             listOf(
@@ -682,9 +690,9 @@ class EditingTools(context: Context, attributeSet: AttributeSet?) :
         /** The colour each tool starts with. */
         private val STARTING_COLORS =
             mapOf(
-                TEXT_COLOR to TEXT_COLORS.first().color,
-                HIGHLIGHT_COLOR to HIGHLIGHT_COLORS.first().color,
-                FILL_COLOR to FILL_COLORS.first().color,
+                TEXT_COLOR to 0xff191c1e.toInt(),
+                HIGHLIGHT_COLOR to 0xfffff59d.toInt(),
+                FILL_COLOR to 0xfffff59d.toInt(),
                 "highlight" to 0xffffe633.toInt(),
                 "underline" to 0xffe53935.toInt(),
                 "strikeOut" to 0xffe53935.toInt(),

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="color_palette">Colors</string>
+    <string name="color_recent">Recent colors</string>
+    <string name="color_document">Colors on this page</string>
+    <string name="color_white">White</string>
+    <string name="color_gray">Gray</string>
+    <string name="color_orange">Orange</string>
+    <string name="color_purple">Purple</string>
+    <string name="color_lightest">Very light %1$s</string>
+    <string name="color_light">Light %1$s</string>
+    <string name="color_standard">%1$s</string>
+    <string name="color_dark">Dark %1$s</string>
+    <string name="color_darkest">Very dark %1$s</string>
+</resources>
