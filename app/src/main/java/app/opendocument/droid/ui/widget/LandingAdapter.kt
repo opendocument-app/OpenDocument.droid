@@ -93,7 +93,7 @@ class LandingAdapter(private val listener: Listener) :
             is LandingItem.Intro -> Unit
 
             is LandingItem.Document -> {
-                holder.icon.setImageResource(R.drawable.ic_description)
+                holder.icon.setImageResource(DocumentIcon.forDocument(item.filename, item.fileType))
                 holder.title.text = item.filename
                 holder.bindSubtitle(item.subtitle)
                 holder.itemView.setOnClickListener { listener.onDocumentClicked(item) }
@@ -157,7 +157,8 @@ class LandingAdapter(private val listener: Listener) :
                     when {
                         oldItem is LandingItem.Document && newItem is LandingItem.Document ->
                             oldItem.filename == newItem.filename &&
-                                oldItem.subtitle == newItem.subtitle
+                                oldItem.subtitle == newItem.subtitle &&
+                                oldItem.fileType == newItem.fileType
 
                         oldItem is LandingItem.Setting && newItem is LandingItem.Setting ->
                             oldItem.checked == newItem.checked

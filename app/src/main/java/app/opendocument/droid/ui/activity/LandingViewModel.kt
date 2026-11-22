@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import app.opendocument.droid.background.CatchAllSetting
+import app.opendocument.droid.background.CoreLoader
 import app.opendocument.droid.background.PaginationSetting
 import app.opendocument.droid.background.PersistedUriPermissions
 import app.opendocument.droid.background.RecentDocumentList
@@ -66,6 +67,9 @@ class LandingViewModel(application: Application) : AndroidViewModel(application)
         val context = getApplication<Application>()
 
         val stored = RecentDocumentsUtil.getRecentDocuments(context)
+        // Icon classification uses core's metadata. Load JNI on this worker, with TMPDIR set,
+        // before publishing entries whose icons will be bound on the UI thread.
+        if (stored.isNotEmpty()) CoreLoader.initializeCore(context)
         val pagination = PaginationSetting.isEnabled(context)
         val catchAll = CatchAllSetting.isEnabled(context)
 

@@ -2,6 +2,7 @@ package app.opendocument.droid.ui.widget
 
 import android.net.Uri
 import androidx.annotation.StringRes
+import app.opendocument.core.FileType
 
 /** One row of the landing screen. */
 sealed class LandingItem {
@@ -27,8 +28,12 @@ sealed class LandingItem {
      * A recently opened document. [subtitle] is the time it was last opened, drawn at the end of
      * the same line, or null for an entry stored before that was recorded.
      */
-    class Document(val filename: String, val uri: Uri, val subtitle: String? = null) :
-        LandingItem() {
+    class Document(
+        val filename: String,
+        val uri: Uri,
+        val subtitle: String? = null,
+        val fileType: FileType? = null,
+    ) : LandingItem() {
         override val id: String = "document:$uri"
     }
 

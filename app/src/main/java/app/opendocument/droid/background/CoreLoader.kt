@@ -36,6 +36,10 @@ class CoreLoader(private val context: Context) {
 
     private lateinit var crashManager: CrashManager
 
+    /** The file type core actually opened, including filename-directed CSV and Markdown. */
+    var fileType: FileType = FileType.UNKNOWN
+        private set
+
     private var lastDocumentType: DocumentType = DocumentType.UNKNOWN
 
     /** Counts the renders, so each one publishes under a prefix of its own - see [render]. */
@@ -130,7 +134,8 @@ class CoreLoader(private val context: Context) {
         Log.i(TAG, "type=" + Odr.fileTypeToString(file.fileType()))
 
         // the type it opened as, which a markdown file read by its name is not the mime type of
-        lastDocumentType = Odr.documentTypeByFileType(file.fileType()) ?: DocumentType.UNKNOWN
+        fileType = file.fileType()
+        lastDocumentType = Odr.documentTypeByFileType(fileType) ?: DocumentType.UNKNOWN
 
         // the core opens text it cannot name a charset for and only fails once a page is
         // rendered - on the server thread, long after this reported success. so ask now

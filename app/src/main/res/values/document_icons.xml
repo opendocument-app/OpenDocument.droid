@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Distinct shapes carry the meaning too; color is an additional cue. -->
+    <color name="document_icon_text">#00658F</color>
+    <color name="document_icon_spreadsheet">#166A3B</color>
+    <color name="document_icon_presentation">#9C4F00</color>
+    <color name="document_icon_pdf">#B3261E</color>
+</resources>

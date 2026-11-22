@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="document_icon_text">#86CFFF</color>
+    <color name="document_icon_spreadsheet">#87D9A1</color>
+    <color name="document_icon_presentation">#FFB876</color>
+    <color name="document_icon_pdf">#FFB4AB</color>
+</resources>
