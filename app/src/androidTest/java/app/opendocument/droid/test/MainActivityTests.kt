@@ -30,6 +30,7 @@ import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.VerificationModes.times
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
+import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.test.espresso.matcher.RootMatchers.isPlatformPopup
 import androidx.test.espresso.matcher.ViewMatchers.hasSibling
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
@@ -494,6 +495,7 @@ class MainActivityTests {
             }
         onView(withContentDescription(R.string.tool_fill)).perform(openPalette)
         onView(withContentDescription(containsString("#6A1B9A")))
+            .inRoot(isDialog())
             .perform(scrollTo(), tapWithoutTouch())
         Assert.assertTrue(
             waitFor(EDIT_MODE_TIMEOUT_MS) {
@@ -501,15 +503,16 @@ class MainActivityTests {
             }
         )
         onView(withContentDescription(R.string.tool_fill)).perform(openPalette)
-        onView(withText(R.string.color_recent)).check(matches(isDisplayed()))
+        onView(withText(R.string.color_recent)).inRoot(isDialog()).check(matches(isDisplayed()))
         onView(
                 allOf(
                     withContentDescription("#6A1B9A"),
                     withParent(hasSibling(withText(R.string.color_recent))),
                 )
             )
+            .inRoot(isDialog())
             .check(matches(isDisplayed()))
-        onView(withText(R.string.color_no_fill)).perform(tapWithoutTouch())
+        onView(withText(R.string.color_no_fill)).inRoot(isDialog()).perform(tapWithoutTouch())
         val cleared =
             waitFor(EDIT_MODE_TIMEOUT_MS) {
                 pageAnswers(page, "odr.editing.getOperations().indexOf('\"fill\":null') >= 0")
@@ -523,6 +526,7 @@ class MainActivityTests {
             onView(withContentDescription(R.string.tool_text_color))
                 .perform(scrollTo(), tapWithoutTouch())
             onView(withContentDescription(containsString("#EF6C00")))
+                .inRoot(isDialog())
                 .perform(scrollTo(), tapWithoutTouch())
             Assert.assertTrue(
                 waitFor(EDIT_MODE_TIMEOUT_MS) {
@@ -567,6 +571,7 @@ class MainActivityTests {
         onView(withContentDescription(R.string.tool_text_color))
             .perform(scrollTo(), tapWithoutTouch())
         onView(withContentDescription(containsString("#CE93D8")))
+            .inRoot(isDialog())
             .perform(scrollTo(), tapWithoutTouch())
         Assert.assertTrue(
             waitFor(EDIT_MODE_TIMEOUT_MS) {

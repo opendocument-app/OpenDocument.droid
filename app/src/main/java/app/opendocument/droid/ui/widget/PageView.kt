@@ -526,14 +526,19 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     }
 
     private fun applyEditing() {
+        // The editing API can exist before the document's editor has attached to it.
+        // Enabling then loses the editor's initial enable callback. onPageFinished applies
+        // the latest requested mode once all scripts have loaded.
         evaluateJavascript(
-            when {
-                editingKind == EditingKind.ANNOTATION ->
-                    if (isEditing) "void 0"
-                    else "window.odr && odr.annotation && odr.annotation.setTool(null)"
-                isEditing -> "window.odr && odr.editing && odr.editing.enable()"
-                else -> "window.odr && odr.editing && odr.editing.disable()"
-            },
+            "document.readyState === 'complete' && (" +
+                when {
+                    editingKind == EditingKind.ANNOTATION ->
+                        if (isEditing) "void 0"
+                        else "window.odr && odr.annotation && odr.annotation.setTool(null)"
+                    isEditing -> "window.odr && odr.editing && odr.editing.enable()"
+                    else -> "window.odr && odr.editing && odr.editing.disable()"
+                } +
+                ")",
             null,
         )
     }
