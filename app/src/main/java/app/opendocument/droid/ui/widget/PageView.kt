@@ -23,6 +23,7 @@ import android.webkit.WebViewClient
 import androidx.annotation.Keep
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
+import app.opendocument.droid.R
 import app.opendocument.droid.background.CoreLoader
 import app.opendocument.droid.background.EditingKind
 import app.opendocument.droid.background.FileCache
@@ -32,6 +33,7 @@ import app.opendocument.droid.ui.ParagraphListener
 import app.opendocument.droid.ui.activity.DocumentFragment
 import java.io.ByteArrayInputStream
 import java.io.IOException
+import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 
@@ -557,6 +559,36 @@ constructor(context: Context, attributeSet: AttributeSet?) :
     /** States [style] on the selection, in the keys `odr.editing.format` takes. */
     fun formatStyle(style: JSONObject) {
         evaluateJavascript("odr.editing.format($style)", null)
+    }
+
+    /** Colours authored on the current rendered page, without applying its night theme. */
+    fun requestDocumentColors(callback: (List<Int>) -> Unit) {
+        if (destroyed || isAwaitingNewPage || url?.let { isOwnContent(it) } != true) {
+            callback(emptyList())
+            return
+        }
+        val requestedUrl = url
+        val script =
+            resources.openRawResource(R.raw.document_colors).bufferedReader().use { it.readText() }
+        evaluateJavascript(script) { result ->
+            if (destroyed || isAwaitingNewPage || url != requestedUrl) {
+                callback(emptyList())
+                return@evaluateJavascript
+            }
+            val colors =
+                try {
+                    val array = JSONArray(result ?: "[]")
+                    (0 until minOf(array.length(), 32)).mapNotNull { index ->
+                        val value = array.optString(index)
+                        if (value.matches(Regex("#[0-9a-fA-F]{6}")))
+                            android.graphics.Color.parseColor(value)
+                        else null
+                    }
+                } catch (_: Exception) {
+                    emptyList()
+                }
+            callback(colors)
+        }
     }
 
     /** Calls [function] of `odr.editing`, such as `insertRows`, on the selected rows or columns. */

@@ -31,11 +31,13 @@ import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.VerificationModes.times
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.matcher.RootMatchers.isPlatformPopup
+import androidx.test.espresso.matcher.ViewMatchers.hasSibling
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.isEnabled
 import androidx.test.espresso.matcher.ViewMatchers.withClassName
 import androidx.test.espresso.matcher.ViewMatchers.withContentDescription
 import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.withParent
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -65,6 +67,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 import org.hamcrest.Matcher
+import org.hamcrest.Matchers.allOf
+import org.hamcrest.Matchers.containsString
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.not
 import org.junit.After
@@ -458,6 +462,157 @@ class MainActivityTests {
             awaitViewWithText(R.string.pro_offer_sheet)
             onView(withText(R.string.pro_offer_sheet)).check(matches(isDisplayed()))
         }
+    }
+
+    /** Shades apply through the real editor; recent colours survive reopening the picker. */
+    @Test
+    fun aSheetFillCanUseAShadeAndClearIt() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        context.getSharedPreferences("editing_colors", 0).edit().clear().commit()
+        respondToOpenDocumentWith(requireTestFile("spreadsheet-test.ods"))
+        openDocumentThroughPicker()
+        waitForDocumentActions()
+        onView(withContentDescription(R.string.menu_edit)).perform(clickThroughLongPress())
+        val fragment =
+            requireNotNull(waitForDocumentFragment(mainActivityActivityTestRule.activity, 10000))
+        val page = requireNotNull(fragment.pageView)
+        Assert.assertTrue(
+            waitFor(EDIT_MODE_TIMEOUT_MS) { pageAnswers(page, "odr.editing.isEnabled()") }
+        )
+        Assert.assertTrue(awaitEditingTools())
+        Assert.assertTrue(pageAnswers(page, "odr.sheet.pin({column: 0, row: 0})"))
+        val openPalette =
+            object : ViewAction {
+                override fun getConstraints(): Matcher<View> = isEnabled()
+
+                override fun getDescription() = "open the colour palette"
+
+                override fun perform(uiController: UiController, view: View) {
+                    view.performLongClick()
+                    uiController.loopMainThreadUntilIdle()
+                }
+            }
+        onView(withContentDescription(R.string.tool_fill)).perform(openPalette)
+        onView(withContentDescription(containsString("#6A1B9A")))
+            .perform(scrollTo(), tapWithoutTouch())
+        Assert.assertTrue(
+            waitFor(EDIT_MODE_TIMEOUT_MS) {
+                pageAnswers(page, "odr.editing.getOperations().indexOf('#6a1b9a') >= 0")
+            }
+        )
+        onView(withContentDescription(R.string.tool_fill)).perform(openPalette)
+        onView(withText(R.string.color_recent)).check(matches(isDisplayed()))
+        onView(
+                allOf(
+                    withContentDescription("#6A1B9A"),
+                    withParent(hasSibling(withText(R.string.color_recent))),
+                )
+            )
+            .check(matches(isDisplayed()))
+        onView(withText(R.string.color_no_fill)).perform(tapWithoutTouch())
+        val cleared =
+            waitFor(EDIT_MODE_TIMEOUT_MS) {
+                pageAnswers(page, "odr.editing.getOperations().indexOf('\"fill\":null') >= 0")
+            }
+        Assert.assertTrue(
+            "Fill was not cleared: " + evaluateJavascript(page, "odr.editing.getOperations()"),
+            cleared,
+        )
+
+        if (Features.advancedEditing) {
+            onView(withContentDescription(R.string.tool_text_color))
+                .perform(scrollTo(), tapWithoutTouch())
+            onView(withContentDescription(containsString("#EF6C00")))
+                .perform(scrollTo(), tapWithoutTouch())
+            Assert.assertTrue(
+                waitFor(EDIT_MODE_TIMEOUT_MS) {
+                    pageAnswers(
+                        page,
+                        "odr.editing.getOperations().indexOf('\"color\":\"#ef6c00\"') >= 0",
+                    )
+                }
+            )
+        }
+    }
+
+    /** Opening a native colour dialog must retain the WebView's text selection. */
+    @Test
+    fun textSelectionTakesANewColorShade() {
+        org.junit.Assume.assumeTrue(Features.advancedEditing)
+        respondToOpenDocumentWith(requireTestFile("test.odt"))
+        openDocumentThroughPicker()
+        waitForDocumentActions()
+        onView(withContentDescription(R.string.menu_edit)).perform(clickThroughLongPress())
+        val fragment =
+            requireNotNull(waitForDocumentFragment(mainActivityActivityTestRule.activity, 10000))
+        val page = requireNotNull(fragment.pageView)
+        Assert.assertTrue(
+            waitFor(EDIT_MODE_TIMEOUT_MS) { pageAnswers(page, "odr.editing.isEnabled()") }
+        )
+        Assert.assertTrue(awaitEditingTools())
+        evaluateJavascript(
+            page,
+            """
+            (function() {
+                var paragraph = document.querySelector('x-p');
+                var range = document.createRange();
+                range.selectNodeContents(paragraph);
+                var selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+            })()
+            """
+                .trimIndent(),
+        )
+        onView(withContentDescription(R.string.tool_text_color))
+            .perform(scrollTo(), tapWithoutTouch())
+        onView(withContentDescription(containsString("#CE93D8")))
+            .perform(scrollTo(), tapWithoutTouch())
+        Assert.assertTrue(
+            waitFor(EDIT_MODE_TIMEOUT_MS) {
+                pageAnswers(page, "odr.editing.getOperations().indexOf('#ce93d8') >= 0")
+            }
+        )
+    }
+
+    /** The palette reads authored colours, without leaking search UI or dark-mode replacements. */
+    @Test
+    fun documentPaletteUsesOriginalColors() {
+        respondToOpenDocumentWith(requireTestFile("spreadsheet-test.ods"))
+        openDocumentThroughPicker()
+        waitForDocumentActions()
+        val fragment =
+            requireNotNull(waitForDocumentFragment(mainActivityActivityTestRule.activity, 10000))
+        val page = requireNotNull(fragment.pageView)
+        evaluateJavascript(
+            page,
+            """
+            (function() {
+                var span = document.createElement('span');
+                span.textContent = 'palette fixture';
+                span.style.color = '#123456';
+                span.className = 'palette-fixture cpal';
+                document.body.appendChild(span);
+                var style = document.createElement('style');
+                style.textContent = '.palette-fixture {color:#abcdef!important}' +
+                    '.cpal.cpal.cpal {background-color:#246813}';
+                document.head.appendChild(style);
+            })()
+            """
+                .trimIndent(),
+        )
+        val result = AtomicReference<List<Int>>()
+        val latch = CountDownLatch(1)
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            page.requestDocumentColors {
+                result.set(it)
+                latch.countDown()
+            }
+        }
+        Assert.assertTrue(latch.await(JS_ANSWER_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+        Assert.assertTrue(result.get().contains(android.graphics.Color.parseColor("#123456")))
+        Assert.assertTrue(result.get().contains(android.graphics.Color.parseColor("#246813")))
+        Assert.assertFalse(result.get().contains(android.graphics.Color.parseColor("#abcdef")))
     }
 
     /** The rows and columns tool inserts a row over the pin in pro, and offers pro in lite. */

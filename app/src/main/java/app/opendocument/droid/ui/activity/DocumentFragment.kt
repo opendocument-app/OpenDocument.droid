@@ -533,6 +533,10 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
 
     private val editingToolsListener =
         object : EditingTools.Listener {
+            override fun requestDocumentColors(callback: (List<Int>) -> Unit) {
+                pageView?.requestDocumentColors(callback) ?: callback(emptyList())
+            }
+
             override fun onToggleStyle(property: String) {
                 analyticsManager.report("edit_format_$property")
 
