@@ -20,7 +20,10 @@ status=0
 # the test run takes about 4 minutes; anything past 20 is hung, and a hang has to
 # end as an ordinary failure so the logcat below still gets dumped and uploaded -
 # that is the only view into what the guest was doing
-timeout --kill-after=1m 20m ./gradlew connectedCheck || status=$?
+# A restored cache can remember a plugin as missing after a failed dependency update.
+# Recheck repository metadata while retaining downloaded artifacts; otherwise that cached
+# miss can prevent a matrix job from reaching any tests on later PRs.
+timeout --kill-after=1m 20m ./gradlew --refresh-dependencies connectedCheck || status=$?
 if [ "$status" = 0 ]; then
   python3 .github/scripts/verify-instrumented-tests.py || status=$?
 fi
