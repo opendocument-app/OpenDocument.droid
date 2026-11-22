@@ -93,7 +93,7 @@ class LandingAdapter(private val listener: Listener) :
             is LandingItem.Intro -> Unit
 
             is LandingItem.Document -> {
-                holder.icon.setImageResource(R.drawable.ic_description)
+                holder.icon.setImageResource(DocumentIcon.forFilename(item.filename))
                 holder.title.text = item.filename
                 holder.bindSubtitle(item.subtitle)
                 holder.itemView.setOnClickListener { listener.onDocumentClicked(item) }
