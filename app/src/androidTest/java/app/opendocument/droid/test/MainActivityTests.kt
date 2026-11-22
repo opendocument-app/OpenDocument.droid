@@ -7,6 +7,8 @@ package app.opendocument.droid.test
 import android.app.Activity
 import android.app.Instrumentation
 import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.SystemClock
 import android.view.View
@@ -22,6 +24,7 @@ import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.action.ViewActions.scrollTo
+import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
@@ -63,6 +66,7 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.not
 import org.junit.After
 import org.junit.AfterClass
 import org.junit.Assert
@@ -123,6 +127,72 @@ class MainActivityTests {
         if (mainActivityActivityTestRule.activity != null) {
             mainActivityActivityTestRule.finishActivity()
             InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+        }
+    }
+
+    @Test
+    fun searchNavigationStaysAccessibleAcrossRotation() {
+        val activity = mainActivityActivityTestRule.activity
+        val originalOrientation = activity.requestedOrientation
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+
+        fun rotateTo(requested: Int, expected: Int) {
+            instrumentation.runOnMainSync { activity.requestedOrientation = requested }
+            Assert.assertTrue(
+                "activity did not rotate",
+                waitFor(10000) { activity.resources.configuration.orientation == expected },
+            )
+            instrumentation.waitForIdleSync()
+        }
+
+        fun awaitMatchCount(expected: String) {
+            Assert.assertTrue(
+                "search did not select match $expected",
+                waitFor(10000) {
+                    try {
+                        onView(withId(R.id.matches)).check(matches(withText(expected)))
+                        true
+                    } catch (e: AssertionError) {
+                        false
+                    }
+                },
+            )
+        }
+
+        try {
+            rotateTo(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT, Configuration.ORIENTATION_PORTRAIT)
+            respondToOpenDocumentWith(requireTestFile("test.odt"))
+            openDocumentThroughPicker()
+            waitForDocumentActions()
+            onView(withContentDescription(R.string.menu_edit)).check(matches(isDisplayed()))
+            onView(withContentDescription(R.string.menu_search)).perform(click())
+            // Type into the existing Editable: replaceText replaces the buffer and drops the
+            // TextWatcher span that the find bar uses to start a search.
+            onView(withId(R.id.edit)).perform(typeText("simple"), closeSoftKeyboard())
+
+            // The fixture has seven occurrences. Actual taps must reach both controls while
+            // floating edit/actions stay hidden, including after rotating an active search.
+            fun checkNavigation() {
+                onView(withId(R.id.document_actions)).check(matches(not(isDisplayed())))
+                awaitMatchCount("1/7")
+                onView(withId(R.id.find_next)).check(matches(isDisplayed())).perform(click())
+                awaitMatchCount("2/7")
+                onView(withId(R.id.find_prev)).check(matches(isDisplayed())).perform(click())
+                awaitMatchCount("1/7")
+            }
+
+            checkNavigation()
+            rotateTo(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE, Configuration.ORIENTATION_LANDSCAPE)
+            checkNavigation()
+            rotateTo(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT, Configuration.ORIENTATION_PORTRAIT)
+            checkNavigation()
+
+            onView(withId(androidx.appcompat.R.id.action_mode_close_button)).perform(click())
+            onView(withId(R.id.find_next)).check(doesNotExist())
+            onView(withContentDescription(R.string.menu_edit)).check(matches(isDisplayed()))
+            waitForDocumentActions()
+        } finally {
+            instrumentation.runOnMainSync { activity.requestedOrientation = originalOrientation }
         }
     }
 
