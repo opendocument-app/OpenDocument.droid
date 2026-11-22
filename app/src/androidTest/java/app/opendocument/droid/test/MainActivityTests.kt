@@ -589,23 +589,36 @@ class MainActivityTests {
         val fragment =
             requireNotNull(waitForDocumentFragment(mainActivityActivityTestRule.activity, 10000))
         val page = requireNotNull(fragment.pageView)
-        evaluateJavascript(
-            page,
-            """
-            (function() {
-                var span = document.createElement('span');
-                span.textContent = 'palette fixture';
-                span.style.color = '#123456';
-                span.className = 'palette-fixture cpal';
-                document.body.appendChild(span);
-                var style = document.createElement('style');
-                style.textContent = '.palette-fixture {color:#abcdef!important}' +
-                    '.cpal.cpal.cpal {background-color:#246813}';
-                document.head.appendChild(style);
-            })()
-            """
-                .trimIndent(),
+        // The action buttons appear before the WebView has finished loading the sheet.
+        Assert.assertTrue(
+            "the sheet DOM did not finish loading",
+            waitFor(EDIT_MODE_TIMEOUT_MS) {
+                pageAnswers(
+                    page,
+                    "document.readyState === 'complete' && document.body && document.head",
+                )
+            },
         )
+        val fixtureResult =
+            evaluateJavascript(
+                page,
+                """
+                (function() {
+                    var span = document.createElement('span');
+                    span.textContent = 'palette fixture';
+                    span.style.color = '#123456';
+                    span.className = 'palette-fixture cpal';
+                    document.body.appendChild(span);
+                    var style = document.createElement('style');
+                    style.textContent = '.palette-fixture {color:#abcdef!important}' +
+                        '.cpal.cpal.cpal {background-color:#246813}';
+                    document.head.appendChild(style);
+                    return true;
+                })()
+                """
+                    .trimIndent(),
+            )
+        Assert.assertEquals("the palette fixture was not inserted", "true", fixtureResult)
         val result = AtomicReference<List<Int>>()
         val latch = CountDownLatch(1)
         InstrumentationRegistry.getInstrumentation().runOnMainSync {

@@ -1,6 +1,7 @@
 (function () {
     // Read authored declarations, not computed colours: night mode changes the latter.
     // Only the rendered page/sheet is available; do not force deferred content to load.
+    if (!document.body) return [];
     const colors = new Set();
     function add(value) {
         const match = /^rgb\(\s*(\d+),\s*(\d+),\s*(\d+)\s*\)$/.exec(value);
