@@ -136,7 +136,7 @@ internal class EditingColorPicker(private val context: Context) {
     private fun palette(): List<Pair<Int, String>> {
         val hues =
             listOf(
-                R.string.color_gray to listOf(0xffffff, 0xbdbdbd, 0x757575, 0x424242, 0x191c1e),
+                R.string.color_gray to listOf(0xffffff, 0xbdbdbd, 0x757575, 0x424242, 0x000000),
                 R.string.color_red to listOf(0xffcdd2, 0xef9a9a, 0xe53935, 0xc62828, 0x7f0000),
                 R.string.color_orange to listOf(0xffe0b2, 0xffb74d, 0xfb8c00, 0xef6c00, 0x8a3800),
                 R.string.color_yellow to listOf(0xfff59d, 0xffee58, 0xffeb3b, 0xc0a600, 0x756500),
@@ -159,7 +159,7 @@ internal class EditingColorPicker(private val context: Context) {
                 val label =
                     when (color) {
                         Color.WHITE -> context.getString(R.string.color_white)
-                        0xff191c1e.toInt() -> context.getString(R.string.color_black)
+                        Color.BLACK -> context.getString(R.string.color_black)
                         else -> context.getString(shades[shade], context.getString(name))
                     }
                 color to "$label, ${hex(color)}"

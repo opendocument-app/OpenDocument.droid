@@ -63,3 +63,55 @@ class InstrumentedResultsTest(unittest.TestCase):
         self.report("pro", '<testsuite>')
         with self.assertRaises(results.ET.ParseError):
             results.verify(self.root, ["pro"])
+
+    def test_summary_includes_assertion_and_counts(self):
+        self.report("foss", '''<testsuites><testsuite failures="1">
+            <testcase name="passed"/>
+            <testcase name="ignored"><skipped/></testcase>
+            <testcase classname="MainActivityTests" name="palette">
+                <failure>java.lang.AssertionError: expected #000000
+at MainActivityTests.kt:618</failure>
+            </testcase></testsuite></testsuites>''')
+        summary = results.summarize(self.root, ["foss"])
+        self.assertIn("| foss | 1 | 1 | 1 |", summary)
+        self.assertIn("foss: MainActivityTests.palette", summary)
+        self.assertIn("java.lang.AssertionError: expected #000000", summary)
+        self.assertIn("MainActivityTests.kt:618", summary)
+
+    def test_summary_handles_missing_malformed_and_runner_reports(self):
+        self.report("pro", '<testsuite>')
+        self.report("foss", '<testsuite errors="1"/>')
+        summary = results.summarize(self.root, ["pro", "lite", "foss"])
+        self.assertIn("Cannot read TEST-device.xml", summary)
+        self.assertIn("No test reports were produced", summary)
+        self.assertIn("suite reports a failure or runner error", summary)
+        self.assertIn("No tests executed", summary)
+
+    def test_summary_treats_assumptions_as_skips_but_preserves_errors(self):
+        self.report("pro", '''<testsuite failures="2" errors="1">
+            <testcase><failure type="org.junit.AssumptionViolatedException"/></testcase>
+            <testcase name="runner"><failure>org.junit.AssumptionViolatedException: skip</failure>
+                <error message="runner stopped"/></testcase>
+            </testsuite>''')
+        summary = results.summarize(self.root, ["pro"])
+        self.assertIn("| pro | 0 | 1 | 1 |", summary)
+        self.assertIn("runner stopped", summary)
+        self.assertNotIn("org.junit.AssumptionViolatedException", summary)
+
+    def test_summary_escapes_report_text(self):
+        self.report("pro", '''<testsuite><testcase name="&lt;b&gt;test&lt;/b&gt;">
+            <failure message="expected &lt;script&gt;">&lt;/pre&gt;&lt;img src=x&gt;</failure>
+            </testcase></testsuite>''')
+        summary = results.summarize(self.root, ["pro"])
+        self.assertIn("&lt;b&gt;test&lt;/b&gt;", summary)
+        self.assertIn("expected &lt;script&gt;", summary)
+        self.assertIn("&lt;/pre&gt;&lt;img src=x&gt;", summary)
+        self.assertNotIn("<img", summary)
+
+    def test_summary_bounds_long_failures(self):
+        case = '<testcase name="failed"><failure>' + ('x' * 5000) + '</failure></testcase>'
+        self.report("pro", '<testsuite>' + case * 51 + '</testsuite>')
+        summary = results.summarize(self.root, ["pro"])
+        self.assertEqual(50, summary.count("<details>"))
+        self.assertIn("1 more failures or report problems", summary)
+        self.assertNotIn('x' * 4001, summary)

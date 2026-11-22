@@ -53,6 +53,7 @@ import app.opendocument.droid.ui.widget.DocumentActions
 import app.opendocument.droid.ui.widget.EditingTools
 import app.opendocument.droid.ui.widget.PageView
 import app.opendocument.droid.ui.widget.ProgressDialogFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import java.io.File
 import java.io.FileNotFoundException
@@ -1226,13 +1227,10 @@ class DocumentFragment : Fragment(), DocumentLoader.Listener {
         // its own content view rather than setMessage plus the builder's buttons - see
         // dialog_broken_file.xml. strings off the activity: giveUp() already detached this
         // fragment, and its own getString() would throw
-        val view = activity.layoutInflater.inflate(R.layout.dialog_broken_file, null)
+        val builder = MaterialAlertDialogBuilder(activity)
+        val view = LayoutInflater.from(builder.context).inflate(R.layout.dialog_broken_file, null)
 
-        val dialog =
-            AlertDialog.Builder(activity)
-                .setTitle(R.string.dialog_broken_file_title)
-                .setView(view)
-                .show()
+        val dialog = builder.setTitle(R.string.dialog_broken_file_title).setView(view).show()
 
         view.findViewById<View>(R.id.dialog_broken_file_contact).setOnClickListener {
             contactSupport(activity)

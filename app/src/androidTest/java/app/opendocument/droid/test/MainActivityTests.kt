@@ -512,6 +512,16 @@ class MainActivityTests {
             )
             .inRoot(isDialog())
             .check(matches(isDisplayed()))
+        onView(withContentDescription(containsString("#000000")))
+            .inRoot(isDialog())
+            .perform(scrollTo(), tapWithoutTouch())
+        Assert.assertTrue(
+            "the black swatch did not apply pure black",
+            waitFor(EDIT_MODE_TIMEOUT_MS) {
+                pageAnswers(page, "odr.editing.getOperations().indexOf('#000000') >= 0")
+            },
+        )
+        onView(withContentDescription(R.string.tool_fill)).perform(openPalette)
         onView(withText(R.string.color_no_fill)).inRoot(isDialog()).perform(tapWithoutTouch())
         val cleared =
             waitFor(EDIT_MODE_TIMEOUT_MS) {

@@ -2,6 +2,7 @@
 """Reject Android test runs that produced no results or only skipped tests."""
 
 import argparse
+from html import escape
 from pathlib import Path
 import sys
 import xml.etree.ElementTree as ET
@@ -46,12 +47,83 @@ def verify(results, flavors):
     return counts
 
 
+def summarize(results, flavors):
+    """Describe every flavor, including partial reports from an unsuccessful Gradle run."""
+    lines = ["## Android device tests", "",
+             "| Flavor | Passed | Failed | Skipped |", "| --- | ---: | ---: | ---: |"]
+    details = []
+    for flavor in flavors:
+        reports = sorted((results / flavor).rglob("TEST-*.xml"))
+        passed = failed = skipped = 0
+        problems = []
+        for report in reports:
+            try:
+                root = ET.parse(report).getroot()
+            except (OSError, ET.ParseError) as error:
+                problems.append(f"Cannot read {report.name}: {error}")
+                continue
+            report_failures = 0
+            for case in root.iter("testcase"):
+                errors = list(case.findall("error"))
+                if not assumption_skipped(case):
+                    errors.extend(case.findall("failure"))
+                if errors:
+                    failed += 1
+                    report_failures += 1
+                    name = ".".join(filter(None, [case.get("classname"), case.get("name")]))
+                    message = "\n\n".join(
+                        "\n".join(filter(None, [error.get("message"), error.text]))
+                        or error.get("type") or "No failure details recorded."
+                        for error in errors
+                    )
+                    details.append((f"{flavor}: {name or 'unnamed test'}", message))
+                elif case.find("skipped") is not None or assumption_skipped(case):
+                    skipped += 1
+                else:
+                    passed += 1
+            # Runner failures may only have suite counters, with no failed testcase.
+            if not report_failures:
+                for suite in root.iter("testsuite"):
+                    try:
+                        assumptions = sum(assumption_skipped(c) for c in suite.iter("testcase"))
+                        has_failure = (int(suite.get("failures", 0)) > assumptions
+                                       or int(suite.get("errors", 0)) > 0)
+                    except ValueError:
+                        problems.append(f"Invalid suite counts in {report.name}")
+                        break
+                    if has_failure:
+                        problems.append(f"{report.name}: suite reports a failure or runner error "
+                                        "without a failed test case. See the test artifacts.")
+                        break
+        label = escape(flavor).replace("|", "&#124;")
+        lines.append(f"| {label} | {passed} | {failed} | {skipped} |")
+        if not reports:
+            problems.append("No test reports were produced. Check the emulator and Gradle logs.")
+        elif passed + failed == 0:
+            problems.append("No tests executed.")
+        details.extend((f"{flavor}: report problem", problem) for problem in problems)
+    lines.append("")
+    for title, message in details[:50]:
+        if len(message) > 4000:
+            message = message[:4000] + "\n… See the test artifacts for the full failure."
+        lines.extend([f"<details><summary>{escape(title)}</summary>", "",
+                      f"<pre>{escape(message)}</pre>", "", "</details>", ""])
+    if len(details) > 50:
+        lines.append(f"{len(details) - 50} more failures or report problems; see the test artifacts.")
+    return "\n".join(lines)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--results", type=Path,
                         default=Path("app/build/outputs/androidTest-results/connected/debug/flavors"))
     parser.add_argument("--flavors", nargs="+", default=["pro", "lite", "foss"])
+    parser.add_argument("--summary", action="store_true",
+                        help="Print a Markdown summary without changing test validation")
     args = parser.parse_args()
+    if args.summary:
+        print(summarize(args.results, args.flavors))
+        return 0
     try:
         for flavor, count in verify(args.results, args.flavors).items():
             print(f"{flavor}: {count} Android tests executed")
