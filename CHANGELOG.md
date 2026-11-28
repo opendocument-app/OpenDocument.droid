@@ -7,6 +7,19 @@ release, a pull request cuts that heading to the version. The release run makes 
 section the body of the GitHub release, and refuses a version without one. `scripts/store-copy.py` writes Play's
 "What's new" from the same section, under 500 characters per locale.
 
+## Unreleased
+
+- Recent documents show an icon for their file type.
+- Text, highlight and cell colours offer a palette of 40 colours, plus the colours used
+  recently and those in the document.
+- Legacy Word (.doc) documents show their page size and margins, and their paragraph styles,
+  alignment, indents and spacing.
+- A spreadsheet's grid goes on past its content, and editing reaches the empty cells there.
+- Word tables with a fixed layout keep their column widths, and Word text uses the
+  document's theme fonts.
+- Excel cell borders show their weight and pattern.
+- PowerPoint placeholders take their position, size and font from their slide layout.
+
 ## 4.25.0
 
 - Text documents show their page headers and footers when pages are on, and number headings
